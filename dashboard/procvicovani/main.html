@@ -24,15 +24,16 @@
 
     <style>
         /* --- Goal Selection Modal Styles --- */
+        /* Styles from main.css are assumed to handle the modal appearance */
         .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(var(--bg-color, 3, 2, 12), 0.85); z-index: 1050; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease, backdrop-filter 0.3s ease; backdrop-filter: blur(5px); padding: 1rem; }
         .modal.active { display: flex; opacity: 1; }
         .modal-content { background-color: var(--interface-bg, #0a071f); border-radius: var(--card-radius, 14px); width: 90%; max-width: 700px; box-shadow: var(--shadow-card, 0 12px 40px rgba(0, 0, 0, 0.4)); border: 1px solid var(--border-color-medium, rgba(160, 92, 255, 0.45)); display: flex; flex-direction: column; max-height: 90vh; animation: modalFadeIn 0.4s ease-out; overflow: hidden; }
         @keyframes modalFadeIn { from { opacity: 0; transform: translateY(-20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .modal-header { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border-color-light, rgba(160, 92, 255, 0.25)); display: flex; align-items: center; position: relative; }
-        .modal-title { font-size: 1.3rem; margin: 0; display: flex; align-items: center; justify-content: center; gap: 0.7rem; color: var(--text-heading, #fff); flex-grow: 1; text-align: center; padding: 0 40px; }
+        .modal-title { font-size: 1.3rem; margin: 0; display: flex; align-items: center; justify-content: center; gap: 0.7rem; color: var(--text-heading, #fff); flex-grow: 1; text-align: center; padding: 0 40px; } /* Centered title */
         .modal-title i { color: var(--accent-primary, #00e0ff); }
         .modal-body { padding: 1.5rem 2rem; overflow-y: auto; flex-grow: 1; }
-        .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border-color-light, rgba(160, 92, 255, 0.25)); display: flex; justify-content: flex-end; gap: 1rem; }
+        .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border-color-light, rgba(160, 92, 255, 0.25)); display: flex; justify-content: flex-end; gap: 1rem; flex-shrink: 0; /* Prevent footer shrinking */ }
         .modal-footer small { color: var(--text-muted); font-size: 0.85rem; text-align: center; width: 100%;}
 
         /* --- Multi-Step Modal Styles --- */
@@ -45,20 +46,24 @@
         /* Goal Selection Specific Styles */
         .goal-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; justify-content: center; }
         .goal-option-card { min-height: 150px; padding: 1.5rem; text-align: center; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; background-color: var(--card-solid, #0f0a2d); border: 1px solid var(--border-color-medium, rgba(160, 92, 255, 0.45)); color: var(--text-medium, #b8c4e0); display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: var(--card-radius, 14px); }
-         .goal-option-card:hover { transform: translateY(-5px) scale(1.02); box-shadow: var(--shadow-card-hover-enhanced, 0 18px 50px rgba(0, 0, 0, 0.45)); border-color: var(--accent-primary, #00e0ff); }
+        .goal-option-card:hover { transform: translateY(-5px) scale(1.02); box-shadow: var(--shadow-card-hover-enhanced, 0 18px 50px rgba(0, 0, 0, 0.45)); border-color: var(--accent-primary, #00e0ff); }
         .goal-icon { font-size: 2.2rem; color: var(--accent-primary, #00e0ff); margin-bottom: 0.8rem; display: block; }
-         .goal-option-card h3 { font-size: 1.1rem; color: var(--text-heading, #fff); margin-bottom: 0.5rem; font-weight: 600; }
-         .goal-option-card p { font-size: 0.85rem; color: var(--text-medium, #b8c4e0); margin-bottom: 0; line-height: 1.4; }
+        .goal-option-card h3 { font-size: 1.1rem; color: var(--text-heading, #fff); margin-bottom: 0.5rem; font-weight: 600; }
+        .goal-option-card p { font-size: 0.85rem; color: var(--text-medium, #b8c4e0); margin-bottom: 0; line-height: 1.4; }
 
         /* Step 2 Form Styles */
         .modal-body .form-group { margin-bottom: 1.5rem; text-align: left; border: 1px solid var(--border-color-light); padding: 1rem 1.2rem; border-radius: var(--button-radius); background-color: rgba(var(--bg-secondary-rgb), 0.3); }
         .modal-body .form-group legend, .modal-body .form-group > label:first-child { display: block; margin-bottom: 0.8rem; font-weight: 600; color: var(--text-light); font-size: 1rem; }
         .modal-body .form-group label { display: block; margin-bottom: 0.6rem; cursor: pointer; color: var(--text-medium); font-weight: 500; font-size: 0.95rem; }
         .modal-body .form-group input[type="checkbox"], .modal-body .form-group input[type="radio"] { margin-right: 0.7em; accent-color: var(--accent-primary); transform: scale(1.1); cursor: pointer; vertical-align: middle; }
-         .modal-body .form-group label:hover { color: var(--text-light); }
+        .modal-body .form-group label:hover { color: var(--text-light); }
         .modal-body .form-group small { display: block; margin-top: 0.8rem; color: var(--text-muted); font-size: 0.85rem; }
-        .modal-footer .btn-primary { /* Confirm button style */ }
+        .modal-footer .btn-primary { /* Confirm button style - uses base .btn styles */ }
         /* --- End Goal Selection Modal Styles --- */
+
+        /* --- Added Toast Container Styles --- */
+        .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; display: flex; flex-direction: column; gap: 0.8rem; max-width: 380px; pointer-events: none; }
+        /* Individual toast styles are assumed to be in dashboard.css */
     </style>
 
 </head>
@@ -92,7 +97,8 @@
             <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-astronaut"></i> <span>Profil</span> </a> </li>
         </ul>
         <div class="user-profile">
-            <div class="user-avatar" id="sidebar-avatar">?</div>
+             <div class="avatar-wrapper" data-decoration-key=""> <div class="user-avatar" id="sidebar-avatar">?</div>
+             </div>
             <div class="user-info">
                 <div class="user-name" id="sidebar-name">Načítání...</div>
                 <div class="user-role" id="sidebar-user-title" title="Váš titul">Pilot</div>
@@ -104,7 +110,8 @@
     <main id="main-content" style="display: none;">
         <div class="error-container" id="global-error" style="display: none;"></div>
 
-        <header class="dashboard-header"> <div class="header-content">
+        <header class="dashboard-header">
+            <div class="header-content">
                  <div class="header-left-group">
                       <button class="btn btn-icon-only sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Přepnout postranní panel" title="Přepnout postranní panel">
                            <i class="fas fa-chevron-left"></i>
@@ -130,7 +137,7 @@
                                  <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button>
                              </div>
                              <div id="notifications-list">
-                                 <div id="no-notifications-msg" style="padding: 1rem; text-align: center; color: var(--text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div>
+                                 <div id="no-notifications-msg" style="display: none; padding: 1rem; text-align: center; color: var(--text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div>
                              </div>
                              <div class="notifications-footer">
                                  <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a>
@@ -149,7 +156,7 @@
                  <a href="test1.html" class="btn btn-primary" id="start-test-btn-prompt"><i class="fas fa-play"></i> Spustit test</a>
              </div>
 
-            <div class="tabs-wrapper" style="display: none;"> <div class="content-tabs" id="content-tabs">
+            <div class="tabs-wrapper" id="tabs-wrapper" style="display: none;"> <div class="content-tabs" id="content-tabs">
                     <div class="content-tab active" data-tab="practice-tab"> <i class="fas fa-laptop-code"></i> Přehled </div>
                     <div class="content-tab" data-tab="test-results-tab"> <i class="fas fa-poll"></i> Testy </div>
                     <div class="content-tab" data-tab="study-plan-tab"> <i class="fas fa-route"></i> Plán </div>
@@ -161,11 +168,20 @@
                 <div class="tab-content active" id="practice-tab" style="display: none;">
                     <section class="stats-section">
                         <h2 class="section-title" data-animate style="--animation-order: 1;"><i class="fas fa-chart-pie"></i>Celkový Přehled</h2>
-                        <div class="dashboard-grid loading" id="stats-cards"> </div>
+                        <div class="dashboard-grid loading" id="stats-cards">
+                             <div class="dashboard-card card loading"> <div class="loading-skeleton"> <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 1rem;"></div> <div class="skeleton" style="height: 35px; width: 40%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 16px; width: 80%; margin-bottom: 1.5rem;"></div> <div class="skeleton" style="height: 14px; width: 50%;"></div> </div> </div>
+                             <div class="dashboard-card card loading"> <div class="loading-skeleton"> <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 1rem;"></div> <div class="skeleton" style="height: 35px; width: 40%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 16px; width: 80%; margin-bottom: 1.5rem;"></div> <div class="skeleton" style="height: 14px; width: 50%;"></div> </div> </div>
+                             <div class="dashboard-card card loading"> <div class="loading-skeleton"> <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 1rem;"></div> <div class="skeleton" style="height: 35px; width: 40%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 16px; width: 80%; margin-bottom: 1.5rem;"></div> <div class="skeleton" style="height: 14px; width: 50%;"></div> </div> </div>
+                             <div class="dashboard-card card loading"> <div class="loading-skeleton"> <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 1rem;"></div> <div class="skeleton" style="height: 35px; width: 40%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 16px; width: 80%; margin-bottom: 1.5rem;"></div> <div class="skeleton" style="height: 14px; width: 50%;"></div> </div> </div>
+                         </div>
                     </section>
                     <section class="shortcuts-section">
                         <h2 class="section-title" data-animate style="--animation-order: 6;"><i class="fas fa-rocket"></i>Rychlé Akce</h2>
-                        <div class="shortcut-grid loading" id="shortcuts-grid"> </div>
+                        <div class="shortcut-grid loading" id="shortcuts-grid">
+                             <div class="shortcut-card card loading"> <div class="loading-skeleton" style="align-items: center; padding: 1.8rem;"> <div class="skeleton" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div> <div class="skeleton" style="height: 18px; width: 70%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.4rem;"></div> <div class="skeleton" style="height: 14px; width: 80%;"></div> </div> </div>
+                             <div class="shortcut-card card loading"> <div class="loading-skeleton" style="align-items: center; padding: 1.8rem;"> <div class="skeleton" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div> <div class="skeleton" style="height: 18px; width: 70%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.4rem;"></div> <div class="skeleton" style="height: 14px; width: 80%;"></div> </div> </div>
+                             <div class="shortcut-card card loading"> <div class="loading-skeleton" style="align-items: center; padding: 1.8rem;"> <div class="skeleton" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div> <div class="skeleton" style="height: 18px; width: 70%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.4rem;"></div> <div class="skeleton" style="height: 14px; width: 80%;"></div> </div> </div>
+                         </div>
                     </section>
                 </div>
                 <div class="tab-content" id="test-results-tab" style="display: none;">
@@ -201,9 +217,8 @@
     </main>
 
     <div class="modal" id="goal-selection-modal" style="display: none;">
-        <div class="modal-content card">
-
-            <div class="modal-step active" id="goal-step-1"> <div class="modal-header" style="justify-content: center;">
+        <div class="modal-content card"> <div class="modal-step active" id="goal-step-1">
+                <div class="modal-header" style="justify-content: center;">
                     <h2 class="modal-title"><i class="fas fa-bullseye"></i> Jaký je Váš hlavní cíl?</h2>
                 </div>
                 <div class="modal-body">
@@ -212,26 +227,26 @@
                         Toto nastavení ovlivní doporučený obsah a funkce.
                     </p>
                     <div class="goal-options">
-                         <button class="goal-option-card card" data-goal="exam_prep">
-                            <i class="fas fa-graduation-cap goal-icon"></i>
-                            <h3>Příprava na přijímačky</h3>
-                            <p>Cílená příprava, testy a témata typická pro přijímací zkoušky.</p>
+                        <button class="goal-option-card card" data-goal="exam_prep">
+                           <i class="fas fa-graduation-cap goal-icon"></i>
+                           <h3>Příprava na přijímačky</h3>
+                           <p>Cílená příprava, testy a témata typická pro přijímací zkoušky.</p>
+                       </button>
+                       <button class="goal-option-card card" data-goal="math_accelerate">
+                           <i class="fas fa-rocket goal-icon"></i>
+                           <h3>Učení napřed</h3>
+                           <p>Chci se učit matematiku rychleji než ve škole nebo probírat pokročilejší témata.</p>
+                       </button>
+                       <button class="goal-option-card card" data-goal="math_review">
+                           <i class="fas fa-sync-alt goal-icon"></i>
+                           <h3>Doplnění mezer</h3>
+                           <p>Potřebuji zopakovat a procvičit témata, ve kterých si nejsem jistý/á.</p>
+                       </button>
+                        <button class="goal-option-card card" data-goal="math_explore">
+                            <i class="fas fa-compass goal-icon"></i>
+                            <h3>Volné prozkoumávání</h3>
+                            <p>Chci si sám/sama vybírat témata k učení a procvičování.</p>
                         </button>
-                        <button class="goal-option-card card" data-goal="math_accelerate">
-                            <i class="fas fa-rocket goal-icon"></i>
-                            <h3>Učení napřed</h3>
-                            <p>Chci se učit matematiku rychleji než ve škole nebo probírat pokročilejší témata.</p>
-                        </button>
-                        <button class="goal-option-card card" data-goal="math_review">
-                            <i class="fas fa-sync-alt goal-icon"></i>
-                            <h3>Doplnění mezer</h3>
-                            <p>Potřebuji zopakovat a procvičit témata, ve kterých si nejsem jistý/á.</p>
-                        </button>
-                         <button class="goal-option-card card" data-goal="math_explore">
-                             <i class="fas fa-compass goal-icon"></i>
-                             <h3>Volné prozkoumávání</h3>
-                             <p>Chci si sám/sama vybírat témata k učení a procvičování.</p>
-                         </button>
                     </div>
                 </div>
                 <div class="modal-footer" style="justify-content: center; border-top: none; padding-top: 0; margin-top: 1rem;">
@@ -239,15 +254,16 @@
                 </div>
             </div>
 
-            <div class="modal-step" id="goal-step-accelerate"> <div class="modal-header">
-                    <button type="button" class="modal-back-btn" data-target-step="goal-step-1"><i class="fas fa-arrow-left"></i> Zpět</button>
-                    <h2 class="modal-title"><i class="fas fa-rocket"></i> Učení napřed: Podrobnosti</h2>
-                </div>
+            <div class="modal-step" id="goal-step-accelerate">
+                 <div class="modal-header">
+                     <button type="button" class="modal-back-btn" data-target-step="goal-step-1"><i class="fas fa-arrow-left"></i> Zpět</button>
+                     <h2 class="modal-title"><i class="fas fa-rocket"></i> Učení napřed: Podrobnosti</h2>
+                 </div>
                 <div class="modal-body">
                     <div class="form-group" id="accelerate-areas-group">
                         <legend>Které oblasti matematiky vás primárně zajímají?</legend>
-                         <label><input type="checkbox" name="accelerate_area" value="algebra"> Algebra</label>
-                         <label><input type="checkbox" name="accelerate_area" value="geometry"> Geometrie</label>
+                        <label><input type="checkbox" name="accelerate_area" value="algebra"> Algebra</label>
+                        <label><input type="checkbox" name="accelerate_area" value="geometry"> Geometrie</label>
                          <label><input type="checkbox" name="accelerate_area" value="functions"> Funkce</label>
                          <label><input type="checkbox" name="accelerate_area" value="combinatorics"> Kombinatorika/Pravděpodobnost</label>
                          <label><input type="checkbox" name="accelerate_area" value="calculus"> Kalkulus (SŠ+)</label>
@@ -265,10 +281,11 @@
                 </div>
             </div>
 
-            <div class="modal-step" id="goal-step-review"> <div class="modal-header">
-                    <button type="button" class="modal-back-btn" data-target-step="goal-step-1"><i class="fas fa-arrow-left"></i> Zpět</button>
-                    <h2 class="modal-title"><i class="fas fa-sync-alt"></i> Doplnění mezer: Oblasti</h2>
-                </div>
+            <div class="modal-step" id="goal-step-review">
+                 <div class="modal-header">
+                     <button type="button" class="modal-back-btn" data-target-step="goal-step-1"><i class="fas fa-arrow-left"></i> Zpět</button>
+                     <h2 class="modal-title"><i class="fas fa-sync-alt"></i> Doplnění mezer: Oblasti</h2>
+                 </div>
                 <div class="modal-body">
                      <div class="form-group" id="review-areas-group">
                         <legend>Vyberte oblasti k opakování (nepovinné):</legend>
@@ -286,7 +303,8 @@
                 </div>
             </div>
 
-            <div class="modal-step" id="goal-step-explore"> <div class="modal-header">
+            <div class="modal-step" id="goal-step-explore">
+                 <div class="modal-header">
                      <button type="button" class="modal-back-btn" data-target-step="goal-step-1"><i class="fas fa-arrow-left"></i> Zpět</button>
                     <h2 class="modal-title"><i class="fas fa-compass"></i> Volné prozkoumávání: Úroveň</h2>
                 </div>
@@ -308,5 +326,6 @@
     </div>
     <div class="toast-container" id="toast-container"></div> <div id="mouse-follower" class="mouse-follower-glow"></div>
 
-    <script src="main.js" defer></script> </body>
+    <script src="main.js" defer></script>
+</body>
 </html>
