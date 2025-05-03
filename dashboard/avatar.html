@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Аватарка (Фикс размера)</title>
+    <title>Justax - Аватарка (с Оверлеем)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -83,33 +83,25 @@
         .sidebar-link.active { background-color: rgba(var(--accent-primary-rgb), 0.15); color: var(--white); font-weight: 600; border-left-color: var(--accent-primary); }
         .sidebar-link.active i { color: var(--accent-primary); }
         .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1.5rem; background-color: rgba(var(--accent-secondary-rgb), 0.1); border-radius: 12px; border: 1px solid var(--border-color-light); flex-shrink: 0; transition: padding var(--transition-medium) ease; overflow: hidden; white-space: nowrap; }
-        /* !!! УТОЧНЕННЫЕ СТИЛИ ДЛЯ АВАТАРА В САЙДБАРЕ !!! */
-        .sidebar .user-profile .avatar-wrapper { /* Контейнер для декораций */
-            position: relative; display: inline-block; line-height: 0;
+        /* Обертка аватара в сайдбаре */
+        .sidebar .user-profile .avatar-wrapper {
+            position: relative; /* Для позиционирования ::after */
+            display: inline-block; line-height: 0;
             margin-right: 0.85rem; transition: margin-right var(--transition-medium) ease;
-            flex-shrink: 0; /* Важно */
-            width: 42px; /* Базовый размер */
-            height: 42px; /* Базовый размер */
+            flex-shrink: 0;
+            width: 42px; height: 42px; border-radius: 50%; /* Добавил border-radius */
         }
-        .sidebar .user-profile .user-avatar {
-            width: 100%; /* Заполняет avatar-wrapper */
-            height: 100%; /* Заполняет avatar-wrapper */
+        .user-avatar { /* Сам аватар */
+            width: 100%; height: 100%;
             border-radius: 50%;
             background-color: var(--accent-secondary);
             display: flex; align-items: center; justify-content: center;
-            font-weight: 600; font-size: 1.1rem; /* Размер инициалов */
-            overflow: hidden; color: var(--white);
+            font-weight: 600; font-size: 1.1rem; overflow: hidden; color: var(--white);
             border: 2px solid rgba(var(--accent-primary-rgb), 0.3);
             transition: all var(--transition-medium) ease;
-            position: relative; /* Для z-index если есть img */
-            z-index: 1; /* Чтобы инициалы/фон были под img */
+            position: relative; z-index: 1;
         }
-        .sidebar .user-profile .user-avatar img {
-            width: 100%; height: 100%; object-fit: cover;
-            position: absolute; /* Поверх фона/инициалов */
-            top: 0; left: 0; z-index: 2;
-        }
-        /* --- КОНЕЦ УТОЧНЕНИЙ --- */
+        .user-avatar img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 2; }
         .user-info { flex-grow: 1; overflow: hidden; transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; }
         .user-name { font-weight: 600; font-size: 1rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .user-role { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -122,14 +114,10 @@
         body.sidebar-collapsed .sidebar-link { justify-content: center; padding: 0.85rem 0.5rem; }
         body.sidebar-collapsed .sidebar-link i { margin-right: 0; font-size: 1.4rem; }
         body.sidebar-collapsed .user-profile { padding: 0.8rem 0; justify-content: center; }
-        body.sidebar-collapsed .user-profile .avatar-wrapper { margin-right: 0; width: 40px; height: 40px; } /* Сжимаем обертку */
-        body.sidebar-collapsed .user-avatar { font-size: 1rem; } /* Уменьшаем шрифт инициалов */
+        body.sidebar-collapsed .user-profile .avatar-wrapper { margin-right: 0; width: 40px; height: 40px; }
+        body.sidebar-collapsed .user-avatar { font-size: 1rem; }
         body.sidebar-collapsed main#main-content { margin-left: var(--sidebar-collapsed-width); width: calc(100% - var(--sidebar-collapsed-width)); }
         body.sidebar-collapsed .sidebar-toggle-btn i { transform: rotate(180deg); }
-        body.sidebar-collapsed #sidebar-close-toggle { display: none; }
-        @media (min-width: 993px) { body.sidebar-collapsed .mobile-menu-toggle#main-mobile-menu-toggle { display: none; } }
-        body.sidebar-collapsed .sidebar-menu { overflow-y: hidden; scrollbar-width: none; padding: 0 0.5rem; }
-        body.sidebar-collapsed .sidebar-menu::-webkit-scrollbar { display: none; }
 
         /* Основной контент */
         main#main-content { flex: 1; margin-left: var(--sidebar-width); transition: margin-left var(--transition-medium), width var(--transition-medium); width: calc(100% - var(--sidebar-width)); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -140,23 +128,39 @@
         #dashboard-title i { color: var(--accent-primary); margin-right: 0.5rem; }
         .main-content-wrapper { flex-grow: 1; display: flex; flex-direction: column; padding: 1rem 0; }
 
-        /* Аватарка */
+        /* --- СТИЛИ ДЛЯ ОВЕРЛЕЯ АВАТАРА --- */
+        /* Контейнер аватара (в сайдбаре и основной) */
+        .avatar-wrapper {
+            position: relative; /* Необходимо для абсолютного позиционирования ::after */
+            display: inline-block; /* Или flex, если используется для центрирования */
+            vertical-align: middle; /* Для inline-block */
+            line-height: 0; /* Убирает лишний отступ под изображением */
+        }
+        /* Псевдоэлемент для оверлея */
+        .avatar-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Указываем путь к оверлею. Предполагаем, что avatar.html находится в папке dashboard */
+            background-image: url('assets/decor_1.png');
+            background-size: contain; /* Или cover, или задать конкретный размер */
+            background-position: center;
+            background-repeat: no-repeat;
+            pointer-events: none; /* Позволяет кликать сквозь оверлей */
+            z-index: 3; /* Должен быть выше img (z-index: 2) и фона/инициалов (z-index: 1) */
+            border-radius: 50%; /* Повторяем скругление */
+        }
+        /* --- КОНЕЦ СТИЛЕЙ ДЛЯ ОВЕРЛЕЯ --- */
+
+        /* Аватарка (основная область) */
         #avatar-display-area { display: flex; justify-content: center; align-items: center; flex-grow: 1; padding: 2rem; }
-        #avatar-display-area .avatar-wrapper { /* Используем тот же класс, что и в профиле сайдбара */
-            position: relative;
-            width: 250px; height: 250px; border-radius: 50%;
-            overflow: hidden; border: 5px solid var(--accent-primary);
-            box-shadow: 0 0 30px rgba(var(--accent-primary-rgb), 0.6), inset 0 0 15px rgba(0,0,0,0.2);
-            background: var(--gradient-profile-avatar, var(--card-solid));
-        }
+        #avatar-display-area .avatar-wrapper { width: 250px; height: 250px; border-radius: 50%; overflow: visible; /* Allow overlay overflow if needed */ border: 5px solid var(--accent-primary); box-shadow: 0 0 30px rgba(var(--accent-primary-rgb), 0.6), inset 0 0 15px rgba(0,0,0,0.2); background: var(--gradient-profile-avatar, var(--card-solid)); }
         #avatar-display-area .avatar-wrapper img,
-        #avatar-display-area .avatar-wrapper .avatar-placeholder {
-            width: 100%; height: 100%; object-fit: cover;
-            display: flex; align-items: center; justify-content: center;
-            color: var(--white); font-size: 5rem; font-weight: 600;
-            background-color: transparent;
-        }
-         #avatar-display-area .avatar-placeholder span { line-height: 1; }
+        #avatar-display-area .avatar-wrapper .avatar-placeholder { width: 100%; height: 100%; object-fit: cover; display: flex; align-items: center; justify-content: center; color: var(--white); font-size: 5rem; font-weight: 600; background-color: transparent; border-radius: 50%; }
+        #avatar-display-area .avatar-placeholder span { line-height: 1; }
 
         /* Футер */
         .dashboard-footer { margin-top: auto; padding: 1.5rem var(--container-padding-x); text-align: center; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border-color-light); opacity: 0.6; flex-shrink: 0; }
@@ -168,7 +172,7 @@
         /* Адаптивность */
         @media (max-width: 992px) { .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } }
         @media (max-width: 768px) { main { padding: 0 1rem; } .dashboard-header { padding: 0.8rem 1rem; } .header-content { flex-direction: column; align-items: stretch; } .header-left-group { justify-content: space-between;} #avatar-display-area { padding: 1rem;} #avatar-display-area .avatar-wrapper { width: 200px; height: 200px; } }
-        @media (max-width: 576px) { main { padding: 0 0.75rem; margin-left: 0; width: 100%; } .sidebar { transform: translateX(-110%); width: 280px; z-index: 1000; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { padding: 1rem; } .sidebar.active .user-profile .avatar-wrapper { margin-right: 0.85rem; width: 42px; height: 42px; } /* Reset wrapper size */ .sidebar.active .user-avatar { font-size: 1.1rem; } .sidebar-toggle-btn { display: none; } #avatar-display-area .avatar-wrapper { width: 150px; height: 150px; } #avatar-display-area .avatar-placeholder { font-size: 3rem; } }
+        @media (max-width: 576px) { main { padding: 0 0.75rem; margin-left: 0; width: 100%; } .sidebar { transform: translateX(-110%); width: 280px; z-index: 1000; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { padding: 1rem; } .sidebar.active .user-profile .avatar-wrapper { margin-right: 0.85rem; width: 42px; height: 42px; } .sidebar.active .user-avatar { font-size: 1.1rem; } .sidebar-toggle-btn { display: none; } #avatar-display-area .avatar-wrapper { width: 150px; height: 150px; } #avatar-display-area .avatar-placeholder { font-size: 3rem; } }
 
         /* Уменьшение движения */
         @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } .sidebar, main { transition: none !important; } .btn-icon-only i { transition: none !important; } }
@@ -181,12 +185,8 @@
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu">
-                <i class="fas fa-times"></i>
-            </button>
-            <a href="/dashboard/dashboard.html" class="sidebar-logo">
-                <i class="fas fa-atom"></i> <span>Justax</span>
-            </a>
+            <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu"> <i class="fas fa-times"></i> </button>
+            <a href="/dashboard/dashboard.html" class="sidebar-logo"> <i class="fas fa-atom"></i> <span>Justax</span> </a>
         </div>
         <ul class="sidebar-menu">
             <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-tachometer-alt"></i> <span>Nástěnka</span> </a> </li>
@@ -205,25 +205,18 @@
                 <div class="user-role" id="sidebar-user-title" title="Váš titul">Пилот</div>
             </div>
         </div>
-        <div class="sidebar-footer">
-            &copy; <span id="currentYearSidebar">2025</span> Justax Systems
-        </div>
+        <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
     </aside>
 
     <main id="main-content">
         <header class="dashboard-header">
              <div class="header-content">
                  <div class="header-left-group">
-                     <button class="btn btn-icon-only sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Přepnout postranní panel" title="Přepnout postranní panel">
-                          <i class="fas fa-chevron-left"></i>
-                      </button>
-                     <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
-                         <i class="fas fa-bars"></i>
-                    </button>
-                    <h1 id="dashboard-title"><i class="fas fa-user-circle"></i> Аватарка</h1>
+                     <button class="btn btn-icon-only sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Přepnout postranní panel" title="Přepnout postranní panel"> <i class="fas fa-chevron-left"></i> </button>
+                     <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu"> <i class="fas fa-bars"></i> </button>
+                     <h1 id="dashboard-title"><i class="fas fa-user-circle"></i> Аватарка</h1>
                  </div>
-                 <div class="header-actions">
-                     </div>
+                 <div class="header-actions"></div>
              </div>
         </header>
 
@@ -244,7 +237,7 @@
     <script>
         (function() {
             'use strict';
-            console.log("[Init Avatar Standalone v2] Starting...");
+            console.log("[Init Avatar Standalone v3 - Overlay] Starting...");
 
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
@@ -281,10 +274,11 @@
 
             async function fetchUserProfile(userId) { if (!supabase || !userId) return null; try { const { data, error } = await supabase.from('profiles').select('*, selected_title').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; return data; } catch (e) { console.error('Profile fetch error:', e); return null; } }
             async function fetchTitles() { if (!supabase) return []; try { const { data, error } = await supabase.from('title_shop').select('title_key, name'); if (error) throw error; return data || []; } catch (e) { console.error("Titles fetch error:", e); return []; } }
-             async function createDefaultProfile(userId, userEmail) { if (!supabase || !userId || !userEmail) return null; try { const defaultData = { id: userId, email: userEmail, username: userEmail.split('@')[0] || `user_${userId.substring(0, 6)}`, level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches }, notifications: { email: true } }; const { data: newProfile, error } = await supabase.from('profiles').insert(defaultData).select('*, selected_title').single(); if (error) { if (error.code === '23505') { return await fetchUserProfile(userId); } throw error; } return newProfile; } catch (error) { console.error("Failed to create default profile:", error); return null; } }
+             async function createDefaultProfile(userId, userEmail) { /* ... (same as previous) ... */ if (!supabase || !userId || !userEmail) return null; try { const defaultData = { id: userId, email: userEmail, username: userEmail.split('@')[0] || `user_${userId.substring(0, 6)}`, level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches }, notifications: { email: true } }; const { data: newProfile, error } = await supabase.from('profiles').insert(defaultData).select('*, selected_title').single(); if (error) { if (error.code === '23505') { return await fetchUserProfile(userId); } throw error; } return newProfile; } catch (error) { console.error("Failed to create default profile:", error); return null; } }
+
 
             function updateUI(profile, titles) {
-                console.log("Updating UI, profile:", profile ? 'found' : 'missing');
+                console.log("Updating UI...");
                 // Сайдбар
                 if (ui.sidebarName && ui.sidebarAvatar && ui.sidebarUserTitle) {
                     if (profile) {
@@ -292,16 +286,12 @@
                         ui.sidebarName.textContent = sanitizeHTML(displayName);
                         const initials = getInitials(profile);
                         const avatarUrl = profile.avatar_url;
-                        const sidebarAvatarContainer = ui.sidebarAvatar.closest('.avatar-wrapper'); // Найдем обертку
-                         if (sidebarAvatarContainer) {
-                             const decorationKey = profile.selected_decoration || '';
-                             // Очистим старые классы декораций, если они есть
-                             const existingClasses = sidebarAvatarContainer.className.split(' ').filter(c => c.startsWith('decoration-'));
-                             sidebarAvatarContainer.classList.remove(...existingClasses);
-                             if (decorationKey) sidebarAvatarContainer.classList.add(`decoration-${sanitizeHTML(decorationKey)}`);
-                             sidebarAvatarContainer.dataset.decorationKey = decorationKey;
-                         }
+                        const sidebarAvatarContainer = ui.sidebarAvatar.closest('.avatar-wrapper');
+
+                        // Обновление аватара в сайдбаре
                         ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
+
+                        // Обновление титула
                         const selectedTitleKey = profile.selected_title;
                         let displayTitle = 'Pilot';
                         if (selectedTitleKey && titles?.length > 0) {
@@ -314,15 +304,8 @@
                         ui.sidebarName.textContent = "Nepřihlášen";
                         ui.sidebarAvatar.textContent = '?';
                         ui.sidebarUserTitle.textContent = 'Pilot';
-                        ui.sidebarUserTitle.removeAttribute('title');
-                         const sidebarAvatarContainer = ui.sidebarAvatar.closest('.avatar-wrapper');
-                         if (sidebarAvatarContainer) {
-                             const existingClasses = sidebarAvatarContainer.className.split(' ').filter(c => c.startsWith('decoration-'));
-                             sidebarAvatarContainer.classList.remove(...existingClasses);
-                             sidebarAvatarContainer.dataset.decorationKey = '';
-                         }
                     }
-                } else { console.warn("Missing sidebar UI elements for update."); }
+                }
 
                 // Основной аватар
                 if (ui.mainAvatarDisplay) {
@@ -330,12 +313,7 @@
                      if (profile) {
                          const initials = getInitials(profile);
                          const avatarUrl = profile.avatar_url;
-                         if (mainAvatarContainer) {
-                             const decorationKey = profile.selected_decoration || '';
-                              const existingClasses = mainAvatarContainer.className.split(' ').filter(c => c.startsWith('decoration-'));
-                             mainAvatarContainer.classList.remove(...existingClasses);
-                             if (decorationKey) mainAvatarContainer.classList.add(`decoration-${sanitizeHTML(decorationKey)}`);
-                         }
+
                          if (avatarUrl) {
                              const img = document.createElement('img');
                              img.src = `${sanitizeHTML(avatarUrl)}?t=${Date.now()}`;
@@ -348,12 +326,8 @@
                          }
                      } else {
                          ui.mainAvatarDisplay.innerHTML = `<span>?</span>`;
-                          if (mainAvatarContainer) {
-                             const existingClasses = mainAvatarContainer.className.split(' ').filter(c => c.startsWith('decoration-'));
-                             mainAvatarContainer.classList.remove(...existingClasses);
-                         }
                      }
-                } else { console.warn("Main avatar display element missing."); }
+                }
             }
 
             function setupEventListeners() {
@@ -367,7 +341,7 @@
             }
 
             async function initializeApp() {
-                console.log("[Init Avatar Standalone v2] Running initializeApp...");
+                console.log("[Init Avatar Standalone v3] Running initializeApp...");
                 if (!initializeSupabase()) return;
 
                 applyInitialSidebarState();
@@ -384,21 +358,16 @@
                         currentUser = session.user;
                         console.log(`[Init Avatar] User authenticated (ID: ${currentUser.id}).`);
 
-                        const [profileResult, titlesResult] = await Promise.allSettled([
+                         const [profileResult, titlesResult] = await Promise.allSettled([
                              fetchUserProfile(currentUser.id),
                              fetchTitles()
                         ]);
 
-                        if (profileResult.status === 'fulfilled' && profileResult.value) {
-                            currentProfile = profileResult.value;
-                        } else {
-                             console.warn("Failed profile fetch, trying default...");
-                             currentProfile = await createDefaultProfile(currentUser.id, currentUser.email);
-                             if (!currentProfile) throw new Error("Failed profile fetch/create.");
-                         }
+                         if (profileResult.status === 'fulfilled' && profileResult.value) { currentProfile = profileResult.value; }
+                         else { currentProfile = await createDefaultProfile(currentUser.id, currentUser.email); if (!currentProfile) throw new Error("Failed profile fetch/create."); }
 
-                        if (titlesResult.status === 'fulfilled') { allTitles = titlesResult.value || []; }
-                        else { console.warn("Failed titles fetch:", titlesResult.reason); allTitles = []; }
+                         if (titlesResult.status === 'fulfilled') { allTitles = titlesResult.value || []; }
+                         else { console.warn("Titles fetch failed:", titlesResult.reason); allTitles = []; }
 
                         updateUI(currentProfile, allTitles);
 
@@ -417,7 +386,6 @@
                 }
             }
 
-            // --- Запуск ---
             document.addEventListener('DOMContentLoaded', initializeApp);
 
         })();
