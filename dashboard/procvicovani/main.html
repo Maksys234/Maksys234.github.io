@@ -37,7 +37,7 @@
 
         /* Multi-Step Styles */
         .modal-step { display: none; flex-direction: column; width: 100%; animation: stepFadeIn 0.3s ease-out forwards; }
-        .modal-step.active { display: flex; } /* Only the active step is shown */
+        .modal-step.active { display: flex; }
         @keyframes stepFadeIn { from { opacity: 0; transform: translateX(15px); } to { opacity: 1; transform: translateX(0); } }
         .modal-header .modal-back-btn { background: none; border: none; color: var(--text-muted); font-size: 1rem; cursor: pointer; padding: 0.3rem 0.6rem; transition: color 0.2s ease; display: flex; align-items: center; gap: 0.4em; position: absolute; left: 1.5rem; top: 50%; transform: translateY(-50%); }
         .modal-header .modal-back-btn:hover { color: var(--accent-primary); }
@@ -60,6 +60,7 @@
 
         /* Toast Container */
         .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; display: flex; flex-direction: column; gap: 0.8rem; max-width: 380px; pointer-events: none; }
+        /* Individual toast styles assumed in dashboard.css */
     </style>
 
 </head>
@@ -92,10 +93,10 @@
 
             <div class="tab-content-container">
                 <div class="tab-content active" id="practice-tab" style="display: none;">
-                    <section class="stats-section"> <h2 class="section-title" data-animate style="--animation-order: 1;"><i class="fas fa-chart-pie"></i>Celkový Přehled</h2> <div class="dashboard-grid loading" id="stats-cards"> <div class="dashboard-card card loading"> <div class="loading-skeleton"> <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 1rem;"></div> <div class="skeleton" style="height: 35px; width: 40%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 16px; width: 80%; margin-bottom: 1.5rem;"></div> <div class="skeleton" style="height: 14px; width: 50%;"></div> </div> </div> <div class="dashboard-card card loading"> <div class="loading-skeleton"> <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 1rem;"></div> <div class="skeleton" style="height: 35px; width: 40%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 16px; width: 80%; margin-bottom: 1.5rem;"></div> <div class="skeleton" style="height: 14px; width: 50%;"></div> </div> </div> <div class="dashboard-card card loading"> <div class="loading-skeleton"> <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 1rem;"></div> <div class="skeleton" style="height: 35px; width: 40%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 16px; width: 80%; margin-bottom: 1.5rem;"></div> <div class="skeleton" style="height: 14px; width: 50%;"></div> </div> </div> <div class="dashboard-card card loading"> <div class="loading-skeleton"> <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 1rem;"></div> <div class="skeleton" style="height: 35px; width: 40%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 16px; width: 80%; margin-bottom: 1.5rem;"></div> <div class="skeleton" style="height: 14px; width: 50%;"></div> </div> </div> </div> </section>
-                    <section class="shortcuts-section"> <h2 class="section-title" data-animate style="--animation-order: 6;"><i class="fas fa-rocket"></i>Rychlé Akce</h2> <div class="shortcut-grid loading" id="shortcuts-grid"> <div class="shortcut-card card loading"> <div class="loading-skeleton" style="align-items: center; padding: 1.8rem;"> <div class="skeleton" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div> <div class="skeleton" style="height: 18px; width: 70%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.4rem;"></div> <div class="skeleton" style="height: 14px; width: 80%;"></div> </div> </div> <div class="shortcut-card card loading"> <div class="loading-skeleton" style="align-items: center; padding: 1.8rem;"> <div class="skeleton" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div> <div class="skeleton" style="height: 18px; width: 70%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.4rem;"></div> <div class="skeleton" style="height: 14px; width: 80%;"></div> </div> </div> <div class="shortcut-card card loading"> <div class="loading-skeleton" style="align-items: center; padding: 1.8rem;"> <div class="skeleton" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div> <div class="skeleton" style="height: 18px; width: 70%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.4rem;"></div> <div class="skeleton" style="height: 14px; width: 80%;"></div> </div> </div> </div> </section>
-                </div>
-                <div class="tab-content" id="test-results-tab" style="display: none;"> <section class="test-results-section card loading" id="test-results-container"> <h2 class="section-title"><i class="fas fa-poll"></i>Historie Testů</h2> <div class="loading-overlay hidden" id="test-results-loading"> <div class="loading-spinner"></div> </div> <div id="test-results-content" style="display: none;"></div> <div class="empty-state" id="test-results-empty" style="display: none;"> <i class="fas fa-vial empty-state-icon"></i> <h3>Zatím žádné výsledky</h3> <p>Absolvujte test pro zobrazení výsledků.</p> <a href="test1.html" class="btn btn-primary empty-state-action" id="start-test-btn-results"> <i class="fas fa-play-circle"></i> Spustit test </a> </div> </section> </div>
+                     <section class="stats-section"> <h2 class="section-title" data-animate style="--animation-order: 1;"><i class="fas fa-chart-pie"></i>Celkový Přehled</h2> <div class="dashboard-grid loading" id="stats-cards"> </div> </section>
+                     <section class="shortcuts-section"> <h2 class="section-title" data-animate style="--animation-order: 6;"><i class="fas fa-rocket"></i>Rychlé Akce</h2> <div class="shortcut-grid loading" id="shortcuts-grid"> </div> </section>
+                 </div>
+                 <div class="tab-content" id="test-results-tab" style="display: none;"> <section class="test-results-section card loading" id="test-results-container"> <h2 class="section-title"><i class="fas fa-poll"></i>Historie Testů</h2> <div class="loading-overlay hidden" id="test-results-loading"> <div class="loading-spinner"></div> </div> <div id="test-results-content" style="display: none;"></div> <div class="empty-state" id="test-results-empty" style="display: none;"> <i class="fas fa-vial empty-state-icon"></i> <h3>Zatím žádné výsledky</h3> <p>Absolvujte test pro zobrazení výsledků.</p> <a href="test1.html" class="btn btn-primary empty-state-action" id="start-test-btn-results"> <i class="fas fa-play-circle"></i> Spustit test </a> </div> </section> </div>
                  <div class="tab-content" id="study-plan-tab" style="display: none;"> <section class="study-plan-section card loading" id="study-plan-container"> <h2 class="section-title"><i class="fas fa-route"></i>Aktuální Studijní Plán</h2> <div class="loading-overlay hidden" id="study-plan-loading"> <div class="loading-spinner"></div> </div> <div id="study-plan-content" style="display: none;"> <div id="main-plan-schedule" class="schedule-grid"></div> </div> <div class="empty-state" id="study-plan-empty" style="display: none;"> <i class="far fa-calendar-times empty-state-icon"></i> <h3>Žádný aktivní plán</h3> <p>Váš plán se vytvoří po diagnostickém testu.</p> <a href="test1.html" class="btn btn-primary empty-state-action" id="start-test-btn-plan"> <i class="fas fa-play-circle"></i> Spustit test </a> </div> </section> </div>
                  <div class="tab-content" id="topic-analysis-tab" style="display: none;"> <section class="topic-analysis-section card loading" id="topic-analysis-container"> <h2 class="section-title"><i class="fas fa-atom"></i>Analýza podle Témat</h2> <div class="loading-overlay hidden" id="topic-analysis-loading"> <div class="loading-spinner"></div> </div> <div id="topic-analysis-content" style="display: none;"> <div id="topic-grid" class="topic-grid"></div> </div> <div class="empty-state" id="topic-analysis-empty" style="display: none;"> <i class="fas fa-tasks empty-state-icon"></i> <h3>Chybí data pro analýzu</h3> <p>Absolvujte test pro analýzu znalostí.</p> <a href="test1.html" class="btn btn-primary empty-state-action" id="start-test-btn-analysis"> <i class="fas fa-play-circle"></i> Spustit test </a> </div> </section> </div>
             </div>
@@ -107,15 +108,14 @@
     </main>
 
     <div class="modal" id="goal-selection-modal" style="display: none;">
-        <div class="modal-content card"> <div class="modal-step active" id="goal-step-1">
+        <div class="modal-content card">
+
+            <div class="modal-step active" id="goal-step-1">
                 <div class="modal-header" style="justify-content: center;">
                     <h2 class="modal-title"><i class="fas fa-bullseye"></i> Jaký je Váš hlavní cíl?</h2>
                 </div>
                 <div class="modal-body">
-                    <p style="text-align: center; margin-bottom: 2rem;">
-                        Vyberte si, na co se chcete v sekci Procvičování primárně zaměřit.
-                        Toto nastavení ovlivní doporučený obsah a funkce.
-                    </p>
+                    <p style="text-align: center; margin-bottom: 2rem;"> Vyberte si, na co se chcete v sekci Procvičování primárně zaměřit. Toto nastavení ovlivní doporučený obsah a funkce. </p>
                     <div class="goal-options">
                         <button class="goal-option-card card" data-goal="exam_prep"> <i class="fas fa-graduation-cap goal-icon"></i> <h3>Příprava na přijímačky</h3> <p>Cílená příprava, testy a témata typická pro přijímací zkoušky.</p> </button>
                         <button class="goal-option-card card" data-goal="math_accelerate"> <i class="fas fa-rocket goal-icon"></i> <h3>Učení napřed</h3> <p>Chci se učit matematiku rychleji než ve škole nebo probírat pokročilejší témata.</p> </button>
@@ -126,11 +126,15 @@
                 <div class="modal-footer" style="justify-content: center; border-top: none; padding-top: 0; margin-top: 1rem;">
                     <small>Svůj cíl můžete později změnit v <a href="/dashboard/profile.html" style="color: var(--text-link);">nastavení profilu</a>.</small>
                 </div>
-            </div> <div class="modal-step" id="goal-step-accelerate">
+            </div>
+
+            <div class="modal-step" id="goal-step-accelerate">
                  <div class="modal-header"> <button type="button" class="modal-back-btn" data-target-step="goal-step-1"><i class="fas fa-arrow-left"></i> Zpět</button> <h2 class="modal-title"><i class="fas fa-rocket"></i> Učení napřed: Podrobnosti</h2> </div>
                 <div class="modal-body"> <div class="form-group" id="accelerate-areas-group"> <legend>Které oblasti matematiky vás primárně zajímají?</legend> <label><input type="checkbox" name="accelerate_area" value="algebra"> Algebra</label> <label><input type="checkbox" name="accelerate_area" value="geometry"> Geometrie</label> <label><input type="checkbox" name="accelerate_area" value="functions"> Funkce</label> <label><input type="checkbox" name="accelerate_area" value="combinatorics"> Kombinatorika/Pravděpodobnost</label> <label><input type="checkbox" name="accelerate_area" value="calculus"> Kalkulus (SŠ+)</label> </div> <div class="form-group" id="accelerate-reason-group"> <legend>Proč se chcete učit napřed?</legend> <label><input type="radio" name="accelerate_reason" value="school_ahead"> Chci být napřed ve škole</label> <label><input type="radio" name="accelerate_reason" value="university_prep"> Příprava na VŠ/Olympiády</label> <label><input type="radio" name="accelerate_reason" value="personal_interest"> Osobní zájem</label> <label><input type="radio" name="accelerate_reason" value="professional"> Profesní potřeby</label> </div> </div>
-                <div class="modal-footer"> <button type="button" class="btn btn-primary modal-confirm-btn" data-goal="math_accelerate">Potvrdit a pokračovat</button> </div>
-            </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary modal-confirm-btn" data-goal="math_accelerate">Potvrdit a pokračovat</button>
+                </div>
+                </div>
 
             <div class="modal-step" id="goal-step-review">
                  <div class="modal-header"> <button type="button" class="modal-back-btn" data-target-step="goal-step-1"><i class="fas fa-arrow-left"></i> Zpět</button> <h2 class="modal-title"><i class="fas fa-sync-alt"></i> Doplnění mezer: Oblasti</h2> </div>
