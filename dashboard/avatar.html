@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Улучшенные аватарки</title>
+    <title>Justax - Обновленные Аватарки</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        /* --- START: Rewritten and Enhanced CSS v2 --- */
+        /* --- START: Rewritten and Enhanced CSS v3 --- */
         /* Глобальные переменные */
         :root {
             --bg-color: #03020c; --bg-secondary: #0a071f; --bg-secondary-rgb: 10, 7, 31;
@@ -120,121 +120,48 @@
 
         /* --- AVATAR DISPLAY AREA --- */
         #avatar-display-area { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--avatar-size), 1fr)); gap: 2.5rem; justify-items: center; padding-bottom: 2rem; }
-
-        .avatar-wrapper {
-            width: var(--avatar-size); height: var(--avatar-size);
-            position: relative; display: flex; align-items: center; justify-content: center;
-            border-radius: 50%; background-color: rgba(var(--card-solid-rgb), 0.5);
-            box-shadow: var(--shadow-card);
-            transition: transform var(--transition-medium), box-shadow var(--transition-medium);
-            cursor: pointer;
-        }
+        .avatar-wrapper { width: var(--avatar-size); height: var(--avatar-size); position: relative; display: flex; align-items: center; justify-content: center; border-radius: 50%; background-color: rgba(var(--card-solid-rgb), 0.5); box-shadow: var(--shadow-card); transition: transform var(--transition-medium), box-shadow var(--transition-medium); cursor: pointer; }
         .avatar-wrapper:hover { transform: translateY(-4px) scale(1.04); box-shadow: var(--shadow-card-hover-enhanced); }
         .avatar-content { width: 85%; height: 85%; border-radius: 50%; background-color: var(--accent-secondary); color: var(--white); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; z-index: 1; box-sizing: border-box; }
         .avatar-content img { display: block; width: 100%; height: 100%; object-fit: cover; }
         .avatar-content .avatar-placeholder { font-size: 2.5rem; font-weight: 600; line-height: 1; text-shadow: 1px 1px 2px rgba(0,0,0,0.4); }
 
-        /* --- NEW FRAME STYLES v2 --- */
+        /* --- FRAME STYLES v3 --- */
+        /* Default (Simple Border) */
+        .avatar-frame-default { border: 3px solid var(--border-color-medium); }
+
         /* 1. Корона (Crown Frame) - Kept */
         .avatar-frame-crown { border: 3px solid gold; box-shadow: 0 0 15px gold, inset 0 0 5px rgba(255, 215, 0, 0.3); }
         .avatar-frame-crown::before { content: '👑'; font-size: calc(var(--avatar-size) * 0.25); position: absolute; top: -15%; left: 50%; transform: translateX(-50%); color: gold; text-shadow: 0 2px 4px rgba(0,0,0,0.5); z-index: 2; }
 
-        /* 2. Венок из цветов (Flower Wreath) - Simulated */
-        .avatar-frame-wreath { border: 4px dashed transparent; position: relative; background-color: transparent; box-shadow: none; }
-        .avatar-frame-wreath::before, .avatar-frame-wreath::after { content: ''; position: absolute; border-radius: 50%; z-index: 0; }
-        .avatar-frame-wreath::before { /* Leaves */ inset: -6px; border: 6px solid transparent; background: conic-gradient(from 0deg, #2e8b57 0 30deg, #90ee90 30deg 60deg, #3cb371 60deg 90deg, transparent 90deg 180deg, #2e8b57 180deg 210deg, #90ee90 210deg 240deg, #3cb371 240deg 270deg, transparent 270deg 360deg); animation: wreathRotate 15s linear infinite; }
-        .avatar-frame-wreath::after { /* Flowers */ inset: -8px; border: 2px solid transparent; background: radial-gradient(circle at 15% 15%, #ff69b4 5px, transparent 5px), radial-gradient(circle at 85% 85%, #ffb6c1 4px, transparent 4px), radial-gradient(circle at 15% 85%, #ff1493 6px, transparent 6px), radial-gradient(circle at 85% 15%, #db7093 5px, transparent 5px); background-size: 100% 100%; background-repeat: no-repeat; animation: wreathRotate 15s linear infinite reverse; }
-        @keyframes wreathRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        /* 2. Металл (Metal Frame) - Kept */
+        .avatar-frame-metal { border: 4px solid #aaa; background: linear-gradient(145deg, #d3d3d3, #777777); padding: 2px; box-shadow: inset 0 0 5px rgba(0,0,0,0.3), 0 2px 3px rgba(0,0,0,0.4); }
 
-        /* 3. Стиль Загрузки (Loading) - Animated border segments */
-        .avatar-frame-loading { border: 4px solid transparent; background: conic-gradient(var(--accent-primary) 0% 25%, transparent 25% 100%); animation: loadingRotate 1.5s linear infinite; }
-        @keyframes loadingRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        /* 3. Клякса (Ink Splatter) - Kept (Requires SVG filter) */
+        .avatar-frame-ink { border: none; background-color: var(--bg-secondary); /* Needs SVG filter defined in HTML */ filter: url(#ink-splatter-filter); box-shadow: 0 0 5px 5px var(--black), 0 0 10px 10px var(--accent-pink); }
 
-        /* 4. Пиратский Стиль (Pirate - Bones) - Simulated with pseudo-elements */
-        .avatar-frame-pirate { border: 3px solid #8B4513; /* Dark wood color */ background: #deb887; /* BurlyWood background */ }
-        .avatar-frame-pirate::before, .avatar-frame-pirate::after { content: '🦴'; /* Bone emoji or use FontAwesome/SVG */ font-size: calc(var(--avatar-size) * 0.25); color: #f5f5f5; /* WhiteSmoke */ position: absolute; z-index: 2; text-shadow: 1px 1px 3px #333; }
-        .avatar-frame-pirate::before { bottom: -10%; left: -5%; transform: rotate(-35deg); }
-        .avatar-frame-pirate::after { bottom: -10%; right: -5%; transform: rotate(35deg) scaleX(-1); } /* Flipped */
-
-        /* 5. Глитч (Glitch) */
-        .avatar-frame-glitch { border: 2px solid transparent; position: relative; overflow: hidden; }
-        .avatar-frame-glitch::before, .avatar-frame-glitch::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: inherit; border-radius: 50%; }
-        .avatar-frame-glitch::before { background: var(--accent-cyan); mix-blend-mode: screen; animation: glitchAnim1 1.5s infinite linear alternate-reverse; }
-        .avatar-frame-glitch::after { background: var(--accent-pink); mix-blend-mode: screen; animation: glitchAnim2 1s infinite linear alternate-reverse; }
-        .avatar-frame-glitch > .avatar-content { mix-blend-mode: darken; /* Blend avatar with glitches */ }
-        @keyframes glitchAnim1 { 0% { transform: translate(0); } 20% { transform: translate(-3px, 3px); } 40% { transform: translate(3px, -3px); } 60% { transform: translate(-3px, -3px); } 80% { transform: translate(3px, 3px); } 100% { transform: translate(0); } }
-        @keyframes glitchAnim2 { 0% { transform: translate(0); } 25% { transform: translate(4px, -2px); } 50% { transform: translate(-2px, 4px); } 75% { transform: translate(2px, 2px); } 100% { transform: translate(0); } }
-
-        /* 6. Схема (Circuit Board) */
-        .avatar-frame-circuit {
-            border: 3px solid #00ff7f; /* SpringGreen */
-            background: #006400; /* DarkGreen */
-            background-image: linear-gradient(rgba(0, 255, 127, 0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 127, 0.15) 1px, transparent 1px);
-            background-size: 10px 10px, 10px 10px;
-            background-position: -1px -1px, -1px -1px;
-            box-shadow: inset 0 0 10px rgba(0,255,127,0.4), 0 0 10px rgba(0,255,127,0.4);
-            padding: 2px;
+        /* 4. Пиратский Стиль (Pirate - Bones) - Modified */
+        .avatar-frame-pirate { border: none; background: transparent; box-shadow: none; } /* Remove previous border/bg */
+        .avatar-frame-pirate::before, .avatar-frame-pirate::after {
+            content: '☠️'; /* Using skull and crossbones emoji */
+            font-size: calc(var(--avatar-size) * 0.35); /* Larger bones */
+            color: #e0e0e0; /* Off-white color */
+            position: absolute;
+            z-index: 0; /* Behind the content */
+            text-shadow: 1px 1px 3px #333;
         }
-
-        /* 7. Пузырьки (Bubbles) */
-        .avatar-frame-bubbles {
-            border: 3px solid #87CEEB; /* SkyBlue */
-            background: radial-gradient(circle at 70% 20%, #E0FFFF 5%, transparent 20%), radial-gradient(circle at 30% 80%, #AFEEEE 8%, transparent 25%), var(--bg-secondary);
-            position: relative;
+        .avatar-frame-pirate::before { /* Left bone - more angled, slightly lower */
+            bottom: -18%;
+            left: -15%;
+            transform: rotate(-40deg);
         }
-        .avatar-frame-bubbles::after { /* Animated bubble */
-             content: ''; position: absolute; bottom: 5%; left: 15%; width: 10%; height: 10%; background: rgba(175, 238, 238, 0.6); border-radius: 50%; animation: bubbleFloat 4s infinite ease-in-out; box-shadow: inset 0 0 3px white;
-        }
-        @keyframes bubbleFloat { 0% { transform: translateY(0) scale(1); opacity: 0.6; } 50% { transform: translateY(-40px) scale(1.3) translateX(10px); opacity: 0.8; } 100% { transform: translateY(-80px) scale(0.7); opacity: 0; } }
-
-        /* 8. Геометрия (Geometric) */
-        .avatar-frame-geometric {
-            border: 4px solid var(--accent-secondary);
-            background: repeating-conic-gradient(var(--dark-purple-accent) 0% 15%, var(--accent-secondary) 15% 30%);
-            padding: 0;
-            box-shadow: 0 0 15px rgba(var(--accent-secondary-rgb), 0.5);
-        }
-
-        /* 9. Клякса (Ink Splatter) */
-        .avatar-frame-ink {
-            border: none;
-            background-color: var(--bg-secondary);
-            filter: url(#ink-splatter-filter); /* Requires SVG filter */
-             /* Fallback simple shadow */
-            box-shadow: 0 0 5px 5px var(--black), 0 0 10px 10px var(--accent-pink);
-        }
-        /* Add SVG filter definition somewhere (can be inline in HTML body or linked) */
-        /* <svg style="visibility: hidden; position: absolute;" width="0" height="0" xmlns="http://www.w3.org/2000/svg" version="1.1">
-            <defs>
-                <filter id="ink-splatter-filter">
-                    <feTurbulence type="fractalNoise" baseFrequency="0.02 0.05" numOctaves="3" result="turbulence"/>
-                    <feDisplacementMap in2="turbulence" in="SourceGraphic" scale="15" xChannelSelector="R" yChannelSelector="G"/>
-                </filter>
-            </defs>
-        </svg> */
-
-        /* 10. Неоновая вывеска (Neon Sign) */
-        .avatar-frame-neon-sign {
-            border: 2px solid #fff;
-            border-radius: 50%;
-            box-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px var(--accent-pink), 0 0 20px var(--accent-pink), inset 0 0 5px rgba(var(--accent-pink-rgb), 0.5);
-        }
-
-        /* 11. Швы (Stitches) */
-        .avatar-frame-stitches {
-            border: 4px dashed #CD853F; /* Peru */
-            padding: 3px;
-            background: #F5F5DC; /* Beige */
-        }
-        .avatar-frame-stitches .avatar-content { border: 1px solid #8B4513; }
-
-        /* Add more frames as needed... */
-        .avatar-frame-default { /* Simple fallback */
-             border: 3px solid var(--border-color-medium);
+        .avatar-frame-pirate::after { /* Right bone - different angle, slightly higher */
+            bottom: -12%;
+            right: -18%;
+            transform: rotate(25deg) scaleX(-1); /* Flipped and different rotation */
         }
 
         /* --- END FRAME STYLES --- */
-
 
         /* Футер */
         .dashboard-footer { margin-top: auto; padding: 1.5rem var(--container-padding-x); text-align: center; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border-color-light); opacity: 0.6; flex-shrink: 0; }
@@ -244,50 +171,14 @@
         .sidebar-overlay.active { display: block; opacity: 1; }
 
         /* Адаптивность */
-        @media (max-width: 1200px) {
-            :root { --avatar-size: 130px; }
-            #avatar-display-area { gap: 2rem; }
-        }
-        @media (max-width: 992px) {
-            :root { --avatar-size: 120px; }
-            .main-content-wrapper { padding: 1.5rem 1rem; }
-            #avatar-display-area { gap: 2rem; }
-        }
-        @media (max-width: 768px) {
-            :root { --avatar-size: 100px; }
-            main { padding: 0 1rem; }
-            .dashboard-header { padding: 0.8rem 1rem; margin-left: -1rem; margin-right: -1rem; }
-            .header-content { flex-direction: column; align-items: stretch; }
-            .header-left-group { justify-content: space-between;}
-            .main-content-wrapper { padding: 1rem; }
-            #avatar-display-area { gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(var(--avatar-size), 1fr)); }
-            .avatar-content .avatar-placeholder { font-size: 1.8rem; }
-            .avatar-frame-crown::before { font-size: calc(var(--avatar-size) * 0.22); top: -12%; }
-            .avatar-frame-pirate::before, .avatar-frame-pirate::after { font-size: calc(var(--avatar-size) * 0.22); }
-        }
-        @media (max-width: 576px) {
-            :root { --avatar-size: 80px; }
-            main { padding: 0 0.75rem; margin-left: 0; width: 100%; }
-            .sidebar { transform: translateX(-110%); width: 280px; z-index: 1000; }
-            .sidebar.active { transform: translateX(0); }
-            .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; }
-            .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; }
-            .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; }
-            .sidebar.active .user-profile { padding: 1rem; }
-            .sidebar.active .user-profile .avatar-wrapper { margin-right: 0.85rem; width: 42px; height: 42px; padding: 0; background: none; }
-            .sidebar.active .user-avatar { font-size: 1.1rem; width: 100%; height: 100%; }
-            .sidebar-toggle-btn { display: none; }
-            #dashboard-title { font-size: 1.4rem; }
-            .main-content-wrapper { padding: 1rem 0.5rem; }
-            #avatar-display-area { gap: 1.2rem; }
-            .avatar-content .avatar-placeholder { font-size: 1.5rem; }
-             .avatar-frame-crown::before { font-size: calc(var(--avatar-size) * 0.2); top: -10%; }
-             .avatar-frame-pirate::before, .avatar-frame-pirate::after { font-size: calc(var(--avatar-size) * 0.2); }
-        }
+        @media (max-width: 1200px) { :root { --avatar-size: 130px; } #avatar-display-area { gap: 2rem; } }
+        @media (max-width: 992px) { :root { --avatar-size: 120px; } .main-content-wrapper { padding: 1.5rem 1rem; } #avatar-display-area { gap: 2rem; } }
+        @media (max-width: 768px) { :root { --avatar-size: 100px; } main { padding: 0 1rem; } .dashboard-header { padding: 0.8rem 1rem; margin-left: -1rem; margin-right: -1rem; } .header-content { flex-direction: column; align-items: stretch; } .header-left-group { justify-content: space-between;} .main-content-wrapper { padding: 1rem; } #avatar-display-area { gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(var(--avatar-size), 1fr)); } .avatar-content .avatar-placeholder { font-size: 1.8rem; } .avatar-frame-crown::before { font-size: calc(var(--avatar-size) * 0.22); top: -12%; } .avatar-frame-pirate::before, .avatar-frame-pirate::after { font-size: calc(var(--avatar-size) * 0.30); } }
+        @media (max-width: 576px) { :root { --avatar-size: 80px; } main { padding: 0 0.75rem; margin-left: 0; width: 100%; } .sidebar { transform: translateX(-110%); width: 280px; z-index: 1000; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { padding: 1rem; } .sidebar.active .user-profile .avatar-wrapper { margin-right: 0.85rem; width: 42px; height: 42px; padding: 0; background: none; } .sidebar.active .user-avatar { font-size: 1.1rem; width: 100%; height: 100%; } .sidebar-toggle-btn { display: none; } #dashboard-title { font-size: 1.4rem; } .main-content-wrapper { padding: 1rem 0.5rem; } #avatar-display-area { gap: 1.2rem; } .avatar-content .avatar-placeholder { font-size: 1.5rem; } .avatar-frame-crown::before { font-size: calc(var(--avatar-size) * 0.2); top: -10%; } .avatar-frame-pirate::before, .avatar-frame-pirate::after { font-size: calc(var(--avatar-size) * 0.28); } }
 
         /* Уменьшение движения */
-        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } .sidebar, main { transition: none !important; } .btn-icon-only i { transition: none !important; } /* Disable frame animations */ .avatar-frame-fire { animation: none; } .avatar-frame-wind::before { animation: none; } .avatar-frame-water::after { animation: none; } .avatar-frame-electric { animation: none; } .avatar-frame-wreath::before, .avatar-frame-wreath::after { animation: none; } .avatar-frame-loading { animation: none; background: var(--accent-primary); } .avatar-frame-glitch::before, .avatar-frame-glitch::after { animation: none; transform: none; } }
-        /* --- END: Rewritten and Enhanced CSS v2 --- */
+        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; } .sidebar, main { transition: none !important; } .btn-icon-only i { transition: none !important; } .avatar-frame-wreath::before, .avatar-frame-wreath::after, .avatar-frame-loading, .avatar-frame-glitch::before, .avatar-frame-glitch::after, .avatar-frame-bubbles::after { animation: none; } }
+        /* --- END: Rewritten and Enhanced CSS v3 --- */
     </style>
 </head>
 <body class="dark">
@@ -325,35 +216,34 @@
                  <div class="header-left-group">
                      <button class="btn btn-icon-only sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Přepnout postranní panel" title="Přepnout postranní panel"> <i class="fas fa-chevron-left"></i> </button>
                      <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu"> <i class="fas fa-bars"></i> </button>
-                     <h1 id="dashboard-title"><i class="fas fa-images"></i>Kolekce Avatarů v2</h1>
+                     <h1 id="dashboard-title"><i class="fas fa-images"></i>Kolekce Avatarů v3</h1>
                  </div>
-                 <div class="header-actions">
-                    </div>
+                 <div class="header-actions"></div>
              </div>
         </header>
 
         <div class="main-content-wrapper">
             <div id="avatar-display-area">
-                <div class="avatar-wrapper avatar-frame-wreath"> <div class="avatar-content"><span class="avatar-placeholder">A1</span></div> </div>
+                <div class="avatar-wrapper avatar-frame-default"> <div class="avatar-content"><span class="avatar-placeholder">A1</span></div> </div>
                 <div class="avatar-wrapper avatar-frame-crown"> <div class="avatar-content"><span class="avatar-placeholder">A2</span></div> </div> {/* Kept Crown */}
-                <div class="avatar-wrapper avatar-frame-loading"> <div class="avatar-content"><span class="avatar-placeholder">A3</span></div> </div>
-                <div class="avatar-wrapper avatar-frame-pirate"> <div class="avatar-content"><span class="avatar-placeholder">A4</span></div> </div>
-                <div class="avatar-wrapper avatar-frame-glitch"> <div class="avatar-content"><span class="avatar-placeholder">A5</span></div> </div>
-                <div class="avatar-wrapper avatar-frame-circuit"> <div class="avatar-content"><span class="avatar-placeholder">A6</span></div> </div>
-                <div class="avatar-wrapper avatar-frame-bubbles"> <div class="avatar-content"><span class="avatar-placeholder">A7</span></div> </div>
-                <div class="avatar-wrapper avatar-frame-geometric"> <div class="avatar-content"><span class="avatar-placeholder">A8</span></div> </div>
-                <div class="avatar-wrapper avatar-frame-neon-sign"> <div class="avatar-content"><span class="avatar-placeholder">A9</span></div> </div>
-                <div class="avatar-wrapper avatar-frame-stitches"> <div class="avatar-content"><span class="avatar-placeholder">B1</span></div> </div>
-                <div class="avatar-wrapper avatar-frame-ink"> <div class="avatar-content"><span class="avatar-placeholder">B2</span></div> </div>
-                <div class="avatar-wrapper avatar-frame-default"> <div class="avatar-content"><span class="avatar-placeholder">B3</span></div> </div> {/* Default/Simple */}
-                <div class="avatar-wrapper avatar-frame-wreath"> <div class="avatar-content"><span class="avatar-placeholder">B4</span></div> </div>
-                <div class="avatar-wrapper avatar-frame-loading"> <div class="avatar-content"><span class="avatar-placeholder">B5</span></div> </div>
-                <div class="avatar-wrapper avatar-frame-pirate"> <div class="avatar-content"><span class="avatar-placeholder">B6</span></div> </div>
-                <div class="avatar-wrapper avatar-frame-glitch"> <div class="avatar-content"><span class="avatar-placeholder">B7</span></div> </div>
-                <div class="avatar-wrapper avatar-frame-circuit"> <div class="avatar-content"><span class="avatar-placeholder">B8</span></div> </div>
-                <div class="avatar-wrapper avatar-frame-bubbles"> <div class="avatar-content"><span class="avatar-placeholder">B9</span></div> </div>
-                <div class="avatar-wrapper avatar-frame-geometric"> <div class="avatar-content"><span class="avatar-placeholder">C1</span></div> </div>
-                <div class="avatar-wrapper avatar-frame-neon-sign"> <div class="avatar-content"><span class="avatar-placeholder">C2</span></div> </div>
+                <div class="avatar-wrapper avatar-frame-default"> <div class="avatar-content"><span class="avatar-placeholder">A3</span></div> </div>
+                <div class="avatar-wrapper avatar-frame-pirate"> <div class="avatar-content"><span class="avatar-placeholder">A4</span></div> </div> {/* Modified Pirate */}
+                <div class="avatar-wrapper avatar-frame-default"> <div class="avatar-content"><span class="avatar-placeholder">A5</span></div> </div>
+                <div class="avatar-wrapper avatar-frame-default"> <div class="avatar-content"><span class="avatar-placeholder">A6</span></div> </div>
+                <div class="avatar-wrapper avatar-frame-default"> <div class="avatar-content"><span class="avatar-placeholder">A7</span></div> </div>
+                <div class="avatar-wrapper avatar-frame-default"> <div class="avatar-content"><span class="avatar-placeholder">A8</span></div> </div>
+                <div class="avatar-wrapper avatar-frame-metal"> <div class="avatar-content"><span class="avatar-placeholder">A9</span></div> </div> {/* Kept Metal */}
+                <div class="avatar-wrapper avatar-frame-default"> <div class="avatar-content"><span class="avatar-placeholder">B1</span></div> </div>
+                <div class="avatar-wrapper avatar-frame-ink"> <div class="avatar-content"><span class="avatar-placeholder">B2</span></div> </div>    {/* Kept Ink */}
+                <div class="avatar-wrapper avatar-frame-default"> <div class="avatar-content"><span class="avatar-placeholder">B3</span></div> </div>
+                <div class="avatar-wrapper avatar-frame-default"> <div class="avatar-content"><span class="avatar-placeholder">B4</span></div> </div>
+                <div class="avatar-wrapper avatar-frame-default"> <div class="avatar-content"><span class="avatar-placeholder">B5</span></div> </div>
+                <div class="avatar-wrapper avatar-frame-default"> <div class="avatar-content"><span class="avatar-placeholder">B6</span></div> </div>
+                <div class="avatar-wrapper avatar-frame-default"> <div class="avatar-content"><span class="avatar-placeholder">B7</span></div> </div>
+                <div class="avatar-wrapper avatar-frame-default"> <div class="avatar-content"><span class="avatar-placeholder">B8</span></div> </div>
+                <div class="avatar-wrapper avatar-frame-default"> <div class="avatar-content"><span class="avatar-placeholder">B9</span></div> </div>
+                <div class="avatar-wrapper avatar-frame-default"> <div class="avatar-content"><span class="avatar-placeholder">C1</span></div> </div>
+                <div class="avatar-wrapper avatar-frame-default"> <div class="avatar-content"><span class="avatar-placeholder">C2</span></div> </div>
             </div>
             <svg style="visibility: hidden; position: absolute;" width="0" height="0" xmlns="http://www.w3.org/2000/svg" version="1.1">
                 <defs>
@@ -374,7 +264,7 @@
     <script>
         (function() {
             'use strict';
-            console.log("[Init Avatar Collection v21 - New Frames] Starting...");
+            console.log("[Init Avatar Collection v22 - Refined Frames] Starting...");
 
             // Supabase and user logic remains the same
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
@@ -382,7 +272,7 @@
             let supabase = null;
             let currentUser = null;
             let currentProfile = null;
-            let allTitles = []; // Keep for sidebar consistency
+            let allTitles = [];
             const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
 
             // UI Cache
@@ -450,7 +340,7 @@
 
             // Initialize App - Loads user data for sidebar
             async function initializeApp() {
-                console.log("[Init Avatar Collection v21] Running initializeApp...");
+                console.log("[Init Avatar Collection v22] Running initializeApp...");
                 if (!initializeSupabase()) return;
 
                 applyInitialSidebarState();
