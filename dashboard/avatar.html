@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Множество Аватарок с CSS Рамками</title>
+    <title>Justax - Аватарки с Уникальными Рамками</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -23,6 +23,8 @@
             --accent-cyan: var(--accent-primary); --accent-cyan-rgb: var(--accent-primary-rgb);
             --accent-cyan-glow: rgba(var(--accent-cyan-rgb), 0.6); --accent-glow: rgba(var(--accent-primary-rgb), 0.6);
             --accent-secondary-glow: rgba(var(--accent-secondary-rgb), 0.5);
+            --accent-pink-glow: rgba(var(--accent-pink-rgb), 0.4); /* Added Pink glow */
+            --accent-lime-glow: rgba(var(--accent-lime-rgb), 0.5); /* Added Lime glow */
             --text-light: #f1f5f9; --text-medium: #b8c4e0; --text-muted: #808db0;
             --text-heading: #ffffff; --text-link: var(--accent-primary); --text-link-hover: #ffffff;
             --text-fixed-dark: #03020c; --white: #ffffff; --white-rgb: 255, 255, 255; --black: #000000;
@@ -42,6 +44,7 @@
             --card-radius: 14px; --button-radius: 10px;
             --container-padding-x: 2rem;
             --transition-fast: all 0.2s ease-out; --transition-medium: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            --avatar-frame-offset: 10px; /* Уменьшаем отступ для CSS рамки */
         }
 
         /* Базовые стили */
@@ -58,7 +61,7 @@
         /* Кнопки */
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5em; padding: 0.6rem 1.2rem; background: transparent; color: var(--accent-primary); border: 2px solid var(--accent-primary); border-radius: var(--button-radius); font-family: var(--font-secondary); font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all var(--transition-medium); }
         .btn:hover:not(:disabled) { color: var(--text-fixed-dark); background: var(--gradient-button); border-color: transparent; transform: translateY(-2px); }
-        .btn-icon-only { padding: 0.5rem; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border-color-medium); color: var(--text-muted); background-color: rgba(var(--bg-secondary-rgb), 0.3); }
+        .btn-icon-only { padding: 0.5rem; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border-color-light); color: var(--text-muted); background-color: rgba(var(--bg-secondary-rgb), 0.3); }
         .btn-icon-only i { margin-right: 0; font-size: 1rem; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .btn-icon-only:hover:not(:disabled) { background-color: rgba(var(--accent-primary-rgb), 0.15); border-color: var(--accent-primary); color: var(--accent-primary); }
         .sidebar-toggle-btn { margin-right: 0.8rem; display: none; }
@@ -92,6 +95,8 @@
             line-height: 0;
             flex-shrink: 0;
             overflow: visible; /* Разрешаем рамке выходить за границы */
+            /* Уменьшаем стандартный отступ для CSS рамок */
+             --avatar-frame-offset: 6px;
         }
         .avatar-content {
             display: flex;
@@ -113,34 +118,95 @@
             height: 100%;
             object-fit: cover;
         }
-        /* --- START: CSS Рамка через псевдоэлементы --- */
+        /* --- Общие стили для псевдоэлементов рамки --- */
         .avatar-wrapper::before,
         .avatar-wrapper::after {
             content: '';
             position: absolute;
-            border-radius: 50%;
-            z-index: 0; /* Помещаем под основной контент */
+            /* Позиционируем вокруг */
+            top: calc(-1 * var(--avatar-frame-offset));
+            left: calc(-1 * var(--avatar-frame-offset));
+            width: calc(100% + 2 * var(--avatar-frame-offset));
+            height: calc(100% + 2 * var(--avatar-frame-offset));
+            border-radius: 50%; /* Делаем рамку круглой */
             pointer-events: none;
+            z-index: 0; /* Рамка ПОД аватаром */
+            box-sizing: border-box;
+            background: none; /* Убираем фон */
+            border: none; /* Убираем базовую границу */
+            /* Убираем background-image */
+            /* background-image: url('assets/decor_1.png'); */
+            /* background-size: contain; */
+            /* background-position: center; */
+            /* background-repeat: no-repeat; */
         }
-        /* Внешняя рамка (статичная или с градиентом) */
-        .avatar-wrapper::before {
-            inset: -3px; /* Отступ */
-            border: 2px solid var(--accent-primary);
-            opacity: 0.7;
-            box-shadow: 0 0 8px var(--accent-glow);
+
+        /* --- СТИЛЬ 1: Пульсирующий Неон --- */
+        .avatar-wrapper.frame-style-1::before {
+            border: 3px solid var(--accent-primary);
+            box-shadow: 0 0 12px var(--accent-glow);
+            animation: neonPulse 2s infinite ease-in-out;
+            opacity: 0.9;
+            /* Сдвигаем немного ближе */
+            top: calc(-1 * var(--avatar-frame-offset) + 3px);
+            left: calc(-1 * var(--avatar-frame-offset) + 3px);
+            width: calc(100% + 2 * var(--avatar-frame-offset) - 6px);
+            height: calc(100% + 2 * var(--avatar-frame-offset) - 6px);
         }
-        /* Внутренняя, вращающаяся рамка */
-        .avatar-wrapper::after {
-            inset: -6px; /* Больший отступ */
-            border: 1px solid transparent; /* Прозрачная основа */
-            /* Градиентная граница с использованием border-image */
-            border-image: conic-gradient(var(--accent-secondary), var(--accent-primary), var(--accent-pink), var(--accent-secondary)) 1;
-            /* --- ИЛИ: пунктирная граница --- */
-            /* border: 2px dashed var(--accent-secondary); */
-            /* opacity: 0.6; */
-            /* ------------------------------ */
-            animation: rotateFrame 10s linear infinite;
+        .avatar-wrapper.frame-style-1::after {
+            display: none; /* Второй псевдоэлемент не нужен */
         }
+        @keyframes neonPulse {
+            0%, 100% { box-shadow: 0 0 8px var(--accent-glow); opacity: 0.8; }
+            50% { box-shadow: 0 0 16px var(--accent-glow), 0 0 5px var(--white); opacity: 1; }
+        }
+
+        /* --- СТИЛЬ 2: Двойная Пунктирная Рамка --- */
+        .avatar-wrapper.frame-style-2::before {
+            border: 2px dashed var(--accent-secondary);
+            opacity: 0.8;
+             top: calc(-1 * var(--avatar-frame-offset) + 2px);
+             left: calc(-1 * var(--avatar-frame-offset) + 2px);
+             width: calc(100% + 2 * var(--avatar-frame-offset) - 4px);
+             height: calc(100% + 2 * var(--avatar-frame-offset) - 4px);
+            animation: rotateFrame 15s linear infinite reverse; /* Медленнее и в другую сторону */
+        }
+        .avatar-wrapper.frame-style-2::after {
+            border: 1px dashed var(--accent-pink);
+            opacity: 0.6;
+             top: calc(-1 * var(--avatar-frame-offset) + 5px);
+             left: calc(-1 * var(--avatar-frame-offset) + 5px);
+             width: calc(100% + 2 * var(--avatar-frame-offset) - 10px);
+             height: calc(100% + 2 * var(--avatar-frame-offset) - 10px);
+            animation: rotateFrame 12s linear infinite; /* С другой скоростью */
+        }
+
+        /* --- СТИЛЬ 3: Градиентная Вращающаяся Рамка --- */
+        .avatar-wrapper.frame-style-3::before {
+             /* Используем before для статичного свечения */
+             inset: -3px;
+             border-radius: 50%;
+             box-shadow: 0 0 15px var(--accent-secondary-glow);
+             opacity: 0.5;
+         }
+        .avatar-wrapper.frame-style-3::after {
+             inset: -5px; /* Немного дальше */
+             border: 2px solid transparent; /* Основа для border-image */
+             border-image: conic-gradient(from 0deg, var(--accent-lime), var(--accent-secondary), var(--accent-pink), var(--accent-lime)) 1;
+             animation: rotateFrame 8s linear infinite;
+         }
+
+         /* --- СТИЛЬ 4: Тонкая Яркая Рамка --- */
+         .avatar-wrapper.frame-style-4::before {
+             inset: -2px;
+             border: 2px solid var(--accent-lime);
+             box-shadow: 0 0 6px var(--accent-lime-glow);
+         }
+         .avatar-wrapper.frame-style-4::after {
+             display: none; /* Второй псевдоэлемент не нужен */
+         }
+
+
         @keyframes rotateFrame {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
@@ -152,9 +218,17 @@
             width: 42px; height: 42px;
             margin-right: 0.85rem;
             transition: margin-right var(--transition-medium) ease, width var(--transition-medium) ease, height var(--transition-medium) ease;
+            --avatar-frame-offset: 3px; /* Меньший отступ */
         }
-        .sidebar .avatar-wrapper::before { inset: -2px; border-width: 1px; box-shadow: 0 0 4px var(--accent-glow);}
-        .sidebar .avatar-wrapper::after { inset: -4px; border-width: 1px; animation: none; /* Убираем анимацию в сайдбаре */ border-image: conic-gradient(var(--accent-primary), var(--accent-secondary)) 1;}
+         /* Упрощаем рамку в сайдбаре */
+         .sidebar .avatar-wrapper::before {
+             inset: -2px;
+             border: 1px solid var(--accent-primary);
+             opacity: 0.6;
+             box-shadow: none;
+             animation: none;
+         }
+         .sidebar .avatar-wrapper::after { display: none; }
         .sidebar .avatar-content {
             font-size: 1.1rem;
             transition: font-size var(--transition-medium) ease;
@@ -188,25 +262,25 @@
         /* Стили для основного аватара */
         #avatar-display-area {
             display: flex;
-            flex-wrap: wrap; /* Разрешаем перенос аватарок */
+            flex-wrap: wrap; /* Разрешаем перенос */
             justify-content: center;
             align-items: center;
             flex-grow: 1;
             padding: 2rem;
-            gap: 3rem; /* Отступы между аватарками */
-            overflow-y: auto; /* Добавляем скролл, если не помещаются */
+            gap: 3rem; /* Отступы */
+            overflow-y: auto; /* Скролл */
         }
         #avatar-display-area .avatar-wrapper {
-            width: 150px; /* Уменьшаем размер */
+            width: 150px; /* Уменьшенный размер */
             height: 150px;
             border-radius: 50%;
-            /* Используем стандартные переменные для рамки */
+            --avatar-frame-offset: 6px; /* Немного уменьшенный отступ */
         }
         #avatar-display-area .avatar-content {
-            border: 4px solid var(--accent-primary); /* Уменьшаем границу */
+            border: 4px solid var(--accent-primary);
             box-shadow: 0 0 20px rgba(var(--accent-primary-rgb), 0.5), inset 0 0 10px rgba(0,0,0,0.2);
             background: var(--gradient-profile-avatar, var(--card-solid));
-            font-size: 3rem; /* Уменьшаем шрифт инициалов */
+            font-size: 3rem; /* Уменьшенный шрифт */
             font-weight: 600;
         }
         #avatar-display-area .avatar-placeholder span { line-height: 1; }
@@ -246,8 +320,7 @@
             <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link active"> <i class="fas fa-user-astronaut"></i> <span>Profil</span> </a> </li>
         </ul>
         <div class="user-profile">
-             <div class="avatar-wrapper" data-decoration-key="">
-                 <div class="avatar-content" id="sidebar-avatar">?</div>
+             <div class="avatar-wrapper frame-style-1" data-decoration-key=""> <div class="avatar-content" id="sidebar-avatar">?</div>
              </div>
             <div class="user-info">
                 <div class="user-name" id="sidebar-name">Загрузка...</div>
@@ -271,34 +344,34 @@
 
         <div class="main-content-wrapper">
             <div id="avatar-display-area" class="avatar-container">
-                <div class="avatar-wrapper">
+                <div class="avatar-wrapper frame-style-1">
                     <div class="avatar-content"><span class="avatar-placeholder">A</span></div>
                 </div>
-                <div class="avatar-wrapper">
+                <div class="avatar-wrapper frame-style-2">
                     <div class="avatar-content"><span class="avatar-placeholder">B</span></div>
                 </div>
-                <div class="avatar-wrapper">
+                <div class="avatar-wrapper frame-style-3">
                     <div class="avatar-content"><span class="avatar-placeholder">C</span></div>
                 </div>
-                <div class="avatar-wrapper">
+                <div class="avatar-wrapper frame-style-4">
                     <div class="avatar-content"><span class="avatar-placeholder">D</span></div>
                 </div>
-                <div class="avatar-wrapper">
+                <div class="avatar-wrapper frame-style-1">
                     <div class="avatar-content"><span class="avatar-placeholder">E</span></div>
                 </div>
-                <div class="avatar-wrapper">
+                <div class="avatar-wrapper frame-style-2">
                     <div class="avatar-content"><span class="avatar-placeholder">F</span></div>
                 </div>
-                <div class="avatar-wrapper">
+                <div class="avatar-wrapper frame-style-3">
                     <div class="avatar-content"><span class="avatar-placeholder">G</span></div>
                 </div>
-                <div class="avatar-wrapper">
+                <div class="avatar-wrapper frame-style-4">
                     <div class="avatar-content"><span class="avatar-placeholder">H</span></div>
                 </div>
-                <div class="avatar-wrapper">
+                <div class="avatar-wrapper frame-style-1">
                     <div class="avatar-content"><span class="avatar-placeholder">I</span></div>
                 </div>
-                <div class="avatar-wrapper">
+                <div class="avatar-wrapper frame-style-2">
                     <div class="avatar-content"><span class="avatar-placeholder">J</span></div>
                 </div>
             </div>
@@ -313,7 +386,7 @@
     <script>
         (function() {
             'use strict';
-            console.log("[Init Avatar Standalone v6 - Multiple CSS Frames] Starting...");
+            console.log("[Init Avatar Standalone v7 - Multiple CSS Frames] Starting...");
 
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
@@ -350,23 +423,33 @@
 
             async function fetchUserProfile(userId) { if (!supabase || !userId) return null; try { const { data, error } = await supabase.from('profiles').select('*, selected_title').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; return data; } catch (e) { console.error('Profile fetch error:', e); return null; } }
             async function fetchTitles() { if (!supabase) return []; try { const { data, error } = await supabase.from('title_shop').select('title_key, name'); if (error) throw error; return data || []; } catch (e) { console.error("Titles fetch error:", e); return []; } }
-             async function createDefaultProfile(userId, userEmail) { if (!supabase || !userId || !userEmail) return null; try { const defaultData = { id: userId, email: userEmail, username: userEmail.split('@')[0] || `user_${userId.substring(0, 6)}`, level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches }, notifications: { email: true } }; const { data: newProfile, error } = await supabase.from('profiles').insert(defaultData).select('*, selected_title').single(); if (error) { if (error.code === '23505') { return await fetchUserProfile(userId); } throw error; } return newProfile; } catch (error) { console.error("Failed to create default profile:", error); return null; } }
+            async function createDefaultProfile(userId, userEmail) { if (!supabase || !userId || !userEmail) return null; try { const defaultData = { id: userId, email: userEmail, username: userEmail.split('@')[0] || `user_${userId.substring(0, 6)}`, level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches }, notifications: { email: true } }; const { data: newProfile, error } = await supabase.from('profiles').insert(defaultData).select('*, selected_title').single(); if (error) { if (error.code === '23505') { return await fetchUserProfile(userId); } throw error; } return newProfile; } catch (error) { console.error("Failed to create default profile:", error); return null; } }
 
 
             function updateSidebarAvatar(profile) {
                  if (!ui.sidebarAvatar) return;
+                 const avatarContainer = ui.sidebarAvatar.closest('.avatar-wrapper'); // Получаем обертку
+                 if (!avatarContainer) return; // Проверка на существование обертки
+
                  if (!profile) {
                      ui.sidebarAvatar.innerHTML = '?';
+                      avatarContainer.className = 'avatar-wrapper'; // Сброс классов рамки
                      return;
                  }
+
                  const initials = getInitials(profile);
                  const avatarUrl = profile.avatar_url;
                  const avatarContentHTML = avatarUrl
                     ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(initials)}">`
                     : `<span>${sanitizeHTML(initials)}</span>`;
+
                  ui.sidebarAvatar.innerHTML = avatarContentHTML;
                  const sidebarImg = ui.sidebarAvatar.querySelector('img');
                  if (sidebarImg) sidebarImg.onerror = () => { ui.sidebarAvatar.innerHTML = `<span>${sanitizeHTML(initials)}</span>`; };
+
+                 // Применяем стиль рамки (здесь можно добавить логику выбора стиля)
+                 // Пока просто добавим стиль 1 как пример
+                  avatarContainer.className = 'avatar-wrapper frame-style-1';
             }
 
             function updateUI(profile, titles) {
@@ -382,8 +465,9 @@
                         ui.sidebarUserTitle.title = sanitizeHTML(displayTitle);
                     } else { ui.sidebarName.textContent = "Nepřihlášen"; ui.sidebarUserTitle.textContent = 'Pilot'; }
                 }
-                 // Обновляем только аватар в сайдбаре, основные аватары статичны
+                // Обновляем только аватар в сайдбаре
                  updateSidebarAvatar(profile);
+                 // Основные аватары уже добавлены в HTML статически
             }
 
             function setupEventListeners() {
@@ -397,7 +481,7 @@
             }
 
             async function initializeApp() {
-                console.log("[Init Avatar Standalone v6 - Multiple CSS Frames] Running initializeApp...");
+                console.log("[Init Avatar Standalone v7 - Multiple CSS Frames] Running initializeApp...");
                 if (!initializeSupabase()) return;
 
                 applyInitialSidebarState();
@@ -420,7 +504,7 @@
                          if (titlesResult.status === 'fulfilled') { allTitles = titlesResult.value || []; }
                          else { console.warn("Titles fetch failed:", titlesResult.reason); allTitles = []; }
 
-                        updateUI(currentProfile, allTitles);
+                        updateUI(currentProfile, allTitles); // Обновляем сайдбар
                         if (ui.mainContent) { ui.mainContent.style.display = 'flex'; }
                         console.log("✅ [Init Avatar] Page initialized.");
 
