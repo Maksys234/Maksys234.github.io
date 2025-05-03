@@ -3,127 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Аватарка</title>
+    <title>Justax - Аватарка (Улучшенная)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="dashboard.css">
-    <style>
-      /* Стили для страницы аватара */
-      #avatar-container {
+
+    <link rel="stylesheet" href="../dashboard.css"> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css"> <style>
+      #avatar-display-area {
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
-        margin-left: 260px; /* Ширина боковой панели */
+        flex-grow: 1; /* Занимает доступное пространство */
+        padding: 2rem;
       }
       .avatar-wrapper {
         position: relative;
-        width: 200px; /* Больший размер аватара */
-        height: 200px;
+        width: 250px; /* Немного больше */
+        height: 250px;
         border-radius: 50%;
         overflow: hidden;
-        border: 4px solid var(--accent-primary);
-        box-shadow: 0 0 25px rgba(var(--accent-primary-rgb), 0.5);
+        border: 5px solid var(--accent-primary); /* Ярче рамка */
+        box-shadow: 0 0 30px rgba(var(--accent-primary-rgb), 0.6), inset 0 0 15px rgba(0,0,0,0.2);
+        background: var(--gradient-profile-avatar, var(--card-solid)); /* Фоновый градиент */
       }
-      .avatar-wrapper img {
+      .avatar-wrapper img,
+      .avatar-wrapper .avatar-placeholder {
         width: 100%;
         height: 100%;
         object-fit: cover;
-      }
-      .avatar-placeholder {
-        width: 100%;
-        height: 100%;
-        display: flex;
+        display: flex; /* Для плейсхолдера */
         align-items: center;
         justify-content: center;
-        background-color: var(--accent-secondary);
         color: var(--white);
-        font-size: 4rem;
+        font-size: 5rem; /* Крупнее плейсхолдер */
         font-weight: 600;
+        background-color: transparent; /* Убираем фон плейсхолдера, если есть градиент */
       }
     </style>
 </head>
 <body class="dark">
+    <div class="initial-loading-overlay" id="initial-loader">
+        <div class="loading-spinner"></div>
+        <p>ЗАГРУЗКА ИНТЕРФЕЙСА...</p>
+    </div>
+
+    <div class="offline-banner" id="offline-banner"> <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO. </div>
+
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
+            <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu">
+                <i class="fas fa-times"></i>
+            </button>
             <a href="/dashboard/dashboard.html" class="sidebar-logo">
-                <i class="fas fa-atom"></i>
-                <span>Justax</span>
+                <i class="fas fa-atom"></i> <span>Justax</span>
             </a>
         </div>
         <ul class="sidebar-menu">
-            <li class="sidebar-item">
-                <a href="#" class="sidebar-link active">
-                    <i class="fas fa-user-astronaut"></i>
-                    <span>Профиль</span>
-                </a>
-            </li>
+             <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-tachometer-alt"></i> <span>Nástěnka</span> </a> </li>
+             <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link"> <i class="fas fa-laptop-code"></i> <span>Procvičování</span> </a> </li>
+             <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li>
+             <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li>
+             <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-database"></i> <span>Databanka</span> </a> </li>
+             <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link active"> <i class="fas fa-user-astronaut"></i> <span>Profil</span> </a> </li>
         </ul>
         <div class="user-profile">
-            <div class="user-avatar" id="sidebar-avatar">?</div>
+             <div class="avatar-wrapper" data-decoration-key="">
+                 <div class="user-avatar" id="sidebar-avatar">?</div>
+             </div>
             <div class="user-info">
                 <div class="user-name" id="sidebar-name">Загрузка...</div>
-                <div class="user-role" id="sidebar-user-title">Пилот</div>
+                <div class="user-role" id="sidebar-user-title" title="Váš titul">Пилот</div>
             </div>
         </div>
         <div class="sidebar-footer">
-            &copy; 2025 Justax Systems
+            &copy; <span id="currentYearSidebar">2025</span> Justax Systems
         </div>
     </aside>
 
     <main id="main-content">
-        <div id="avatar-container">
-             <div class="avatar-wrapper">
-                  <div class="avatar-placeholder" id="avatar-placeholder">?</div>
-             </div>
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div class="header-left-group">
+                    <button class="btn btn-icon-only sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Přepnout postranní panel" title="Přepnout postranní panel">
+                         <i class="fas fa-chevron-left"></i>
+                     </button>
+                    <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
+                        <i class="fas fa-bars"></i>
+                   </button>
+                   <h1 id="dashboard-title"><i class="fas fa-user-circle"></i> Твоя Аватарка</h1>
+                </div>
+                <div class="header-actions">
+                    </div>
+            </div>
+       </header>
+
+        <div class="main-content-wrapper">
+            <div id="avatar-display-area" class="section card">
+                 <div class="avatar-wrapper">
+                      <div class="avatar-placeholder" id="avatar-placeholder">?</div>
+                 </div>
+            </div>
         </div>
+
+        <footer class="dashboard-footer">
+            <p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p>
+        </footer>
     </main>
 
+    <div class="toast-container" id="toast-container"></div>
+    <div id="mouse-follower" class="mouse-follower-glow"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
+    <script src="../dashboard.js" defer></script>
+
     <script>
-    const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        // Убедимся, что основной dashboard.js загрузился и выполнил свою инициализацию
+        document.addEventListener('dashboardReady', async (event) => {
+            console.log("Avatar page received dashboardReady event.");
+            const { user, profile, client, titles } = event.detail;
 
-    async function loadUserProfile() {
-        const user = await supabase.auth.getUser();
-        const userId = user.data?.user?.id;
+            // Функция загрузки аватара (из старого avatar.html, но теперь использует profile из dashboard.js)
+            async function loadAvatar(profileData) {
+                const avatarElement = document.getElementById('avatar-placeholder');
+                if (!avatarElement) {
+                    console.error('Avatar placeholder element not found!');
+                    return;
+                }
+                if (!profileData) {
+                     console.warn('No profile data provided to loadAvatar.');
+                     avatarElement.textContent = '?';
+                     return;
+                }
 
-        if (userId) {
-            const { data: profile, error } = await supabase
-                .from('profiles')
-                .select('first_name, last_name, avatar_url')
-                .eq('id', userId)
-                .single();
+                const avatarUrl = profileData.avatar_url;
+                const initials = PlanApp.getInitials(profileData); // Предполагаем, что PlanApp или DashboardApp содержит getInitials
 
-            if (error) {
-                console.error('Error fetching profile:', error);
-                return;
+                if (avatarUrl) {
+                    const img = document.createElement('img');
+                    img.src = avatarUrl;
+                    img.alt = 'Аватар пользователя';
+                    img.onerror = () => { // Обработка ошибки загрузки
+                         console.error("Failed to load avatar image, showing initials.");
+                         avatarElement.innerHTML = `<span>${initials}</span>`;
+                    };
+                    avatarElement.innerHTML = ''; // Очищаем плейсхолдер
+                    avatarElement.appendChild(img);
+                     console.log("Avatar image loaded.");
+                } else {
+                    avatarElement.innerHTML = `<span>${initials}</span>`; // Показываем инициалы
+                     console.log("Avatar URL not found, showing initials.");
+                }
             }
 
-            const firstName = profile?.first_name || '';
-            const lastName = profile?.last_name || '';
-            const displayName = `${firstName} ${lastName}`.trim() || 'Пилот';
-            document.getElementById('sidebar-name').textContent = displayName;
-
-            const avatarUrl = profile?.avatar_url;
-            const avatarElement = document.getElementById('avatar-placeholder');
-
-            if (avatarUrl) {
-                const img = document.createElement('img');
-                img.src = avatarUrl;
-                img.alt = 'Аватар пользователя';
-                avatarElement.innerHTML = '';
-                avatarElement.appendChild(img);
+            // Загружаем аватар, используя данные, полученные от dashboard.js
+            if (profile) {
+                await loadAvatar(profile);
             } else {
-                avatarElement.textContent = displayName.charAt(0).toUpperCase();
+                 console.error("Profile data not available from dashboardReady event.");
+                 const avatarElement = document.getElementById('avatar-placeholder');
+                 if (avatarElement) avatarElement.textContent = '!'; // Error indicator
             }
-        }
-    }
+        });
 
-    loadUserProfile();
+        // Если dashboard.js не запускается сам или есть проблемы, можно добавить DOMContentLoaded
+        // document.addEventListener('DOMContentLoaded', () => {
+        //     // Тут можно вызвать какую-то базовую инициализацию, если dashboard.js её не делает
+        // });
     </script>
+
 </body>
 </html>
