@@ -28,8 +28,8 @@
         .modal.active { display: flex; opacity: 1; }
         .modal-content { background-color: var(--interface-bg, #0a071f); border-radius: var(--card-radius, 14px); width: 90%; max-width: 700px; box-shadow: var(--shadow-card, 0 12px 40px rgba(0, 0, 0, 0.4)); border: 1px solid var(--border-color-medium, rgba(160, 92, 255, 0.45)); display: flex; flex-direction: column; max-height: 90vh; animation: modalFadeIn 0.4s ease-out; overflow: hidden; }
         @keyframes modalFadeIn { from { opacity: 0; transform: translateY(-20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        .modal-header { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border-color-light, rgba(160, 92, 255, 0.25)); display: flex; align-items: center; position: relative; /* For back button positioning */ }
-        .modal-title { font-size: 1.3rem; margin: 0; display: flex; align-items: center; justify-content: center; gap: 0.7rem; color: var(--text-heading, #fff); flex-grow: 1; text-align: center; padding: 0 40px; /* Space for back button */ }
+        .modal-header { padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border-color-light, rgba(160, 92, 255, 0.25)); display: flex; align-items: center; position: relative; }
+        .modal-title { font-size: 1.3rem; margin: 0; display: flex; align-items: center; justify-content: center; gap: 0.7rem; color: var(--text-heading, #fff); flex-grow: 1; text-align: center; padding: 0 40px; }
         .modal-title i { color: var(--accent-primary, #00e0ff); }
         .modal-body { padding: 1.5rem 2rem; overflow-y: auto; flex-grow: 1; }
         .modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border-color-light, rgba(160, 92, 255, 0.25)); display: flex; justify-content: flex-end; gap: 1rem; }
@@ -149,7 +149,7 @@
                  <a href="test1.html" class="btn btn-primary" id="start-test-btn-prompt"><i class="fas fa-play"></i> Spustit test</a>
              </div>
 
-            <div class="tabs-wrapper"> <div class="content-tabs" id="content-tabs">
+            <div class="tabs-wrapper" style="display: none;"> <div class="content-tabs" id="content-tabs">
                     <div class="content-tab active" data-tab="practice-tab"> <i class="fas fa-laptop-code"></i> Přehled </div>
                     <div class="content-tab" data-tab="test-results-tab"> <i class="fas fa-poll"></i> Testy </div>
                     <div class="content-tab" data-tab="study-plan-tab"> <i class="fas fa-route"></i> Plán </div>
@@ -158,7 +158,7 @@
             </div>
 
             <div class="tab-content-container">
-                <div class="tab-content active" id="practice-tab">
+                <div class="tab-content active" id="practice-tab" style="display: none;">
                     <section class="stats-section">
                         <h2 class="section-title" data-animate style="--animation-order: 1;"><i class="fas fa-chart-pie"></i>Celkový Přehled</h2>
                         <div class="dashboard-grid loading" id="stats-cards"> </div>
@@ -168,7 +168,7 @@
                         <div class="shortcut-grid loading" id="shortcuts-grid"> </div>
                     </section>
                 </div>
-                <div class="tab-content" id="test-results-tab">
+                <div class="tab-content" id="test-results-tab" style="display: none;">
                     <section class="test-results-section card loading" id="test-results-container">
                         <h2 class="section-title"><i class="fas fa-poll"></i>Historie Testů</h2>
                         <div class="loading-overlay hidden" id="test-results-loading"> <div class="loading-spinner"></div> </div>
@@ -176,7 +176,7 @@
                         <div class="empty-state" id="test-results-empty" style="display: none;"> <i class="fas fa-vial empty-state-icon"></i> <h3>Zatím žádné výsledky</h3> <p>Absolvujte test pro zobrazení výsledků.</p> <a href="test1.html" class="btn btn-primary empty-state-action" id="start-test-btn-results"> <i class="fas fa-play-circle"></i> Spustit test </a> </div>
                     </section>
                 </div>
-                <div class="tab-content" id="study-plan-tab">
+                <div class="tab-content" id="study-plan-tab" style="display: none;">
                      <section class="study-plan-section card loading" id="study-plan-container">
                         <h2 class="section-title"><i class="fas fa-route"></i>Aktuální Studijní Plán</h2>
                         <div class="loading-overlay hidden" id="study-plan-loading"> <div class="loading-spinner"></div> </div>
@@ -184,7 +184,7 @@
                         <div class="empty-state" id="study-plan-empty" style="display: none;"> <i class="far fa-calendar-times empty-state-icon"></i> <h3>Žádný aktivní plán</h3> <p>Váš plán se vytvoří po diagnostickém testu.</p> <a href="test1.html" class="btn btn-primary empty-state-action" id="start-test-btn-plan"> <i class="fas fa-play-circle"></i> Spustit test </a> </div>
                     </section>
                 </div>
-                <div class="tab-content" id="topic-analysis-tab">
+                <div class="tab-content" id="topic-analysis-tab" style="display: none;">
                     <section class="topic-analysis-section card loading" id="topic-analysis-container">
                         <h2 class="section-title"><i class="fas fa-atom"></i>Analýza podle Témat</h2>
                         <div class="loading-overlay hidden" id="topic-analysis-loading"> <div class="loading-spinner"></div> </div>
@@ -246,17 +246,17 @@
                 <div class="modal-body">
                     <div class="form-group" id="accelerate-areas-group">
                         <legend>Které oblasti matematiky vás primárně zajímají?</legend>
-                         <label><input type="checkbox" name="accelerate_area" value="algebra"> Algebra (rovnice, výrazy...)</label>
-                         <label><input type="checkbox" name="accelerate_area" value="geometry"> Geometrie (planimetrie, stereometrie...)</label>
-                         <label><input type="checkbox" name="accelerate_area" value="functions"> Funkce a grafy</label>
-                         <label><input type="checkbox" name="accelerate_area" value="combinatorics"> Kombinatorika, Pravděpodobnost, Statistika</label>
-                         <label><input type="checkbox" name="accelerate_area" value="calculus"> Základy Kalkulu (pro SŠ+)</label>
+                         <label><input type="checkbox" name="accelerate_area" value="algebra"> Algebra</label>
+                         <label><input type="checkbox" name="accelerate_area" value="geometry"> Geometrie</label>
+                         <label><input type="checkbox" name="accelerate_area" value="functions"> Funkce</label>
+                         <label><input type="checkbox" name="accelerate_area" value="combinatorics"> Kombinatorika/Pravděpodobnost</label>
+                         <label><input type="checkbox" name="accelerate_area" value="calculus"> Kalkulus (SŠ+)</label>
                     </div>
                     <div class="form-group" id="accelerate-reason-group">
                          <legend>Proč se chcete učit napřed?</legend>
                          <label><input type="radio" name="accelerate_reason" value="school_ahead"> Chci být napřed ve škole</label>
                          <label><input type="radio" name="accelerate_reason" value="university_prep"> Příprava na VŠ/Olympiády</label>
-                         <label><input type="radio" name="accelerate_reason" value="personal_interest"> Osobní zájem/Zvědavost</label>
+                         <label><input type="radio" name="accelerate_reason" value="personal_interest"> Osobní zájem</label>
                          <label><input type="radio" name="accelerate_reason" value="professional"> Profesní potřeby</label>
                     </div>
                 </div>
@@ -271,15 +271,15 @@
                 </div>
                 <div class="modal-body">
                      <div class="form-group" id="review-areas-group">
-                        <legend>Vyberte oblasti, které si potřebujete nejvíce zopakovat:</legend>
+                        <legend>Vyberte oblasti k opakování (nepovinné):</legend>
                          <label><input type="checkbox" name="review_area" value="linear_equations"> Lineární rovnice</label>
                          <label><input type="checkbox" name="review_area" value="percentages"> Procenta</label>
-                         <label><input type="checkbox" name="review_area" value="geometry_basics"> Základy geometrie (obvody, obsahy)</label>
-                         <label><input type="checkbox" name="review_area" value="fractions"> Zlomky a desetinná čísla</label>
+                         <label><input type="checkbox" name="review_area" value="geometry_basics"> Základy geometrie</label>
+                         <label><input type="checkbox" name="review_area" value="fractions"> Zlomky</label>
                          <label><input type="checkbox" name="review_area" value="expressions"> Algebraické výrazy</label>
                          <label><input type="checkbox" name="review_area" value="word_problems"> Slovní úlohy</label>
                      </div>
-                     <p><small>Systém se také pokusí identifikovat vaše slabiny na základě předchozích aktivit.</small></p>
+                     <p><small>Pokud nic nevyberete, systém navrhne témata na základě vaší historie.</small></p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary modal-confirm-btn" data-goal="math_review">Potvrdit a pokračovat</button>
@@ -292,7 +292,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="form-group" id="explore-level-group">
-                         <legend>Abychom vám mohli lépe doporučit témata, vyberte vaši přibližnou aktuální úroveň:</legend>
+                         <legend>Vyberte vaši přibližnou aktuální úroveň:</legend>
                         <label><input type="radio" name="explore_level" value="middle_school"> Základní škola (2. stupeň)</label>
                         <label><input type="radio" name="explore_level" value="high_school"> Střední škola / Maturita</label>
                         <label><input type="radio" name="explore_level" value="college"> Vysoká škola (základy)</label>
