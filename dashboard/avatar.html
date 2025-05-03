@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Аватарка (с Рамкой)</title>
+    <title>Justax - Аватарка (с Рамкой v2)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -41,8 +41,7 @@
             --card-radius: 14px; --button-radius: 10px;
             --container-padding-x: 2rem;
             --transition-fast: all 0.2s ease-out; --transition-medium: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            /* Добавим переменные для рамки */
-            --avatar-frame-offset: 15px; /* Отступ рамки от аватара */
+            --avatar-frame-offset: 15px;
         }
 
         /* Базовые стили */
@@ -85,24 +84,18 @@
         .sidebar-link.active { background-color: rgba(var(--accent-primary-rgb), 0.15); color: var(--white); font-weight: 600; border-left-color: var(--accent-primary); }
         .sidebar-link.active i { color: var(--accent-primary); }
         .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1.5rem; background-color: rgba(var(--accent-secondary-rgb), 0.1); border-radius: 12px; border: 1px solid var(--border-color-light); flex-shrink: 0; transition: padding var(--transition-medium) ease; overflow: hidden; white-space: nowrap; }
-        /* --- START: Стили Аватара (Общие) --- */
-        .avatar-container { /* Общий контейнер, если нужен вне сайдбара */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-grow: 1;
-            padding: 2rem;
-        }
+
+        /* --- Стили Аватара (Общие) --- */
         .avatar-wrapper {
             position: relative;
             display: inline-block;
-            line-height: 0; /* Убирает лишний отступ */
-            flex-shrink: 0; /* Предотвращает сжатие во flex-контейнере */
-            overflow: visible; /* Важно, чтобы рамка была видна */
+            line-height: 0;
+            flex-shrink: 0;
+            /* ДОБАВЛЕНО: явно указываем overflow: visible; */
+            overflow: visible;
         }
-        /* Стили для аватара внутри обертки (общее) */
         .avatar-content {
-            display: flex; /* Центрируем текст/иконку, если нет img */
+            display: flex;
             align-items: center;
             justify-content: center;
             width: 100%;
@@ -111,43 +104,42 @@
             background-color: var(--accent-secondary);
             color: var(--white);
             font-weight: 600;
-            overflow: hidden; /* Скрыть части img, если они выходят за круг */
+            overflow: hidden;
             border: 2px solid rgba(var(--accent-primary-rgb), 0.3);
-            position: relative; /* Для z-index */
-            z-index: 1; /* Аватар над рамкой */
+            position: relative;
+            z-index: 1; /* Аватар НАД рамкой */
         }
         .avatar-content img {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Масштабировать и обрезать изображение */
+            object-fit: cover;
         }
-        /* --- FIX: Стили для псевдоэлемента как РАМКИ --- */
+        /* --- Стили для псевдоэлемента как РАМКИ --- */
         .avatar-wrapper::after {
             content: '';
             position: absolute;
-            /* Позиционируем рамку вокруг аватара */
             top: calc(-1 * var(--avatar-frame-offset));
             left: calc(-1 * var(--avatar-frame-offset));
-            /* Делаем рамку больше аватара на двойной отступ */
             width: calc(100% + 2 * var(--avatar-frame-offset));
             height: calc(100% + 2 * var(--avatar-frame-offset));
-            /* Указываем путь к изображению рамки */
-            background-image: url('assets/decor_1.png');
-            background-size: contain; /* Масштабируем рамку, сохраняя пропорции */
+            background-image: url('../assets/decor_1.png'); /* ПРОВЕРЬТЕ ЭТОТ ПУТЬ! */
+            /* --- ДОБАВЛЕНО: Временный фон для отладки --- */
+            background-color: rgba(255, 0, 0, 0.5); /* Красный полупрозрачный фон */
+            /* ------------------------------------------ */
+            background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
-            pointer-events: none; /* Позволяет кликать сквозь рамку */
+            pointer-events: none;
             z-index: 0; /* Рамка ПОД аватаром */
-            border-radius: 50%; /* Скругление для псевдоэлемента */
+            border-radius: 50%;
         }
-        /* --- END FIX --- */
 
         /* Специфичные стили для сайдбара */
         .sidebar .avatar-wrapper {
             width: 42px; height: 42px;
             margin-right: 0.85rem;
             transition: margin-right var(--transition-medium) ease, width var(--transition-medium) ease, height var(--transition-medium) ease;
-            --avatar-frame-offset: 5px; /* Меньший отступ в сайдбаре */
+            --avatar-frame-offset: 5px; /* Меньший отступ */
         }
         .sidebar .avatar-content {
             font-size: 1.1rem;
@@ -190,7 +182,7 @@
         #avatar-display-area .avatar-wrapper {
             width: 250px; height: 250px;
             border-radius: 50%;
-            --avatar-frame-offset: 15px; /* Больший отступ для основного аватара */
+            --avatar-frame-offset: 15px; /* Больший отступ */
         }
         #avatar-display-area .avatar-content {
             border: 5px solid var(--accent-primary);
@@ -278,14 +270,14 @@
     <script>
         (function() {
             'use strict';
-            console.log("[Init Avatar Standalone v4 - Frame] Starting...");
+            console.log("[Init Avatar Standalone v4 - Frame Debug] Starting...");
 
             const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
             let supabase = null;
             let currentUser = null;
             let currentProfile = null;
-            let allTitles = []; // Оставляем для совместимости, если profile.js использует
+            let allTitles = [];
             const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
 
             const ui = {
@@ -299,7 +291,7 @@
                 sidebarUserTitle: document.getElementById('sidebar-user-title'),
                 currentYearSidebar: document.getElementById('currentYearSidebar'),
                 currentYearFooter: document.getElementById('currentYearFooter'),
-                mainAvatarDisplay: document.getElementById('main-avatar-display'),
+                mainAvatarDisplay: document.getElementById('main-avatar-display'), // Контент внутри обертки
                 mainContent: document.getElementById('main-content')
             };
 
@@ -317,7 +309,6 @@
             async function fetchTitles() { if (!supabase) return []; try { const { data, error } = await supabase.from('title_shop').select('title_key, name'); if (error) throw error; return data || []; } catch (e) { console.error("Titles fetch error:", e); return []; } }
             async function createDefaultProfile(userId, userEmail) { if (!supabase || !userId || !userEmail) return null; try { const defaultData = { id: userId, email: userEmail, username: userEmail.split('@')[0] || `user_${userId.substring(0, 6)}`, level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches }, notifications: { email: true } }; const { data: newProfile, error } = await supabase.from('profiles').insert(defaultData).select('*, selected_title').single(); if (error) { if (error.code === '23505') { return await fetchUserProfile(userId); } throw error; } return newProfile; } catch (error) { console.error("Failed to create default profile:", error); return null; } }
 
-            // Функция для обновления аватаров (sidebar и основной)
             function updateAvatars(profile) {
                  if (!profile) {
                      if (ui.sidebarAvatar) ui.sidebarAvatar.innerHTML = '?';
@@ -326,45 +317,39 @@
                  }
                  const initials = getInitials(profile);
                  const avatarUrl = profile.avatar_url;
-                 const avatarContent = avatarUrl
+                 const avatarContentHTML = avatarUrl
                     ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(initials)}">`
                     : `<span>${sanitizeHTML(initials)}</span>`;
 
+                 // Обновление аватара в сайдбаре
                  if (ui.sidebarAvatar) {
-                    ui.sidebarAvatar.innerHTML = avatarContent;
+                    ui.sidebarAvatar.innerHTML = avatarContentHTML;
                     const sidebarImg = ui.sidebarAvatar.querySelector('img');
-                    if(sidebarImg) sidebarImg.onerror = () => { ui.sidebarAvatar.innerHTML = `<span>${sanitizeHTML(initials)}</span>`; };
+                    if (sidebarImg) sidebarImg.onerror = () => { ui.sidebarAvatar.innerHTML = `<span>${sanitizeHTML(initials)}</span>`; };
                  }
+
+                 // Обновление основного аватара
                  if (ui.mainAvatarDisplay) {
-                    ui.mainAvatarDisplay.innerHTML = avatarContent;
+                    ui.mainAvatarDisplay.innerHTML = avatarContentHTML;
                     const mainImg = ui.mainAvatarDisplay.querySelector('img');
-                    if(mainImg) mainImg.onerror = () => { ui.mainAvatarDisplay.innerHTML = `<span>${sanitizeHTML(initials)}</span>`; };
+                    if (mainImg) mainImg.onerror = () => { ui.mainAvatarDisplay.innerHTML = `<span class="avatar-placeholder">${sanitizeHTML(initials)}</span>`; };
                  }
             }
 
             function updateUI(profile, titles) {
                 console.log("Updating UI...");
-                // Обновление информации в сайдбаре (имя, титул)
                 if (ui.sidebarName && ui.sidebarUserTitle) {
                     if (profile) {
                         const displayName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username || currentUser?.email?.split('@')[0] || 'Pilot';
                         ui.sidebarName.textContent = sanitizeHTML(displayName);
-
                         const selectedTitleKey = profile.selected_title;
                         let displayTitle = 'Pilot';
-                        if (selectedTitleKey && titles?.length > 0) {
-                            const foundTitle = titles.find(t => t.title_key === selectedTitleKey);
-                            if (foundTitle) displayTitle = foundTitle.name;
-                        }
+                        if (selectedTitleKey && titles?.length > 0) { const foundTitle = titles.find(t => t.title_key === selectedTitleKey); if (foundTitle) displayTitle = foundTitle.name; }
                         ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle);
                         ui.sidebarUserTitle.title = sanitizeHTML(displayTitle);
-                    } else {
-                        ui.sidebarName.textContent = "Nepřihlášen";
-                        ui.sidebarUserTitle.textContent = 'Pilot';
-                    }
+                    } else { ui.sidebarName.textContent = "Nepřihlášen"; ui.sidebarUserTitle.textContent = 'Pilot'; }
                 }
-                // Обновление аватаров
-                updateAvatars(profile);
+                updateAvatars(profile); // Обновляем оба аватара
             }
 
             function setupEventListeners() {
@@ -378,14 +363,14 @@
             }
 
             async function initializeApp() {
-                console.log("[Init Avatar Standalone v4 - Frame] Running initializeApp...");
+                console.log("[Init Avatar Standalone v4 - Frame Debug] Running initializeApp...");
                 if (!initializeSupabase()) return;
 
                 applyInitialSidebarState();
                 setupEventListeners();
                 updateCopyrightYear();
 
-                if (ui.mainContent) ui.mainContent.style.display = 'none'; // Скрыть контент до загрузки
+                if (ui.mainContent) ui.mainContent.style.display = 'none';
 
                 try {
                     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -395,32 +380,18 @@
                         currentUser = session.user;
                         console.log(`[Init Avatar] User authenticated (ID: ${currentUser.id}).`);
 
-                         const [profileResult, titlesResult] = await Promise.allSettled([
-                             fetchUserProfile(currentUser.id),
-                             fetchTitles()
-                        ]);
-
+                         const [profileResult, titlesResult] = await Promise.allSettled([ fetchUserProfile(currentUser.id), fetchTitles() ]);
                          if (profileResult.status === 'fulfilled' && profileResult.value) { currentProfile = profileResult.value; }
                          else { currentProfile = await createDefaultProfile(currentUser.id, currentUser.email); if (!currentProfile) throw new Error("Failed profile fetch/create."); }
-
                          if (titlesResult.status === 'fulfilled') { allTitles = titlesResult.value || []; }
                          else { console.warn("Titles fetch failed:", titlesResult.reason); allTitles = []; }
 
                         updateUI(currentProfile, allTitles);
-
                         if (ui.mainContent) { ui.mainContent.style.display = 'flex'; }
-
                         console.log("✅ [Init Avatar] Page initialized.");
 
-                    } else {
-                        console.log('[Init Avatar] User not logged in, redirecting...');
-                        window.location.href = '/auth/index.html';
-                    }
-                } catch (error) {
-                    console.error("❌ [Init Avatar] Critical initialization error:", error);
-                     if (ui.mainContent) ui.mainContent.innerHTML = `<p style='color:red; padding:2rem;'>Chyba: ${error.message}</p>`;
-                     if (ui.mainContent) ui.mainContent.style.display = 'flex'; // Показать ошибку
-                }
+                    } else { console.log('[Init Avatar] User not logged in, redirecting...'); window.location.href = '/auth/index.html'; }
+                } catch (error) { console.error("❌ [Init Avatar] Critical initialization error:", error); if (ui.mainContent) { ui.mainContent.innerHTML = `<p style='color:red; padding:2rem;'>Chyba: ${error.message}</p>`; ui.mainContent.style.display = 'flex'; } }
             }
 
             document.addEventListener('DOMContentLoaded', initializeApp);
