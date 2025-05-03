@@ -291,12 +291,14 @@ section:has(.section-title.animated) .section-title span::after,
     box-shadow: none;
 }
 
+/* --- START: Grid Header --- */
 .nav-container {
-	display: flex;
-	justify-content: space-between;
+	display: grid; /* CHANGED */
+    grid-template-columns: auto 1fr auto; /* ADDED: Logo | Nav | Actions */
 	align-items: center;
-    /* width: 100%; */ /* REMOVED previous fix attempt */
+    /* justify-content: space-between; */ /* REMOVED */
 }
+/* --- END: Grid Header --- */
 
 .logo {
 	font-family: var(--font-primary);
@@ -309,7 +311,7 @@ section:has(.section-title.animated) .section-title span::after,
 	gap: 10px;
 	transition: color var(--transition-fast), filter var(--transition-fast);
 	filter: drop-shadow(0 0 5px var(--clr-accent-cyan));
-    flex-shrink: 0; /* Prevent logo from shrinking */
+    flex-shrink: 0; /* Prevent logo from shrinking (still useful for grid content) */
 }
 .logo i {
 	color: var(--clr-accent-cyan);
@@ -323,20 +325,23 @@ section:has(.section-title.animated) .section-title span::after,
 	filter: drop-shadow(0 0 10px var(--clr-accent-cyan));
 }
 
-/* --- START: Added Styles --- */
+/* --- START: Nav Element Grid Positioning --- */
 #header nav {
-    flex-grow: 1; /* Allow nav element to take up space */
-    display: flex; /* Needed to center its child ul */
-    justify-content: center; /* Center the ul within the nav */
+    /* flex-grow: 1; */ /* REMOVED (not needed for grid) */
+    /* display: flex; */ /* REMOVED (Handled by ul.nav-links now) */
+    /* justify-content: center; */ /* REMOVED (Handled by ul.nav-links now) */
+    justify-self: center; /* ADDED: Center nav block in its grid cell */
+    grid-column: 2 / 3; /* Explicitly place in middle column */
 }
-/* --- END: Added Styles --- */
+/* --- END: Nav Element Grid Positioning --- */
+
 
 .nav-links {
 	list-style: none;
-	display: flex;
+	display: flex; /* Keep flex for inner link alignment */
 	gap: clamp(20px, 4vw, 35px); /* Responsive gap */
 	align-items: center;
-    /* justify-content: center; */ /* REMOVED - Moved justification to parent nav */
+    justify-content: center; /* ADDED: Center links within the nav/ul */
     width: max-content; /* Prevent ul from stretching unnecessarily */
 }
 .nav-item {
@@ -377,6 +382,8 @@ section:has(.section-title.animated) .section-title span::after,
 	align-items: center;
 	gap: 15px;
     flex-shrink: 0; /* Prevent actions container from shrinking */
+    justify-self: end; /* ADDED: Align actions to the end of their grid cell */
+    grid-column: 3 / 4; /* Explicitly place in last column */
 }
 .desktop-auth-link { display: inline-flex; } /* Changed to inline-flex */
 .mobile-auth-link { display: none; }
@@ -1407,13 +1414,23 @@ button:hover ~ .mouse-follower-glow,
 	:root { --layout-header-height: 60px; }
 
 	/* Mobile Navigation Structure */
-    /* --- START: Added/Modified Styles for Mobile Nav --- */
-    #header nav { /* Override flex-grow for mobile */
-        flex-grow: 0;
-        display: block; /* Reset display for mobile */
-        justify-content: initial; /* Reset justify */
+    /* --- START: Modified Mobile Nav (Grid remains relevant for structure) --- */
+    .nav-container {
+        display: flex; /* Revert to flex for simpler mobile layout */
+        justify-content: space-between; /* Standard mobile header layout */
+        grid-template-columns: none; /* Remove grid columns */
     }
-    /* --- END: Added/Modified Styles for Mobile Nav --- */
+     #header nav {
+        display: block; /* Reset display */
+        justify-self: initial; /* Reset grid alignment */
+        grid-column: auto; /* Reset grid placement */
+        flex-grow: 0; /* Reset flex-grow */
+    }
+    .header-actions {
+        justify-self: initial; /* Reset grid alignment */
+        grid-column: auto; /* Reset grid placement */
+    }
+    /* --- END: Modified Mobile Nav --- */
 
 	.nav-links {
 		position: fixed; top: 0; right: -100%; /* Off-screen initially */
@@ -1426,8 +1443,9 @@ button:hover ~ .mouse-follower-glow,
         box-shadow: -5px 0 20px rgba(0, 0, 0, 0.5);
 		z-index: 999;
         border-left: 1px solid rgba(160, 92, 255, 0.15);
-        width: min(75vw, 300px); /* Ensure width is reset */
-        justify-content: flex-start; /* Align items to start in column */
+        /* --- Ensure mobile specific flex props are set --- */
+        display: flex; /* Keep flex for column layout */
+        justify-content: flex-start; /* Align items to start */
 	}
 	.nav-links.active { right: 0; }
 	.nav-item { font-size: 1rem; width: 100%; padding-block: 10px; }
