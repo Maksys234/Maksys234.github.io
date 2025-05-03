@@ -565,7 +565,10 @@ ADD COLUMN is_purchasable boolean DEFAULT true NOT NULL;
 
 -- Add a comment to explain the new column
 COMMENT ON COLUMN public.title_shop.is_purchasable IS 'Indicates if the title can be bought in the shop (true) or is only awarded (false).';
+ALTER TABLE public.profiles
+ADD COLUMN learning_goal TEXT CHECK (learning_goal IN ('exam_prep', 'math_learning')) NULL;
 
+COMMENT ON COLUMN public.profiles.learning_goal IS 'Stores the user''s primary learning goal (exam_prep or math_learning)';
 -- Přidání komentářů pro lepší orientaci
 COMMENT ON TABLE public.title_shop IS 'Tabulka obsahující tituly, které si uživatelé mohou zakoupit za kredity.';
 COMMENT ON COLUMN public.title_shop.title_key IS 'Unikátní textový identifikátor titulu pro interní použití.';
