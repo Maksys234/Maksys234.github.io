@@ -90,8 +90,6 @@
                                 <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button>
                             </div>
                             <div id="notifications-list">
-                                <div class="notification-item skeleton"> <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 90%;"></div> <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div> </div> </div>
-                                <div class="notification-item skeleton"> <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 60%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 80%;"></div> <div class="skeleton" style="height: 10px; width: 50%; margin-top: 6px;"></div> </div> </div>
                                 <div id="no-notifications-msg" style="display: none;">ŽÁDNÉ NOVÉ SIGNÁLY</div>
                             </div>
                             <div class="notifications-footer">
@@ -104,28 +102,17 @@
         </header>
 
         <div class="main-content-wrapper">
-            <div class="error-container" id="global-error" style="display: none;"></div> <div id="test-selector" class="section" style="display: none;" data-animate style="--animation-order: 0;">
+            <div class="error-container" id="global-error" style="display: none;"></div>
+
+            <div id="test-selector" class="section" style="display: none;" data-animate style="--animation-order: 0;">
                  <h2 class="section-title"> <i class="fas fa-tasks"></i> Vyberte typ diagnostického testu </h2>
-                 <div class="test-types-container">
-                     <div class="test-type-card card" data-test-type="quick" data-animate style="--animation-order: 1;">
-                        <div class="test-type-header"><i class="fas fa-bolt"></i><h3>Rychlý test</h3></div>
-                        <p class="test-type-description">Základní prověření znalostí z <strong>každého klíčového tématu</strong>. Rychlý přehled vašich silných a slabých stránek.</p>
-                        <div class="test-type-features"> <div class="feature"><i class="fas fa-check"></i> cca 10 otázek</div> <div class="feature"><i class="fas fa-stopwatch"></i> 10-15 minut</div> <div class="feature"><i class="fas fa-chart-pie"></i> Základní analýza</div> </div>
-                        <button class="btn btn-primary select-test-btn"><i class="fas fa-play"></i> Spustit rychlý test</button>
-                    </div>
-                     <div class="test-type-card card" data-test-type="full" data-animate style="--animation-order: 2;">
+                 <div class="test-types-container" style="justify-content: center;"> <div class="test-type-card card" data-test-type="full" data-animate style="--animation-order: 1;">
                         <div class="test-type-header"><i class="fas fa-graduation-cap"></i><h3>Kompletní test</h3><div class="recommended-badge">Doporučeno</div></div>
                         <p class="test-type-description">Podrobné hodnocení <strong>všech oblastí přijímaček</strong>, podobné reálnému testu. Poskytuje solidní základ pro studijní plán.</p>
                         <div class="test-type-features"> <div class="feature"><i class="fas fa-check"></i> cca 20 otázek</div> <div class="feature"><i class="fas fa-stopwatch"></i> 25-30 minut</div> <div class="feature"><i class="fas fa-clipboard-list"></i> Detailní zpětná vazba</div> </div>
                         <button class="btn btn-primary select-test-btn"><i class="fas fa-play"></i> Spustit kompletní test</button>
                     </div>
-                     <div class="test-type-card card" data-test-type="absolute" data-animate style="--animation-order: 3;">
-                        <div class="test-type-header"><i class="fas fa-brain"></i><h3>Absolutní test</h3></div>
-                        <p class="test-type-description">Nejdůkladnější prověrka. Více otázek na <strong>každé téma</strong>, včetně pokročilejších konceptů. Pro maximálně přesný plán.</p>
-                        <div class="test-type-features"> <div class="feature"><i class="fas fa-check"></i> cca 30+ otázek</div> <div class="feature"><i class="fas fa-stopwatch"></i> 40-50 minut</div> <div class="feature"><i class="fas fa-microscope"></i> Hloubková analýza</div> </div>
-                        <button class="btn btn-primary select-test-btn"><i class="fas fa-play"></i> Spustit absolutní test</button>
                      </div>
-                 </div>
             </div>
 
             <div id="test-loader" class="section test-loader" style="display: none;">
@@ -172,16 +159,9 @@
                         </div>
                      <h3 class="section-subtitle">Výsledky podle témat</h3>
                      <div id="topic-results" class="topic-results">
-                        <div class="topic-card card loading">
-                              <div class="loading-skeleton">
-                                 <div class="topic-header"><div class="skeleton topic-icon" style="width:50px; height:50px;"></div><div class="skeleton topic-title" style="height:20px; width:70%;"></div></div>
-                                 <div class="topic-stats"><div class="skeleton text-sm" style="height:14px; width:50%;"></div><div class="skeleton text-sm" style="height:14px; width:60%;"></div><div class="skeleton progress-container" style="height:9px;"></div></div>
-                             </div>
-                        </div>
-                     </div>
+                         </div>
                      <div class="result-actions">
-                         <button id="retry-btn" class="btn btn-secondary btn-lg"> <i class="fas fa-redo"></i> Zkusit jiný test</button>
-                         <button id="review-answers-btn" class="btn btn-info btn-lg btn-tooltip" title="Prohlédnout si správné odpovědi a vysvětlení"> <i class="fas fa-search"></i> Zobrazit odpovědi </button>
+                         <button id="retry-btn" class="btn btn-secondary btn-lg"> <i class="fas fa-redo"></i> Zkusit jiný test</button> <button id="review-answers-btn" class="btn btn-info btn-lg btn-tooltip" title="Prohlédnout si správné odpovědi a vysvětlení"> <i class="fas fa-search"></i> Zobrazit odpovědi </button>
                          <button id="continue-btn" class="btn btn-success btn-lg btn-tooltip" title="Přejít na vygenerovaný studijní plán" disabled><i class="fas fa-tasks"></i> Přejít na plán</button>
                      </div>
                  </div>
@@ -207,5 +187,7 @@
 
     <div id="mouse-follower" class="mouse-follower-glow"></div>
 
-    <script src="test1-logic.js" defer></script> <script src="test1.js" defer></script>      </body>
+    <script src="test1-logic.js" defer></script>
+    <script src="test1.js" defer></script>
+</body>
 </html>
