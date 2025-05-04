@@ -1,45 +1,38 @@
 // Файл: test1.js
 // Управляет пользовательским интерфейсом, обработкой событий и оркестрацией теста,
 // используя логику из test1-logic.js (доступную через window.TestLogic).
-// Версия v10: Передает profileData в loadTestQuestionsLogic.
+// Версия v11: Автоматический старт теста 'full' для learning_goal 'exam_prep' или неопределенного.
 
 // Используем IIFE для изоляции области видимости
 (function() {
     'use strict';
 
     // --- START: Инициализация и Конфигурация ---
-    // Конфигурация Supabase и Gemini находится в test1-logic.js
-
     let supabase = null;
     let currentUser = null;
     let currentProfile = null; // << Важно для новой логики
-    let questions = []; // Массив загруженных вопросов теста
+    let questions = [];
     let currentQuestionIndex = 0;
-    let userAnswers = []; // Массив объектов с ответами пользователя
+    let userAnswers = [];
     let timer = null;
     let testTime = 0;
     let testStartTime = null;
     let testEndTime = null;
-    let testResultsData = null; // Результаты после вычисления TestLogic
-    let diagnosticId = null; // ID сохраненного теста в БД
-    let selectedTestType = null; // e.g., 'quick', 'full', 'absolute'
-    let isLoading = { page: true, test: false, results: false, notifications: false }; // Состояния загрузки UI
+    let testResultsData = null;
+    let diagnosticId = null;
+    let selectedTestType = null; // Может быть установлено автоматически
+    let isLoading = { page: true, test: false, results: false, notifications: false };
 
-    // Конфигурация типов теста (остается здесь для UI)
-    // !! ВАЖНО: Количество вопросов ('questionsCount') здесь используется только для
-    // !! отображения в UI и потенциально для таймера. Фактическое количество
-    // !! загружаемых вопросов теперь определяется в test1-logic.js на основе learning_goal.
+    // Конфигурация ТИПОВ ТЕСТА (для UI, название/описание)
+    // Фактическое количество вопросов определяется в test1-logic.js
     const testTypeConfig = {
         quick: { questionsCount: 10, title: 'Rychlý diagnostický test', description: 'Základní prověření', multiplier: 1.0 },
-        full: { questionsCount: 20, title: 'Kompletní diagnostický test', description: 'Podrobné hodnocení', multiplier: 1.5 },
-        absolute: { questionsCount: 30, title: 'Absolutní test znalostí', description: 'Důkladná prověrka', multiplier: 2.0 }
-        // --- НОВЫЕ ТИПЫ ДЛЯ РАЗНЫХ ЦЕЛЕЙ (пока не используются для выбора UI, но можно добавить) ---
-        // math_review: { questionsCount: 19, title: 'Opakování Matematiky', description: 'Doplnění mezer', multiplier: 1.0 },
-        // exam_prep: { questionsCount: 30, title: 'Diagnostika - Příprava', description: 'Prověrka pro přijímačky', multiplier: 2.0 }
+        full: { questionsCount: 20, title: 'Kompletní diagnostický test', description: 'Podrobné hodnocení', multiplier: 1.5 }, // Этот будет использоваться для exam_prep
+        absolute: { questionsCount: 30, title: 'Absolutní test znalostí', description: 'Důkladná prověrka', multiplier: 2.0 },
+        math_review: { questionsCount: 19, title: 'Opakování Matematiky', description: 'Doplnění mezer', multiplier: 1.0 } // Для math_review
     };
-    // Иконки тем (остаются здесь для UI)
+
     const topicIcons = { "Algebra": "fa-square-root-alt", "Aritmetika": "fa-calculator", "Geometrie": "fa-draw-polygon", "Logika": "fa-brain", "Logické úlohy": "fa-brain", "Statistika": "fa-chart-bar", "Čísla a aritmetické operace": "fa-calculator", "Práce s daty": "fa-chart-bar", "Problémové úlohy": "fa-lightbulb", "Proporce a procenta": "fa-percentage", "default": "fa-book" };
-    // Визуалы для уведомлений (остаются здесь для UI)
     const activityVisuals = { test: { icon: 'fa-vial', class: 'test' }, exercise: { icon: 'fa-pencil-alt', class: 'exercise' }, badge: { icon: 'fa-medal', class: 'badge' }, diagnostic: { icon: 'fa-clipboard-check', class: 'diagnostic' }, lesson: { icon: 'fa-book-open', class: 'lesson' }, plan_generated: { icon: 'fa-calendar-alt', class: 'plan_generated' }, level_up: { icon: 'fa-level-up-alt', class: 'level_up' }, other: { icon: 'fa-info-circle', class: 'other' }, default: { icon: 'fa-check-circle', class: 'default' } };
 
     // DOM Кэш (все элементы UI)
@@ -100,7 +93,7 @@
         // Review UI Elements
         reviewContent: document.getElementById('review-content'),
         backToResultsBtn: document.getElementById('back-to-results-btn'),
-        // Selectors specific elements
+        // Selectors specific elements (остаются, но могут не использоваться)
         testTypeCards: document.querySelectorAll('.test-type-card'),
         selectTestBtns: document.querySelectorAll('.select-test-btn'),
         // Feedback & Status
@@ -142,7 +135,6 @@
 
     // --- START: Data Fetching Wrappers (using TestLogic) ---
     async function fetchUserProfile(userId) {
-        // Эта функция остается здесь, так как она нужна для инициализации UI
         if (!supabase || !userId) return null;
         console.log(`[Profile] Fetching profile for user ID: ${userId}`);
         try {
@@ -159,40 +151,41 @@
     }
 
      async function checkExistingDiagnostic(userId) {
-         setLoadingState('test', true); // Keep using test loading state
+         setLoadingState('test', true);
          if (ui.loaderSubtext) ui.loaderSubtext.textContent = 'Kontroluji předchozí testy...';
          try {
-             // Call the logic function from the global object
              const hasCompleted = await window.TestLogic.checkExistingDiagnostic(supabase, userId);
              return hasCompleted;
          } catch (err) {
              console.error("Error in checkExistingDiagnostic UI wrapper:", err);
              showToast("Chyba při kontrole testů.", "error");
-             setLoadingState('test', false); // Stop loading on error
-             return false; // Assume no test if logic fails
+             setLoadingState('test', false);
+             return false;
          }
      }
 
     /**
      * Вызывает логику загрузки вопросов, передавая данные профиля.
-     * @param {string} testType - Тип теста ('quick', 'full', 'absolute'), используемый для UI.
+     * @param {string} testType - Тип теста ('quick', 'full', 'absolute', 'math_review'), используемый для UI.
      */
-    async function loadTestQuestions(testType) {
+    async function loadTestQuestions(testType) { // testType is kept for potential future UI logic
         setLoadingState('test', true);
         if (ui.loaderSubtext) ui.loaderSubtext.textContent = 'Přizpůsobuji otázky...';
         try {
             if (!currentProfile) {
                 throw new Error("Profil uživatele není načtený. Nelze určit typ otázek.");
             }
-            // *** ИЗМЕНЕНИЕ ЗДЕСЬ: Передаем currentProfile вместо testType вторым аргументом ***
-            console.log(`[UI LoadQ v10] Volání TestLogic.loadTestQuestions s profilem:`, currentProfile);
+            console.log(`[UI LoadQ v11] Volání TestLogic.loadTestQuestions s profilem (Goal: ${currentProfile.learning_goal})`);
+            // *** ИЗМЕНЕНИЕ ЗДЕСЬ: Передаем currentProfile, testTypeConfig ***
+            // testTypeConfig передается, так как он может использоваться в других частях логики (например, если бы TestLogic делал что-то еще)
+            // Хотя для ЗАГРУЗКИ вопросов он больше не нужен.
             questions = await window.TestLogic.loadTestQuestions(supabase, currentProfile, testTypeConfig);
-            console.log(`[UI LoadQ v10] Obdrženo ${questions.length} otázek z logiky.`);
-            initializeTest(); // Start the test UI which will stop the loader
+            console.log(`[UI LoadQ v11] Obdrženo ${questions.length} otázek z logiky.`);
+            initializeTest(); // Start the test UI
         } catch (error) {
             console.error('[UI] Error loading questions:', error);
             showErrorMessagePage(`Nepodařilo se načíst otázky: ${error.message}`);
-             setLoadingState('test', false); // Ensure loader stops on error
+             setLoadingState('test', false);
         }
     }
     // --- END: Data Fetching Wrappers ---
@@ -212,7 +205,8 @@
         userAnswers = questions.map((q, idx) => { let maxScore = 1; const difficultyInt = parseInt(q.difficulty); if (q.question_type === 'construction') maxScore = 2; else if (!isNaN(difficultyInt)) { if (difficultyInt >= 4) maxScore = 3; else if (difficultyInt === 3) maxScore = 2; } return { question_db_id: q.id, question_number_in_test: q.question_number, question_text: q.question_text, question_type: q.question_type, options: q.options, correct_answer: q.correct_answer, solution_explanation: q.solution_explanation, image_url: q.image_url, topic_id: q.topic_id, topic_name: q.topic_name, subtopic_id: q.subtopic_id, subtopic_name: q.subtopic_name, difficulty: q.difficulty, userAnswerValue: null, scoreAwarded: null, maxScore: maxScore, checked_by: null, correctness: null, reasoning: null, error_analysis: null, feedback: null }; });
         testTime = 0; if(ui.timerValue) ui.timerValue.textContent = formatTime(testTime); if(ui.answeredCountEl) ui.answeredCountEl.textContent = '0'; if(ui.lowScoreMessageContainer) ui.lowScoreMessageContainer.innerHTML = '';
         createPagination(); startTimer(); showQuestion(0); updateProgressBar(); updateNavigationButtons();
-        requestAnimationFrame(() => { if (ui.testContainer) { ui.testContainer.setAttribute('data-animate', ''); ui.testContainer.style.setProperty('--animation-order', 0); initScrollAnimations(); } });
+        requestAnimationFrame(() => { if (ui.testContainer) { ui.testContainer.setAttribute('data-animate', ''); ui.testContainer.style.setProperty('--animation-order', 0); // initScrollAnimations(); // needs definition or removal
+    } });
         setLoadingState('test', false);
     }
     function startTimer() { if(timer)clearInterval(timer); testStartTime=new Date(); testTime=0; if(ui.timerValue) ui.timerValue.textContent=formatTime(testTime); ui.testTimer?.classList.remove('timer-warning','timer-danger'); timer=setInterval(()=>{testTime++; if(ui.timerValue) ui.timerValue.textContent=formatTime(testTime); const config=testTypeConfig[selectedTestType]; if(!config)return; const estimatedTime=config.questionsCount*1.5*60; const warningTime=estimatedTime*0.8; if(testTime>estimatedTime){ui.testTimer?.classList.add('timer-danger'); ui.testTimer?.classList.remove('timer-warning');}else if(testTime>warningTime){ui.testTimer?.classList.add('timer-warning'); ui.testTimer?.classList.remove('timer-danger');}},1000); }
@@ -248,8 +242,8 @@
     // --- START: Evaluation & Results UI ---
     // (Функции evaluateAnswersUI, displayResults, displayReview, finishTest остаются без изменений)
     async function evaluateAnswersUI() { console.log("Spouštím vyhodnocení odpovědí (UI)..."); showGeminiOverlay(true); const promises = []; for (let i = 0; i < questions.length; i++) { const qData = questions[i]; const answerData = userAnswers[i]; if (!answerData) { console.error(`Chyba: Nenalezen objekt odpovědi pro index ${i} (UI)`); continue; } if (answerData.userAnswerValue === null || String(answerData.userAnswerValue).trim() === '') { answerData.scoreAwarded = 0; answerData.correctness = "skipped"; answerData.reasoning = "Otázka byla přeskočena nebo odpověď byla prázdná."; answerData.error_analysis = null; answerData.feedback = "Příště zkuste odpovědět."; answerData.checked_by = 'skipped'; console.log(`Q#${i+1} (${qData.question_type}) přeskočeno/prázdné (UI).`); promises.push(Promise.resolve()); continue; } promises.push( window.TestLogic.checkAnswerWithGemini( qData.question_type, qData.question_text, qData.question_type === 'construction' ? qData.solution_explanation : qData.correct_answer, answerData.userAnswerValue, answerData.maxScore, i ).then(evaluationResult => { userAnswers[i].scoreAwarded = evaluationResult.score; userAnswers[i].correctness = evaluationResult.correctness; userAnswers[i].reasoning = evaluationResult.reasoning; userAnswers[i].error_analysis = evaluationResult.error_analysis; userAnswers[i].feedback = evaluationResult.feedback; userAnswers[i].checked_by = evaluationResult.correctness === 'error' || evaluationResult.reasoning.includes("fallback") ? 'fallback_scored' : 'gemini_scored'; console.log(`Q#${i+1} (${qData.question_type}) vyhodnoceno (UI): Skóre ${evaluationResult.score}/${answerData.maxScore}, Správnost: ${evaluationResult.correctness}`); }).catch(error => { console.error(`Chyba vyhodnocení pro Q#${i+1} (UI):`, error); userAnswers[i].scoreAwarded = 0; userAnswers[i].correctness = 'error'; userAnswers[i].reasoning = `Automatické hodnocení selhalo: ${error.message}`; userAnswers[i].error_analysis = "Chyba systému hodnocení."; userAnswers[i].feedback = "Kontaktujte podporu, pokud problém přetrvává."; userAnswers[i].checked_by = 'error'; }) ); } await Promise.all(promises); showGeminiOverlay(false); console.log("Vyhodnocení odpovědí dokončeno (UI):", userAnswers); }
-    function displayResults() { if(!ui.testContainer || !ui.resultsContainer || !ui.reviewContainer || !ui.testTimer || !ui.testLevel || !ui.resultScoreEl || !ui.resultPercentageEl || !ui.resultCorrectEl || !ui.resultIncorrectEl || !ui.resultTimeEl || !ui.lowScoreMessageContainer || !ui.continueBtn || !ui.topicResultsEl || !ui.reviewAnswersBtn || !ui.backToResultsBtn) { console.error("Chyba: Některé elementy výsledků nebyly nalezeny v DOM."); return; } if (!testResultsData) { console.error("Chyba: Chybí data výsledků (testResultsData)."); showErrorMessagePage("Nepodařilo se zobrazit výsledky - chybí data."); return; } ui.testContainer.style.display = 'none'; ui.resultsContainer.style.display = 'block'; ui.reviewContainer.style.display = 'none'; ui.testTimer.style.display = 'none'; if(ui.testLevel) ui.testLevel.textContent = 'Výsledky testu'; if(ui.resultScoreEl) ui.resultScoreEl.textContent = `${testResultsData.score}/50`; if(ui.resultPercentageEl) ui.resultPercentageEl.textContent = `${testResultsData.percentage}%`; if(ui.resultCorrectEl) ui.resultCorrectEl.textContent = testResultsData.correctAnswers; if(ui.resultIncorrectEl) ui.resultIncorrectEl.textContent = testResultsData.incorrectAnswers + testResultsData.partiallyCorrectAnswers; if(ui.resultTimeEl) ui.resultTimeEl.textContent = formatTime(testResultsData.timeSpent); ui.lowScoreMessageContainer.innerHTML = ''; ui.continueBtn.disabled = true; const saveError = ui.continueBtn.getAttribute('data-save-error') === 'true'; const scoreThreshold = window.TestLogic?.SCORE_THRESHOLD_FOR_SAVING ?? 5; if (saveError) { ui.lowScoreMessageContainer.innerHTML = `<div class="error-message-container"><i class="fas fa-exclamation-triangle"></i><div class="loader-text">Chyba ukládání</div><div class="loader-subtext">Nepodařilo se uložit výsledky testu. Studijní plán nelze vytvořit.</div></div>`; } else if (testResultsData.score < scoreThreshold) { ui.lowScoreMessageContainer.innerHTML = `<div class="low-score-message warning"><i class="fas fa-exclamation-circle"></i><strong>Výsledek nebyl uložen.</strong><br>Vaše skóre (${testResultsData.score}/50) je nižší než ${scoreThreshold} bodů. Tyto výsledky nebudou použity pro generování studijního plánu.</div>`; } else { ui.lowScoreMessageContainer.innerHTML = `<div class="low-score-message info"><i class="fas fa-info-circle"></i><strong>Výsledky byly uloženy.</strong><br>Vaše skóre (${testResultsData.score}/50) bude použito pro studijní plán.</div>`; ui.continueBtn.disabled = false; } const sortedTopics = Object.values(testResultsData.topicResults || {}).sort((a, b) => a.score_percent - b.score_percent); ui.topicResultsEl.innerHTML = sortedTopics.map(stats => { const icon = topicIcons[stats.name] || topicIcons.default; return `<div class="topic-card card ${stats.strength}"> <div class="topic-header"> <div class="topic-icon"><i class="fas ${icon}"></i></div> <h3 class="topic-title">${sanitizeHTML(stats.name)}</h3> </div> <div class="topic-stats"> <div class="topic-progress"> <span class="topic-progress-label">Úspěšnost (body)</span> <span class="topic-progress-value">${stats.score_percent}%</span> </div> <div class="topic-progress-bar"> <div class="topic-progress-fill" style="width: ${stats.score_percent}%;"></div> </div> <div class="topic-progress" style="margin-top: 0.5rem;"> <span class="topic-progress-label">Body</span> <span class="topic-progress-value">${stats.points_achieved} / ${stats.max_points}</span> </div> <div class="topic-progress" style="margin-top: 0.1rem; font-size: 0.8em;"> <span class="topic-progress-label">Správně otázek</span> <span class="topic-progress-value">${stats.fully_correct} / ${stats.total_questions}</span> </div> </div> </div>`; }).join(''); if (ui.reviewAnswersBtn) ui.reviewAnswersBtn.onclick = displayReview; if (ui.backToResultsBtn) ui.backToResultsBtn.onclick = () => { ui.reviewContainer.style.display = 'none'; ui.resultsContainer.style.display = 'block'; if (ui.mainContent) ui.mainContent.scrollTo({ top: 0, behavior: 'smooth' }); }; requestAnimationFrame(() => { if (ui.resultsContainer) { ui.resultsContainer.querySelectorAll('[data-animate]').forEach((el, index) => { el.style.setProperty('--animation-order', index); }); initScrollAnimations(); } }); }
-    function displayReview() { if (!ui.resultsContainer || !ui.reviewContainer || !ui.reviewContent) { console.error("Elementy pro přehled odpovědí nenalezeny!"); return; } ui.resultsContainer.style.display = 'none'; ui.reviewContainer.style.display = 'block'; ui.reviewContent.innerHTML = ''; if (!questions || !userAnswers || questions.length !== userAnswers.length) { ui.reviewContent.innerHTML = '<p class="error-message-container">Chyba: Data pro přehled odpovědí nejsou kompletní.</p>'; return; } questions.forEach((q, index) => { const answer = userAnswers[index]; if (!answer) { ui.reviewContent.innerHTML += `<div class="review-question-item skipped card"><p>Chyba: Chybí data odpovědi pro otázku ${index + 1}</p></div>`; return; } let itemClass = 'review-question-item card'; let scoreStatus = ''; let scoreText = `${answer.scoreAwarded ?? '?'} / ${answer.maxScore} b.`; switch (answer.correctness) { case 'correct': itemClass += ' correct'; scoreStatus = '<span class="correct">Správně</span>'; break; case 'partial': itemClass += ' partial'; scoreStatus = '<span class="partial">Částečně</span>'; break; case 'incorrect': itemClass += ' incorrect'; scoreStatus = '<span class="incorrect">Nesprávně</span>'; break; case 'skipped': itemClass += ' skipped'; scoreStatus = '<span class="skipped">Přeskočeno</span>'; scoreText = `0 / ${answer.maxScore} b.`; break; case 'error': default: itemClass += ' incorrect'; scoreStatus = '<span class="incorrect">Chyba</span>'; scoreText = `? / ${answer.maxScore} b.`; break; } let reviewHTML = `<div class="${itemClass}">`; reviewHTML += `<div class="review-question-header"><span class="review-question-number">${q.question_number}</span><div class="review-question-text">${sanitizeHTML(q.question_text)}</div></div>`; if (q.image_url) { reviewHTML += `<div class="question-image-container"><img class="question-image" src="${q.image_url}" alt="Obrázek k otázce ${q.question_number}" loading="lazy"></div>`; } reviewHTML += `<div class="review-answer-section">`; reviewHTML += `<div class="review-user-answer"><strong>Vaše odpověď:</strong> `; if (answer.userAnswerValue !== null) { if (q.question_type === 'multiple_choice') { const selectedLetter = String(answer.userAnswerValue).trim().toUpperCase(); const selectedOptionIndex = selectedLetter.charCodeAt(0) - 65; const optionText = (Array.isArray(q.options) && q.options[selectedOptionIndex] !== undefined) ? sanitizeHTML(q.options[selectedOptionIndex]) : `(Neplatná volba: ${sanitizeHTML(answer.userAnswerValue)})`; reviewHTML += `${selectedLetter}. ${optionText}`; } else { reviewHTML += sanitizeHTML(answer.userAnswerValue); } } else { reviewHTML += `<em>(Nezodpovězeno)</em>`; } reviewHTML += `</div>`; if (q.question_type !== 'construction') { reviewHTML += `<div class="review-correct-answer"><strong>Správná odpověď:</strong> `; if (q.question_type === 'multiple_choice') { const correctLetter = String(q.correct_answer).trim().toUpperCase().replace(/[\.\)\s].*/, ''); const correctOptionIndex = correctLetter.charCodeAt(0) - 65; const correctText = (Array.isArray(q.options) && q.options[correctOptionIndex] !== undefined) ? sanitizeHTML(q.options[correctOptionIndex]) : `(Neplatný text)`; reviewHTML += `${correctLetter}. ${correctText}`; } else { reviewHTML += sanitizeHTML(q.correct_answer); } reviewHTML += `</div>`; } const explanationToShow = (q.solution_explanation && q.solution_explanation !== "Oficiální postup není k dispozici.") ? q.solution_explanation : answer.reasoning; if (explanationToShow) { reviewHTML += `<div class="review-solution"><strong>Zdůvodnění / Postup:</strong><pre><code>${sanitizeHTML(explanationToShow)}</code></pre></div>`; } if (answer.error_analysis) { reviewHTML += `<div class="review-solution" style="border-left: 3px solid var(--accent-pink); background-color: rgba(var(--accent-pink-rgb), 0.05);"><strong>Analýza chyby:</strong><p style="margin:0;">${sanitizeHTML(answer.error_analysis)}</p></div>`; } if (answer.feedback) { reviewHTML += `<div class="review-solution" style="border-left: 3px solid var(--accent-secondary); background-color: rgba(var(--accent-secondary-rgb), 0.05);"><strong>Zpětná vazba:</strong><p style="margin:0;">${sanitizeHTML(answer.feedback)}</p></div>`; } reviewHTML += `<div class="review-score"><strong>Hodnocení:</strong> ${scoreStatus} (${scoreText})</div>`; reviewHTML += `</div></div>`; ui.reviewContent.innerHTML += reviewHTML; }); if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') { try { setTimeout(() => { window.MathJax.typesetPromise([ui.reviewContent]).catch(e => console.error("MathJax error in review:", e)); }, 0); } catch (e) { console.error("MathJax init error in review:", e); } } if (ui.reviewContainer) ui.reviewContainer.scrollIntoView({ behavior: 'smooth' }); requestAnimationFrame(() => { if (ui.reviewContent) { ui.reviewContent.querySelectorAll('.review-question-item').forEach((el, index) => { el.setAttribute('data-animate', ''); el.style.setProperty('--animation-order', index); }); initScrollAnimations(); } }); }
+    function displayResults() { if(!ui.testContainer || !ui.resultsContainer || !ui.reviewContainer || !ui.testTimer || !ui.testLevel || !ui.resultScoreEl || !ui.resultPercentageEl || !ui.resultCorrectEl || !ui.resultIncorrectEl || !ui.resultTimeEl || !ui.lowScoreMessageContainer || !ui.continueBtn || !ui.topicResultsEl || !ui.reviewAnswersBtn || !ui.backToResultsBtn) { console.error("Chyba: Některé elementy výsledků nebyly nalezeny v DOM."); return; } if (!testResultsData) { console.error("Chyba: Chybí data výsledků (testResultsData)."); showErrorMessagePage("Nepodařilo se zobrazit výsledky - chybí data."); return; } ui.testContainer.style.display = 'none'; ui.resultsContainer.style.display = 'block'; ui.reviewContainer.style.display = 'none'; ui.testTimer.style.display = 'none'; if(ui.testLevel) ui.testLevel.textContent = 'Výsledky testu'; if(ui.resultScoreEl) ui.resultScoreEl.textContent = `${testResultsData.score}/50`; if(ui.resultPercentageEl) ui.resultPercentageEl.textContent = `${testResultsData.percentage}%`; if(ui.resultCorrectEl) ui.resultCorrectEl.textContent = testResultsData.correctAnswers; if(ui.resultIncorrectEl) ui.resultIncorrectEl.textContent = testResultsData.incorrectAnswers + testResultsData.partiallyCorrectAnswers; if(ui.resultTimeEl) ui.resultTimeEl.textContent = formatTime(testResultsData.timeSpent); ui.lowScoreMessageContainer.innerHTML = ''; ui.continueBtn.disabled = true; const saveError = ui.continueBtn.getAttribute('data-save-error') === 'true'; const scoreThreshold = window.TestLogic?.SCORE_THRESHOLD_FOR_SAVING ?? 5; if (saveError) { ui.lowScoreMessageContainer.innerHTML = `<div class="error-message-container"><i class="fas fa-exclamation-triangle"></i><div class="loader-text">Chyba ukládání</div><div class="loader-subtext">Nepodařilo se uložit výsledky testu. Studijní plán nelze vytvořit.</div></div>`; } else if (testResultsData.score < scoreThreshold) { ui.lowScoreMessageContainer.innerHTML = `<div class="low-score-message warning"><i class="fas fa-exclamation-circle"></i><strong>Výsledek nebyl uložen.</strong><br>Vaše skóre (${testResultsData.score}/50) je nižší než ${scoreThreshold} bodů. Tyto výsledky nebudou použity pro generování studijního plánu.</div>`; } else { ui.lowScoreMessageContainer.innerHTML = `<div class="low-score-message info"><i class="fas fa-info-circle"></i><strong>Výsledky byly uloženy.</strong><br>Vaše skóre (${testResultsData.score}/50) bude použito pro studijní plán.</div>`; ui.continueBtn.disabled = false; } const sortedTopics = Object.values(testResultsData.topicResults || {}).sort((a, b) => a.score_percent - b.score_percent); ui.topicResultsEl.innerHTML = sortedTopics.map(stats => { const icon = topicIcons[stats.name] || topicIcons.default; return `<div class="topic-card card ${stats.strength}"> <div class="topic-header"> <div class="topic-icon"><i class="fas ${icon}"></i></div> <h3 class="topic-title">${sanitizeHTML(stats.name)}</h3> </div> <div class="topic-stats"> <div class="topic-progress"> <span class="topic-progress-label">Úspěšnost (body)</span> <span class="topic-progress-value">${stats.score_percent}%</span> </div> <div class="topic-progress-bar"> <div class="topic-progress-fill" style="width: ${stats.score_percent}%;"></div> </div> <div class="topic-progress" style="margin-top: 0.5rem;"> <span class="topic-progress-label">Body</span> <span class="topic-progress-value">${stats.points_achieved} / ${stats.max_points}</span> </div> <div class="topic-progress" style="margin-top: 0.1rem; font-size: 0.8em;"> <span class="topic-progress-label">Správně otázek</span> <span class="topic-progress-value">${stats.fully_correct} / ${stats.total_questions}</span> </div> </div> </div>`; }).join(''); if (ui.reviewAnswersBtn) ui.reviewAnswersBtn.onclick = displayReview; if (ui.backToResultsBtn) ui.backToResultsBtn.onclick = () => { ui.reviewContainer.style.display = 'none'; ui.resultsContainer.style.display = 'block'; if (ui.mainContent) ui.mainContent.scrollTo({ top: 0, behavior: 'smooth' }); }; // requestAnimationFrame(() => { if (ui.resultsContainer) { ui.resultsContainer.querySelectorAll('[data-animate]').forEach((el, index) => { el.style.setProperty('--animation-order', index); }); initScrollAnimations(); } }); }
+    function displayReview() { if (!ui.resultsContainer || !ui.reviewContainer || !ui.reviewContent) { console.error("Elementy pro přehled odpovědí nenalezeny!"); return; } ui.resultsContainer.style.display = 'none'; ui.reviewContainer.style.display = 'block'; ui.reviewContent.innerHTML = ''; if (!questions || !userAnswers || questions.length !== userAnswers.length) { ui.reviewContent.innerHTML = '<p class="error-message-container">Chyba: Data pro přehled odpovědí nejsou kompletní.</p>'; return; } questions.forEach((q, index) => { const answer = userAnswers[index]; if (!answer) { ui.reviewContent.innerHTML += `<div class="review-question-item skipped card"><p>Chyba: Chybí data odpovědi pro otázku ${index + 1}</p></div>`; return; } let itemClass = 'review-question-item card'; let scoreStatus = ''; let scoreText = `${answer.scoreAwarded ?? '?'} / ${answer.maxScore} b.`; switch (answer.correctness) { case 'correct': itemClass += ' correct'; scoreStatus = '<span class="correct">Správně</span>'; break; case 'partial': itemClass += ' partial'; scoreStatus = '<span class="partial">Částečně</span>'; break; case 'incorrect': itemClass += ' incorrect'; scoreStatus = '<span class="incorrect">Nesprávně</span>'; break; case 'skipped': itemClass += ' skipped'; scoreStatus = '<span class="skipped">Přeskočeno</span>'; scoreText = `0 / ${answer.maxScore} b.`; break; case 'error': default: itemClass += ' incorrect'; scoreStatus = '<span class="incorrect">Chyba</span>'; scoreText = `? / ${answer.maxScore} b.`; break; } let reviewHTML = `<div class="${itemClass}">`; reviewHTML += `<div class="review-question-header"><span class="review-question-number">${q.question_number}</span><div class="review-question-text">${sanitizeHTML(q.question_text)}</div></div>`; if (q.image_url) { reviewHTML += `<div class="question-image-container"><img class="question-image" src="${q.image_url}" alt="Obrázek k otázce ${q.question_number}" loading="lazy"></div>`; } reviewHTML += `<div class="review-answer-section">`; reviewHTML += `<div class="review-user-answer"><strong>Vaše odpověď:</strong> `; if (answer.userAnswerValue !== null) { if (q.question_type === 'multiple_choice') { const selectedLetter = String(answer.userAnswerValue).trim().toUpperCase(); const selectedOptionIndex = selectedLetter.charCodeAt(0) - 65; const optionText = (Array.isArray(q.options) && q.options[selectedOptionIndex] !== undefined) ? sanitizeHTML(q.options[selectedOptionIndex]) : `(Neplatná volba: ${sanitizeHTML(answer.userAnswerValue)})`; reviewHTML += `${selectedLetter}. ${optionText}`; } else { reviewHTML += sanitizeHTML(answer.userAnswerValue); } } else { reviewHTML += `<em>(Nezodpovězeno)</em>`; } reviewHTML += `</div>`; if (q.question_type !== 'construction') { reviewHTML += `<div class="review-correct-answer"><strong>Správná odpověď:</strong> `; if (q.question_type === 'multiple_choice') { const correctLetter = String(q.correct_answer).trim().toUpperCase().replace(/[\.\)\s].*/, ''); const correctOptionIndex = correctLetter.charCodeAt(0) - 65; const correctText = (Array.isArray(q.options) && q.options[correctOptionIndex] !== undefined) ? sanitizeHTML(q.options[correctOptionIndex]) : `(Neplatný text)`; reviewHTML += `${correctLetter}. ${correctText}`; } else { reviewHTML += sanitizeHTML(q.correct_answer); } reviewHTML += `</div>`; } const explanationToShow = (q.solution_explanation && q.solution_explanation !== "Oficiální postup není k dispozici.") ? q.solution_explanation : answer.reasoning; if (explanationToShow) { reviewHTML += `<div class="review-solution"><strong>Zdůvodnění / Postup:</strong><pre><code>${sanitizeHTML(explanationToShow)}</code></pre></div>`; } if (answer.error_analysis) { reviewHTML += `<div class="review-solution" style="border-left: 3px solid var(--accent-pink); background-color: rgba(var(--accent-pink-rgb), 0.05);"><strong>Analýza chyby:</strong><p style="margin:0;">${sanitizeHTML(answer.error_analysis)}</p></div>`; } if (answer.feedback) { reviewHTML += `<div class="review-solution" style="border-left: 3px solid var(--accent-secondary); background-color: rgba(var(--accent-secondary-rgb), 0.05);"><strong>Zpětná vazba:</strong><p style="margin:0;">${sanitizeHTML(answer.feedback)}</p></div>`; } reviewHTML += `<div class="review-score"><strong>Hodnocení:</strong> ${scoreStatus} (${scoreText})</div>`; reviewHTML += `</div></div>`; ui.reviewContent.innerHTML += reviewHTML; }); if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') { try { setTimeout(() => { window.MathJax.typesetPromise([ui.reviewContent]).catch(e => console.error("MathJax error in review:", e)); }, 0); } catch (e) { console.error("MathJax init error in review:", e); } } if (ui.reviewContainer) ui.reviewContainer.scrollIntoView({ behavior: 'smooth' }); // requestAnimationFrame(() => { if (ui.reviewContent) { ui.reviewContent.querySelectorAll('.review-question-item').forEach((el, index) => { el.setAttribute('data-animate', ''); el.style.setProperty('--animation-order', index); }); initScrollAnimations(); } }); }
     async function finishTest() { stopTimer(); if(ui.finishBtn) { ui.finishBtn.disabled = true; ui.finishBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vyhodnocuji...'; } let saveResult = { success: false }; try { await evaluateAnswersUI(); testResultsData = window.TestLogic.calculateFinalResults(userAnswers, questions); testResultsData.timeSpent = testTime; saveResult = await window.TestLogic.saveTestResults(supabase, currentUser, testResultsData, userAnswers, questions, testEndTime); diagnosticId = saveResult.diagnosticId || null; displayResults(); if (saveResult.success) { const pointsResult = await window.TestLogic.awardPoints(supabase, currentUser, currentProfile, selectedTestType, testResultsData, testTypeConfig); if (pointsResult?.success) { currentProfile.points = pointsResult.newTotal; showToast(`${pointsResult.awardedPoints} kreditů získáno!`, 'success'); } else if (pointsResult && pointsResult.error) { showToast(`Nepodařilo se připsat body: ${pointsResult.error}`, 'warning'); } } else { console.warn("Výsledky nebyly úspěšně uloženy nebo byly pod limitem, body nebudou přiděleny."); if(ui.continueBtn) { ui.continueBtn.disabled = true; if(saveResult.error && !saveResult.error.includes('Skóre je příliš nízké')) { ui.continueBtn.setAttribute('data-save-error', 'true'); } } displayResults(); } history.pushState({ state: 'testFinished' }, document.title, window.location.href); } catch (error) { console.error("Chyba při dokončování testu:", error); showGeminiOverlay(false); if (!testResultsData) { testResultsData = { score: 0, percentage: 0, correctAnswers: 0, incorrectAnswers: questions.length, partiallyCorrectAnswers: 0, skippedAnswers: 0, timeSpent: testTime, topicResults: {}, evaluationErrors: questions.length }; } displayResults(); if(ui.lowScoreMessageContainer) { ui.lowScoreMessageContainer.innerHTML = `<div class="error-message-container"><i class="fas fa-exclamation-triangle"></i><div class="loader-text">Chyba!</div><div class="loader-subtext">Chyba vyhodnocení/ukládání: ${error.message}. Výsledky nemusí být kompletní nebo uložené.</div></div>`; } if(ui.continueBtn) { ui.continueBtn.disabled = true; ui.continueBtn.setAttribute('data-save-error', 'true'); } history.pushState({ state: 'testFinishedWithError' }, document.title, window.location.href); } finally { if(ui.finishBtn) { ui.finishBtn.disabled = false; ui.finishBtn.innerHTML = '<i class="fas fa-check-circle"></i> Dokončit test'; } } }
     // --- END: Evaluation & Results UI ---
 
@@ -272,12 +266,11 @@
     function handleBackButton(event) { const state = event.state ? event.state.state : null; const testIsRunning = ui.testContainer && ui.testContainer.style.display === 'block'; const resultsAreShown = ui.resultsContainer && ui.resultsContainer.style.display === 'block'; const reviewIsShown = ui.reviewContainer && ui.reviewContainer.style.display === 'block'; if (reviewIsShown) { ui.reviewContainer.style.display = 'none'; if (ui.resultsContainer) ui.resultsContainer.style.display = 'block'; } else if (testIsRunning) { if (!confirm('Opustit test? Postup nebude uložen.')) { history.pushState({ state: 'testInProgress' }, document.title, window.location.href); } else { stopTimer(); if (ui.testContainer) ui.testContainer.style.display = 'none'; if (ui.testLoader) ui.testLoader.style.display = 'none'; if (ui.testSelector) ui.testSelector.style.display = 'block'; if (ui.testTimer) ui.testTimer.style.display = 'none'; if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; } } else if (resultsAreShown) { if(ui.resultsContainer) ui.resultsContainer.style.display = 'none'; if (ui.testSelector) ui.testSelector.style.display = 'block'; if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; } else { console.log("Navigace zpět (výchozí chování)."); } }
     // --- END: Test Flow & Back Button ---
 
-    // --- START: App Initialization ---
+    // --- START: App Initialization (МОДИФИЦИРОВАНО) ---
     async function initializeApp() {
-        console.log("🚀 [Init Test1 UI - Kyber v10] Starting...");
-        if (!initializeSupabase()) return; // Инициализация Supabase
+        console.log("🚀 [Init Test1 UI - Kyber v11] Starting...");
+        if (!initializeSupabase()) return;
 
-        // Проверка загрузки логики
         if (typeof window.TestLogic === 'undefined') {
             showErrorMessagePage("Kritická chyba: Chybí základní logika testu (test1-logic.js). Obnovte stránku.");
             return;
@@ -290,37 +283,37 @@
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
             if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
 
-            if (!session || !session.user) { console.log('[Init Test1 UI - Kyber v10] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; }
+            if (!session || !session.user) { console.log('[Init Test1 UI - Kyber v11] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; }
             currentUser = session.user;
-            currentProfile = await fetchUserProfile(currentUser.id); // << Загружаем профиль ЗДЕСЬ
+            currentProfile = await fetchUserProfile(currentUser.id);
             updateUserInfoUI();
 
             if (!currentProfile) { showError("Profil nenalezen. Test nelze spustit.", true); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => {if(ui.initialLoader) ui.initialLoader.style.display = 'none';}, 300); } if (ui.mainContent) ui.mainContent.style.display = 'block'; return; }
 
-            // --- Определение заголовка теста на основе learning_goal ---
-            // Эту логику лучше выполнять здесь, чтобы UI был консистентным с загружаемыми вопросами
-            let testMainTitle = "Diagnostický test";
-            let testSubtitle = "Výběr testu";
-            if (currentProfile.learning_goal === 'math_review') {
+            // --- Определение заголовка и потока теста на основе learning_goal ---
+            const userLearningGoal = currentProfile.learning_goal;
+            let testMainTitle = "Diagnostický test"; // Default
+            let testSubtitle = "Výběr testu";    // Default
+            let autoStartType = null;            // Тип теста для автозапуска
+            let showSelector = true;             // Показывать ли выбор типа
+
+            if (userLearningGoal === 'math_review') {
                 testMainTitle = "Opakování Matematiky";
                 testSubtitle = "Prověrka základů";
-                // Скрываем выбор типа теста, так как он один
-                if (ui.testSelector) {
-                    ui.testSelector.innerHTML = '<div class="section card"><p>Připravuji test pro opakování matematiky...</p></div>';
-                    ui.testSelector.style.display = 'block';
-                }
-                 if (ui.testLoader) ui.testLoader.style.display = 'flex';
-                 if (ui.loaderSubtext) ui.loaderSubtext.textContent = 'Načítám otázky pro opakování...';
+                autoStartType = 'math_review'; // Устанавливаем тип для автозапуска
+                showSelector = false;          // Не показываем выбор
             } else { // 'exam_prep' или другое/null
                 testMainTitle = "Diagnostika - Příprava";
-                testSubtitle = "Výběr testu";
-                 // Показываем выбор типа теста (если он не скрыт из-за checkExistingDiagnostic)
+                testSubtitle = "Kompletní Test"; // Подзаголовок для этого случая
+                autoStartType = 'full';        // Автозапуск типа 'full'
+                showSelector = false;          // Не показываем выбор
             }
-             if (ui.testLevel) ui.testLevel.textContent = testSubtitle;
-             const h1Title = document.querySelector('.dashboard-header h1');
-             if (h1Title) h1Title.innerHTML = `<i class="fas fa-vial"></i> ${sanitizeHTML(testMainTitle)}`;
-             // --- Конец определения заголовка ---
 
+            // Обновление заголовков в UI
+            if (ui.testLevel) ui.testLevel.textContent = testSubtitle;
+            const h1Title = document.querySelector('.dashboard-header h1');
+            if (h1Title) h1Title.innerHTML = `<i class="fas fa-vial"></i> ${sanitizeHTML(testMainTitle)}`;
+            // --- Конец определения заголовка и потока ---
 
             setupEventListeners();
             initTooltips();
@@ -329,41 +322,45 @@
             updateCopyrightYear();
             updateOnlineStatus();
 
-            // Загрузка уведомлений
-            await fetchAndRenderNotifications();
+            await fetchAndRenderNotifications(); // Загрузка уведомлений
 
             setLoadingState('test', true);
-            const hasCompletedTest = await checkExistingDiagnostic(currentUser.id);
+            // Проверяем, пройден ли тест *типа přijímačky*
+            const hasCompletedPrijimacky = userLearningGoal !== 'math_review' ? await checkExistingDiagnostic(currentUser.id) : false;
             setLoadingState('test', false);
 
-            if (hasCompletedTest && currentProfile.learning_goal !== 'math_review') {
-                 console.log("[Init] Test již dokončen (typ přijímačky), zobrazuji zprávu.");
-                 if(ui.testSelector) {
+            if (hasCompletedPrijimacky) {
+                console.log("[Init v11] Test 'prijimacky' již dokončen, zobrazuji zprávu.");
+                if(ui.testSelector) {
                     ui.testSelector.innerHTML = `<div class="section card" data-animate style="--animation-order: 0;"><h2 class="section-title"><i class="fas fa-check-circle" style="color: var(--accent-lime);"></i> Test již dokončen</h2><p>Tento diagnostický test (pro přípravu na přijímačky) jste již absolvoval/a. <strong>Nelze jej opakovat.</strong> Vaše výsledky byly použity pro studijní plán.</p><div style="margin-top:1.5rem; display:flex; gap:1rem; flex-wrap:wrap;"><a href="plan.html" class="btn btn-primary"><i class="fas fa-tasks"></i> Zobrazit plán</a><a href="main.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Zpět</a></div></div>`;
                     ui.testSelector.style.display = 'block';
-                    requestAnimationFrame(initScrollAnimations);
-                 }
-                 if(ui.testLoader) ui.testLoader.style.display = 'none';
-                 if(ui.testLevel) ui.testLevel.textContent = 'Dokončeno';
-            } else if (currentProfile.learning_goal === 'math_review') {
-                 // Сразу запускаем тест math_review без выбора типа
-                 console.log("[Init] Cíl je math_review, spouštím test automaticky.");
-                  selectedTestType = 'math_review'; // Устанавливаем внутренний тип
-                  if(ui.currentTestTitle) ui.currentTestTitle.textContent = "Opakování Matematiky"; // Устанавливаем заголовок в UI
-                  if(ui.testLevel) ui.testLevel.textContent = "Prověrka základů";
-                  if (ui.testSelector) ui.testSelector.style.display = 'none'; // Скрываем выбор
-                  if (ui.testLoader) ui.testLoader.style.display = 'flex';
-                  if (ui.loaderSubtext) ui.loaderSubtext.textContent = 'Načítám otázky pro opakování...';
-                  if (ui.testContainer) ui.testContainer.style.display = 'none';
-                  if (ui.testTimer) ui.testTimer.style.display = 'flex';
-                  history.pushState({ state: 'testInProgress' }, document.title, window.location.href);
-                  await loadTestQuestions(selectedTestType); // Загружаем вопросы для math_review
+                    // initScrollAnimations(); // needs definition or removal
+                }
+                if(ui.testLoader) ui.testLoader.style.display = 'none';
+                if(ui.testLevel) ui.testLevel.textContent = 'Dokončeno';
+            } else if (autoStartType) {
+                 // Запускаем тест автоматически (math_review или full для exam_prep/default)
+                 console.log(`[Init v11] Cíl je '${userLearningGoal}'. Automaticky spouštím test typu '${autoStartType}'.`);
+                 selectedTestType = autoStartType;
+                 const config = testTypeConfig[selectedTestType];
+                 if (!config) { throw new Error(`Konfigurace pro autostart testu '${selectedTestType}' nenalezena.`); }
+                 if(ui.currentTestTitle) ui.currentTestTitle.textContent = config.title;
+                 if(ui.testLevel) ui.testLevel.textContent = config.description;
+                 if (ui.testSelector) ui.testSelector.style.display = 'none';
+                 if (ui.testLoader) ui.testLoader.style.display = 'flex';
+                 if (ui.loaderSubtext) ui.loaderSubtext.textContent = 'Načítám otázky...';
+                 if (ui.testContainer) ui.testContainer.style.display = 'none';
+                 if (ui.testTimer) ui.testTimer.style.display = 'flex';
+                 history.pushState({ state: 'testInProgress' }, document.title, window.location.href);
+                 await loadTestQuestions(selectedTestType); // Загружаем вопросы
             }
              else {
-                 console.log("[Init] Zobrazuji výběr typu testu (prijimacky).");
+                 // Эта ветка больше не должна выполняться с новой логикой,
+                 // но оставляем на всякий случай - покажет стандартный выбор
+                 console.log("[Init v11] Zobrazuji standardní výběr typu testu (fallback).");
                  if(ui.testSelector) {
                      ui.testSelector.style.display = 'block';
-                     requestAnimationFrame(() => { ui.testSelector.querySelectorAll('.test-type-card').forEach((el, index) => { el.setAttribute('data-animate', ''); el.style.setProperty('--animation-order', index); }); initScrollAnimations(); });
+                     // requestAnimationFrame(() => { ui.testSelector.querySelectorAll('.test-type-card').forEach((el, index) => { el.setAttribute('data-animate', ''); el.style.setProperty('--animation-order', index); }); initScrollAnimations(); }); // needs definition or removal
                  }
                  if(ui.testLoader) ui.testLoader.style.display = 'none';
                  if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu';
@@ -372,13 +369,13 @@
             if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
             if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); }); }
 
-            console.log("✅ [Init Test1 UI - Kyber v10] Page initialized.");
+            console.log("✅ [Init Test1 UI - Kyber v11] Page initialized.");
 
         } catch (error) {
-            console.error("❌ [Init Test1 UI - Kyber v10] Error:", error);
+            console.error("❌ [Init Test1 UI - Kyber v11] Error:", error);
             if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">Chyba (${error.message}). Obnovte.</p>`; }
             else { showError(`Chyba inicializace: ${error.message}`, true); }
-            if (ui.mainContent) ui.mainContent.style.display = 'block';
+            if (ui.mainContent) ui.mainContent.style.display = 'block'; // Показать, чтобы была видна ошибка
             setLoadingState('all', false);
         }
     }
@@ -402,6 +399,6 @@
     }
 
     // --- Run Application ---
-    initializeApp(); // Вызов инициализации
+    initializeApp();
 
 })(); // End IIFE
