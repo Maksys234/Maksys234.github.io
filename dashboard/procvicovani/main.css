@@ -845,101 +845,88 @@
 
 /* ===== END: CSS Override Fix ===== */
 
+/* --- START: Fix for Modal Layout and Scrolling (Replaces Previous Fixes) --- */
 
-/* ===== START: CSS Debugging Overlap (REMOVE THIS BLOCK AFTER DEBUGGING) ===== */
-/* Make sure content area allows seeing things below it if it overflows */
-.modal-content {
-    overflow: visible !important; /* Allow content to potentially overflow */
-    display: flex !important; /* Ensure flex */
-    flex-direction: column !important;
-}
-
-.modal-body {
-    overflow: visible !important; /* Prevent body from hiding footer */
-    flex-shrink: 1 !important; /* Allow body to shrink if needed */
-    flex-grow: 1 !important;
-    background-color: rgba(0, 100, 0, 0.1) !important; /* Light green background for body to see overlap */
-}
-
-/* Force footer positioning and visibility FOR DEBUGGING */
-/* REMOVED the debug styles as requested */
-/* #goal-step-accelerate .modal-footer { ... debug styles removed ... } */
-
-/* Force button visibility FOR DEBUGGING */
-/* REMOVED the debug styles as requested */
-/* #goal-step-accelerate .modal-footer .modal-confirm-btn { ... debug styles removed ... } */
-
-/* ===== END: CSS Debugging Overlap (REMOVE THIS BLOCK AFTER DEBUGGING) ===== */
-
-
-/* --- START: Potential Fix for Fullscreen Visibility Issue --- */
-
-/* Ensure modal and content can take up space and scroll if needed */
+/* Ensure modal overlay itself can scroll if the modal content gets too tall for viewport */
 .modal {
     /* Ensure it uses the full viewport */
     align-items: center; /* Keep vertical centering */
     padding: 1rem; /* Ensure some padding */
-    overflow-y: auto !important; /* Allow modal overlay itself to scroll if content too tall */
+    overflow-y: auto !important; /* Make overlay scrollable */
 }
 
+/* Main modal container: Flex column, limit height, allow internal scrolling */
 .modal-content {
-    max-height: 90vh !important; /* Limit max height based on viewport */
+    max-height: 90vh !important; /* Limit height */
     height: auto; /* Allow content to determine height */
-    overflow: hidden !important; /* Hide internal overflow to use flexbox */
+    overflow: hidden !important; /* IMPORTANT: Prevent this container from scrolling */
     display: flex !important; /* Ensure flex layout */
     flex-direction: column !important;
+    background-color: var(--interface-bg, #0a071f); /* Restore background */
+    border: 1px solid var(--border-color-medium, rgba(160, 92, 255, 0.45)); /* Restore border */
+    border-radius: var(--card-radius, 14px);
 }
 
+/* Modal header: Fixed height */
+.modal-header {
+    flex-shrink: 0; /* Prevent header shrinking */
+    /* Keep existing padding/border from main.css */
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid var(--border-color-light, rgba(160, 92, 255, 0.25));
+}
+
+/* Modal body: Take remaining space and scroll internally */
 .modal-body {
-    overflow-y: auto !important; /* Allow ONLY the body to scroll internally */
+    flex-grow: 1 !important; /* Take available vertical space */
+    overflow-y: auto !important; /* Enable vertical scroll *within* the body */
     overflow-x: hidden !important;
-    flex-grow: 1 !important; /* Allow body to take up space */
-    flex-shrink: 1 !important; /* Allow body to shrink */
-    /* Remove explicit background color from debug */
+    padding: 1.5rem 2rem !important; /* Restore padding */
+    /* Remove any conflicting background from debug */
     background-color: transparent !important;
 }
 
-/* Ensure footer is always visible at the bottom */
+/* Modal footer: Fixed height at the bottom */
 .modal-footer {
     display: flex !important;
-    visibility: visible !important;
+    visibility: visible !important; /* Keep visibility overrides */
     opacity: 1 !important;
-    height: auto !important;
+    height: auto !important; /* Let content determine height */
     min-height: auto !important; /* Let content dictate height */
-    padding: 1rem 1.5rem !important;
-    border-top: 1px solid var(--border-color-light, rgba(160, 92, 255, 0.25)) !important;
-    position: static !important; /* Ensure it's part of the flex flow */
-    overflow: visible !important;
-    flex-shrink: 0 !important; /* Prevent footer from shrinking */
-    margin-top: auto; /* Push to bottom IF modal-content height allows */
+    padding: 1rem 1.5rem !important; /* Restore padding */
+    border-top: 1px solid var(--border-color-light, rgba(160, 92, 255, 0.25)) !important; /* Restore border */
+    flex-shrink: 0 !important; /* Prevent footer shrinking */
     background-color: var(--interface-bg) !important; /* Give it a background */
-    /* Remove debug colors */
+    justify-content: flex-end;
+    gap: 1rem;
+    position: static !important; /* Keep in flex flow */
+    z-index: 10 !important; /* Keep z-index */
+    margin-top: auto; /* Push to bottom IF modal-content height allows */
+    /* Remove debug colors/borders */
     /* background-color: #FF00FF !important; */
     /* border: 3px solid #00FF00 !important; */
     /* color: #000000 !important; */
-    z-index: 10 !important; /* Moderate z-index within modal */
 }
 
-/* Ensure confirm button is visible */
+/* Ensure confirm button is visible within footer */
 .modal-footer .modal-confirm-btn {
     display: inline-flex !important;
     visibility: visible !important;
     opacity: 1 !important;
     position: static !important; /* Ensure it's part of flex flow */
     transform: none !important;
-     /* Remove debug colors */
+     /* Remove debug colors/borders */
     /* color: #000000 !important; */
     /* background: #FFFF00 !important; */
     /* border: 2px solid #FF0000 !important; */
     z-index: 11 !important; /* Above footer background */
 }
 
-/* Ensure main content areas allow scrolling */
+/* Ensure main page content doesn't clip */
 main#main-content, .main-content-wrapper {
-     overflow: auto !important; /* Change from hidden if it was set */
-     height: auto !important; /* Remove fixed heights if any */
+     overflow: auto !important; /* Allow scrolling */
+     height: auto !important; /* Remove fixed heights */
      max-height: none !important;
 }
 
 
-/* --- END: Potential Fix for Fullscreen Visibility Issue --- */
+/* --- END: Fix for Modal Layout and Scrolling --- */
