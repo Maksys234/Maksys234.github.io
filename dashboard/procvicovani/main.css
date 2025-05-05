@@ -790,57 +790,105 @@
         .tooltipster-shadow .tooltipster-content { padding: 8px 14px; font-size: 0.88rem; font-family: var(--font-primary); }
         /* --- END: Киберпанк CSS Тема --- */
 
+/* ===== START: CSS Override Fix for Missing Button ===== */
 
-        /* ===== START: CSS Override Fix for Missing Button ===== */
+/* Ensure the active step container is visible and uses flex */
+.modal-step.active {
+    display: flex !important;
+    flex-direction: column !important; /* Ensure column layout */
+    visibility: visible !important;
+    opacity: 1 !important;
+}
 
-        /* Ensure the active step container is visible and uses flex */
-        .modal-step.active {
-            display: flex !important;
-            flex-direction: column !important; /* Ensure column layout */
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
+/* Force the footer within the specific step to be visible */
+#goal-step-accelerate .modal-footer {
+    display: flex !important; /* Use flex to layout buttons */
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto !important; /* Override potential height: 0 */
+    padding: 1rem 1.5rem !important; /* Ensure padding isn't removed */
+    margin-top: 1rem; /* Add some top margin for spacing */
+    border-top: 1px solid var(--border-color-light, rgba(160, 92, 255, 0.25)) !important; /* Ensure top border */
+    position: static !important; /* Override absolute positioning if any */
+    overflow: visible !important; /* Override hidden overflow */
+    flex-shrink: 0; /* Prevent shrinking */
+    justify-content: flex-end; /* Align button to the right (default) */
+    gap: 1rem; /* Add gap if multiple buttons were planned */
+    background-color: transparent; /* Ensure no weird background hides it */
+}
 
-        /* Force the footer within the specific step to be visible */
-        #goal-step-accelerate .modal-footer {
-            display: flex !important; /* Use flex to layout buttons */
-            visibility: visible !important;
-            opacity: 1 !important;
-            height: auto !important; /* Override potential height: 0 */
-            padding: 1rem 1.5rem !important; /* Ensure padding isn't removed */
-            margin-top: 1rem; /* Add some top margin for spacing */
-            border-top: 1px solid var(--border-color-light, rgba(160, 92, 255, 0.25)) !important; /* Ensure top border */
-            position: static !important; /* Override absolute positioning if any */
-            overflow: visible !important; /* Override hidden overflow */
-            flex-shrink: 0; /* Prevent shrinking */
-            justify-content: flex-end; /* Align button to the right (default) */
-            gap: 1rem; /* Add gap if multiple buttons were planned */
-            background-color: transparent; /* Ensure no weird background hides it */
-        }
+/* Force the confirm button inside that specific footer to be visible */
+#goal-step-accelerate .modal-footer .modal-confirm-btn {
+    display: inline-flex !important; /* Ensure button itself is displayed */
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: static !important;
+    transform: none !important; /* Reset potential transforms hiding it */
+}
 
-        /* Force the confirm button inside that specific footer to be visible */
-        #goal-step-accelerate .modal-footer .modal-confirm-btn {
-            display: inline-flex !important; /* Ensure button itself is displayed */
-            visibility: visible !important;
-            opacity: 1 !important;
-            position: static !important;
-            transform: none !important; /* Reset potential transforms hiding it */
-        }
+/* Generic override for any modal footer in case of broad conflict */
+.modal-footer {
+     display: flex !important;
+     visibility: visible !important;
+     opacity: 1 !important;
+     height: auto !important;
+     overflow: visible !important;
+}
 
-        /* Generic override for any modal footer in case of broad conflict */
-        .modal-footer {
-             display: flex !important;
-             visibility: visible !important;
-             opacity: 1 !important;
-             height: auto !important;
-             overflow: visible !important;
-        }
+/* Generic override for any confirm button inside a footer */
+.modal-footer .modal-confirm-btn {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
 
-        /* Generic override for any confirm button inside a footer */
-        .modal-footer .modal-confirm-btn {
-            display: inline-flex !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
+/* ===== END: CSS Override Fix ===== */
 
-        /* ===== END: CSS Override Fix ===== */
+
+/* ===== START: CSS Debugging Overlap ===== */
+/* Make sure content area allows seeing things below it if it overflows */
+.modal-content {
+    overflow: visible !important; /* Allow content to potentially overflow */
+    display: flex !important; /* Ensure flex */
+    flex-direction: column !important;
+}
+
+.modal-body {
+    overflow: visible !important; /* Prevent body from hiding footer */
+    flex-shrink: 1 !important; /* Allow body to shrink if needed */
+    flex-grow: 1 !important;
+    background-color: rgba(0, 100, 0, 0.1) !important; /* Light green background for body to see overlap */
+}
+
+/* Force footer positioning and visibility FOR DEBUGGING */
+#goal-step-accelerate .modal-footer {
+    position: relative !important; /* Change from static to relative for z-index */
+    z-index: 9999 !important; /* Very high z-index */
+    background-color: #FF00FF !important; /* Bright magenta background */
+    border: 3px solid #00FF00 !important; /* Bright green border */
+    color: #000000 !important; /* Black text */
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto !important;
+    min-height: 50px !important; /* Ensure minimum height */
+    margin-top: 1rem !important; /* Ensure margin */
+    overflow: visible !important;
+    flex-shrink: 0 !important; /* Prevent shrinking */
+    transform: none !important; /* Reset transform */
+}
+
+/* Force button visibility FOR DEBUGGING */
+#goal-step-accelerate .modal-footer .modal-confirm-btn {
+    z-index: 10000 !important; /* Even higher z-index */
+    color: #000000 !important; /* Ensure text is visible */
+    background: #FFFF00 !important; /* Bright yellow background */
+    border: 2px solid #FF0000 !important; /* Bright red border */
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important; /* Use relative */
+    transform: none !important;
+}
+
+/* ===== END: CSS Debugging Overlap ===== */
