@@ -1,5 +1,6 @@
 // dashboard/procvicovani/main.js
 // Version: 24.10.3 - Added saving goal details into profile preferences JSONB column.
+// + DEBUG LOGGING for missing button issue
 
 (function() { // Start IIFE
     'use strict';
@@ -50,7 +51,7 @@
             'dashboard-title', 'currentYearFooter', 'mouse-follower', 'tabs-wrapper'
         ];
         const potentiallyMissingIds = ['toastContainer'];
-        const criticalMissingIds = ['goalStep1', 'goalSelectionModal'];
+        const criticalMissingIds = ['goalStep1', 'goalSelectionModal']; // goalStep1 - typo? Should be goal-step-1 maybe?
 
         const notFound = [];
         const missingCritical = [];
@@ -58,6 +59,7 @@
 
         ids.forEach(id => {
             const element = document.getElementById(id);
+            // Convert kebab-case id to camelCase for the key in the ui object
             const key = id.replace(/-([a-z])/g, g => g[1].toUpperCase());
             if (element) { ui[key] = element; }
             else { notFound.push(id); ui[key] = null; if (criticalMissingIds.includes(key)) { missingCritical.push(key); } else if (potentiallyMissingIds.includes(key)) { missingPotential.push(key); } }
@@ -76,8 +78,8 @@
     }
 
     // --- Карты иконок и визуалов ---
-    const topicIcons = { /* ... same ... */ "Algebra": "fa-square-root-alt", "Aritmetika": "fa-calculator", "Geometrie": "fa-draw-polygon", "Logika": "fa-brain", "Logické úlohy": "fa-brain", "Statistika": "fa-chart-bar", "Čísla a aritmetické operace": "fa-calculator", "Práce s daty": "fa-chart-bar", "Problémové úlohy": "fa-lightbulb", "Proporce a procenta": "fa-percentage", "default": "fa-book" };
-    const activityVisuals = { /* ... same ... */ test: { name: 'Test', icon: 'fa-vial', class: 'test' }, exercise: { name: 'Cvičení', icon: 'fa-pencil-alt', class: 'exercise' }, badge: { name: 'Odznak', icon: 'fa-medal', class: 'badge' }, diagnostic: { name: 'Diagnostika', icon: 'fa-clipboard-check', class: 'diagnostic' }, lesson: { name: 'Lekce', icon: 'fa-book-open', class: 'lesson' }, plan_generated: { name: 'Plán', icon: 'fa-calendar-alt', class: 'plan_generated' }, level_up: { name: 'Postup', icon: 'fa-level-up-alt', class: 'level_up' }, other: { name: 'Jiná', icon: 'fa-info-circle', class: 'other' }, default: { name: 'Aktivita', icon: 'fa-check-circle', class: 'default' } };
+    const topicIcons = { "Algebra": "fa-square-root-alt", "Aritmetika": "fa-calculator", "Geometrie": "fa-draw-polygon", "Logika": "fa-brain", "Logické úlohy": "fa-brain", "Statistika": "fa-chart-bar", "Čísla a aritmetické operace": "fa-calculator", "Práce s daty": "fa-chart-bar", "Problémové úlohy": "fa-lightbulb", "Proporce a procenta": "fa-percentage", "default": "fa-book" };
+    const activityVisuals = { test: { name: 'Test', icon: 'fa-vial', class: 'test' }, exercise: { name: 'Cvičení', icon: 'fa-pencil-alt', class: 'exercise' }, badge: { name: 'Odznak', icon: 'fa-medal', class: 'badge' }, diagnostic: { name: 'Diagnostika', icon: 'fa-clipboard-check', class: 'diagnostic' }, lesson: { name: 'Lekce', icon: 'fa-book-open', class: 'lesson' }, plan_generated: { name: 'Plán', icon: 'fa-calendar-alt', class: 'plan_generated' }, level_up: { name: 'Postup', icon: 'fa-level-up-alt', class: 'level_up' }, other: { name: 'Jiná', icon: 'fa-info-circle', class: 'other' }, default: { name: 'Aktivita', icon: 'fa-check-circle', class: 'default' } };
 
     // --- START: Вспомогательные функции ---
     function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
@@ -130,51 +132,104 @@
 
     // --- Goal Selection Logic (Multi-Step) ---
     function showGoalSelectionModal() {
-        console.log("[GoalModal v3] Attempting to show modal. Checking elements...");
-        const modalContainer = document.getElementById('goal-selection-modal');
-        if (modalContainer) { console.log("[GoalModal v3] Modal Container (#goal-selection-modal) outerHTML (start):", modalContainer.outerHTML.substring(0, 600) + '...'); }
-        else { console.error("[GoalModal v3] CRITICAL: Modal container (#goal-selection-modal) NOT FOUND in DOM!"); showError("Chyba: Hlavní kontejner modálního okna (#goal-selection-modal) chybí v HTML.", true); if(ui.mainContent) ui.mainContent.classList.add('interaction-disabled'); return; }
+        // Cache modal elements specifically here if not done globally or if elements might be dynamic
+        const modalContainer = ui.goalSelectionModal || document.getElementById('goal-selection-modal');
+        const step1Element = ui.goalStep1 || document.getElementById('goal-step-1');
 
-        const step1Element = document.getElementById('goal-step-1'); // Direct check
-        if (!step1Element) { console.error("[GoalModal v3] CRITICAL: Step 1 element (#goal-step-1) NOT FOUND in DOM!"); showError("Chyba: Nelze zobrazit dialog pro výběr cíle. Chybí HTML element pro krok 1 (#goal-step-1).", true); if(ui.mainContent) ui.mainContent.classList.add('interaction-disabled'); return; }
-
-        console.log("[GoalModal v3] Showing goal selection modal (Step 1 found)...");
+        if (!modalContainer || !step1Element) {
+             console.error("[GoalModal v3 Debug] CRITICAL: Modal container or Step 1 element NOT FOUND!");
+             // Attempt to cache again just in case
+             cacheDOMElements();
+             const refreshedModal = ui.goalSelectionModal || document.getElementById('goal-selection-modal');
+             const refreshedStep1 = ui.goalStep1 || document.getElementById('goal-step-1');
+             if (!refreshedModal || !refreshedStep1) {
+                  showError("Chyba: Nelze zobrazit výběr cíle (chybí HTML).", true);
+                  if(ui.mainContent) ui.mainContent.classList.add('interaction-disabled');
+                  return;
+             }
+        }
+        console.log("[GoalModal v3 Debug] Showing modal...");
         modalContainer.querySelectorAll('.modal-step').forEach(step => step.classList.remove('active'));
         step1Element.classList.add('active');
         modalContainer.style.display = 'flex';
         requestAnimationFrame(() => modalContainer.classList.add('active'));
-
+        // Attach listeners to Step 1 options
         const optionButtons = step1Element.querySelectorAll('.goal-option-card[data-goal]');
-        if (optionButtons.length === 0) { console.error("[GoalModal v3] No goal option buttons found within #goal-step-1!"); return; }
-
+        if (!optionButtons || optionButtons.length === 0) { console.error("[GoalModal v3 Debug] No goal option buttons found in #goal-step-1!"); return; }
         optionButtons.forEach(button => {
             const goal = button.dataset.goal;
-            if (!goal) { console.warn("[GoalModal v3] Goal button missing data-goal attribute:", button); return; }
+            if (!goal) { console.warn("[GoalModal v3 Debug] Button missing data-goal attribute:", button); return; }
             const handler = () => handleInitialGoalSelection(goal);
-            if (button._goalHandler) button.removeEventListener('click', button._goalHandler);
-            button.addEventListener('click', handler); button._goalHandler = handler;
+             if (button._goalHandler) button.removeEventListener('click', button._goalHandler); // Remove old listener if exists
+             button.addEventListener('click', handler);
+             button._goalHandler = handler; // Store handler reference
         });
-        console.log("[GoalModal v3] Step 1 listeners attached successfully.");
+        console.log("[GoalModal v3 Debug] Step 1 listeners attached.");
     }
+
     function handleInitialGoalSelection(selectedGoal) { if (goalSelectionInProgress) return; console.log(`[GoalModal] Initial goal selected: ${selectedGoal}`); pendingGoal = selectedGoal; if (selectedGoal === 'exam_prep') { saveGoalAndProceed(selectedGoal); } else { showStep2(selectedGoal); } }
+
+    // --- START: DEBUG showStep2 ---
     function showStep2(goalType) {
         const step2Id = `goal-step-${goalType.replace('math_', '')}`;
-        const step2 = ui[step2Id.replace(/-/g, '_').replace(/([A-Z])/g, '-$1').toLowerCase().replace(/-([a-z])/g, g => g[1].toUpperCase())] || document.getElementById(step2Id);
-        const modalContainer = ui.goalSelectionModal;
-        const step1Element = document.getElementById('goal-step-1');
+        console.log(`[GoalModal Debug] showStep2 called for goalType: ${goalType}, looking for ID: ${step2Id}`);
 
-        if (!modalContainer || !step1Element || !step2) { console.error(`[GoalModal] Cannot show step 2: Modal, Step 1, or Step 2 element not found (Step2 ID: ${step2Id}, Found: ${!!step2})`); return; }
+        // Try finding the element directly
+        const step2Element = document.getElementById(step2Id);
+        const modalContainer = document.getElementById('goal-selection-modal'); // Direct lookup
+        const step1Element = document.getElementById('goal-step-1'); // Direct lookup
 
-        console.log(`[GoalModal] Showing step 2: ${goalType}`);
-        step1Element.classList.remove('active'); step2.classList.add('active');
-        const formElements = step2.querySelectorAll('input[type="checkbox"], input[type="radio"]'); formElements.forEach(el => { if (el.type === 'checkbox' || el.type === 'radio') el.checked = false; });
-        const backBtn = step2.querySelector('.modal-back-btn'); if (backBtn) { const backHandler = () => handleBackToStep1(step1Element, step2); backBtn.removeEventListener('click', backHandler); backBtn.addEventListener('click', backHandler, { once: true }); }
-        const confirmBtn = step2.querySelector('.modal-confirm-btn'); if (confirmBtn) { const confirmHandler = () => handleStep2Confirm(goalType); confirmBtn.removeEventListener('click', confirmHandler); confirmBtn.addEventListener('click', confirmHandler); confirmBtn.disabled = false; confirmBtn.innerHTML = 'Potvrdit a pokračovat'; }
+        if (!modalContainer) { console.error(`[GoalModal Debug] Modal container (#goal-selection-modal) NOT FOUND.`); return; }
+        if (!step1Element) { console.error(`[GoalModal Debug] Step 1 element (#goal-step-1) NOT FOUND.`); return; }
+        if (!step2Element) { console.error(`[GoalModal Debug] Step 2 element (#${step2Id}) NOT FOUND.`); return; }
+        console.log(`[GoalModal Debug] Found Step 2 element:`, step2Element);
+
+        step1Element.classList.remove('active');
+        step2Element.classList.add('active');
+        console.log(`[GoalModal Debug] Step 2 element (#${step2Id}) activated.`);
+
+        // Clear previous selections
+        const formElements = step2Element.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+        formElements.forEach(el => { if (el.type === 'checkbox' || el.type === 'radio') el.checked = false; });
+        console.log(`[GoalModal Debug] Cleared ${formElements.length} form elements in #${step2Id}.`);
+
+        // Setup Back Button
+        const backBtn = step2Element.querySelector('.modal-back-btn');
+        if (backBtn) {
+            console.log(`[GoalModal Debug] Found back button in #${step2Id}. Attaching listener.`);
+            const backHandler = () => handleBackToStep1(step1Element, step2Element);
+            if (backBtn._backHandler) backBtn.removeEventListener('click', backBtn._backHandler); // Use stored handler
+            backBtn.addEventListener('click', backHandler, { once: true });
+            backBtn._backHandler = backHandler; // Store new handler
+        } else { console.warn(`[GoalModal Debug] Back button not found in step: #${step2Id}`); }
+
+        // Setup Confirm Button
+        console.log(`[GoalModal Debug] Searching for '.modal-confirm-btn' within #${step2Id}...`);
+        // --- Check HTML content of the step element ---
+        console.log(`[GoalModal Debug] HTML content of #${step2Id}:`, step2Element.innerHTML.substring(0, 500)+"...");
+        // ----------------------------------------------
+        const confirmBtn = step2Element.querySelector('.modal-confirm-btn');
+        if (confirmBtn) {
+             console.log(`[GoalModal Debug] FOUND confirm button in #${step2Id}. Attaching listener...`, confirmBtn);
+             const confirmHandler = () => handleStep2Confirm(goalType);
+             if (confirmBtn._confirmHandler) confirmBtn.removeEventListener('click', confirmBtn._confirmHandler); // Use stored handler
+             confirmBtn.addEventListener('click', confirmHandler);
+             confirmBtn._confirmHandler = confirmHandler; // Store new handler
+             confirmBtn.disabled = false;
+             confirmBtn.innerHTML = 'Potvrdit a pokračovat';
+             console.log(`[GoalModal Debug] Listener attached to confirm button in #${step2Id}.`);
+        } else {
+             console.error(`[GoalModal Debug] CRITICAL: Confirm button (.modal-confirm-btn) NOT FOUND within step: #${step2Id}.`);
+             // Log the parent element to be sure we are looking in the right place
+             console.log(`[GoalModal Debug] Searched within element:`, step2Element);
+        }
     }
+    // --- END: DEBUG showStep2 ---
+
     function handleBackToStep1(step1Element, currentStep2) { console.log("[GoalModal] Going back to step 1..."); if(currentStep2) currentStep2.classList.remove('active'); if(step1Element) step1Element.classList.add('active'); pendingGoal = null; }
-    function handleStep2Confirm(goalType) { if (goalSelectionInProgress) return; const step2Id = `goal-step-${goalType.replace('math_', '')}`; const step2Element = ui[step2Id.replace(/-/g, '_').replace(/([A-Z])/g, '-$1').toLowerCase().replace(/-([a-z])/g, g => g[1].toUpperCase())] || document.getElementById(step2Id); if (!step2Element) { console.error(`[GoalModal] Step 2 element ${step2Id} not found during confirm.`); return; } const details = {}; let isValid = true; try { if (goalType === 'math_accelerate') { details.accelerate_areas = Array.from(step2Element.querySelectorAll('input[name="accelerate_area"]:checked')).map(cb => cb.value); const reasonRadio = step2Element.querySelector('input[name="accelerate_reason"]:checked'); details.accelerate_reason = reasonRadio ? reasonRadio.value : null; if(details.accelerate_areas.length === 0) { showToast("Chyba", "Vyberte prosím alespoň jednu oblast zájmu.", "warning"); isValid = false; } if(!details.accelerate_reason) { showToast("Chyba", "Vyberte prosím důvod.", "warning"); isValid = false; } } else if (goalType === 'math_review') { details.review_areas = Array.from(step2Element.querySelectorAll('input[name="review_area"]:checked')).map(cb => cb.value); } else if (goalType === 'math_explore') { const levelRadio = step2Element.querySelector('input[name="explore_level"]:checked'); details.explore_level = levelRadio ? levelRadio.value : null; if(!details.explore_level) { showToast("Chyba", "Vyberte prosím vaši úroveň.", "warning"); isValid = false; } } } catch (e) { console.error("[GoalModal] Error getting step 2 details:", e); isValid = false; showToast("Chyba", "Nastala chyba při zpracování výběru.", "error"); } if (isValid) { console.log(`[GoalModal] Step 2 details collected for ${goalType}:`, details); saveGoalAndProceed(pendingGoal, details); } }
+    function handleStep2Confirm(goalType) { if (goalSelectionInProgress) return; const step2Id = `goal-step-${goalType.replace('math_', '')}`; const step2Element = document.getElementById(step2Id); if (!step2Element) { console.error(`[GoalModal] Step 2 element ${step2Id} not found during confirm.`); return; } const details = {}; let isValid = true; try { if (goalType === 'math_accelerate') { details.accelerate_areas = Array.from(step2Element.querySelectorAll('input[name="accelerate_area"]:checked')).map(cb => cb.value); const reasonRadio = step2Element.querySelector('input[name="accelerate_reason"]:checked'); details.accelerate_reason = reasonRadio ? reasonRadio.value : null; if(details.accelerate_areas.length === 0) { showToast("Chyba", "Vyberte prosím alespoň jednu oblast zájmu.", "warning"); isValid = false; } if(!details.accelerate_reason) { showToast("Chyba", "Vyberte prosím důvod.", "warning"); isValid = false; } } else if (goalType === 'math_review') { details.review_areas = Array.from(step2Element.querySelectorAll('input[name="review_area"]:checked')).map(cb => cb.value); } else if (goalType === 'math_explore') { const levelRadio = step2Element.querySelector('input[name="explore_level"]:checked'); details.explore_level = levelRadio ? levelRadio.value : null; if(!details.explore_level) { showToast("Chyba", "Vyberte prosím vaši úroveň.", "warning"); isValid = false; } } } catch (e) { console.error("[GoalModal] Error getting step 2 details:", e); isValid = false; showToast("Chyba", "Nastala chyba při zpracování výběru.", "error"); } if (isValid) { console.log(`[GoalModal] Step 2 details collected for ${goalType}:`, details); saveGoalAndProceed(pendingGoal, details); } }
+
     async function saveGoalAndProceed(goal, details = null) {
-        // *** MODIFIED TO SAVE DETAILS IN PREFERENCES ***
         if (goalSelectionInProgress || !goal) return;
         goalSelectionInProgress = true;
         setLoadingState('goalSelection', true);
@@ -187,55 +242,24 @@
 
         try {
             if (!supabase || !currentUser || !currentProfile) throw new Error("Supabase client, user, or profile not available.");
-
-            // Prepare the preferences object
             const existingPreferences = currentProfile.preferences || {};
-            let finalPreferences = { ...existingPreferences }; // Copy existing
-
-            if (details && Object.keys(details).length > 0) {
-                finalPreferences.goal_details = details; // Add or overwrite goal_details
-                console.log("[GoalModal Save v3] Merged goal details:", finalPreferences);
-            } else {
-                // If no details are provided (e.g., for exam_prep), remove the goal_details key
-                delete finalPreferences.goal_details;
-                console.log("[GoalModal Save v3] No details provided, removing goal_details key from preferences.");
-            }
-
-            // Prepare payload for Supabase
-            const updatePayload = {
-                learning_goal: goal,
-                preferences: finalPreferences, // Save the entire preferences object
-                updated_at: new Date().toISOString()
-            };
-
+            let finalPreferences = { ...existingPreferences };
+            if (details && Object.keys(details).length > 0) { finalPreferences.goal_details = details; } else { delete finalPreferences.goal_details; }
+            const updatePayload = { learning_goal: goal, preferences: finalPreferences, updated_at: new Date().toISOString() };
             console.log("[GoalModal Save v3] Payload to update:", updatePayload);
-
-            // Update the database, selecting all columns to update local state
-            const { data: updatedProfileData, error } = await supabase
-                .from('profiles')
-                .update(updatePayload)
-                .eq('id', currentUser.id)
-                .select('*, selected_title, preferences') // Select everything including new prefs
-                .single();
-
+            const { data: updatedProfileData, error } = await supabase.from('profiles').update(updatePayload).eq('id', currentUser.id).select('*, selected_title, preferences').single();
             if (error) throw error;
-
-            // Update local state with the fresh data from the database
             currentProfile = updatedProfileData;
             console.log("[GoalModal Save v3] Goal and preferences saved successfully:", currentProfile.learning_goal, currentProfile.preferences);
-
             let goalText = goal;
             switch(goal) { case 'exam_prep': goalText = 'Příprava na zkoušky'; break; case 'math_accelerate': goalText = 'Učení napřed'; break; case 'math_review': goalText = 'Doplnění mezer'; break; case 'math_explore': goalText = 'Volné prozkoumávání'; break; }
             showToast('Cíl uložen!', `Váš cíl byl nastaven na: ${goalText}.`, 'success');
-
-            // Hide modal and show main content
             if (ui.goalSelectionModal) { ui.goalSelectionModal.classList.remove('active'); setTimeout(() => { if (ui.goalSelectionModal) ui.goalSelectionModal.style.display = 'none'; }, 300); }
             if (ui.tabsWrapper) ui.tabsWrapper.style.display = 'block';
-            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'block'); // Ensure content areas are potentially visible
-            configureUIForGoal(goal); // Configure UI based on the new goal
-            await loadPageData(); // Load data relevant to the new goal
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'block');
+            configureUIForGoal(goal);
+            await loadPageData();
             if(ui.mainContent) ui.mainContent.classList.remove('interaction-disabled');
-
         } catch (error) {
             console.error("[GoalModal Save v3] Error saving goal/preferences:", error);
             showToast('Chyba', 'Nepodařilo se uložit váš cíl.', 'error');
@@ -268,7 +292,7 @@
     // --- Конец Event Handlers ---
 
     // --- Настройка Event Listeners ---
-    function setupEventListeners() { /* ... same as previous version ... */ console.log("[Procvičování SETUP v3] Setting up event listeners..."); const safeAddListener = (element, eventType, handler, key) => { if (element) { element.addEventListener(eventType, handler); } else { console.warn(`[SETUP v3] Element not found for listener: ${key}`); } }; const safeAddListenerToAll = (elementsNodeList, eventType, handler, key) => { if (elementsNodeList && elementsNodeList.length > 0) { elementsNodeList.forEach(el => el.addEventListener(eventType, handler)); } else { console.warn(`[SETUP v3] No elements found for listener group: ${key}`); } }; safeAddListener(ui.refreshDataBtn, 'click', handleRefreshClick, 'refreshDataBtn'); safeAddListenerToAll(ui.contentTabs, 'click', handleTabSwitch, 'contentTabs'); safeAddListener(ui.startTestBtnPrompt, 'click', () => window.location.href = 'test1.html', 'startTestBtnPrompt'); safeAddListener(ui.startTestBtnResults, 'click', () => window.location.href = 'test1.html', 'startTestBtnResults'); safeAddListener(ui.startTestBtnPlan, 'click', () => window.location.href = 'test1.html', 'startTestBtnPlan'); safeAddListener(ui.startTestBtnAnalysis, 'click', () => window.location.href = 'test1.html', 'startTestBtnAnalysis'); safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle'); safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle'); safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay'); safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn'); safeAddListenerToAll(document.querySelectorAll('.sidebar-link'), 'click', () => { if (window.innerWidth <= 992) closeMenu(); }, 'sidebarLinks'); console.log("[Procvičování SETUP v3] Event listeners set up."); }
+    function setupEventListeners() { /* ... same as previous version ... */ console.log("[Procvičování SETUP v3] Setting up event listeners..."); const safeAddListener = (element, eventType, handler, key) => { if (element) { element.removeEventListener(eventType, handler); element.addEventListener(eventType, handler); } else { console.warn(`[SETUP v3] Element not found for listener: ${key}`); } }; const safeAddListenerToAll = (elementsNodeList, eventType, handler, key) => { if (elementsNodeList && elementsNodeList.length > 0) { elementsNodeList.forEach(el => {el.removeEventListener(eventType, handler); el.addEventListener(eventType, handler);}); } else { console.warn(`[SETUP v3] No elements found for listener group: ${key}`); } }; safeAddListener(ui.refreshDataBtn, 'click', handleRefreshClick, 'refreshDataBtn'); safeAddListenerToAll(ui.contentTabs, 'click', handleTabSwitch, 'contentTabs'); safeAddListener(ui.startTestBtnPrompt, 'click', () => window.location.href = 'test1.html', 'startTestBtnPrompt'); safeAddListener(ui.startTestBtnResults, 'click', () => window.location.href = 'test1.html', 'startTestBtnResults'); safeAddListener(ui.startTestBtnPlan, 'click', () => window.location.href = 'test1.html', 'startTestBtnPlan'); safeAddListener(ui.startTestBtnAnalysis, 'click', () => window.location.href = 'test1.html', 'startTestBtnAnalysis'); safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle'); safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle'); safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay'); safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn'); safeAddListenerToAll(document.querySelectorAll('.sidebar-link'), 'click', () => { if (window.innerWidth <= 992) closeMenu(); }, 'sidebarLinks'); console.log("[Procvičování SETUP v3] Event listeners set up."); }
     // --- Конец Настройки Event Listeners ---
 
     // --- Инициализация Supabase ---
