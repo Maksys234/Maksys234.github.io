@@ -2,30 +2,23 @@
 // Описание: Главный файл оркестровки для страницы Studijního plánu.
 // Отвечает за инициализацию, основные обработчики событий и координацию модулей.
 // Зависит от plan-data-logic.js и plan-ui-components.js.
-// Версия: 2.0 (Исправлено на основе plan.js и запроса пользователя)
+// Версия: 2.1 (Убрана преждевременная проверка зависимостей)
 
 (function() { // IIFE для изоляции области видимости
 	'use strict';
 
-	// --- Проверка доступности основного объекта PlanApp ---
-	if (typeof window.PlanApp === 'undefined' ||
-        typeof window.PlanApp.config === 'undefined' || // Check config from data-logic
-        typeof window.PlanApp.state === 'undefined' || // Check state from data-logic
-        typeof window.PlanApp.ui === 'undefined') { // Check ui from ui-components
-		console.error("FATAL: Не удалось инициализировать plan-main.js. Отсутствуют необходимые компоненты PlanApp (state, config, ui). Убедитесь, что plan-data-logic.js и plan-ui-components.js загружены первыми и правильно.");
-		// Optionally display a critical error message to the user
-        document.body.innerHTML = '<div style="color:red; padding: 20px;">Kritická chyba: Základní moduly aplikace nebyly správně načteny. Obnovte stránku nebo kontaktujte podporu.</div>';
-		return;
-	}
+	// --- Убрана проверка PlanApp здесь, так как она вызывала ошибку ---
+	// Проверка будет неявной при вызове initializeApp после DOMContentLoaded
 
 	// Локальная ссылка для удобства
 	const PlanApp = window.PlanApp;
-    const ui = PlanApp.ui; // Direct access to UI elements cache
-    const state = PlanApp.state; // Direct access to state
-    const config = PlanApp.config; // Direct access to config
 
 	// --- Основные обработчики событий UI (Оркестровка) ---
 	PlanApp.setupMainEventListeners = () => {
+        // Доступ к PlanApp и его свойствам предполагается здесь,
+        // так как эта функция вызывается из initializeApp,
+        // которая сама вызывается после DOMContentLoaded.
+		const ui = PlanApp.ui;
 		console.log("[Main] Setting up main event listeners...");
 		if (!ui) { console.error("[Main] UI cache not found during listener setup."); return; }
 
@@ -112,6 +105,7 @@
     };
 
     PlanApp.handleWindowResize = () => {
+        const ui = PlanApp.ui; // Access ui from PlanApp
         if (window.innerWidth > 992 && ui?.sidebar?.classList.contains('active')) {
             if(PlanApp.closeMenu) PlanApp.closeMenu();
         }
@@ -125,19 +119,23 @@
     };
 
     PlanApp.toggleNotifications = (event) => {
+        const ui = PlanApp.ui;
         event.stopPropagation();
         ui?.notificationsDropdown?.classList.toggle('active');
     };
 
     PlanApp.handleMarkAllNotificationsReadClick = async () => {
+        const ui = PlanApp.ui;
         if (typeof PlanApp.markAllNotificationsRead === 'function') {
             // Disable button immediately in UI
             if (ui?.markAllReadBtn) ui.markAllReadBtn.disabled = true;
             if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('notifications', true);
             const success = await PlanApp.markAllNotificationsRead(); // Call Core logic
-            // UI update (re-rendering notifications) should be handled within markAllNotificationsRead or by a separate fetch call triggered here if needed
-            // Re-enable button only if the operation failed or based on new count (logic is inside core/ui render now)
-            if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('notifications', false);
+            // If successful, the core function should trigger a UI update (e.g., re-fetch)
+            if (!success && ui?.markAllReadBtn) {
+                 ui.markAllReadBtn.disabled = (parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0') === 0); // Re-enable only if failed AND there are still notifications
+            }
+             if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('notifications', false); // Reset loading state regardless
         } else {
             console.error("Core function PlanApp.markAllNotificationsRead missing!");
         }
@@ -145,6 +143,7 @@
 
     PlanApp.handleNotificationItemClick = async (event) => {
         const item = event.target.closest('.notification-item');
+        const ui = PlanApp.ui;
         if (item) {
             const notificationId = item.dataset.id;
             const link = item.dataset.link;
@@ -183,6 +182,7 @@
      };
 
     PlanApp.handleOutsideNotificationClick = (event) => {
+        const ui = PlanApp.ui;
         if (ui?.notificationsDropdown?.classList.contains('active') &&
             !ui.notificationsDropdown.contains(event.target) &&
             !ui.notificationBell?.contains(event.target)) {
@@ -191,6 +191,7 @@
     };
 
     PlanApp.handleExportVerticalClick = () => {
+         const state = PlanApp.state; // Access state
          if (state.currentStudyPlan && typeof PlanApp.exportPlanToPDFWithStyle === 'function') {
              PlanApp.exportPlanToPDFWithStyle(state.currentStudyPlan);
          } else if (!state.currentStudyPlan) {
@@ -198,7 +199,9 @@
          } else { console.error("PlanApp.exportPlanToPDFWithStyle function not found!"); }
      };
 
+    // UI Trigger for Generation (calls Core)
     PlanApp.handleGenerateClick = () => {
+         const state = PlanApp.state;
          if (state.isLoading.generation) return;
          const genBtn = document.getElementById('generatePlanBtn'); // Find button
          if(genBtn) {
@@ -216,6 +219,7 @@
          }
      };
 
+     // UI Trigger for Saving (calls Core)
      PlanApp.handleSaveGeneratedPlanClick = () => {
          const saveButton = document.getElementById('saveGeneratedPlanBtn');
          if (saveButton) {
@@ -236,8 +240,14 @@
 
 	// --- Логика переключения вкладок (Оркестровка) ---
 	PlanApp.switchTab = async (tabId) => {
-		if (!state || !ui) { console.error("[SwitchTab] State or UI object not found."); return; }
-		// Check if any loading is in progress
+        // Check dependencies at the start of a major action
+        if (typeof PlanApp.state === 'undefined' || typeof PlanApp.ui === 'undefined') {
+            console.error("[SwitchTab] FATAL: PlanApp state or ui not available.");
+            return; // Stop execution if core parts are missing
+        }
+        const state = PlanApp.state;
+        const ui = PlanApp.ui;
+
 		if (Object.values(state.isLoading).some(loading => loading)) {
 			console.warn(`[SwitchTab] Blocked switching to ${tabId}, operation in progress.`);
 			if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Operace stále probíhá, počkejte prosím.', 'info', 2000);
@@ -282,6 +292,7 @@
 					loadSuccess = await PlanApp.loadCurrentPlan(); // loadCurrentPlan now returns true/false
                     if (!loadSuccess) { // If core loading failed, UI should show error via renderMessage
                         console.warn("[SwitchTab] loadCurrentPlan indicated failure.");
+                        // UI module should have rendered an error message
                     }
 				} else if (tabId === 'history' && typeof PlanApp.loadPlanHistory === 'function') {
 					await PlanApp.loadPlanHistory(); // Assumes UI handles rendering based on state.previousPlans
@@ -291,17 +302,19 @@
                     console.warn(`[SwitchTab] No specific load function defined for tab: ${tabId}`);
                 } else {
                     console.error(`[SwitchTab] Core function missing for tab: ${tabId}`);
+                    throw new Error(`Missing core function for tab ${tabId}`); // Throw error if core func missing
                 }
 
 			} else {
 				console.warn(`[SwitchTab] Target section element not found for tab: ${tabId}`);
+                throw new Error(`UI Section not found for tab ${tabId}`); // Throw error if UI section missing
 			}
 		} catch (error) {
 			console.error(`[SwitchTab] Error loading tab ${tabId}:`, error);
 			// --- Error UI Handling ---
 			const errorTargetSection = document.getElementById(`${tabId}PlanSection`);
 			const errorContentContainer = errorTargetSection?.querySelector('.section-content');
-			if(errorTargetSection) errorTargetSection.classList.add('visible-section');
+			if(errorTargetSection) errorTargetSection.classList.add('visible-section'); // Ensure section is visible for error
 			if (errorContentContainer && typeof PlanApp.renderMessage === 'function') {
 				PlanApp.renderMessage(errorContentContainer, 'error', 'Chyba načítání', `Obsah záložky "${tabId}" nelze načíst: ${error.message}`);
 			} else if(typeof PlanApp.showGlobalError === 'function') {
@@ -319,55 +332,54 @@
 
 	// --- Главная функция инициализации приложения (Оркестровка) ---
 	PlanApp.initializeApp = async () => {
-		console.log("🚀 [Init Main - v2.0] Starting Plan Page Initialization...");
-
-		// 1. Cache DOM Elements (Now done first)
-        if (typeof PlanApp.initializeUI !== 'function') {
-             console.error("FATAL: initializeUI function missing (needed for caching).");
-             document.body.innerHTML = '<p style="color:red;">Chyba: UI nelze inicializovat.</p>';
+		console.log("🚀 [Init Main - v2.1 Orchestrator] Starting Plan Page Initialization...");
+         // Check if PlanApp and necessary sub-objects exist RIGHT BEFORE using them
+         if (typeof PlanApp === 'undefined' || typeof PlanApp.ui === 'undefined' || typeof PlanApp.state === 'undefined' || typeof PlanApp.config === 'undefined') {
+             console.error("FATAL: PlanApp or its core properties (ui, state, config) are undefined at initializeApp start.");
+             document.body.innerHTML = '<p style="color:red;">Kritická chyba aplikace. Obnovte stránku.</p>';
              return;
          }
-         if (!PlanApp.initializeUI()) { // This now includes caching ui elements
-             console.error("FATAL: UI Initialization failed.");
-             // Error shown by initializeUI
-             return;
-         }
-		const ui = PlanApp.ui; // Use cached elements
+         const ui = PlanApp.ui;
+         const state = PlanApp.state;
 
-		// 2. Показать начальный загрузчик
+		// 1. Показать начальный загрузчик
 		if (ui?.initialLoader) { ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden');}
-		if (ui?.mainContent) ui.mainContent.style.display = 'none'; // Hide main content initially
+		if (ui?.mainContent) ui.mainContent.style.display = 'none';
 
-		// 3. Инициализация Supabase (Core)
+		// 2. Инициализация Supabase (Core)
+		console.log("[Init Main] Attempting to initialize Supabase via Core...");
 		if (typeof PlanApp.initializeSupabase !== 'function' || !PlanApp.initializeSupabase()) {
 			console.error("FATAL: Supabase initialization failed."); if (ui?.initialLoader) ui.initialLoader.innerHTML = '<p style="color:red;">Chyba DB.</p>'; return;
 		}
 		console.log("[Init Main] Supabase initialized via Core.");
 
-		// 4. Проверка аутентификации и загрузка профиля (Core)
+		// 3. Проверка аутентификации и загрузка профиля (Core)
 		try {
-			if (!PlanApp.state.supabaseClient) throw new Error("Supabase client is not available after init!");
+			if (!state.supabaseClient) throw new Error("Supabase client is not available after init!");
 			console.log("[Init Main] Checking auth session...");
-			const { data: { session }, error: sessionError } = await PlanApp.state.supabaseClient.auth.getSession();
+			const { data: { session }, error: sessionError } = await state.supabaseClient.auth.getSession();
 			if (sessionError) throw new Error(`Auth error: ${sessionError.message}`);
 			if (!session || !session.user) { console.log('[Init Main] Not logged in.'); window.location.href = '/auth/index.html'; return; }
-			PlanApp.state.currentUser = session.user;
-			console.log(`[Init Main] User authenticated (ID: ${PlanApp.state.currentUser.id}). Loading profile...`);
+			state.currentUser = session.user;
+			console.log(`[Init Main] User authenticated (ID: ${state.currentUser.id}). Loading profile...`);
 
 			if (typeof PlanApp.fetchUserProfile !== 'function') throw new Error("Core fetchUserProfile missing.");
-			PlanApp.state.currentProfile = await PlanApp.fetchUserProfile(PlanApp.state.currentUser.id);
-			if (!PlanApp.state.currentProfile) throw new Error("Profil nenalezen.");
+			state.currentProfile = await PlanApp.fetchUserProfile(state.currentUser.id);
+			if (!state.currentProfile) throw new Error("Profil nenalezen.");
 			console.log("[Init Main] Profile loaded via Core.");
 
-			// 5. Инициализация остального UI (Components) и Обновление Информации Пользователя
-             if (typeof PlanApp.updateUserInfoUI === 'function') PlanApp.updateUserInfoUI(); else console.warn("UI function updateUserInfoUI missing.");
-             if (typeof PlanApp.setupMainEventListeners !== 'function') console.warn("setupMainEventListeners missing!"); else PlanApp.setupMainEventListeners(); // Setup listeners after UI is ready
+			// 4. Инициализация UI (Components) - включает кэширование UI
+			if (typeof PlanApp.initializeUI !== 'function') throw new Error("UI initializeUI missing.");
+			if (!PlanApp.initializeUI()) throw new Error("UI Initialization failed."); // initializeUI returns true/false
+
+			// 5. Настройка слушателей (Main)
+			if (typeof PlanApp.setupMainEventListeners !== 'function') console.warn("setupMainEventListeners missing!"); else PlanApp.setupMainEventListeners();
 
 			// 6. Загрузка данных (Уведомления + Вкладка по умолчанию 'current')
 			console.log("[Init Main] Loading initial notifications and default tab...");
             const loadNotificationsPromise = (typeof PlanApp.fetchNotifications === 'function' && typeof PlanApp.renderNotifications === 'function')
-                ? PlanApp.fetchNotifications(PlanApp.state.currentUser.id, PlanApp.config.NOTIFICATION_FETCH_LIMIT)
-                    .then(result => PlanApp.renderNotifications(result.unreadCount, result.notifications))
+                ? PlanApp.fetchNotifications(state.currentUser.id, PlanApp.config.NOTIFICATION_FETCH_LIMIT)
+                    .then(result => PlanApp.renderNotifications(result.unreadCount, result.notifications)) // Pass result directly
                     .catch(err => { console.error("Initial notification load failed:", err); if(PlanApp.renderNotifications) PlanApp.renderNotifications(0, []); })
                 : Promise.resolve(console.warn("Notification functions not found."));
 
@@ -379,12 +391,12 @@
 
 			// 7. Показать контент, скрыть загрузчик
 			if (ui?.mainContent) { ui.mainContent.style.display = 'flex'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); if (typeof PlanApp.initScrollAnimations === 'function') PlanApp.initScrollAnimations(); }); }
-			console.log("✅ [Init Main - v2.0] Plan Page Initialized Successfully.");
+			console.log("✅ [Init Main - v2.1] Plan Page Initialized Successfully.");
 
 		} catch (error) {
 			console.error("❌ [Init Main] Critical initialization error:", error);
 			if (ui?.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color:red;">Chyba (${error.message}). Obnovte.</p>`; }
-			else if(typeof PlanApp.showGlobalError === 'function') { PlanApp.showGlobalError(`Chyba: ${error.message}`); if (ui?.mainContent) ui.mainContent.style.display = 'flex'; }
+			else if(typeof PlanApp.showGlobalError === 'function') { PlanApp.showGlobalError(`Chyba: ${error.message}`); if (ui?.mainContent) ui.mainContent.style.display = 'flex'; } // Ensure main content is visible for error
 			else { document.body.innerHTML = `<div style="color:red; padding: 20px;">Chyba: ${error.message}</div>`; }
 			if(typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('all', false);
 		} finally {
@@ -393,12 +405,18 @@
 	};
 
 	// --- Запуск приложения ---
-	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', PlanApp.initializeApp);
-	} else {
-		PlanApp.initializeApp();
-	}
+	// Убедимся, что PlanApp существует перед добавлением слушателя
+	if (window.PlanApp && typeof window.PlanApp.initializeApp === 'function') {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', PlanApp.initializeApp);
+        } else {
+            PlanApp.initializeApp();
+        }
+    } else {
+         console.error("FATAL: PlanApp or PlanApp.initializeApp not defined globally. Cannot start the application.");
+         // Можно добавить fallback отображение ошибки здесь
+    }
 
-	console.log("plan-main.js loaded and initialized.");
+	console.log("plan-main.js loaded.");
 
 })(); // Конец IIFE
