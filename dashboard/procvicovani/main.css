@@ -790,6 +790,7 @@
         .tooltipster-shadow .tooltipster-content { padding: 8px 14px; font-size: 0.88rem; font-family: var(--font-primary); }
         /* --- END: Киберпанк CSS Тема --- */
 
+
 /* ===== START: CSS Override Fix for Missing Button ===== */
 
 /* Ensure the active step container is visible and uses flex */
@@ -845,7 +846,7 @@
 /* ===== END: CSS Override Fix ===== */
 
 
-/* ===== START: CSS Debugging Overlap ===== */
+/* ===== START: CSS Debugging Overlap (REMOVE THIS BLOCK AFTER DEBUGGING) ===== */
 /* Make sure content area allows seeing things below it if it overflows */
 .modal-content {
     overflow: visible !important; /* Allow content to potentially overflow */
@@ -861,34 +862,84 @@
 }
 
 /* Force footer positioning and visibility FOR DEBUGGING */
-#goal-step-accelerate .modal-footer {
-    position: relative !important; /* Change from static to relative for z-index */
-    z-index: 9999 !important; /* Very high z-index */
-    background-color: #FF00FF !important; /* Bright magenta background */
-    border: 3px solid #00FF00 !important; /* Bright green border */
-    color: #000000 !important; /* Black text */
+/* REMOVED the debug styles as requested */
+/* #goal-step-accelerate .modal-footer { ... debug styles removed ... } */
+
+/* Force button visibility FOR DEBUGGING */
+/* REMOVED the debug styles as requested */
+/* #goal-step-accelerate .modal-footer .modal-confirm-btn { ... debug styles removed ... } */
+
+/* ===== END: CSS Debugging Overlap (REMOVE THIS BLOCK AFTER DEBUGGING) ===== */
+
+
+/* --- START: Potential Fix for Fullscreen Visibility Issue --- */
+
+/* Ensure modal and content can take up space and scroll if needed */
+.modal {
+    /* Ensure it uses the full viewport */
+    align-items: center; /* Keep vertical centering */
+    padding: 1rem; /* Ensure some padding */
+    overflow-y: auto !important; /* Allow modal overlay itself to scroll if content too tall */
+}
+
+.modal-content {
+    max-height: 90vh !important; /* Limit max height based on viewport */
+    height: auto; /* Allow content to determine height */
+    overflow: hidden !important; /* Hide internal overflow to use flexbox */
+    display: flex !important; /* Ensure flex layout */
+    flex-direction: column !important;
+}
+
+.modal-body {
+    overflow-y: auto !important; /* Allow ONLY the body to scroll internally */
+    overflow-x: hidden !important;
+    flex-grow: 1 !important; /* Allow body to take up space */
+    flex-shrink: 1 !important; /* Allow body to shrink */
+    /* Remove explicit background color from debug */
+    background-color: transparent !important;
+}
+
+/* Ensure footer is always visible at the bottom */
+.modal-footer {
     display: flex !important;
     visibility: visible !important;
     opacity: 1 !important;
     height: auto !important;
-    min-height: 50px !important; /* Ensure minimum height */
-    margin-top: 1rem !important; /* Ensure margin */
+    min-height: auto !important; /* Let content dictate height */
+    padding: 1rem 1.5rem !important;
+    border-top: 1px solid var(--border-color-light, rgba(160, 92, 255, 0.25)) !important;
+    position: static !important; /* Ensure it's part of the flex flow */
     overflow: visible !important;
-    flex-shrink: 0 !important; /* Prevent shrinking */
-    transform: none !important; /* Reset transform */
+    flex-shrink: 0 !important; /* Prevent footer from shrinking */
+    margin-top: auto; /* Push to bottom IF modal-content height allows */
+    background-color: var(--interface-bg) !important; /* Give it a background */
+    /* Remove debug colors */
+    /* background-color: #FF00FF !important; */
+    /* border: 3px solid #00FF00 !important; */
+    /* color: #000000 !important; */
+    z-index: 10 !important; /* Moderate z-index within modal */
 }
 
-/* Force button visibility FOR DEBUGGING */
-#goal-step-accelerate .modal-footer .modal-confirm-btn {
-    z-index: 10000 !important; /* Even higher z-index */
-    color: #000000 !important; /* Ensure text is visible */
-    background: #FFFF00 !important; /* Bright yellow background */
-    border: 2px solid #FF0000 !important; /* Bright red border */
+/* Ensure confirm button is visible */
+.modal-footer .modal-confirm-btn {
     display: inline-flex !important;
     visibility: visible !important;
     opacity: 1 !important;
-    position: relative !important; /* Use relative */
+    position: static !important; /* Ensure it's part of flex flow */
     transform: none !important;
+     /* Remove debug colors */
+    /* color: #000000 !important; */
+    /* background: #FFFF00 !important; */
+    /* border: 2px solid #FF0000 !important; */
+    z-index: 11 !important; /* Above footer background */
 }
 
-/* ===== END: CSS Debugging Overlap ===== */
+/* Ensure main content areas allow scrolling */
+main#main-content, .main-content-wrapper {
+     overflow: auto !important; /* Change from hidden if it was set */
+     height: auto !important; /* Remove fixed heights if any */
+     max-height: none !important;
+}
+
+
+/* --- END: Potential Fix for Fullscreen Visibility Issue --- */
