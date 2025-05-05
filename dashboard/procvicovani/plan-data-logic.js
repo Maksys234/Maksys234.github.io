@@ -3,7 +3,7 @@
 // взаимодействие с Supabase и Gemini для страницы studijního plánu.
 // Предоставляет функции через глобальный объект PlanApp.
 // Должен быть загружен ПЕРЕД plan-ui-components.js и plan-main.js.
-// Версия: 1.4 (Полный код + доп. логи таймера/кулдауна)
+// Версия: 2.0 (Исправлено на основе plan.js и запроса пользователя)
 
 (function() { // IIFE для изоляции области видимости
 	'use strict';
@@ -17,11 +17,12 @@
 		supabaseUrl: 'https://qcimhjjwvsbgjsitmvuh.supabase.co',
 		supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10',
 		GEMINI_API_KEY: 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs', // !!! SECURITY: Move to backend !!!
-		GEMINI_API_URL: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs`,
+		GEMINI_API_URL: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs`, // Key is inline here
 		PLAN_GENERATION_COOLDOWN_DAYS: 7,
 		NOTIFICATION_FETCH_LIMIT: 5,
-		POINTS_ACTIVITY_COMPLETE: 5,
-		POINTS_PLAN_COMPLETE: 50,
+        POINTS_ACTIVITY_COMPLETE: 5, // Example points
+        POINTS_PLAN_COMPLETE: 50,    // Example points
+        // Добавьте другие константы по мере необходимости
 	};
 
 	// --- Глобальное Состояние ---
@@ -31,7 +32,7 @@
 		currentProfile: null,
 		latestDiagnosticData: null,
 		currentStudyPlan: null,
-		currentPlanActivities: [],
+		currentPlanActivities: [], // Added to store activities for the current plan
 		previousPlans: [],
 		planCreateAllowed: false,
 		nextPlanCreateTime: null,
@@ -41,9 +42,28 @@
 		lastGeneratedActivitiesJson: null,
 		lastGeneratedTopicsData: null,
 		isLoading: { current: false, history: false, create: false, detail: false, schedule: false, generation: false, notifications: false, saving: false },
-		topicMap: {},
-        isDarkMode: window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true,
+		topicMap: {}, // Maybe populate from DB later if needed
+        isDarkMode: window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true, // Detect theme preference
 	};
+
+    // --- Визуалы для Активностей (могут использоваться для логики) ---
+    // Определяем activityVisuals в PlanApp для доступа из других модулей
+    PlanApp.activityVisuals = {
+         test: { name: 'Test', icon: 'fa-vial', class: 'test' },
+         exercise: { name: 'Cvičení', icon: 'fa-pencil-alt', class: 'exercise' },
+         practice: { name: 'Procvičování', icon: 'fa-dumbbell', class: 'practice' },
+         example: { name: 'Příklad', icon: 'fa-lightbulb', class: 'example' },
+         review: { name: 'Opakování', icon: 'fa-history', class: 'review' },
+         theory: { name: 'Teorie', icon: 'fa-book-open', class: 'theory' },
+         analysis: { name: 'Analýza', icon: 'fa-chart-pie', class: 'analysis' },
+         badge: { name: 'Odznak', icon: 'fa-medal', class: 'badge' },
+         diagnostic: { name: 'Diagnostika', icon: 'fa-clipboard-check', class: 'diagnostic' },
+         lesson: { name: 'Lekce', icon: 'fa-book-open', class: 'lesson' },
+         plan_generated: { name: 'Plán', icon: 'fa-calendar-alt', class: 'plan_generated' },
+         level_up: { name: 'Postup', icon: 'fa-level-up-alt', class: 'level_up' },
+         other: { name: 'Jiná', icon: 'fa-info-circle', class: 'other' },
+         default: { name: 'Aktivita', icon: 'fa-check-circle', class: 'default' }
+     };
 
 	// --- Инициализация Supabase ---
 	PlanApp.initializeSupabase = () => {
@@ -54,159 +74,335 @@
 			state.supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseKey);
 			if (!state.supabaseClient) throw new Error("Client creation failed.");
 			console.log("[Core] Supabase client initialized."); return true;
-		} catch (error) { console.error("[Core] Supabase init failed:", error); if (typeof PlanApp.showGlobalError === 'function') PlanApp.showGlobalError("Chyba připojení k databázi."); else alert("Kritická chyba: Nelze se připojit k databázi."); return false; }
+		} catch (error) {
+            console.error("[Core] Supabase init failed:", error);
+            // Use UI function if available, otherwise alert
+            if (typeof PlanApp.showGlobalError === 'function') {
+                 PlanApp.showGlobalError("Chyba připojení k databázi.");
+            } else {
+                 alert("Kritická chyba: Nelze se připojit k databázi.");
+            }
+            return false;
+        }
 	};
 
 	// --- Взаимодействие с профилем ---
 	PlanApp.fetchUserProfile = async (userId) => {
-		const state = PlanApp.state; if (!userId || !state.supabaseClient) { console.warn("[Core FetchProfile] Missing userId or Supabase client."); return null; }
+		const state = PlanApp.state;
+        if (!userId || !state.supabaseClient) {
+            console.warn("[Core FetchProfile] Missing userId or Supabase client.");
+            return null; // Return null to indicate failure or missing data
+        }
 		console.log(`[Core] Fetching profile for user ID: ${userId}`);
-		try { const { data, error } = await state.supabaseClient.from('profiles').select('*').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; if (!data) { console.warn(`[Core] Profile not found for user ${userId}.`); return null; } console.log("[Core] Profile data fetched successfully."); return data;
-		} catch (e) { console.error(`[Core] Exception fetching profile for user ${userId}:`, e); if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Chyba Profilu', 'Nepodařilo se načíst data profilu.', 'error'); return null; }
+		try {
+			const { data, error } = await state.supabaseClient
+				.from('profiles')
+				.select('*') // Fetch all profile data
+				.eq('id', userId)
+				.single();
+
+			if (error && error.code !== 'PGRST116') { // Ignore "0 rows" error
+                console.error(`[Core] Supabase profile fetch error for user ${userId}:`, error);
+				throw error;
+            }
+			if (!data) {
+                console.warn(`[Core] Profile not found for user ${userId}.`);
+                return null;
+            }
+			console.log("[Core] Profile data fetched successfully.");
+			return data; // Return the fetched profile data
+		} catch (e) {
+			console.error(`[Core] Exception fetching profile for user ${userId}:`, e);
+            if (typeof PlanApp.showToast === 'function') {
+                 PlanApp.showToast('Chyba Profilu', 'Nepodařilo se načíst data profilu.', 'error');
+            }
+			return null; // Return null on exception
+		}
 	};
 
-    // --- Основные функции получения данных плана ---
+    // --- Функции Получения Данных Плана (Ядро) ---
     PlanApp.fetchPlanActivities = async (planId) => {
         const state = PlanApp.state;
-        if (!planId || !state.supabaseClient) { console.warn("[Core FetchActivities] Missing planId or Supabase client."); return []; }
+        if (!planId || !state.supabaseClient) {
+            console.warn("[Core FetchActivities] Missing planId or Supabase client.");
+            return []; // Return empty array on failure
+        }
         console.log(`[Core FetchActivities] Fetching activities for plan ${planId}`);
         try {
-            const { data, error } = await state.supabaseClient.from('plan_activities').select('*').eq('plan_id', planId).order('day_of_week').order('time_slot');
-            if (error) throw error; console.log(`[Core FetchActivities] Fetched ${data?.length ?? 0} activities for plan ${planId}.`); return data || [];
-        } catch (error) { console.error(`[Core FetchActivities] Error fetching activities for plan ${planId}:`, error); if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Chyba', 'Nepodařilo se načíst aktivity plánu.', 'error'); return []; }
+            const { data, error } = await state.supabaseClient
+                .from('plan_activities')
+                .select('*')
+                .eq('plan_id', planId)
+                .order('day_of_week')
+                .order('time_slot');
+            if (error) throw error;
+            console.log(`[Core FetchActivities] Fetched ${data?.length ?? 0} activities for plan ${planId}.`);
+            return data || []; // Return fetched data or empty array
+        } catch (error) {
+            console.error(`[Core FetchActivities] Error fetching activities for plan ${planId}:`, error);
+             if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Chyba', 'Nepodařilo se načíst aktivity plánu.', 'error');
+            return []; // Return empty array on error
+        }
     };
 
     PlanApp.fetchPlanDetails = async (planId) => {
-         const state = PlanApp.state; if (!planId || !state.supabaseClient) { console.warn("[Core FetchDetails] Missing planId or Supabase client."); return null; }
+         const state = PlanApp.state;
+         if (!planId || !state.supabaseClient) {
+             console.warn("[Core FetchDetails] Missing planId or Supabase client.");
+             return null; // Return null on failure
+         }
          console.log(`[Core FetchDetails] Fetching details for plan ${planId}`);
-         try { const { data, error } = await state.supabaseClient.from('study_plans').select('plan_content_markdown, title, created_at, estimated_completion_date').eq('id', planId).single(); if (error) throw error; console.log(`[Core FetchDetails] Details fetched successfully for plan ${planId}.`); return data;
-         } catch (error) { console.error(`[Core FetchDetails] Error fetching details for plan ${planId}:`, error); if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Chyba', 'Nepodařilo se načíst detail plánu.', 'error'); return null; }
+         try {
+             const { data, error } = await state.supabaseClient
+                 .from('study_plans')
+                 .select('plan_content_markdown, title, created_at, estimated_completion_date') // Select necessary fields
+                 .eq('id', planId)
+                 .single();
+             if (error) throw error;
+             console.log(`[Core FetchDetails] Details fetched successfully for plan ${planId}.`);
+             return data; // Return fetched data
+         } catch (error) {
+             console.error(`[Core FetchDetails] Error fetching details for plan ${planId}:`, error);
+             if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Chyba', 'Nepodařilo se načíst detail plánu.', 'error');
+             return null; // Return null on error
+         }
      };
 
-	// --- Логика загрузки планов ---
+	// --- Логика Загрузки Планов (Ядро) ---
 	PlanApp.loadCurrentPlan = async () => {
-		const state = PlanApp.state; const ui = PlanApp.ui; if (!state.supabaseClient || !state.currentUser) { console.warn("[Core LoadCurrent] Missing Supabase or user."); return; }
+		const state = PlanApp.state;
+        // UI related actions (loaders, rendering) are now handled in plan-ui-components.js or plan-main.js
+		if (!state.supabaseClient || !state.currentUser) {
+			 console.warn("[Core LoadCurrent] Missing Supabase client or current user.");
+			 return; // Should be handled by UI showing an error or prompt
+		}
 		console.log("[Core LoadCurrent] Loading current plan data...");
-		if (typeof PlanApp.setLoadingState === 'function') { PlanApp.setLoadingState('current', true); PlanApp.setLoadingState('schedule', true); }
-		if (ui?.currentPlanContent) ui.currentPlanContent.classList.remove('content-visible'); if (ui?.verticalScheduleList) ui.verticalScheduleList.classList.remove('schedule-visible'); if (ui?.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible');
-
 		try {
-			const { data: plans, error } = await state.supabaseClient.from('study_plans').select('*').eq('user_id', state.currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1);
+			const { data: plans, error } = await state.supabaseClient
+				.from('study_plans')
+				.select('*') // Fetch all plan details initially
+				.eq('user_id', state.currentUser.id)
+				.eq('status', 'active')
+				.order('created_at', { ascending: false })
+				.limit(1);
 			if (error) throw error;
+
 			if (plans && plans.length > 0) {
-				state.currentStudyPlan = plans[0]; console.log("[Core LoadCurrent] Active plan found:", state.currentStudyPlan.id);
-                state.currentPlanActivities = await PlanApp.fetchPlanActivities(state.currentStudyPlan.id); console.log(`[Core LoadCurrent] Loaded ${state.currentPlanActivities.length} activities.`);
-				if (typeof PlanApp.showVerticalSchedule === 'function') await PlanApp.showVerticalSchedule(state.currentStudyPlan); else console.error("UI function showVerticalSchedule missing!");
+				state.currentStudyPlan = plans[0];
+				console.log("[Core LoadCurrent] Active plan found:", state.currentStudyPlan.id);
+                // Fetch activities associated with this plan
+                state.currentPlanActivities = await PlanApp.fetchPlanActivities(state.currentStudyPlan.id);
+                 console.log(`[Core LoadCurrent] Loaded ${state.currentPlanActivities.length} activities for current plan.`);
+                 // The UI module will call showVerticalSchedule after this function resolves successfully
 			} else {
-				state.currentStudyPlan = null; state.currentPlanActivities = []; console.log("[Core LoadCurrent] No active plan found. Checking diagnostic...");
-				if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('schedule', false);
-				const diagnostic = await PlanApp.getLatestDiagnostic(false);
-				if (typeof PlanApp.renderMessage === 'function' && ui?.currentPlanContent) {
-					if (diagnostic === null) PlanApp.renderMessage(ui.currentPlanContent, 'error', 'Chyba', 'Nepodařilo se ověřit test.');
-					else if (diagnostic) { if (typeof PlanApp.renderPromptCreatePlan === 'function') PlanApp.renderPromptCreatePlan(ui.currentPlanContent); else console.error("UI function renderPromptCreatePlan missing!"); }
-					else { if (typeof PlanApp.renderNoActivePlan === 'function') PlanApp.renderNoActivePlan(ui.currentPlanContent); else console.error("UI function renderNoActivePlan missing!"); }
-				} else { console.error("[Core LoadCurrent] Cannot render messages: UI function or container missing."); }
+				state.currentStudyPlan = null;
+                state.currentPlanActivities = [];
+				console.log("[Core LoadCurrent] No active plan found.");
+                // Diagnostic check result will be handled by UI logic
+                await PlanApp.getLatestDiagnostic(false); // Update diagnostic state without showing loader
 			}
-		} catch (error) { console.error("[Core LoadCurrent] Error:", error); if (typeof PlanApp.renderMessage === 'function' && ui?.currentPlanContent) PlanApp.renderMessage(ui.currentPlanContent, 'error', 'Chyba', 'Nepodařilo se načíst plán.'); if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('schedule', false); }
-        finally { if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('current', false); }
+            return true; // Indicate success
+		} catch (error) {
+			console.error("[Core LoadCurrent] Error loading current plan:", error);
+            state.currentStudyPlan = null; // Ensure state is cleared on error
+            state.currentPlanActivities = [];
+            // Error message will be shown by UI logic
+            return false; // Indicate failure
+		}
 	};
 
 	PlanApp.loadPlanHistory = async () => {
-		const state = PlanApp.state; if (!state.supabaseClient || !state.currentUser) { console.warn("[Core LoadHistory] Missing Supabase or user."); return; }
-		if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('history', true);
+		const state = PlanApp.state;
+		if (!state.supabaseClient || !state.currentUser) {
+			 console.warn("[Core LoadHistory] Missing Supabase client or user.");
+			 return; // UI should handle showing an error
+		}
+        console.log("[Core LoadHistory] Fetching plan history...");
 		try {
-			const { data: plans, error } = await state.supabaseClient.from('study_plans').select('id, title, created_at, status, progress').eq('user_id', state.currentUser.id).order('created_at', { ascending: false });
+			const { data: plans, error } = await state.supabaseClient
+				.from('study_plans')
+				.select('id, title, created_at, status, progress') // Fetch necessary fields for history list
+				.eq('user_id', state.currentUser.id)
+				.order('created_at', { ascending: false });
 			if (error) throw error;
-			state.previousPlans = plans || []; console.log(`[Core LoadHistory] Loaded ${state.previousPlans.length} previous plans.`);
-			if (typeof PlanApp.renderPlanHistory === 'function') PlanApp.renderPlanHistory(state.previousPlans); else console.error("UI function renderPlanHistory missing!");
-		} catch (error) { console.error("[Core LoadHistory] Error:", error); if (typeof PlanApp.renderMessage === 'function' && PlanApp.ui?.historyPlanContent) PlanApp.renderMessage(PlanApp.ui.historyPlanContent, 'error', 'Chyba', 'Nepodařilo se načíst historii.'); }
-        finally { if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('history', false); }
+			state.previousPlans = plans || [];
+			console.log(`[Core LoadHistory] Loaded ${state.previousPlans.length} previous plans.`);
+            // UI will call renderPlanHistory after this resolves
+		} catch (error) {
+			console.error("[Core LoadHistory] Error loading plan history:", error);
+            state.previousPlans = []; // Clear state on error
+            // Error message handled by UI
+		}
 	};
 
 	PlanApp.getLatestDiagnostic = async (showLoaderFlag = true) => {
-		const state = PlanApp.state; if (!state.currentUser || !state.supabaseClient) return null;
-		if (showLoaderFlag && typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('create', true);
-		try { console.log("[Core GetDiagnostic] Fetching diagnostic..."); const { data, error } = await state.supabaseClient.from('user_diagnostics').select('id, completed_at, total_score, total_questions, topic_results, analysis').eq('user_id', state.currentUser.id).order('completed_at', { ascending: false }).limit(1); if (error) throw error; console.log("[Core GetDiagnostic] Fetched:", data); return (data && data.length > 0) ? data[0] : false;
-		} catch (error) { console.error("[Core GetDiagnostic] Error:", error); return null;
-		} finally { if (showLoaderFlag && typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('create', false); }
+		const state = PlanApp.state;
+		if (!state.currentUser || !state.supabaseClient) {
+            console.warn("[Core GetDiagnostic] Missing user or Supabase client.");
+            return null;
+        }
+        // Loading state handled by UI
+		try {
+			console.log("[Core GetDiagnostic] Fetching latest diagnostic data...");
+			const { data, error } = await state.supabaseClient
+				.from('user_diagnostics')
+				.select('id, completed_at, total_score, total_questions, topic_results, analysis') // Fetch fields needed for generation
+				.eq('user_id', state.currentUser.id)
+				.order('completed_at', { ascending: false })
+				.limit(1);
+			if (error) throw error;
+			console.log("[Core GetDiagnostic] Fetched diagnostic data:", data ? data[0] : 'None');
+			return (data && data.length > 0) ? data[0] : false; // Return data or false if none found
+		} catch (error) {
+			console.error("[Core GetDiagnostic] Error fetching diagnostic:", error);
+			return null; // Return null on error
+		}
 	};
 
 	PlanApp.checkPlanCreationAvailability = async () => {
-		const state = PlanApp.state; const config = PlanApp.config; const ui = PlanApp.ui; if (!state.supabaseClient || !state.currentUser) return;
-		console.log("[Core CreateCheck] Starting check...");
-		if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('create', true);
-        if(ui?.createPlanContent) ui.createPlanContent.classList.remove('content-visible');
-
+		const state = PlanApp.state;
+		const config = PlanApp.config;
+        // Loading state and UI rendering handled by UI module
+		if (!state.supabaseClient || !state.currentUser) {
+             console.warn("[Core CreateCheck] Missing Supabase or user.");
+             return 'error'; // Indicate error state
+        }
+		console.log("[Core CreateCheck] Starting availability check...");
 		try {
-			state.latestDiagnosticData = await PlanApp.getLatestDiagnostic(false);
-			if (state.latestDiagnosticData === null) { if (typeof PlanApp.renderMessage === 'function' && ui?.createPlanContent) PlanApp.renderMessage(ui.createPlanContent, 'error', 'Chyba', 'Nepodařilo se ověřit test.'); return; }
-            else if (state.latestDiagnosticData === false) { if (typeof PlanApp.renderNoDiagnosticAvailable === 'function' && ui?.createPlanContent) PlanApp.renderNoDiagnosticAvailable(ui.createPlanContent); return; }
+			state.latestDiagnosticData = await PlanApp.getLatestDiagnostic(false); // Get diagnostic data first
+			if (state.latestDiagnosticData === null) return 'error'; // Error fetching diagnostic
+            if (state.latestDiagnosticData === false) return 'no_diagnostic'; // No diagnostic found
 
-			const { data: latestPlan, error: planError } = await state.supabaseClient.from('study_plans').select('created_at').eq('user_id', state.currentUser.id).order('created_at', { ascending: false }).limit(1);
+			// Check cooldown
+			const { data: latestPlan, error: planError } = await state.supabaseClient
+				.from('study_plans')
+				.select('created_at')
+				.eq('user_id', state.currentUser.id)
+				.order('created_at', { ascending: false })
+				.limit(1);
 			if (planError) throw planError;
-			let canCreate = true; state.nextPlanCreateTime = null; // Reset time initially
+
+			let canCreate = true;
+            state.nextPlanCreateTime = null; // Reset
 			if (latestPlan && latestPlan.length > 0) {
 				const lastPlanDate = new Date(latestPlan[0].created_at);
-                const cooldownDate = new Date(lastPlanDate);
-                cooldownDate.setDate(cooldownDate.getDate() + config.PLAN_GENERATION_COOLDOWN_DAYS);
+				const cooldownDate = new Date(lastPlanDate);
+				cooldownDate.setDate(cooldownDate.getDate() + config.PLAN_GENERATION_COOLDOWN_DAYS);
+				console.log("[Core CreateCheck] Cooldown date:", cooldownDate, "Current date:", new Date());
 				if (new Date() < cooldownDate) {
-                    canCreate = false;
-                    state.nextPlanCreateTime = cooldownDate; // Set the specific date
-                    console.log("[Core CreateCheck - DEBUG] Cooldown ACTIVE. Next create time set to:", state.nextPlanCreateTime);
-                } else {
-                     console.log("[Core CreateCheck - DEBUG] Cooldown INACTIVE (last plan too old).");
-                }
-			} else {
-                 console.log("[Core CreateCheck - DEBUG] No previous plans found, cooldown inactive.");
-            }
+					canCreate = false;
+					state.nextPlanCreateTime = cooldownDate;
+				}
+			}
 			state.planCreateAllowed = canCreate;
+            console.log("[Core CreateCheck] Result:", canCreate ? 'allowed' : 'locked');
+			return canCreate ? 'allowed' : 'locked'; // Return state for UI
 
-			if (canCreate) { if (typeof PlanApp.renderPlanCreationForm === 'function' && ui?.createPlanContent) PlanApp.renderPlanCreationForm(ui.createPlanContent); else console.error("UI func renderPlanCreationForm missing!") }
-            else { if (typeof PlanApp.renderLockedPlanSection === 'function' && ui?.createPlanContent) PlanApp.renderLockedPlanSection(ui.createPlanContent); else console.error("UI func renderLockedPlanSection missing!") }
-
-		} catch (error) { console.error('[Core CreateCheck] Error:', error); if (typeof PlanApp.renderMessage === 'function' && ui?.createPlanContent) PlanApp.renderMessage(ui.createPlanContent, 'error', 'Chyba', 'Nepodařilo se ověřit dostupnost.'); else if(typeof PlanApp.showGlobalError === 'function') PlanApp.showGlobalError('Nepodařilo se ověřit možnost vytvoření plánu: ' + error.message); }
-        finally { if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('create', false); }
+		} catch (error) {
+			console.error('[Core CreateCheck] Error:', error);
+			return 'error'; // Indicate error state
+		}
 	};
 
-    PlanApp.handleGenerateClick = () => {
-         const state = PlanApp.state;
-         if (state.isLoading.generation) return;
-         // UI button state handled dynamically in plan-ui-components.js or plan-main.js
-         PlanApp.generateStudyPlan(); // Call core generation function
-     };
-
-	// --- Логика активностей и прогресса ---
+    // --- Логика Активностей и Прогресса (Ядро) ---
 	PlanApp.handleActivityCompletionToggle = async (activityId, isCompleted, planId) => {
-		const state = PlanApp.state; const config = PlanApp.config; if (!state.supabaseClient) return;
-		console.log(`[Core ActivityToggle] Toggling activity ${activityId} to ${isCompleted}`);
+		const state = PlanApp.state;
+		const config = PlanApp.config;
+		if (!state.supabaseClient) {
+			 console.warn("[Core ActivityToggle] Supabase client not available.");
+			 return false; // Indicate failure
+		}
+		console.log(`[Core ActivityToggle] Toggling activity ${activityId} to ${isCompleted} in plan ${planId}`);
 		try {
-			const { error } = await state.supabaseClient.from('plan_activities').update({ completed: isCompleted, updated_at: new Date().toISOString() }).eq('id', activityId);
+			const { error } = await state.supabaseClient
+				.from('plan_activities')
+				.update({ completed: isCompleted, updated_at: new Date().toISOString() })
+				.eq('id', activityId);
 			if (error) throw error;
-			console.log(`[Core ActivityToggle] Status updated.`);
-			if (isCompleted && typeof PlanApp.awardPoints === 'function') await PlanApp.awardPoints(config.POINTS_ACTIVITY_COMPLETE);
+
+			console.log(`[Core ActivityToggle] Activity ${activityId} status updated successfully in DB.`);
+
+			// Award points if completing
+			if (isCompleted && typeof PlanApp.awardPoints === 'function') {
+				await PlanApp.awardPoints(config.POINTS_ACTIVITY_COMPLETE);
+			}
+
+			// Update plan progress
 			await PlanApp.updatePlanProgress(planId);
-			if (typeof PlanApp.checkAndAwardAchievements === 'function' && state.currentUser) await PlanApp.checkAndAwardAchievements(state.currentUser.id);
-		} catch (error) { console.error(`[Core ActivityToggle] Error updating activity ${activityId}:`, error); if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Nepodařilo se aktualizovat stav aktivity.', 'error'); /* UI revert handled in plan-ui.js */ }
+
+			// Check achievements
+			 if (typeof PlanApp.checkAndAwardAchievements === 'function' && state.currentUser) {
+				await PlanApp.checkAndAwardAchievements(state.currentUser.id);
+			}
+            return true; // Indicate success
+		} catch (error) {
+			console.error(`[Core ActivityToggle] Error updating activity ${activityId}:`, error);
+			if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Nepodařilo se aktualizovat stav aktivity.', 'error');
+			return false; // Indicate failure
+		}
 	};
 
 	PlanApp.updatePlanProgress = async (planId) => {
-		const state = PlanApp.state; const config = PlanApp.config; if (!planId || !state.supabaseClient) return;
+		const state = PlanApp.state;
+		const config = PlanApp.config;
+		if (!planId || !state.supabaseClient) {
+			 console.warn("[Core PlanProgress] Missing planId or Supabase client.");
+			 return;
+		}
 		console.log(`[Core PlanProgress] Updating progress for plan ${planId}`);
 		try {
-			const { count: totalCount, error: countError } = await state.supabaseClient.from('plan_activities').select('id', { count: 'exact', head: true }).eq('plan_id', planId);
-			const { count: completedCount, error: completedError } = await state.supabaseClient.from('plan_activities').select('id', { count: 'exact', head: true }).eq('plan_id', planId).eq('completed', true);
-			if (countError || completedError) throw countError || completedError;
-			const numTotal = totalCount ?? 0; const numCompleted = completedCount ?? 0;
-			const progress = numTotal > 0 ? Math.round((numCompleted / numTotal) * 100) : 0;
+			// Get counts concurrently
+			const [totalResult, completedResult] = await Promise.all([
+				state.supabaseClient.from('plan_activities').select('id', { count: 'exact', head: true }).eq('plan_id', planId),
+				state.supabaseClient.from('plan_activities').select('id', { count: 'exact', head: true }).eq('plan_id', planId).eq('completed', true)
+			]);
+
+			if (totalResult.error || completedResult.error) throw totalResult.error || completedResult.error;
+
+			const numTotal = totalResult.count ?? 0;
+			const numCompleted = completedResult.count ?? 0;
+			const progress = numTotal > 0 ? Math.round((numCompleted / numTotal) * 100) : (numTotal === 0 ? 100 : 0); // Handle case with 0 activities
 			console.log(`[Core PlanProgress] Plan ${planId}: ${numCompleted}/${numTotal} completed (${progress}%)`);
-			const updates = { progress: progress, updated_at: new Date().toISOString() }; let planCompleted = false;
-			if (numTotal > 0 && numCompleted === numTotal) { updates.status = 'completed'; updates.completed_at = new Date().toISOString(); planCompleted = true; console.log(`[Core PlanProgress] Plan ${planId} marked completed.`); }
-			const { error: updateError } = await state.supabaseClient.from('study_plans').update(updates).eq('id', planId);
-			if (updateError) throw updateError; console.log(`[Core PlanProgress] Plan ${planId} DB updated to ${progress}%` + (planCompleted ? ', status: completed' : ''));
-			if (state.currentStudyPlan?.id === planId) { state.currentStudyPlan.progress = progress; if (planCompleted) { state.currentStudyPlan.status = 'completed'; state.currentStudyPlan.completed_at = updates.completed_at; }}
-			if (planCompleted && typeof PlanApp.awardPoints === 'function') await PlanApp.awardPoints(config.POINTS_PLAN_COMPLETE);
-		} catch (error) { console.error(`[Core PlanProgress] Error updating plan progress ${planId}:`, error); }
+
+			const updates = { progress: progress, updated_at: new Date().toISOString() };
+			let planCompleted = false;
+
+			// Check if all activities are completed (and there are activities)
+			if (numTotal > 0 && numCompleted === numTotal) {
+				updates.status = 'completed';
+				updates.completed_at = new Date().toISOString();
+				planCompleted = true;
+				console.log(`[Core PlanProgress] Plan ${planId} marked as completed.`);
+			}
+
+			// Update the plan in the database
+			const { error: updateError } = await state.supabaseClient
+				.from('study_plans')
+				.update(updates)
+				.eq('id', planId);
+
+			if (updateError) throw updateError;
+			console.log(`[Core PlanProgress] Plan ${planId} progress/status DB updated to ${progress}%` + (planCompleted ? ', status: completed' : ''));
+
+			// Update local state if it's the current plan
+			if (state.currentStudyPlan?.id === planId) {
+				state.currentStudyPlan.progress = progress;
+				if (planCompleted) {
+					 state.currentStudyPlan.status = 'completed';
+					 state.currentStudyPlan.completed_at = updates.completed_at;
+				}
+			}
+
+			// Award points for completing the entire plan
+			if (planCompleted && typeof PlanApp.awardPoints === 'function') {
+				await PlanApp.awardPoints(config.POINTS_PLAN_COMPLETE);
+			}
+
+		} catch (error) {
+			console.error(`[Core PlanProgress] Error updating plan progress for ${planId}:`, error);
+		}
 	};
+
 
 	// --- Генерация Плана (Gemini) ---
 	PlanApp.generatePlanContentWithGemini = async (testData, topicsData, learningGoal = 'exam_prep') => {
@@ -220,6 +416,7 @@
 		const overallAssessment = analysis.summary?.overall_assessment || 'N/A'; const strengths = analysis.strengths?.map(s => `${s.topic} (${s.score}%)`).join(', ') || 'Nebyly identifikovány'; const weaknesses = analysis.weaknesses?.map(w => `${w.topic} (${w.score}%)`).join(', ') || 'Nebyly identifikovány'; const recommendations = analysis.recommendations?.join('\n- ') || 'Žádná specifická.';
 		let prompt;
 
+		// Select prompt based on learning goal
 		if (learningGoal === 'math_review') {
             const reviewTopicsList = "- Lineární rovnice\n- Procenta\n- Základy geometrie (obvody, obsahy základních tvarů)\n- Zlomky (sčítání, odčítání, násobení, dělení)\n- Algebraické výrazy (rozšiřování, zjednodušování)\n- Jednoduché slovní úlohy";
 			prompt = `
@@ -245,7 +442,7 @@ ${reviewTopicsList}
     * \`"type"\`: Typ aktivity (použij 'review' pro opakování, 'practice' pro příklady).
 6.  **Rada:** Přidej krátkou motivační radu na konci Markdown.
 
-# Příklad formátu výstupu:
+# Požadovaný formát výstupu (Markdown + JSON na konci):
 **Týdenní opakovací plán:**
 Cílem je osvěžit základy.
 
@@ -254,40 +451,22 @@ Cílem je osvěžit základy.
 * **Procvičení (30 min):** Vyřeš 4 jednoduché lineární rovnice s jednou neznámou.
 
 ### Úterý: Procenta
-* **Opakování (20 min):** Zopakuj si výpočet procentové části, základu a počtu procent.
-* **Procvičení (25 min):** Vyřeš 3 základní úlohy na procenta.
-
-### Středa: Základy geometrie
-* **Opakování (15 min):** Připomeň si vzorce pro obvod a obsah čtverce, obdélníku a trojúhelníku.
-* **Procvičení (30 min):** Vypočítej obvod a obsah 2 obdélníků a 2 trojúhelníků podle zadaných rozměrů.
-
-### Čtvrtek: Zlomky
-* **Opakování (20 min):** Zopakuj si pravidla pro sčítání, odčítání, násobení a dělení zlomků.
-* **Procvičení (30 min):** Vyřeš 5 příkladů na operace se zlomky (různé operace).
-
-### Pátek: Algebraické výrazy
-* **Opakování (15 min):** Připomeň si roznásobování závorek a zjednodušování výrazů.
-* **Procvičení (30 min):** Zjednoduš 4 algebraické výrazy (kombinace sčítání, odčítání, násobení).
+* ... (další dny) ...
 
 ---
-**Rada:** Pravidelné krátké opakování je klíčové! I pár minut denně pomůže.
+**Rada:** Pravidelné krátké opakování je klíčové!
 ---
 \`\`\`json
 [
   { "day_of_week": 1, "type": "review", "title": "Opakování: Lineární rovnice", "description": "Připomeň si základní pravidla řešení lineárních rovnic.", "time_slot": "15 min" },
   { "day_of_week": 1, "type": "practice", "title": "Procvičení: Lineární rovnice", "description": "Vyřeš 4 jednoduché lineární rovnice s jednou neznámou.", "time_slot": "30 min" },
   { "day_of_week": 2, "type": "review", "title": "Opakování: Procenta", "description": "Zopakuj si výpočet procentové části, základu a počtu procent.", "time_slot": "20 min" },
-  { "day_of_week": 2, "type": "practice", "title": "Procvičení: Procenta", "description": "Vyřeš 3 základní úlohy na procenta.", "time_slot": "25 min" },
-  { "day_of_week": 3, "type": "review", "title": "Opakování: Základy geometrie", "description": "Připomeň si vzorce pro obvod a obsah čtverce, obdélníku a trojúhelníku.", "time_slot": "15 min" },
-  { "day_of_week": 3, "type": "practice", "title": "Procvičení: Základy geometrie", "description": "Vypočítej obvod a obsah 2 obdélníků a 2 trojúhelníků podle zadaných rozměrů.", "time_slot": "30 min" },
-  { "day_of_week": 4, "type": "review", "title": "Opakování: Zlomky", "description": "Zopakuj si pravidla pro sčítání, odčítání, násobení a dělení zlomků.", "time_slot": "20 min" },
-  { "day_of_week": 4, "type": "practice", "title": "Procvičení: Zlomky", "description": "Vyřeš 5 příkladů na operace se zlomky (různé operace).", "time_slot": "30 min" },
-  { "day_of_week": 5, "type": "review", "title": "Opakování: Algebraické výrazy", "description": "Připomeň si roznásobování závorek a zjednodušování výrazů.", "time_slot": "15 min" },
-  { "day_of_week": 5, "type": "practice", "title": "Procvičení: Algebraické výrazy", "description": "Zjednoduš 4 algebraické výrazy.", "time_slot": "30 min" }
+  { "day_of_week": 2, "type": "practice", "title": "Procvičení: Procenta", "description": "Vyřeš 3 základní úlohy na procenta.", "time_slot": "25 min" }
+  // ... (objekty pro St, Čt, Pá) ...
 ]
 \`\`\`
 `;
-		} else { // Default to 'exam_prep'
+		} else { // Default to 'exam_prep' or any other goal needing a detailed plan
             prompt = `
 Jsi expertní AI tutor specializující se na přípravu na PŘIJÍMACÍ ZKOUŠKY z matematiky pro 9. třídu ZŠ v Česku. Tvým úkolem je vytvořit EXTRÉMNĚ DETAILNÍ, ZAMĚŘENÝ a STRUKTUROVANÝ týdenní studijní plán (Pondělí - Sobota, Neděle volno) v ČEŠTINĚ ve formátu Markdown. Cílem je hluboké porozumění a procvičení **JEDNOHO NEBO DVOU NEJSLABŠÍCH TÉMAT** týdně, nikoli povrchní pokrytí mnoha oblastí. Důraz klad na PRAKTICKÉ PŘÍKLADY a OPAKOVÁNÍ. Na konci MUSÍŠ vygenerovat JSON pole aktivit pro tento plán.
 
@@ -354,112 +533,226 @@ ${topicsData.map(topic => `  - ${topic.name}: ${topic.percentage}%`).join('\n')}
 
 		try {
 			console.log("[Core GeminiGenerate] Sending request to Gemini API...");
-			const response = await fetch(config.GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.5, topK: 30, topP: 0.9, maxOutputTokens: 8192 }, safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" } ] }) });
-			const data = await response.json(); if (!response.ok) throw new Error(data.error?.message || `Chyba Gemini API (${response.status})`);
-			const geminiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text; if (!geminiResponse) { if (data.promptFeedback?.blockReason) throw new Error(`Požadavek blokován: ${data.promptFeedback.blockReason}.`); const finishReason = data.candidates?.[0]?.finishReason; if(finishReason && finishReason !== 'STOP') throw new Error(`AI dokončilo s důvodem: ${finishReason}.`); throw new Error('Prázdná odpověď od Gemini.'); }
-			console.log("[Core GeminiGenerate] Gemini response received length:", geminiResponse.length); return geminiResponse;
-		} catch (error) { console.error('[Core GeminiGenerate] Error generating plan content:', error); throw error; }
+			const response = await fetch(config.GEMINI_API_URL, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					contents: [{ parts: [{ text: prompt }] }],
+					generationConfig: { temperature: 0.5, topK: 30, topP: 0.9, maxOutputTokens: 8192 },
+					safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" } ]
+				})
+			});
+			const data = await response.json();
+			if (!response.ok) throw new Error(data.error?.message || `Chyba Gemini API (${response.status})`);
+			const geminiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+			if (!geminiResponse) {
+				if (data.promptFeedback?.blockReason) throw new Error(`Požadavek blokován: ${data.promptFeedback.blockReason}.`);
+				const finishReason = data.candidates?.[0]?.finishReason;
+				if(finishReason && finishReason !== 'STOP') throw new Error(`AI dokončilo s důvodem: ${finishReason}.`);
+				throw new Error('Prázdná odpověď od Gemini.');
+			}
+			console.log("[Core GeminiGenerate] Gemini response received length:", geminiResponse.length);
+			return geminiResponse; // Return the full response (Markdown + JSON)
+		} catch (error) {
+			console.error('[Core GeminiGenerate] Error generating plan content:', error);
+			throw error; // Rethrow to be caught by the calling function (likely PlanApp.generateStudyPlan)
+		}
 	};
 
 	PlanApp.generateStudyPlan = async () => {
-        const state = PlanApp.state; const ui = PlanApp.ui;
-        if (!state.latestDiagnosticData || !state.currentUser || !state.currentProfile) { if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Chybí data pro generování.', 'error'); return; }
-        const learningGoal = state.currentProfile.learning_goal || 'exam_prep';
+        const state = PlanApp.state;
+        const ui = PlanApp.ui; // Access UI cache if needed for error rendering
 
-        ui?.currentPlanSection?.classList.remove('visible-section'); ui?.historyPlanSection?.classList.remove('visible-section'); ui?.createPlanSection?.classList.remove('visible-section'); ui?.planSection?.classList.add('visible-section');
+        if (!state.latestDiagnosticData || !state.currentUser || !state.currentProfile) {
+             if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Chybí data pro generování.', 'error');
+             return; // Exit early
+        }
+        const learningGoal = state.currentProfile.learning_goal || 'exam_prep'; // Get goal
+
+        // --- UI Management (should be handled by UI module ideally) ---
+        ui?.currentPlanSection?.classList.remove('visible-section');
+        ui?.historyPlanSection?.classList.remove('visible-section');
+        ui?.createPlanSection?.classList.remove('visible-section');
+        ui?.planSection?.classList.add('visible-section');
         if(typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('generation', true);
         if (ui?.planContent) { ui.planContent.innerHTML = ''; ui.planContent.classList.remove('content-visible', 'generated-reveal'); }
-        if (ui?.planActions) ui.planActions.style.display = 'none'; if (ui?.planSectionTitle) ui.planSectionTitle.textContent = 'Generování plánu...';
-        if (ui?.genericBackBtn && typeof PlanApp.switchTab === 'function') ui.genericBackBtn.onclick = () => { state.lastGeneratedMarkdown = null; state.lastGeneratedActivitiesJson = null; state.lastGeneratedTopicsData = null; PlanApp.switchTab('create'); };
+        if (ui?.planActions) ui.planActions.style.display = 'none';
+        if (ui?.planSectionTitle) ui.planSectionTitle.textContent = 'Generování plánu...';
+        if (ui?.genericBackBtn && typeof PlanApp.switchTab === 'function') ui.genericBackBtn.onclick = () => PlanApp.switchTab('create');
+        // --- End UI Management ---
 
         try {
-            const topicsData = Object.entries(state.latestDiagnosticData.topic_results || {}).map(([_, data]) => ({ name: data.name || `Neznámé Téma`, percentage: data.score_percent || 0 })).sort((a, b) => a.percentage - b.percentage);
-            state.lastGeneratedTopicsData = topicsData;
-            const fullMarkdownResponse = await PlanApp.generatePlanContentWithGemini(state.latestDiagnosticData, topicsData, learningGoal);
-            const jsonRegex = /```json\s*([\s\S]*?)\s*```/; const jsonMatch = fullMarkdownResponse.match(jsonRegex);
-            let activitiesArray = null; let planMarkdownForStorage = fullMarkdownResponse;
-            if (jsonMatch && jsonMatch[1]) { try { activitiesArray = JSON.parse(jsonMatch[1].replace(/\u00A0/g, ' ').trim()); planMarkdownForStorage = fullMarkdownResponse.replace(jsonRegex, '').trim(); state.lastGeneratedActivitiesJson = activitiesArray; } catch (e) { console.error("Error parsing JSON activities:", e); if(typeof PlanApp.showToast === 'function') PlanApp.showToast("Warning: Nepodařilo se zpracovat aktivity.", "warning"); state.lastGeneratedActivitiesJson = null; } } else { console.warn("JSON block of activities not found."); state.lastGeneratedActivitiesJson = null; }
-            state.lastGeneratedMarkdown = planMarkdownForStorage;
+            const topicsData = Object.entries(state.latestDiagnosticData.topic_results || {})
+                .map(([_, data]) => ({
+                    name: data.name || `Neznámé Téma`,
+                    percentage: data.score_percent || 0 // Use score_percent as it's calculated
+                }))
+                .sort((a, b) => a.percentage - b.percentage); // Sort by lowest percentage first
+
+            state.lastGeneratedTopicsData = topicsData; // Store for potential saving
+
+            // Handle "in development" goals directly
+            if (learningGoal === 'math_explore' || learningGoal === 'math_accelerate') {
+                console.log(`[Core GeneratePlan] Goal '${learningGoal}' is in development.`);
+                 if (ui && ui.planContent && typeof PlanApp.renderMessage === 'function') {
+                     PlanApp.renderMessage(ui.planContent, 'info', 'V přípravě', 'Tato funkce studijního plánu je momentálně ve vývoji.');
+                     ui.planContent.classList.add('content-visible'); // Make sure message is shown
+                 }
+                if (ui && ui.planSectionTitle) ui.planSectionTitle.textContent = 'Funkce ve vývoji';
+                 if (typeof PlanApp.renderPreviewActions === 'function') PlanApp.renderPreviewActions(false, true); // Show specific state (no actions)
+                 if (ui && ui.planSection) ui.planSection.scrollIntoView({ behavior: 'smooth' });
+                 if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('generation', false); // Stop loader
+                return; // Stop execution
+            }
+
+            // Proceed for exam_prep or math_review
+            const fullMarkdownResponse = await PlanApp.generatePlanContentWithGemini(
+                state.latestDiagnosticData,
+                topicsData,
+                learningGoal // Pass the goal to the generation function
+            );
+
+            // Parse response (Markdown and JSON)
+            const jsonRegex = /```json\s*([\s\S]*?)\s*```/;
+            const jsonMatch = fullMarkdownResponse.match(jsonRegex);
+            let activitiesArray = null;
+            let planMarkdownForStorage = fullMarkdownResponse;
+
+            if (jsonMatch && jsonMatch[1]) {
+                try {
+                    activitiesArray = JSON.parse(jsonMatch[1].replace(/\u00A0/g, ' ').trim()); // Parse JSON activities
+                    planMarkdownForStorage = fullMarkdownResponse.replace(jsonRegex, '').trim(); // Separate Markdown
+                    state.lastGeneratedActivitiesJson = activitiesArray; // Store parsed activities
+                } catch (e) {
+                    console.error("Error parsing JSON activities:", e);
+                    if(typeof PlanApp.showToast === 'function') PlanApp.showToast("Warning: Nepodařilo se zpracovat aktivity.", "warning");
+                    state.lastGeneratedActivitiesJson = null;
+                }
+            } else {
+                console.warn("JSON block of activities not found in Gemini response.");
+                state.lastGeneratedActivitiesJson = null;
+            }
+
+            state.lastGeneratedMarkdown = planMarkdownForStorage; // Store Markdown
+
+            // --- Update UI (Should ideally be handled by UI module) ---
             if(ui?.planSectionTitle) ui.planSectionTitle.textContent = 'Návrh studijního plánu';
-            if(typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('generation', false);
-            if(ui?.planContent && typeof PlanApp.displayPlanContent === 'function') { PlanApp.displayPlanContent(state.lastGeneratedMarkdown); requestAnimationFrame(() => { if (ui.planContent) ui.planContent.classList.add('content-visible', 'generated-reveal'); }); } else { console.error("Cannot display plan content: UI elements or function missing."); }
-            if(typeof PlanApp.renderPreviewActions === 'function') PlanApp.renderPreviewActions(); else { console.error("Cannot render preview actions: Function missing.") }
+            if(typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('generation', false); // Stop loader
+
+            if(ui?.planContent && typeof PlanApp.displayPlanContent === 'function') {
+                PlanApp.displayPlanContent(state.lastGeneratedMarkdown); // Render the markdown
+                requestAnimationFrame(() => {
+                     if (ui.planContent) ui.planContent.classList.add('content-visible', 'generated-reveal');
+                });
+            } else { console.error("Cannot display plan content: UI elements or function missing."); }
+
+            if(typeof PlanApp.renderPreviewActions === 'function') {
+                 PlanApp.renderPreviewActions(false, false); // Show standard preview actions
+            } else { console.error("Cannot render preview actions: Function missing."); }
+
             if (ui?.planSection) ui.planSection.scrollIntoView({ behavior: 'smooth' });
             if (typeof PlanApp.initTooltips === 'function') PlanApp.initTooltips();
-        } catch (error) { console.error('[Core GeneratePlan] Error:', error); if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('generation', false); if (ui?.planContent && typeof PlanApp.renderMessage === 'function') { PlanApp.renderMessage(ui.planContent, 'error', 'Chyba generování', error.message); ui.planContent.classList.add('content-visible'); } if (typeof PlanApp.renderPreviewActions === 'function') PlanApp.renderPreviewActions(true); }
+            // --- End Update UI ---
+
+        } catch (error) {
+            console.error('[Core GeneratePlan] Plan generation failed:', error);
+            if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('generation', false);
+            // --- Update UI on Error ---
+            if (ui?.planContent && typeof PlanApp.renderMessage === 'function') {
+                 PlanApp.renderMessage(ui.planContent, 'error', 'Chyba generování', error.message);
+                 ui.planContent.classList.add('content-visible');
+             }
+            if (typeof PlanApp.renderPreviewActions === 'function') PlanApp.renderPreviewActions(true); // Show only regenerate button
+            // --- End Update UI on Error ---
+        }
     };
 
-
-	// --- Сохранение Плана ---
+	// --- Сохранение Плана (Ядро) ---
 	PlanApp.handleSaveGeneratedPlanClick = async () => {
-		const state = PlanApp.state; const ui = PlanApp.ui;
-		const saveButton = ui?.planActions?.querySelector('#saveGeneratedPlanBtn');
-		const markdownContent = state.lastGeneratedMarkdown; const activitiesArray = state.lastGeneratedActivitiesJson; const topicsData = state.lastGeneratedTopicsData;
-		if (!state.currentUser || !state.latestDiagnosticData || !markdownContent || !state.supabaseClient) { if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Chyba: Chybí data pro uložení.', 'error'); if (saveButton) { saveButton.disabled = false; saveButton.innerHTML = '<i class="fas fa-save"></i> Uložit'; } return; }
-		if (saveButton) { saveButton.disabled = true; saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...'; }
-		if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('saving', true);
+		const state = PlanApp.state;
+        // UI button state handled externally
+		const markdownContent = state.lastGeneratedMarkdown;
+		const activitiesArray = state.lastGeneratedActivitiesJson;
+		const topicsData = state.lastGeneratedTopicsData;
 
-		const priorityTopics = {}; if (topicsData?.length) { topicsData.forEach((t, i) => priorityTopics[t.name] = { priority: i + 1, performance: t.percentage, focus_level: t.percentage < 50 ? 'high' : t.percentage < 75 ? 'medium' : 'low' }); }
+		if (!state.currentUser || !state.latestDiagnosticData || !markdownContent || !state.supabaseClient) {
+			 if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Chyba: Chybí data pro uložení.', 'error');
+			 // UI should re-enable button here
+			 return;
+		}
+         if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('saving', true);
+
+		const priorityTopics = {};
+		if (topicsData?.length) { topicsData.forEach((t, i) => priorityTopics[t.name] = { priority: i + 1, performance: t.percentage, focus_level: t.percentage < 50 ? 'high' : t.percentage < 75 ? 'medium' : 'low' }); } else { console.warn("[Core SavePlan] Missing topicsData in state during save."); }
+
 		let savedPlanId = null;
 		try {
 			console.log("[Core SavePlan] Deactivating old plans...");
-			const { error: deactivateError } = await state.supabaseClient.from('study_plans').update({ status: 'inactive', updated_at: new Date().toISOString() }).eq('user_id', state.currentUser.id).eq('status', 'active'); if (deactivateError) throw deactivateError;
+			const { error: deactivateError } = await state.supabaseClient.from('study_plans').update({ status: 'inactive', updated_at: new Date().toISOString() }).eq('user_id', state.currentUser.id).eq('status', 'active');
+			if (deactivateError) throw deactivateError;
+
 			const today = new Date(); const completionDate = new Date(today); completionDate.setDate(completionDate.getDate() + 7);
 			const newPlanData = { user_id: state.currentUser.id, title: `Studijní plán (${PlanApp.formatDate(today)})`, subject: "Matematika", status: "active", diagnostic_id: state.latestDiagnosticData.id, plan_content_markdown: markdownContent, priority_topics: priorityTopics, estimated_completion_date: completionDate.toISOString().split('T')[0], progress: 0, is_auto_adjusted: true };
 			console.log("[Core SavePlan] Inserting new plan data...");
-			const { data: savedPlan, error: insertPlanError } = await state.supabaseClient.from('study_plans').insert(newPlanData).select('id').single(); if (insertPlanError) throw insertPlanError;
+			const { data: savedPlan, error: insertPlanError } = await state.supabaseClient.from('study_plans').insert(newPlanData).select('id').single();
+			if (insertPlanError) throw insertPlanError;
 			savedPlanId = savedPlan.id; console.log("[Core SavePlan] Plan saved, ID:", savedPlanId);
 
 			if (activitiesArray?.length) {
 				console.log(`[Core SavePlan] Inserting ${activitiesArray.length} activities...`);
 				const activitiesToInsert = activitiesArray.map(act => { if (typeof act !== 'object' || act === null) return null; const dayOfWeek = typeof act.day_of_week === 'number' ? act.day_of_week : parseInt(act.day_of_week, 10); if (isNaN(dayOfWeek) || dayOfWeek < 0 || dayOfWeek > 6) return null; return { plan_id: savedPlanId, day_of_week: dayOfWeek, time_slot: act.time_slot || null, title: act.title || 'N/A', description: act.description || null, type: act.type || PlanApp.getActivityTypeFromTitle(act.title), completed: false }; }).filter(Boolean);
-				if (activitiesToInsert.length > 0) { const { error: insertActivitiesError } = await state.supabaseClient.from('plan_activities').insert(activitiesToInsert); if (insertActivitiesError) { console.error("[Core SavePlan] Error inserting activities:", insertActivitiesError); if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Plán uložen, aktivity selhaly.', 'warning'); } else { console.log("[Core SavePlan] Activities inserted."); if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Plán a aktivity uloženy!', 'success'); } } else { if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Plán uložen, ale nenalezeny aktivity.', 'warning'); }
+				if (activitiesToInsert.length > 0) { const { error: insertActivitiesError } = await state.supabaseClient.from('plan_activities').insert(activitiesToInsert); if (insertActivitiesError) { console.error("[Core SavePlan] Error inserting activities:", insertActivitiesError); if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Plán uložen, ale aktivity selhaly.', 'warning'); } else { console.log("[Core SavePlan] Activities inserted."); if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Plán a aktivity uloženy!', 'success'); } } else { if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Plán uložen, ale nenalezeny platné aktivity.', 'warning'); }
 			} else { if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Plán uložen (bez aktivit).', 'info'); }
+
 			 state.lastGeneratedMarkdown = null; state.lastGeneratedActivitiesJson = null; state.lastGeneratedTopicsData = null; // Clear state
 			state.currentStudyPlan = { ...newPlanData, id: savedPlanId }; // Update current plan state
-			if (typeof PlanApp.switchTab === 'function') PlanApp.switchTab('current'); // Switch to current plan
-		} catch (error) { console.error("[Core SavePlan] Error:", error); if (typeof PlanApp.showToast === 'function') PlanApp.showToast(`Uložení selhalo: ${error.message}`, 'error'); if (saveButton) { saveButton.disabled = false; saveButton.innerHTML = '<i class="fas fa-save"></i> Uložit'; } }
-        finally { if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('saving', false); }
+			if (typeof PlanApp.switchTab === 'function') PlanApp.switchTab('current'); // Switch view after successful save
+
+		} catch (error) {
+			console.error("[Core SavePlan] Error saving plan:", error);
+			if (typeof PlanApp.showToast === 'function') PlanApp.showToast(`Uložení selhalo: ${error.message}`, 'error');
+			// UI should re-enable button here
+             const saveButton = document.getElementById('saveGeneratedPlanBtn');
+             if(saveButton) { saveButton.disabled = false; saveButton.innerHTML = '<i class="fas fa-save"></i> Uložit tento plán'; }
+		} finally {
+			if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('saving', false);
+		}
 	};
 
-	// --- Логика таймера кулдауна ---
+	// --- Логика таймера кулдауна (Ядро) ---
 	PlanApp.startPlanTimer = () => {
         const state = PlanApp.state; if (state.planTimerInterval) clearInterval(state.planTimerInterval);
-        console.log("[Core Timer - DEBUG] Starting interval timer...");
+        console.log("[Core Timer] Starting interval timer...");
         state.planTimerInterval = setInterval(() => {
-            const timerEl = document.getElementById('nextPlanTimer');
+            const timerEl = document.getElementById('nextPlanTimer'); // Needs to find element in DOM
             if (timerEl && document.body.contains(timerEl)) {
                 if (typeof PlanApp.updateNextPlanTimer === 'function') PlanApp.updateNextPlanTimer(timerEl);
-                else { console.error("[Core Timer - DEBUG] updateNextPlanTimer func missing!"); clearInterval(state.planTimerInterval); }
-            } else { console.log("[Core Timer - DEBUG] Timer element gone, stopping."); clearInterval(state.planTimerInterval); }
+                else { console.error("[Core Timer] updateNextPlanTimer func missing!"); clearInterval(state.planTimerInterval); }
+            } else { console.log("[Core Timer] Timer element gone, stopping."); clearInterval(state.planTimerInterval); }
         }, 1000);
     };
 
 	PlanApp.updateNextPlanTimer = (el) => {
         const state = PlanApp.state;
-        console.log("[Core Timer Update - DEBUG] Called. El found:", !!el, "Next Time:", state.nextPlanCreateTime);
         if (!state.nextPlanCreateTime || !el) { if (el) el.textContent = 'Chyba času'; return; }
         const now = new Date(); const diff = state.nextPlanCreateTime - now;
-        console.log("[Core Timer Update - DEBUG] Diff (ms):", diff);
-        if (diff <= 0) { el.textContent = 'Nyní'; clearInterval(state.planTimerInterval); state.planCreateAllowed = true; console.log("[Core Timer Update - DEBUG] Cooldown finished."); if(state.currentTab === 'create' && typeof PlanApp.checkPlanCreationAvailability === 'function') setTimeout(PlanApp.checkPlanCreationAvailability, 500); return; }
+        if (diff <= 0) { el.textContent = 'Nyní'; clearInterval(state.planTimerInterval); state.planCreateAllowed = true; console.log("[Core Timer] Cooldown finished."); if(state.currentTab === 'create' && typeof PlanApp.checkPlanCreationAvailability === 'function') setTimeout(PlanApp.checkPlanCreationAvailability, 500); return; }
         const d = Math.floor(diff/(1000*60*60*24)), h = Math.floor((diff%(1000*60*60*24))/(1000*60*60)), m = Math.floor((diff%(1000*60*60))/(1000*60)), s = Math.floor((diff%(1000*60))/1000);
         el.textContent = `${d}d ${h}h ${m}m ${s}s`;
     };
 
-	// --- Логика уведомлений (Ядро - с логами) ---
+	// --- Логика уведомлений (Ядро) ---
 	PlanApp.fetchNotifications = async (userId, limit) => {
-        console.log("[Core Notifications - DEBUG] Function called."); // <-- LOG 1
 		const state = PlanApp.state; const config = PlanApp.config;
         const fetchLimit = limit || config.NOTIFICATION_FETCH_LIMIT || 5;
-		if (!state.supabaseClient || !userId) { console.warn("[Core Notifications - DEBUG] Missing Supabase or User ID. Returning default."); return { unreadCount: 0, notifications: [] }; } // LOG 2
-		console.log(`[Core Notifications - DEBUG] Fetching for user ${userId}. Limit: ${fetchLimit}`); console.log("[Core Notifications - DEBUG] Client:", state.supabaseClient ? 'Exists' : 'MISSING!'); // LOG 3
-		try { console.log("[Core Notifications - DEBUG] Entering try block."); // LOG 4
+		if (!state.supabaseClient || !userId) { console.warn("[Core Notifications] Missing Supabase or User ID."); return { unreadCount: 0, notifications: [] }; }
+		console.log(`[Core Notifications] Fetching unread for user ${userId}, Limit: ${fetchLimit}`);
+		try {
 			const { data, error, count } = await state.supabaseClient.from('user_notifications').select('*', { count: 'exact' }).eq('user_id', userId).eq('is_read', false).order('created_at', { ascending: false }).limit(fetchLimit);
-            console.log("[Core Notifications - DEBUG] Query finished."); console.log("[Core Notifications - DEBUG] Data:", data); console.log("[Core Notifications - DEBUG] Error:", error); console.log("[Core Notifications - DEBUG] Count:", count); // LOG 5
-			if (error) { console.error("[Core Notifications - DEBUG] Supabase error.", error); throw error; } // LOG 6
-			const resultObject = { unreadCount: count ?? 0, notifications: data || [] }; console.log("[Core Notifications - DEBUG] Returning success object:", resultObject); return resultObject; // LOG 7
-		} catch (error) { console.error("[Core Notifications - DEBUG] Exception caught:", error); if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Chyba', 'Nepodařilo se načíst oznámení.', 'error'); const errorResultObject = { unreadCount: 0, notifications: [] }; console.log("[Core Notifications - DEBUG] Returning error object:", errorResultObject); return errorResultObject; } // LOG 8, 9
-        finally { console.log("[Core Notifications - DEBUG] Exiting finally block."); } // LOG 10
+			if (error) throw error;
+			console.log(`[Core Notifications] Fetched ${data?.length || 0} notifications. Total unread: ${count}`);
+			return { unreadCount: count ?? 0, notifications: data || [] };
+		} catch (error) { console.error("[Core Notifications] Exception fetching notifications:", error); if (typeof PlanApp.showToast === 'function') PlanApp.showToast('Chyba', 'Nepodařilo se načíst oznámení.', 'error'); return { unreadCount: 0, notifications: [] }; }
 	};
 
 	PlanApp.markNotificationRead = async (notificationId) => {
@@ -470,23 +763,25 @@ ${topicsData.map(topic => `  - ${topic.name}: ${topic.percentage}%`).join('\n')}
 
 	PlanApp.markAllNotificationsRead = async () => {
 		const state = PlanApp.state; console.log("[Core Notifications] Marking all read:", state.currentUser?.id); if (!state.currentUser || !state.supabaseClient) return;
-		try { const { error } = await state.supabaseClient.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('is_read', false); if (error) throw error; console.log("[Core Notifications] Mark all read success."); if (typeof PlanApp.showToast === 'function') PlanApp.showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení přečtena.', 'success');
-            // UI часть должна вызвать обновление списка после этого
-            if(typeof PlanApp.fetchNotifications === 'function' && typeof PlanApp.renderNotifications === 'function') {
-                const { unreadCount, notifications } = await PlanApp.fetchNotifications(state.currentUser.id, state.config.NOTIFICATION_FETCH_LIMIT);
-                PlanApp.renderNotifications(unreadCount, notifications);
-            }
-		} catch (error) { console.error("[Core Notifications] Mark all read error:", error); if (typeof PlanApp.showToast === 'function') PlanApp.showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); }
-        finally { /* UI сбрасывает состояние загрузки/кнопки */ }
+		// UI handles button disabling/enabling and loading state
+		try {
+			const { error } = await state.supabaseClient.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('is_read', false);
+			if (error) throw error;
+			console.log("[Core Notifications] Mark all read success.");
+			if (typeof PlanApp.showToast === 'function') PlanApp.showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení přečtena.', 'success');
+            // Return success to allow UI to re-fetch and re-render
+            return true;
+		} catch (error) {
+            console.error("[Core Notifications] Mark all read error:", error);
+            if (typeof PlanApp.showToast === 'function') PlanApp.showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error');
+            return false; // Indicate failure
+        }
 	};
 
-    // --- Вспомогательная функция для типа активности ---
-    PlanApp.getActivityTypeFromTitle = (title = "") => { const lower = title.toLowerCase(); if (lower.includes('test')) return 'test'; if (lower.includes('procvičování') || lower.includes('příklad')) return 'practice'; if (lower.includes('řešené')) return 'example'; if (lower.includes('cvičení')) return 'exercise'; if (lower.includes('lekce') || lower.includes('teorie') || lower.includes('vysvětlení')) return 'theory'; if (lower.includes('opakování') || lower.includes('shrnutí')) return 'review'; if (lower.includes('analýza')) return 'analysis'; return 'other'; };
-
     // --- (Заглушки) Логика баллов и достижений ---
-	PlanApp.awardPoints = async (pointsValue) => { console.warn(`[Core Placeholder] awardPoints: ${pointsValue}`); return Promise.resolve(); };
-	PlanApp.checkAndAwardAchievements = async (userId) => { console.warn(`[Core Placeholder] checkAchievements: ${userId}`); return Promise.resolve(); };
+	PlanApp.awardPoints = async (pointsValue) => { console.warn(`[Core Placeholder] awardPoints called: ${pointsValue}`); return Promise.resolve(); };
+	PlanApp.checkAndAwardAchievements = async (userId) => { console.warn(`[Core Placeholder] checkAchievements called: ${userId}`); return Promise.resolve(); };
 
-	console.log("plan-data-logic.js loaded.");
+	console.log("plan-data-logic.js loaded and PlanApp core logic attached.");
 
 })(); // Конец IIFE
