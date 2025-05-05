@@ -14,13 +14,13 @@
         if (typeof window.MathJax === 'undefined') {
             window.MathJax = {
                 tex: {
-                    inlineMath: [['<span class="math-inline">', '</span>'], ['\\(', '\\)']],
-                    displayMath: [['<span class="math-block">', '</span>']],
-                    processEscapes: true
+                    inlineMath: [['$', '$'], ['\\(', '\\)']], // Define inline math delimiters
+                    displayMath: [['$$', '$$']],             // Define display math delimiters
+                    processEscapes: true                   // Process escaped characters like \$
                 },
                 options: {
-                    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
-                    ignoreHtmlClass: 'tex2jax_ignore'
+                    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], // Tags to ignore
+                    ignoreHtmlClass: 'tex2jax_ignore'       // Class to ignore
                 },
                 startup: {
                     ready: () => {
@@ -74,10 +74,8 @@
             <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-astronaut"></i> <span>Profil</span> </a> </li>
         </ul>
         <div class="user-profile">
-            <div class="user-avatar" id="user-avatar">?</div>
-            <div class="user-info">
-                <div class="user-name" id="user-name">Načítání...</div>
-                <div class="user-role" id="user-role">Pilot</div> </div>
+            <div class="user-avatar" id="user-avatar">?</div> <div class="user-info">
+                <div class="user-name" id="user-name">Načítání...</div> <div class="user-role" id="user-role">Pilot</div> </div>
         </div>
         <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
     </aside>
@@ -104,6 +102,22 @@
                              <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button>
                          </div>
                          <div id="notifications-list">
+                             <div class="notification-item skeleton">
+                                 <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div>
+                                 <div class="notification-content">
+                                     <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div>
+                                     <div class="skeleton" style="height: 12px; width: 90%;"></div>
+                                     <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div>
+                                 </div>
+                             </div>
+                             <div class="notification-item skeleton">
+                                 <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div>
+                                 <div class="notification-content">
+                                     <div class="skeleton" style="height: 16px; width: 60%; margin-bottom: 6px;"></div>
+                                     <div class="skeleton" style="height: 12px; width: 80%;"></div>
+                                     <div class="skeleton" style="height: 10px; width: 50%; margin-top: 6px;"></div>
+                                 </div>
+                             </div>
                              <div id="no-notifications-msg" style="display: none;">ŽÁDNÉ NOVÉ SIGNÁLY</div>
                          </div>
                          <div class="notifications-footer">
@@ -114,7 +128,7 @@
             </div>
         </header>
 
-        <div class="error-container" id="global-error" style="display: none;"></div>
+        <div class="error-container" id="global-error"></div>
 
         <div class="main-content-wrapper">
             <div class="tabs-wrapper">
@@ -133,7 +147,23 @@
                 <div id="currentPlanContent" class="section-content">
                     </div>
                 <div id="vertical-schedule-list" class="vertical-schedule-list section-content">
-                    </div>
+                     <div class="skeleton day-card-skeleton">
+                         <div class="skeleton day-header-skeleton"></div>
+                         <div class="skeleton activity-item-skeleton">
+                             <div class="skeleton activity-checkbox-skeleton"></div>
+                             <div class="skeleton activity-content-skeleton">
+                                 <div class="skeleton activity-title-skeleton"></div>
+                                 <div class="skeleton activity-meta-skeleton"></div>
+                             </div>
+                         </div>
+                         <div class="skeleton activity-item-skeleton">
+                             <div class="skeleton activity-checkbox-skeleton"></div>
+                             <div class="skeleton activity-content-skeleton">
+                                 <div class="skeleton activity-title-skeleton" style="width: 60%;"></div>
+                             </div>
+                         </div>
+                     </div>
+                </div>
                  <div class="step-navigation" id="verticalScheduleNav">
                      <button class="btn btn-primary btn-tooltip" id="exportScheduleBtnVertical" title="Stáhnout plán jako PDF">
                          <i class="fas fa-file-pdf"></i> Exportovat
@@ -148,8 +178,18 @@
                     <p>Načítám historii...</p>
                 </div>
                 <div id="historyPlanContent" class="plan-history section-content">
+                     <div class="skeleton history-item-skeleton">
+                         <div class="skeleton text-sm" style="width: 40%;"></div>
+                         <div class="skeleton title-sm" style="width: 80%; height: 16px;"></div>
+                         <div class="skeleton text-sm" style="width: 50%;"></div>
                      </div>
-            </div>
+                     <div class="skeleton history-item-skeleton">
+                         <div class="skeleton text-sm" style="width: 40%;"></div>
+                         <div class="skeleton title-sm" style="width: 80%; height: 16px;"></div>
+                         <div class="skeleton text-sm" style="width: 50%;"></div>
+                     </div>
+                </div>
+                </div>
 
             <div class="section" id="createPlanSection">
                  <div class="loader-container visible-loader" id="createPlanLoader">
@@ -169,7 +209,8 @@
                      <div class="plan-actions" id="planActions" style="display: none;">
                          </div>
                  </div>
-                 <div class="section-content" style="padding-top:0;"> <div class="step-navigation nav-visible" style="margin: 0 0 1.5rem 0; padding: 0; border-top: none; background: transparent; justify-content: flex-start;">
+                 <div class="section-content" style="padding-top:0;">
+                     <div class="step-navigation nav-visible" style="margin: 0 0 1.5rem 0; padding: 0; border-top: none; background: transparent; justify-content: flex-start;">
                           <button class="btn btn-secondary btn-sm" id="genericBackBtn">
                               <i class="fas fa-arrow-left"></i> Zpět
                           </button>
@@ -183,7 +224,9 @@
                  </div>
             </div>
 
-        </div> <footer class="dashboard-footer">
+        </div>
+
+        <footer class="dashboard-footer">
             <p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p>
         </footer>
     </main>
@@ -253,11 +296,10 @@
             <p style="margin-top: 0.5rem;">Pokud jste test ještě nedělal/a, přejděte prosím na <a href="/dashboard/procvicovani/test1.html" style="color: var(--accent-primary); font-weight: 500;">stránku testování</a>.</p>
         </div>
     </template>
-
     <div id="mouse-follower" class="mouse-follower-glow"></div>
 
-    <script src="plan-data-logic.js" defer></script>
-    <script src="plan-ui-components.js" defer></script>
-    <script src="plan-main.js" defer></script>
-    </body>
+    <script src="plan-core.js" defer></script>
+    <script src="plan-ui.js" defer></script>
+
+</body>
 </html>
