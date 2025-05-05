@@ -2,6 +2,7 @@
 // Version: 24.10.3 - Added saving goal details into profile preferences JSONB column.
 // + DEBUG LOGGING for missing button issue
 // + FORCE VISIBILITY FIX
+// + COMPUTED STYLE CHECK
 
 (function() { // Start IIFE
     'use strict';
@@ -133,44 +134,30 @@
 
     // --- Goal Selection Logic (Multi-Step) ---
     function showGoalSelectionModal() {
-        // Cache modal elements specifically here if not done globally or if elements might be dynamic
         const modalContainer = ui.goalSelectionModal || document.getElementById('goal-selection-modal');
         const step1Element = ui.goalStep1 || document.getElementById('goal-step-1');
-
-        if (!modalContainer || !step1Element) {
-             console.error("[GoalModal v3 Debug] CRITICAL: Modal container or Step 1 element NOT FOUND!");
-             // Attempt to cache again just in case
-             cacheDOMElements();
-             const refreshedModal = ui.goalSelectionModal || document.getElementById('goal-selection-modal');
-             const refreshedStep1 = ui.goalStep1 || document.getElementById('goal-step-1');
-             if (!refreshedModal || !refreshedStep1) {
-                  showError("Chyba: Nelze zobrazit výběr cíle (chybí HTML).", true);
-                  if(ui.mainContent) ui.mainContent.classList.add('interaction-disabled');
-                  return;
-             }
-        }
+        if (!modalContainer || !step1Element) { console.error("[GoalModal v3 Debug] CRITICAL: Modal container or Step 1 element NOT FOUND!"); cacheDOMElements(); const refreshedModal = ui.goalSelectionModal || document.getElementById('goal-selection-modal'); const refreshedStep1 = ui.goalStep1 || document.getElementById('goal-step-1'); if (!refreshedModal || !refreshedStep1) { showError("Chyba: Nelze zobrazit výběr cíle (chybí HTML).", true); if(ui.mainContent) ui.mainContent.classList.add('interaction-disabled'); return; } }
         console.log("[GoalModal v3 Debug] Showing modal...");
         modalContainer.querySelectorAll('.modal-step').forEach(step => step.classList.remove('active'));
         step1Element.classList.add('active');
         modalContainer.style.display = 'flex';
         requestAnimationFrame(() => modalContainer.classList.add('active'));
-        // Attach listeners to Step 1 options
         const optionButtons = step1Element.querySelectorAll('.goal-option-card[data-goal]');
         if (!optionButtons || optionButtons.length === 0) { console.error("[GoalModal v3 Debug] No goal option buttons found in #goal-step-1!"); return; }
         optionButtons.forEach(button => {
             const goal = button.dataset.goal;
             if (!goal) { console.warn("[GoalModal v3 Debug] Button missing data-goal attribute:", button); return; }
             const handler = () => handleInitialGoalSelection(goal);
-             if (button._goalHandler) button.removeEventListener('click', button._goalHandler); // Remove old listener if exists
+             if (button._goalHandler) button.removeEventListener('click', button._goalHandler);
              button.addEventListener('click', handler);
-             button._goalHandler = handler; // Store handler reference
+             button._goalHandler = handler;
         });
         console.log("[GoalModal v3 Debug] Step 1 listeners attached.");
     }
 
     function handleInitialGoalSelection(selectedGoal) { if (goalSelectionInProgress) return; console.log(`[GoalModal] Initial goal selected: ${selectedGoal}`); pendingGoal = selectedGoal; if (selectedGoal === 'exam_prep') { saveGoalAndProceed(selectedGoal); } else { showStep2(selectedGoal); } }
 
-    // --- START: MODIFIED showStep2 with FORCE VISIBILITY ---
+    // --- START: MODIFIED showStep2 with FORCE VISIBILITY & COMPUTED STYLE CHECK ---
     function showStep2(goalType) {
         const step2Id = `goal-step-${goalType.replace('math_', '')}`;
         console.log(`[GoalModal Debug] showStep2 called for goalType: ${goalType}, looking for ID: ${step2Id}`);
@@ -186,42 +173,58 @@
         console.log(`[GoalModal Debug] Found Step 2 element:`, step2Element);
 
         // Activate the step
-        document.querySelectorAll('.modal-step').forEach(step => step.classList.remove('active')); // Deactivate others first
+        document.querySelectorAll('.modal-step').forEach(step => step.classList.remove('active'));
         step2Element.classList.add('active');
         console.log(`[GoalModal Debug] Step 2 element (#${step2Id}) activated.`);
 
         // --- START: FORCE VISIBILITY FIX ---
-        // Explicitly try to make the footer and button visible using JS styles
-        // This targets ONLY the 'accelerate' step's footer and button
         if (goalType === 'math_accelerate') {
             console.log(`[GoalModal Debug Force] Applying forced styles for #${step2Id}...`);
             const footerElement = step2Element.querySelector('.modal-footer');
             const confirmButtonElement = step2Element.querySelector('.modal-confirm-btn');
 
             if (footerElement) {
-                console.log(`[GoalModal Debug Force] Found footer element. Applying styles...`, footerElement);
+                console.log(`[GoalModal Debug Force] Found footer element. Applying styles...`);
                 footerElement.style.display = 'flex';
                 footerElement.style.visibility = 'visible';
                 footerElement.style.opacity = '1';
                 footerElement.style.height = 'auto';
                 footerElement.style.position = 'static';
                 footerElement.style.overflow = 'visible';
-                // Add any other potentially conflicting styles reset here
                 footerElement.style.transform = 'none';
                 footerElement.style.zIndex = 'auto';
-                footerElement.style.marginTop = '1rem'; // Explicit margin
-                footerElement.style.padding = '1rem 1.5rem'; // Explicit padding
+                footerElement.style.marginTop = '1rem';
+                footerElement.style.padding = '1rem 1.5rem';
             } else {
                 console.error(`[GoalModal Debug Force] Footer element (.modal-footer) NOT FOUND inside #${step2Id} for forced styling.`);
             }
 
             if (confirmButtonElement) {
-                console.log(`[GoalModal Debug Force] Found confirm button element. Applying styles...`, confirmButtonElement);
+                console.log(`[GoalModal Debug Force] Found confirm button element. Applying styles...`);
                 confirmButtonElement.style.display = 'inline-flex';
                 confirmButtonElement.style.visibility = 'visible';
                 confirmButtonElement.style.opacity = '1';
                 confirmButtonElement.style.position = 'static';
                 confirmButtonElement.style.transform = 'none';
+
+                // --- FINAL CHECK: Computed Styles ---
+                // Use setTimeout to check after browser potentially applies styles
+                setTimeout(() => {
+                     if (document.body.contains(confirmButtonElement)) { // Check if element still exists
+                        const computedStyles = window.getComputedStyle(confirmButtonElement);
+                        console.log(`[GoalModal Debug Force Check] Computed styles for button in #${step2Id}: display=${computedStyles.display}, visibility=${computedStyles.visibility}, opacity=${computedStyles.opacity}, width=${computedStyles.width}, height=${computedStyles.height}`);
+                        const footerComputedStyles = window.getComputedStyle(footerElement);
+                         console.log(`[GoalModal Debug Force Check] Computed styles for footer in #${step2Id}: display=${footerComputedStyles.display}, visibility=${footerComputedStyles.visibility}, opacity=${footerComputedStyles.opacity}, height=${footerComputedStyles.height}`);
+                         if (computedStyles.display === 'none' || computedStyles.visibility === 'hidden' || computedStyles.opacity === '0' || parseFloat(computedStyles.height) === 0) {
+                             console.error(`[GoalModal Debug Force Check] Button is STILL hidden according to computed styles! Check CSS conflicts or overlapping elements.`);
+                         } else {
+                             console.log(`[GoalModal Debug Force Check] Button seems visible according to computed styles.`);
+                         }
+                     } else {
+                          console.error(`[GoalModal Debug Force Check] Button element no longer exists in DOM after timeout!`);
+                     }
+                }, 100); // 100ms delay to allow rendering
+
             } else {
                  console.error(`[GoalModal Debug Force] Confirm button element (.modal-confirm-btn) NOT FOUND inside #${step2Id} for forced styling.`);
             }
@@ -262,6 +265,7 @@
         }
     }
     // --- END: MODIFIED showStep2 ---
+
 
     function handleBackToStep1(step1Element, currentStep2) { console.log("[GoalModal] Going back to step 1..."); if(currentStep2) currentStep2.classList.remove('active'); if(step1Element) step1Element.classList.add('active'); pendingGoal = null; }
     function handleStep2Confirm(goalType) { if (goalSelectionInProgress) return; const step2Id = `goal-step-${goalType.replace('math_', '')}`; const step2Element = document.getElementById(step2Id); if (!step2Element) { console.error(`[GoalModal] Step 2 element ${step2Id} not found during confirm.`); return; } const details = {}; let isValid = true; try { if (goalType === 'math_accelerate') { details.accelerate_areas = Array.from(step2Element.querySelectorAll('input[name="accelerate_area"]:checked')).map(cb => cb.value); const reasonRadio = step2Element.querySelector('input[name="accelerate_reason"]:checked'); details.accelerate_reason = reasonRadio ? reasonRadio.value : null; if(details.accelerate_areas.length === 0) { showToast("Chyba", "Vyberte prosím alespoň jednu oblast zájmu.", "warning"); isValid = false; } if(!details.accelerate_reason) { showToast("Chyba", "Vyberte prosím důvod.", "warning"); isValid = false; } } else if (goalType === 'math_review') { details.review_areas = Array.from(step2Element.querySelectorAll('input[name="review_area"]:checked')).map(cb => cb.value); } else if (goalType === 'math_explore') { const levelRadio = step2Element.querySelector('input[name="explore_level"]:checked'); details.explore_level = levelRadio ? levelRadio.value : null; if(!details.explore_level) { showToast("Chyba", "Vyberte prosím vaši úroveň.", "warning"); isValid = false; } } } catch (e) { console.error("[GoalModal] Error getting step 2 details:", e); isValid = false; showToast("Chyba", "Nastala chyba při zpracování výběru.", "error"); } if (isValid) { console.log(`[GoalModal] Step 2 details collected for ${goalType}:`, details); saveGoalAndProceed(pendingGoal, details); } }
