@@ -14,13 +14,13 @@
         if (typeof window.MathJax === 'undefined') {
             window.MathJax = {
                 tex: {
-                    inlineMath: [['$', '$'], ['\\(', '\\)']], // Define inline math delimiters
-                    displayMath: [['$$', '$$']],             // Define display math delimiters
-                    processEscapes: true                   // Process escaped characters like \$
+                    inlineMath: [['<span class="math-inline">', '</span>'], ['\\(', '\\)']],
+                    displayMath: [['<span class="math-block">', '</span>']],
+                    processEscapes: true
                 },
                 options: {
-                    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], // Tags to ignore
-                    ignoreHtmlClass: 'tex2jax_ignore'       // Class to ignore
+                    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+                    ignoreHtmlClass: 'tex2jax_ignore'
                 },
                 startup: {
                     ready: () => {
@@ -102,22 +102,6 @@
                              <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button>
                          </div>
                          <div id="notifications-list">
-                             <div class="notification-item skeleton">
-                                 <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div>
-                                 <div class="notification-content">
-                                     <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div>
-                                     <div class="skeleton" style="height: 12px; width: 90%;"></div>
-                                     <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div>
-                                 </div>
-                             </div>
-                             <div class="notification-item skeleton">
-                                 <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div>
-                                 <div class="notification-content">
-                                     <div class="skeleton" style="height: 16px; width: 60%; margin-bottom: 6px;"></div>
-                                     <div class="skeleton" style="height: 12px; width: 80%;"></div>
-                                     <div class="skeleton" style="height: 10px; width: 50%; margin-top: 6px;"></div>
-                                 </div>
-                             </div>
                              <div id="no-notifications-msg" style="display: none;">ŽÁDNÉ NOVÉ SIGNÁLY</div>
                          </div>
                          <div class="notifications-footer">
@@ -128,7 +112,7 @@
             </div>
         </header>
 
-        <div class="error-container" id="global-error"></div>
+        <div class="error-container" id="global-error" style="display: none;"></div>
 
         <div class="main-content-wrapper">
             <div class="tabs-wrapper">
@@ -147,16 +131,7 @@
                 <div id="currentPlanContent" class="section-content">
                     </div>
                 <div id="vertical-schedule-list" class="vertical-schedule-list section-content">
-                     <div class="skeleton day-card-skeleton">
-                         <div class="skeleton day-header-skeleton"></div>
-                         <div class="skeleton activity-item-skeleton">
-                             ...
-                         </div>
-                         <div class="skeleton activity-item-skeleton">
-                             ...
-                         </div>
                      </div>
-                </div>
                  <div class="step-navigation" id="verticalScheduleNav">
                      <button class="btn btn-primary btn-tooltip" id="exportScheduleBtnVertical" title="Stáhnout plán jako PDF">
                          <i class="fas fa-file-pdf"></i> Exportovat
@@ -171,9 +146,7 @@
                     <p>Načítám historii...</p>
                 </div>
                 <div id="historyPlanContent" class="plan-history section-content">
-                     <div class="skeleton history-item-skeleton">...</div>
-                     <div class="skeleton history-item-skeleton">...</div>
-                </div>
+                     </div>
             </div>
 
             <div class="section" id="createPlanSection">
@@ -227,6 +200,7 @@
             <div class="action-buttons"> <button class="btn btn-primary" id="viewCurrentPlanBtnLocked"> <i class="fas fa-eye"></i> Zobrazit aktuální plán </button> </div>
         </div>
     </template>
+
     <template id="createPlanFormTemplate">
         <h2 class="section-title" style="margin: 0 0 1.5rem 0; padding:0; border:none; background:transparent;"><i class="fas fa-magic"></i> Vytvořit nový studijní plán</h2>
         <div id="diagnosticInfo" class="notest-message info" style="text-align: left;"></div>
@@ -237,6 +211,7 @@
             </button>
         </div>
     </template>
+
     <template id="noDiagnosticTemplate">
         <div class="notest-message warning">
             <h3><i class="fas fa-exclamation-circle"></i> Nejprve absolvujte diagnostický test</h3>
@@ -244,6 +219,7 @@
             <div class="action-buttons"> <a href="/dashboard/procvicovani/test1.html" class="btn btn-primary" id="goToTestBtn"> <i class="fas fa-play-circle"></i> Přejít k testu </a> </div>
         </div>
     </template>
+
     <template id="historyItemTemplate">
         <div class="history-item" data-plan-id="">
             <div class="history-item-header">
@@ -261,6 +237,7 @@
             </div>
         </div>
     </template>
+
     <template id="promptCreatePlanTemplate">
         <div class="notest-message info">
             <h3><i class="fas fa-clipboard-check"></i> Připraveno k vytvoření plánu</h3>
@@ -268,6 +245,7 @@
             <div class="action-buttons"> <button class="btn btn-primary" id="createNewPlanFromPromptBtn"><i class="fas fa-plus-circle"></i> Vytvořit studijní plán</button> </div>
         </div>
     </template>
+
     <template id="noActivePlanTemplate">
         <div class="empty-state" style="display:flex; flex-direction: column; align-items: center; border: none; padding: 2rem 1rem;">
             <i class="far fa-calendar-times" style="font-size: 3.5rem; color: var(--accent-secondary); margin-bottom: 1.5rem;"></i>
