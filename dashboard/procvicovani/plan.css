@@ -1,5 +1,5 @@
 /* --- START: Cyberpunk CSS Theme (Adapted for plan.html) --- */
-/* Версия с исправлениями основного layout и выравнивания активностей */
+/* Версия с исправлениями основного layout, выравнивания активностей и контейнера расписания */
 
 /* --- Global Settings & Variables --- */
 :root {
@@ -122,9 +122,7 @@
 html { scroll-behavior: smooth; font-size: 16px; -webkit-text-size-adjust: 100%; }
 body {
     background-color: var(--bg-color); color: var(--text-medium); font-family: var(--font-primary);
-    line-height: 1.7; min-height: 100vh;
-    display: flex; /* <-- Важно для layout */
-    overflow: hidden; /* <-- Предотвратить скролл на body */
+    line-height: 1.7; min-height: 100vh; display: flex; overflow: hidden;
     -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; position: relative;
 }
 /* Background effects */
@@ -175,25 +173,8 @@ body { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0
 .btn i { font-size: 1em; }
 .btn-sm { padding: 0.45rem 0.9rem; font-size: 0.8rem; }
 
-/* === Sidebar - Исправлено === */
-.sidebar {
-    width: var(--sidebar-width);
-    height: 100vh; /* Полная высота */
-    position: fixed; /* Фиксированное положение */
-    top: 0;
-    left: 0;
-    background: var(--gradient-sidebar);
-    color: var(--text-medium);
-    padding: 1.5rem 1rem;
-    display: flex;
-    flex-direction: column;
-    z-index: 1000;
-    box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4);
-    border-right: 1px solid var(--border-color-light);
-    transition: width var(--transition-medium) ease, transform var(--transition-medium) ease; /* Добавлена анимация для transform (мобильные) */
-    overflow-x: hidden; /* Скрыть горизонтальный скролл */
-    overflow-y: auto; /* Добавить вертикальный скролл при необходимости */
-}
+/* Sidebar */
+.sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-sidebar); color: var(--text-medium); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000; box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4); border-right: 1px solid var(--border-color-light); transition: width var(--transition-medium) ease, transform var(--transition-medium) ease; overflow-x: hidden; overflow-y: auto; }
 .sidebar-header { display: flex; align-items: center; margin-bottom: 2.5rem; padding: 0 0.5rem; position: relative; min-height: 45px; transition: padding var(--transition-medium) ease; }
 #sidebar-close-toggle { display: none; position: absolute; right: 0px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); font-size: 1.8rem; cursor: pointer; padding: 0.5rem; line-height: 1; transition: color 0.2s ease; }
 #sidebar-close-toggle:hover { color: var(--accent-primary); }
@@ -222,59 +203,44 @@ body { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0
 .user-role { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
 .sidebar-footer { margin-top: 1.5rem; padding: 1rem; font-size: 0.8rem; color: var(--text-muted); text-align: center; flex-shrink: 0; opacity: 0.7; transition: opacity 0.2s ease, max-width 0.2s linear 0.1s; overflow: hidden; white-space: nowrap; max-width: 200px; }
 
-/* === Основной контент - Исправлено === */
+/* === Main Content Area - Исправлено === */
 main {
-    flex: 1; /* Занять оставшееся место */
-    margin-left: var(--sidebar-width); /* Отступ слева РАВНЫЙ ширине сайдбара */
-    width: calc(100% - var(--sidebar-width)); /* Занять РОВНО оставшуюся ширину */
-    height: 100vh; /* Занять всю высоту viewport */
-    display: flex; /* Сделать flex-контейнером */
-    flex-direction: column; /* Расположить хедер, wrapper и футер вертикально */
-    overflow-y: auto; /* <-- Добавить скролл ТОЛЬКО для main */
-    overflow-x: hidden; /* <-- Скрыть горизонтальный скролл */
-    position: relative; /* Для позиционирования детей */
-    transition: margin-left var(--transition-medium) ease, width var(--transition-medium) ease; /* Анимация */
-    padding: 0; /* Убрать padding отсюда, добавить в .main-content-wrapper */
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* Скролл для main */
+    overflow-x: hidden;
+    position: relative;
+    transition: margin-left var(--transition-medium) ease, width var(--transition-medium) ease;
+    padding: 0; /* Убрать padding */
 }
 /* --- Стили для свернутого сайдбара --- */
 body.sidebar-collapsed .sidebar { width: var(--sidebar-collapsed-width, 80px); }
 body.sidebar-collapsed main { margin-left: var(--sidebar-collapsed-width, 80px); width: calc(100% - var(--sidebar-collapsed-width, 80px)); }
-/* --- Конец стилей для свернутого сайдбара --- */
-
+/* --- Конец стилей --- */
 main.loaded { animation: fadeInMain 0.5s ease-out forwards; }
 @keyframes fadeInMain { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* === Обертка для контента внутри main - Исправлено === */
+/* === Wrapper для контента внутри main - Исправлено === */
 .main-content-wrapper {
-    flex-grow: 1; /* <-- Занять все доступное вертикальное место */
-    display: flex; /* <-- Сделать flex */
-    flex-direction: column; /* Расположить секции вертикально */
-    min-height: 0; /* <-- Важно для flex-grow */
-    padding: var(--section-padding-y) var(--container-padding-x); /* Добавить паддинги здесь */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: var(--section-padding-y) var(--container-padding-x); /* Паддинги здесь */
 }
-
 
 /* === Хедер - Исправлено === */
 .dashboard-header {
-    background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.7);
-    backdrop-filter: blur(12px);
-    border-radius: 0 0 var(--card-radius) var(--card-radius);
+    background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.7); backdrop-filter: blur(12px); border-radius: 0 0 var(--card-radius) var(--card-radius);
     padding: 1rem var(--container-padding-x); /* Использовать переменную */
-    box-shadow: var(--shadow-hud);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-    position: sticky; /* <-- Должен быть sticky */
-    top: 0;
-    z-index: 900;
-    border-bottom: 1px solid var(--border-color-light);
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    flex-shrink: 0; /* <-- Не сжиматься */
-    margin-left: 0; /* Убрать отрицательные отступы, если они были */
-    margin-right: 0;
-    margin-bottom: var(--section-padding-y); /* Оставить нижний отступ */
+    box-shadow: var(--shadow-hud); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+    position: sticky; top: 0; z-index: 900; border-bottom: 1px solid var(--border-color-light); transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    flex-shrink: 0; margin-left: 0; margin-right: 0; /* Убрать отрицательные отступы */
+    margin-bottom: var(--section-padding-y); /* Сохранить нижний отступ */
 }
 body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.85); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
 .header-title { display: flex; align-items: center; gap: 1rem; flex-grow: 1; }
@@ -332,27 +298,27 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .plan-tab.active { color: var(--accent-primary); border-bottom-color: var(--accent-primary); font-weight: 700; }
 .plan-tab.active i { opacity: 1; }
 
-/* General Section Styling */
+/* General Section Styling for Plan Page */
 .section { background: var(--card-bg); border-radius: 0 0 var(--card-radius) var(--card-radius); box-shadow: var(--shadow-hud); border: 1px solid var(--border-color-light); border-top: none; position: relative; overflow: hidden; display: none; flex-grow: 1; flex-direction: column; min-height: 0; }
 .section.visible-section { display: flex !important; animation: fadeIn 0.5s ease forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Section Content Area */
+/* Section Content Area - Исправлено */
 .section-content {
-    padding: 0; /* No padding here */
-    display: flex; /* Changed from none to flex */
-    flex-direction: column; /* Added */
+    padding: 0; /* Убрать padding отсюда */
+    display: flex; /* Используем flex */
+    flex-direction: column; /* Содержимое идет вертикально */
     min-height: 150px;
     position: relative;
-    flex-grow: 1;
-    overflow-y: auto;
+    flex-grow: 1; /* Занять доступное место в секции */
+    overflow-y: auto; /* Скролл для контента */
     scrollbar-width: thin;
     scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--accent-secondary-rgb), 0.08);
 }
 .section-content::-webkit-scrollbar { width: 8px; }
 .section-content::-webkit-scrollbar-track { background: rgba(var(--accent-secondary-rgb), 0.08); border-radius: 4px;}
 .section-content::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.5); border-radius: 4px; }
-.section-content.content-visible { display: flex !important; animation: fadeIn 0.6s ease-out forwards; } /* Keep flex here */
+.section-content.content-visible { display: flex !important; animation: fadeIn 0.6s ease-out forwards; }
 
 /* Plan Content (Markdown display area) */
 .plan-content { line-height: 1.75; display: none; padding: 2rem 2.5rem; flex-grow: 1; overflow-y: auto; }
@@ -380,9 +346,20 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .plan-content mjx-container { overflow-x: auto; overflow-y: hidden; max-width: 100%; background: rgba(var(--accent-primary-rgb), 0.03); border: 1px solid var(--border-color-light); padding: 0.5rem; border-radius: 6px; display: block; margin: 0.8rem 0; }
 .plan-content mjx-math { color: var(--accent-cyan); }
 
-/* Vertical Schedule List Styles */
-.vertical-schedule-list { display: none; flex-direction: column; gap: 0; margin: 0; padding: 0; min-height: 150px; background-color: transparent; overflow: hidden; flex-grow: 1; }
+/* === Vertical Schedule List Styles - Исправлено === */
+.vertical-schedule-list {
+    display: none; /* Hide by default */
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    min-height: 150px; /* Keep a min height */
+    background-color: transparent;
+    overflow: hidden; /* Important: Let parent scroll */
+    flex-grow: 1; /* <-- Allow this list to grow */
+}
 .vertical-schedule-list.schedule-visible { display: flex !important; animation: fadeIn 0.6s ease-out forwards; }
+
 .day-schedule-card { background-color: transparent; border-radius: 0; border: none; box-shadow: none; border-bottom: 1px solid var(--border-color-light); overflow: visible; }
 .day-schedule-card:last-child { border-bottom: none; }
 .day-schedule-card.today { background-color: rgba(var(--accent-lime-rgb), 0.04); }
@@ -421,16 +398,10 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 
 /* === Step Navigation Fix === */
 .step-navigation#verticalScheduleNav {
-    display: none; /* Hidden by default, shown by JS */
-    justify-content: flex-end;
-    margin-top: auto; /* Push to bottom */
-    padding: 1.2rem 2.5rem;
-    border-top: 1px solid var(--border-color-light);
-    background-color: var(--card-solid);
-    margin-left: 0; margin-right: 0; margin-bottom: 0; /* Reset margins */
-    border-radius: 0 0 var(--card-radius) var(--card-radius);
-    flex-shrink: 0;
-    position: static; /* Ensure in flow */
+    display: none; justify-content: flex-end; margin-top: auto; /* Push to bottom */
+    padding: 1.2rem 2.5rem; border-top: 1px solid var(--border-color-light);
+    background-color: var(--card-solid); margin-left: 0; margin-right: 0; margin-bottom: 0;
+    border-radius: 0 0 var(--card-radius) var(--card-radius); flex-shrink: 0; position: static;
 }
 .step-navigation.nav-visible { display: flex !important; animation: fadeIn 0.5s ease-out forwards; }
 /* === END: Step Navigation Fix === */
@@ -438,7 +409,6 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 /* Plan History */
 .plan-history { margin-top: 0; padding: 1.5rem 2rem; display: none; gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); flex-grow: 1; overflow-y: auto; }
 .plan-history.content-visible { display: grid !important; }
-/* ... (history-item styles remain the same) ... */
 .history-item { background-color: var(--card-solid); border-radius: var(--card-radius); padding: 1.5rem; box-shadow: var(--shadow-hud); display: flex; flex-direction: column; transition: all 0.2s ease; cursor: pointer; border: 1px solid var(--border-color-medium); border-left: 5px solid var(--text-muted); }
 .history-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-card); border-left-color: var(--accent-primary); background-color: rgba(var(--card-solid-rgb), 0.95); }
 .history-item.active { border-left-color: var(--accent-primary); } .history-item.completed { border-left-color: var(--accent-lime); } .history-item.inactive { border-left-color: var(--text-muted); opacity: 0.8; }
@@ -455,9 +425,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .history-action-icon { color: var(--accent-primary); font-size: 1rem; transition: transform 0.2s ease; }
 .history-item:hover .history-action-icon { transform: scale(1.1); }
 
-
 /* Create Plan */
-/* ... (notest-message, locked-overlay, timer-container, action-buttons styles remain the same) ... */
 .notest-message { background-color: rgba(var(--accent-secondary-rgb), 0.1); border-left: 5px solid var(--accent-secondary); padding: 2rem; margin: 1.5rem 0; border-radius: var(--card-radius); border: 1px solid rgba(var(--accent-secondary-rgb), 0.2); text-align: center; }
 .notest-message h3 { color: var(--accent-secondary); margin-bottom: 1rem; font-size: 1.3rem; display: flex; align-items: center; gap: 0.7rem; justify-content: center; font-weight: 600;}
 .notest-message p { color: var(--text-medium); margin-bottom: 1.5rem; line-height: 1.6; max-width: 650px; margin-left: auto; margin-right: auto; font-size: 1rem;}
@@ -475,18 +443,14 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .timer-container { margin-bottom: 2rem; font-size: 1.2rem; font-weight: 500; color: var(--accent-primary); }
 .timer-container strong { font-weight: 700; padding: 0 0.3ch; display: inline-block; min-width: 1.5ch; text-shadow: 0 0 8px var(--accent-glow); }
 .action-buttons { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.5rem; justify-content: center; }
-
 /* Plan Header (Detail/Generated View) */
-/* ... (styles remain the same) ... */
 .plan-header-dynamic { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; padding: 1.5rem 2.5rem; border-bottom: 1px solid var(--border-color-light); background-color: rgba(var(--dark-purple-accent-rgb), 0.2); flex-shrink: 0; }
 .plan-meta { display: flex; flex-direction: column; gap: 0.3rem; flex-grow: 1; }
 .plan-meta h2 { margin-bottom: 0.4rem !important; border: none !important; padding: 0 !important; font-size: 1.5rem;}
 .plan-date { font-size: 0.85rem; color: var(--text-muted); }
 .plan-actions { display: none; gap: 0.75rem; flex-shrink: 0; align-self: flex-start;}
 
-
 /* Loading & Skeleton */
-/* ... (styles remain the same) ... */
 .loader-container { display: none; flex-direction: column; justify-content: center; align-items: center; min-height: 200px; text-align: center; color: var(--text-muted); font-size: 1.1rem; padding: 2rem; flex-grow: 1; position: absolute; inset: 0; background: rgba(var(--bg-color), 0.6); backdrop-filter: blur(3px); z-index: 10; }
 #currentPlanSection .loader-container, #historyPlanSection .loader-container, #createPlanSection .loader-container, #planSection .loader-container { border-radius: 0 0 var(--card-radius) var(--card-radius); }
 .loader-container.visible-loader { display: flex !important; }
@@ -510,9 +474,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .skeleton.activity-title-skeleton { height: 16px; width: 80%; }
 .skeleton.activity-meta-skeleton { height: 12px; width: 50%; }
 
-
 /* Empty State */
-/* ... (styles remain the same) ... */
 .empty-state { padding: 3rem 2rem; text-align: center; color: var(--text-muted); display: none; flex-grow: 1; }
 .section-content.content-visible .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .empty-state i { font-size: 3rem; margin-bottom: 1rem; color: var(--accent-secondary); opacity: 0.6; }
@@ -521,7 +483,6 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .empty-state .btn { margin-top: 0.5rem; }
 
 /* Toast & Error Messages */
-/* ... (styles remain the same) ... */
 .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; display: flex; flex-direction: column; gap: 0.75rem; max-width: 380px; pointer-events: none; }
 .toast { padding: 1rem 1.2rem; border-radius: 10px; background: var(--interface-bg); box-shadow: var(--shadow-card); display: flex; align-items: flex-start; color: var(--text-light); animation: toast-in 0.4s ease forwards; pointer-events: auto; border: 1px solid var(--border-color-medium); border-left-width: 4px; opacity: 0; transform: translateX(100%); backdrop-filter: blur(4px); }
 .toast.show { opacity: 1; transform: translateX(0); }
@@ -538,9 +499,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .error-message { background-color: rgba(var(--accent-pink-rgb), 0.1); border-left: 5px solid var(--accent-pink); color: var(--accent-pink); padding: 1rem 1.2rem; margin: 0; border-radius: 8px; font-size: 0.95rem; display: flex; align-items: center; box-shadow: 0 3px 8px rgba(var(--accent-pink-rgb), 0.2); }
 .error-message i { margin-right: 0.8rem; font-size: 1.3rem; }
 
-
 /* Initial Loading Overlay */
-/* ... (styles remain the same) ... */
 .initial-loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-color); z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; transition: opacity 0.6s ease-out, visibility 0s 0.6s; opacity: 1; visibility: visible; }
 .initial-loading-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 .initial-loading-overlay .loading-spinner { width: 40px; height: 40px; border-width: 5px; border-color: var(--accent-primary); border-top-color: transparent; border-right-color: transparent; animation: loading-spinner 0.9s linear infinite; border-radius: 50%;}
@@ -549,31 +508,24 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 
 /* === Footer - Исправлено === */
 .dashboard-footer {
-    margin-top: auto; /* <-- Прижать к низу flex-контейнера main */
-    padding: 1.5rem var(--container-padding-x); /* Добавить горизонтальный паддинг */
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    border-top: 1px solid var(--border-color-light);
-    opacity: 0.6;
-    flex-shrink: 0; /* <-- Не сжиматься */
-    position: static; /* <-- Убедиться, что не fixed/absolute */
-    width: 100%; /* <-- Занять всю ширину main */
+    margin-top: auto; /* Прижать к низу flex-контейнера main */
+    padding: 1.5rem var(--container-padding-x);
+    text-align: center; color: var(--text-muted); font-size: 0.9rem;
+    border-top: 1px solid var(--border-color-light); opacity: 0.6;
+    flex-shrink: 0; position: static; width: 100%;
 }
 
 /* Responsiveness */
-/* ... (responsive styles remain mostly the same, check @media queries for main/sidebar) ... */
+/* ... (адаптивные стили без изменений, кроме возможных уточнений для main/sidebar/header/footer) ... */
 .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(3, 2, 12, 0.7); z-index: 999; opacity: 0; transition: opacity var(--transition-medium) ease; backdrop-filter: blur(5px); }
 .sidebar-overlay.active { display: block; opacity: 1; }
-@media (max-width: 992px) { :root { --sidebar-width: 85px; --sidebar-collapsed-width: 85px; /* Adjust if needed */} body:not(.sidebar-collapsed) main { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); } .sidebar:not(.active) { width: var(--sidebar-collapsed-width); } .sidebar:not(.active) .sidebar-logo span, .sidebar:not(.active) .sidebar-link span, .sidebar:not(.active) .user-info, .sidebar:not(.active) .sidebar-footer { display: none; } .sidebar:not(.active) .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar:not(.active) .sidebar-logo i { margin-right: 0; } .sidebar:not(.active) .sidebar-header, .sidebar:not(.active) .sidebar-link { justify-content: center; } .sidebar:not(.active) .user-profile { justify-content: center; padding: 0.75rem 0; } .sidebar:not(.active) .user-avatar { margin-right: 0; } .mobile-menu-toggle { display: block; } #sidebar-close-toggle { display: none !important; } .section-content, .plan-content { padding: 1.5rem; } }
-@media (max-width: 768px) { main { padding: 0 1rem; } .dashboard-header { padding: 1rem 1.25rem; margin-left: -1rem; margin-right: -1rem;} body.scrolled .dashboard-header { margin: 0 -1rem var(--section-padding-y) -1rem; padding: 1rem 1.25rem; } .header-title { gap: 0.5rem; } .header-title h1 { font-size: 1.5rem; } .plan-header-dynamic { flex-direction: column; gap: 1rem; padding: 1.2rem 1.5rem; } .plan-actions { width: 100%; justify-content: center; } .plan-tabs { padding-bottom: 0.5rem; } .plan-tab { padding: 0.75rem 1rem; font-size: 0.9rem; } .section-content, .plan-content { padding: 1.5rem; } .section-title { padding: 1.2rem 1.5rem;} .plan-history { grid-template-columns: 1fr; } .step-navigation#verticalScheduleNav { padding: 1.2rem 1.5rem; } .day-header, .activity-list-item { padding-left: 1.5rem; padding-right: 1.5rem; } .error-container { padding: 0 1.5rem; } }
-@media (max-width: 576px) { :root { --sidebar-width: 0; --sidebar-collapsed-width: 0;} main { margin-left: 0; width: 100%; padding: 0 0.75rem; } body.scrolled .dashboard-header { margin: 0 -0.75rem var(--section-padding-y) -0.75rem; padding: 0.75rem 1rem; } .sidebar { transform: translateX(-100%); z-index: 1100; width: 260px; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } .sidebar.active #sidebar-close-toggle { display: block; } .header-title h1 { font-size: 1.3rem; } .toast-container { max-width: calc(100% - 1.5rem); } .btn { padding: 0.7rem 1.2rem; font-size: 0.9rem;} .mouse-follower-glow { display: none !important; } }
+@media (max-width: 992px) { :root { --sidebar-width: 85px; --sidebar-collapsed-width: 85px; } body:not(.sidebar-collapsed) main { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); } .sidebar:not(.active) { width: var(--sidebar-collapsed-width); } .sidebar:not(.active) .sidebar-logo span, .sidebar:not(.active) .sidebar-link span, .sidebar:not(.active) .user-info, .sidebar:not(.active) .sidebar-footer { display: none; } .sidebar:not(.active) .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar:not(.active) .sidebar-logo i { margin-right: 0; } .sidebar:not(.active) .sidebar-header, .sidebar:not(.active) .sidebar-link { justify-content: center; } .sidebar:not(.active) .user-profile { justify-content: center; padding: 0.75rem 0; } .sidebar:not(.active) .user-avatar { margin-right: 0; } .mobile-menu-toggle { display: block; } #sidebar-close-toggle { display: none !important; } .section-content, .plan-content { padding: 1.5rem; } }
+@media (max-width: 768px) { main { padding: 0 1rem; } .dashboard-header { padding: 1rem 1.25rem; margin-left: -1rem; margin-right: -1rem;} body.scrolled .dashboard-header { margin: 0 -1rem var(--section-padding-y) -1rem; padding: 1rem 1.25rem; } .header-title { gap: 0.5rem; } .header-title h1 { font-size: 1.5rem; } .plan-header-dynamic { flex-direction: column; gap: 1rem; padding: 1.2rem 1.5rem; } .plan-actions { width: 100%; justify-content: center; } .plan-tabs { padding-bottom: 0.5rem; } .plan-tab { padding: 0.75rem 1rem; font-size: 0.9rem; } .section-content, .plan-content { padding: 1.5rem; } .section-title { padding: 1.2rem 1.5rem;} .plan-history { grid-template-columns: 1fr; } .step-navigation#verticalScheduleNav { padding: 1.2rem 1.5rem; } .day-header, .activity-list-item { padding-left: 1.5rem; padding-right: 1.5rem; } .error-container { padding: 0 1.5rem; } .dashboard-footer { padding: 1.5rem 1rem; } }
+@media (max-width: 576px) { :root { --sidebar-width: 0; --sidebar-collapsed-width: 0;} main { margin-left: 0; width: 100%; padding: 0 0.75rem; } body.scrolled .dashboard-header { margin: 0 -0.75rem var(--section-padding-y) -0.75rem; padding: 0.75rem 1rem; } .sidebar { transform: translateX(-100%); z-index: 1100; width: 260px; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.75rem; } .sidebar.active #sidebar-close-toggle { display: block; } .header-title h1 { font-size: 1.3rem; } .toast-container { max-width: calc(100% - 1.5rem); } .btn { padding: 0.7rem 1.2rem; font-size: 0.9rem;} .mouse-follower-glow { display: none !important; } .dashboard-footer { padding: 1.5rem 0.75rem; } }
 
 /* Reduced Motion */
 @media (prefers-reduced-motion: reduce) { /* ... (правила reduced motion без изменений) ... */ html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; animation-delay: -0.01ms !important; transition-delay: 0ms !important; will-change: auto !important; } .sidebar { transition: transform 0.01ms !important, width 0.01ms !important; } .loading-spinner { animation: none !important; border: 4px solid var(--accent-primary) !important; } .section.visible-section, .plan-content.content-visible, .plan-content.generated-reveal, .vertical-schedule-list.schedule-visible, .step-navigation.nav-visible { animation: none !important; } .toast.show { transform: translateX(0) !important; } main.loaded { animation: none !important; } .skeleton::after { animation: none !important; background: var(--skeleton-highlight) !important; } }
-
 /* Tooltipster Cyberpunk Theme */
 .tooltipster-shadow { border-radius: 8px; background: var(--interface-bg); color: var(--text-light); box-shadow: var(--shadow-card); border: 1px solid var(--border-color-medium); }
 .tooltipster-shadow .tooltipster-content { padding: 8px 14px; font-size: 0.88rem; font-family: var(--font-primary); }
-
 /* --- END: Cyberpunk CSS Theme --- */
