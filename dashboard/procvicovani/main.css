@@ -85,14 +85,15 @@
             --shadow-card-hover-enhanced: 0 18px 50px rgba(0, 0, 0, 0.45), 0 0 30px var(--accent-glow), inset 0 0 15px rgba(var(--accent-primary-rgb), 0.15);
             --shadow-hud: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 2px rgba(var(--accent-primary-rgb), 0.1); /* Тень для элементов интерфейса */
             --shadow-text-glow: 0 0 8px rgba(var(--accent-primary-rgb), 0.6); /* Свечение текста */
-            --shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.25);
-            --shadow-md: 0 6px 15px rgba(0, 0, 0, 0.35);
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 5px 12px rgba(0, 0, 0, 0.3);
 
             /* Размеры и переходы */
             --sidebar-width: 260px; /* Оставляем переменную */
             --sidebar-collapsed-width: 80px; /* <<< NEW: Width for collapsed sidebar */
             --card-radius: 14px;
             --button-radius: 10px;
+            --form-element-radius: 8px;
             --section-padding-y: clamp(2rem, 5vh, 3rem); /* Паддинги для секций дашборда */
             --container-padding-x: 2rem; /* Паддинги контейнера дашборда */
             --transition-speed: 0.3s; /* Совпадает с --transition-medium */
@@ -103,16 +104,16 @@
             --transition-entrance: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1); /* Немного быстрее */
 
             /* Skeleton Loader Colors */
-            --skeleton-bg: rgba(var(--accent-secondary-rgb), 0.12);
-            --skeleton-highlight: rgba(var(--accent-secondary-rgb), 0.22);
+             --skeleton-bg: rgba(var(--accent-secondary-rgb), 0.12);
+             --skeleton-highlight: rgba(var(--accent-secondary-rgb), 0.22);
 
-            /* Chat Scrollbar */
-            --chat-scrollbar-track: transparent;
-            --chat-scrollbar-thumb: rgba(var(--accent-primary-rgb), 0.4);
-            --chat-scrollbar-thumb-hover: rgba(var(--accent-primary-rgb), 0.6);
-            --info-bg: rgba(var(--accent-primary-rgb), 0.1);
-            --info-border: rgba(var(--accent-primary-rgb), 0.3);
-            --info-color: var(--accent-primary);
+             /* Chat Scrollbar */
+             --chat-scrollbar-track: transparent;
+             --chat-scrollbar-thumb: rgba(var(--accent-primary-rgb), 0.4);
+             --chat-scrollbar-thumb-hover: rgba(var(--accent-primary-rgb), 0.6);
+             --info-bg: rgba(var(--accent-primary-rgb), 0.1);
+             --info-border: rgba(var(--accent-primary-rgb), 0.3);
+             --info-color: var(--accent-primary);
         }
 
         /* --- Базовые Стили --- */
@@ -324,7 +325,7 @@
         .user-role { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
         .sidebar-footer { /* Подвал сайдбара */
             margin-top: 1.5rem; padding: 1rem; font-size: 0.8rem; color: var(--text-muted);
-            text-align: center; flex-shrink: 0; opacity: 0.7;
+            text-align: center; flex-shrink: 0; /* Prevent shrinking */ opacity: 0.7;
             transition: opacity 0.2s ease, max-width 0.2s linear 0.1s;
             overflow: hidden; white-space: nowrap; max-width: 200px;
         }
@@ -384,7 +385,7 @@
             height: 40px;
             font-size: 1rem; /* Smaller initials font */
         }
-        body.sidebar-collapsed main { /* Adjusted selector to match HTML */
+        body.sidebar-collapsed main#main-content {
             margin-left: var(--sidebar-collapsed-width);
             width: calc(100% - var(--sidebar-collapsed-width));
         }
@@ -607,6 +608,16 @@
         .shortcut-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.8rem; }
         .shortcut-card { padding: 1.8rem; text-decoration: none; color: var(--text-medium); display: flex; flex-direction: column; align-items: center; text-align: center; }
         .shortcut-card:hover { background-color: rgba(var(--accent-primary-rgb), 0.05); }
+        /* Styles for BUTTON shortcut card */
+        button.shortcut-card { background: var(--card-bg); border: 1px solid var(--border-color-light); cursor: pointer; }
+        button.shortcut-card:hover { transform: translateY(-5px) scale(1.01); box-shadow: var(--shadow-card); border-color: var(--border-color-medium); background-color: rgba(var(--card-solid-rgb), 0.95); }
+        button.shortcut-card::before, button.shortcut-card::after { content: ''; position: absolute; width: 12px; height: 12px; border-color: var(--accent-primary); border-style: solid; opacity: 0; transition: all 0.3s ease; pointer-events: none; z-index: 1; }
+        button.shortcut-card::before { top: 10px; left: 10px; border-width: 2px 0 0 2px; }
+        button.shortcut-card::after { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
+        button.shortcut-card:hover::before, button.shortcut-card:hover::after { opacity: 0.6; }
+        button.shortcut-card:hover::before { transform: translate(-3px, -3px); }
+        button.shortcut-card:hover::after { transform: translate(3px, 3px); }
+        /* End button styles */
         .shortcut-icon { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.7rem; margin-bottom: 1.2rem; background: linear-gradient(145deg, rgba(var(--accent-primary-rgb), 0.15), rgba(var(--accent-secondary-rgb), 0.1)); color: var(--accent-primary); transition: all 0.3s ease; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
         .shortcut-card:hover .shortcut-icon { background: var(--accent-primary); color: var(--text-fixed-dark); transform: scale(1.1) rotate(5deg); box-shadow: 0 6px 15px rgba(var(--accent-primary-rgb), 0.3); }
         .shortcut-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-light); }
@@ -754,17 +765,82 @@
         @media (max-width: 576px) {
              /* Small Mobile */
              /* Sidebar toggling handles main margin */
-             main { padding: 0 0.75rem; }
+             main { padding: 0 0.75rem; margin-left: 0; width: 100%; }
              body.scrolled .dashboard-header { margin: 0 -0.75rem 1rem -0.75rem; padding: 0.75rem 1rem; }
+             .sidebar { transform: translateX(-110%); width: 280px; z-index: 1100; } /* Increased z-index */
+             .sidebar.active { transform: translateX(0); }
+             .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; }
+             .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; }
+             .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; }
+             .sidebar.active .user-profile { padding: 1rem; }
+             .sidebar.active .user-avatar { margin-right: 0.85rem; width: 42px; height: 42px; }
+             .sidebar.active #sidebar-close-toggle { display: block; }
+             .header-content h1 { font-size: 1.4rem; }
              .header-actions { gap: 0.5rem; }
              .card-value { font-size: 2.1rem; }
              .toast-container { bottom: 1rem; right: 1rem; max-width: calc(100% - 1.5rem); }
              .mouse-follower-glow { display: none !important; }
-             .tab-content { padding: 1.5rem; }
+             /* Hide desktop sidebar toggle on small mobile */
+             .sidebar-toggle-btn { display: none; }
         }
         .sidebar-overlay { display: none; position: fixed; inset: 0; background-color: rgba(3, 2, 12, 0.7); z-index: 999; opacity: 0; transition: opacity var(--transition-medium) ease; backdrop-filter: blur(5px); }
         .sidebar-overlay.active { display: block; opacity: 1; }
-        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; animation-delay: -0.01ms !important; transition-delay: 0ms !important; will-change: auto !important; } .sidebar { transition: transform 0.01ms !important, width 0.01ms !important; } main { transition: margin-left 0.01ms !important, width 0.01ms !important; } .mouse-follower-glow { display: none !important; } body::before, body::after { animation: none !important; } .refresh-btn.loading i { animation: none !important; } .loading-spinner, .initial-loading-overlay .loading-spinner { animation: none !important; border: 4px solid var(--accent-primary) !important; } .card:hover, .shortcut-card:hover, .btn:hover, .btn-outline:hover, .welcome-button:hover, .refresh-btn:hover, .view-all-link:hover { transform: none !important; } .skeleton::after { animation: none !important; background: var(--skeleton-highlight) !important; } main.loaded, .main-content-wrapper [data-animate].animated, .tab-content.active { animation: none !important; } .section-title::after { animation: none !important; background: var(--accent-primary) !important; } .btn-icon-only i { transition: none !important; } }
+        @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; animation-delay: -0.01ms !important; transition-delay: 0ms !important; will-change: auto !important; } .sidebar { transition: transform 0.01ms !important, width 0.01ms !important; } main { transition: margin-left 0.01ms !important, width 0.01ms !important; } .main-content-wrapper [data-animate] { opacity: 1 !important; transform: none !important; transition: none !important; } .mouse-follower-glow { display: none !important; } body::before, body::after { animation: none !important; } .refresh-btn.loading i { animation: none !important; } .loading-spinner, .initial-loading-overlay .loading-spinner { animation: none !important; border: 4px solid var(--accent-primary) !important; } .card:hover, .shortcut-card:hover, .btn:hover, .btn-outline:hover, .welcome-button:hover, .refresh-btn:hover, .view-all-link:hover { transform: none !important; } .skeleton::after { animation: none !important; background: var(--skeleton-highlight) !important; } .section-title::after { animation: none !important; background: var(--accent-primary) !important; } .btn-icon-only i { transition: none !important; } }
         .tooltipster-shadow { border-radius: 8px; background: var(--interface-bg); color: var(--text-light); box-shadow: var(--shadow-card); border: 1px solid var(--border-color-medium); }
         .tooltipster-shadow .tooltipster-content { padding: 8px 14px; font-size: 0.88rem; font-family: var(--font-primary); }
         /* --- END: Киберпанк CSS Тема --- */
+
+
+        /* ===== START: CSS Override Fix for Missing Button ===== */
+
+        /* Ensure the active step container is visible and uses flex */
+        .modal-step.active {
+            display: flex !important;
+            flex-direction: column !important; /* Ensure column layout */
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        /* Force the footer within the specific step to be visible */
+        #goal-step-accelerate .modal-footer {
+            display: flex !important; /* Use flex to layout buttons */
+            visibility: visible !important;
+            opacity: 1 !important;
+            height: auto !important; /* Override potential height: 0 */
+            padding: 1rem 1.5rem !important; /* Ensure padding isn't removed */
+            margin-top: 1rem; /* Add some top margin for spacing */
+            border-top: 1px solid var(--border-color-light, rgba(160, 92, 255, 0.25)) !important; /* Ensure top border */
+            position: static !important; /* Override absolute positioning if any */
+            overflow: visible !important; /* Override hidden overflow */
+            flex-shrink: 0; /* Prevent shrinking */
+            justify-content: flex-end; /* Align button to the right (default) */
+            gap: 1rem; /* Add gap if multiple buttons were planned */
+            background-color: transparent; /* Ensure no weird background hides it */
+        }
+
+        /* Force the confirm button inside that specific footer to be visible */
+        #goal-step-accelerate .modal-footer .modal-confirm-btn {
+            display: inline-flex !important; /* Ensure button itself is displayed */
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: static !important;
+            transform: none !important; /* Reset potential transforms hiding it */
+        }
+
+        /* Generic override for any modal footer in case of broad conflict */
+        .modal-footer {
+             display: flex !important;
+             visibility: visible !important;
+             opacity: 1 !important;
+             height: auto !important;
+             overflow: visible !important;
+        }
+
+        /* Generic override for any confirm button inside a footer */
+        .modal-footer .modal-confirm-btn {
+            display: inline-flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        /* ===== END: CSS Override Fix ===== */
