@@ -172,10 +172,9 @@ body { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0
 .btn-danger:hover:not(:disabled) { box-shadow: 0 0 22px var(--accent-pink-glow); }
 .btn i { font-size: 1em; }
 .btn-sm { padding: 0.45rem 0.9rem; font-size: 0.8rem; }
-.btn-lg { padding: 0.9rem 1.8rem; font-size: 1rem; }
 
 /* Sidebar */
-.sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-sidebar); color: var(--text-medium); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000; box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4); border-right: 1px solid var(--border-color-light); transition: width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), transform var(--transition-medium) ease; overflow-x: hidden; overflow-y: auto; }
+.sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-sidebar); color: var(--text-medium); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000; box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4); border-right: 1px solid var(--border-color-light); transition: width var(--transition-medium) ease, transform var(--transition-medium) ease; overflow-x: hidden; overflow-y: auto; }
 .sidebar-header { display: flex; align-items: center; margin-bottom: 2.5rem; padding: 0 0.5rem; position: relative; min-height: 45px; transition: padding var(--transition-medium) ease; }
 #sidebar-close-toggle { display: none; position: absolute; right: 0px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); font-size: 1.8rem; cursor: pointer; padding: 0.5rem; line-height: 1; transition: color 0.2s ease; }
 #sidebar-close-toggle:hover { color: var(--accent-primary); }
@@ -253,6 +252,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 
 /* --- Notification Styles (Copied) --- */
 .notifications { position: relative; }
+/* ... (все стили нотификаций без изменений) ... */
 .notification-bell { cursor: pointer; padding: 0.6rem; position: relative; display: inline-block; line-height: 1; }
 .notification-bell i { font-size: 1.4rem; color: var(--text-muted); transition: color 0.2s, transform 0.2s; }
 .notification-bell:hover i { color: var(--accent-primary); transform: scale(1.1); }
@@ -276,7 +276,6 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .notification-item.is-read:hover { opacity: 0.8; }
 .notification-item.is-read .unread-dot { display: none; }
 .notification-icon { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem; color: var(--white); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-/* Specific Icon Styles */
 .notification-icon.info { background-color: var(--accent-primary); } .notification-icon.success { background-color: var(--accent-lime); color: var(--text-fixed-dark); } .notification-icon.warning { background-color: var(--accent-orange); } .notification-icon.danger { background-color: var(--accent-pink); } .notification-icon.badge { background: linear-gradient(45deg, var(--accent-orange), var(--accent-pink)); } .notification-icon.level_up { background: var(--gradient-level-up); } .notification-icon.plan_generated { background: linear-gradient(45deg, var(--accent-secondary), var(--accent-cyan)); } .notification-icon.exercise { background: linear-gradient(45deg, #2a9d8f, var(--accent-lime)); } .notification-icon.test { background: linear-gradient(45deg, var(--accent-secondary), var(--accent-pink)); } .notification-icon.default { background-color: var(--text-muted); }
 .notification-content { flex-grow: 1; }
 .notification-title { font-weight: 600; color: var(--text-light); margin-bottom: 0.25rem; font-size: 0.95rem; }
@@ -328,6 +327,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 @keyframes revealPlan { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
 /* Markdown Styles */
+/* ... (markdown styles h1-h4, p, ul, ol, li, strong, code, pre, blockquote, hr, mjx) ... */
 .plan-content h1, .plan-content h2, .plan-content h3, .plan-content h4 { color: var(--text-heading); margin-top: 1.8em; margin-bottom: 0.8em; font-weight: 600; padding-bottom: 0.4rem; }
 .plan-content h1 { font-size: 1.8rem; border-bottom: 2px solid var(--accent-primary); display: inline-block; }
 .plan-content h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border-color-light); }
@@ -516,6 +516,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 }
 
 /* Responsiveness */
+/* ... (адаптивные стили без изменений, кроме возможных уточнений для main/sidebar/header/footer) ... */
 .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(3, 2, 12, 0.7); z-index: 999; opacity: 0; transition: opacity var(--transition-medium) ease; backdrop-filter: blur(5px); }
 .sidebar-overlay.active { display: block; opacity: 1; }
 @media (max-width: 992px) { :root { --sidebar-width: 85px; --sidebar-collapsed-width: 85px; } body:not(.sidebar-collapsed) main { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); } .sidebar:not(.active) { width: var(--sidebar-collapsed-width); } .sidebar:not(.active) .sidebar-logo span, .sidebar:not(.active) .sidebar-link span, .sidebar:not(.active) .user-info, .sidebar:not(.active) .sidebar-footer { display: none; } .sidebar:not(.active) .sidebar-link i { margin-right: 0; font-size: 1.5rem; } .sidebar:not(.active) .sidebar-logo i { margin-right: 0; } .sidebar:not(.active) .sidebar-header, .sidebar:not(.active) .sidebar-link { justify-content: center; } .sidebar:not(.active) .user-profile { justify-content: center; padding: 0.75rem 0; } .sidebar:not(.active) .user-avatar { margin-right: 0; } .mobile-menu-toggle { display: block; } #sidebar-close-toggle { display: none !important; } .section-content, .plan-content { padding: 1.5rem; } }
@@ -528,24 +529,3 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .tooltipster-shadow { border-radius: 8px; background: var(--interface-bg); color: var(--text-light); box-shadow: var(--shadow-card); border: 1px solid var(--border-color-medium); }
 .tooltipster-shadow .tooltipster-content { padding: 8px 14px; font-size: 0.88rem; font-family: var(--font-primary); }
 /* --- END: Cyberpunk CSS Theme --- */
-
-/* --- MATHJAX Styles --- */
-/* Styles for MathJax rendering within plan content */
-.plan-content mjx-container {
-    text-align: left !important; /* Ensure left alignment */
-    overflow-x: auto; /* Allow horizontal scroll if needed */
-    overflow-y: hidden;
-    max-width: 100%;
-    padding: 0.5rem 0.8rem; /* Add some padding */
-    margin: 1rem 0; /* Vertical margin */
-    background: rgba(var(--accent-primary-rgb), 0.03); /* Slight background */
-    border: 1px solid var(--border-color-light);
-    border-radius: 6px;
-    display: block; /* Ensure block display */
-}
-
-/* Adjust font size if needed */
-.plan-content .MathJax {
-    font-size: 1.05em !important; /* Adjust size as needed */
-    color: var(--text-light); /* Ensure good contrast */
-}
