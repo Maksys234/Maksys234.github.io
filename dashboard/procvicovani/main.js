@@ -53,7 +53,8 @@
             'dashboard-title', 'currentYearFooter', 'mouse-follower', 'tabs-wrapper'
         ];
         const potentiallyMissingIds = ['toastContainer'];
-        const criticalMissingIds = ['goalStep1', 'goalSelectionModal']; // goalStep1 - typo? Should be goal-step-1 maybe?
+        // Исправлено: goal-step-1 был указан как goalStep1 в criticalMissingIds
+        const criticalMissingIds = ['goal-step-1', 'goal-selection-modal'];
 
         const notFound = [];
         const missingCritical = [];
@@ -64,7 +65,16 @@
             // Convert kebab-case id to camelCase for the key in the ui object
             const key = id.replace(/-([a-z])/g, g => g[1].toUpperCase());
             if (element) { ui[key] = element; }
-            else { notFound.push(id); ui[key] = null; if (criticalMissingIds.includes(key)) { missingCritical.push(key); } else if (potentiallyMissingIds.includes(key)) { missingPotential.push(key); } }
+            else {
+                notFound.push(id);
+                ui[key] = null;
+                // Проверяем по оригинальному ID, а не по camelCase ключу
+                if (criticalMissingIds.includes(id)) {
+                    missingCritical.push(id);
+                } else if (potentiallyMissingIds.includes(id)) {
+                    missingPotential.push(id);
+                }
+            }
         });
 
         ui.contentTabs = document.querySelectorAll('.content-tab');
@@ -105,7 +115,88 @@
     // --- END: Вспомогательные функции ---
 
     // --- Управление состоянием загрузки ---
-    function setLoadingState(sectionKey, isLoadingFlag) { /* ... same as previous version ... */ if (isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return; const updateSingleSection = (key, loading) => { if (isLoading[key] === loading && key !== 'all') return; isLoading[key] = loading; console.log(`[Procvičování UI Loading v3] Section: ${key}, isLoading: ${loading}`); const sectionMap = { stats: { container: ui.statsCards, skeletonFn: renderStatsSkeletons }, tests: { container: ui.testResultsContainer, content: ui.testResultsContent, empty: ui.testResultsEmpty, loader: ui.testResultsLoading, skeletonFn: renderTestSkeletons }, plan: { container: ui.studyPlanContainer, content: ui.studyPlanContent, empty: ui.studyPlanEmpty, loader: ui.studyPlanLoading, skeletonFn: renderPlanSkeletons }, topics: { container: ui.topicAnalysisContainer, content: ui.topicAnalysisContent, empty: ui.topicAnalysisEmpty, loader: ui.topicAnalysisLoading, skeletonFn: renderTopicSkeletons }, shortcuts: { container: ui.shortcutsGrid, skeletonFn: renderShortcutSkeletons }, notifications: { /* Handled elsewhere */ }, goalSelection: { /* Handled by button states */ } }; const config = sectionMap[key]; if (!config) { if (key !== 'all' && key !== 'notifications' && key !== 'goalSelection') { console.warn(`[Procvičování UI Loading v3] Unknown section key '${key}'.`); } return; } const container = config.container; const content = config.content; const empty = config.empty; const loader = config.loader; const skeletonFn = config.skeletonFn; if (loader) loader.style.display = loading ? 'flex' : 'none'; if (container) container.classList.toggle('loading', loading); if (loading) { if (content) content.style.display = 'none'; if (empty) empty.style.display = 'none'; if (skeletonFn) { const targetContainer = (key === 'stats' || key === 'shortcuts') ? container : content; if (targetContainer) skeletonFn(targetContainer); } } else { const skeletonSelector = '.loading-skeleton'; if (content?.querySelector(skeletonSelector)) content.innerHTML = ''; if (container?.querySelector(skeletonSelector) && !['stats', 'shortcuts'].includes(key)) { const skeletons = container.querySelectorAll(skeletonSelector); skeletons.forEach(sk => sk.parentElement.remove()); } setTimeout(() => { if (content && empty) { const hasContent = content.innerHTML.trim() !== '' && !content.querySelector(skeletonSelector); let displayType = 'block'; if (content.id === 'topic-grid' || content.id === 'stats-cards' || content.id === 'shortcuts-grid' || content.id === 'main-plan-schedule') displayType = 'grid'; else if (content.classList.contains('test-stats')) displayType = 'grid'; content.style.display = hasContent ? displayType : 'none'; empty.style.display = hasContent ? 'none' : 'block'; } }, 50); } }; if (sectionKey === 'all') { Object.keys(isLoading).forEach(key => { if (key !== 'all' && key !== 'goalSelection' && key !== 'notifications') updateSingleSection(key, isLoadingFlag); }); } else { updateSingleSection(sectionKey, isLoadingFlag); } }
+    // NEW_FUNCTION_START
+    function setLoadingState(sectionKey, isLoadingFlag) {
+        if (isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return;
+
+        const updateSingleSection = (key, loading) => {
+            if (isLoading[key] === loading && key !== 'all') return;
+            isLoading[key] = loading;
+            console.log(`[Procvičování UI Loading v3] Section: ${key}, isLoading: ${loading}`);
+
+            const sectionMap = {
+                stats: { container: ui.statsCards, skeletonFn: renderStatsSkeletons },
+                tests: { container: ui.testResultsContainer, content: ui.testResultsContent, empty: ui.testResultsEmpty, loader: ui.testResultsLoading, skeletonFn: renderTestSkeletons },
+                plan: { container: ui.studyPlanContainer, content: ui.studyPlanContent, empty: ui.studyPlanEmpty, loader: ui.studyPlanLoading, skeletonFn: renderPlanSkeletons },
+                topics: { container: ui.topicAnalysisContainer, content: ui.topicAnalysisContent, empty: ui.topicAnalysisEmpty, loader: ui.topicAnalysisLoading, skeletonFn: renderTopicSkeletons },
+                shortcuts: { container: ui.shortcutsGrid, skeletonFn: renderShortcutSkeletons },
+                notifications: { /* Handled elsewhere or directly in its functions */ },
+                goalSelection: { /* Handled by button states in goal selection modal */ }
+            };
+
+            const config = sectionMap[key];
+            if (!config) {
+                if (key !== 'all' && key !== 'notifications' && key !== 'goalSelection') {
+                    console.warn(`[Procvičování UI Loading v3] Unknown section key '${key}'.`);
+                }
+                return;
+            }
+
+            const container = config.container;
+            const content = config.content;
+            const empty = config.empty;
+            const loader = config.loader;
+            const skeletonFn = config.skeletonFn;
+
+            if (loader) loader.style.display = loading ? 'flex' : 'none';
+            if (container) container.classList.toggle('loading', loading);
+
+            if (loading) {
+                if (content) content.style.display = 'none';
+                if (empty) empty.style.display = 'none';
+                if (skeletonFn) {
+                    // For sections like 'stats' and 'shortcuts', the container itself is where skeletons are rendered.
+                    // For others, skeletons are rendered inside the 'content' element.
+                    const targetContainer = (key === 'stats' || key === 'shortcuts') ? container : content;
+                    if (targetContainer) skeletonFn(targetContainer);
+                }
+            } else {
+                // After loading, determine if content or empty state should be shown
+                const skeletonSelector = '.loading-skeleton'; // Assuming skeletons have this class
+
+                // Remove skeletons from specific content area or container
+                if (content?.querySelector(skeletonSelector)) {
+                    content.innerHTML = ''; // Clear if content was directly filled with skeletons
+                }
+                // If container had skeletons directly (like stats/shortcuts) or if content is empty
+                if (container?.querySelector(skeletonSelector) && (key === 'stats' || key === 'shortcuts')) {
+                     // Do not clear container here, render functions will fill it or skeletonFn should have cleared it.
+                     // SkeletonFn is called only on loading=true. If loading=false, actual render func is called.
+                } else if (content && empty) { // Common case for tests, plan, topics
+                    const hasActualContent = content.innerHTML.trim() !== '' && !content.querySelector(skeletonSelector);
+                    let displayType = 'block'; // Default display
+                    if (content.id === 'topic-grid' || content.id === 'stats-cards' || content.id === 'shortcuts-grid' || content.id === 'main-plan-schedule') {
+                        displayType = 'grid';
+                    } else if (content.classList.contains('test-stats')) { // For test results stats
+                        displayType = 'grid';
+                    }
+                    content.style.display = hasActualContent ? displayType : 'none';
+                    empty.style.display = hasActualContent ? 'none' : 'block';
+                }
+            }
+        };
+
+        if (sectionKey === 'all') {
+            Object.keys(isLoading).forEach(key => {
+                if (key !== 'all' && key !== 'goalSelection' && key !== 'notifications') { // Exclude meta keys
+                    updateSingleSection(key, isLoadingFlag);
+                }
+            });
+        } else {
+            updateSingleSection(sectionKey, isLoadingFlag);
+        }
+    }
+    // NEW_FUNCTION_END
 
     // --- Рендеринг Скелетонов ---
     function renderStatsSkeletons(container) { if (!container) return; container.innerHTML = ''; for (let i = 0; i < 4; i++) { container.innerHTML += ` <div class="dashboard-card card loading"> <div class="loading-skeleton"> <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 1rem;"></div> <div class="skeleton" style="height: 35px; width: 40%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 16px; width: 80%; margin-bottom: 1.5rem;"></div> <div class="skeleton" style="height: 14px; width: 50%;"></div> </div> </div>`; } container.classList.add('loading'); }
@@ -116,202 +207,172 @@
     // --- Конец Рендеринга Скелетонов ---
 
     // --- Загрузка Данных (Заглушки) ---
-    async function fetchDashboardStats(userId, profileData) { console.warn("fetchDashboardStats not implemented"); return {}; }
-    async function fetchDiagnosticResults(userId, goal) { console.warn("fetchDiagnosticResults not implemented"); return []; }
-    async function fetchActiveStudyPlan(userId, goal) { console.warn("fetchActiveStudyPlan not implemented"); return null; }
-    async function fetchPlanActivities(planId, goal) { console.warn("fetchPlanActivities not implemented"); return []; }
-    async function fetchTopicProgress(userId, goal) { console.warn("fetchTopicProgress not implemented"); return []; }
+    // NEW_FUNCTION_START
+    async function fetchDashboardStats(userId, profileData) {
+        console.warn("[Fetch Data Stub] fetchDashboardStats called. Returning placeholder data.");
+        // Имитация задержки сети
+        await new Promise(resolve => setTimeout(resolve, 700));
+        // Возвращаем примерные данные, чтобы интерфейс мог что-то отобразить
+        return {
+            totalPoints: profileData?.points || 0,
+            completedExercises: profileData?.completed_exercises || 0,
+            activeStreak: profileData?.streak_days || 0,
+            lastTestScore: diagnosticResultsData.length > 0 ? diagnosticResultsData[0].total_score : null,
+            // Добавьте другие необходимые статистики
+        };
+    }
+    // NEW_FUNCTION_END
+
+    // NEW_FUNCTION_START
+    async function fetchDiagnosticResults(userId, goal) {
+        console.warn("[Fetch Data Stub] fetchDiagnosticResults called. Returning empty array.");
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Возвращаем пустой массив, так как реальная логика загрузки отсутствует
+        // В реальном приложении здесь был бы вызов Supabase
+        return [];
+    }
+    // NEW_FUNCTION_END
+
+    // NEW_FUNCTION_START
+    async function fetchActiveStudyPlan(userId, goal) {
+        console.warn("[Fetch Data Stub] fetchActiveStudyPlan called. Returning null.");
+        await new Promise(resolve => setTimeout(resolve, 800));
+        // Возвращаем null, как если бы активного плана не было найдено
+        return null;
+    }
+    // NEW_FUNCTION_END
+
+    // NEW_FUNCTION_START
+    async function fetchPlanActivities(planId, goal) {
+        console.warn("[Fetch Data Stub] fetchPlanActivities called. Returning empty array.");
+        await new Promise(resolve => setTimeout(resolve, 500));
+        // Возвращаем пустой массив
+        return [];
+    }
+    // NEW_FUNCTION_END
+
+    // NEW_FUNCTION_START
+    async function fetchTopicProgress(userId, goal) {
+        console.warn("[Fetch Data Stub] fetchTopicProgress called. Returning placeholder data.");
+        await new Promise(resolve => setTimeout(resolve, 900));
+        // Примерные данные для тем
+        return [
+            { id: 'algebra', name: 'Algebra', progress: 0, last_practiced: null, strength: 'neutral' },
+            { id: 'geometry', name: 'Geometrie', progress: 0, last_practiced: null, strength: 'neutral' },
+            { id: 'functions', name: 'Funkce', progress: 0, last_practiced: null, strength: 'neutral' }
+        ];
+    }
+    // NEW_FUNCTION_END
     // --- Конец Загрузки Данных ---
 
     // --- Рендеринг UI (Заглушки) ---
-    function renderStatsCards(stats) { console.warn("renderStatsCards not implemented", stats); if(ui.statsCards) ui.statsCards.classList.remove('loading'); }
-    function calculateAverageScore(results) { console.warn("calculateAverageScore not implemented"); return 0; }
-    function renderTestChart(chartData) { console.warn("renderTestChart not implemented"); }
-    function renderTestResults(results, goal) { console.warn("renderTestResults not implemented", results, goal); if(ui.testResultsContainer) ui.testResultsContainer.classList.remove('loading'); if(ui.testResultsContent) ui.testResultsContent.style.display = 'none'; if(ui.testResultsEmpty) ui.testResultsEmpty.style.display = 'block'; }
-    function renderStudyPlanOverview(plan, activities, goal) { console.warn("renderStudyPlanOverview not implemented", plan, activities, goal); if(ui.studyPlanContainer) ui.studyPlanContainer.classList.remove('loading'); if(ui.studyPlanContent) ui.studyPlanContent.style.display = 'none'; if(ui.studyPlanEmpty) ui.studyPlanEmpty.style.display = 'block'; }
-    function renderTopicAnalysis(topics, goal) { console.warn("renderTopicAnalysis not implemented", topics, goal); if(ui.topicAnalysisContainer) ui.topicAnalysisContainer.classList.remove('loading'); if(ui.topicAnalysisContent) ui.topicAnalysisContent.style.display = 'none'; if(ui.topicAnalysisEmpty) ui.topicAnalysisEmpty.style.display = 'block'; }
+    // NEW_FUNCTION_START
+    function renderStatsCards(stats) {
+        console.warn("[Render UI Stub] renderStatsCards called with:", stats);
+        if (!ui.statsCards) {
+            console.error("Stats cards container not found!");
+            return;
+        }
+        ui.statsCards.innerHTML = `
+            <div class="dashboard-card card">
+                <div class="card-header"><h3 class="card-title">Celkové Body</h3><span class="card-badge info">INFO</span></div>
+                <div class="card-content"><div class="card-value">${stats?.totalPoints || 'N/A'}</div></div>
+                <div class="card-footer">Statistika bodů</div>
+            </div>
+            <div class="dashboard-card card">
+                <div class="card-header"><h3 class="card-title">Dokončená Cvičení</h3></div>
+                <div class="card-content"><div class="card-value">${stats?.completedExercises || 'N/A'}</div></div>
+                <div class="card-footer">Přehled cvičení</div>
+            </div>
+            <div class="dashboard-card card">
+                <div class="card-header"><h3 class="card-title">Série Dní</h3></div>
+                <div class="card-content"><div class="card-value">${stats?.activeStreak || 'N/A'}</div></div>
+                <div class="card-footer">Aktuální série</div>
+            </div>
+            <div class="dashboard-card card">
+                <div class="card-header"><h3 class="card-title">Poslední Test</h3></div>
+                <div class="card-content"><div class="card-value">${stats?.lastTestScore !== null && stats?.lastTestScore !== undefined ? stats.lastTestScore + '%' : 'N/A'}</div></div>
+                <div class="card-footer">Výsledek testu</div>
+            </div>
+        `;
+        ui.statsCards.classList.remove('loading');
+        setLoadingState('stats', false);
+    }
+    // NEW_FUNCTION_END
+
+    function calculateAverageScore(results) { console.warn("calculateAverageScore not implemented"); return 0; } // Остается как есть, если не используется напрямую
+    function renderTestChart(chartData) { console.warn("renderTestChart not implemented"); } // Остается как есть
+
+    // NEW_FUNCTION_START
+    function renderTestResults(results, goal) {
+        console.warn("[Render UI Stub] renderTestResults called. Displaying empty state.");
+        if(ui.testResultsContainer) ui.testResultsContainer.classList.remove('loading');
+        if(ui.testResultsContent) ui.testResultsContent.style.display = 'none';
+        if(ui.testResultsContent) ui.testResultsContent.innerHTML = ''; // Очищаем содержимое, если оно было
+        if(ui.testResultsEmpty) ui.testResultsEmpty.style.display = 'block';
+        setLoadingState('tests', false);
+    }
+    // NEW_FUNCTION_END
+
+    // NEW_FUNCTION_START
+    function renderStudyPlanOverview(plan, activities, goal) {
+        console.warn("[Render UI Stub] renderStudyPlanOverview called. Displaying empty state.");
+        if(ui.studyPlanContainer) ui.studyPlanContainer.classList.remove('loading');
+        if(ui.studyPlanContent) ui.studyPlanContent.style.display = 'none';
+        if(ui.studyPlanContent) ui.studyPlanContent.innerHTML = ''; // Очищаем содержимое
+        if(ui.studyPlanEmpty) ui.studyPlanEmpty.style.display = 'block';
+        setLoadingState('plan', false);
+    }
+    // NEW_FUNCTION_END
+
+    // NEW_FUNCTION_START
+    function renderTopicAnalysis(topics, goal) {
+        console.warn("[Render UI Stub] renderTopicAnalysis called. Displaying empty state.");
+        if(ui.topicAnalysisContainer) ui.topicAnalysisContainer.classList.remove('loading');
+        if(ui.topicAnalysisContent) ui.topicAnalysisContent.style.display = 'none';
+        if(ui.topicAnalysisContent) ui.topicAnalysisContent.innerHTML = ''; // Очищаем содержимое
+        if(ui.topicAnalysisEmpty) ui.topicAnalysisEmpty.style.display = 'block';
+        setLoadingState('topics', false);
+    }
+    // NEW_FUNCTION_END
     // --- Конец Рендеринга UI ---
 
     // --- Goal Selection Logic (Multi-Step) ---
     function showGoalSelectionModal() {
         const modalContainer = ui.goalSelectionModal || document.getElementById('goal-selection-modal');
         const step1Element = ui.goalStep1 || document.getElementById('goal-step-1');
-        if (!modalContainer || !step1Element) { console.error("[GoalModal v3 Debug] CRITICAL: Modal container or Step 1 element NOT FOUND!"); cacheDOMElements(); const refreshedModal = ui.goalSelectionModal || document.getElementById('goal-selection-modal'); const refreshedStep1 = ui.goalStep1 || document.getElementById('goal-step-1'); if (!refreshedModal || !refreshedStep1) { showError("Chyba: Nelze zobrazit výběr cíle (chybí HTML).", true); if(ui.mainContent) ui.mainContent.classList.add('interaction-disabled'); return; } }
-        console.log("[GoalModal v3 Debug] Showing modal...");
+
+        // Усиленная проверка наличия элементов
+        if (!modalContainer) { console.error("[GoalModal v3 Debug] CRITICAL: Modal container (#goal-selection-modal) NOT FOUND!"); return; }
+        if (!step1Element) { console.error("[GoalModal v3 Debug] CRITICAL: Step 1 element (#goal-step-1) NOT FOUND!"); return; }
+
+        console.log("[GoalModal v3 Debug] Showing modal. Container:", modalContainer, "Step 1:", step1Element);
+
         modalContainer.querySelectorAll('.modal-step').forEach(step => step.classList.remove('active'));
         step1Element.classList.add('active');
         modalContainer.style.display = 'flex';
-        requestAnimationFrame(() => modalContainer.classList.add('active'));
+        requestAnimationFrame(() => modalContainer.classList.add('active')); // Для анимации
+
         const optionButtons = step1Element.querySelectorAll('.goal-option-card[data-goal]');
         if (!optionButtons || optionButtons.length === 0) { console.error("[GoalModal v3 Debug] No goal option buttons found in #goal-step-1!"); return; }
+
         optionButtons.forEach(button => {
             const goal = button.dataset.goal;
             if (!goal) { console.warn("[GoalModal v3 Debug] Button missing data-goal attribute:", button); return; }
             const handler = () => handleInitialGoalSelection(goal);
+             // Удаляем предыдущий обработчик, если он был, чтобы избежать дублирования
              if (button._goalHandler) button.removeEventListener('click', button._goalHandler);
              button.addEventListener('click', handler);
-             button._goalHandler = handler;
+             button._goalHandler = handler; // Сохраняем ссылку на обработчик для возможного удаления
         });
         console.log("[GoalModal v3 Debug] Step 1 listeners attached.");
     }
 
     function handleInitialGoalSelection(selectedGoal) { if (goalSelectionInProgress) return; console.log(`[GoalModal] Initial goal selected: ${selectedGoal}`); pendingGoal = selectedGoal; if (selectedGoal === 'exam_prep') { saveGoalAndProceed(selectedGoal); } else { showStep2(selectedGoal); } }
-
-    // --- START: MODIFIED showStep2 with FORCE VISIBILITY & COMPUTED STYLE CHECK ---
-    function showStep2(goalType) {
-        const step2Id = `goal-step-${goalType.replace('math_', '')}`;
-        console.log(`[GoalModal Debug] showStep2 called for goalType: ${goalType}, looking for ID: ${step2Id}`);
-        const step2Element = document.getElementById(step2Id);
-        const modalContainer = document.getElementById('goal-selection-modal');
-        const step1Element = document.getElementById('goal-step-1');
-
-        if (!modalContainer || !step1Element || !step2Element) {
-            console.error(`[GoalModal Debug] Cannot show step 2: Critical element missing (#${step2Id} Found: ${!!step2Element})`);
-            if(typeof showError === 'function') showError("Chyba: Nelze zobrazit druhý krok výběru cíle.", true);
-            return;
-        }
-        console.log(`[GoalModal Debug] Found Step 2 element:`, step2Element);
-
-        // Activate the step
-        document.querySelectorAll('.modal-step').forEach(step => step.classList.remove('active'));
-        step2Element.classList.add('active');
-        console.log(`[GoalModal Debug] Step 2 element (#${step2Id}) activated.`);
-
-        // --- START: FORCE VISIBILITY FIX ---
-        if (goalType === 'math_accelerate') {
-            console.log(`[GoalModal Debug Force] Applying forced styles for #${step2Id}...`);
-            const footerElement = step2Element.querySelector('.modal-footer');
-            const confirmButtonElement = step2Element.querySelector('.modal-confirm-btn');
-
-            if (footerElement) {
-                console.log(`[GoalModal Debug Force] Found footer element. Applying styles...`);
-                footerElement.style.display = 'flex';
-                footerElement.style.visibility = 'visible';
-                footerElement.style.opacity = '1';
-                footerElement.style.height = 'auto';
-                footerElement.style.position = 'static';
-                footerElement.style.overflow = 'visible';
-                footerElement.style.transform = 'none';
-                footerElement.style.zIndex = 'auto';
-                footerElement.style.marginTop = '1rem';
-                footerElement.style.padding = '1rem 1.5rem';
-            } else {
-                console.error(`[GoalModal Debug Force] Footer element (.modal-footer) NOT FOUND inside #${step2Id} for forced styling.`);
-            }
-
-            if (confirmButtonElement) {
-                console.log(`[GoalModal Debug Force] Found confirm button element. Applying styles...`);
-                confirmButtonElement.style.display = 'inline-flex';
-                confirmButtonElement.style.visibility = 'visible';
-                confirmButtonElement.style.opacity = '1';
-                confirmButtonElement.style.position = 'static';
-                confirmButtonElement.style.transform = 'none';
-
-                // --- FINAL CHECK: Computed Styles ---
-                // Use setTimeout to check after browser potentially applies styles
-                setTimeout(() => {
-                     if (document.body.contains(confirmButtonElement)) { // Check if element still exists
-                        const computedStyles = window.getComputedStyle(confirmButtonElement);
-                        console.log(`[GoalModal Debug Force Check] Computed styles for button in #${step2Id}: display=${computedStyles.display}, visibility=${computedStyles.visibility}, opacity=${computedStyles.opacity}, width=${computedStyles.width}, height=${computedStyles.height}`);
-                        const footerComputedStyles = window.getComputedStyle(footerElement);
-                         console.log(`[GoalModal Debug Force Check] Computed styles for footer in #${step2Id}: display=${footerComputedStyles.display}, visibility=${footerComputedStyles.visibility}, opacity=${footerComputedStyles.opacity}, height=${footerComputedStyles.height}`);
-                         if (computedStyles.display === 'none' || computedStyles.visibility === 'hidden' || computedStyles.opacity === '0' || parseFloat(computedStyles.height) === 0) {
-                             console.error(`[GoalModal Debug Force Check] Button is STILL hidden according to computed styles! Check CSS conflicts or overlapping elements.`);
-                         } else {
-                             console.log(`[GoalModal Debug Force Check] Button seems visible according to computed styles.`);
-                         }
-                     } else {
-                          console.error(`[GoalModal Debug Force Check] Button element no longer exists in DOM after timeout!`);
-                     }
-                }, 100); // 100ms delay to allow rendering
-
-            } else {
-                 console.error(`[GoalModal Debug Force] Confirm button element (.modal-confirm-btn) NOT FOUND inside #${step2Id} for forced styling.`);
-            }
-             console.log(`[GoalModal Debug Force] Forced styles applied for #${step2Id}.`);
-        }
-        // --- END: FORCE VISIBILITY FIX ---
-
-        // Clear previous selections
-        const formElements = step2Element.querySelectorAll('input[type="checkbox"], input[type="radio"]');
-        formElements.forEach(el => { if (el.type === 'checkbox' || el.type === 'radio') el.checked = false; });
-        console.log(`[GoalModal Debug] Cleared ${formElements.length} form elements in #${step2Id}.`);
-
-        // Setup Back Button
-        const backBtn = step2Element.querySelector('.modal-back-btn');
-        if (backBtn) {
-            console.log(`[GoalModal Debug] Found back button in #${step2Id}. Attaching listener.`);
-            const backHandler = () => handleBackToStep1(step1Element, step2Element);
-            if (backBtn._backHandler) backBtn.removeEventListener('click', backBtn._backHandler);
-            backBtn.addEventListener('click', backHandler, { once: true });
-            backBtn._backHandler = backHandler;
-        } else { console.warn(`[GoalModal Debug] Back button not found in step: #${step2Id}`); }
-
-        // Setup Confirm Button
-        console.log(`[GoalModal Debug] Searching for '.modal-confirm-btn' within #${step2Id} (for listener)...`);
-        const confirmBtn = step2Element.querySelector('.modal-confirm-btn');
-        if (confirmBtn) {
-             console.log(`[GoalModal Debug] FOUND confirm button in #${step2Id} (for listener). Attaching listener...`, confirmBtn);
-             const confirmHandler = () => handleStep2Confirm(goalType);
-             if (confirmBtn._confirmHandler) confirmBtn.removeEventListener('click', confirmBtn._confirmHandler);
-             confirmBtn.addEventListener('click', confirmHandler);
-             confirmBtn._confirmHandler = confirmHandler;
-             confirmBtn.disabled = false;
-             confirmBtn.innerHTML = 'Potvrdit a pokračovat';
-             console.log(`[GoalModal Debug] Listener attached to confirm button in #${step2Id}.`);
-        } else {
-             console.error(`[GoalModal Debug] CRITICAL: Confirm button (.modal-confirm-btn) NOT FOUND within step #${step2Id} (for listener).`);
-             console.log(`[GoalModal Debug] Element searched within:`, step2Element);
-        }
-    }
-    // --- END: MODIFIED showStep2 ---
-
-
+    function showStep2(goalType) { const step2Id = `goal-step-${goalType.replace('math_', '')}`; console.log(`[GoalModal Debug] showStep2 called for goalType: ${goalType}, looking for ID: ${step2Id}`); const step2Element = document.getElementById(step2Id); const modalContainer = document.getElementById('goal-selection-modal'); const step1Element = document.getElementById('goal-step-1'); if (!modalContainer || !step1Element || !step2Element) { console.error(`[GoalModal Debug] Cannot show step 2: Critical element missing (#${step2Id} Found: ${!!step2Element})`); if(typeof showError === 'function') showError("Chyba: Nelze zobrazit druhý krok výběru cíle.", true); return; } console.log(`[GoalModal Debug] Found Step 2 element:`, step2Element); document.querySelectorAll('.modal-step').forEach(step => step.classList.remove('active')); step2Element.classList.add('active'); console.log(`[GoalModal Debug] Step 2 element (#${step2Id}) activated.`); if (goalType === 'math_accelerate') { console.log(`[GoalModal Debug Force] Applying forced styles for #${step2Id}...`); const footerElement = step2Element.querySelector('.modal-footer'); const confirmButtonElement = step2Element.querySelector('.modal-confirm-btn'); if (footerElement) { console.log(`[GoalModal Debug Force] Found footer element. Applying styles...`); footerElement.style.display = 'flex'; footerElement.style.visibility = 'visible'; footerElement.style.opacity = '1'; footerElement.style.height = 'auto'; footerElement.style.position = 'static'; footerElement.style.overflow = 'visible'; footerElement.style.transform = 'none'; footerElement.style.zIndex = 'auto'; footerElement.style.marginTop = '1rem'; footerElement.style.padding = '1rem 1.5rem'; } else { console.error(`[GoalModal Debug Force] Footer element (.modal-footer) NOT FOUND inside #${step2Id} for forced styling.`); } if (confirmButtonElement) { console.log(`[GoalModal Debug Force] Found confirm button element. Applying styles...`); confirmButtonElement.style.display = 'inline-flex'; confirmButtonElement.style.visibility = 'visible'; confirmButtonElement.style.opacity = '1'; confirmButtonElement.style.position = 'static'; confirmButtonElement.style.transform = 'none'; setTimeout(() => { if (document.body.contains(confirmButtonElement)) { const computedStyles = window.getComputedStyle(confirmButtonElement); console.log(`[GoalModal Debug Force Check] Computed styles for button in #${step2Id}: display=${computedStyles.display}, visibility=${computedStyles.visibility}, opacity=${computedStyles.opacity}, width=${computedStyles.width}, height=${computedStyles.height}`); const footerComputedStyles = window.getComputedStyle(footerElement); console.log(`[GoalModal Debug Force Check] Computed styles for footer in #${step2Id}: display=${footerComputedStyles.display}, visibility=${footerComputedStyles.visibility}, opacity=${footerComputedStyles.opacity}, height=${footerComputedStyles.height}`); if (computedStyles.display === 'none' || computedStyles.visibility === 'hidden' || computedStyles.opacity === '0' || parseFloat(computedStyles.height) === 0) { console.error(`[GoalModal Debug Force Check] Button is STILL hidden! Check CSS conflicts or overlapping elements.`); } else { console.log(`[GoalModal Debug Force Check] Button seems visible.`); } } else { console.error(`[GoalModal Debug Force Check] Button no longer in DOM!`); } }, 100); } else { console.error(`[GoalModal Debug Force] Confirm button (.modal-confirm-btn) NOT FOUND inside #${step2Id}.`); } console.log(`[GoalModal Debug Force] Forced styles applied for #${step2Id}.`); } const formElements = step2Element.querySelectorAll('input[type="checkbox"], input[type="radio"]'); formElements.forEach(el => { if (el.type === 'checkbox' || el.type === 'radio') el.checked = false; }); console.log(`[GoalModal Debug] Cleared ${formElements.length} form elements in #${step2Id}.`); const backBtn = step2Element.querySelector('.modal-back-btn'); if (backBtn) { console.log(`[GoalModal Debug] Found back button in #${step2Id}. Attaching listener.`); const backHandler = () => handleBackToStep1(step1Element, step2Element); if (backBtn._backHandler) backBtn.removeEventListener('click', backBtn._backHandler); backBtn.addEventListener('click', backHandler, { once: true }); backBtn._backHandler = backHandler; } else { console.warn(`[GoalModal Debug] Back button not found in step: #${step2Id}`); } console.log(`[GoalModal Debug] Searching for '.modal-confirm-btn' within #${step2Id} (for listener)...`); const confirmBtn = step2Element.querySelector('.modal-confirm-btn'); if (confirmBtn) { console.log(`[GoalModal Debug] FOUND confirm button in #${step2Id}. Attaching listener...`, confirmBtn); const confirmHandler = () => handleStep2Confirm(goalType); if (confirmBtn._confirmHandler) confirmBtn.removeEventListener('click', confirmBtn._confirmHandler); confirmBtn.addEventListener('click', confirmHandler); confirmBtn._confirmHandler = confirmHandler; confirmBtn.disabled = false; confirmBtn.innerHTML = 'Potvrdit a pokračovat'; console.log(`[GoalModal Debug] Listener attached to confirm button in #${step2Id}.`); } else { console.error(`[GoalModal Debug] CRITICAL: Confirm button (.modal-confirm-btn) NOT FOUND within step #${step2Id}.`); console.log(`[GoalModal Debug] Element searched within:`, step2Element); } }
     function handleBackToStep1(step1Element, currentStep2) { console.log("[GoalModal] Going back to step 1..."); if(currentStep2) currentStep2.classList.remove('active'); if(step1Element) step1Element.classList.add('active'); pendingGoal = null; }
     function handleStep2Confirm(goalType) { if (goalSelectionInProgress) return; const step2Id = `goal-step-${goalType.replace('math_', '')}`; const step2Element = document.getElementById(step2Id); if (!step2Element) { console.error(`[GoalModal] Step 2 element ${step2Id} not found during confirm.`); return; } const details = {}; let isValid = true; try { if (goalType === 'math_accelerate') { details.accelerate_areas = Array.from(step2Element.querySelectorAll('input[name="accelerate_area"]:checked')).map(cb => cb.value); const reasonRadio = step2Element.querySelector('input[name="accelerate_reason"]:checked'); details.accelerate_reason = reasonRadio ? reasonRadio.value : null; if(details.accelerate_areas.length === 0) { showToast("Chyba", "Vyberte prosím alespoň jednu oblast zájmu.", "warning"); isValid = false; } if(!details.accelerate_reason) { showToast("Chyba", "Vyberte prosím důvod.", "warning"); isValid = false; } } else if (goalType === 'math_review') { details.review_areas = Array.from(step2Element.querySelectorAll('input[name="review_area"]:checked')).map(cb => cb.value); } else if (goalType === 'math_explore') { const levelRadio = step2Element.querySelector('input[name="explore_level"]:checked'); details.explore_level = levelRadio ? levelRadio.value : null; if(!details.explore_level) { showToast("Chyba", "Vyberte prosím vaši úroveň.", "warning"); isValid = false; } } } catch (e) { console.error("[GoalModal] Error getting step 2 details:", e); isValid = false; showToast("Chyba", "Nastala chyba při zpracování výběru.", "error"); } if (isValid) { console.log(`[GoalModal] Step 2 details collected for ${goalType}:`, details); saveGoalAndProceed(pendingGoal, details); } }
-
-    async function saveGoalAndProceed(goal, details = null) {
-        if (goalSelectionInProgress || !goal) return;
-        goalSelectionInProgress = true;
-        setLoadingState('goalSelection', true);
-        console.log(`[GoalModal Save v3] Saving goal: ${goal}, with details:`, details);
-        const activeStep = ui.goalSelectionModal?.querySelector('.modal-step.active');
-        const confirmButton = activeStep?.querySelector('.modal-confirm-btn');
-        const backButton = activeStep?.querySelector('.modal-back-btn');
-        if (confirmButton) { confirmButton.disabled = true; confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...'; }
-        if (backButton) backButton.disabled = true;
-
-        try {
-            if (!supabase || !currentUser || !currentProfile) throw new Error("Supabase client, user, or profile not available.");
-            const existingPreferences = currentProfile.preferences || {};
-            let finalPreferences = { ...existingPreferences };
-            if (details && Object.keys(details).length > 0) { finalPreferences.goal_details = details; } else { delete finalPreferences.goal_details; }
-            const updatePayload = { learning_goal: goal, preferences: finalPreferences, updated_at: new Date().toISOString() };
-            console.log("[GoalModal Save v3] Payload to update:", updatePayload);
-            const { data: updatedProfileData, error } = await supabase.from('profiles').update(updatePayload).eq('id', currentUser.id).select('*, selected_title, preferences').single();
-            if (error) throw error;
-            currentProfile = updatedProfileData;
-            console.log("[GoalModal Save v3] Goal and preferences saved successfully:", currentProfile.learning_goal, currentProfile.preferences);
-            let goalText = goal;
-            switch(goal) { case 'exam_prep': goalText = 'Příprava na zkoušky'; break; case 'math_accelerate': goalText = 'Učení napřed'; break; case 'math_review': goalText = 'Doplnění mezer'; break; case 'math_explore': goalText = 'Volné prozkoumávání'; break; }
-            showToast('Cíl uložen!', `Váš cíl byl nastaven na: ${goalText}.`, 'success');
-            if (ui.goalSelectionModal) { ui.goalSelectionModal.classList.remove('active'); setTimeout(() => { if (ui.goalSelectionModal) ui.goalSelectionModal.style.display = 'none'; }, 300); }
-            if (ui.tabsWrapper) ui.tabsWrapper.style.display = 'block';
-            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'block');
-            configureUIForGoal(goal);
-            await loadPageData();
-            if(ui.mainContent) ui.mainContent.classList.remove('interaction-disabled');
-        } catch (error) {
-            console.error("[GoalModal Save v3] Error saving goal/preferences:", error);
-            showToast('Chyba', 'Nepodařilo se uložit váš cíl.', 'error');
-            if (confirmButton) { confirmButton.disabled = false; confirmButton.innerHTML = 'Potvrdit a pokračovat'; }
-            if (backButton) backButton.disabled = false;
-        } finally {
-            goalSelectionInProgress = false;
-            setLoadingState('goalSelection', false);
-            pendingGoal = null;
-        }
-    }
+    async function saveGoalAndProceed(goal, details = null) { if (goalSelectionInProgress || !goal) return; goalSelectionInProgress = true; setLoadingState('goalSelection', true); console.log(`[GoalModal Save v3] Saving goal: ${goal}, with details:`, details); const activeStep = ui.goalSelectionModal?.querySelector('.modal-step.active'); const confirmButton = activeStep?.querySelector('.modal-confirm-btn'); const backButton = activeStep?.querySelector('.modal-back-btn'); if (confirmButton) { confirmButton.disabled = true; confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...'; } if (backButton) backButton.disabled = true; try { if (!supabase || !currentUser || !currentProfile) throw new Error("Supabase client, user, or profile not available."); const existingPreferences = currentProfile.preferences || {}; let finalPreferences = { ...existingPreferences }; if (details && Object.keys(details).length > 0) { finalPreferences.goal_details = details; } else { delete finalPreferences.goal_details; } const updatePayload = { learning_goal: goal, preferences: finalPreferences, updated_at: new Date().toISOString() }; console.log("[GoalModal Save v3] Payload to update:", updatePayload); const { data: updatedProfileData, error } = await supabase.from('profiles').update(updatePayload).eq('id', currentUser.id).select('*, selected_title, preferences').single(); if (error) throw error; currentProfile = updatedProfileData; console.log("[GoalModal Save v3] Goal and preferences saved successfully:", currentProfile.learning_goal, currentProfile.preferences); let goalText = goal; switch(goal) { case 'exam_prep': goalText = 'Příprava na zkoušky'; break; case 'math_accelerate': goalText = 'Učení napřed'; break; case 'math_review': goalText = 'Doplnění mezer'; break; case 'math_explore': goalText = 'Volné prozkoumávání'; break; } showToast('Cíl uložen!', `Váš cíl byl nastaven na: ${goalText}.`, 'success'); if (ui.goalSelectionModal) { ui.goalSelectionModal.classList.remove('active'); setTimeout(() => { if (ui.goalSelectionModal) ui.goalSelectionModal.style.display = 'none'; }, 300); } if (ui.tabsWrapper) ui.tabsWrapper.style.display = 'block'; document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'block'); configureUIForGoal(goal); await loadPageData(); if(ui.mainContent) ui.mainContent.classList.remove('interaction-disabled'); } catch (error) { console.error("[GoalModal Save v3] Error saving goal/preferences:", error); showToast('Chyba', 'Nepodařilo se uložit váš cíl.', 'error'); if (confirmButton) { confirmButton.disabled = false; confirmButton.innerHTML = 'Potvrdit a pokračovat'; } if (backButton) backButton.disabled = false; } finally { goalSelectionInProgress = false; setLoadingState('goalSelection', false); pendingGoal = null; } }
     // --- END: Goal Selection Logic ---
 
     // --- Рендеринг Ярлыков ---
@@ -340,6 +401,61 @@
     function initializeSupabase() { /* ... same as previous version ... */ try { if (!window.supabase?.createClient) throw new Error("Supabase library not loaded."); if (window.supabaseClient) { supabase = window.supabaseClient; console.log('[Supabase] Using existing global client instance.'); } else if (supabase === null) { supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); if (!supabase) throw new Error("Supabase client creation failed."); window.supabaseClient = supabase; console.log('[Supabase] Client initialized by main.js and stored globally.'); } else { console.log('[Supabase] Using existing local client instance.'); } return true; } catch (error) { console.error('[Supabase] Initialization failed:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi.", true); return false; } }
 
     // --- Инициализация Приложения ---
+    // NEW_FUNCTION_START
+    async function createDefaultProfile(userId, email) {
+        console.log(`[Default Profile] Creating default profile for new user ${userId}...`);
+        const defaultProfileData = {
+            id: userId,
+            username: email.split('@')[0],
+            email: email,
+            updated_at: new Date().toISOString(),
+            learning_goal: null, // Important: Start with null goal
+            preferences: {},     // Empty preferences JSONB
+            // Add other default fields as necessary based on your 'profiles' table structure
+            points: 0,
+            level: 1,
+            completed_exercises: 0,
+            streak_days: 0,
+            selected_title: null,
+            avatar_url: null,
+            first_name: null,
+            last_name: null,
+        };
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .insert(defaultProfileData)
+                .select('*, selected_title, preferences') // Ensure selected_title and preferences are returned
+                .single();
+            if (error) {
+                // Check for unique constraint violation (profile might have been created by another process)
+                if (error.code === '23505') { // PostgreSQL unique violation error code
+                    console.warn("[Default Profile] Profile likely already exists, attempting to fetch...");
+                    const { data: existingProfile, error: fetchError } = await supabase
+                        .from('profiles')
+                        .select('*, selected_title, preferences')
+                        .eq('id', userId)
+                        .single();
+                    if (fetchError) {
+                        console.error("[Default Profile] Error fetching existing profile after unique violation:", fetchError);
+                        throw fetchError;
+                    }
+                    if (!existingProfile.preferences) existingProfile.preferences = {}; // Ensure preferences exist
+                    return existingProfile;
+                }
+                throw error;
+            }
+            if (!data.preferences) data.preferences = {}; // Ensure preferences object exists on new profile
+            console.log("[Default Profile] Default profile created successfully:", data);
+            return data;
+        } catch (err) {
+            console.error("[Default Profile] Error creating default profile:", err);
+            showError("Nepodařilo se vytvořit uživatelský profil.", true);
+            return null;
+        }
+    }
+    // NEW_FUNCTION_END
+
     async function initializeApp() { /* ... same as previous version, uses updated saveGoalAndProceed ... */ try { console.log("[INIT Procvičování] App Init Start v24.10.3..."); cacheDOMElements(); if (!initializeSupabase()) return; setupEventListeners(); applyInitialSidebarState(); updateCopyrightYear(); initMouseFollower(); initHeaderScrollDetection(); updateOnlineStatus(); if (ui.initialLoader) { ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden'); } if (ui.mainContent) ui.mainContent.style.display = 'none'; if (ui.tabsWrapper) ui.tabsWrapper.style.display = 'none'; document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none'); hideError(); console.log("[INIT Procvičování] Checking auth session..."); const { data: { session }, error: sessionError } = await supabase.auth.getSession(); if (sessionError) throw new Error(`Session error: ${sessionError.message}`); if (session?.user) { currentUser = session.user; console.log(`[INIT Procvičování] User authenticated (ID: ${currentUser.id}). Loading profile & titles...`); const [profileResult, titlesResult] = await Promise.allSettled([ supabase.from('profiles').select('*, selected_title, preferences').eq('id', currentUser.id).single(), supabase.from('title_shop').select('title_key, name') ]); if (profileResult.status === 'fulfilled' && profileResult.value?.data) { currentProfile = profileResult.value.data; if (!currentProfile.preferences) currentProfile.preferences = {}; console.log("[INIT Procvičování] Profile loaded:", currentProfile); } else { console.warn("[INIT Procvičování] Profile not found or fetch failed, creating default..."); currentProfile = await createDefaultProfile(currentUser.id, currentUser.email); if (!currentProfile) throw new Error("Failed to create/load user profile."); console.log("[INIT Procvičování] Default profile created/retrieved."); } if (titlesResult.status === 'fulfilled') { allTitles = titlesResult.value?.data || []; console.log("[INIT Procvičování] Titles loaded:", allTitles.length); } else { console.warn("[INIT Procvičování] Failed to load titles:", titlesResult.reason); allTitles = []; } updateSidebarProfile(currentProfile, allTitles); const goal = currentProfile.learning_goal; if (!goal) { console.log("[INIT Procvičování] Goal not set, showing modal."); showGoalSelectionModal(); setLoadingState('all', false); if (ui.mainContent) ui.mainContent.style.display = 'block'; if (ui.tabsWrapper) ui.tabsWrapper.style.display = 'none'; document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none'); } else { console.log(`[INIT Procvičování] Goal found: ${goal}. Loading data...`); if(ui.goalSelectionModal) ui.goalSelectionModal.style.display = 'none'; if(ui.tabsWrapper) ui.tabsWrapper.style.display = 'block'; configureUIForGoal(goal); await loadPageData(); } if (ui.mainContent && window.getComputedStyle(ui.mainContent).display === 'none') { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); } initTooltips(); console.log("✅ [INIT Procvičování] Page specific setup complete."); } else { console.log('[INIT Procvičování] User not logged in, redirecting...'); window.location.href = '/auth/index.html'; } } catch (error) { console.error("❌ [INIT Procvičování] Critical initialization error:", error); showError(`Chyba inicializace: ${error.message}`, true); if (ui.mainContent) ui.mainContent.style.display = 'block'; setLoadingState('all', false); } finally { const il = ui.initialLoader; if (il && !il.classList.contains('hidden')) { il.classList.add('hidden'); setTimeout(() => { if(il) il.style.display = 'none'; }, 300); } } }
     // --- Конец Инициализации ---
 
