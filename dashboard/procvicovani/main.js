@@ -1,5 +1,5 @@
 // dashboard/procvicovani/main.js
-// Version: 24.10.4 - Attempt to fix initial content visibility and review notification logic.
+// Version: 24.10.5 - Ensure proper initial tab activation, add stubs for notification functions.
 // + DEBUG LOGGING for missing button issue
 // + FORCE VISIBILITY FIX
 // + COMPUTED STYLE CHECK
@@ -11,6 +11,9 @@
     const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
     const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
+    // NEW_FUNCTION_START - Константа для уведомлений
+    const NOTIFICATION_FETCH_LIMIT = 5; // Максимальное количество уведомлений для загрузки
+    // NEW_FUNCTION_END
 
     let supabase = null;
     let currentUser = null;
@@ -51,7 +54,6 @@
             'sidebar-close-toggle', 'sidebar-toggle-btn', 'sidebar-avatar',
             'sidebar-name', 'sidebar-user-title', 'currentYearSidebar',
             'dashboard-title', 'currentYearFooter', 'mouse-follower', 'tabs-wrapper',
-            // Notification elements
             'notification-bell', 'notification-count', 'notifications-dropdown',
             'notifications-list', 'no-notifications-msg', 'mark-all-read-btn'
         ];
@@ -78,7 +80,7 @@
         });
 
         ui.contentTabs = document.querySelectorAll('.content-tab');
-        ui.tabContents = document.querySelectorAll('.tab-content'); // Cache tab content panels
+        ui.tabContents = document.querySelectorAll('.tab-content');
         ui.modalBackBtns = document.querySelectorAll('.modal-back-btn');
         ui.modalConfirmBtns = document.querySelectorAll('.modal-confirm-btn');
         ui.dashboardHeader = document.querySelector('.dashboard-header');
@@ -102,6 +104,34 @@
     function getInitials(userData) { if (!userData) return '?'; const f = userData.first_name?.[0] || ''; const l = userData.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?'; }
     function formatDate(dateString) { try { return dateString ? new Date(dateString).toLocaleDateString('cs-CZ') : '-'; } catch (e) { return '-'; } }
     function formatTime(seconds) { if (isNaN(seconds) || seconds < 0) return '--:--'; const m = Math.floor(seconds / 60); const ss = Math.round(seconds % 60); return `${m.toString().padStart(2, '0')}:${ss.toString().padStart(2, '0')}`; }
+    // NEW_FUNCTION_START - Обновленная formatRelativeTime для уведомлений
+    function formatRelativeTime(timestamp) {
+        if (!timestamp) return '';
+        try {
+            const now = new Date();
+            const date = new Date(timestamp);
+            if (isNaN(date.getTime())) return '-'; // Invalid date
+
+            const diffMs = now - date;
+            const diffSec = Math.round(diffMs / 1000);
+            const diffMin = Math.round(diffSec / 60);
+            const diffHour = Math.round(diffMin / 60);
+            const diffDay = Math.round(diffHour / 24);
+            const diffWeek = Math.round(diffDay / 7);
+
+            if (diffSec < 60) return 'Nyní';
+            if (diffMin < 60) return `Před ${diffMin} min`;
+            if (diffHour < 24) return `Před ${diffHour} hod`;
+            if (diffDay === 1) return `Včera`;
+            if (diffDay < 7) return `Před ${diffDay} dny`;
+            if (diffWeek <= 4) return `Před ${diffWeek} týdny`;
+            return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' });
+        } catch (e) {
+            console.error("Chyba formátování času:", e, "Timestamp:", timestamp);
+            return '-';
+        }
+    }
+    // NEW_FUNCTION_END
     function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { document.body.classList.remove('sidebar-collapsed'); ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
     function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
     function updateCopyrightYear() { const year = new Date().getFullYear(); if (ui.currentYearSidebar) ui.currentYearSidebar.textContent = year; if (ui.currentYearFooter) ui.currentYearFooter.textContent = year; };
@@ -130,7 +160,7 @@
                 plan: { container: ui.studyPlanContainer, content: ui.studyPlanContent, empty: ui.studyPlanEmpty, loader: ui.studyPlanLoading, skeletonFn: renderPlanSkeletons },
                 topics: { container: ui.topicAnalysisContainer, content: ui.topicAnalysisContent, empty: ui.topicAnalysisEmpty, loader: ui.topicAnalysisLoading, skeletonFn: renderTopicSkeletons },
                 shortcuts: { container: ui.shortcutsGrid, skeletonFn: renderShortcutSkeletons },
-                notifications: { /* Handled elsewhere or directly in its functions */ },
+                notifications: { /* Handled separately by renderNotificationSkeletons if needed */ },
                 goalSelection: { /* Handled by button states in goal selection modal */ }
             };
 
@@ -163,32 +193,21 @@
                 if (content?.querySelector(skeletonSelector)) {
                     content.innerHTML = '';
                 }
-                if (container?.querySelector(skeletonSelector) && (key === 'stats' || key === 'shortcuts')) {
-                     // Для stats и shortcuts, скелетоны находятся прямо в container.
-                     // Их удаление или замена происходит в соответствующей render... функции.
-                }
-
-                // NEW_FUNCTION_START - Добавлена проверка для корректного отображения content/empty
-                setTimeout(() => { // Небольшая задержка, чтобы JS успел обновить DOM после загрузки данных
+                // Ensure correct display after loading
+                setTimeout(() => {
                     if (content && empty) {
                         const hasActualContent = content.innerHTML.trim() !== '' && !content.querySelector(skeletonSelector);
                         let displayType = 'block';
-                        if (content.id === 'topic-grid' || content.id === 'stats-cards' || content.id === 'shortcuts-grid' || content.id === 'main-plan-schedule') {
-                            displayType = 'grid';
-                        } else if (content.classList.contains('test-stats')) {
+                        if (content.id === 'topic-grid' || content.id === 'stats-cards' || content.id === 'shortcuts-grid' || content.id === 'main-plan-schedule' || content.classList.contains('test-stats')) {
                             displayType = 'grid';
                         }
                         content.style.display = hasActualContent ? displayType : 'none';
                         empty.style.display = hasActualContent ? 'none' : 'block';
-                        console.log(`[SetLoadingState Finished] Section: ${key}, hasContent: ${hasActualContent}, contentDisplay: ${content.style.display}, emptyDisplay: ${empty.style.display}`);
+                        // console.log(`[SetLoadingState Finished] Section: ${key}, hasContent: ${hasActualContent}, contentDisplay: ${content.style.display}, emptyDisplay: ${empty.style.display}`);
                     } else if (content && (key === 'stats' || key === 'shortcuts')) {
-                        // Для stats и shortcuts, где нет отдельного empty элемента,
-                        // предполагаем, что render... функция сама обработает отображение.
-                        // Контейнер content (который здесь является container) должен быть видим.
                         if (container) container.style.display = (key === 'stats' || key === 'shortcuts') ? 'grid' : 'block';
                     }
-                }, 50); // Задержка в 50ms
-                // NEW_FUNCTION_END
+                }, 50);
             }
         };
 
@@ -214,7 +233,7 @@
 
     // --- Загрузка Данных (Заглушки) ---
     async function fetchDashboardStats(userId, profileData) {
-        console.log("[Fetch Data Stub] fetchDashboardStats called. Returning placeholder data."); // Изменено с warn на log
+        console.log("[Fetch Data Stub] fetchDashboardStats called. Returning placeholder data.");
         await new Promise(resolve => setTimeout(resolve, 700));
         return {
             totalPoints: profileData?.points || 0,
@@ -224,22 +243,22 @@
         };
     }
     async function fetchDiagnosticResults(userId, goal) {
-        console.log("[Fetch Data Stub] fetchDiagnosticResults called. Returning empty array."); // Изменено с warn на log
+        console.log("[Fetch Data Stub] fetchDiagnosticResults called. Returning empty array.");
         await new Promise(resolve => setTimeout(resolve, 1000));
         return [];
     }
     async function fetchActiveStudyPlan(userId, goal) {
-        console.log("[Fetch Data Stub] fetchActiveStudyPlan called. Returning null."); // Изменено с warn на log
+        console.log("[Fetch Data Stub] fetchActiveStudyPlan called. Returning null.");
         await new Promise(resolve => setTimeout(resolve, 800));
         return null;
     }
     async function fetchPlanActivities(planId, goal) {
-        console.log("[Fetch Data Stub] fetchPlanActivities called. Returning empty array."); // Изменено с warn на log
+        console.log("[Fetch Data Stub] fetchPlanActivities called. Returning empty array.");
         await new Promise(resolve => setTimeout(resolve, 500));
         return [];
     }
     async function fetchTopicProgress(userId, goal) {
-        console.log("[Fetch Data Stub] fetchTopicProgress called. Returning placeholder data."); // Изменено с warn на log
+        console.log("[Fetch Data Stub] fetchTopicProgress called. Returning placeholder data.");
         await new Promise(resolve => setTimeout(resolve, 900));
         return [
             { id: 'algebra', name: 'Algebra', progress: 0, last_practiced: null, strength: 'neutral' },
@@ -251,15 +270,12 @@
 
     // --- Рендеринг UI (Заглушки) ---
     function renderStatsCards(stats) {
-        console.log("[Render UI Stub] renderStatsCards called with:", stats); // Изменено с warn на log
+        console.log("[Render UI Stub] renderStatsCards called with:", stats);
         if (!ui.statsCards) {
             console.error("Stats cards container not found!");
-            setLoadingState('stats', false); // Убедимся, что состояние загрузки сброшено
+            setLoadingState('stats', false);
             return;
         }
-        // NEW_FUNCTION_START - Используем существующую разметку, если возможно, или создаем новую.
-        // Предполагаем, что ui.statsCards это grid контейнер.
-        // Проверяем, есть ли уже карточки, чтобы не дублировать.
         if (ui.statsCards.querySelectorAll('.dashboard-card').length === 0) {
             ui.statsCards.innerHTML = `
                 <div class="dashboard-card card">
@@ -284,52 +300,39 @@
                 </div>
             `;
         } else {
-            // Обновляем существующие карточки (более сложная логика, если ID разные)
-            // Для заглушки просто обновим первую карточку, если она есть
-            const firstCardValue = ui.statsCards.querySelector('.dashboard-card .card-value');
-            if (firstCardValue) firstCardValue.textContent = stats?.totalPoints || 'N/A';
-             console.log("[Render UI Stub] Stats cards updated (or kept existing structure).");
+            // Placeholder: Just log that we would update if real data changed
+            console.log("[Render UI Stub] Stats cards would be updated here if data changed significantly.");
         }
-        // NEW_FUNCTION_END
-        ui.statsCards.classList.remove('loading'); // Убираем класс loading после рендеринга
+        ui.statsCards.classList.remove('loading');
         setLoadingState('stats', false);
     }
     function calculateAverageScore(results) { console.warn("calculateAverageScore not implemented"); return 0; }
     function renderTestChart(chartData) { console.warn("renderTestChart not implemented"); }
     function renderTestResults(results, goal) {
-        console.log("[Render UI Stub] renderTestResults called. Displaying empty state."); // Изменено с warn на log
+        console.log("[Render UI Stub] renderTestResults called. Displaying empty state.");
         if(ui.testResultsContainer) ui.testResultsContainer.classList.remove('loading');
-        if(ui.testResultsContent) {
-            ui.testResultsContent.innerHTML = ''; // Очищаем содержимое
-            ui.testResultsContent.style.display = 'none';
-        }
+        if(ui.testResultsContent) { ui.testResultsContent.innerHTML = ''; ui.testResultsContent.style.display = 'none'; }
         if(ui.testResultsEmpty) ui.testResultsEmpty.style.display = 'block';
         setLoadingState('tests', false);
     }
     function renderStudyPlanOverview(plan, activities, goal) {
-        console.log("[Render UI Stub] renderStudyPlanOverview called. Displaying empty state."); // Изменено с warn на log
+        console.log("[Render UI Stub] renderStudyPlanOverview called. Displaying empty state.");
         if(ui.studyPlanContainer) ui.studyPlanContainer.classList.remove('loading');
-        if(ui.studyPlanContent) {
-            ui.studyPlanContent.innerHTML = ''; // Очищаем содержимое
-            ui.studyPlanContent.style.display = 'none';
-        }
+        if(ui.studyPlanContent) { ui.studyPlanContent.innerHTML = ''; ui.studyPlanContent.style.display = 'none'; }
         if(ui.studyPlanEmpty) ui.studyPlanEmpty.style.display = 'block';
         setLoadingState('plan', false);
     }
     function renderTopicAnalysis(topics, goal) {
-        console.log("[Render UI Stub] renderTopicAnalysis called. Displaying empty state."); // Изменено с warn на log
+        console.log("[Render UI Stub] renderTopicAnalysis called. Displaying empty state.");
         if(ui.topicAnalysisContainer) ui.topicAnalysisContainer.classList.remove('loading');
-        if(ui.topicAnalysisContent) {
-            ui.topicAnalysisContent.innerHTML = ''; // Очищаем содержимое
-            ui.topicAnalysisContent.style.display = 'none';
-        }
+        if(ui.topicAnalysisContent) { ui.topicAnalysisContent.innerHTML = ''; ui.topicAnalysisContent.style.display = 'none'; }
         if(ui.topicAnalysisEmpty) ui.topicAnalysisEmpty.style.display = 'block';
         setLoadingState('topics', false);
     }
     // --- Конец Рендеринга UI ---
 
-    // --- Goal Selection Logic (Multi-Step) ---
-    // Эта логика остается без изменений, так как она связана с модальным окном
+    // --- Goal Selection Logic ---
+    // ... (остается без изменений)
     function showGoalSelectionModal() {
         const modalContainer = ui.goalSelectionModal || document.getElementById('goal-selection-modal');
         const step1Element = ui.goalStep1 || document.getElementById('goal-step-1');
@@ -372,7 +375,6 @@
     // --- Конец Загрузки Данных Страницы ---
 
     // --- Event Handlers ---
-    // NEW_FUNCTION_START
     function handleTabSwitch(event) {
         if (!event || !event.currentTarget) return;
         const targetTabButton = event.currentTarget;
@@ -381,40 +383,187 @@
 
         console.log(`[Tabs] Switching to tab: ${tabId}`);
 
-        // Update active state for tab buttons
         ui.contentTabs.forEach(tab => tab.classList.remove('active'));
         targetTabButton.classList.add('active');
 
-        // Update active state for tab content panels
         ui.tabContents.forEach(content => {
             const isActive = content.id === tabId;
             content.classList.toggle('active', isActive);
-            content.style.display = isActive ? 'block' : 'none'; // Ensure correct display style
+            content.style.display = isActive ? 'block' : 'none';
         });
-
-        // Optional: Re-initialize animations or other dynamic content for the new active tab
-        requestAnimationFrame(() => {
-            const activeContent = document.getElementById(tabId);
-            if (activeContent) {
-                // Example: Re-trigger animations if you use them
-                // activeContent.querySelectorAll('[data-animate]').forEach((el, index) => {
-                //     el.style.setProperty('--animation-order', index);
-                //     el.classList.remove('animated'); // Remove first to allow re-animation
-                //     // Add a small delay before adding 'animated' back if needed, or handle via IntersectionObserver
-                // });
-                // if (typeof initScrollAnimations === 'function') initScrollAnimations();
-            }
-        });
+        // Removed animation logic for now to simplify
     }
-    // NEW_FUNCTION_END
 
     function switchActiveTab(tabId) { const tabButton = document.querySelector(`.content-tab[data-tab="${tabId}"]`); if (tabButton) { handleTabSwitch({ currentTarget: tabButton }); } else { console.warn(`Tab button for '${tabId}' not found.`); } }
     async function handleRefreshClick() { if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné se přihlásit.", "error"); return; } if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; } console.log("🔄 Manual refresh triggered..."); const icon = ui.refreshDataBtn?.querySelector('i'); const text = ui.refreshDataBtn?.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'RELOADING...'; if (ui.refreshDataBtn) ui.refreshDataBtn.disabled = true; await loadPageData(); if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'RELOAD'; if (ui.refreshDataBtn) ui.refreshDataBtn.disabled = false; }
     // --- Конец Event Handlers ---
 
+    // --- Логика Уведомлений (Заглушки) ---
+    // NEW_FUNCTION_START
+    async function fetchNotifications(userId, limit) {
+        console.log(`[Notifications Stub] fetchNotifications called for user ${userId}, limit ${limit}. Returning empty.`);
+        setLoadingState('notifications', true);
+        await new Promise(resolve => setTimeout(resolve, 600)); // Simulate delay
+        setLoadingState('notifications', false);
+        return { unreadCount: 0, notifications: [] };
+    }
+
+    function renderNotifications(count, notifications) {
+        console.log(`[Notifications Stub] renderNotifications called with count ${count}.`);
+        if (!ui.notificationBell || !ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) {
+            console.error("[Notifications Stub] UI elements for notifications are missing.");
+            return;
+        }
+        ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : '');
+        ui.notificationCount.classList.toggle('visible', count > 0);
+
+        if (notifications && notifications.length > 0) {
+            ui.notificationsList.innerHTML = notifications.map(n => {
+                const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default;
+                const isReadClass = n.is_read ? 'is-read' : '';
+                const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : '';
+                return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>
+                            ${!n.is_read ? '<span class="unread-dot"></span>' : ''}
+                            <div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div>
+                            <div class="notification-content">
+                                <div class="notification-title">${sanitizeHTML(n.title)}</div>
+                                <div class="notification-message">${sanitizeHTML(n.message)}</div>
+                                <div class="notification-time">${formatRelativeTime(n.created_at)}</div>
+                            </div>
+                        </div>`;
+            }).join('');
+            ui.noNotificationsMsg.style.display = 'none';
+            ui.notificationsList.style.display = 'block';
+        } else {
+            ui.notificationsList.innerHTML = ''; // Clear previous
+            ui.noNotificationsMsg.style.display = 'block';
+            ui.notificationsList.style.display = 'none';
+        }
+        ui.markAllReadBtn.disabled = count === 0;
+    }
+
+    async function markNotificationRead(notificationId) {
+        console.log(`[Notifications Stub] markNotificationRead called for ID ${notificationId}. Simulating success.`);
+        // В реальном приложении здесь был бы вызов Supabase
+        await new Promise(resolve => setTimeout(resolve, 200));
+        return true; // Имитация успеха
+    }
+
+    async function markAllNotificationsRead() {
+        console.log(`[Notifications Stub] markAllNotificationsRead called. Simulating success.`);
+        // В реальном приложении здесь был бы вызов Supabase
+        await new Promise(resolve => setTimeout(resolve, 300));
+        renderNotifications(0, []); // Обновляем UI, показывая 0 уведомлений
+        showToast('Oznámení vymazána', 'Všechna oznámení byla označena jako přečtená.', 'success');
+    }
+
+    function renderNotificationSkeletons(count = 2) {
+        if (!ui.notificationsList || !ui.noNotificationsMsg) return;
+        let skeletonHTML = '';
+        for (let i = 0; i < count; i++) {
+            skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height:16px;width:70%;margin-bottom:6px;"></div><div class="skeleton" style="height:12px;width:90%;"></div><div class="skeleton" style="height:10px;width:40%;margin-top:6px;"></div></div></div>`;
+        }
+        ui.notificationsList.innerHTML = skeletonHTML;
+        ui.noNotificationsMsg.style.display = 'none';
+        ui.notificationsList.style.display = 'block';
+    }
+    // NEW_FUNCTION_END
+
     // --- Настройка Event Listeners ---
-    function setupEventListeners() { console.log("[Procvičování SETUP v3] Setting up event listeners..."); const safeAddListener = (element, eventType, handler, key) => { if (element) { element.removeEventListener(eventType, handler); element.addEventListener(eventType, handler); } else { console.warn(`[SETUP v3] Element not found for listener: ${key}`); } }; const safeAddListenerToAll = (elementsNodeList, eventType, handler, key) => { if (elementsNodeList && elementsNodeList.length > 0) { elementsNodeList.forEach(el => {el.removeEventListener(eventType, handler); el.addEventListener(eventType, handler);}); } else { console.warn(`[SETUP v3] No elements found for listener group: ${key}`); } }; safeAddListener(ui.refreshDataBtn, 'click', handleRefreshClick, 'refreshDataBtn'); safeAddListenerToAll(ui.contentTabs, 'click', handleTabSwitch, 'contentTabs'); safeAddListener(ui.startTestBtnPrompt, 'click', () => window.location.href = 'test1.html', 'startTestBtnPrompt'); safeAddListener(ui.startTestBtnResults, 'click', () => window.location.href = 'test1.html', 'startTestBtnResults'); safeAddListener(ui.startTestBtnPlan, 'click', () => window.location.href = 'test1.html', 'startTestBtnPlan'); safeAddListener(ui.startTestBtnAnalysis, 'click', () => window.location.href = 'test1.html', 'startTestBtnAnalysis'); safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle'); safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle'); safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay'); safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn'); safeAddListenerToAll(document.querySelectorAll('.sidebar-link'), 'click', () => { if (window.innerWidth <= 992) closeMenu(); }, 'sidebarLinks'); console.log("[Procvičování SETUP v3] Event listeners set up."); }
+    function setupEventListeners() {
+        console.log("[Procvičování SETUP v3] Setting up event listeners...");
+        const safeAddListener = (element, eventType, handler, key) => {
+            if (element) {
+                // Удаляем старый обработчик перед добавлением нового, чтобы избежать дублирования
+                if (element._eventHandlers && element._eventHandlers[eventType]) {
+                    element.removeEventListener(eventType, element._eventHandlers[eventType]);
+                }
+                element.addEventListener(eventType, handler);
+                if (!element._eventHandlers) element._eventHandlers = {};
+                element._eventHandlers[eventType] = handler; // Сохраняем ссылку на новый обработчик
+            } else {
+                console.warn(`[SETUP v3] Element not found for listener: ${key}`);
+            }
+        };
+        const safeAddListenerToAll = (elementsNodeList, eventType, handler, key) => { /* ... */ }; // Оставляем как есть, но можно улучшить по аналогии
+
+        safeAddListener(ui.refreshDataBtn, 'click', handleRefreshClick, 'refreshDataBtn');
+        safeAddListenerToAll(ui.contentTabs, 'click', handleTabSwitch, 'contentTabs');
+        safeAddListener(ui.startTestBtnPrompt, 'click', () => window.location.href = 'test1.html', 'startTestBtnPrompt');
+        safeAddListener(ui.startTestBtnResults, 'click', () => window.location.href = 'test1.html', 'startTestBtnResults');
+        safeAddListener(ui.startTestBtnPlan, 'click', () => window.location.href = 'test1.html', 'startTestBtnPlan');
+        safeAddListener(ui.startTestBtnAnalysis, 'click', () => window.location.href = 'test1.html', 'startTestBtnAnalysis');
+        safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle');
+        safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle');
+        safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay');
+        safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn');
+        safeAddListenerToAll(document.querySelectorAll('.sidebar-link'), 'click', () => { if (window.innerWidth <= 992) closeMenu(); }, 'sidebarLinks');
+
+        // NEW_FUNCTION_START - Обработчики для уведомлений
+        safeAddListener(ui.notificationBell, 'click', (event) => {
+            event.stopPropagation();
+            ui.notificationsDropdown?.classList.toggle('active');
+            // Если открываем и нет данных, загружаем
+            if (ui.notificationsDropdown?.classList.contains('active') && ui.notificationsList?.innerHTML.trim() === '' && !isLoading.notifications) {
+                fetchNotifications(currentUser?.id, NOTIFICATION_FETCH_LIMIT).then(({ unreadCount, notifications }) => {
+                    renderNotifications(unreadCount, notifications || []);
+                });
+            }
+        }, 'notificationBell');
+
+        safeAddListener(ui.markAllReadBtn, 'click', markAllNotificationsRead, 'markAllReadBtn');
+
+        if (ui.notificationsList) {
+            // Удаляем предыдущий обработчик, если он был
+             if (ui.notificationsList._itemClickHandler) {
+                 ui.notificationsList.removeEventListener('click', ui.notificationsList._itemClickHandler);
+             }
+             ui.notificationsList._itemClickHandler = async (event) => { // Сохраняем ссылку на обработчик
+                const item = event.target.closest('.notification-item');
+                if (item) {
+                    const notificationId = item.dataset.id;
+                    const link = item.dataset.link;
+                    const isRead = item.classList.contains('is-read');
+
+                    if (!isRead && notificationId) {
+                        const success = await markNotificationRead(notificationId); // Эта функция теперь заглушка
+                        if (success) { // Обновляем UI немедленно, так как заглушка вернет true
+                            item.classList.add('is-read');
+                            item.querySelector('.unread-dot')?.remove();
+                            const currentCountText = ui.notificationCount.textContent.replace('+', '');
+                            const currentCount = parseInt(currentCountText) || 0;
+                            const newCount = Math.max(0, currentCount - 1);
+                            ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : '');
+                            ui.notificationCount.classList.toggle('visible', newCount > 0);
+                            ui.markAllReadBtn.disabled = newCount === 0;
+                        }
+                    }
+                    if (link) window.location.href = link;
+                    ui.notificationsDropdown?.classList.remove('active'); // Закрываем после клика
+                }
+            };
+            ui.notificationsList.addEventListener('click', ui.notificationsList._itemClickHandler);
+        }
+
+        // Закрытие выпадающего списка уведомлений при клике вне его
+        document.removeEventListener('click', handleOutsideNotificationClick); // Удаляем предыдущий
+        document.addEventListener('click', handleOutsideNotificationClick);
+        // NEW_FUNCTION_END
+
+        console.log("[Procvičování SETUP v3] Event listeners set up.");
+    }
     // --- Конец Настройки Event Listeners ---
+
+    // NEW_FUNCTION_START
+    function handleOutsideNotificationClick(event) {
+        if (ui.notificationsDropdown?.classList.contains('active') &&
+            !ui.notificationsDropdown.contains(event.target) &&
+            !ui.notificationBell?.contains(event.target)) {
+            ui.notificationsDropdown.classList.remove('active');
+        }
+    }
+    // NEW_FUNCTION_END
+
 
     // --- Инициализация Supabase ---
     function initializeSupabase() { try { if (!window.supabase?.createClient) throw new Error("Supabase library not loaded."); if (window.supabaseClient) { supabase = window.supabaseClient; console.log('[Supabase] Using existing global client instance.'); } else if (supabase === null) { supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); if (!supabase) throw new Error("Supabase client creation failed."); window.supabaseClient = supabase; console.log('[Supabase] Client initialized by main.js and stored globally.'); } else { console.log('[Supabase] Using existing local client instance.'); } return true; } catch (error) { console.error('[Supabase] Initialization failed:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi.", true); return false; } }
@@ -422,15 +571,7 @@
     // --- Инициализация Приложения ---
     async function createDefaultProfile(userId, email) {
         console.log(`[Default Profile] Creating default profile for new user ${userId}...`);
-        const defaultProfileData = {
-            id: userId,
-            username: email.split('@')[0],
-            email: email,
-            updated_at: new Date().toISOString(),
-            learning_goal: null, // Important: Start with null goal
-            preferences: {},     // Empty preferences JSONB
-            points: 0, level: 1, completed_exercises: 0, streak_days: 0, selected_title: null, avatar_url: null, first_name: null, last_name: null,
-        };
+        const defaultProfileData = { id: userId, username: email.split('@')[0], email: email, updated_at: new Date().toISOString(), learning_goal: null, preferences: {}, points: 0, level: 1, completed_exercises: 0, streak_days: 0, selected_title: null, avatar_url: null, first_name: null, last_name: null, };
         try {
             const { data, error } = await supabase.from('profiles').insert(defaultProfileData).select('*, selected_title, preferences').single();
             if (error) { if (error.code === '23505') { console.warn("[Default Profile] Profile likely already exists, attempting to fetch..."); const { data: existingProfile, error: fetchError } = await supabase.from('profiles').select('*, selected_title, preferences').eq('id', userId).single(); if (fetchError) { console.error("[Default Profile] Error fetching existing profile after unique violation:", fetchError); throw fetchError; } if (!existingProfile.preferences) existingProfile.preferences = {}; return existingProfile; } throw error; }
@@ -442,14 +583,14 @@
 
     async function initializeApp() {
         try {
-            console.log("[INIT Procvičování] App Init Start v24.10.4..."); // Обновлена версия для лога
+            console.log("[INIT Procvičování] App Init Start v24.10.5...");
             cacheDOMElements();
             if (!initializeSupabase()) return;
             setupEventListeners();
             applyInitialSidebarState();
             updateCopyrightYear();
-            initMouseFollower(); // Эти функции были пустыми, если они важны, их нужно реализовать
-            initHeaderScrollDetection(); // или удалить вызовы, если они не нужны
+            initMouseFollower();
+            initHeaderScrollDetection();
             updateOnlineStatus();
 
             if (ui.initialLoader) { ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden'); }
@@ -465,10 +606,10 @@
             if (session?.user) {
                 currentUser = session.user;
                 console.log(`[INIT Procvičování] User authenticated (ID: ${currentUser.id}). Loading profile & titles...`);
-                // Загрузка профиля и титулов
-                const [profileResult, titlesResult] = await Promise.allSettled([
+                const [profileResult, titlesResult, initialNotificationsResult] = await Promise.allSettled([ // NEW: fetch initial notifications
                     supabase.from('profiles').select('*, selected_title, preferences').eq('id', currentUser.id).single(),
-                    supabase.from('title_shop').select('title_key, name')
+                    supabase.from('title_shop').select('title_key, name'),
+                    fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT) // Загружаем уведомления здесь
                 ]);
 
                 if (profileResult.status === 'fulfilled' && profileResult.value?.data) {
@@ -491,40 +632,41 @@
                 }
                 updateSidebarProfile(currentProfile, allTitles);
 
+                // NEW_FUNCTION_START - Рендеринг первоначальных уведомлений
+                if (initialNotificationsResult.status === 'fulfilled') {
+                    const { unreadCount, notifications } = initialNotificationsResult.value;
+                    renderNotifications(unreadCount, notifications || []);
+                } else {
+                    console.warn("[INIT Procvičování] Failed to load initial notifications:", initialNotificationsResult.reason);
+                    renderNotifications(0, []); // Показать пустой список в случае ошибки
+                }
+                // NEW_FUNCTION_END
+
                 const goal = currentProfile.learning_goal;
                 if (!goal) {
                     console.log("[INIT Procvičování] Goal not set, showing modal.");
                     showGoalSelectionModal();
                     setLoadingState('all', false);
-                    if (ui.mainContent) ui.mainContent.style.display = 'block'; // Показываем основной контент, чтобы модальное окно было на чем-то
-                    if (ui.tabsWrapper) ui.tabsWrapper.style.display = 'none'; // Скрываем табы
-                    ui.tabContents.forEach(el => el.style.display = 'none'); // Скрываем контент табов
+                    if (ui.mainContent) ui.mainContent.style.display = 'block';
+                    if (ui.tabsWrapper) ui.tabsWrapper.style.display = 'none';
+                    ui.tabContents.forEach(el => el.style.display = 'none');
                 } else {
                     console.log(`[INIT Procvičování] Goal found: ${goal}. Loading data...`);
                     if(ui.goalSelectionModal) ui.goalSelectionModal.style.display = 'none';
-                    if(ui.tabsWrapper) ui.tabsWrapper.style.display = 'block'; // Показываем табы
-                    // NEW_FUNCTION_START - Принудительно показываем первую вкладку и ее контент
+                    if(ui.tabsWrapper) ui.tabsWrapper.style.display = 'block';
+
                     const firstTabButton = document.querySelector('.content-tab[data-tab="practice-tab"]');
-                    const firstTabContent = document.getElementById('practice-tab');
-                    if (firstTabButton && firstTabContent) {
-                        ui.contentTabs.forEach(tab => tab.classList.remove('active'));
-                        ui.tabContents.forEach(content => {
-                            content.classList.remove('active');
-                            content.style.display = 'none';
-                        });
-                        firstTabButton.classList.add('active');
-                        firstTabContent.classList.add('active');
-                        firstTabContent.style.display = 'block';
-                        console.log("[INIT Procvičování] Force activated 'practice-tab'.");
+                    if (firstTabButton) {
+                         handleTabSwitch({ currentTarget: firstTabButton }); // Активируем вкладку через наш обработчик
+                         console.log("[INIT Procvičování] 'practice-tab' activated via handleTabSwitch.");
                     } else {
-                         console.warn("[INIT Procvičování] Could not find practice-tab elements to force activate.");
+                         console.warn("[INIT Procvičování] Could not find practice-tab button to force activate.");
                     }
-                    // NEW_FUNCTION_END
-                    configureUIForGoal(goal); // Это должно настроить видимость вкладок
-                    await loadPageData();   // Это загрузит данные для видимых вкладок
+                    configureUIForGoal(goal);
+                    await loadPageData();
                 }
                 if (ui.mainContent && window.getComputedStyle(ui.mainContent).display === 'none') {
-                    ui.mainContent.style.display = 'flex'; // Используем flex для main-content
+                    ui.mainContent.style.display = 'flex';
                     requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); });
                 }
                 initTooltips();
@@ -536,7 +678,7 @@
         } catch (error) {
             console.error("❌ [INIT Procvičování] Critical initialization error:", error);
             showError(`Chyba inicializace: ${error.message}`, true);
-            if (ui.mainContent) ui.mainContent.style.display = 'block'; // Используем block, если flex не нужен
+            if (ui.mainContent) ui.mainContent.style.display = 'block';
             setLoadingState('all', false);
         } finally {
             const il = ui.initialLoader;
