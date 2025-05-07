@@ -19,7 +19,7 @@
 
     <link rel="stylesheet" href="../dashboard.css"> <link rel="stylesheet" href="main.css">
     <style>
-        /* Inline styles specific to this page can go here, but modal styles were moved */
+        /* Inline styles specific to this page can go here */
     </style>
 </head>
 <body class="dark">
@@ -96,84 +96,46 @@
                 <a href="test1.html" class="btn btn-primary" id="start-test-btn-prompt"><i class="fas fa-play"></i> Spustit test</a>
             </div>
 
-            <div class="tabs-wrapper" id="tabs-wrapper" style="display: none;"> <div class="content-tabs" id="content-tabs">
+            <div class="tabs-wrapper" id="tabs-wrapper" style="display: none;">
+                <div class="content-tabs" id="content-tabs">
                     <div class="content-tab active" data-tab="practice-tab"> <i class="fas fa-globe"></i> Obecné </div>
                     <div class="content-tab" data-tab="test-results-tab"> <i class="fas fa-poll"></i> Testy </div>
                     <div class="content-tab" data-tab="study-plan-tab"> <i class="fas fa-route"></i> Plán </div>
                     <div class="content-tab" data-tab="vyuka-tab"> <i class="fas fa-person-chalkboard"></i> Výuka </div>
-                    </div>
+                </div>
             </div>
 
-            <div class="tab-content-container" style="display: none;"> <div class="tab-content active" id="practice-tab-content">
+            <div class="tab-content-container" style="display: none;">
+                <div class="tab-content active" id="practice-tab-content">
                     <section class="stats-section">
                         <h2 class="section-title" data-animate style="--animation-order: 1;"><i class="fas fa-chart-pie"></i>Celkový Přehled</h2>
-                        <div class="dashboard-grid" id="stats-cards">
-                            <div class="card" style="min-height: 150px; display: flex; align-items: center; justify-content: center; opacity: 0.5;">
-                                <p>Přehledové statistiky se načítají...</p>
-                            </div>
-                        </div>
+                        <div class="dashboard-grid" id="stats-cards"></div>
                      </section>
                      <section class="shortcuts-section">
                         <h2 class="section-title" data-animate style="--animation-order: 6;"><i class="fas fa-rocket"></i>Rychlé Akce</h2>
-                        <div class="shortcut-grid loading" id="shortcuts-grid">
-                            <div class="card" style="min-height: 150px; display: flex; align-items: center; justify-content: center; opacity: 0.5;">
-                                <p>Rychlé akce se načítají...</p>
-                            </div>
-                        </div>
+                        <div class="shortcut-grid loading" id="shortcuts-grid"></div>
                      </section>
-                     <div style="text-align: center; padding: 2rem; color: var(--text-muted); margin-top: 1rem;">
-                        <i class="fas fa-globe" style="font-size: 3rem; opacity: 0.2; margin-bottom: 1rem;"></i>
-                        <h3>Obecný Přehled</h3>
-                        <p>Tato sekce zobrazuje vaše celkové statistiky a rychlé zkratky pro hlavní funkce procvičování.</p>
-                    </div>
                  </div>
-
                  <div class="tab-content" id="test-results-tab-content">
                     <section class="test-results-section card loading" id="test-results-container">
                         <h2 class="section-title"><i class="fas fa-poll"></i>Historie Testů</h2>
                         <div class="loading-overlay hidden" id="test-results-loading"> <div class="loading-spinner"></div> </div>
-                        <div id="test-results-content">
-                            <div class="empty-state" style="display:flex;">
-                                <i class="fas fa-vial empty-state-icon"></i>
-                                <h3>Sekce Testů</h3>
-                                <p>Zde naleznete výsledky vašich absolvovaných diagnostických a cvičných testů.</p>
-                            </div>
-                        </div>
-                        <div class="empty-state" id="test-results-empty" style="display: none;"> <i class="fas fa-vial empty-state-icon"></i>
-                            <h3>Zatím žádné výsledky</h3>
-                            <p>Absolvujte test pro zobrazení výsledků.</p>
-                            <a href="test1.html" class="btn btn-primary empty-state-action" id="start-test-btn-results">
-                                <i class="fas fa-play-circle"></i> Spustit test
-                            </a>
-                        </div>
+                        <div id="test-results-content"></div>
+                        <div class="empty-state" id="test-results-empty"></div>
                     </section>
                  </div>
-
                  <div class="tab-content" id="study-plan-tab-content">
-                     <section class="study-plan-section card loading" id="study-plan-container">
-                        <h2 class="section-title"><i class="fas fa-route"></i>Studijní Plán</h2>
+                    <section class="study-plan-section card loading" id="study-plan-container">
+                        <h2 class="section-title"><i class="fas fa-route"></i>Aktuální Studijní Plán</h2>
                         <div class="loading-overlay hidden" id="study-plan-loading"> <div class="loading-spinner"></div> </div>
-                        <div id="study-plan-content">
-                            <div class="empty-state" style="display:flex;">
-                                <i class="far fa-calendar-alt empty-state-icon"></i>
-                                <h3>Váš Studijní Plán</h3>
-                                <p>V této sekci naleznete svůj personalizovaný studijní plán sestavený na míru.</p>
-                            </div>
-                        </div>
-                        <div class="empty-state" id="study-plan-empty" style="display: none;"> <i class="far fa-calendar-times empty-state-icon"></i>
-                            <h3>Žádný aktivní plán</h3>
-                            <p>Váš plán se vytvoří po diagnostickém testu nebo výběru cíle.</p>
-                            <button class="btn btn-primary empty-state-action" id="create-plan-btn-empty">
-                                <i class="fas fa-plus-circle"></i> Vytvořit plán
-                            </button>
-                        </div>
+                        <div id="study-plan-content"></div>
+                        <div class="empty-state" id="study-plan-empty"></div>
                     </section>
                  </div>
-
                  <div class="tab-content" id="vyuka-tab-content">
-                    <section class="vyuka-section card">
+                     <section class="vyuka-section card">
                         <h2 class="section-title"><i class="fas fa-person-chalkboard"></i>Výuka s AI</h2>
-                         <div class="empty-state" style="display:flex;">
+                        <div class="empty-state" style="display:flex;">
                             <i class="fas fa-robot empty-state-icon"></i>
                             <h3>AI Výukový Modul</h3>
                             <p>Zde můžete procházet výukové lekce s naším AI tutorem Justaxem. Lekce jsou přizpůsobeny vašemu studijnímu plánu a pokroku.</p>
@@ -181,7 +143,8 @@
                         </div>
                     </section>
                  </div>
-                 </div>
+            </div>
+
             <footer class="dashboard-footer">
                  <p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p>
             </footer>
@@ -194,32 +157,54 @@
                 <div class="modal-header">
                     <h2 class="modal-title"><i class="fas fa-bullseye"></i> Jaký je Váš hlavní cíl?</h2>
                 </div>
-                <div class="modal-body"> <p>Vyberte si, na co se chcete v sekci Procvičování primárně zaměřit. Toto nastavení ovlivní doporučený obsah a funkce.</p>
-                    <div class="goal-options">
-                        <button class="goal-option-card card" data-goal="exam_prep">
-                            <i class="fas fa-graduation-cap goal-icon"></i>
-                            <h3>Příprava na přijímačky</h3>
-                            <p>Cílená příprava, testy a témata typická pro přijímací zkoušky.</p>
-                        </button>
-                        <button class="goal-option-card card" data-goal="math_accelerate">
-                            <i class="fas fa-rocket goal-icon"></i>
-                            <h3>Učení napřed</h3>
-                            <p>Chci se učit matematiku rychleji než ve škole nebo probírat pokročilejší témata.</p>
-                        </button>
-                        <button class="goal-option-card card" data-goal="math_review">
-                            <i class="fas fa-sync-alt goal-icon"></i>
-                            <h3>Doplnění mezer</h3>
-                            <p>Potřebuji zopakovat a procvičit témata, ve kterých si nejsem jistý/á.</p>
-                        </button>
-                        <button class="goal-option-card card" data-goal="math_explore">
-                            <i class="fas fa-compass goal-icon"></i>
-                            <h3>Volné prozkoumávání</h3>
-                            <p>Chci si sám/sama vybírat témata k učení a procvičování.</p>
-                        </button>
+                <div class="modal-body"> <p>Vyberte si, na co se chcete v sekci Procvičování primárně zaměřit.</p>
+
+                    <div class="goal-radio-list">
+                        <label class="goal-radio-label">
+                            <input type="radio" name="learningGoal" value="exam_prep">
+                            <div class="goal-radio-content">
+                                <i class="fas fa-graduation-cap goal-icon"></i>
+                                <div class="goal-text">
+                                    <h3>Příprava na přijímačky</h3>
+                                    <p>Cílená příprava, testy a témata typická pro přijímací zkoušky.</p>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="goal-radio-label">
+                             <input type="radio" name="learningGoal" value="math_accelerate">
+                             <div class="goal-radio-content">
+                                <i class="fas fa-rocket goal-icon"></i>
+                                <div class="goal-text">
+                                    <h3>Učení napřed</h3>
+                                    <p>Chci se učit matematiku rychleji než ve škole nebo probírat pokročilejší témata.</p>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="goal-radio-label">
+                             <input type="radio" name="learningGoal" value="math_review">
+                             <div class="goal-radio-content">
+                                <i class="fas fa-sync-alt goal-icon"></i>
+                                <div class="goal-text">
+                                    <h3>Doplnění mezer</h3>
+                                    <p>Potřebuji zopakovat a procvičit témata, ve kterých si nejsem jistý/á.</p>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="goal-radio-label">
+                             <input type="radio" name="learningGoal" value="math_explore">
+                            <div class="goal-radio-content">
+                                <i class="fas fa-compass goal-icon"></i>
+                                <div class="goal-text">
+                                    <h3>Volné prozkoumávání</h3>
+                                    <p>Chci si sám/sama vybírat témata k učení a procvičování.</p>
+                                </div>
+                             </div>
+                        </label>
                     </div>
-                </div>
+                    </div>
                 <div class="modal-footer">
-                    <small>Svůj cíl můžete později změnit v <a href="../profile.html">nastavení profilu</a>.</small> </div>
+                    <small>Svůj cíl můžete později změnit v <a href="../profile.html">nastavení profilu</a>.</small>
+                </div>
             </div>
 
             <div class="modal-step" id="goal-step-accelerate">
@@ -230,9 +215,10 @@
                  <div class="modal-header"> <button type="button" class="btn btn-sm btn-secondary modal-back-btn" data-target-step="goal-step-1"><i class="fas fa-arrow-left"></i> Zpět</button> <h2 class="modal-title"><i class="fas fa-sync-alt"></i> Doplnění mezer: Oblasti</h2> </div> <div class="modal-body"> <div class="form-group" id="review-areas-group"> <legend>Vyberte oblasti k opakování (nepovinné):</legend> <label><input type="checkbox" name="review_area" value="linear_equations"> Lineární rovnice</label> <label><input type="checkbox" name="review_area" value="percentages"> Procenta</label> <label><input type="checkbox" name="review_area" value="geometry_basics"> Základy geometrie</label> <label><input type="checkbox" name="review_area" value="fractions"> Zlomky</label> <label><input type="checkbox" name="review_area" value="expressions"> Algebraické výrazy</label> <label><input type="checkbox" name="review_area" value="word_problems"> Slovní úlohy</label> </div> <p><small>Pokud nic nevyberete, systém navrhne témata na základě vaší historie nebo diagnostiky.</small></p> </div> <div class="modal-footer"> <button type="button" class="btn btn-primary modal-confirm-btn" data-goal="math_review">Potvrdit a pokračovat</button> </div>
             </div>
 
-            <div class="modal-step" id="goal-step-explore">
-                 <div class="modal-header"> <button type="button" class="btn btn-sm btn-secondary modal-back-btn" data-target-step="goal-step-1"><i class="fas fa-arrow-left"></i> Zpět</button> <h2 class="modal-title"><i class="fas fa-compass"></i> Volné prozkoumávání: Úroveň</h2> </div> <div class="modal-body"> <div class="form-group" id="explore-level-group"> <legend>Vyberte vaši přibližnou aktuální úroveň:</legend> <label><input type="radio" name="explore_level" value="middle_school"> Základní škola (2. stupeň)</label> <label><input type="radio" name="explore_level" value="high_school"> Střední škola / Maturita</label> <label><input type="radio" name="explore_level" value="college"> Vysoká škola (základy)</label> <label><input type="radio" name="explore_level" value="advanced"> Pokročilý / Jiné</label> </div> </div> <div class="modal-footer"> <button type="button" class="btn btn-primary modal-confirm-btn" data-goal="math_explore">Potvrdit a pokračovat</button> </div>
-            </div>
+             <div class="modal-step" id="goal-step-explore">
+                 <div class="modal-header"> <button type="button" class="btn btn-sm btn-secondary modal-back-btn" data-target-step="goal-step-1"><i class="fas fa-arrow-left"></i> Zpět</button> <h2 class="modal-title"><i class="fas fa-compass"></i> Volné prozkoumávání</h2> </div> <div class="modal-body"> <p>Pro tento cíl nejsou vyžadovány žádné další podrobnosti. Budete si moci volně vybírat témata.</p> </div> <div class="modal-footer"> <button type="button" class="btn btn-primary modal-confirm-btn" data-goal="math_explore">Potvrdit a pokračovat</button> </div>
+             </div>
+
         </div>
     </div>
 
