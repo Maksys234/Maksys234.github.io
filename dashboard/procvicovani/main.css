@@ -1,5 +1,5 @@
 /* dashboard/procvicovani/main.css */
-/* Verze: 25.0.11-CSS - Opravy designu a funkčnosti modálního okna, revize zobrazení obsahu */
+/* Версия: 25.0.14-CSS - Улучшение скроллинга модального окна */
 
 /* --- START: Киберпанк CSS Тема (Zkopírováno z dashboard.css + úpravy pro tuto stránku) --- */
 /* --- Глобальные Настройки и Переменные --- */
@@ -17,13 +17,13 @@
     --dark-purple-accent-rgb: 22, 12, 65;
 
     /* Акценты */
-    --accent-primary: #00e0ff;
+    --accent-primary: #00e0ff; /* Cyan - main interactive */
     --accent-primary-rgb: 0, 224, 255;
-    --accent-secondary: #a05cff;
+    --accent-secondary: #a05cff; /* Purple */
     --accent-secondary-rgb: 160, 92, 255;
-    --accent-pink: #ff33a8;
+    --accent-pink: #ff33a8; /* Pink - for Danger/Streak */
     --accent-pink-rgb: 255, 51, 168;
-    --accent-lime: #6fff3a;
+    --accent-lime: #6fff3a; /* Lime - for Success */
     --accent-lime-rgb: 111, 255, 58;
     --accent-cyan: var(--accent-primary);
     --accent-cyan-rgb: var(--accent-primary-rgb);
@@ -33,9 +33,10 @@
     --accent-pink-glow: rgba(var(--accent-pink-rgb), 0.4);
     --accent-lime-glow: rgba(var(--accent-lime-rgb), 0.5);
     --accent-border-glow: rgba(var(--accent-primary-rgb), 0.7);
-    --accent-orange: #f8961e;
+    --accent-orange: #f8961e; /* Orange for Warning */
     --accent-orange-rgb: 248, 150, 30;
     --accent-orange-glow: rgba(var(--accent-orange-rgb), 0.5);
+
 
     /* Текст */
     --text-light: #f1f5f9;
@@ -132,17 +133,15 @@ body {
     background-color: var(--bg-color); color: var(--text-medium);
     font-family: var(--font-primary); line-height: 1.7;
     min-height: 100vh; display: flex;
-    overflow-x: hidden; /* Ponechat jen pro X */
-    overflow-y: auto;   /* Body MŮŽE scrollovat, pokud není modal */
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    overflow-y: auto;   /* Allow body scroll when no modal */
     -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
     position: relative;
 }
-/* --- START: Modal Open Body Style --- */
-/* Třída přidaná JS, když je modal aktivní */
+/* Style added by JS when a modal is active */
 body.modal-open {
-    overflow-y: hidden !important; /* Zabraňuje scrollování stránky ZA modalem */
+    overflow-y: hidden !important; /* Prevent page scrolling BEHIND the modal */
 }
-/* --- END: Modal Open Body Style --- */
 
 body::before { content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -3; background-image: linear-gradient(rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px); background-size: 40px 40px; opacity: 0.6; animation: bg-grid-pan 100s linear infinite; pointer-events: none; }
 body::after { content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -2; background: linear-gradient( to bottom, rgba(10, 7, 31, 0) 50%, rgba(0, 0, 0, 0.08) 50% ); background-size: 100% 3px; opacity: 0.15; animation: scanlines 25s linear infinite; pointer-events: none; }
@@ -252,7 +251,7 @@ main#main-content {
     transition: margin-left var(--transition-medium) ease, width var(--transition-medium) ease;
     width: calc(100% - var(--sidebar-width));
     height: 100vh;
-    display: flex; /* Changed from none */
+    display: flex;
     flex-direction: column;
     overflow: hidden; /* Main container should not scroll */
     position: relative;
@@ -343,10 +342,42 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 /* --- END Refresh Button Styles --- */
 
 /* --- START Tabs Styles (copied from main.css v25.0.10) --- */
-.tabs-wrapper { background: var(--card-bg); border-radius: var(--card-radius) var(--card-radius) 0 0; box-shadow: var(--shadow-hud); border: 1px solid var(--border-color-light); border-bottom: none; flex-shrink: 0; margin-bottom: -1px; display: block; visibility: visible; opacity: 1; }
-.content-tabs { display: flex; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--border-color-light); padding: 0.5rem 1rem 0 1rem; }
-.content-tabs::-webkit-scrollbar { display: none; }
-.content-tab { padding: 0.9rem 1.6rem; cursor: pointer; font-weight: 600; color: var(--text-muted); border-bottom: 3px solid transparent; transition: all 0.3s ease; white-space: nowrap; font-size: 1rem; position: relative; display: flex; align-items: center; gap: 0.6rem; border-radius: 6px 6px 0 0; }
+.tabs-wrapper {
+    background: var(--card-bg);
+    border-radius: var(--card-radius) var(--card-radius) 0 0;
+    box-shadow: var(--shadow-hud);
+    border: 1px solid var(--border-color-light);
+    border-bottom: none;
+    flex-shrink: 0;
+    margin-bottom: -1px; /* Overlap border with content */
+    /* visibility/display controlled by JS after goal selection */
+}
+
+.content-tabs {
+    display: flex;
+    overflow-x: auto; /* Allow horizontal scroll on small screens */
+    scrollbar-width: none; /* Hide scrollbar Firefox */
+    border-bottom: 1px solid var(--border-color-light);
+    padding: 0.5rem 1rem 0 1rem; /* Padding to align tabs */
+}
+.content-tabs::-webkit-scrollbar { display: none; /* Hide scrollbar Chrome/Safari */ }
+
+.content-tab {
+    padding: 0.9rem 1.6rem;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    font-size: 1rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    border-radius: 6px 6px 0 0;
+    margin-bottom: -1px; /* Overlap the container's bottom border */
+}
 .content-tab i { font-size: 1.1em; opacity: 0.7; }
 .content-tab:hover { color: var(--text-light); background-color: rgba(var(--accent-primary-rgb), 0.05); }
 .content-tab.active { color: var(--accent-primary); border-bottom-color: var(--accent-primary); font-weight: 700; text-shadow: 0 0 5px var(--accent-glow); }
@@ -361,61 +392,75 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     border: 1px solid var(--border-color-light);
     border-top: none;
     position: relative;
-    overflow: hidden; /* Prevent content overflow issues */
+    overflow: hidden;
     flex-grow: 1;
-    display: flex; /* Important for flex children */
+    display: flex; /* Use flex for potential content alignment */
     flex-direction: column;
     min-height: 0;
-    visibility: visible;
-    opacity: 1;
+    /* visibility/display controlled by JS after goal selection */
 }
+
 .tab-content {
     padding: 2rem 2.5rem; /* Consistent padding */
     display: none; /* Controlled by .active */
-    flex-grow: 1;
+    flex-grow: 1; /* Allow content to take space */
     overflow-y: auto; /* Allow internal content to scroll */
-    scrollbar-width: thin; /* Firefox scrollbar */
-    scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--bg-secondary-rgb), 0.3);
+    /* Add scrollbar styling */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--bg-secondary-rgb), 0.3); /* Firefox */
 }
+/* Webkit Scrollbar */
 .tab-content::-webkit-scrollbar { width: 8px; }
 .tab-content::-webkit-scrollbar-track { background: rgba(var(--bg-secondary-rgb), 0.3); }
 .tab-content::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.5); border-radius: 4px; }
 .tab-content::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--accent-primary-rgb), 0.8); }
 
-.tab-content.active { display: block; animation: fadeInContent 0.6s ease-out forwards; }
+.tab-content.active {
+    display: block; /* Show active content */
+    animation: fadeInContent 0.6s ease-out forwards;
+}
 @keyframes fadeInContent { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 /* --- END Tab Content Styles --- */
 
 /* --- Specific Section Styles (copied + adjusted) --- */
-.section-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-heading); padding-bottom: 0.8rem; position: relative; display: flex; align-items: center; gap: 0.7rem; }
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--text-heading);
+    padding-bottom: 0.8rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    /* Removed border-bottom from dashboard.css as tabs container provides it */
+}
 .section-title i { font-size: 1.1em; color: var(--accent-secondary); text-shadow: 0 0 8px var(--accent-secondary-glow); }
 .section-title::after { content: ''; position: absolute; bottom: 0; left: 0; width: 60px; height: 3px; background: var(--gradient-border-anim); background-size: 300% 100%; animation: gradient-move 4s linear infinite; border-radius: 1.5px; filter: drop-shadow(0 0 5px var(--accent-primary)); }
 @keyframes gradient-move { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 
-.diagnostic-prompt { background-color: var(--info-bg); border: 1px solid var(--info-border); border-radius: var(--card-radius); display: none; flex-direction: column; align-items: center; text-align: center; padding: 1.5rem 2rem; margin-bottom: 2rem; gap: 1rem; }
-.diagnostic-prompt i { font-size: 2rem; color: var(--info-color); margin-bottom: 0.5rem; }
+/* Diagnostic Prompt */
+.diagnostic-prompt { background-color: var(--info-bg); border: 1px solid var(--info-border); border-radius: var(--card-radius); display: none; /* Controlled by JS */ flex-direction: row; align-items: center; text-align: left; padding: 1.2rem 1.5rem; margin-bottom: 2rem; gap: 1.5rem; }
+.diagnostic-prompt i { font-size: 2rem; color: var(--info-color); }
 .diagnostic-prompt p { margin: 0; flex-grow: 1; color: var(--text-light); font-size: 1rem; }
-.diagnostic-prompt .btn { margin-top: 1rem; }
-.diagnostic-prompt .btn i { margin-right: 0.5rem; }
+.diagnostic-prompt .btn { margin-left: auto; flex-shrink: 0; }
 
+/* Dashboard Grid */
 .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 2rem; }
 .dashboard-card { padding: 1.9rem; display: flex; flex-direction: column; min-height: 190px; position: relative; }
 .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.2rem; }
 .card-title { font-size: 1.05rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.8px; }
 .card-badge { font-size: 0.8rem; font-weight: 600; padding: 0.35rem 0.9rem; border-radius: 14px; background-color: rgba(var(--accent-primary-rgb), 0.15); color: var(--accent-primary); border: 1px solid rgba(var(--accent-primary-rgb), 0.3); text-shadow: 0 0 3px rgba(var(--accent-primary-rgb), 0.4); }
-.card-badge.success { background-color: rgba(var(--accent-lime-rgb), 0.15); color: var(--accent-lime); border-color: rgba(var(--accent-lime-rgb), 0.3); text-shadow: 0 0 3px rgba(var(--accent-lime-rgb), 0.4); }
-.card-badge.warning { background-color: rgba(var(--accent-orange-rgb), 0.15); color: var(--accent-orange); border-color: rgba(var(--accent-orange-rgb), 0.3); text-shadow: 0 0 3px rgba(var(--accent-orange-rgb), 0.4); }
-.card-badge.info { background-color: rgba(var(--accent-secondary-rgb), 0.15); color: var(--accent-secondary); border-color: rgba(var(--accent-secondary-rgb), 0.3); text-shadow: 0 0 3px rgba(var(--accent-secondary-rgb), 0.4); }
+/* ... (other badge colors if needed) ... */
 .card-content { flex-grow: 1; margin-bottom: 1.4rem; }
 .card-value { font-size: 2.6rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.6rem; line-height: 1.1; min-height: 42px; text-shadow: 0 0 10px rgba(var(--white-rgb), 0.4); }
-.progress-container { width: 100%; height: 10px; background-color: rgba(var(--accent-primary-rgb), 0.15); border-radius: 5px; overflow: hidden; margin: 0.7rem 0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.4); }
-.progress-bar { height: 100%; border-radius: 5px; background: var(--gradient-button); transition: width 0.6s ease-out; box-shadow: 0 0 10px var(--accent-glow); }
 .card-description { font-size: 0.95rem; color: var(--text-medium); }
 .card-footer { font-size: 0.9rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; padding-top: 1rem; border-top: 1px solid var(--border-color-light); margin-top: auto; font-weight: 500; }
 .card-footer.positive { color: var(--accent-lime); }
 .card-footer.negative { color: var(--accent-pink); }
 .card-footer i { font-size: 0.9em; }
 
+/* Shortcuts Grid */
 .shortcuts-section { margin-bottom: 2.5rem; }
 .shortcut-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.8rem; }
 .shortcut-card { padding: 1.8rem; text-decoration: none; color: var(--text-medium); display: flex; flex-direction: column; align-items: center; text-align: center; }
@@ -434,68 +479,100 @@ button.shortcut-card:hover::after { transform: translate(3px, 3px); }
 .shortcut-desc { font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; }
 
 /* Skeleton Loading */
-.loading .loading-skeleton { display: block !important; /* Ensure skeletons are visible */ }
-.loading > *:not(.loading-skeleton):not(style):not(script) { visibility: hidden; } /* Hide actual content */
+/* General loading class for containers */
+.loading > *:not(.loading-skeleton):not(style):not(script) { visibility: hidden; /* Hide actual content, show skeleton */ }
+.loading-skeleton { display: block !important; /* Ensure skeletons are visible */ visibility: visible !important; opacity: 1 !important; }
 .skeleton { background-color: var(--skeleton-bg); border-radius: 6px; position: relative; overflow: hidden; }
 .skeleton::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); animation: skeleton-loading 1.5s infinite linear; }
 @keyframes skeleton-loading { 0% { left: -150%; } 100% { left: 150%; } }
+/* Specific Skeleton Structures */
+.dashboard-card.loading .loading-skeleton { padding: 1.9rem; }
+.stats-card.loading .loading-skeleton { display: flex; align-items: center; gap: 1rem; padding: 1.5rem; }
+.stats-card.loading .skeleton.icon-placeholder { width: 45px; height: 45px; border-radius: 12px; flex-shrink: 0; }
+.stats-card.loading .skeleton.value { height: 24px; width: 60%; margin-bottom: 0.6rem; }
+.stats-card.loading .skeleton.text { height: 16px; width: 80%; }
+.chart-container.loading .skeleton { border-radius: var(--card-radius); }
+.last-test-result.loading .loading-skeleton { padding: 1.5rem; }
+.last-test-result.loading .skeleton.title { height: 20px; width: 50%; margin-bottom: 1rem; }
+.last-test-result.loading .skeleton.text { height: 14px; width: 80%; }
+.test-list.loading { padding: 1rem 0; }
+.schedule-grid.loading .loading-skeleton { display: block; }
+.topic-grid.loading .loading-skeleton { display: flex; align-items: center; gap: 1.5rem; padding: 1.5rem; }
+.topic-grid.loading .skeleton.icon-placeholder { width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0; }
+.topic-grid.loading .skeleton.title { height: 18px; width: 60%; margin-bottom: 0.7rem; }
+.topic-grid.loading .skeleton.text { height: 14px; width: 90%; margin-bottom: 0.4rem; }
+.topic-grid.loading .skeleton.text-short { height: 14px; width: 40%; }
+.shortcuts-grid.loading .loading-skeleton { display: flex; flex-direction: column; align-items: center; }
+.notification-item.skeleton .notification-icon.skeleton { width: 38px; height: 38px; border-radius: 50%; background-color: var(--skeleton-bg); }
+.notification-item.skeleton .notification-content { display: flex; flex-direction: column; gap: 6px; }
 
 /* Empty State Styling */
-.empty-state { padding: 3rem 2rem; text-align: center; color: var(--text-muted); display: none; flex-grow: 1; }
-.empty-state i { font-size: 3rem; margin-bottom: 1.2rem; color: var(--accent-secondary); opacity: 0.6; }
+.empty-state {
+    padding: 3rem 2rem;
+    text-align: center;
+    color: var(--text-muted);
+    display: none; /* Controlled by JS */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1; /* Take up space in flex container */
+    min-height: 200px; /* Ensure it has some height */
+}
+/* Make empty state visible when needed (e.g., when its container is shown and content is empty) */
+.empty-state-icon { font-size: 3rem; margin-bottom: 1.2rem; color: var(--accent-secondary); opacity: 0.6; }
 .empty-state h3 { font-size: 1.2rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.8rem; }
 .empty-state p { margin: 0 auto 1.5rem auto; font-size: 0.95rem; max-width: 450px; color: var(--text-medium); }
 .empty-state .btn { margin-top: 0.5rem; }
 /* --- END Specific Section Styles --- */
 
-/* --- START Modal Styles (Improvements) --- */
+/* --- START Modal Styles (From main.html, refined for scrolling) --- */
+/* Modal Overlay */
 .modal {
-    display: none;
+    display: none; /* Hidden by default, shown by JS */
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(var(--bg-secondary-rgb), 0.8); /* Slightly darker overlay */
-    z-index: 1050;
+    inset: 0; /* top: 0; left: 0; right: 0; bottom: 0; */
+    background-color: rgba(var(--bg-secondary-rgb), 0.8); /* Semi-transparent background */
+    z-index: 1050; /* Ensure it's above other content */
     align-items: center;
     justify-content: center;
     opacity: 0;
     transition: opacity 0.3s ease, backdrop-filter 0.3s ease;
-    backdrop-filter: blur(8px); /* Increased blur */
-    padding: 1.5rem; /* Padding around the modal */
-    overflow-y: hidden; /* Prevent overlay scroll, modal content will scroll */
+    backdrop-filter: blur(8px); /* Blur background */
+    padding: 1.5rem; /* Padding around the modal content */
+    /* overflow-y: hidden; Should not be needed here, let modal-content handle height */
 }
 .modal.active { display: flex; opacity: 1; }
 
+/* Modal Content Box */
 .modal-content {
-    background-color: var(--interface-bg);
+    background-color: var(--interface-bg); /* Use interface background */
     border-radius: var(--card-radius);
-    width: 100%; /* Take full width within padding */
-    max-width: 850px; /* Slightly wider */
+    width: 100%; /* Responsive width */
+    max-width: 850px; /* Max width for larger screens */
     box-shadow: var(--shadow-card);
-    border: 1px solid var(--border-color-medium); /* Match dashboard.css */
+    border: 1px solid var(--border-color-medium);
     display: flex;
-    flex-direction: column;
-    max-height: calc(100vh - 4rem); /* Limit height based on viewport minus padding */
-    animation: modalScaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bounce effect */
-    overflow: hidden; /* Hide direct overflow */
-    position: relative;
+    flex-direction: column; /* Stack header, body, footer */
+    max-height: calc(100vh - 4rem); /* Limit height to prevent overflow, accounts for padding */
+    animation: modalScaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden; /* CRITICAL: Prevent modal-content itself from scrolling */
+    position: relative; /* For absolute positioning inside if needed */
 }
-@keyframes modalScaleIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-}
+@keyframes modalScaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
+/* Modal Header */
 .modal-header {
     padding: 1.5rem 2rem;
     border-bottom: 1px solid var(--border-color-medium);
     display: flex;
     align-items: center;
-    justify-content: center; /* Center title by default */
-    position: relative;
+    justify-content: center; /* Center title */
+    position: relative; /* For back button positioning */
     flex-shrink: 0; /* Prevent header from shrinking */
-    background: rgba(var(--dark-purple-accent-rgb), 0.2); /* Subtle header background */
+    background: rgba(var(--dark-purple-accent-rgb), 0.2);
 }
 .modal-title {
-    font-size: 1.7rem; /* Larger title */
+    font-size: 1.7rem;
     margin: 0;
     display: flex;
     align-items: center;
@@ -506,11 +583,12 @@ button.shortcut-card:hover::after { transform: translate(3px, 3px); }
 }
 .modal-title i { font-size: 1em; }
 
+/* Modal Body - The Scrollable Part */
 .modal-body {
-    padding: 2rem 2.5rem; /* Increased padding */
-    overflow-y: auto; /* Enable vertical scrolling ONLY for the body */
-    flex-grow: 1; /* Allow body to take available space */
-    /* Add scrollbar styling */
+    padding: 2rem 2.5rem;
+    overflow-y: auto; /* CRITICAL: Enable vertical scrolling for the body */
+    flex-grow: 1; /* Allow body to take available vertical space */
+    /* Scrollbar Styling */
     scrollbar-width: thin;
     scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--bg-secondary-rgb), 0.3);
 }
@@ -519,109 +597,120 @@ button.shortcut-card:hover::after { transform: translate(3px, 3px); }
 .modal-body::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.5); border-radius: 4px; }
 .modal-body::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--accent-primary-rgb), 0.8); }
 
-.modal-body > p {
-    font-size: 1.1rem; /* Slightly larger intro text */
+/* Intro text in modal body */
+.modal-body > p:first-child { /* Target the intro paragraph more specifically */
+    font-size: 1.1rem;
     color: var(--text-medium);
-    max-width: 650px; /* Wider text block */
-    margin: 0 auto 2.5rem auto; /* Increased bottom margin */
+    max-width: 650px;
+    margin: 0 auto 2rem auto; /* Adjusted margin */
     text-align: center;
-    line-height: 1.7; /* Improved readability */
+    line-height: 1.7;
 }
 
+/* Goal Options Grid */
+.goal-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 1.5rem; /* Slightly reduced gap */
+    margin-top: 1.5rem; /* Reduced margin */
+    justify-content: center;
+}
+.goal-option-card {
+    /* Styles remain mostly the same, ensure they fit well */
+    padding: 2rem 1.5rem; /* Adjusted padding */
+    min-height: 220px;
+    /* ... other styles ... */
+    background: var(--card-bg);
+    border: 1px solid var(--border-color-light);
+    border-radius: var(--card-radius);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-medium);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
+    overflow: hidden;
+}
+.goal-option-card:hover { /* Keep hover effects */
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: var(--shadow-card-hover-enhanced);
+    border-color: var(--accent-primary);
+    background: linear-gradient(160deg, rgba(var(--accent-primary-rgb), 0.1), rgba(var(--accent-secondary-rgb), 0.08));
+}
+/* ... (goal icon, title, p styles) ... */
+.goal-icon { font-size: 2.8rem; color: var(--accent-secondary); margin-bottom: 1.2rem; transition: transform 0.3s var(--transition-bounce), color 0.3s ease; filter: drop-shadow(0 0 8px rgba(var(--accent-secondary-rgb), 0.4)); }
+.goal-option-card:hover .goal-icon { color: var(--accent-primary); transform: scale(1.15) rotate(-5deg); filter: drop-shadow(0 0 12px var(--accent-glow)); }
+.goal-option-card h3 { font-size: 1.25rem; color: var(--text-heading); margin-bottom: 0.8rem; font-weight: 700; }
+.goal-option-card p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 0; flex-grow: 1; }
+
+/* Modal Footer */
 .modal-footer {
     padding: 1.5rem 2rem;
     border-top: 1px solid var(--border-color-medium);
     display: flex;
-    justify-content: flex-end; /* Align buttons to the right */
-    align-items: center; /* Vertically align items if needed */
+    justify-content: flex-end; /* Align buttons right */
+    align-items: center;
     gap: 1rem;
-    flex-shrink: 0; /* Prevent footer from shrinking */
-    background-color: rgba(var(--card-solid-rgb), 0.8); /* Semi-transparent footer */
-    margin-top: 0; /* Remove potential top margin */
+    flex-shrink: 0; /* Prevent footer shrinking */
+    background-color: rgba(var(--card-solid-rgb), 0.8);
 }
-/* Ensure confirm button uses standard button styles */
-.modal-footer .modal-confirm-btn {
-    /* Styles should be inherited from .btn and .btn-primary */
-}
-/* Style for the small text often found in footers */
-.modal-footer small {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    text-align: left; /* Align left if on the same line as buttons */
-    margin-right: auto; /* Push buttons to the right */
-}
+.modal-footer small { font-size: 0.85rem; color: var(--text-muted); margin-right: auto; /* Push buttons right */ }
 .modal-footer small a { font-weight: 500; text-decoration: underline; text-decoration-color: var(--accent-primary); transition: color 0.2s ease, text-decoration-color 0.2s ease; }
 .modal-footer small a:hover { color: var(--white); text-decoration-color: var(--white); }
 
-
-.modal-back-btn {
-    background: none; border: none;
-    color: var(--text-muted); font-size: 1rem;
-    cursor: pointer; padding: 0.3rem 0.6rem;
-    transition: color 0.2s ease; display: flex;
-    align-items: center; gap: 0.4em;
-    position: absolute; left: 1.5rem; top: 50%; /* Position inside header */
-    transform: translateY(-50%);
-}
-.modal-back-btn:hover { color: var(--accent-primary); }
-
-/* --- Goal Options - visual tweaks --- */
-.goal-options {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); /* Adjusted minmax */
-    gap: 2rem; /* Increased gap */
-    margin-top: 2.5rem; /* Increased top margin */
-    justify-content: center;
-}
-.goal-option-card {
-    padding: 2.5rem 1.8rem; /* More padding */
-    min-height: 240px; /* Taller cards */
-    border-width: 2px; /* Thicker border */
-}
-.goal-option-card h3 { font-size: 1.35rem; } /* Larger heading */
-.goal-option-card p { font-size: 0.95rem; } /* Larger description */
-.goal-icon { font-size: 3rem; margin-bottom: 1.5rem;}
-
-/* --- Form Styles within modal - visual tweaks --- */
-.modal-step .form-group {
-    padding: 1.8rem; /* More padding */
-}
-.modal-step .form-group legend { font-size: 1.25rem; } /* Larger legend */
-.modal-step .form-group label { padding: 0.9rem 1.1rem; } /* More padding */
-
-/* --- Modal Steps --- */
-.modal-step {
-    display: none;
-    flex-direction: column;
-    width: 100%;
-    animation: stepFadeIn 0.4s ease-out forwards;
-}
+/* Modal Steps & Forms */
+.modal-step { display: none; flex-direction: column; width: 100%; animation: stepFadeIn 0.4s ease-out forwards; }
 .modal-step.active { display: flex; }
 @keyframes stepFadeIn { from { opacity: 0; transform: translateX(15px); } to { opacity: 1; transform: translateX(0); } }
+
+.modal-back-btn { background: none; border: none; color: var(--text-muted); font-size: 1rem; cursor: pointer; padding: 0.3rem 0.6rem; transition: color 0.2s ease; display: flex; align-items: center; gap: 0.4em; position: absolute; left: 1.5rem; top: 50%; transform: translateY(-50%); }
+.modal-back-btn:hover { color: var(--accent-primary); }
+
+.modal-step .form-group { /* Styles remain the same */ background-color: rgba(var(--bg-secondary-rgb), 0.5); border: 1px solid var(--border-color-medium); padding: 1.5rem; border-radius: var(--card-radius); margin-bottom: 1.8rem; text-align: left; }
+.modal-step .form-group legend { font-size: 1.15rem; font-weight: 600; color: var(--text-light); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color-light); }
+.modal-step .form-group label { display: flex; align-items: center; gap: 0.8rem; padding: 0.6rem 0.8rem; border-radius: var(--form-element-radius); transition: background-color 0.2s ease; cursor: pointer; font-size: 1rem; color: var(--text-medium); }
+.modal-step .form-group label:hover { background-color: rgba(var(--accent-primary-rgb), 0.1); color: var(--text-light); }
+.modal-step .form-group input[type="checkbox"], .modal-step .form-group input[type="radio"] { appearance: none; width: 20px; height: 20px; border: 2px solid var(--border-color-medium); border-radius: 50%; cursor: pointer; transition: all 0.2s ease; position: relative; flex-shrink: 0; }
+.modal-step .form-group input[type="checkbox"] { border-radius: 4px; }
+.modal-step .form-group input[type="checkbox"]:checked, .modal-step .form-group input[type="radio"]:checked { background-color: var(--accent-primary); border-color: var(--accent-primary); }
+.modal-step .form-group input[type="checkbox"]:checked::before, .modal-step .form-group input[type="radio"]:checked::before { content: ''; position: absolute; top: 50%; left: 50%; width: 10px; height: 10px; background-color: var(--text-fixed-dark); border-radius: 50%; transform: translate(-50%, -50%); }
+.modal-step .form-group input[type="checkbox"]:checked::before { content: '\f00c'; font-family: "Font Awesome 6 Free"; font-weight: 900; font-size: 10px; color: var(--text-fixed-dark); background-color: transparent; border-radius: 0; }
+.modal-step p small { font-size: 0.9rem; color: var(--text-muted); display: block; margin-top: 1rem; text-align: center; }
+
 /* --- END Modal Styles --- */
 
-/* --- Responsive Adjustments for Modal --- */
+/* --- Responsive Adjustments for Modal Scroll --- */
 @media (max-width: 768px) {
-    .modal-content {
-        max-width: 95%;
-        max-height: 95vh; /* Allow more height on mobile */
-    }
+    .modal-content { max-height: calc(100vh - 3rem); /* Allow more height */ }
+    .modal-body { padding: 1.5rem; /* Reduce padding */ }
+    .goal-options { grid-template-columns: 1fr; /* Single column */ gap: 1rem; }
+    .goal-option-card { padding: 1.5rem; min-height: auto; /* Adjust min-height */ }
+    .modal-footer { padding: 1rem 1.5rem; flex-direction: column-reverse; align-items: stretch; }
+    .modal-footer small { text-align: center; margin-right: 0; margin-bottom: 1rem; }
+    .modal-back-btn { left: 1rem; }
+}
+
+@media (max-height: 650px) {
+    .modal-content { max-height: calc(100vh - 2rem); } /* Further increase max-height */
+    .modal-body { padding: 1rem 1.5rem; } /* Further reduce padding */
+    .modal-body > p:first-child { margin-bottom: 1.5rem; }
     .modal-header { padding: 1rem 1.5rem; }
-    .modal-title { font-size: 1.4rem; }
-    .modal-body { padding: 1.5rem; }
-    .modal-body > p { font-size: 1rem; margin-bottom: 2rem;}
-    .modal-footer { padding: 1rem 1.5rem; flex-direction: column-reverse; align-items: stretch; } /* Stack buttons on mobile */
-    .modal-footer small { text-align: center; margin-right: 0; margin-bottom: 1rem;}
-    .modal-back-btn { left: 1rem; font-size: 0.9rem; }
-    .goal-options { grid-template-columns: 1fr; gap: 1.5rem;} /* Single column */
+    .modal-footer { padding: 1rem 1.5rem; }
+    .goal-option-card { padding: 1.5rem 1rem; }
+    .goal-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+    .goal-option-card h3 { font-size: 1.15rem; }
+    .goal-option-card p { font-size: 0.85rem; }
 }
 /* --- END Responsive Adjustments --- */
 
+
 /* --- Other Styles specific to procvicovani/main.html --- */
-/* (Zde můžeš přidat další specifické styly pro tuto stránku, pokud je potřeba) */
+/* (Add other specific styles if needed) */
 
 /* --- START Footer Styles (copied from dashboard.css) --- */
-.dashboard-footer { margin-top: auto; padding: 1.5rem var(--container-padding-x); text-align: center; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border-color-light); opacity: 0.6; flex-shrink: 0; width: 100%; /* Ensure it takes full width inside wrapper */ }
+.dashboard-footer { margin-top: auto; padding: 1.5rem var(--container-padding-x); text-align: center; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border-color-light); opacity: 0.6; flex-shrink: 0; width: 100%; }
 /* --- END Footer Styles --- */
 
 /* --- START Reduced Motion --- */
