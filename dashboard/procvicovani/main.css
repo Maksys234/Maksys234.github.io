@@ -1,5 +1,5 @@
 /* dashboard/procvicovani/main.css */
-/* Версия: 25.0.17-CSS - Редизайн выбора цели (Radio List), стилизация скроллбара модального окна */
+/* Версия: 25.0.18-CSS - Добавлено min-height: 0 для modal-body, проверка видимости tab-container */
 
 /* --- START: Киберпанк CSS Тема (Zkopírováno z dashboard.css + úpravy pro tuto stránku) --- */
 /* --- Глобальные Настройки и Переменные --- */
@@ -245,7 +245,6 @@ body.sidebar-collapsed .sidebar-menu::-webkit-scrollbar { display: none; }
 main#main-content { flex: 1; margin-left: var(--sidebar-width); transition: margin-left var(--transition-medium) ease, width var(--transition-medium) ease; width: calc(100% - var(--sidebar-width)); height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; padding: 0; opacity: 0; }
 main#main-content.loaded { opacity: 1; animation: fadeInMain 0.5s ease-out forwards; }
 @keyframes fadeInMain { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
 .main-content-wrapper { flex-grow: 1; overflow-y: auto; overflow-x: hidden; padding: var(--section-padding-y) var(--container-padding-x); position: relative; scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--bg-secondary-rgb), 0.3); }
 .main-content-wrapper::-webkit-scrollbar { width: 8px; }
 .main-content-wrapper::-webkit-scrollbar-track { background: rgba(var(--bg-secondary-rgb), 0.3); }
@@ -329,8 +328,28 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 /* --- END Tabs Styles --- */
 
 /* --- START Tab Content Styles --- */
-.tab-content-container { background: var(--card-bg); border-radius: 0 0 var(--card-radius) var(--card-radius); box-shadow: var(--shadow-hud); border: 1px solid var(--border-color-light); border-top: none; position: relative; overflow: hidden; flex-grow: 1; display: none; /* Hidden initially */ flex-direction: column; min-height: 0; visibility: hidden; opacity: 0; transition: opacity 0.3s ease, visibility 0s 0.3s; }
-.tab-content-container.visible { display: flex; visibility: visible; opacity: 1; transition-delay: 0s; }
+.tab-content-container {
+    background: var(--card-bg);
+    border-radius: 0 0 var(--card-radius) var(--card-radius);
+    box-shadow: var(--shadow-hud);
+    border: 1px solid var(--border-color-light);
+    border-top: none;
+    position: relative;
+    overflow: hidden;
+    flex-grow: 1;
+    display: none; /* Hidden initially, shown by JS */
+    flex-direction: column;
+    min-height: 0;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease, visibility 0s 0.3s;
+}
+.tab-content-container.visible { /* Shown by JS */
+    display: flex;
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0s;
+}
 .tab-content { padding: 2rem 2.5rem; display: none; flex-grow: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--bg-secondary-rgb), 0.3); }
 .tab-content::-webkit-scrollbar { width: 8px; }
 .tab-content::-webkit-scrollbar-track { background: rgba(var(--bg-secondary-rgb), 0.3); }
@@ -345,7 +364,6 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .section-title i { font-size: 1.1em; color: var(--accent-secondary); text-shadow: 0 0 8px var(--accent-secondary-glow); }
 .section-title::after { content: ''; position: absolute; bottom: 0; left: 0; width: 60px; height: 3px; background: var(--gradient-border-anim); background-size: 300% 100%; animation: gradient-move 4s linear infinite; border-radius: 1.5px; filter: drop-shadow(0 0 5px var(--accent-primary)); }
 @keyframes gradient-move { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
-/* ... Diagnostic prompt, dashboard grid, shortcuts, etc. ... */
 .diagnostic-prompt { background-color: var(--info-bg); border: 1px solid var(--info-border); border-radius: var(--card-radius); display: none; flex-direction: row; align-items: center; text-align: left; padding: 1.2rem 1.5rem; margin-bottom: 2rem; gap: 1.5rem; }
 .diagnostic-prompt i { font-size: 2rem; color: var(--info-color); }
 .diagnostic-prompt p { margin: 0; flex-grow: 1; color: var(--text-light); font-size: 1rem; }
@@ -419,164 +437,57 @@ button.shortcut-card:hover::after { transform: translate(3px, 3px); }
 /* --- START Modal Styles --- */
 .modal { display: none; position: fixed; inset: 0; background-color: rgba(var(--bg-secondary-rgb), 0.85); z-index: 1050; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease, backdrop-filter 0.3s ease; backdrop-filter: blur(10px); padding: 1.5rem; overflow: hidden; }
 .modal.active { display: flex; opacity: 1; }
-.modal-content { background-color: var(--interface-bg); border-radius: var(--card-radius); width: 100%; max-width: 850px; box-shadow: var(--shadow-card); border: 1px solid var(--border-color-medium); display: flex; flex-direction: column; max-height: calc(100vh - 4rem); animation: modalScaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden; position: relative; }
+.modal-content { background-color: var(--interface-bg); border-radius: var(--card-radius); width: 100%; max-width: 850px; box-shadow: var(--shadow-card); border: 1px solid var(--border-color-medium); display: flex; flex-direction: column; max-height: calc(100vh - 4rem); animation: modalScaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden; /* Parent has overflow hidden */ position: relative; }
 @keyframes modalScaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 .modal-header { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border-color-medium); display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; background: rgba(var(--dark-purple-accent-rgb), 0.2); }
 .modal-title { font-size: 1.7rem; margin: 0; display: flex; align-items: center; gap: 0.8rem; color: var(--accent-primary); text-shadow: 0 0 10px var(--accent-glow); text-align: center; }
 .modal-title i { font-size: 1em; }
+
 .modal-body {
-    padding: 1.5rem 2.5rem; /* Adjusted padding */
-    overflow-y: auto; /* !! Enable scroll !! */
-    flex-grow: 1; /* Take available space */
-    min-height: 150px;
-    /* ADDED: Custom Scrollbar Styles */
-    scrollbar-width: thin; /* Firefox */
-    scrollbar-color: var(--accent-primary) rgba(var(--bg-secondary-rgb), 0.5); /* Firefox: thumb track */
+    padding: 1.5rem 2.5rem;
+    overflow-y: auto; /* !! Allows internal content scrolling !! */
+    flex-grow: 1; /* Takes available space */
+    min-height: 0; /* !! CRUCIAL for flex-grow + overflow !! */
+    /* Custom Scrollbar Styles */
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-primary) rgba(var(--bg-secondary-rgb), 0.5);
 }
-/* Webkit (Chrome, Safari) Scrollbar Styles */
 .modal-body::-webkit-scrollbar { width: 10px; }
 .modal-body::-webkit-scrollbar-track { background: rgba(var(--bg-secondary-rgb), 0.5); border-radius: 5px; margin: 5px 0; }
 .modal-body::-webkit-scrollbar-thumb { background-color: var(--accent-primary); border-radius: 5px; border: 2px solid rgba(var(--bg-secondary-rgb), 0.5); background-clip: padding-box; }
 .modal-body::-webkit-scrollbar-thumb:hover { background-color: var(--accent-secondary); border-color: rgba(var(--bg-secondary-rgb), 0.6); }
-/* END: Custom Scrollbar Styles */
 
 .modal-body > p:first-of-type { font-size: 1.05rem; color: var(--text-medium); max-width: 650px; margin: 0 auto 1.5rem auto; text-align: center; line-height: 1.6; }
 
-/* --- REMOVED/COMMENTED OUT Old Goal Card Styles ---
-.goal-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; justify-content: center; }
-.goal-option-card { padding: 2rem 1.5rem; min-height: 220px; background: var(--card-bg); border: 1px solid var(--border-color-light); border-radius: var(--card-radius); text-align: center; cursor: pointer; transition: all var(--transition-medium); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; position: relative; overflow: hidden; }
-.goal-option-card:hover { transform: translateY(-8px) scale(1.03); box-shadow: var(--shadow-card-hover-enhanced); border-color: var(--accent-primary); background: linear-gradient(160deg, rgba(var(--accent-primary-rgb), 0.1), rgba(var(--accent-secondary-rgb), 0.08)); }
-.goal-icon { font-size: 2.8rem; color: var(--accent-secondary); margin-bottom: 1.2rem; transition: transform 0.3s var(--transition-bounce), color 0.3s ease; filter: drop-shadow(0 0 8px rgba(var(--accent-secondary-rgb), 0.4)); }
-.goal-option-card:hover .goal-icon { color: var(--accent-primary); transform: scale(1.15) rotate(-5deg); filter: drop-shadow(0 0 12px var(--accent-glow)); }
-.goal-option-card h3 { font-size: 1.25rem; color: var(--text-heading); margin-bottom: 0.8rem; font-weight: 700; }
-.goal-option-card p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 0; flex-grow: 1; }
---- END REMOVED --- */
-
-/* --- ADDED: New Goal Radio List Styles --- */
-.goal-radio-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem; /* Spacing between items */
-    margin-top: 1.5rem;
-}
-.goal-radio-label {
-    display: block; /* Make label take full width */
-    padding: 1.2rem 1.5rem; /* Padding inside label */
-    border: 1px solid var(--border-color-medium);
-    border-radius: var(--card-radius);
-    background-color: var(--card-solid);
-    cursor: pointer;
-    transition: all 0.25s ease;
-    position: relative; /* For potential pseudo-elements */
-}
-.goal-radio-label:hover {
-    background-color: rgba(var(--accent-primary-rgb), 0.08);
-    border-color: var(--accent-primary);
-    transform: scale(1.01); /* Subtle scale on hover */
-    box-shadow: 0 4px 15px rgba(var(--accent-primary-rgb), 0.1);
-}
-.goal-radio-label input[type="radio"] {
-    /* Hide the default radio button */
-    appearance: none;
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-.goal-radio-content {
-    display: flex;
-    align-items: center; /* Align icon and text vertically */
-    gap: 1.5rem; /* Space between icon and text block */
-}
-.goal-radio-content .goal-icon {
-    font-size: 2.2rem; /* Adjust icon size */
-    color: var(--accent-secondary);
-    margin-bottom: 0; /* Remove bottom margin */
-    transition: color 0.2s ease;
-    flex-shrink: 0; /* Prevent icon from shrinking */
-    width: 40px; /* Fixed width for alignment */
-    text-align: center;
-}
-.goal-radio-label:hover .goal-icon {
-    color: var(--accent-primary);
-}
-.goal-text {
-    text-align: left; /* Align text to the left */
-}
-.goal-text h3 {
-    font-size: 1.15rem;
-    color: var(--text-light);
-    margin-bottom: 0.3rem; /* Reduced margin */
-    font-weight: 600;
-}
-.goal-text p {
-    font-size: 0.9rem;
-    color: var(--text-medium);
-    line-height: 1.5;
-    margin-bottom: 0; /* Remove default paragraph margin */
-}
-/* Style for the selected label */
-.goal-radio-label input[type="radio"]:checked + .goal-radio-content {
-    /* Add styles to the content div when radio is checked */
-}
-.goal-radio-label input[type="radio"]:checked + .goal-radio-content .goal-icon {
-    color: var(--accent-lime); /* Change icon color when selected */
-}
-/* Add a visual indicator to the selected label */
-.goal-radio-label::after {
-    content: '\f00c'; /* Check icon */
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
-    position: absolute;
-    top: 50%;
-    right: 1.5rem;
-    transform: translateY(-50%) scale(0.8);
-    font-size: 1.3rem;
-    color: var(--accent-lime);
-    opacity: 0;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-}
-.goal-radio-label input[type="radio"]:checked ~ .goal-radio-content::after { /* Incorrect: Apply to label */
-    opacity: 1;
-    transform: translateY(-50%) scale(1);
-}
-/* Corrected selector for checkmark */
-.goal-radio-label input[type="radio"]:checked + .goal-radio-content + ::after { /* Still not quite right, need to target label's pseudo */
-   /* This approach needs rethinking. Let's style the label border instead */
-}
-.goal-radio-label input[type="radio"]:checked {
-    /* We can't directly style the parent label based on :checked pseudo-class */
-}
-/* Style the label itself when its radio is checked using sibling selector (if input is first) or parent selector (not standard CSS) */
-/* Workaround: Style the label border/background when hovered or focused-within */
-.goal-radio-label:has(input[type="radio"]:checked) { /* :has is not fully supported everywhere yet */
-     border-color: var(--accent-lime);
-     background-color: rgba(var(--accent-lime-rgb), 0.1);
-     box-shadow: 0 0 15px rgba(var(--accent-lime-rgb), 0.2);
-}
-/* Alternative: Add class via JS on change */
-.goal-radio-label.selected-goal {
-     border-color: var(--accent-lime);
-     background-color: rgba(var(--accent-lime-rgb), 0.1);
-     box-shadow: 0 0 15px rgba(var(--accent-lime-rgb), 0.2);
-}
-.goal-radio-label.selected-goal .goal-icon {
-    color: var(--accent-lime);
-}
+/* --- START: New Goal Radio List Styles --- */
+.goal-radio-list { display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem; }
+.goal-radio-label { display: block; padding: 1.2rem 1.5rem; border: 1px solid var(--border-color-medium); border-radius: var(--card-radius); background-color: var(--card-solid); cursor: pointer; transition: all 0.25s ease; position: relative; }
+.goal-radio-label:hover { background-color: rgba(var(--accent-primary-rgb), 0.08); border-color: var(--accent-primary); transform: scale(1.01); box-shadow: 0 4px 15px rgba(var(--accent-primary-rgb), 0.1); }
+.goal-radio-label input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; } /* Hide default radio */
+.goal-radio-content { display: flex; align-items: center; gap: 1.5rem; }
+.goal-radio-content .goal-icon { font-size: 2.2rem; color: var(--accent-secondary); margin-bottom: 0; transition: color 0.2s ease; flex-shrink: 0; width: 40px; text-align: center; }
+.goal-radio-label:hover .goal-icon { color: var(--accent-primary); }
+.goal-text { text-align: left; }
+.goal-text h3 { font-size: 1.15rem; color: var(--text-light); margin-bottom: 0.3rem; font-weight: 600; }
+.goal-text p { font-size: 0.9rem; color: var(--text-medium); line-height: 1.5; margin-bottom: 0; }
+/* Style for selected label (using JS class 'selected-goal') */
+.goal-radio-label.selected-goal { border-color: var(--accent-lime); background-color: rgba(var(--accent-lime-rgb), 0.1); box-shadow: 0 0 15px rgba(var(--accent-lime-rgb), 0.2); }
+.goal-radio-label.selected-goal .goal-icon { color: var(--accent-lime); }
+/* Add a checkmark */
+.goal-radio-label::before { content: ''; width: 20px; height: 20px; border: 2px solid var(--border-color-medium); border-radius: 50%; position: absolute; right: 1.5rem; top: 50%; transform: translateY(-50%); transition: all 0.2s ease; }
+.goal-radio-label.selected-goal::before { background-color: var(--accent-lime); border-color: var(--accent-lime); }
+.goal-radio-label.selected-goal::after { content: '\f00c'; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; right: calc(1.5rem + 5px); /* Adjust position based on border */ top: 50%; transform: translateY(-50%); font-size: 10px; color: var(--text-fixed-dark); }
 /* --- END: New Goal Radio List Styles --- */
 
 .modal-footer { padding: 1.5rem 2rem; border-top: 1px solid var(--border-color-medium); display: flex; justify-content: flex-end; align-items: center; gap: 1rem; flex-shrink: 0; background-color: rgba(var(--card-solid-rgb), 0.8); }
 .modal-footer small { font-size: 0.85rem; color: var(--text-muted); margin-right: auto; }
 .modal-footer small a { font-weight: 500; text-decoration: underline; text-decoration-color: var(--accent-primary); transition: color 0.2s ease, text-decoration-color 0.2s ease; }
 .modal-footer small a:hover { color: var(--white); text-decoration-color: var(--white); }
-
 .modal-step { display: none; flex-direction: column; width: 100%; animation: stepFadeIn 0.4s ease-out forwards; }
 .modal-step.active { display: flex; }
 @keyframes stepFadeIn { from { opacity: 0; transform: translateX(15px); } to { opacity: 1; transform: translateX(0); } }
-
 .modal-back-btn { background: none; border: none; color: var(--text-muted); font-size: 1rem; cursor: pointer; padding: 0.3rem 0.6rem; transition: color 0.2s ease; display: flex; align-items: center; gap: 0.4em; position: absolute; left: 1.5rem; top: 50%; transform: translateY(-50%); }
 .modal-back-btn:hover { color: var(--accent-primary); }
-
 .modal-step .form-group { background-color: rgba(var(--bg-secondary-rgb), 0.5); border: 1px solid var(--border-color-medium); padding: 1.5rem; border-radius: var(--card-radius); margin-bottom: 1.8rem; text-align: left; }
 .modal-step .form-group legend { font-size: 1.15rem; font-weight: 600; color: var(--text-light); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-color-light); }
 .modal-step .form-group label { display: flex; align-items: center; gap: 0.8rem; padding: 0.6rem 0.8rem; border-radius: var(--form-element-radius); transition: background-color 0.2s ease; cursor: pointer; font-size: 1rem; color: var(--text-medium); }
@@ -592,8 +503,8 @@ button.shortcut-card:hover::after { transform: translate(3px, 3px); }
 /* --- Responsive Adjustments for Modal Scroll --- */
 @media (max-width: 768px) {
     .modal-content { max-height: calc(100vh - 3rem); }
-    .modal-body { padding: 1.2rem 1.5rem; /* Reduced padding */ }
-    .goal-radio-list { gap: 0.8rem; } /* Adjust gap for list */
+    .modal-body { padding: 1.2rem 1.5rem; }
+    .goal-radio-list { gap: 0.8rem; }
     .goal-radio-label { padding: 1rem 1.2rem; }
     .goal-radio-content { gap: 1rem; }
     .goal-icon { font-size: 2rem; width: 35px; }
@@ -603,7 +514,6 @@ button.shortcut-card:hover::after { transform: translate(3px, 3px); }
     .modal-footer small { text-align: center; margin-right: 0; margin-bottom: 1rem; }
     .modal-back-btn { left: 1rem; }
 }
-
 @media (max-height: 650px) {
     .modal-content { max-height: calc(100vh - 2rem); }
     .modal-body { padding: 1rem 1.5rem; }
