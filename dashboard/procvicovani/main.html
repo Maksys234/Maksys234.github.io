@@ -17,208 +17,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <link rel="stylesheet" href="../dashboard.css">
-    <link rel="stylesheet" href="main.css"> <style>
-        /* Styly pro modální okno výběru cíle - převzato z tvého kódu, upraveno pro konzistenci */
-        .modal#goal-selection-modal .modal-content {
-            max-width: 800px;
-            background: var(--card-solid);
-            border: 1px solid var(--accent-primary);
-            box-shadow: 0 0 30px rgba(var(--accent-primary-rgb), 0.3), var(--shadow-card);
-        }
-        .modal#goal-selection-modal .modal-header {
-            border-bottom: 1px solid var(--border-color-medium);
-            padding-bottom: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .modal#goal-selection-modal .modal-title {
-            font-size: 1.6rem;
-            color: var(--accent-primary);
-            text-shadow: 0 0 8px var(--accent-glow);
-        }
-        .modal#goal-selection-modal .modal-title i {
-            margin-right: 0.8rem;
-            font-size: 1.1em;
-        }
-        .modal#goal-selection-modal .modal-body > p {
-            font-size: 1.05rem;
-            color: var(--text-medium);
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        .goal-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.8rem;
-            margin-top: 2rem;
-            justify-content: center;
-        }
-        .goal-option-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color-light);
-            border-radius: var(--card-radius);
-            padding: 2rem 1.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all var(--transition-medium);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            min-height: 220px;
-            position: relative;
-            overflow: hidden;
-        }
-        .goal-option-card::before, .goal-option-card::after {
-            content: ''; position: absolute; width: 18px; height: 18px;
-            border-color: var(--accent-secondary); border-style: solid; opacity: 0;
-            transition: all 0.4s ease; pointer-events: none; z-index: 0;
-            filter: drop-shadow(0 0 3px rgba(var(--accent-secondary-rgb), 0.5));
-        }
-        .goal-option-card::before { top: 10px; left: 10px; border-width: 2px 0 0 2px; }
-        .goal-option-card::after { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
-        .goal-option-card:hover {
-            transform: translateY(-8px) scale(1.03);
-            box-shadow: var(--shadow-card-hover-enhanced);
-            border-color: var(--accent-primary);
-            background: linear-gradient(160deg, rgba(var(--accent-primary-rgb), 0.1), rgba(var(--accent-secondary-rgb), 0.08));
-        }
-         .goal-option-card:hover::before, .goal-option-card:hover::after {
-            opacity: 0.7;
-            border-color: var(--accent-primary);
-         }
-        .goal-icon {
-            font-size: 2.8rem;
-            color: var(--accent-secondary);
-            margin-bottom: 1.2rem;
-            transition: transform 0.3s var(--transition-bounce), color 0.3s ease;
-            filter: drop-shadow(0 0 8px rgba(var(--accent-secondary-rgb), 0.4));
-        }
-        .goal-option-card:hover .goal-icon {
-            color: var(--accent-primary);
-            transform: scale(1.15) rotate(-5deg);
-            filter: drop-shadow(0 0 12px var(--accent-glow));
-        }
-        .goal-option-card h3 {
-            font-size: 1.25rem;
-            color: var(--text-heading);
-            margin-bottom: 0.8rem;
-            font-weight: 700;
-        }
-        .goal-option-card p {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            line-height: 1.5;
-            margin-bottom: 0;
-            flex-grow: 1;
-        }
-        .modal#goal-selection-modal .modal-footer {
-            border-top: 1px solid var(--border-color-medium);
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            text-align: center; /* Added for centering link */
-        }
-        .modal#goal-selection-modal .modal-footer small a {
-            font-weight: 500;
-            text-decoration: underline;
-            text-decoration-color: var(--accent-primary);
-            transition: color 0.2s ease, text-decoration-color 0.2s ease;
-        }
-        .modal#goal-selection-modal .modal-footer small a:hover {
-            color: var(--white);
-            text-decoration-color: var(--white);
-        }
-        .modal#goal-selection-modal .modal-step .form-group {
-            background-color: rgba(var(--bg-secondary-rgb), 0.5);
-            border: 1px solid var(--border-color-medium);
-            padding: 1.5rem;
-            border-radius: var(--card-radius);
-            margin-bottom: 1.8rem;
-            text-align: left;
-        }
-        .modal#goal-selection-modal .modal-step .form-group legend {
-            font-size: 1.15rem;
-            font-weight: 600;
-            color: var(--text-light);
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border-color-light);
-        }
-        .modal#goal-selection-modal .modal-step .form-group label {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            padding: 0.6rem 0.8rem;
-            border-radius: var(--form-element-radius);
-            transition: background-color 0.2s ease;
-            cursor: pointer;
-            font-size: 1rem;
-            color: var(--text-medium);
-        }
-        .modal#goal-selection-modal .modal-step .form-group label:hover {
-            background-color: rgba(var(--accent-primary-rgb), 0.1);
-            color: var(--text-light);
-        }
-        .modal#goal-selection-modal .modal-step .form-group input[type="checkbox"],
-        .modal#goal-selection-modal .modal-step .form-group input[type="radio"] {
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--border-color-medium);
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-            flex-shrink: 0;
-        }
-        .modal#goal-selection-modal .modal-step .form-group input[type="checkbox"] {
-            border-radius: 4px;
-        }
-        .modal#goal-selection-modal .modal-step .form-group input[type="checkbox"]:checked,
-        .modal#goal-selection-modal .modal-step .form-group input[type="radio"]:checked {
-            background-color: var(--accent-primary);
-            border-color: var(--accent-primary);
-        }
-        .modal#goal-selection-modal .modal-step .form-group input[type="checkbox"]:checked::before,
-        .modal#goal-selection-modal .modal-step .form-group input[type="radio"]:checked::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 10px;
-            height: 10px;
-            background-color: var(--text-fixed-dark);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-        }
-        .modal#goal-selection-modal .modal-step .form-group input[type="checkbox"]:checked::before {
-            content: '\f00c'; /* FontAwesome check icon unicode */
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
-            font-size: 10px;
-            color: var(--text-fixed-dark);
-            background-color: transparent;
-            border-radius: 0;
-        }
-        .modal#goal-selection-modal .modal-step p small {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            display: block;
-            margin-top: 1rem;
-            text-align: center;
-        }
-         /* --- NEW MODAL BACK/CONFIRM BUTTON STYLES (Generic) --- */
-        .modal .modal-footer .modal-confirm-btn,
-        .modal .modal-footer .modal-back-btn, /* Assuming back might be in footer too */
-        .modal .modal-header .modal-back-btn { /* If back is in header */
-            /* Apply .btn styles or specific modal button styles */
-        }
-        .modal-back-btn { /* More specific styling if needed */
-            /* Example: use btn-secondary styles */
-        }
+    <link rel="stylesheet" href="../dashboard.css"> <link rel="stylesheet" href="main.css">
+    <style>
+        /* Inline styles specific to this page can go here, but modal styles were moved */
     </style>
 </head>
 <body class="dark">
@@ -236,16 +37,9 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu"> <i class="fas fa-times"></i> </button>
-            <a href="/dashboard/dashboard.html" class="sidebar-logo"> <i class="fas fa-atom"></i> <span>Justax</span> </a>
-        </div>
+            <a href="../dashboard.html" class="sidebar-logo"> <i class="fas fa-atom"></i> <span>Justax</span> </a> </div>
         <ul class="sidebar-menu">
-            <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-tachometer-alt"></i> <span>Nástěnka</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> <i class="fas fa-laptop-code"></i> <span>Procvičování</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-database"></i> <span>Databanka</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-astronaut"></i> <span>Profil</span> </a> </li>
-        </ul>
+            <li class="sidebar-item"> <a href="../dashboard.html" class="sidebar-link"> <i class="fas fa-tachometer-alt"></i> <span>Nástěnka</span> </a> </li> <li class="sidebar-item"> <a href="main.html" class="sidebar-link active"> <i class="fas fa-laptop-code"></i> <span>Procvičování</span> </a> </li> <li class="sidebar-item"> <a href="../pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li> <li class="sidebar-item"> <a href="../oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li> <li class="sidebar-item"> <a href="../materialy.html" class="sidebar-link"> <i class="fas fa-database"></i> <span>Databanka</span> </a> </li> <li class="sidebar-item"> <a href="../profile.html" class="sidebar-link"> <i class="fas fa-user-astronaut"></i> <span>Profil</span> </a> </li> </ul>
         <div class="user-profile">
             <div class="avatar-wrapper" data-decoration-key=""> <div class="user-avatar" id="sidebar-avatar">?</div>
             </div>
@@ -256,7 +50,8 @@
         <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
     </aside>
 
-    <main id="main-content" style="display: none;"> <header class="dashboard-header">
+    <main id="main-content" style="display: none;">
+        <header class="dashboard-header">
             <div class="header-content">
                 <div class="header-left-group">
                     <button class="btn btn-icon-only sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Přepnout postranní panel" title="Přepnout postranní panel">
@@ -286,8 +81,7 @@
                                 <div id="no-notifications-msg" style="display: none; padding: 1rem; text-align: center; color: var(--text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div>
                             </div>
                             <div class="notifications-footer">
-                                <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a>
-                            </div>
+                                <a href="../notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a> </div>
                         </div>
                     </div>
                 </div>
@@ -302,38 +96,50 @@
                 <a href="test1.html" class="btn btn-primary" id="start-test-btn-prompt"><i class="fas fa-play"></i> Spustit test</a>
             </div>
 
-            <div class="tabs-wrapper" id="tabs-wrapper">
-                <div class="content-tabs" id="content-tabs">
-                    <div class="content-tab active" data-tab="practice-tab"> <i class="fas fa-laptop-code"></i> Přehled </div>
+            <div class="tabs-wrapper" id="tabs-wrapper" style="display: none;"> <div class="content-tabs" id="content-tabs">
+                    <div class="content-tab active" data-tab="practice-tab"> <i class="fas fa-globe"></i> Obecné </div>
                     <div class="content-tab" data-tab="test-results-tab"> <i class="fas fa-poll"></i> Testy </div>
                     <div class="content-tab" data-tab="study-plan-tab"> <i class="fas fa-route"></i> Plán </div>
-                    <div class="content-tab" data-tab="topic-analysis-tab"> <i class="fas fa-atom"></i> Témata </div>
-                </div>
+                    <div class="content-tab" data-tab="vyuka-tab"> <i class="fas fa-person-chalkboard"></i> Výuka </div>
+                    </div>
             </div>
 
-            <div class="tab-content-container">
-                <div class="tab-content active" id="practice-tab-content">
+            <div class="tab-content-container" style="display: none;"> <div class="tab-content active" id="practice-tab-content">
                     <section class="stats-section">
                         <h2 class="section-title" data-animate style="--animation-order: 1;"><i class="fas fa-chart-pie"></i>Celkový Přehled</h2>
                         <div class="dashboard-grid" id="stats-cards">
-                            <div class="dashboard-card card loading"> <div class="loading-skeleton"> <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 1rem;"></div> <div class="skeleton" style="height: 35px; width: 40%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 16px; width: 80%; margin-bottom: 1.5rem;"></div> <div class="skeleton" style="height: 14px; width: 50%;"></div> </div> </div>
+                            <div class="card" style="min-height: 150px; display: flex; align-items: center; justify-content: center; opacity: 0.5;">
+                                <p>Přehledové statistiky se načítají...</p>
+                            </div>
                         </div>
                      </section>
                      <section class="shortcuts-section">
                         <h2 class="section-title" data-animate style="--animation-order: 6;"><i class="fas fa-rocket"></i>Rychlé Akce</h2>
                         <div class="shortcut-grid loading" id="shortcuts-grid">
-                            <div class="shortcut-card card loading"> <div class="loading-skeleton" style="align-items: center; padding: 1.8rem;"><div class="skeleton" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div><div class="skeleton" style="height: 18px; width: 70%; margin-bottom: 0.8rem;"></div><div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.4rem;"></div><div class="skeleton" style="height: 14px; width: 80%;"></div></div></div>
+                            <div class="card" style="min-height: 150px; display: flex; align-items: center; justify-content: center; opacity: 0.5;">
+                                <p>Rychlé akce se načítají...</p>
+                            </div>
                         </div>
                      </section>
+                     <div style="text-align: center; padding: 2rem; color: var(--text-muted); margin-top: 1rem;">
+                        <i class="fas fa-globe" style="font-size: 3rem; opacity: 0.2; margin-bottom: 1rem;"></i>
+                        <h3>Obecný Přehled</h3>
+                        <p>Tato sekce zobrazuje vaše celkové statistiky a rychlé zkratky pro hlavní funkce procvičování.</p>
+                    </div>
                  </div>
 
                  <div class="tab-content" id="test-results-tab-content">
                     <section class="test-results-section card loading" id="test-results-container">
                         <h2 class="section-title"><i class="fas fa-poll"></i>Historie Testů</h2>
                         <div class="loading-overlay hidden" id="test-results-loading"> <div class="loading-spinner"></div> </div>
-                        <div id="test-results-content"></div>
-                        <div class="empty-state" id="test-results-empty">
-                            <i class="fas fa-vial empty-state-icon"></i>
+                        <div id="test-results-content">
+                            <div class="empty-state" style="display:flex;">
+                                <i class="fas fa-vial empty-state-icon"></i>
+                                <h3>Sekce Testů</h3>
+                                <p>Zde naleznete výsledky vašich absolvovaných diagnostických a cvičných testů.</p>
+                            </div>
+                        </div>
+                        <div class="empty-state" id="test-results-empty" style="display: none;"> <i class="fas fa-vial empty-state-icon"></i>
                             <h3>Zatím žádné výsledky</h3>
                             <p>Absolvujte test pro zobrazení výsledků.</p>
                             <a href="test1.html" class="btn btn-primary empty-state-action" id="start-test-btn-results">
@@ -344,15 +150,17 @@
                  </div>
 
                  <div class="tab-content" id="study-plan-tab-content">
-                    <section class="study-plan-section card loading" id="study-plan-container">
-                        <h2 class="section-title"><i class="fas fa-route"></i>Aktuální Studijní Plán</h2>
+                     <section class="study-plan-section card loading" id="study-plan-container">
+                        <h2 class="section-title"><i class="fas fa-route"></i>Studijní Plán</h2>
                         <div class="loading-overlay hidden" id="study-plan-loading"> <div class="loading-spinner"></div> </div>
                         <div id="study-plan-content">
-                            <div id="main-plan-schedule" class="schedule-grid">
-                                </div>
+                            <div class="empty-state" style="display:flex;">
+                                <i class="far fa-calendar-alt empty-state-icon"></i>
+                                <h3>Váš Studijní Plán</h3>
+                                <p>V této sekci naleznete svůj personalizovaný studijní plán sestavený na míru.</p>
+                            </div>
                         </div>
-                        <div class="empty-state" id="study-plan-empty">
-                            <i class="far fa-calendar-times empty-state-icon"></i>
+                        <div class="empty-state" id="study-plan-empty" style="display: none;"> <i class="far fa-calendar-times empty-state-icon"></i>
                             <h3>Žádný aktivní plán</h3>
                             <p>Váš plán se vytvoří po diagnostickém testu nebo výběru cíle.</p>
                             <button class="btn btn-primary empty-state-action" id="create-plan-btn-empty">
@@ -362,26 +170,18 @@
                     </section>
                  </div>
 
-                 <div class="tab-content" id="topic-analysis-tab-content">
-                    <section class="topic-analysis-section card loading" id="topic-analysis-container">
-                        <h2 class="section-title"><i class="fas fa-atom"></i>Analýza podle Témat</h2>
-                        <div class="loading-overlay hidden" id="topic-analysis-loading"> <div class="loading-spinner"></div> </div>
-                        <div id="topic-analysis-content">
-                            <div id="topic-grid" class="topic-grid">
-                                </div>
-                        </div>
-                        <div class="empty-state" id="topic-analysis-empty">
-                            <i class="fas fa-tasks empty-state-icon"></i>
-                            <h3>Chybí data pro analýzu</h3>
-                            <p>Absolvujte test nebo vyberte cíl pro analýzu znalostí.</p>
-                            <a href="test1.html" class="btn btn-primary empty-state-action" id="start-test-btn-analysis">
-                                <i class="fas fa-play-circle"></i> Spustit test
-                            </a>
+                 <div class="tab-content" id="vyuka-tab-content">
+                    <section class="vyuka-section card">
+                        <h2 class="section-title"><i class="fas fa-person-chalkboard"></i>Výuka s AI</h2>
+                         <div class="empty-state" style="display:flex;">
+                            <i class="fas fa-robot empty-state-icon"></i>
+                            <h3>AI Výukový Modul</h3>
+                            <p>Zde můžete procházet výukové lekce s naším AI tutorem Justaxem. Lekce jsou přizpůsobeny vašemu studijnímu plánu a pokroku.</p>
+                             <a href="vyuka/vyuka.html" class="btn btn-primary" style="margin-top: 1rem;"> <i class="fas fa-book-open"></i> Spustit výuku </a>
                         </div>
                     </section>
                  </div>
-            </div>
-
+                 </div>
             <footer class="dashboard-footer">
                  <p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p>
             </footer>
@@ -394,8 +194,7 @@
                 <div class="modal-header">
                     <h2 class="modal-title"><i class="fas fa-bullseye"></i> Jaký je Váš hlavní cíl?</h2>
                 </div>
-                <div class="modal-body">
-                    <p>Vyberte si, na co se chcete v sekci Procvičování primárně zaměřit. Toto nastavení ovlivní doporučený obsah a funkce.</p>
+                <div class="modal-body"> <p>Vyberte si, na co se chcete v sekci Procvičování primárně zaměřit. Toto nastavení ovlivní doporučený obsah a funkce.</p>
                     <div class="goal-options">
                         <button class="goal-option-card card" data-goal="exam_prep">
                             <i class="fas fa-graduation-cap goal-icon"></i>
@@ -420,81 +219,26 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <small>Svůj cíl můžete později změnit v <a href="/dashboard/profile.html">nastavení profilu</a>.</small>
-                </div>
+                    <small>Svůj cíl můžete později změnit v <a href="../profile.html">nastavení profilu</a>.</small> </div>
             </div>
 
             <div class="modal-step" id="goal-step-accelerate">
-                <div class="modal-header">
-                    <button type="button" class="btn btn-sm btn-secondary modal-back-btn" data-target-step="goal-step-1"><i class="fas fa-arrow-left"></i> Zpět</button>
-                    <h2 class="modal-title"><i class="fas fa-rocket"></i> Učení napřed: Podrobnosti</h2>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group" id="accelerate-areas-group">
-                        <legend>Které oblasti matematiky vás primárně zajímají?</legend>
-                        <label><input type="checkbox" name="accelerate_area" value="algebra"> Algebra</label>
-                        <label><input type="checkbox" name="accelerate_area" value="geometry"> Geometrie</label>
-                        <label><input type="checkbox" name="accelerate_area" value="functions"> Funkce</label>
-                        <label><input type="checkbox" name="accelerate_area" value="combinatorics"> Kombinatorika/Pravděpodobnost</label>
-                        <label><input type="checkbox" name="accelerate_area" value="calculus"> Kalkulus (SŠ+)</label>
-                    </div>
-                    <div class="form-group" id="accelerate-reason-group">
-                        <legend>Proč se chcete učit napřed?</legend>
-                        <label><input type="radio" name="accelerate_reason" value="school_ahead"> Chci být napřed ve škole</label>
-                        <label><input type="radio" name="accelerate_reason" value="university_prep"> Příprava na VŠ/Olympiády</label>
-                        <label><input type="radio" name="accelerate_reason" value="personal_interest"> Osobní zájem</label>
-                        <label><input type="radio" name="accelerate_reason" value="professional"> Profesní potřeby</label>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary modal-confirm-btn" data-goal="math_accelerate">Potvrdit a pokračovat</button>
-                </div>
+                 <div class="modal-header"> <button type="button" class="btn btn-sm btn-secondary modal-back-btn" data-target-step="goal-step-1"><i class="fas fa-arrow-left"></i> Zpět</button> <h2 class="modal-title"><i class="fas fa-rocket"></i> Učení napřed: Podrobnosti</h2> </div> <div class="modal-body"> <div class="form-group" id="accelerate-areas-group"> <legend>Které oblasti matematiky vás primárně zajímají?</legend> <label><input type="checkbox" name="accelerate_area" value="algebra"> Algebra</label> <label><input type="checkbox" name="accelerate_area" value="geometry"> Geometrie</label> <label><input type="checkbox" name="accelerate_area" value="functions"> Funkce</label> <label><input type="checkbox" name="accelerate_area" value="combinatorics"> Kombinatorika/Pravděpodobnost</label> <label><input type="checkbox" name="accelerate_area" value="calculus"> Kalkulus (SŠ+)</label> </div> <div class="form-group" id="accelerate-reason-group"> <legend>Proč se chcete učit napřed?</legend> <label><input type="radio" name="accelerate_reason" value="school_ahead"> Chci být napřed ve škole</label> <label><input type="radio" name="accelerate_reason" value="university_prep"> Příprava na VŠ/Olympiády</label> <label><input type="radio" name="accelerate_reason" value="personal_interest"> Osobní zájem</label> <label><input type="radio" name="accelerate_reason" value="professional"> Profesní potřeby</label> </div> </div> <div class="modal-footer"> <button type="button" class="btn btn-primary modal-confirm-btn" data-goal="math_accelerate">Potvrdit a pokračovat</button> </div>
             </div>
 
             <div class="modal-step" id="goal-step-review">
-                <div class="modal-header">
-                    <button type="button" class="btn btn-sm btn-secondary modal-back-btn" data-target-step="goal-step-1"><i class="fas fa-arrow-left"></i> Zpět</button>
-                    <h2 class="modal-title"><i class="fas fa-sync-alt"></i> Doplnění mezer: Oblasti</h2>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group" id="review-areas-group">
-                        <legend>Vyberte oblasti k opakování (nepovinné):</legend>
-                        <label><input type="checkbox" name="review_area" value="linear_equations"> Lineární rovnice</label>
-                        <label><input type="checkbox" name="review_area" value="percentages"> Procenta</label>
-                        <label><input type="checkbox" name="review_area" value="geometry_basics"> Základy geometrie</label>
-                        <label><input type="checkbox" name="review_area" value="fractions"> Zlomky</label>
-                        <label><input type="checkbox" name="review_area" value="expressions"> Algebraické výrazy</label>
-                        <label><input type="checkbox" name="review_area" value="word_problems"> Slovní úlohy</label>
-                    </div>
-                    <p><small>Pokud nic nevyberete, systém navrhne témata na základě vaší historie nebo diagnostiky.</small></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary modal-confirm-btn" data-goal="math_review">Potvrdit a pokračovat</button>
-                </div>
+                 <div class="modal-header"> <button type="button" class="btn btn-sm btn-secondary modal-back-btn" data-target-step="goal-step-1"><i class="fas fa-arrow-left"></i> Zpět</button> <h2 class="modal-title"><i class="fas fa-sync-alt"></i> Doplnění mezer: Oblasti</h2> </div> <div class="modal-body"> <div class="form-group" id="review-areas-group"> <legend>Vyberte oblasti k opakování (nepovinné):</legend> <label><input type="checkbox" name="review_area" value="linear_equations"> Lineární rovnice</label> <label><input type="checkbox" name="review_area" value="percentages"> Procenta</label> <label><input type="checkbox" name="review_area" value="geometry_basics"> Základy geometrie</label> <label><input type="checkbox" name="review_area" value="fractions"> Zlomky</label> <label><input type="checkbox" name="review_area" value="expressions"> Algebraické výrazy</label> <label><input type="checkbox" name="review_area" value="word_problems"> Slovní úlohy</label> </div> <p><small>Pokud nic nevyberete, systém navrhne témata na základě vaší historie nebo diagnostiky.</small></p> </div> <div class="modal-footer"> <button type="button" class="btn btn-primary modal-confirm-btn" data-goal="math_review">Potvrdit a pokračovat</button> </div>
             </div>
 
             <div class="modal-step" id="goal-step-explore">
-                <div class="modal-header">
-                    <button type="button" class="btn btn-sm btn-secondary modal-back-btn" data-target-step="goal-step-1"><i class="fas fa-arrow-left"></i> Zpět</button>
-                    <h2 class="modal-title"><i class="fas fa-compass"></i> Volné prozkoumávání: Úroveň</h2>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group" id="explore-level-group">
-                        <legend>Vyberte vaši přibližnou aktuální úroveň:</legend>
-                        <label><input type="radio" name="explore_level" value="middle_school"> Základní škola (2. stupeň)</label>
-                        <label><input type="radio" name="explore_level" value="high_school"> Střední škola / Maturita</label>
-                        <label><input type="radio" name="explore_level" value="college"> Vysoká škola (základy)</label>
-                        <label><input type="radio" name="explore_level" value="advanced"> Pokročilý / Jiné</label>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary modal-confirm-btn" data-goal="math_explore">Potvrdit a pokračovat</button>
-                </div>
+                 <div class="modal-header"> <button type="button" class="btn btn-sm btn-secondary modal-back-btn" data-target-step="goal-step-1"><i class="fas fa-arrow-left"></i> Zpět</button> <h2 class="modal-title"><i class="fas fa-compass"></i> Volné prozkoumávání: Úroveň</h2> </div> <div class="modal-body"> <div class="form-group" id="explore-level-group"> <legend>Vyberte vaši přibližnou aktuální úroveň:</legend> <label><input type="radio" name="explore_level" value="middle_school"> Základní škola (2. stupeň)</label> <label><input type="radio" name="explore_level" value="high_school"> Střední škola / Maturita</label> <label><input type="radio" name="explore_level" value="college"> Vysoká škola (základy)</label> <label><input type="radio" name="explore_level" value="advanced"> Pokročilý / Jiné</label> </div> </div> <div class="modal-footer"> <button type="button" class="btn btn-primary modal-confirm-btn" data-goal="math_explore">Potvrdit a pokračovat</button> </div>
             </div>
         </div>
     </div>
 
-    <div class="toast-container" id="toastContainer"></div> <div id="mouse-follower" class="mouse-follower-glow"></div>
+    <div class="toast-container" id="toastContainer"></div>
+    <div id="mouse-follower" class="mouse-follower-glow"></div>
 
-    <script src="main.js" defer></script> </body>
+    <script src="main.js" defer></script>
+</body>
 </html>
