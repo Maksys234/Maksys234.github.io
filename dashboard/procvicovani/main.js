@@ -1,6 +1,6 @@
 // dashboard/procvicovani/main.js
-// Version: 25.0.7 - Fixed ReferenceError for setLoadingState by ensuring its definition and scope.
-// Přesunuta definice setLoadingState pro zajištění dostupnosti.
+// Version: 25.0.8 - Fixed tab content element ID lookup in loadTabData.
+// Používá camelCase pro přístup k ui objektu pro obsah záložek.
 
 (function() { // Start IIFE
     'use strict';
@@ -119,9 +119,7 @@
     function updateOnlineStatus() { console.log("[Procvičování UI Placeholder] updateOnlineStatus called."); }
     function initMouseFollower() { console.log("[Procvičování UI Placeholder] initMouseFollower called."); }
 
-    // --- START: Klíčová funkce setLoadingState (přesunuta výše) ---
     function setLoadingState(sectionKey, isLoadingFlag) {
-        // Zkontrolujeme, zda isLoading objekt existuje a má daný klíč
         if (!isLoading || typeof isLoading[sectionKey] === 'undefined' && sectionKey !== 'all') {
             console.warn(`[Procvičování UI Loading v6.2] Neznámý klíč sekce '${sectionKey}' nebo objekt isLoading není inicializován.`);
             return;
@@ -129,7 +127,6 @@
         if (isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return;
 
         const updateSingleSection = (key, loading) => {
-            // Opětovná kontrola existence klíče v isLoading pro 'all'
             if (typeof isLoading[key] === 'undefined') {
                 console.warn(`[Procvičování UI Loading v6.2] Neznámý dílčí klíč sekce '${key}' při zpracování 'all'.`);
                 return;
@@ -144,8 +141,8 @@
                 plan: { container: ui.studyPlanContainer, content: ui.studyPlanContent, empty: ui.studyPlanEmpty, loader: ui.studyPlanLoading, skeletonFn: renderPlanSkeletons },
                 topics: { container: ui.topicAnalysisContainer, content: ui.topicAnalysisContent, empty: ui.topicAnalysisEmpty, loader: ui.topicAnalysisLoading, skeletonFn: renderTopicSkeletons },
                 shortcuts: { container: ui.shortcutsGrid, skeletonFn: renderShortcutSkeletons },
-                notifications: { }, // Pouze pro isLoading flag, nemá vizuální loader v této funkci
-                goalSelection: { }  // Pouze pro isLoading flag
+                notifications: { },
+                goalSelection: { }
             };
             const config = sectionMap[key];
             if (!config) { if (key !== 'all' && key !== 'notifications' && key !== 'goalSelection') console.warn(`[Procvičování UI Loading v6.2] Unknown section key '${key}'.`); return; }
@@ -164,22 +161,19 @@
                 const clearSkeletons = (el) => { el?.querySelectorAll(skeletonSelector).forEach(skel => skel.parentElement?.classList.remove('loading')); el?.querySelectorAll(skeletonSelector).forEach(skel => skel.remove()); };
                 if (content) clearSkeletons(content);
                 if (container && (key === 'stats' || key === 'shortcuts')) clearSkeletons(container);
-                // Odložení zobrazení, aby se kostry stihly odstranit
                 setTimeout(() => {
                     if (key === 'stats' && ui.statsCards) { if (ui.statsCards.querySelectorAll('.dashboard-card:not(.loading-skeleton)').length > 0) ui.statsCards.style.display = 'grid'; }
                     else if (content && empty) { const hasActualContent = content.innerHTML.trim() !== ''; let displayType = 'block'; if (content.id === 'topic-grid' || content.id === 'stats-cards' || content.id === 'shortcuts-grid' || content.id === 'main-plan-schedule' || content.classList.contains('test-stats')) displayType = 'grid'; content.style.display = hasActualContent ? displayType : 'none'; empty.style.display = hasActualContent ? 'none' : 'block'; }
                     else if (content && (key === 'shortcuts')) { if (container && container.querySelectorAll('.shortcut-card:not(.loading-skeleton)').length > 0) container.style.display = 'grid'; else if (container) container.innerHTML = '<p class="empty-state-text" style="grid-column: 1 / -1; text-align:center;">Žádné zkratky.</p>';}
-                }, 50); // Krátké zpoždění
+                }, 50);
             }
         };
         if (sectionKey === 'all') { Object.keys(isLoading).forEach(key => { if (key !== 'all' && key !== 'goalSelection' && key !== 'notifications') updateSingleSection(key, isLoadingFlag); }); }
         else { updateSingleSection(sectionKey, isLoadingFlag); }
     }
-    // --- END: Klíčová funkce setLoadingState ---
-
     // --- END: Helper Functions ---
 
-    // --- START: DOM Element Caching (Vylepšená verze) ---
+    // --- START: DOM Element Caching ---
     function cacheDOMElements() {
         console.log("[Procvičování Cache DOM v6.2] Caching elements...");
         const elementDefinitions = [
@@ -187,7 +181,7 @@
             { key: 'mainContent', id: 'main-content', critical: true },
             { key: 'sidebar', id: 'sidebar', critical: true },
             { key: 'tabsWrapper', id: 'tabs-wrapper', critical: true },
-            { key: 'practiceTabContent', id: 'practice-tab-content', critical: true },
+            { key: 'practiceTabContent', id: 'practice-tab-content', critical: true }, // ID je 'practice-tab-content'
             { key: 'goalSelectionModal', id: 'goal-selection-modal', critical: true },
             { key: 'goalStep1', id: 'goal-step-1', critical: true },
             { key: 'sidebarOverlay', id: 'sidebar-overlay', critical: false },
@@ -229,7 +223,7 @@
             { key: 'mainPlanSchedule', id: 'main-plan-schedule', critical: false },
             { key: 'topicAnalysisContainer', id: 'topic-analysis-container', critical: false },
             { key: 'topicAnalysisLoading', id: 'topic-analysis-loading', critical: false },
-            { key: 'topicAnalysisContent', id: 'topic-analysis-content', critical: false },
+            { key: 'topicAnalysisContent', id: 'topic-analysis-content', critical: false }, // ID je 'topic-analysis-content'
             { key: 'topicAnalysisEmpty', id: 'topic-analysis-empty', critical: false },
             { key: 'startTestBtnAnalysis', id: 'start-test-btn-analysis', critical: false },
             { key: 'topicGrid', id: 'topic-grid', critical: false },
@@ -240,9 +234,10 @@
             { key: 'reviewAreasGroup', id: 'review-areas-group', critical: true },
             { key: 'goalStepExplore', id: 'goal-step-explore', critical: true },
             { key: 'exploreLevelGroup', id: 'explore-level-group', critical: true },
-            { key: 'testResultsTabContent', id: 'test-results-tab-content', critical: false },
-            { key: 'studyPlanTabContent', id: 'study-plan-tab-content', critical: false },
-            { key: 'topicAnalysisTabContent', id: 'topic-analysis-tab-content', critical: false }
+            { key: 'testResultsTabContent', id: 'test-results-tab-content', critical: false }, // ID je 'test-results-tab-content'
+            { key: 'studyPlanTabContent', id: 'study-plan-tab-content', critical: false }    // ID je 'study-plan-tab-content'
+            // Chyběl topicAnalysisTabContent, doplněno:
+            ,{ key: 'topicAnalysisTabContent', id: 'topic-analysis-tab-content', critical: false }
         ];
 
         const notFoundCritical = [];
@@ -263,7 +258,7 @@
         });
 
         ui.contentTabs = document.querySelectorAll('.content-tab');
-        ui.tabContents = document.querySelectorAll('.tab-content');
+        ui.tabContents = document.querySelectorAll('.tab-content'); // Tento selektor by měl najít všechny tab-content
         ui.modalBackBtns = ui.goalSelectionModal ? ui.goalSelectionModal.querySelectorAll('.modal-back-btn') : [];
         ui.modalConfirmBtns = ui.goalSelectionModal ? ui.goalSelectionModal.querySelectorAll('.modal-confirm-btn') : [];
         ui.goalOptionCards = ui.goalStep1 ? ui.goalStep1.querySelectorAll('.goal-option-card') : [];
@@ -281,7 +276,12 @@
         }
 
         if (ui.contentTabs.length === 0) console.warn("[CACHE DOM v6.2] Nenalezeny žádné elementy záložek (.content-tab).");
-        if (ui.tabContents.length === 0) console.warn("[CACHE DOM v6.2] Nenalezeny žádné kontejnery obsahu záložek (.tab-content).");
+        // Kontrola pro tabContents, jestli jsou všechny klíčové cachovány
+        if (!ui.practiceTabContent) console.warn("[CACHE DOM v6.2] ui.practiceTabContent chybí.");
+        if (!ui.testResultsTabContent) console.warn("[CACHE DOM v6.2] ui.testResultsTabContent chybí.");
+        if (!ui.studyPlanTabContent) console.warn("[CACHE DOM v6.2] ui.studyPlanTabContent chybí.");
+        if (!ui.topicAnalysisTabContent) console.warn("[CACHE DOM v6.2] ui.topicAnalysisTabContent chybí.");
+
 
         console.log("[Procvičování Cache DOM v6.2] Pokus o cachování dokončen.");
     }
@@ -333,20 +333,12 @@
     function renderPlanSkeletons(container) { const scheduleGrid = ui.mainPlanSchedule; if (!container || !scheduleGrid) { console.warn("[Skeletons] Study plan content or schedule grid not found."); return; } scheduleGrid.innerHTML = `<div class="schedule-grid loading"><div class="schedule-day card loading"><div class="loading-skeleton" style="padding: 1.5rem;"><div class="skeleton" style="height: 24px; width: 40%; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 50px; width: 100%; margin-bottom: 0.8rem;"></div><div class="skeleton" style="height: 50px; width: 100%;"></div></div></div><div class="schedule-day card loading"><div class="loading-skeleton" style="padding: 1.5rem;"><div class="skeleton" style="height: 24px; width: 50%; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 50px; width: 100%; margin-bottom: 0.8rem;"></div></div></div><div class="schedule-day card loading"><div class="loading-skeleton" style="padding: 1.5rem;"><div class="skeleton" style="height: 24px; width: 45%; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 50px; width: 100%; margin-bottom: 0.8rem;"></div><div class="skeleton" style="height: 50px; width: 100%;"></div></div></div></div>`;}
     function renderTopicSkeletons(container) { const topicGrid = ui.topicGrid; if (!container || !topicGrid) { console.warn("[Skeletons] Topic analysis content or topic grid not found."); return; } topicGrid.innerHTML = `<div class="topic-grid loading"><div class="topic-card card loading"><div class="loading-skeleton"><div class="skeleton icon-placeholder"></div><div style="flex-grow: 1;"><div class="skeleton title"></div><div class="skeleton text"></div><div class="skeleton text-short"></div></div></div></div><div class="topic-card card loading"><div class="loading-skeleton"><div class="skeleton icon-placeholder"></div><div style="flex-grow: 1;"><div class="skeleton title"></div><div class="skeleton text"></div><div class="skeleton text-short"></div></div></div></div><div class="topic-card card loading"><div class="loading-skeleton"><div class="skeleton icon-placeholder"></div><div style="flex-grow: 1;"><div class="skeleton title"></div><div class="skeleton text"></div><div class="skeleton text-short"></div></div></div></div></div>`;}
     function renderShortcutSkeletons(container) { if (!container) { console.warn("[Skeletons] Shortcuts grid container not found."); return; } container.innerHTML = ''; for(let i = 0; i < 3; i++) { container.innerHTML += `<div class="shortcut-card card loading"><div class="loading-skeleton" style="align-items: center; padding: 1.8rem;"><div class="skeleton" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div><div class="skeleton" style="height: 18px; width: 70%; margin-bottom: 0.8rem;"></div><div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.4rem;"></div><div class="skeleton" style="height: 14px; width: 80%;"></div></div></div>`; } container.classList.add('loading');}
-    function renderStatsCards(stats) { if (!ui.statsCards) { console.error("Stats cards container (ui.statsCards) not found!"); setLoadingState('stats', false); return; } /* ... */ ui.statsCards.innerHTML = ` <div class="dashboard-card card"> <div class="card-header"><h3 class="card-title">Celkové Body</h3><span class="card-badge info">INFO</span></div> <div class="card-content"><div class="card-value">${stats?.totalPoints || 'N/A'}</div></div> <div class="card-footer">Statistika bodů</div> </div> <div class="dashboard-card card"> <div class="card-header"><h3 class="card-title">Dokončená Cvičení</h3></div> <div class="card-content"><div class="card-value">${stats?.completedExercises || 'N/A'}</div></div> <div class="card-footer">Přehled cvičení</div> </div> <div class="dashboard-card card"> <div class="card-header"><h3 class="card-title">Série Dní</h3></div> <div class="card-content"><div class="card-value">${stats?.activeStreak || 'N/A'}</div></div> <div class="card-footer">Aktuální série</div> </div> <div class="dashboard-card card"> <div class="card-header"><h3 class="card-title">Poslední Test</h3></div> <div class="card-content"><div class="card-value">${stats?.lastTestScore !== null && stats?.lastTestScore !== undefined ? stats.lastTestScore + '%' : 'N/A'}</div></div> <div class="card-footer">Výsledek testu</div> </div> `; ui.statsCards.classList.remove('loading'); setLoadingState('stats', false); }
+    function renderStatsCards(stats) { if (!ui.statsCards) { console.error("Stats cards container (ui.statsCards) not found!"); setLoadingState('stats', false); return; } ui.statsCards.innerHTML = ` <div class="dashboard-card card"> <div class="card-header"><h3 class="card-title">Celkové Body</h3><span class="card-badge info">INFO</span></div> <div class="card-content"><div class="card-value">${stats?.totalPoints || 'N/A'}</div></div> <div class="card-footer">Statistika bodů</div> </div> <div class="dashboard-card card"> <div class="card-header"><h3 class="card-title">Dokončená Cvičení</h3></div> <div class="card-content"><div class="card-value">${stats?.completedExercises || 'N/A'}</div></div> <div class="card-footer">Přehled cvičení</div> </div> <div class="dashboard-card card"> <div class="card-header"><h3 class="card-title">Série Dní</h3></div> <div class="card-content"><div class="card-value">${stats?.activeStreak || 'N/A'}</div></div> <div class="card-footer">Aktuální série</div> </div> <div class="dashboard-card card"> <div class="card-header"><h3 class="card-title">Poslední Test</h3></div> <div class="card-content"><div class="card-value">${stats?.lastTestScore !== null && stats?.lastTestScore !== undefined ? stats.lastTestScore + '%' : 'N/A'}</div></div> <div class="card-footer">Výsledek testu</div> </div> `; ui.statsCards.classList.remove('loading'); setLoadingState('stats', false); }
     function renderTestResults(results, goal) { if(!ui.testResultsContainer) { console.error("Test results container not found!"); setLoadingState('tests', false); return; } ui.testResultsContainer.classList.remove('loading'); if(ui.testResultsContent) { ui.testResultsContent.innerHTML = ''; ui.testResultsContent.style.display = 'none'; } if(ui.testResultsEmpty) ui.testResultsEmpty.style.display = 'block'; setLoadingState('tests', false); }
     function renderStudyPlanOverview(plan, activities, goal) { if(!ui.studyPlanContainer) { console.error("Study plan container not found!"); setLoadingState('plan', false); return; } ui.studyPlanContainer.classList.remove('loading'); if(ui.studyPlanContent) { ui.studyPlanContent.innerHTML = ''; ui.studyPlanContent.style.display = 'none'; } if(ui.studyPlanEmpty) ui.studyPlanEmpty.style.display = 'block'; setLoadingState('plan', false); }
     function renderTopicAnalysis(topics, goal) { if(!ui.topicAnalysisContainer) { console.error("Topic analysis container not found!"); setLoadingState('topics', false); return; } ui.topicAnalysisContainer.classList.remove('loading'); if(ui.topicAnalysisContent) { ui.topicAnalysisContent.innerHTML = ''; ui.topicAnalysisContent.style.display = 'none'; } if(ui.topicAnalysisEmpty) ui.topicAnalysisEmpty.style.display = 'block'; setLoadingState('topics', false); }
-    function renderShortcutsForGoal(goal, container) {
-        if (!container) { console.warn("[Shortcuts] Shortcut container (ui.shortcutsGrid) not found."); setLoadingState('shortcuts', false); return; }
-        setLoadingState('shortcuts', true); // Začátek načítání
-        container.innerHTML = ''; console.log(`[Shortcuts] Rendering for goal: ${goal}`);
-        let shortcutsHTML = '';
-        const shortcuts = { /* ... (definice zkratek zachována) ... */ test: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-graduation-cap"></i></div><h3 class="shortcut-title">Diagnostický Test</h3><p class="shortcut-desc">Ověřte své znalosti.</p><a href="/dashboard/procvicovani/test1.html" class="btn btn-secondary btn-sm" style="margin-top: auto;">Spustit Test</a></div>`, plan: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-tasks"></i></div><h3 class="shortcut-title">Studijní Plán</h3><p class="shortcut-desc">Zobrazte personalizovaný plán.</p><a href="/dashboard/procvicovani/plan.html" class="btn btn-primary btn-sm" style="margin-top: auto;">Zobrazit Plán</a></div>`, tutor: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-book-open"></i></div><h3 class="shortcut-title">AI Tutor (Lekce)</h3><p class="shortcut-desc">Vysvětlení témat z plánu.</p><a href="/dashboard/procvicovani/vyuka/vyuka.html" class="btn btn-secondary btn-sm" style="margin-top: auto;">Spustit Výuku</a></div>`, nextTopic: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-forward"></i></div><h3 class="shortcut-title">Další Téma Osnovy</h3><p class="shortcut-desc">Pokračujte v osnově.</p><a href="/dashboard/procvicovani/vyuka/vyuka.html" class="btn btn-primary btn-sm" style="margin-top: auto;">Učit se Další</a></div>`, curriculum: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-stream"></i></div><h3 class="shortcut-title">Přehled Osnovy</h3><p class="shortcut-desc">Zobrazte přehled témat.</p><a href="/dashboard/procvicovani/plan.html" class="btn btn-secondary btn-sm" style="margin-top: auto;">Zobrazit Osnovu</a></div>`, weakness: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-search"></i></div><h3 class="shortcut-title">Moje Slabiny</h3><p class="shortcut-desc">Témata k zlepšení.</p><a href="#" class="btn btn-primary btn-sm" style="margin-top: auto;" onclick="switchActiveTab('topic-analysis-tab'); return false;">Analýza Témat</a></div>`, review: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-history"></i></div><h3 class="shortcut-title">Opakování</h3><p class="shortcut-desc">Procvičte si starší témata.</p><a href="#" class="btn btn-secondary btn-sm" style="margin-top: auto;" onclick="showToast('Info','Funkce opakování se připravuje.','info'); return false;">Spustit Opakování</a></div>`, explore: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-compass"></i></div><h3 class="shortcut-title">Procházet Témata</h3><p class="shortcut-desc">Vyberte si téma k učení.</p><a href="#" class="btn btn-primary btn-sm" style="margin-top: auto;" onclick="switchActiveTab('topic-analysis-tab'); return false;">Vybrat Téma</a></div>`, random: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-dumbbell"></i></div><h3 class="shortcut-title">Náhodné Cvičení</h3><p class="shortcut-desc">Rychlé procvičení.</p><a href="#" class="btn btn-secondary btn-sm" style="margin-top: auto;" onclick="showToast('Info','Funkce náhodného cvičení se připravuje.','info'); return false;">Náhodné Cvičení</a></div>`, progress: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-chart-line"></i></div><h3 class="shortcut-title">Můj Pokrok</h3><p class="shortcut-desc">Sledujte své zlepšení.</p><a href="/dashboard/pokrok.html" class="btn btn-secondary btn-sm" style="margin-top: auto;">Zobrazit Pokrok</a></div>` };
-        switch (goal) { case 'exam_prep': shortcutsHTML = shortcuts.test + shortcuts.plan + shortcuts.tutor; break; case 'math_accelerate': shortcutsHTML = shortcuts.nextTopic + shortcuts.curriculum + shortcuts.tutor; break; case 'math_review': shortcutsHTML = shortcuts.weakness + shortcuts.review + shortcuts.tutor; break; case 'math_explore': shortcutsHTML = shortcuts.explore + shortcuts.random + shortcuts.tutor; break; default: shortcutsHTML = shortcuts.progress + shortcuts.tutor + shortcuts.random; }
-        requestAnimationFrame(() => { if(container) { container.innerHTML = shortcutsHTML; container.classList.remove('loading'); setLoadingState('shortcuts', false); if (typeof initScrollAnimations === 'function') initScrollAnimations(); } });
-    }
-    // --- END: UI Configuration ---
+    function renderShortcutsForGoal(goal, container) { if (!container) { console.warn("[Shortcuts] Shortcut container (ui.shortcutsGrid) not found."); setLoadingState('shortcuts', false); return; } setLoadingState('shortcuts', true); container.innerHTML = ''; console.log(`[Shortcuts] Rendering for goal: ${goal}`); let shortcutsHTML = ''; const shortcuts = { test: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-graduation-cap"></i></div><h3 class="shortcut-title">Diagnostický Test</h3><p class="shortcut-desc">Ověřte své znalosti.</p><a href="/dashboard/procvicovani/test1.html" class="btn btn-secondary btn-sm" style="margin-top: auto;">Spustit Test</a></div>`, plan: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-tasks"></i></div><h3 class="shortcut-title">Studijní Plán</h3><p class="shortcut-desc">Zobrazte personalizovaný plán.</p><a href="/dashboard/procvicovani/plan.html" class="btn btn-primary btn-sm" style="margin-top: auto;">Zobrazit Plán</a></div>`, tutor: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-book-open"></i></div><h3 class="shortcut-title">AI Tutor (Lekce)</h3><p class="shortcut-desc">Vysvětlení témat z plánu.</p><a href="/dashboard/procvicovani/vyuka/vyuka.html" class="btn btn-secondary btn-sm" style="margin-top: auto;">Spustit Výuku</a></div>`, nextTopic: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-forward"></i></div><h3 class="shortcut-title">Další Téma Osnovy</h3><p class="shortcut-desc">Pokračujte v osnově.</p><a href="/dashboard/procvicovani/vyuka/vyuka.html" class="btn btn-primary btn-sm" style="margin-top: auto;">Učit se Další</a></div>`, curriculum: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-stream"></i></div><h3 class="shortcut-title">Přehled Osnovy</h3><p class="shortcut-desc">Zobrazte přehled témat.</p><a href="/dashboard/procvicovani/plan.html" class="btn btn-secondary btn-sm" style="margin-top: auto;">Zobrazit Osnovu</a></div>`, weakness: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-search"></i></div><h3 class="shortcut-title">Moje Slabiny</h3><p class="shortcut-desc">Témata k zlepšení.</p><a href="#" class="btn btn-primary btn-sm" style="margin-top: auto;" onclick="switchActiveTab('topic-analysis-tab'); return false;">Analýza Témat</a></div>`, review: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-history"></i></div><h3 class="shortcut-title">Opakování</h3><p class="shortcut-desc">Procvičte si starší témata.</p><a href="#" class="btn btn-secondary btn-sm" style="margin-top: auto;" onclick="showToast('Info','Funkce opakování se připravuje.','info'); return false;">Spustit Opakování</a></div>`, explore: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-compass"></i></div><h3 class="shortcut-title">Procházet Témata</h3><p class="shortcut-desc">Vyberte si téma k učení.</p><a href="#" class="btn btn-primary btn-sm" style="margin-top: auto;" onclick="switchActiveTab('topic-analysis-tab'); return false;">Vybrat Téma</a></div>`, random: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-dumbbell"></i></div><h3 class="shortcut-title">Náhodné Cvičení</h3><p class="shortcut-desc">Rychlé procvičení.</p><a href="#" class="btn btn-secondary btn-sm" style="margin-top: auto;" onclick="showToast('Info','Funkce náhodného cvičení se připravuje.','info'); return false;">Náhodné Cvičení</a></div>`, progress: `<div class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-chart-line"></i></div><h3 class="shortcut-title">Můj Pokrok</h3><p class="shortcut-desc">Sledujte své zlepšení.</p><a href="/dashboard/pokrok.html" class="btn btn-secondary btn-sm" style="margin-top: auto;">Zobrazit Pokrok</a></div>` }; switch (goal) { case 'exam_prep': shortcutsHTML = shortcuts.test + shortcuts.plan + shortcuts.tutor; break; case 'math_accelerate': shortcutsHTML = shortcuts.nextTopic + shortcuts.curriculum + shortcuts.tutor; break; case 'math_review': shortcutsHTML = shortcuts.weakness + shortcuts.review + shortcuts.tutor; break; case 'math_explore': shortcutsHTML = shortcuts.explore + shortcuts.random + shortcuts.tutor; break; default: shortcutsHTML = shortcuts.progress + shortcuts.tutor + shortcuts.random; } requestAnimationFrame(() => { if(container) { container.innerHTML = shortcutsHTML; container.classList.remove('loading'); setLoadingState('shortcuts', false); if (typeof initScrollAnimations === 'function') initScrollAnimations(); } }); }
+    // --- END: UI Update Functions ---
 
     // --- START: Data Fetching Stubs ---
     async function fetchDashboardStats(userId, profileData) { console.log("[Fetch Data Stub] fetchDashboardStats called."); await new Promise(resolve => setTimeout(resolve, 700)); diagnosticResultsData = diagnosticResultsData || []; return { totalPoints: profileData?.points || 0, completedExercises: profileData?.completed_exercises || 0, activeStreak: profileData?.streak_days || 0, lastTestScore: diagnosticResultsData.length > 0 ? diagnosticResultsData[0].total_score : null, }; }
@@ -357,25 +349,25 @@
     // --- END: Data Fetching Stubs ---
 
     // --- START: Notification Stubs ---
-    async function fetchNotifications(userId, limit) {
-        console.log(`[Notifications Stub] fetchNotifications called for user ${userId}, limit ${limit}.`);
-        // Volání setLoadingState PŘED asynchronní operací
-        setLoadingState('notifications', true);
-        await new Promise(resolve => setTimeout(resolve, 600));
-        const fakeNotifications = [];
-        renderNotifications(0, fakeNotifications); // renderNotifications by nemělo volat setLoadingState
-        setLoadingState('notifications', false); // Volání setLoadingState PO dokončení
-        return { unreadCount: 0, notifications: fakeNotifications };
-    }
+    async function fetchNotifications(userId, limit) { console.log(`[Notifications Stub] fetchNotifications called for user ${userId}, limit ${limit}.`); setLoadingState('notifications', true); await new Promise(resolve => setTimeout(resolve, 600)); const fakeNotifications = []; renderNotifications(0, fakeNotifications); setLoadingState('notifications', false); return { unreadCount: 0, notifications: fakeNotifications }; }
     function renderNotifications(count, notifications) { console.log(`[Notifications Stub] renderNotifications called with count ${count}.`); if (!ui.notificationBell || !ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Notifications Stub] UI elements missing for notifications."); return; } ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications?.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div> <div class="notification-content"> <div class="notification-title">${sanitizeHTML(n.title)}</div> <div class="notification-message">${sanitizeHTML(n.message)}</div> <div class="notification-time">${formatRelativeTime(n.created_at)}</div> </div> </div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; } ui.markAllReadBtn.disabled = count === 0; }
     async function markNotificationRead(notificationId) { console.log(`[Notifications Stub] markNotificationRead for ID ${notificationId}.`); await new Promise(resolve => setTimeout(resolve, 200)); return true; }
     async function markAllNotificationsRead() { console.log(`[Notifications Stub] markAllNotificationsRead.`); await new Promise(resolve => setTimeout(resolve, 300)); renderNotifications(0, []); showToast('Oznámení vymazána.', 'success'); }
     function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) {console.warn("[Skeletons] Notifications list or no-message element not found."); return;} let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton"></div><div class="notification-content"><div class="skeleton" style="height:16px;width:70%;margin-bottom:6px;"></div><div class="skeleton" style="height:12px;width:90%;"></div><div class="skeleton" style="height:10px;width:40%;margin-top:6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
     // --- END: Notification Stubs ---
 
-    // --- START: Core Application Logic ---
-    let isInitialTabLoad = true;
-    // ... (zbytek funkcí loadTabData, tabIdToSectionKey, loadPageData, handleTabSwitch, switchActiveTab, handleRefreshClick, handleOutsideNotificationClick, initializeSupabase, createDefaultProfile zůstává stejný jako v předchozí verzi 25.0.6)
+    // --- START: Goal Selection Logic ---
+    function checkUserGoalAndDiagnostic() { console.log("[Goal Check v25.0.7] Checking user goal and diagnostic status..."); /* ... (zbytek funkce) ... */ try { if (!currentProfile || !currentProfile.learning_goal) { if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'none'; console.log("[Goal Check v25.0.7] No profile or learning_goal. Modal should be shown elsewhere."); return; } const goal = currentProfile.learning_goal; console.log(`[Goal Check v25.0.7] User goal: ${goal}`); if (!ui.diagnosticPrompt) { console.warn("[Goal Check v25.0.7] ui.diagnosticPrompt not found, cannot display diagnostic messages."); return; } if (goal === 'exam_prep') { console.log("[Goal Check v25.0.7] Goal is exam_prep. Using existing diagnosticResultsData."); if (diagnosticResultsData && diagnosticResultsData.length > 0) { const latestResult = diagnosticResultsData[0]; const score = latestResult.total_score ?? 0; console.log(`[Goal Check v25.0.7] Latest diagnostic score: ${score}`); if (score < 20) { ui.diagnosticPrompt.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: var(--accent-orange);"></i><p>Vaše skóre v posledním diagnostickém testu (${score}/50) bylo nízké. Pro optimální přípravu doporučujeme absolvovat test znovu nebo se zaměřit na slabší oblasti.</p><a href="test1.html" class="btn btn-primary" id="start-test-btn-prompt-lowscore"><i class="fas fa-play"></i> Opakovat test</a>`; ui.diagnosticPrompt.style.display = 'flex'; } else { ui.diagnosticPrompt.style.display = 'none'; console.log("[Goal Check v25.0.7] Diagnostic score good."); } } else { ui.diagnosticPrompt.innerHTML = `<i class="fas fa-exclamation-circle"></i><p>Pro odemčení personalizovaného obsahu a studijního plánu je potřeba absolvovat <strong>diagnostický test</strong>.</p><a href="test1.html" class="btn btn-primary" id="start-test-btn-prompt"><i class="fas fa-play"></i> Spustit test</a>`; ui.diagnosticPrompt.style.display = 'flex'; console.log("[Goal Check v25.0.7] No diagnostic results for exam_prep."); } } else { ui.diagnosticPrompt.style.display = 'none'; console.log("[Goal Check v25.0.7] Goal not exam_prep, hiding diagnostic prompt."); } } catch (error) { console.error("[Goal Check v25.0.7] Error:", error); if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'none'; } }
+    function showGoalSelectionModal() { if (!ui.goalSelectionModal || !ui.goalStep1) { console.error("[GoalModal v5.2] Critical modal elements missing. Attempting re-cache."); cacheDOMElements(); if (!ui.goalSelectionModal || !ui.goalStep1) { showError("Chyba zobrazení výběru cíle (chybí #goal-selection-modal nebo #goal-step-1).", true); return; } } console.log("[GoalModal v5.2] Showing goal selection modal."); ui.goalSelectionModal.querySelectorAll('.modal-step').forEach(step => { step.classList.remove('active'); step.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(input => input.checked = false); }); ui.goalStep1.classList.add('active'); ui.goalSelectionModal.style.display = 'flex'; document.body.classList.add('modal-open'); requestAnimationFrame(() => ui.goalSelectionModal.classList.add('active')); if (!ui.goalOptionCards || ui.goalOptionCards.length === 0) { console.error("[GoalModal v5.2] No goal option cards found (.goal-option-card)!"); return; } ui.goalOptionCards.forEach(button => { const goal = button.dataset.goal; if (!goal) { console.warn("[GoalModal v5.2] Goal option card missing data-goal attribute."); return; } if (button._goalHandler) button.removeEventListener('click', button._goalHandler); const newHandler = () => handleInitialGoalSelection(goal); button.addEventListener('click', newHandler); button._goalHandler = newHandler; }); console.log("[GoalModal v5.2] Listeners attached to goal option cards."); }
+    function hideGoalSelectionModal() { if (!ui.goalSelectionModal) return; ui.goalSelectionModal.classList.remove('active'); document.body.classList.remove('modal-open'); setTimeout(() => { if (ui.goalSelectionModal) ui.goalSelectionModal.style.display = 'none'; }, 300); }
+    function handleInitialGoalSelection(selectedGoal) { if (goalSelectionInProgress) return; console.log(`[GoalModal v5.2] Initial goal selected: ${selectedGoal}`); pendingGoal = selectedGoal; if (selectedGoal === 'exam_prep' || selectedGoal === 'math_explore') { saveGoalAndProceed(selectedGoal); } else { showStep2(selectedGoal); } }
+    function showStep2(goalType) { const step2Id = `goal-step-${goalType.replace('math_', '')}`; const step2Element = document.getElementById(step2Id); if (!ui.goalSelectionModal || !ui.goalStep1 || !step2Element) { console.error(`[GoalModal v5.2] Cannot show step 2 for ${goalType}: Missing critical elements (#goalSelectionModal, #goalStep1, or #${step2Id}).`); showError("Chyba zobrazení kroku 2.", true); return; } console.log(`[GoalModal v5.2] Showing step 2: #${step2Id}`); ui.goalSelectionModal.querySelectorAll('.modal-step').forEach(step => step.classList.remove('active')); step2Element.classList.add('active'); const backBtn = step2Element.querySelector('.modal-back-btn'); if (backBtn) { const oldHandler = backBtn._backHandler; if (oldHandler) backBtn.removeEventListener('click', oldHandler); const newHandler = () => handleBackToStep1(ui.goalStep1, step2Element); backBtn.addEventListener('click', newHandler); backBtn._backHandler = newHandler; } const confirmBtn = step2Element.querySelector('.modal-confirm-btn'); if (confirmBtn) { const oldHandler = confirmBtn._confirmHandler; if (oldHandler) confirmBtn.removeEventListener('click', oldHandler); const newHandler = () => handleStep2Confirm(goalType); confirmBtn.addEventListener('click', newHandler); confirmBtn._confirmHandler = newHandler; confirmBtn.disabled = false; confirmBtn.innerHTML = 'Potvrdit a pokračovat'; } }
+    function handleBackToStep1(step1Element, currentStep2Element) { console.log("[GoalModal v5.2] Back to step 1..."); if(currentStep2Element) currentStep2Element.classList.remove('active'); if(step1Element) step1Element.classList.add('active'); pendingGoal = null; }
+    function handleStep2Confirm(goalType) { if (goalSelectionInProgress) return; const step2Id = `goal-step-${goalType.replace('math_', '')}`; const step2Element = document.getElementById(step2Id); if (!step2Element) { console.error(`[GoalModal v5.2] Step 2 element ${step2Id} not found.`); return; } const details = {}; let isValid = true; try { if (goalType === 'math_accelerate') { details.accelerate_areas = Array.from(step2Element.querySelectorAll('input[name="accelerate_area"]:checked')).map(cb => cb.value); const reasonRadio = step2Element.querySelector('input[name="accelerate_reason"]:checked'); details.accelerate_reason = reasonRadio ? reasonRadio.value : null; if(details.accelerate_areas.length === 0) { showToast("Chyba", "Vyberte oblast zájmu.", "warning"); isValid = false; } if(!details.accelerate_reason) { showToast("Chyba", "Vyberte důvod.", "warning"); isValid = false; } } else if (goalType === 'math_review') { details.review_areas = Array.from(step2Element.querySelectorAll('input[name="review_area"]:checked')).map(cb => cb.value); } } catch (e) { console.error("[GoalModal v5.2] Error getting step 2 details:", e); isValid = false; showToast("Chyba", "Chyba zpracování výběru.", "error"); } if (isValid) { console.log(`[GoalModal v5.2] Step 2 details for ${goalType}:`, details); saveGoalAndProceed(pendingGoal, details); } }
+    async function saveGoalAndProceed(goal, details = null) { if (goalSelectionInProgress || !goal) return; goalSelectionInProgress = true; setLoadingState('goalSelection', true); console.log(`[GoalModal Save v5.2] Saving goal: ${goal}, details:`, details); const activeStep = ui.goalSelectionModal?.querySelector('.modal-step.active'); const confirmButton = activeStep?.querySelector('.modal-confirm-btn'); const backButton = activeStep?.querySelector('.modal-back-btn'); if (confirmButton) { confirmButton.disabled = true; confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...'; } if (backButton) backButton.disabled = true; try { if (!supabase || !currentUser || !currentProfile) throw new Error("Core dependencies missing for saving goal."); localStorage.setItem(LEARNING_GOAL_KEY, goal); if (details && Object.keys(details).length > 0) localStorage.setItem(GOAL_DETAILS_KEY, JSON.stringify(details)); else localStorage.removeItem(GOAL_DETAILS_KEY); const finalPreferences = { ...(currentProfile.preferences || {}), goal_details: (details && Object.keys(details).length > 0) ? details : undefined }; const updatePayload = { learning_goal: goal, preferences: finalPreferences, updated_at: new Date().toISOString() }; console.log("[GoalModal Save v5.2] Updating Supabase profile:", updatePayload); const { data: updatedProfileData, error } = await supabase.from('profiles').update(updatePayload).eq('id', currentUser.id).select('*, selected_title, preferences').single(); if (error) throw error; currentProfile = updatedProfileData; if (!currentProfile.preferences) currentProfile.preferences = {}; console.log("[GoalModal Save v5.2] Goal saved:", currentProfile.learning_goal, currentProfile.preferences); let goalTextKey = `goal_${goal.replace('math_','')}`; let goalText = {goal_exam_prep: 'Příprava na zkoušky', goal_accelerate: 'Učení napřed', goal_review: 'Doplnění mezer', goal_explore: 'Volné prozkoumávání'}[goalTextKey] || goal; showToast('Cíl uložen!', `Váš cíl: ${goalText}.`, 'success'); hideGoalSelectionModal(); if(ui.tabsWrapper) ui.tabsWrapper.style.display = 'flex'; if(ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'none'; configureUIForGoal(); await loadPageData(); if(ui.mainContent) ui.mainContent.classList.remove('interaction-disabled'); } catch (error) { console.error("[GoalModal Save v5.2] Error saving goal:", error); showToast('Chyba', 'Nepodařilo se uložit cíl.', 'error'); if (confirmButton) { confirmButton.disabled = false; confirmButton.innerHTML = 'Potvrdit a pokračovat'; } if (backButton) backButton.disabled = false; } finally { goalSelectionInProgress = false; setLoadingState('goalSelection', false); pendingGoal = null; } }
+    // --- END: Goal Selection Logic ---
+
+    // --- START: UI Configuration and Data Loading ---
     function configureUIForGoal() {
         if (!currentProfile || !currentProfile.learning_goal) { console.error("[UI Config v6.2] Profil nebo cíl nenalezen."); if (ui.goalSelectionModal && getComputedStyle(ui.goalSelectionModal).display === 'none') { console.log("[UI Config v6.2] Zobrazuji modální okno pro výběr cíle."); showGoalSelectionModal(); } return; }
         const goal = currentProfile.learning_goal; console.log(`[UI Config v6.2] Konfigurace UI pro cíl: ${goal}`);
@@ -399,23 +391,27 @@
         if (activeTabButton) { console.log(`[UI Config v6.2] Nastavuji aktivní záložku na: ${activeTabId}`); isInitialTabLoad = true; switchActiveTab(activeTabId); } else console.error("[UI Config v6.2] Nenalezena žádná vhodná aktivní záložka.");
         console.log(`[UI Config v6.2] UI nakonfigurováno pro cíl: ${goal}`);
     }
+
     async function loadTabData(tabId) {
-        const contentElementId = `${tabId}-content`;
+        // Převod tabId (např. 'practice-tab') na camelCase klíč pro ui objekt (např. 'practiceTabContent')
+        const camelCaseKey = tabId.replace(/-([a-z])/g, (g) => g[1].toUpperCase()) + 'Content';
+
         if (!currentProfile || !currentProfile.learning_goal) {
-            console.warn(`[Load Tab Data v6.2] Cannot load data for tab '${tabId}', missing profile or goal.`);
-            const contentElement = ui[contentElementId];
+            console.warn(`[Load Tab Data v6.2] Nelze načíst data pro záložku '${tabId}', chybí profil nebo cíl.`);
+            const contentElement = ui[camelCaseKey]; // Použijeme převedený klíč
             if (contentElement) { contentElement.innerHTML = `<div class="empty-state"><i class="fas fa-info-circle"></i><h3>Vyberte cíl</h3><p>Pro zobrazení obsahu této záložky si nejprve vyberte svůj studijní cíl.</p><button class="btn btn-primary" id="selectGoalBtnInTab">Vybrat cíl</button></div>`; contentElement.style.display = 'block'; const selectGoalBtn = document.getElementById('selectGoalBtnInTab'); if(selectGoalBtn) selectGoalBtn.addEventListener('click', showGoalSelectionModal); }
-            else { console.error(`[Load Tab Data v6.2] Content element ID '${contentElementId}' not found for no-goal message.`); }
+            else { console.error(`[Load Tab Data v6.2] Element obsahu s klíčem '${camelCaseKey}' (pro ID: ${tabId}-content) nenalezen pro zprávu o chybějícím cíli.`); }
             return;
         }
-        const goal = currentProfile.learning_goal; console.log(`[Load Tab Data v6.2] Loading for tab: ${tabId}, goal: ${goal}, contentID: ${contentElementId}`);
+        const goal = currentProfile.learning_goal; console.log(`[Load Tab Data v6.2] Načítání pro záložku: ${tabId}, cíl: ${goal}, UI klíč obsahu: ${camelCaseKey}`);
         const sectionKey = tabIdToSectionKey(tabId); setLoadingState(sectionKey, true);
         try {
             if(ui.tabContents && ui.tabContents.length > 0) { ui.tabContents.forEach(tc => { if(tc) { tc.style.display = 'none'; tc.classList.remove('active'); }}); }
-            else { console.warn("[Load Tab Data v6.2] ui.tabContents not found or empty."); }
+            else { console.warn("[Load Tab Data v6.2] ui.tabContents nenalezeno nebo prázdné."); }
 
-            const targetContentElement = ui[contentElementId];
-            if (!targetContentElement) { console.error(`[Load Tab Data v6.2] Content element ID '${contentElementId}' (ui.${contentElementId}) not found in ui cache.`); setLoadingState(sectionKey, false); return; }
+            const targetContentElement = ui[camelCaseKey]; // Použijeme převedený camelCase klíč
+            if (!targetContentElement) { console.error(`[Load Tab Data v6.2] Element obsahu s klíčem '${camelCaseKey}' (ID: ${tabId}-content) nenalezen v ui cache.`); setLoadingState(sectionKey, false); return; }
+
             targetContentElement.innerHTML = ''; targetContentElement.classList.add('active'); targetContentElement.style.display = 'block';
 
             if (tabId === 'practice-tab') { if (ui.statsCards) renderStatsSkeletons(ui.statsCards); if (ui.shortcutsGrid) renderShortcutSkeletons(ui.shortcutsGrid); }
@@ -430,7 +426,7 @@
                 case 'topic-analysis-tab': topicProgressData = await fetchTopicProgress(currentUser.id, goal); renderTopicAnalysis(topicProgressData, goal); break;
                 default: console.warn(`[Load Tab Data v6.2] No specific logic for tab: ${tabId}`); if (targetContentElement) targetContentElement.innerHTML = `<div class="empty-state">...Obsah pro tuto záložku se připravuje...</div>`;
             }
-        } catch (error) { console.error(`[Load Tab Data v6.2] Error loading data for tab ${tabId}:`, error); showError(`Nepodařilo se načíst data pro záložku: ${error.message}`); const contentEl = ui[contentElementId]; if (contentEl) { contentEl.innerHTML = `<div class="empty-state">...Chyba načítání dat...</div>`; contentEl.style.display = 'block'; }
+        } catch (error) { console.error(`[Load Tab Data v6.2] Error loading data for tab ${tabId}:`, error); showError(`Nepodařilo se načíst data pro záložku: ${error.message}`); const contentEl = ui[camelCaseKey]; if (contentEl) { contentEl.innerHTML = `<div class="empty-state">...Chyba načítání dat...</div>`; contentEl.style.display = 'block'; }
         } finally { setLoadingState(sectionKey, false); }
     }
     function tabIdToSectionKey(tabId) { switch (tabId) { case 'practice-tab': return 'stats'; case 'test-results-tab': return 'tests'; case 'study-plan-tab': return 'plan'; case 'topic-analysis-tab': return 'topics'; default: return 'all'; } }
@@ -464,12 +460,12 @@
         if (activeTabButton && ui.contentTabs && ui.tabContents) {
             ui.contentTabs.forEach(tab => tab.classList.remove('active'));
             activeTabButton.classList.add('active');
+            // Oprava identifikace content ID
+            const activeContentId = `${activeTabId}-content`;
             ui.tabContents.forEach(content => {
                 if(content){
-                    const contentId = content.id;
-                    const isActive = contentId === `${activeTabId}-content`;
-                    content.classList.toggle('active', isActive);
-                    content.style.display = isActive ? 'block' : 'none';
+                    content.classList.toggle('active', content.id === activeContentId);
+                    content.style.display = content.id === activeContentId ? 'block' : 'none';
                 }
             });
         } else { console.warn("[Load Page Data v6.2] Problém s nastavením aktivní záložky nebo chybí ui.contentTabs/ui.tabContents.");}
@@ -489,11 +485,14 @@
         console.log(`[Tabs v6.2] Přepínání na: ${tabId}`);
         if(ui.contentTabs && ui.contentTabs.length > 0) { ui.contentTabs.forEach(tab => tab.classList.remove('active')); } else { console.warn("[Tabs v6.2] ui.contentTabs nenalezeno."); }
         targetTabButton.classList.add('active');
-        if(ui.tabContents && ui.tabContents.length > 0) { ui.tabContents.forEach(content => { if(content){ const contentId = content.id; const isActive = contentId === `${tabId}-content`; content.classList.toggle('active', isActive); content.style.display = isActive ? 'block' : 'none'; }}); } else { console.warn("[Tabs v6.2] ui.tabContents nenalezeno."); }
+        // Oprava identifikace content ID
+        const activeContentId = `${tabId}-content`;
+        if(ui.tabContents && ui.tabContents.length > 0) { ui.tabContents.forEach(content => { if(content){ content.classList.toggle('active', content.id === activeContentId); content.style.display = content.id === activeContentId ? 'block' : 'none'; }}); } else { console.warn("[Tabs v6.2] ui.tabContents nenalezeno."); }
         localStorage.setItem('lastActiveProcvicovaniTab', tabId);
         if (!isInitialTabLoad) loadTabData(tabId);
         isInitialTabLoad = false;
     }
+
     function switchActiveTab(tabId) { const tabButton = document.querySelector(`.content-tab[data-tab="${tabId}"]`); if (tabButton) handleTabSwitch({ currentTarget: tabButton }); else console.warn(`[SwitchActiveTab v6.2] Záložka '${tabId}' nenalezena.`);}
     async function handleRefreshClick() { if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné se přihlásit.", "error"); return; } if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; } console.log("🔄 Manual refresh triggered..."); const icon = ui.refreshDataBtn?.querySelector('i'); const text = ui.refreshDataBtn?.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'RELOADING...'; if (ui.refreshDataBtn) ui.refreshDataBtn.disabled = true; await loadPageData(); if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'RELOAD'; if (ui.refreshDataBtn) ui.refreshDataBtn.disabled = false; }
     function handleOutsideNotificationClick(event) { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } }
@@ -587,7 +586,7 @@
     // --- START: Initialization ---
     async function initializeApp() {
         try {
-            console.log(`[INIT Procvičování] App Init Start v25.0.7...`);
+            console.log(`[INIT Procvičování] App Init Start v25.0.8...`);
             cacheDOMElements();
 
             if (!initializeSupabase()) {
@@ -603,6 +602,7 @@
             if (ui.tabContents && ui.tabContents.length > 0) { ui.tabContents.forEach(el => {if(el) el.style.display = 'none';}); }
             else { console.warn("[INIT] ui.tabContents nenalezeno nebo prázdné při skrývání.");}
 
+
             hideError(); console.log("[INIT Procvičování] Kontrola autentizační session...");
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
             if (sessionError) throw new Error(`Chyba session: ${sessionError.message}`);
@@ -612,7 +612,7 @@
                 const [profileResult, titlesResult, initialNotificationsResult] = await Promise.allSettled([
                     supabase.from('profiles').select('*, selected_title, preferences').eq('id', currentUser.id).single(),
                     supabase.from('title_shop').select('title_key, name'),
-                    fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT) // Zde by již setLoadingState mělo být definováno
+                    fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT)
                 ]);
 
                 currentProfile = (profileResult.status === 'fulfilled' && profileResult.value?.data) ? profileResult.value.data : await createDefaultProfile(currentUser.id, currentUser.email);
@@ -669,7 +669,6 @@
             console.error("❌ [INIT Procvičování] Kritická chyba inicializace:", error);
             showError(`Chyba inicializace: ${error.message}`, true);
             if (ui.mainContent) ui.mainContent.style.display = 'block';
-            // Zde by mělo být volání setLoadingState bezpečné, protože je definováno výše
             setLoadingState('all', false);
         } finally {
             const il = ui.initialLoader;
