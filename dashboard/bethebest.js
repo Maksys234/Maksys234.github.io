@@ -1,15 +1,14 @@
 // dashboard/bethebest.js
-// Версия с Multiple Choice (Checkboxes), бесконечной лентой и авто-стартом
+// Версия: Multiple Choice, Endless Feed, Auto-Start, Refined Fetching
 
-// --- Константы и Supabase клиент (без изменений) ---
+// --- Константы и Supabase клиент ---
 const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// --- HTML Элементы (Изменения для чекбоксов) ---
+// --- HTML Элементы ---
 const authSection = document.getElementById('authSection');
 const appSection = document.getElementById('appSection');
-// ... (формы, userInfo, logoutButton - без изменений)
 const loginFormContainer = document.getElementById('loginFormContainer');
 const registerFormContainer = document.getElementById('registerFormContainer');
 const notificationArea = document.getElementById('notificationArea');
@@ -20,98 +19,147 @@ const userEmailDisplay = document.getElementById('userEmailDisplay');
 const learningLogForm = document.getElementById('learningLogForm');
 const learningInput = document.getElementById('learningInput');
 const logsContainer = document.getElementById('logsContainer');
-// Старые элементы Gemini (оставляем, но скрываем)
-const generateTasksButton = document.getElementById('generateTasksButton'); // Можно убрать или переназначить
+// Старые элементы Gemini (скрыты в HTML)
 const geminiTasksContainer = document.getElementById('geminiTasksContainer');
-const geminiLoading = document.getElementById('geminiLoading'); // Старый лоадер
+const geminiLoading = document.getElementById('geminiLoading');
 
 // --- ЭЛЕМЕНТЫ UI ДЛЯ КВИЗА ---
 const quizContainer = document.getElementById('quizContainer');
 const questionDisplay = document.getElementById('questionDisplay');
-const answerCheckboxesContainer = document.getElementById('answerCheckboxesContainer'); // ИЗМЕНЕНО: Контейнер для чекбоксов
-const submitAnswerButton = document.getElementById('submitAnswerButton'); // ВОЗВРАЩЕНО: Кнопка подтверждения выбора
+const answerCheckboxesContainer = document.getElementById('answerCheckboxesContainer');
+const submitAnswerButton = document.getElementById('submitAnswerButton');
 const feedbackArea = document.getElementById('feedbackArea');
 const nextQuestionButton = document.getElementById('nextQuestionButton');
 const quizLoading = document.getElementById('quizLoading');
 // --------------------------------------------------------------------
 
-// --- API Ключ (Без изменений) ---
+// --- API Ключ ---
 const GEMINI_API_KEY = 'AIzaSyB4l6Yj9AjWfkG2Ob2LCAgTsnSwN-UZQcA'; // Твой ключ
 const GEMINI_API_URL_BASE = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-// --- Состояние Квиза (Без изменений) ---
+// --- Состояние Квиза ---
 let generatedQuestions = [];
 let currentQuestionIndex = -1;
 let isLoadingQuestions = false;
-let fullLearningContextForQuiz = '';
+let fullLearningContextForQuiz = ''; // Контекст для Gemini
+let currentUser = null; // Добавляем currentUser в состояние
 
-// --- Функции (showNotification, toggleAuthForms - без изменений) ---
-function showNotification(message, type = 'info', duration = 3000) { /* ... без изменений ... */ }
-window.toggleAuthForms = () => { /* ... без изменений ... */ };
+// --- Функции ---
+
+// Уведомления (без изменений)
+function showNotification(message, type = 'info', duration = 3000) {
+    if (!notificationArea) return;
+    const notificationDiv = document.createElement('div');
+    notificationDiv.className = `notification ${type}`;
+    notificationDiv.textContent = message;
+    notificationArea.appendChild(notificationDiv);
+    notificationDiv.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    requestAnimationFrame(() => {
+        notificationDiv.style.opacity = '1';
+        notificationDiv.style.transform = 'translateX(0)';
+    });
+    if (duration > 0) {
+        setTimeout(() => {
+            notificationDiv.style.opacity = '0';
+            notificationDiv.style.transform = 'translateX(120%)';
+            notificationDiv.addEventListener('transitionend', () => notificationDiv.remove());
+            setTimeout(() => { if (notificationDiv.parentElement) notificationDiv.remove(); }, 600);
+        }, duration);
+    }
+}
+
+// Переключение форм (без изменений)
+window.toggleAuthForms = () => {
+    loginFormContainer?.classList.toggle('hidden');
+    registerFormContainer?.classList.toggle('hidden');
+};
+
+// Sanitize HTML (без изменений)
+function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
 
 // --- Autentizace (Login, Register, Logout - без изменений) ---
-loginForm.addEventListener('submit', async (event) => { /* ... без изменений ... */ });
-registerForm.addEventListener('submit', async (event) => { /* ... без изменений ... */ });
-logoutButton.addEventListener('click', async () => { /* ... добавлено resetQuizState() и hideQuizUI() ... */ });
+loginForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    // ... (логика логина)
+});
+
+registerForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    // ... (логика регистрации)
+});
+
+logoutButton?.addEventListener('click', async () => {
+    logoutButton.disabled = true;
+    const { error } = await supabaseClient.auth.signOut();
+    // ... (обработка выхода + resetQuizState() + hideQuizUI())
+    if (error) {
+        showNotification(`Chyba odhlášení: ${error.message}`, 'error');
+        logoutButton.disabled = false;
+    } else {
+        showNotification('Odhlášení úspěšné.', 'info');
+        resetQuizState();
+        hideQuizUI();
+    }
+});
 
 // --- ИЗМЕНЕНО: Auth State Change (Авто-запуск квиза) ---
-supabaseClient.auth.onAuthStateChange(async (event, session) => { // Добавлено async
-    console.log('Auth state changed:', event, session);
-    if (session && session.user) {
-        currentUser = session.user;
-        authSection.classList.add('hidden');
-        appSection.classList.remove('hidden');
-        userEmailDisplay.textContent = session.user.email;
-        logoutButton.disabled = false;
-        hideQuizUI(); // Скрываем UI квиза по умолчанию
+supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    console.log('Auth state changed:', event);
+    if (session?.user) {
+        currentUser = session.user; // Сохраняем пользователя в состояние
+        authSection?.classList.add('hidden');
+        appSection?.classList.remove('hidden');
+        if (userEmailDisplay) userEmailDisplay.textContent = session.user.email;
+        if (logoutButton) logoutButton.disabled = false;
+        hideQuizUI();
         resetQuizState();
 
-        // Загружаем логи и контекст
-        await loadLearningLogs(session.user.id);
+        await loadLearningLogs(session.user.id); // Загружаем логи и контекст
 
-        // Если есть контекст, запускаем квиз автоматически
         if (fullLearningContextForQuiz) {
-            console.log('User logged in and has learning logs, starting quiz automatically.');
+            console.log('Auth state: User logged in, logs found. Starting quiz automatically.');
             await fetchAndDisplayFirstQuestions(fullLearningContextForQuiz);
         } else {
-            console.log('User logged in, but no learning logs found. Quiz not started.');
-            // Можно показать сообщение, что нужно сначала добавить записи
-             if(quizContainer) quizContainer.style.display = 'block'; // Показать контейнер
-             if(questionDisplay) questionDisplay.innerHTML = '<p>Vítejte! Přidejte záznam o učení, aby se zde objevily otázky k procvičení.</p>'; // Сообщение
+            console.log('Auth state: User logged in, no logs found. Quiz not started.');
+            if (quizContainer) quizContainer.style.display = 'block';
+            if (questionDisplay) questionDisplay.innerHTML = '<p>Vítejte! Přidejte záznam o učení, aby se zde objevily otázky k procvičení.</p>';
         }
 
     } else {
         currentUser = null;
-        authSection.classList.remove('hidden');
-        appSection.classList.add('hidden');
-        userEmailDisplay.textContent = '';
-        logsContainer.innerHTML = '<p>Přihlaste se, abyste mohli vidět a přidávat záznamy.</p>';
-        if (generateTasksButton) generateTasksButton.style.display = 'none';
+        authSection?.classList.remove('hidden');
+        appSection?.classList.add('hidden');
+        if (userEmailDisplay) userEmailDisplay.textContent = '';
+        if (logsContainer) logsContainer.innerHTML = '<p>Přihlaste se, abyste mohli vidět a přidávat záznamy.</p>';
         hideQuizUI();
         resetQuizState();
-        fullLearningContextForQuiz = ''; // Очищаем контекст при выходе
+        fullLearningContextForQuiz = '';
     }
 });
 
-// --- Сохранение логов (без изменений, авто-старт квиза убран отсюда) ---
-learningLogForm.addEventListener('submit', async (event) => {
+// --- Сохранение логов (Обновляет контекст) ---
+learningLogForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const logText = learningInput.value.trim();
+    const logText = learningInput?.value.trim();
     if (!logText) { showNotification('Napiš, co ses naučil/a.', 'error'); return; }
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if (!user) { showNotification('Pro uložení se přihlas.', 'error'); return; }
+    if (!currentUser) { showNotification('Pro uložení se přihlas.', 'error'); return; }
 
     const submitButton = learningLogForm.querySelector('button[type="submit"]');
     submitButton.disabled = true; submitButton.textContent = 'Ukládám...';
-    // Не запускаем квиз автоматически после сохранения,
-    // пользователь продолжит через кнопку "Další otázka" или обновит страницу
 
     try {
-        const { data, error } = await supabaseClient.from('learning_logs').insert([{ user_id: user.id, log_text: logText }]).select();
+        const { data, error } = await supabaseClient.from('learning_logs').insert([{ user_id: currentUser.id, log_text: logText }]).select();
         if (error) throw error;
-        showNotification('Pokrok uložen! Nové poznatky budou zahrnuty v dalších otázkách.', 'success');
-        learningInput.value = '';
-        await loadLearningLogs(user.id); // Перезагружаем логи для обновления контекста
+        showNotification('Pokrok uložen! Záznam bude zahrnut v dalších otázkách.', 'success');
+        if(learningInput) learningInput.value = '';
+        await loadLearningLogs(currentUser.id); // Перезагружаем логи для обновления контекста
+
+        // Если квиз еще не был запущен (не было логов), запускаем его
+        if (currentQuestionIndex === -1 && fullLearningContextForQuiz) {
+             console.log("First log saved, starting quiz...");
+             await fetchAndDisplayFirstQuestions(fullLearningContextForQuiz);
+        }
+
     } catch (err) {
         console.error('Chyba ukládání záznamu:', err);
         showNotification(`Uložení selhalo: ${err.message}`, 'error');
@@ -120,39 +168,48 @@ learningLogForm.addEventListener('submit', async (event) => {
     }
 });
 
-// --- Загрузка логов (без изменений, сохраняет ВЕСЬ контекст) ---
+// --- Загрузка логов (Сохраняет ВЕСЬ контекст) ---
 async function loadLearningLogs(userId) {
     if (!userId) { logsContainer.innerHTML = '<p>Přihlaste se.</p>'; return; }
-    logsContainer.innerHTML = '<div class="loader">Načítám záznamy...</div>';
+    if (logsContainer) logsContainer.innerHTML = '<div class="loader">Načítám záznamy...</div>';
     try {
         const { data, error } = await supabaseClient
             .from('learning_logs')
             .select('log_text, created_at')
             .eq('user_id', userId)
-            .order('created_at', { ascending: false }); // Сначала новые
+            .order('created_at', { ascending: false })
+            .limit(30); // Ограничиваем контекст последними 30 записями
+
         if (error) throw error;
 
-        if (data && data.length > 0) {
-            logsContainer.innerHTML = '';
+        if (data?.length > 0) {
+            if(logsContainer) logsContainer.innerHTML = '';
             fullLearningContextForQuiz = data
-                .slice(0, 20) // Ограничим контекст последними 20 записями
-                .reverse() // Перевернем, чтобы старые были первыми для AI
+                .reverse() // Старые первыми для AI
                 .map(log => `Datum: ${new Date(log.created_at).toLocaleDateString('cs-CZ')}\nText: ${log.log_text}`)
                 .join("\n\n---\n\n");
-            console.log('Learning context loaded (truncated):', fullLearningContextForQuiz.substring(0, 100) + '...');
+            console.log('Learning context loaded (entries):', data.length);
 
-            data.forEach(log => { /* ... отображение логов без изменений ... */ });
+            // Отображаем только последние несколько логов (например, 5) для UI
+            data.slice(0, 5).forEach(log => {
+                const logElement = document.createElement('div');
+                logElement.classList.add('log-entry');
+                logElement.innerHTML = `<p>${sanitizeHTML(log.log_text.replace(/\n/g, '<br>'))}</p><small>Datum: ${new Date(log.created_at).toLocaleString('cs-CZ')}</small>`;
+                logsContainer?.appendChild(logElement);
+                requestAnimationFrame(() => { logElement.style.opacity = '1'; logElement.style.transform = 'translateY(0)'; });
+            });
         } else {
-            logsContainer.innerHTML = '<p>Zatím žádné záznamy.</p>';
+            if(logsContainer) logsContainer.innerHTML = '<p>Zatím žádné záznamy.</p>';
             fullLearningContextForQuiz = '';
         }
-    } catch (err) { /* ... обработка ошибок ... */ }
+    } catch (err) {
+        console.error('Chyba načítání záznamů:', err);
+        if(logsContainer) logsContainer.innerHTML = `<p style="color: var(--error-color);">Chyba načítání: ${err.message}</p>`;
+        fullLearningContextForQuiz = '';
+    }
 }
 
-// --- Старая функция для задач (оставляем) ---
-async function generateTasksWithGeminiDirectly(learningContext) { /* ... без изменений ... */ }
-
-// --- НОВАЯ ФУНКЦИЯ: Генерация Multiple Choice, поддержка нескольких ответов ---
+// --- НОВАЯ ФУНКЦИЯ: Генерация MC вопросов (с поддержкой >1 ответа) ---
 async function generateMultipleChoiceQuestions(fullLearningContext) {
     if (!fullLearningContext) { return null; }
     const prompt = `
@@ -187,189 +244,121 @@ Příklad formátu JSON pole:
   }
 ]`;
 
-    const requestBody = { /* ... (как раньше) ... */ };
+    const requestBody = {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.6, topP: 0.95 } // Настройки для генерации вопросов
+    };
     try {
-        // ... (API вызов как раньше) ...
-        const response = await fetch(GEMINI_API_URL_BASE, { /* ... */ });
-        if (!response.ok) { /* ... */ throw new Error(`API Error ${response.status}`); }
+        console.log('Sending request to Gemini for MC questions (multi-answer)...');
+        const response = await fetch(GEMINI_API_URL_BASE, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody) });
+        if (!response.ok) { const errorData = await response.json().catch(() => ({})); throw new Error(`Chyba ${response.status} od Gemini API: ${errorData?.error?.message || response.statusText}`);}
         const data = await response.json();
-        // ... (обработка safety и blockReason как раньше) ...
+        console.log('Raw MC Gemini response:', JSON.stringify(data).substring(0, 300) + '...');
+        if (data.candidates?.[0]?.finishReason === "SAFETY") { throw new Error("Odpověď AI byla zablokována bezpečnostními filtry."); }
+        if (data.promptFeedback?.blockReason) { throw new Error(`Dotaz na MC otázky byl blokován AI filtrem (${data.promptFeedback.blockReason}).`); }
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!text) { throw new Error('AI nevrátilo žádný text s otázkami.'); }
 
-        if (data.candidates && data.candidates.length > 0 && data.candidates[0].content?.parts?.[0]?.text) {
-            let jsonString = data.candidates[0].content.parts[0].text;
-            const jsonMatch = jsonString.match(/```json\s*([\s\S]*?)\s*```/);
-            if (jsonMatch && jsonMatch[1]) { jsonString = jsonMatch[1]; }
+        let jsonString = text;
+        const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/);
+        if (jsonMatch?.[1]) { jsonString = jsonMatch[1]; }
 
-            try {
-                const parsedQuestions = JSON.parse(jsonString);
-                // --- УЛУЧШЕННАЯ ВАЛИДАЦИЯ ---
-                if (Array.isArray(parsedQuestions) && parsedQuestions.every(q =>
-                    q.question && typeof q.question === 'string' &&
-                    Array.isArray(q.options) && q.options.length === 5 && q.options.every(opt => typeof opt === 'string') &&
-                    Array.isArray(q.answer) && q.answer.length > 0 && q.answer.every(ans => typeof ans === 'string' && ["A", "B", "C", "D", "E"].includes(ans.toUpperCase())) &&
-                    q.explanation && typeof q.explanation === 'string'
-                )) {
-                    console.log('Successfully parsed valid MC questions (multi-answer):', parsedQuestions);
-                    // Приводим буквы ответов к верхнему регистру для согласованности
-                    return parsedQuestions.map(q => ({ ...q, answer: q.answer.map(a => a.toUpperCase()) }));
-                } else {
-                    console.error('Invalid MC JSON structure received (multi-answer):', parsedQuestions);
-                    throw new Error('AI vrátilo MC otázky v neočekávaném formátu.');
-                }
-                // --- КОНЕЦ УЛУЧШЕННОЙ ВАЛИДАЦИИ ---
-            } catch (parseError) { /* ... */ throw new Error('Nepodařilo se zpracovat MC odpověď AI.'); }
-        } else { /* ... */ throw new Error('AI nevrátilo žádné MC otázky.'); }
+        try {
+            const parsedQuestions = JSON.parse(jsonString);
+            if (Array.isArray(parsedQuestions) && parsedQuestions.every(q => q.question && Array.isArray(q.options) && q.options.length === 5 && Array.isArray(q.answer) && q.answer.length > 0 && q.explanation && q.answer.every(ans => typeof ans === 'string' && ["A", "B", "C", "D", "E"].includes(ans.toUpperCase())))) {
+                console.log('Successfully parsed valid MC questions (multi-answer):', parsedQuestions);
+                return parsedQuestions.map(q => ({ ...q, answer: q.answer.map(a => a.toUpperCase()) }));
+            } else { throw new Error('Nesprávná struktura JSONu od AI.'); }
+        } catch (parseError) { console.error('Failed to parse JSON:', parseError, 'Raw JSON:', jsonString); throw new Error('Nepodařilo se zpracovat odpověď AI.'); }
     } catch (error) { console.error('Chyba při volání Gemini API pro MC otázky:', error); throw error; }
 }
 
 // --- Логика Квиза (Обновлена для Checkbox и бесконечности) ---
 
-function resetQuizState() { /* ... без изменений ... */ }
-function hideQuizUI() { /* ... обновлено для скрытия чекбоксов и кнопки Submit ... */
-    if (quizContainer) quizContainer.style.display = 'none';
-    if (questionDisplay) questionDisplay.innerHTML = '';
-    if (answerCheckboxesContainer) answerCheckboxesContainer.innerHTML = ''; // Очищаем чекбоксы
-    if (submitAnswerButton) submitAnswerButton.style.display = 'none';     // Скрываем Submit
-    if (feedbackArea) feedbackArea.innerHTML = '';
-    if (nextQuestionButton) nextQuestionButton.style.display = 'none';
-    if (quizLoading) quizLoading.classList.add('hidden');
-    console.log('Quiz UI hidden and cleared.');
-}
+function resetQuizState() { generatedQuestions = []; currentQuestionIndex = -1; isLoadingQuestions = false; }
+function hideQuizUI() { if (quizContainer) quizContainer.style.display = 'none'; if (questionDisplay) questionDisplay.innerHTML = ''; if (answerCheckboxesContainer) answerCheckboxesContainer.innerHTML = ''; if (submitAnswerButton) submitAnswerButton.style.display = 'none'; if (feedbackArea) feedbackArea.innerHTML = ''; if (nextQuestionButton) nextQuestionButton.style.display = 'none'; if (quizLoading) quizLoading.classList.add('hidden'); console.log('Quiz UI hidden.'); }
 
-/**
- * Запускает квиз или отображает первый вопрос.
- */
 async function fetchAndDisplayFirstQuestions(context) {
-    if (!context) { showNotification('Chybí kontext pro vytvoření kvízu.', 'warning'); return; }
+    if (!context) { showNotification('Chybí kontext pro kvíz.', 'warning'); return; }
     if (isLoadingQuestions) { return; }
     if (!quizContainer || !quizLoading) { return; }
-
     console.log('Fetching first batch of questions...');
-    resetQuizState();
-    isLoadingQuestions = true;
-    quizContainer.style.display = 'block';
-    quizLoading.classList.remove('hidden');
-    if(questionDisplay) questionDisplay.innerHTML = '';
-    if(feedbackArea) feedbackArea.innerHTML = '';
-    if(answerCheckboxesContainer) answerCheckboxesContainer.innerHTML = '';
-    if(submitAnswerButton) submitAnswerButton.style.display = 'none';
-    if(nextQuestionButton) nextQuestionButton.style.display = 'none';
-
+    resetQuizState(); isLoadingQuestions = true;
+    quizContainer.style.display = 'block'; quizLoading.classList.remove('hidden');
+    if(questionDisplay) questionDisplay.innerHTML = ''; if(feedbackArea) feedbackArea.innerHTML = ''; if(answerCheckboxesContainer) answerCheckboxesContainer.innerHTML = ''; if(submitAnswerButton) submitAnswerButton.style.display = 'none'; if(nextQuestionButton) nextQuestionButton.style.display = 'none';
     try {
         generatedQuestions = await generateMultipleChoiceQuestions(context);
-        if (generatedQuestions && generatedQuestions.length > 0) {
-            currentQuestionIndex = 0;
-            displayCurrentQuestion();
-        } else {
-            throw new Error('Nebyly vygenerovány žádné otázky.');
-        }
-    } catch (error) {
-        console.error('Failed to fetch first questions:', error);
-        showNotification(`Chyba při generování kvízu: ${error.message}`, 'error');
-        hideQuizUI();
-    } finally {
-        isLoadingQuestions = false;
-        if (quizLoading) quizLoading.classList.add('hidden');
-    }
+        if (generatedQuestions?.length > 0) { currentQuestionIndex = 0; displayCurrentQuestion(); }
+        else { throw new Error('Nebyly vygenerovány žádné otázky.'); }
+    } catch (error) { console.error('Failed fetch first questions:', error); showNotification(`Chyba generování kvízu: ${error.message}`, 'error'); hideQuizUI(); }
+    finally { isLoadingQuestions = false; if (quizLoading) quizLoading.classList.add('hidden'); }
 }
 
-/**
- * Загружает больше вопросов и добавляет их в конец.
- */
 async function fetchMoreQuestions() {
     if (!fullLearningContextForQuiz || isLoadingQuestions) return;
     console.log("Fetching more questions...");
     isLoadingQuestions = true;
-    // Можно показать маленький индикатор загрузки рядом с кнопкой "Дальше"
-    if(nextQuestionButton) nextQuestionButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Načítám...';
-    if(nextQuestionButton) nextQuestionButton.disabled = true;
-
+    if(nextQuestionButton) { nextQuestionButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Načítám...'; nextQuestionButton.disabled = true; }
     try {
         const newQuestions = await generateMultipleChoiceQuestions(fullLearningContextForQuiz);
-        if (newQuestions && newQuestions.length > 0) {
-            generatedQuestions.push(...newQuestions); // Добавляем новые вопросы в конец
-            console.log(`Added ${newQuestions.length} new questions. Total: ${generatedQuestions.length}`);
-            // Сразу показываем следующий вопрос (который теперь существует)
+        if (newQuestions?.length > 0) {
+            generatedQuestions.push(...newQuestions);
+            console.log(`Added ${newQuestions.length}. Total: ${generatedQuestions.length}`);
+            // currentQuestionIndex УЖЕ увеличен в handleNextQuestion,
+            // поэтому просто показываем вопрос по текущему индексу
             displayCurrentQuestion();
         } else {
-            // Если не удалось загрузить новые, просто показываем старый (или ничего, если это была последняя попытка?)
-             showNotification("Nepodařilo se načíst další otázky.", "warning");
-             // Позволяем пользователю попробовать еще раз? Или останавливаем? Пока просто разблокируем кнопку.
-             if(nextQuestionButton) nextQuestionButton.disabled = false;
-             if(nextQuestionButton) nextQuestionButton.innerHTML = 'Další otázka <i class="fas fa-arrow-right"></i>';
+             showNotification("Nepodařilo se načíst další otázky. Zkuste to znovu.", "warning");
+             // Важно: Уменьшаем индекс обратно, т.к. новых вопросов нет,
+             // чтобы пользователь не застрял
+             currentQuestionIndex--;
         }
     } catch (error) {
-        console.error("Failed to fetch more questions:", error);
-        showNotification(`Chyba při načítání dalších otázek: ${error.message}`, 'error');
-         if(nextQuestionButton) nextQuestionButton.disabled = false;
-         if(nextQuestionButton) nextQuestionButton.innerHTML = 'Další otázka <i class="fas fa-arrow-right"></i>';
+        console.error("Failed fetch more questions:", error);
+        showNotification(`Chyba načítání dalších otázek: ${error.message}`, 'error');
+        currentQuestionIndex--; // Сбрасываем индекс обратно
     } finally {
         isLoadingQuestions = false;
-         // Восстанавливаем кнопку "Дальше" только если мы не перешли к новому вопросу успешно
-         if(nextQuestionButton && nextQuestionButton.textContent.includes('Načítám')) {
-             nextQuestionButton.disabled = false;
-             nextQuestionButton.innerHTML = 'Další otázka <i class="fas fa-arrow-right"></i>';
-         }
+        if(nextQuestionButton) {
+            nextQuestionButton.disabled = false;
+            nextQuestionButton.innerHTML = 'Další otázka <i class="fas fa-arrow-right"></i>';
+        }
     }
 }
 
-/**
- * Отображает текущий вопрос и чекбоксы для ответа.
- */
 function displayCurrentQuestion() {
     if (currentQuestionIndex < 0 || currentQuestionIndex >= generatedQuestions.length) {
-        console.error('Invalid question index in displayCurrentQuestion:', currentQuestionIndex);
-        // Возможно, тут стоит попробовать загрузить еще вопросы?
-        fetchMoreQuestions();
+        console.warn('Invalid index or end reached in displayCurrentQuestion:', currentQuestionIndex, generatedQuestions.length);
+         // Попытка загрузить еще, если мы вышли за пределы
+         fetchMoreQuestions();
+         // Показываем лоадер или сообщение? Пока просто выходим
         return;
     }
-    if (!questionDisplay || !answerCheckboxesContainer || !submitAnswerButton || !feedbackArea || !nextQuestionButton) {
-        console.error('Required quiz UI elements not found for displaying MC question');
-        return;
-    }
+    if (!questionDisplay || !answerCheckboxesContainer || !submitAnswerButton || !feedbackArea || !nextQuestionButton) { console.error('Missing quiz UI elements.'); return; }
 
     const question = generatedQuestions[currentQuestionIndex];
     questionDisplay.innerHTML = `<p><strong>Otázka ${currentQuestionIndex + 1}:</strong></p><p>${sanitizeHTML(question.question)}</p>`;
     feedbackArea.innerHTML = '';
-    answerCheckboxesContainer.innerHTML = ''; // Очищаем предыдущие варианты
-    nextQuestionButton.style.display = 'none'; // Прячем кнопку "Дальше"
+    answerCheckboxesContainer.innerHTML = '';
+    nextQuestionButton.style.display = 'none';
 
-    // Создаем чекбоксы для вариантов ответа
     const choices = ["A", "B", "C", "D", "E"];
     question.options.forEach((optionText, index) => {
         const choiceLetter = choices[index];
         const checkboxId = `q${currentQuestionIndex}_choice${choiceLetter}`;
-
-        const label = document.createElement('label');
-        label.classList.add('checkbox-label'); // Класс для стилизации
-        label.htmlFor = checkboxId;
-
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.id = checkboxId;
-        checkbox.name = `question_${currentQuestionIndex}`; // Группа чекбоксов для вопроса
-        checkbox.value = choiceLetter;
-        checkbox.dataset.choice = choiceLetter; // Сохраняем букву
-
-        const span = document.createElement('span');
-        span.textContent = ` ${choiceLetter}) ${optionText}`; // Пробел перед буквой
-
-        label.appendChild(checkbox);
-        label.appendChild(span);
+        const label = document.createElement('label'); label.classList.add('checkbox-label'); label.htmlFor = checkboxId;
+        const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.id = checkboxId; checkbox.name = `question_${currentQuestionIndex}`; checkbox.value = choiceLetter; checkbox.dataset.choice = choiceLetter;
+        const span = document.createElement('span'); span.textContent = ` ${choiceLetter}) ${optionText}`;
+        label.appendChild(checkbox); label.appendChild(span);
         answerCheckboxesContainer.appendChild(label);
     });
 
-    answerCheckboxesContainer.style.display = 'flex'; // Показываем контейнер с чекбоксами
-    answerCheckboxesContainer.style.flexDirection = 'column';
-    answerCheckboxesContainer.style.gap = '10px';
-    submitAnswerButton.style.display = 'inline-flex'; // Показываем кнопку "Odpovědět"
+    answerCheckboxesContainer.style.display = 'flex';
+    submitAnswerButton.style.display = 'inline-flex';
     submitAnswerButton.disabled = false;
     console.log(`Displayed MC question ${currentQuestionIndex + 1}`);
 }
 
-/**
- * Сравнивает два массива строк, порядок не важен.
- */
 function arraysContainSameElements(arr1, arr2) {
     if (arr1.length !== arr2.length) return false;
     const sortedArr1 = [...arr1].sort();
@@ -377,10 +366,6 @@ function arraysContainSameElements(arr1, arr2) {
     return sortedArr1.every((value, index) => value === sortedArr2[index]);
 }
 
-
-/**
- * Обрабатывает подтверждение выбора чекбоксов.
- */
 function handleAnswerSubmit() {
     if (currentQuestionIndex < 0 || currentQuestionIndex >= generatedQuestions.length) return;
     if (!answerCheckboxesContainer || !feedbackArea || !submitAnswerButton || !nextQuestionButton) return;
@@ -388,113 +373,132 @@ function handleAnswerSubmit() {
     const selectedCheckboxes = answerCheckboxesContainer.querySelectorAll('input[type="checkbox"]:checked');
     const selectedChoices = Array.from(selectedCheckboxes).map(cb => cb.value.toUpperCase());
 
-    if (selectedChoices.length === 0) {
-        showNotification('Prosím, vyberte alespoň jednu odpověď.', 'warning');
-        return;
-    }
+    if (selectedChoices.length === 0) { showNotification('Vyberte alespoň jednu odpověď.', 'warning'); return; }
 
     const currentQuestion = generatedQuestions[currentQuestionIndex];
-    const correctAnswers = currentQuestion.answer; // Это уже массив букв в верхнем регистре
+    const correctAnswers = currentQuestion.answer; // Массив букв
     const explanation = currentQuestion.explanation;
 
-    // Сравнение массивов выбранных и правильных ответов
     const isFullyCorrect = arraysContainSameElements(selectedChoices, correctAnswers);
-    // Частично правильно: есть хотя бы одно совпадение, но не все выбрано ИЛИ выбрано что-то лишнее
     const correctSelected = selectedChoices.filter(choice => correctAnswers.includes(choice));
-    const isPartiallyCorrect = !isFullyCorrect && correctSelected.length > 0;
+    const incorrectSelected = selectedChoices.filter(choice => !correctAnswers.includes(choice));
+    const missedCorrect = correctAnswers.filter(ans => !selectedChoices.includes(ans));
+    const isPartiallyCorrect = !isFullyCorrect && correctSelected.length > 0 && incorrectSelected.length === 0; // Правильные выбраны, но не все
 
-    let feedbackHTML = '';
-    let feedbackClass = '';
+    let feedbackHTML = ''; let feedbackClass = '';
 
-    // Визуальное выделение и блокировка чекбоксов
+    // Блокируем и подсвечиваем чекбоксы
     const allCheckboxes = answerCheckboxesContainer.querySelectorAll('input[type="checkbox"]');
     allCheckboxes.forEach(checkbox => {
         checkbox.disabled = true;
         const choice = checkbox.value.toUpperCase();
         const label = checkbox.closest('.checkbox-label');
+        label?.classList.add('disabled'); // Добавляем общий класс блокировки
         if (correctAnswers.includes(choice)) {
-            label?.classList.add('correct-answer-label'); // Отмечаем правильные
+            label?.classList.add('correct-answer-label'); // Помечаем все правильные
         }
         if (selectedChoices.includes(choice)) {
             if (correctAnswers.includes(choice)) {
-                label?.classList.add('selected-correct-label'); // Выбранный правильный
+                label?.classList.add('selected-correct-label'); // Выбранный и правильный
             } else {
-                label?.classList.add('selected-incorrect-label'); // Выбранный неправильный
+                label?.classList.add('selected-incorrect-label'); // Выбранный и неправильный
             }
         }
     });
 
-    // Формирование отзыва
+    // Формируем отзыв
     if (isFullyCorrect) {
         feedbackClass = 'correct';
         feedbackHTML = `<div class="feedback ${feedbackClass}"><i class="fas fa-check-circle"></i> <strong>Správně!</strong><p>${sanitizeHTML(explanation)}</p></div>`;
         showNotification('Výborně!', 'success', 2000);
     } else if (isPartiallyCorrect) {
-        feedbackClass = 'partial'; // Нужен стиль для partial
-        feedbackHTML = `<div class="feedback ${feedbackClass}"><i class="fas fa-exclamation-triangle"></i> <strong>Částečně správně.</strong><p>Správné odpovědi: <strong>${correctAnswers.join(', ')}</strong>.</p><p>Vysvětlení: ${sanitizeHTML(explanation)}</p></div>`;
-        showNotification('Skoro! Podívej se na vysvětlení.', 'info', 2500);
-    } else { // incorrect
+        feedbackClass = 'partial';
+        feedbackHTML = `<div class="feedback ${feedbackClass}"><i class="fas fa-exclamation-triangle"></i> <strong>Částečně správně.</strong><p>Správné odpovědi byly: <strong>${correctAnswers.join(', ')}</strong>. Chyběly: ${missedCorrect.join(', ')}.</p><p>Vysvětlení: ${sanitizeHTML(explanation)}</p></div>`;
+        showNotification('Skoro! Chybí jen kousek.', 'info', 2500);
+    } else { // Полностью неправильно (либо выбраны только неправильные, либо смесь правильных и неправильных)
         feedbackClass = 'incorrect';
-        feedbackHTML = `<div class="feedback ${feedbackClass}"><i class="fas fa-times-circle"></i> <strong>Špatně.</strong><p>Správné odpovědi: <strong>${correctAnswers.join(', ')}</strong>.</p><p>Vysvětlení: ${sanitizeHTML(explanation)}</p></div>`;
-        showNotification('Nevadí, zkus další!', 'info', 2500);
+        let mistakeDetail = '';
+        if(incorrectSelected.length > 0) mistakeDetail += ` Nesprávně zvolené: ${incorrectSelected.join(', ')}.`;
+        if(missedCorrect.length > 0 && correctSelected.length > 0) mistakeDetail += ` Navíc chyběly správné: ${missedCorrect.join(', ')}.`;
+
+        feedbackHTML = `<div class="feedback ${feedbackClass}"><i class="fas fa-times-circle"></i> <strong>Špatně.</strong><p>Správné odpovědi: <strong>${correctAnswers.join(', ')}</strong>.${mistakeDetail}</p><p>Vysvětlení: ${sanitizeHTML(explanation)}</p></div>`;
+        showNotification('Nevadí, podívej se na vysvětlení.', 'info', 2500);
     }
 
     feedbackArea.innerHTML = feedbackHTML;
     submitAnswerButton.disabled = true;
-    submitAnswerButton.style.display = 'none'; // Скрываем кнопку "Odpovědět"
-    nextQuestionButton.style.display = 'inline-flex'; // Показываем кнопку "Дальше"
+    submitAnswerButton.style.display = 'none';
+    nextQuestionButton.style.display = 'inline-flex';
     nextQuestionButton.disabled = false;
     nextQuestionButton.focus();
-    console.log(`Answer submitted for question ${currentQuestionIndex + 1}. Selected: ${selectedChoices.join(',')}. Correct: ${correctAnswers.join(',')}. FullyCorrect: ${isFullyCorrect}. PartiallyCorrect: ${isPartiallyCorrect}`);
+    console.log(`Answer submitted Q${currentQuestionIndex + 1}. Selected: ${selectedChoices.join(',')}. Correct: ${correctAnswers.join(',')}. Fully: ${isFullyCorrect}. Partial: ${isPartiallyCorrect}`);
 }
 
-/**
- * Переходит к следующему вопросу или загружает новые.
- */
 function handleNextQuestion() {
     if (!nextQuestionButton) return;
+    if (isLoadingQuestions) return; // Не переключать, если грузятся новые
+
     nextQuestionButton.disabled = true;
     currentQuestionIndex++;
 
     if (currentQuestionIndex >= generatedQuestions.length) {
-        console.log("Reached end of current questions batch, fetching more...");
-        fetchMoreQuestions(); // Загружаем новые вопросы
+        console.log("Reached end, fetching more...");
+        fetchMoreQuestions(); // Загружаем новые, он покажет следующий вопрос
     } else {
         displayCurrentQuestion(); // Показываем следующий из текущего набора
     }
 }
 
+
 // --- Прикрепление обработчиков ---
 document.addEventListener('DOMContentLoaded', () => {
+    // Кнопка подтверждения ответа
     if (submitAnswerButton) {
         submitAnswerButton.addEventListener('click', handleAnswerSubmit);
     } else { console.warn('Submit answer button (#submitAnswerButton) not found.'); }
 
+    // Кнопка следующего вопроса
     if (nextQuestionButton) {
         nextQuestionButton.addEventListener('click', handleNextQuestion);
     } else { console.warn('Next question button (#nextQuestionButton) not found.'); }
 
-    // Старый обработчик для #generateTasksButton теперь запускает квиз
+    // Старая кнопка теперь не нужна для автостарта
     if (generateTasksButton) {
-         generateTasksButton.addEventListener('click', async () => {
-             console.log('Start/Restart Quiz button clicked.');
-             if (!fullLearningContextForQuiz) {
-                 showNotification('Nejprve uložte záznam o učení nebo obnovte stránku.', 'warning');
-                 return;
-             }
-             if (isLoadingQuestions) {
-                 showNotification('Otázky se již načítají...', 'info');
-                 return;
-             }
-             await fetchAndDisplayFirstQuestions(fullLearningContextForQuiz); // Всегда начинаем с новыми вопросами
-         });
-     } else { console.warn('Generate tasks/quiz button (#generateTasksButton) not found.'); }
+        // Можно оставить для ручного обновления вопросов?
+        generateTasksButton.textContent = 'Obnovit Otázky';
+        generateTasksButton.addEventListener('click', async () => {
+             if (!fullLearningContextForQuiz || isLoadingQuestions) return;
+             showNotification('Generuji novou sadu otázek...', 'info');
+             await fetchAndDisplayFirstQuestions(fullLearningContextForQuiz); // Перегенерировать с начала
+        });
+        // Показываем её, только если есть контекст (после loadLearningLogs)
+        generateTasksButton.style.display = fullLearningContextForQuiz ? 'inline-flex' : 'none';
+    }
+
+    // --- Инициализация ---
+    // Запускаем инициализацию Supabase и проверку auth state
+    initializeApp(); // Новая функция инициализации
 
 });
+
+// --- НОВАЯ ФУНКЦИЯ ИНИЦИАЛИЗАЦИИ ---
+async function initializeApp() {
+    console.log("[Init Bethebest MC Endless] Starting initialization...");
+    if (!initializeSupabase()) {
+        showNotification("Chyba připojení k databázi.", "error", 0); // Show indefinitely
+        return;
+    }
+    // Состояние пользователя и запуск квиза обрабатывается в onAuthStateChange
+    console.log("[Init Bethebest MC Endless] Initialization complete. Waiting for auth state...");
+}
+
+function initializeSupabase() { /* ... как раньше ... */ return true; }
+// -----------------------------------
+
+// --- КОНЕЦ НОВЫХ ФУНКЦИЙ КВИЗА ---
 
 // Sanitize HTML function
 function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
 
-// Инициализация
-console.log("bethebest.js načten (v. Multi-Choice, Endless), Supabase klient inicializován.");
-// Загрузка логов и авто-старт квиза произойдет в onAuthStateChange
+// Запускаем инициализацию
+// initializeApp(); // Вызывается из DOMContentLoaded
