@@ -29,8 +29,10 @@ const geminiLoading = document.getElementById('geminiLoading');
 // !!! ВАЖНО: API КЛЮЧ GEMINI - НЕБЕЗОПАСНО ДЛЯ ПРОДАКШЕНА !!!
 // Этот ключ будет виден в коде на стороне клиента.
 // Используется только для тестовой страницы согласно инструкциям.
-const GEMINI_API_KEY = 'AIzaSyB4l6Yj9AjWfkG2Ob2LCAgTsnSwN-UZQcA';
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_API_KEY = 'AIzaSyB4l6Yj9AjWfkG2Ob2LCAgTsnSwN-UZQcA'; // Убедись, что ключ все еще тот же, что ты предоставил.
+
+// --- ИЗМЕНЕННАЯ СТРОКА: Обновлена модель на gemini-2.0-flash ---
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 // Функция для zobrazení notifikací
 function showNotification(message, type = 'info', duration = 3000) {
@@ -209,7 +211,7 @@ async function loadLearningLogs(userId) {
             logsContainer.innerHTML = '<p>Zatím nemáš žádné záznamy. Začni se učit a zaznamenávej svůj pokrok!</p>';
         }
     } catch (err) {
-        console.error('Kritická chyba při načítání záznamů:', err);
+        console.error('Kritická chybaři načítání záznamů:', err);
         logsContainer.innerHTML = `<p style="color: var(--error-color);">Kritická chyba při načítání.</p>`;
     }
 }
@@ -236,14 +238,14 @@ Příklady úkolů:`;
         //   temperature: 0.7,
         //   topK: 1,
         //   topP: 1,
-        //   maxOutputTokens: 2048,
+        //   maxOutputTokens: 2048, // Увеличь, если ответы часто обрезаются
         // },
         // Опционально: Настройки безопасности (пример)
         // safetySettings: [
-        //   { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-        //   { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-        //   { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-        //   { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE"},
+        //   { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" }, // Пример изменения порога
+        //   { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
+        //   { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
+        //   { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH"},
         // ]
     };
 
@@ -257,9 +259,16 @@ Příklady úkolů:`;
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            console.error('Chyba od Gemini API:', errorData);
-            throw new Error(`Chyba ${response.status} od Gemini API: ${errorData.error?.message || response.statusText}`);
+            const errorData = await response.json().catch(() => ({})); // Попытка получить JSON, или пустой объект если не JSON
+            console.error('Chyba od Gemini API:', errorData, 'Status:', response.status, 'StatusText:', response.statusText);
+            // Формируем более детальное сообщение об ошибке
+            let errorMessage = `Chyba ${response.status} od Gemini API: ${response.statusText}. `;
+            if (errorData.error && errorData.error.message) {
+                errorMessage += errorData.error.message;
+            } else if (typeof errorData === 'string') {
+                errorMessage += errorData;
+            }
+            throw new Error(errorMessage);
         }
 
         const data = await response.json();
@@ -267,7 +276,7 @@ Příklady úkolů:`;
         if (data.candidates && data.candidates.length > 0 &&
             data.candidates[0].content && data.candidates[0].content.parts &&
             data.candidates[0].content.parts.length > 0) {
-            // Убедимся, что это не заблокировано настройками безопасности
+            
             if (data.candidates[0].finishReason === "SAFETY") {
                 console.warn("Gemini odpověď zablokována kvůli bezpečnostním nastavením:", data.candidates[0].safetyRatings);
                 return "<p>Odpověď byla zablokována bezpečnostními filtry Gemini. Zkuste přeformulovat své záznamy o učení.</p>";
@@ -284,7 +293,7 @@ Příklady úkolů:`;
 
     } catch (error) {
         console.error('Chyba při přímém volání Gemini API:', error);
-        throw error; // Передаем ошибку дальше для обработки
+        throw error;
     }
 }
 // --- КОНЕЦ НОВОЙ ФУНКЦИИ ---
@@ -317,7 +326,6 @@ if (generateTasksButton) {
             if (!logs || logs.length === 0) {
                 showNotification('Nemáš zatím žádné záznamy pro analýzu Gemini.', 'info');
                 geminiTasksContainer.innerHTML = '<p>Nejprve přidej nějaké záznamy o svém učení.</p>';
-                // Возвращаемся, но сначала восстанавливаем кнопку и убираем лоадер
                 geminiLoading.classList.add('hidden');
                 generateTasksButton.disabled = false;
                 generateTasksButton.textContent = 'Vygenerovat úkoly';
@@ -326,32 +334,11 @@ if (generateTasksButton) {
             
             const learningContext = logs.map(log => log.log_text).join("\n---\n");
 
-            // --- СТАРЫЙ КОД С SUPABASE FUNCTION (ЗАКОММЕНТИРОВАН) ---
-            /*
-            const { data: tasksData, error: functionError } = await supabaseClient.functions.invoke('get-gemini-tasks', {
-                body: { learningContext: learningContext }
-            });
-
-            if (functionError) {
-                throw new Error(`Chyba volání AI asistenta: ${functionError.message}`);
-            }
-
-            if (tasksData && tasksData.tasks) {
-                geminiTasksContainer.innerHTML = tasksData.tasks; 
-                showNotification('Úkoly od Gemini vygenerovány!', 'success');
-            } else {
-                geminiTasksContainer.innerHTML = '<p>Nepodařilo se získat úkoly od Gemini. Zkuste to později.</p>';
-                console.warn('Gemini funkce nevrátila očekávaná data:', tasksData);
-            }
-            */
-            // --- КОНЕЦ СТАРОГО КОДА ---
-
             // +++ НОВЫЙ КОД: ПРЯМОЙ ВЫЗОВ GEMINI +++
             const tasksHtml = await generateTasksWithGeminiDirectly(learningContext);
             geminiTasksContainer.innerHTML = tasksHtml;
             showNotification('Úkoly od Gemini vygenerovány!', 'success');
             // +++ КОНЕЦ НОВОГО КОДА +++
-
 
         } catch (error) {
             console.error('Celková chyba při generování úkolů Gemini:', error);
@@ -366,4 +353,4 @@ if (generateTasksButton) {
 }
 
 // Inicializace - onAuthStateChange se postará o první načtení stavu
-console.log("app.js načten, Supabase klient inicializován. Gemini nastaven na přímý API volání.");
+console.log("app.js načten, Supabase klient inicializován. Gemini nastaven na přímý API volání s modelem gemini-2.0-flash.");
