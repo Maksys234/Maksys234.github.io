@@ -1,5 +1,5 @@
 // dashboard/bethebest.js
-// Версия: Multiple Choice, Endless Feed, Auto-Start, FIX Initialization & Fetching v4 (Debugging Supabase Query)
+// Версия: Multiple Choice, Endless Feed, Auto-Start, FIX Initialization & Fetching v5 (Handling Empty Logs)
 
 // --- Константы и Supabase клиент ---
 const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
@@ -26,7 +26,7 @@ let currentUser = null;
 
 // --- Функции ---
 
-function cacheDOMElements() {
+function cacheDOMElements() { /* ... existing code v4 ... */
     authSection = document.getElementById('authSection');
     appSection = document.getElementById('appSection');
     loginFormContainer = document.getElementById('loginFormContainer');
@@ -51,8 +51,7 @@ function cacheDOMElements() {
     quizLoading = document.getElementById('quizLoading');
     console.log("[DEBUG] DOM elements cached.");
 }
-
-function showNotification(message, type = 'info', duration = 3000) {
+function showNotification(message, type = 'info', duration = 3000) { /* ... existing code v4 ... */
     if (!notificationArea) { console.warn("Notification area not found"); return; }
     const notificationDiv = document.createElement('div');
     notificationDiv.className = `notification ${type}`;
@@ -68,23 +67,18 @@ function showNotification(message, type = 'info', duration = 3000) {
          setTimeout(() => { notificationDiv.style.opacity = '0'; notificationDiv.style.transform = 'translateX(120%)'; notificationDiv.addEventListener('transitionend', () => notificationDiv.remove(), { once: true }); setTimeout(() => { if (notificationDiv.parentElement) notificationDiv.remove(); }, 600); }, duration);
      }
 }
-
-window.toggleAuthForms = () => {
-    loginFormContainer?.classList.toggle('hidden');
-    registerFormContainer?.classList.toggle('hidden');
-};
-
+window.toggleAuthForms = () => { loginFormContainer?.classList.toggle('hidden'); registerFormContainer?.classList.toggle('hidden'); };
 function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
 
 // --- Autentizace ---
-function setupAuthListeners() {
-    if (loginForm) { loginForm.addEventListener('submit', async (event) => { /* ... existing code ... */ }); } else { console.warn("Login form not found."); }
-    if (registerForm) { registerForm.addEventListener('submit', async (event) => { /* ... existing code ... */ }); } else { console.warn("Register form not found."); }
-    if (logoutButton) { logoutButton.addEventListener('click', async () => { /* ... existing code ... */ }); } else { console.warn("Logout button not found."); }
+function setupAuthListeners() { /* ... existing code v4 ... */
+    if (loginForm) { loginForm.addEventListener('submit', async (event) => { /* ... */ }); } else { console.warn("Login form not found."); }
+    if (registerForm) { registerForm.addEventListener('submit', async (event) => { /* ... */ }); } else { console.warn("Register form not found."); }
+    if (logoutButton) { logoutButton.addEventListener('click', async () => { /* ... */ }); } else { console.warn("Logout button not found."); }
 }
 
 // --- Сохранение логов ---
-function setupLogFormListener() {
+function setupLogFormListener() { /* ... existing code v4 ... */
     if (learningLogForm) {
         learningLogForm.addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -100,10 +94,10 @@ function setupLogFormListener() {
                 showNotification('Pokrok uložen!', 'success');
                 if (learningInput) learningInput.value = '';
                 console.log('[DEBUG] Log saved, reloading logs...');
-                const logsLoaded = await loadLearningLogs(currentUser.id);
+                const logsLoaded = await loadLearningLogs(currentUser.id); // Await log reload & context update
                 if (logsLoaded && fullLearningContextForQuiz) {
                     console.log("[DEBUG] Logs reloaded and context exists, fetching new questions for quiz...");
-                    await fetchAndDisplayFirstQuestions(fullLearningContextForQuiz);
+                    await fetchAndDisplayFirstQuestions(fullLearningContextForQuiz); // Regenerate based on new context
                 } else if (!logsLoaded) { console.error("[DEBUG] Failed to reload logs after saving new one."); }
                 else { console.warn("[DEBUG] Context still empty after log save/reload?"); }
             } catch (err) { console.error('[DEBUG] Log save error:', err); showNotification(`Uložení selhalo: ${err.message}`, 'error'); }
@@ -112,81 +106,65 @@ function setupLogFormListener() {
     } else { console.warn("Learning log form not found."); }
 }
 
-// --- Загрузка логов (More Debugging) ---
+// --- Загрузка логов (v5 - Handling Empty Logs) ---
 async function loadLearningLogs(userId) {
-    console.log(`[DEBUG] loadLearningLogs v4 called for user: ${userId}`);
-    if (!userId) { console.warn("[DEBUG v4] Cannot load logs: userId missing."); return false; }
-    if (!logsContainer) { console.warn("[DEBUG v4] Cannot load logs: logsContainer missing."); return false; }
+    console.log(`[DEBUG] loadLearningLogs v5 called for user: ${userId}`);
+    if (!userId || !logsContainer) { fullLearningContextForQuiz = ''; console.warn("[DEBUG v5] Cannot load logs: userId or logsContainer missing."); return false; }
 
-    // Show loader
+    // Show loader correctly
     const loaderElement = logsContainer.querySelector('.loader') || document.createElement('div');
-    loaderElement.className = 'loader visible-loader';
+    loaderElement.className = 'loader visible-loader'; // Ensure loader is visible
     loaderElement.textContent = 'Načítám záznamy...';
     logsContainer.innerHTML = '';
     logsContainer.appendChild(loaderElement);
-    console.log("[DEBUG v4] Loader displayed.");
+    console.log("[DEBUG v5] Loader displayed.");
 
     try {
-        console.log(`[DEBUG v4] Creating query for learning_logs, user_id: ${userId}`);
-        const query = supabaseClient
-            .from('learning_logs')
-            .select('log_text, created_at')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: false })
-            .limit(30);
-        console.log("[DEBUG v4] Query created, executing...");
+        console.log(`[DEBUG v5] Creating query for learning_logs, user_id: ${userId}`);
+        const query = supabaseClient.from('learning_logs').select('log_text, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(30);
+        console.log("[DEBUG v5] Query created, executing...");
+        const { data, error, status } = await query; // Await the promise
+        console.log(`[DEBUG v5] Supabase query returned. Status: ${status}, Error:`, error, "Data:", data);
 
-        // Execute the query
-        const { data, error, status, statusText } = await query; // Get more details
+        if (error) throw error; // Throw error to be caught by the catch block
 
-        console.log(`[DEBUG v4] Supabase query returned. Status: ${status} ${statusText}, Error:`, error, "Data:", data);
-
-        if (error) {
-            console.error('[DEBUG v4] Supabase error fetching logs:', error);
-            showNotification(`Chyba načítání záznamů: ${error.message}`, "error", 5000);
-            logsContainer.innerHTML = `<p style="color: var(--accent-pink);">Chyba načítání záznamů. Zkontrolujte RLS politiky nebo konzoli pro detaily.</p>`;
-            fullLearningContextForQuiz = '';
-            if (generateTasksButton) generateTasksButton.style.display = 'none';
-            return false; // Indicate failure
-        }
-
-        // Process data if successful
-        logsContainer.innerHTML = ''; // Clear loader/error
+        // Process data (even if empty)
+        logsContainer.innerHTML = ''; // Clear loader
         if (data && data.length > 0) {
-            console.log(`[DEBUG v4] Found ${data.length} logs.`);
+            console.log(`[DEBUG v5] Found ${data.length} logs.`);
             const reversedData = [...data].reverse();
             fullLearningContextForQuiz = reversedData.map(log => `Datum: ${new Date(log.created_at).toLocaleDateString('cs-CZ')}\nText: ${log.log_text}`).join("\n\n---\n\n");
-            console.log('[DEBUG v4] Learning context generated. Length:', fullLearningContextForQuiz.length);
-
-            data.slice(0, 5).forEach(log => {
+            console.log('[DEBUG v5] Learning context generated. Length:', fullLearningContextForQuiz.length);
+            data.slice(0, 5).forEach(log => { /* ... render log entry ... */
                 const logElement = document.createElement('div'); logElement.classList.add('log-entry');
                 logElement.innerHTML = `<p>${sanitizeHTML(log.log_text.replace(/\n/g, '<br>'))}</p><small>Datum: ${new Date(log.created_at).toLocaleString('cs-CZ')}</small>`;
                 logsContainer.appendChild(logElement);
                 requestAnimationFrame(() => { logElement.style.opacity = '1'; logElement.style.transform = 'translateY(0)'; });
-            });
-
+             });
             if (generateTasksButton) { generateTasksButton.style.display = 'inline-flex'; generateTasksButton.disabled = false; generateTasksButton.textContent = 'Restartovat Kvíz'; }
-            return true; // Indicate success
         } else {
-            console.log('[DEBUG v4] No logs found for this user.');
-            logsContainer.innerHTML = '<p>Zatím žádné záznamy.</p>';
-            fullLearningContextForQuiz = '';
-            if (generateTasksButton) generateTasksButton.style.display = 'none';
-            return true; // Indicate success (no logs is not an error)
+            // === FIX: Handle empty data correctly ===
+            console.log('[DEBUG v5] No logs found for this user.');
+            logsContainer.innerHTML = '<p>Zatím žádné záznamy.</p>'; // Display empty message
+            fullLearningContextForQuiz = ''; // Ensure context is empty
+            if (generateTasksButton) generateTasksButton.style.display = 'none'; // Hide restart button
         }
+        console.log('[DEBUG v5] loadLearningLogs returning true (success or empty).');
+        return true; // Return true whether logs were found or not (query succeeded)
+
     } catch (err) {
-        // Catch any other unexpected errors during the process
-        console.error('[DEBUG v4] Error in loadLearningLogs catch block:', err);
-        logsContainer.innerHTML = `<p style="color: var(--accent-pink);">Neočekávaná chyba načítání záznamů: ${err.message}</p>`;
+        console.error('[DEBUG v5] Error in loadLearningLogs catch block:', err);
+        logsContainer.innerHTML = `<p style="color: var(--accent-pink);">Chyba načítání záznamů: ${err.message}</p>`;
         fullLearningContextForQuiz = '';
         if (generateTasksButton) generateTasksButton.style.display = 'none';
+        console.log('[DEBUG v5] loadLearningLogs returning false (error).');
         return false; // Indicate failure
     }
 }
 
 
 // --- Генерация Multiple Choice ---
-async function generateMultipleChoiceQuestions(context) { /* ... existing code v3 ... */
+async function generateMultipleChoiceQuestions(context) { /* ... existing code v4 ... */
     console.log('[DEBUG] generateMultipleChoiceQuestions called.');
     if (!context) { console.warn('[DEBUG] generateMultipleChoiceQuestions: No context provided.'); return null; }
     const prompt = `
@@ -207,7 +185,6 @@ ${context}
 
 Příklad formátu JSON pole:
 [{"question": "...", "options": ["...", "..."], "answer": ["B", "D"], "explanation": "..."}, ... ]`;
-
     const requestBody = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.6, topP: 0.95 } };
     try {
         console.log('[DEBUG] Requesting MC questions from Gemini API...');
@@ -222,25 +199,19 @@ Příklad formátu JSON pole:
         let jsonString = text; const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/); if (jsonMatch?.[1]) jsonString = jsonMatch[1];
         try {
             const parsed = JSON.parse(jsonString);
-            if (Array.isArray(parsed) && parsed.every(q => q.question && Array.isArray(q.options) && q.options.length === 5 && Array.isArray(q.answer) && q.answer.length > 0 && q.explanation && q.answer.every(a => typeof a === 'string' && ["A", "B", "C", "D", "E"].includes(a.toUpperCase())))) {
-                console.log('[DEBUG] Successfully parsed valid MC questions:', parsed.length);
-                return parsed.map(q => ({ ...q, answer: q.answer.map(a => a.toUpperCase()) })); // Standardize answer letters to uppercase
-            } else {
-                console.error('[DEBUG] Invalid JSON structure from AI:', parsed);
-                throw new Error('Neplatná struktura JSON odpovědi od AI.');
-            }
+            if (Array.isArray(parsed) && parsed.every(q => q.question && Array.isArray(q.options) && q.options.length === 5 && Array.isArray(q.answer) && q.answer.length > 0 && q.explanation && q.answer.every(a => typeof a === 'string' && ["A", "B", "C", "D", "E"].includes(a.toUpperCase())))) { console.log('[DEBUG] Successfully parsed valid MC questions:', parsed.length); return parsed.map(q => ({ ...q, answer: q.answer.map(a => a.toUpperCase()) })); }
+            else { console.error('[DEBUG] Invalid JSON structure from AI:', parsed); throw new Error('Neplatná struktura JSON odpovědi od AI.'); }
         } catch (e) { console.error('[DEBUG] JSON Parse Error:', e, 'Raw String:', jsonString); throw new Error('Chyba zpracování JSON odpovědi od AI.'); }
     } catch (error) { console.error('[DEBUG] Gemini MC question generation error:', error); throw error; }
 }
 
-
 // --- Логика Квиза ---
-function resetQuizState() { console.log('[DEBUG] Resetting quiz state.'); generatedQuestions = []; currentQuestionIndex = -1; isLoadingQuestions = false; }
-function hideQuizUI() { if (quizContainer) quizContainer.style.display = 'none'; if (questionDisplay) questionDisplay.innerHTML = ''; if (answerCheckboxesContainer) answerCheckboxesContainer.innerHTML = ''; if (submitAnswerButton) submitAnswerButton.style.display = 'none'; if (feedbackArea) feedbackArea.innerHTML = ''; if (nextQuestionButton) nextQuestionButton.style.display = 'none'; if (quizLoading) quizLoading.classList.add('hidden'); console.log('[DEBUG] Quiz UI hidden.'); }
-function setQuizLoadingState(isLoading) { /* ... existing code v3 ... */ if (!quizLoading) { console.warn("Quiz loading element not found."); return; } quizLoading.classList.toggle('visible-loader', isLoading); quizLoading.classList.toggle('hidden', !isLoading); if(generateTasksButton) generateTasksButton.disabled = isLoading; if(submitAnswerButton) submitAnswerButton.disabled = isLoading; if(nextQuestionButton) nextQuestionButton.disabled = isLoading; console.log(`[DEBUG] Quiz loading state set to: ${isLoading}`); }
-function hideQuizElements() { /* ... existing code v3 ... */ if(answerCheckboxesContainer) answerCheckboxesContainer.innerHTML = ''; if(submitAnswerButton) submitAnswerButton.style.display = 'none'; if(feedbackArea) feedbackArea.innerHTML = ''; if(nextQuestionButton) nextQuestionButton.style.display = 'none'; }
+function resetQuizState() { /* ... existing code v4 ... */ console.log('[DEBUG] Resetting quiz state.'); generatedQuestions = []; currentQuestionIndex = -1; isLoadingQuestions = false; }
+function hideQuizUI() { /* ... existing code v4 ... */ if (quizContainer) quizContainer.style.display = 'none'; if (questionDisplay) questionDisplay.innerHTML = ''; if (answerCheckboxesContainer) answerCheckboxesContainer.innerHTML = ''; if (submitAnswerButton) submitAnswerButton.style.display = 'none'; if (feedbackArea) feedbackArea.innerHTML = ''; if (nextQuestionButton) nextQuestionButton.style.display = 'none'; if (quizLoading) quizLoading.classList.add('hidden'); console.log('[DEBUG] Quiz UI hidden.'); }
+function setQuizLoadingState(isLoading) { /* ... existing code v4 ... */ if (!quizLoading) { console.warn("Quiz loading element not found."); return; } quizLoading.classList.toggle('visible-loader', isLoading); quizLoading.classList.toggle('hidden', !isLoading); if(generateTasksButton) generateTasksButton.disabled = isLoading; if(submitAnswerButton) submitAnswerButton.disabled = isLoading; if(nextQuestionButton) nextQuestionButton.disabled = isLoading; console.log(`[DEBUG] Quiz loading state set to: ${isLoading}`); }
+function hideQuizElements() { /* ... existing code v4 ... */ if(answerCheckboxesContainer) answerCheckboxesContainer.innerHTML = ''; if(submitAnswerButton) submitAnswerButton.style.display = 'none'; if(feedbackArea) feedbackArea.innerHTML = ''; if(nextQuestionButton) nextQuestionButton.style.display = 'none'; }
 
-async function fetchAndDisplayFirstQuestions(context) { /* ... existing code v3 ... */
+async function fetchAndDisplayFirstQuestions(context) { /* ... existing code v4 ... */
     console.log('[DEBUG] fetchAndDisplayFirstQuestions called.');
     if (!context) { showNotification('Chybí kontext pro kvíz.', 'warning'); console.warn('[DEBUG] No context provided for quiz.'); return; }
     if (isLoadingQuestions) { console.log("[DEBUG] Fetch already in progress, skipping."); return; }
@@ -258,7 +229,7 @@ async function fetchAndDisplayFirstQuestions(context) { /* ... existing code v3 
     finally { isLoadingQuestions = false; setQuizLoadingState(false); }
 }
 
-async function fetchMoreQuestions() { /* ... existing code v3 ... */
+async function fetchMoreQuestions() { /* ... existing code v4 ... */
     console.log('[DEBUG] fetchMoreQuestions called.');
     if (!fullLearningContextForQuiz) { console.warn("[DEBUG] No context to fetch more questions."); return; }
     if (isLoadingQuestions) { console.warn("[DEBUG] Fetch more already in progress."); return; }
@@ -283,8 +254,7 @@ async function fetchMoreQuestions() { /* ... existing code v3 ... */
     }
 }
 
-
-function displayCurrentQuestion() { /* ... existing code v3 ... */
+function displayCurrentQuestion() { /* ... existing code v4 ... */
     console.log(`[DEBUG] displayCurrentQuestion called for index: ${currentQuestionIndex}, Total loaded: ${generatedQuestions.length}`);
     if (currentQuestionIndex < 0 || !generatedQuestions || generatedQuestions.length === 0) { console.warn("[DEBUG] displayCurrentQuestion: Invalid index or no questions array. Hiding UI."); hideQuizElements(); if(questionDisplay) questionDisplay.innerHTML = '<p>Kvíz není připraven nebo došlo k chybě.</p>'; return; }
     if (currentQuestionIndex >= generatedQuestions.length) { console.error(`[DEBUG] displayCurrentQuestion: Index ${currentQuestionIndex} is out of bounds for loaded questions (${generatedQuestions.length}). This should not happen.`); displayEndOfQuizMessage(); return; }
@@ -303,9 +273,8 @@ function displayCurrentQuestion() { /* ... existing code v3 ... */
     console.log(`[DEBUG] Displayed question ${currentQuestionIndex + 1}: ${question.question.substring(0,50)}...`);
 }
 
-function arraysContainSameElements(arr1, arr2) { /* ... existing code v3 ... */ if (!Array.isArray(arr1) || !Array.isArray(arr2) || arr1.length !== arr2.length) { console.log('[DEBUG arraysContainSameElements] Invalid arrays or different lengths.'); return false; } const sortedArr1 = [...arr1].sort(); const sortedArr2 = [...arr2].sort(); const result = sortedArr1.every((val, index) => val === sortedArr2[index]); console.log(`[DEBUG arraysContainSameElements] Comparing ${JSON.stringify(sortedArr1)} vs ${JSON.stringify(sortedArr2)} -> ${result}`); return result; }
-
-function handleAnswerSubmit() { /* ... existing code v3 ... */
+function arraysContainSameElements(arr1, arr2) { /* ... existing code v4 ... */ if (!Array.isArray(arr1) || !Array.isArray(arr2) || arr1.length !== arr2.length) { console.log('[DEBUG arraysContainSameElements] Invalid arrays or different lengths.'); return false; } const sortedArr1 = [...arr1].sort(); const sortedArr2 = [...arr2].sort(); const result = sortedArr1.every((val, index) => val === sortedArr2[index]); console.log(`[DEBUG arraysContainSameElements] Comparing ${JSON.stringify(sortedArr1)} vs ${JSON.stringify(sortedArr2)} -> ${result}`); return result; }
+function handleAnswerSubmit() { /* ... existing code v4 ... */
     console.log('[DEBUG] handleAnswerSubmit called.');
     if (currentQuestionIndex < 0 || currentQuestionIndex >= generatedQuestions.length) { console.warn("[DEBUG] Submit ignored: Invalid question index:", currentQuestionIndex); return; }
     if (!answerCheckboxesContainer || !feedbackArea || !submitAnswerButton || !nextQuestionButton) { console.error("[DEBUG] Submit ignored: Missing UI elements."); return; }
@@ -330,8 +299,7 @@ function handleAnswerSubmit() { /* ... existing code v3 ... */
     else { feedbackClass = 'incorrect'; let mistakeDetail = ''; if(incorrectSelected.length > 0) mistakeDetail += ` Nesprávně zvolené: ${incorrectSelected.join(', ')}.`; if(missedCorrect.length > 0) { if (correctSelected.length === 0) mistakeDetail += ` Správné odpovědi (${correctAnswers.join(', ')}) nebyly zvoleny.`; else mistakeDetail += ` Navíc chyběly správné: ${missedCorrect.join(', ')}.`; } if (!mistakeDetail) mistakeDetail = " Vaše odpověď nebyla zcela správná."; feedbackHTML = `<div class="feedback ${feedbackClass}"><i class="fas fa-times-circle"></i> <strong>Špatně.</strong><p>Správné odpovědi: <strong>${correctAnswers.join(', ')}</strong>.${mistakeDetail}</p><p>Vysvětlení: ${sanitizeHTML(explanation)}</p></div>`; showNotification('Nevadí.', 'info', 2500); }
     feedbackArea.innerHTML = feedbackHTML; submitAnswerButton.disabled = true; submitAnswerButton.style.display = 'none'; nextQuestionButton.style.display = 'inline-flex'; nextQuestionButton.disabled = false; nextQuestionButton.focus(); console.log(`[DEBUG] Answer submitted for Q${currentQuestionIndex + 1}. Fully Correct: ${isFullyCorrect}, Partially Correct: ${isPartiallyCorrect}`);
 }
-
-function handleNextQuestion() { /* ... existing code v3 ... */
+function handleNextQuestion() { /* ... existing code v4 ... */
     console.log('[DEBUG] handleNextQuestion called.');
     if (!nextQuestionButton || isLoadingQuestions) { console.warn("[DEBUG] Next button disabled or loading."); return; }
     nextQuestionButton.disabled = true;
@@ -340,8 +308,7 @@ function handleNextQuestion() { /* ... existing code v3 ... */
     if (currentQuestionIndex < generatedQuestions.length) { console.log(`[DEBUG] Next question (${currentQuestionIndex + 1}) exists in cache. Displaying.`); displayCurrentQuestion(); }
     else { console.log("[DEBUG] Reached end of current batch, attempting to fetch more..."); fetchMoreQuestions(); }
 }
-
-function displayEndOfQuizMessage(isError = false) { /* ... existing code v3 ... */
+function displayEndOfQuizMessage(isError = false) { /* ... existing code v4 ... */
      console.log(`[DEBUG] displayEndOfQuizMessage called. Is error: ${isError}`);
      if (!questionDisplay) return;
      hideQuizElements();
@@ -355,28 +322,28 @@ function displayEndOfQuizMessage(isError = false) { /* ... existing code v3 ... 
 
 
 // --- Инициализация приложения ---
-function initializeSupabase() { /* ... existing code v3 ... */
+function initializeSupabase() { /* ... existing code v4 ... */
     console.log("[DEBUG] Initializing Supabase...");
     try { if (!window.supabase?.createClient) throw new Error("Supabase lib not loaded."); supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); console.log("[DEBUG] Supabase client initialized."); return true; }
     catch (e) { console.error("[DEBUG] Supabase init failed:", e); return false; }
 }
 
+// MODIFIED initializeApp to log result of loadLearningLogs
 async function initializeApp() {
-    console.log("[DEBUG] initializeApp v4 - Start");
+    console.log("[DEBUG] initializeApp v5 - Start");
     cacheDOMElements();
     setupAuthListeners();
     setupLogFormListener();
-
-    // Quiz button listeners
-    if (submitAnswerButton) { submitAnswerButton.addEventListener('click', handleAnswerSubmit); } else { console.warn('Submit answer button not found.'); }
-    if (nextQuestionButton) { nextQuestionButton.addEventListener('click', handleNextQuestion); } else { console.warn('Next question button not found.'); }
+    // Quiz button listeners setup
+    if (submitAnswerButton) submitAnswerButton.addEventListener('click', handleAnswerSubmit); else console.warn('Submit answer button not found.');
+    if (nextQuestionButton) nextQuestionButton.addEventListener('click', handleNextQuestion); else console.warn('Next question button not found.');
     if (generateTasksButton) {
          generateTasksButton.textContent = 'Restartovat Kvíz';
          generateTasksButton.addEventListener('click', async () => {
-             if (!fullLearningContextForQuiz) { showNotification("Nejprve přidejte záznam o učení.", "warning"); return;}
+             if (!fullLearningContextForQuiz) { showNotification("Nejprve přidejte záznam o učení.", "warning"); return; }
              if (isLoadingQuestions) return;
              showNotification('Generuji novou sadu otázek...', 'info');
-             await fetchAndDisplayFirstQuestions(fullLearningContextForQuiz); // Always fetch new set
+             await fetchAndDisplayFirstQuestions(fullLearningContextForQuiz);
          });
          generateTasksButton.style.display = 'none';
     } else { console.warn('Generate/Restart button not found.'); }
@@ -399,21 +366,22 @@ async function initializeApp() {
 
                 try {
                     console.log('[DEBUG Auth State Change] Awaiting loadLearningLogs...');
-                    const logsLoaded = await loadLearningLogs(session.user.id);
-                    console.log('[DEBUG Auth State Change] loadLearningLogs finished. Context length:', fullLearningContextForQuiz?.length || 0, 'Logs Loaded:', logsLoaded);
+                    const logsLoaded = await loadLearningLogs(session.user.id); // Capture result
+                    // === ADDED LOG ===
+                    console.log(`[DEBUG Auth State Change] loadLearningLogs finished. Result: ${logsLoaded}. Context length: ${fullLearningContextForQuiz?.length || 0}`);
 
                     if (logsLoaded && fullLearningContextForQuiz) {
                         console.log('[DEBUG Auth State Change] Context found, awaiting fetchAndDisplayFirstQuestions...');
                         await fetchAndDisplayFirstQuestions(fullLearningContextForQuiz);
                         console.log('[DEBUG Auth State Change] fetchAndDisplayFirstQuestions finished.');
                     } else if (logsLoaded && !fullLearningContextForQuiz) {
-                         console.log('[DEBUG Auth State Change] Logs loaded but no learning context. Displaying prompt.');
+                         console.log('[DEBUG Auth State Change] Logs loaded but no context (likely no logs found). Displaying prompt.');
                          if(quizContainer) quizContainer.style.display = 'block';
                          if(questionDisplay) questionDisplay.innerHTML = '<p>Vítejte! Přidejte záznam o učení, aby se zde objevily otázky k procvičení.</p>';
                          if (quizLoading) quizLoading.classList.add('hidden');
                          if (generateTasksButton) generateTasksButton.style.display = 'none';
                     } else { // logsLoaded is false
-                         console.error("[DEBUG Auth State Change] Failed to load learning logs. Quiz cannot start.");
+                         console.error("[DEBUG Auth State Change] Failed to load learning logs (logsLoaded is false). Quiz cannot start.");
                          if(quizContainer) quizContainer.style.display = 'block';
                          if(questionDisplay) questionDisplay.innerHTML = '<p style="color: var(--accent-pink);">Chyba načítání záznamů o učení. Kvíz nelze spustit.</p>';
                          if (quizLoading) quizLoading.classList.add('hidden');
@@ -425,7 +393,7 @@ async function initializeApp() {
                     hideQuizUI();
                 }
 
-            } else {
+            } else { // Signed out
                 currentUser = null;
                 console.log('[DEBUG Auth State Change] User SIGNED OUT.');
                 authSection?.classList.remove('hidden');
@@ -441,7 +409,7 @@ async function initializeApp() {
          showNotification("Kritická chyba inicializace autentizace.", "error", 0);
     }
 
-    console.log("[DEBUG] initializeApp v4 - Initialization complete. Waiting for auth state...");
+    console.log("[DEBUG] initializeApp v5 - Initialization complete. Waiting for auth state...");
 }
 
 
