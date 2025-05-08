@@ -1,5 +1,5 @@
 // dashboard/bethebest.js
-// Версия: Multiple Choice, Endless Feed, Auto-Start, FIX Initialization & Fetching v5 (Handling Empty Logs)
+// Версия: 6.0 - Исправления для загрузки логов, сохранения заметок и загрузки вопросов квиза.
 
 // --- Константы и Supabase клиент ---
 const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
@@ -8,10 +8,10 @@ let supabaseClient = null;
 
 // --- HTML Элементы (Объявление переменных) ---
 let authSection, appSection, loginFormContainer, registerFormContainer, notificationArea,
-    loginForm, registerForm, logoutButton, userEmailDisplay, learningLogForm,
-    learningInput, logsContainer, geminiTasksContainer, geminiLoading,
-    quizContainer, questionDisplay, answerCheckboxesContainer, submitAnswerButton,
-    feedbackArea, nextQuestionButton, quizLoading, generateTasksButton;
+	loginForm, registerForm, logoutButton, userEmailDisplay, learningLogForm,
+	learningInput, logsContainer, geminiTasksContainer, geminiLoading,
+	quizContainer, questionDisplay, answerCheckboxesContainer, submitAnswerButton,
+	feedbackArea, nextQuestionButton, quizLoading, generateTasksButton;
 
 // --- API Ключ ---
 const GEMINI_API_KEY = 'AIzaSyB4l6Yj9AjWfkG2Ob2LCAgTsnSwN-UZQcA'; // Твой ключ
@@ -26,7 +26,7 @@ let currentUser = null;
 
 // --- Функции ---
 
-function cacheDOMElements() { /* ... existing code v4 ... */
+function cacheDOMElements() {
     authSection = document.getElementById('authSection');
     appSection = document.getElementById('appSection');
     loginFormContainer = document.getElementById('loginFormContainer');
@@ -51,130 +51,303 @@ function cacheDOMElements() { /* ... existing code v4 ... */
     quizLoading = document.getElementById('quizLoading');
     console.log("[DEBUG] DOM elements cached.");
 }
-function showNotification(message, type = 'info', duration = 3000) { /* ... existing code v4 ... */
+
+function showNotification(message, type = 'info', duration = 3000) {
     if (!notificationArea) { console.warn("Notification area not found"); return; }
     const notificationDiv = document.createElement('div');
     notificationDiv.className = `notification ${type}`;
-    notificationDiv.textContent = message;
-    notificationArea.appendChild(notificationDiv);
+
+    // Icon based on type
+    let iconClass = 'fa-info-circle'; // default info icon
+    if (type === 'success') iconClass = 'fa-check-circle';
+    else if (type === 'error') iconClass = 'fa-exclamation-circle';
+    else if (type === 'warning') iconClass = 'fa-exclamation-triangle';
+
+    // Structure with icon and text
+    notificationDiv.innerHTML = `
+        <i class="fas ${iconClass} toast-icon"></i>
+        <div class="toast-content">
+            <div class="toast-message">${sanitizeHTML(message)}</div>
+        </div>
+    `;
+
     const closeButton = document.createElement('button');
-    closeButton.innerHTML = '&times;'; closeButton.className = 'toast-close';
-    closeButton.onclick = () => { notificationDiv.style.opacity = '0'; notificationDiv.style.transform = 'translateX(120%)'; setTimeout(() => { if (notificationDiv.parentElement) notificationDiv.remove(); }, 600); };
+    closeButton.innerHTML = '&times;';
+    closeButton.className = 'toast-close';
+    closeButton.onclick = () => {
+        notificationDiv.style.opacity = '0';
+        notificationDiv.style.transform = 'translateX(120%)';
+        setTimeout(() => {
+            if (notificationDiv.parentElement) notificationDiv.remove();
+        }, 600);
+    };
+    // Append close button inside the main div but after the content
     notificationDiv.appendChild(closeButton);
+
+    notificationArea.appendChild(notificationDiv);
+
     notificationDiv.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-     requestAnimationFrame(() => { notificationDiv.style.opacity = '1'; notificationDiv.style.transform = 'translateX(0)'; });
-     if (duration > 0) {
-         setTimeout(() => { notificationDiv.style.opacity = '0'; notificationDiv.style.transform = 'translateX(120%)'; notificationDiv.addEventListener('transitionend', () => notificationDiv.remove(), { once: true }); setTimeout(() => { if (notificationDiv.parentElement) notificationDiv.remove(); }, 600); }, duration);
-     }
+    requestAnimationFrame(() => {
+        notificationDiv.style.opacity = '1';
+        notificationDiv.style.transform = 'translateX(0)';
+    });
+
+    if (duration > 0) {
+        setTimeout(() => {
+            notificationDiv.style.opacity = '0';
+            notificationDiv.style.transform = 'translateX(120%)';
+            // Use transitionend event to ensure removal after animation completes
+            const removeHandler = () => {
+                if (notificationDiv.parentElement) notificationDiv.remove();
+                notificationDiv.removeEventListener('transitionend', removeHandler);
+            };
+            notificationDiv.addEventListener('transitionend', removeHandler);
+            // Fallback removal in case transitionend doesn't fire (e.g., element removed early)
+            setTimeout(() => { if (notificationDiv.parentElement) notificationDiv.remove(); }, 600);
+        }, duration);
+    }
 }
+
 window.toggleAuthForms = () => { loginFormContainer?.classList.toggle('hidden'); registerFormContainer?.classList.toggle('hidden'); };
 function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
 
 // --- Autentizace ---
-function setupAuthListeners() { /* ... existing code v4 ... */
-    if (loginForm) { loginForm.addEventListener('submit', async (event) => { /* ... */ }); } else { console.warn("Login form not found."); }
-    if (registerForm) { registerForm.addEventListener('submit', async (event) => { /* ... */ }); } else { console.warn("Register form not found."); }
-    if (logoutButton) { logoutButton.addEventListener('click', async () => { /* ... */ }); } else { console.warn("Logout button not found."); }
+function setupAuthListeners() {
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail')?.value;
+            const password = document.getElementById('loginPassword')?.value;
+            const button = loginForm.querySelector('button');
+            if (!email || !password || !supabaseClient) return;
+            if (button) button.disabled = true; button.textContent = 'Přihlašuji...';
+            try {
+                const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                showNotification('Přihlášení úspěšné!', 'success');
+                // Auth change listener handles UI update
+            } catch (err) {
+                console.error('[DEBUG] Login error:', err);
+                showNotification(`Přihlášení selhalo: ${err.message}`, 'error');
+            } finally {
+                if (button) button.disabled = false; button.textContent = 'Přihlásit se';
+            }
+        });
+    } else { console.warn("Login form not found."); }
+
+    if (registerForm) {
+        registerForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const email = document.getElementById('registerEmail')?.value;
+            const password = document.getElementById('registerPassword')?.value;
+            const button = registerForm.querySelector('button');
+            if (!email || !password || !supabaseClient) return;
+            if (password.length < 8) {
+                 showNotification('Heslo musí mít alespoň 8 znaků.', 'warning');
+                 return;
+            }
+            if (button) button.disabled = true; button.textContent = 'Registruji...';
+            try {
+                const { error } = await supabaseClient.auth.signUp({ email, password });
+                if (error) throw error;
+                showNotification('Registrace úspěšná! Ověřte prosím svůj e-mail.', 'success', 5000);
+                toggleAuthForms(); // Switch back to login
+            } catch (err) {
+                console.error('[DEBUG] Register error:', err);
+                showNotification(`Registrace selhala: ${err.message}`, 'error');
+            } finally {
+                if (button) button.disabled = false; button.textContent = 'Zaregistrovat se';
+            }
+        });
+    } else { console.warn("Register form not found."); }
+
+    if (logoutButton) {
+        logoutButton.addEventListener('click', async () => {
+            if (!supabaseClient) return;
+            logoutButton.disabled = true;
+            try {
+                const { error } = await supabaseClient.auth.signOut();
+                if (error) throw error;
+                showNotification('Odhlášení úspěšné.', 'info');
+                // Auth change listener handles UI update
+            } catch (err) {
+                console.error('[DEBUG] Logout error:', err);
+                showNotification(`Odhlášení selhalo: ${err.message}`, 'error');
+            } finally {
+                // Button state will be handled by auth change listener potentially
+            }
+        });
+    } else { console.warn("Logout button not found."); }
 }
 
-// --- Сохранение логов ---
-function setupLogFormListener() { /* ... existing code v4 ... */
+// --- Сохранение логов (ИСПРАВЛЕНО) ---
+function setupLogFormListener() {
     if (learningLogForm) {
         learningLogForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             const logText = learningInput?.value.trim();
-            if (!logText) { showNotification('Napiš, co ses naučil/a.', 'warning'); return; }
-            if (!currentUser) { showNotification('Pro uložení se přihlas.', 'error'); return; }
             const submitButton = learningLogForm.querySelector('button[type="submit"]');
-            if (submitButton) { submitButton.disabled = true; submitButton.textContent = 'Ukládám...'; }
+
+            // **FIX**: Check current user *before* proceeding
+            if (!currentUser) {
+                showNotification('Pro uložení se přihlas.', 'error');
+                return;
+            }
+
+            if (!logText) {
+                showNotification('Napiš, co ses naučil/a.', 'warning');
+                return;
+            }
+
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.textContent = 'Ukládám...';
+            }
+
             try {
                 console.log('[DEBUG] Saving log for user:', currentUser.id);
-                const { error } = await supabaseClient.from('learning_logs').insert([{ user_id: currentUser.id, log_text: logText }]);
-                if (error) throw error;
+                // Check if Supabase client exists
+                if (!supabaseClient) {
+                    throw new Error("Supabase client is not initialized.");
+                }
+                // **FIX**: Use the table name from the CREATE TABLE statement
+                const { error } = await supabaseClient.from('learning_logs').insert([
+                    { user_id: currentUser.id, log_text: logText }
+                ]);
+                if (error) {
+                    // **FIX**: Throw the specific Supabase error
+                    throw new Error(`Supabase error (${error.code || 'N/A'}): ${error.message}`);
+                }
+
                 showNotification('Pokrok uložen!', 'success');
                 if (learningInput) learningInput.value = '';
                 console.log('[DEBUG] Log saved, reloading logs...');
-                const logsLoaded = await loadLearningLogs(currentUser.id); // Await log reload & context update
+                // Reload logs and context
+                const logsLoaded = await loadLearningLogs(currentUser.id);
                 if (logsLoaded && fullLearningContextForQuiz) {
                     console.log("[DEBUG] Logs reloaded and context exists, fetching new questions for quiz...");
-                    await fetchAndDisplayFirstQuestions(fullLearningContextForQuiz); // Regenerate based on new context
-                } else if (!logsLoaded) { console.error("[DEBUG] Failed to reload logs after saving new one."); }
-                else { console.warn("[DEBUG] Context still empty after log save/reload?"); }
-            } catch (err) { console.error('[DEBUG] Log save error:', err); showNotification(`Uložení selhalo: ${err.message}`, 'error'); }
-            finally { if (submitButton) { submitButton.disabled = false; submitButton.textContent = 'Uložit pokrok'; } }
+                    await fetchAndDisplayFirstQuestions(fullLearningContextForQuiz);
+                } else {
+                    console.warn("[DEBUG] Logs not loaded or context empty after save.");
+                }
+            } catch (err) {
+                console.error('[DEBUG] Log save error:', err);
+                // **FIX**: Show more informative error
+                showNotification(`Uložení selhalo: ${err.message}`, 'error');
+            } finally {
+                // **FIX**: Always re-enable the button and reset text
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Uložit pokrok';
+                }
+            }
         });
-    } else { console.warn("Learning log form not found."); }
+    } else {
+        console.warn("Learning log form not found.");
+    }
 }
 
-// --- Загрузка логов (v5 - Handling Empty Logs) ---
+// --- Загрузка логов (ИСПРАВЛЕНО) ---
 async function loadLearningLogs(userId) {
-    console.log(`[DEBUG] loadLearningLogs v5 called for user: ${userId}`);
-    if (!userId || !logsContainer) { fullLearningContextForQuiz = ''; console.warn("[DEBUG v5] Cannot load logs: userId or logsContainer missing."); return false; }
+    console.log(`[DEBUG] loadLearningLogs v6 called for user: ${userId}`);
+    if (!userId || !logsContainer || !supabaseClient) {
+        fullLearningContextForQuiz = '';
+        console.warn("[DEBUG v6] Cannot load logs: userId, logsContainer or supabaseClient missing.");
+        // **FIX**: Ensure loader is handled even on early exit
+        if (logsContainer) {
+             logsContainer.innerHTML = '<p style="color: var(--accent-orange);">Chyba konfigurace pro načtení záznamů.</p>';
+        }
+        return false;
+    }
 
     // Show loader correctly
-    const loaderElement = logsContainer.querySelector('.loader') || document.createElement('div');
-    loaderElement.className = 'loader visible-loader'; // Ensure loader is visible
-    loaderElement.textContent = 'Načítám záznamy...';
-    logsContainer.innerHTML = '';
-    logsContainer.appendChild(loaderElement);
-    console.log("[DEBUG v5] Loader displayed.");
+    logsContainer.innerHTML = '<div class="loader visible-loader">Načítám záznamy...</div>';
+    console.log("[DEBUG v6] Loader displayed.");
 
     try {
-        console.log(`[DEBUG v5] Creating query for learning_logs, user_id: ${userId}`);
-        const query = supabaseClient.from('learning_logs').select('log_text, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(30);
-        console.log("[DEBUG v5] Query created, executing...");
-        const { data, error, status } = await query; // Await the promise
-        console.log(`[DEBUG v5] Supabase query returned. Status: ${status}, Error:`, error, "Data:", data);
+        console.log(`[DEBUG v6] Querying learning_logs for user_id: ${userId}`);
+        // **FIX**: Use the correct table name
+        const { data, error, status } = await supabaseClient
+            .from('learning_logs')
+            .select('log_text, created_at')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(30);
 
-        if (error) throw error; // Throw error to be caught by the catch block
+        console.log(`[DEBUG v6] Supabase query returned. Status: ${status}, Error:`, error, "Data:", data);
 
-        // Process data (even if empty)
-        logsContainer.innerHTML = ''; // Clear loader
+        if (error) throw error; // Throw error to be caught below
+
+        // **FIX**: Process data AFTER the try block, ensure loader is cleared regardless of data presence
         if (data && data.length > 0) {
-            console.log(`[DEBUG v5] Found ${data.length} logs.`);
-            const reversedData = [...data].reverse();
-            fullLearningContextForQuiz = reversedData.map(log => `Datum: ${new Date(log.created_at).toLocaleDateString('cs-CZ')}\nText: ${log.log_text}`).join("\n\n---\n\n");
-            console.log('[DEBUG v5] Learning context generated. Length:', fullLearningContextForQuiz.length);
-            data.slice(0, 5).forEach(log => { /* ... render log entry ... */
-                const logElement = document.createElement('div'); logElement.classList.add('log-entry');
+            console.log(`[DEBUG v6] Found ${data.length} logs.`);
+            // Render logs
+            logsContainer.innerHTML = ''; // Clear loader before adding content
+            data.forEach(log => {
+                const logElement = document.createElement('div');
+                logElement.classList.add('log-entry');
                 logElement.innerHTML = `<p>${sanitizeHTML(log.log_text.replace(/\n/g, '<br>'))}</p><small>Datum: ${new Date(log.created_at).toLocaleString('cs-CZ')}</small>`;
                 logsContainer.appendChild(logElement);
-                requestAnimationFrame(() => { logElement.style.opacity = '1'; logElement.style.transform = 'translateY(0)'; });
-             });
-            if (generateTasksButton) { generateTasksButton.style.display = 'inline-flex'; generateTasksButton.disabled = false; generateTasksButton.textContent = 'Restartovat Kvíz'; }
+                // Add animation class slightly after adding to DOM
+                requestAnimationFrame(() => {
+                     requestAnimationFrame(() => { // Double RAF for better chance of triggering animation
+                         logElement.style.opacity = '1';
+                         logElement.style.transform = 'translateY(0)';
+                     });
+                 });
+            });
+
+            // Generate context from reversed logs for correct chronological order in prompt
+            const reversedData = [...data].reverse();
+            fullLearningContextForQuiz = reversedData.map(log => `Datum: ${new Date(log.created_at).toLocaleDateString('cs-CZ')}\nText: ${log.log_text}`).join("\n\n---\n\n");
+            console.log('[DEBUG v6] Learning context generated. Length:', fullLearningContextForQuiz.length);
+            // Enable restart button only if context was generated
+            if (generateTasksButton) {
+                generateTasksButton.style.display = 'inline-flex';
+                generateTasksButton.disabled = false;
+                generateTasksButton.textContent = 'Restartovat Kvíz';
+            }
         } else {
-            // === FIX: Handle empty data correctly ===
-            console.log('[DEBUG v5] No logs found for this user.');
-            logsContainer.innerHTML = '<p>Zatím žádné záznamy.</p>'; // Display empty message
+            console.log('[DEBUG v6] No logs found for this user.');
+            logsContainer.innerHTML = '<p style="text-align: center; margin-top: 1rem;">Zatím žádné záznamy.</p>'; // Display empty message
             fullLearningContextForQuiz = ''; // Ensure context is empty
             if (generateTasksButton) generateTasksButton.style.display = 'none'; // Hide restart button
         }
-        console.log('[DEBUG v5] loadLearningLogs returning true (success or empty).');
-        return true; // Return true whether logs were found or not (query succeeded)
+        console.log('[DEBUG v6] loadLearningLogs returning true (success or empty).');
+        return true; // Indicate successful load (even if empty)
 
     } catch (err) {
-        console.error('[DEBUG v5] Error in loadLearningLogs catch block:', err);
-        logsContainer.innerHTML = `<p style="color: var(--accent-pink);">Chyba načítání záznamů: ${err.message}</p>`;
+        console.error('[DEBUG v6] Error in loadLearningLogs:', err);
+        logsContainer.innerHTML = `<p style="color: var(--accent-pink); text-align: center; margin-top: 1rem;">Chyba načítání záznamů: ${err.message}</p>`; // Display error message
         fullLearningContextForQuiz = '';
         if (generateTasksButton) generateTasksButton.style.display = 'none';
-        console.log('[DEBUG v5] loadLearningLogs returning false (error).');
+        console.log('[DEBUG v6] loadLearningLogs returning false (error).');
         return false; // Indicate failure
     }
 }
 
 
 // --- Генерация Multiple Choice ---
-async function generateMultipleChoiceQuestions(context) { /* ... existing code v4 ... */
+async function generateMultipleChoiceQuestions(context) {
     console.log('[DEBUG] generateMultipleChoiceQuestions called.');
     if (!context) { console.warn('[DEBUG] generateMultipleChoiceQuestions: No context provided.'); return null; }
-    const prompt = `
-Na základě VŠECH následujících záznamů o učení studenta, vygeneruj 3-5 otázek s výběrem odpovědí (multiple choice), které otestují jeho porozumění RŮZNÝM tématům zmíněným v záznamech. Ke každé otázce vytvoř 5 možností odpovědí (A, B, C, D, E). DŮLEŽITÉ: Otázka MŮŽE MÍT JEDNU NEBO VÍCE SPRÁVNÝCH odpovědí. Uveď VŠECHNA správná písmena odpovědí jako pole stringů a krátké vysvětlení, proč jsou tyto odpovědi správné.
+    if (!GEMINI_API_KEY || !GEMINI_API_KEY.startsWith('AIzaSy')) {
+        console.error('[DEBUG] Missing valid Gemini API Key.');
+        throw new Error('Chybí konfigurace AI.');
+    }
 
-Vrať odpověď POUZE jako JSON pole objektů. Každý objekt musí obsahovat klíče:
+    // **FIX**: More robust prompt, asking specifically for 5 options and handling multiple correct answers
+    const prompt = `
+Na základě VŠECH následujících záznamů o učení studenta, vygeneruj 3-5 otázek s výběrem odpovědí (multiple choice), které otestují jeho porozumění RŮZNÝM tématům zmíněným v záznamech.
+Ke KAŽDÉ otázce vytvoř PŘESNĚ 5 možností odpovědí (označených A, B, C, D, E).
+Otázka MŮŽE mít JEDNU NEBO VÍCE SPRÁVNÝCH odpovědí.
+Uveď VŠECHNA správná písmena odpovědí jako pole stringů a krátké vysvětlení, proč jsou tyto odpovědi správné.
+
+Vrať odpověď POUZE jako JSON pole objektů. Každý objekt musí obsahovat PŘESNĚ tyto klíče:
 - "question" (string): Text otázky.
-- "options" (array of 5 strings): Pole s pěti možnostmi odpovědí.
-- "answer" (array of strings): Pole SPRÁVNÝCH PÍSMEN odpovědí (např. ["A"], ["B", "D"], ["A", "C", "E"]). Pole musí vždy obsahovat alespoň jedno písmeno.
-- "explanation" (string): Vysvětlení SPRÁVNÝCH odpovědí.
+- "options" (array of 5 strings): Pole PŘESNĚ pěti možností odpovědí (A-E).
+- "answer" (array of strings): Pole SPRÁVNÝCH PÍSMEN odpovědí (např. ["A"], ["B", "D"], ["A", "C", "E"]). Pole musí vždy obsahovat alespoň jedno písmeno. Ověř, že písmena odpovídají existujícím možnostem (A-E).
+- "explanation" (string): Krátké vysvětlení SPRÁVNÝCH odpovědí.
 
 JSON formát musí být striktně dodržen. Nepoužívej Markdown mimo JSON. Zajisti, aby otázky pokrývaly RŮZNÁ témata z poskytnutého kontextu.
 
@@ -184,7 +357,8 @@ ${context}
 ---
 
 Příklad formátu JSON pole:
-[{"question": "...", "options": ["...", "..."], "answer": ["B", "D"], "explanation": "..."}, ... ]`;
+[{"question": "...", "options": ["...", "...", "...", "...", "..."], "answer": ["B", "D"], "explanation": "..."}, {"question": "...", "options": ["...", "...", "...", "...", "..."], "answer": ["C"], "explanation": "..."} ]`;
+
     const requestBody = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.6, topP: 0.95 } };
     try {
         console.log('[DEBUG] Requesting MC questions from Gemini API...');
@@ -199,62 +373,123 @@ Příklad formátu JSON pole:
         let jsonString = text; const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/); if (jsonMatch?.[1]) jsonString = jsonMatch[1];
         try {
             const parsed = JSON.parse(jsonString);
-            if (Array.isArray(parsed) && parsed.every(q => q.question && Array.isArray(q.options) && q.options.length === 5 && Array.isArray(q.answer) && q.answer.length > 0 && q.explanation && q.answer.every(a => typeof a === 'string' && ["A", "B", "C", "D", "E"].includes(a.toUpperCase())))) { console.log('[DEBUG] Successfully parsed valid MC questions:', parsed.length); return parsed.map(q => ({ ...q, answer: q.answer.map(a => a.toUpperCase()) })); }
+            // **FIX**: Stricter validation
+            if (Array.isArray(parsed) && parsed.every(q => q && q.question && typeof q.question === 'string' && Array.isArray(q.options) && q.options.length === 5 && q.options.every(opt => typeof opt === 'string') && Array.isArray(q.answer) && q.answer.length > 0 && q.explanation && typeof q.explanation === 'string' && q.answer.every(a => typeof a === 'string' && ["A", "B", "C", "D", "E"].includes(a.toUpperCase())))) {
+                console.log('[DEBUG] Successfully parsed valid MC questions:', parsed.length);
+                return parsed.map(q => ({ ...q, answer: q.answer.map(a => a.toUpperCase()) })); // Ensure uppercase answers
+            }
             else { console.error('[DEBUG] Invalid JSON structure from AI:', parsed); throw new Error('Neplatná struktura JSON odpovědi od AI.'); }
         } catch (e) { console.error('[DEBUG] JSON Parse Error:', e, 'Raw String:', jsonString); throw new Error('Chyba zpracování JSON odpovědi od AI.'); }
     } catch (error) { console.error('[DEBUG] Gemini MC question generation error:', error); throw error; }
 }
 
 // --- Логика Квиза ---
-function resetQuizState() { /* ... existing code v4 ... */ console.log('[DEBUG] Resetting quiz state.'); generatedQuestions = []; currentQuestionIndex = -1; isLoadingQuestions = false; }
-function hideQuizUI() { /* ... existing code v4 ... */ if (quizContainer) quizContainer.style.display = 'none'; if (questionDisplay) questionDisplay.innerHTML = ''; if (answerCheckboxesContainer) answerCheckboxesContainer.innerHTML = ''; if (submitAnswerButton) submitAnswerButton.style.display = 'none'; if (feedbackArea) feedbackArea.innerHTML = ''; if (nextQuestionButton) nextQuestionButton.style.display = 'none'; if (quizLoading) quizLoading.classList.add('hidden'); console.log('[DEBUG] Quiz UI hidden.'); }
-function setQuizLoadingState(isLoading) { /* ... existing code v4 ... */ if (!quizLoading) { console.warn("Quiz loading element not found."); return; } quizLoading.classList.toggle('visible-loader', isLoading); quizLoading.classList.toggle('hidden', !isLoading); if(generateTasksButton) generateTasksButton.disabled = isLoading; if(submitAnswerButton) submitAnswerButton.disabled = isLoading; if(nextQuestionButton) nextQuestionButton.disabled = isLoading; console.log(`[DEBUG] Quiz loading state set to: ${isLoading}`); }
-function hideQuizElements() { /* ... existing code v4 ... */ if(answerCheckboxesContainer) answerCheckboxesContainer.innerHTML = ''; if(submitAnswerButton) submitAnswerButton.style.display = 'none'; if(feedbackArea) feedbackArea.innerHTML = ''; if(nextQuestionButton) nextQuestionButton.style.display = 'none'; }
+function resetQuizState() { console.log('[DEBUG] Resetting quiz state.'); generatedQuestions = []; currentQuestionIndex = -1; isLoadingQuestions = false; }
+function hideQuizUI() { if (quizContainer) quizContainer.style.display = 'none'; if (questionDisplay) questionDisplay.innerHTML = ''; if (answerCheckboxesContainer) answerCheckboxesContainer.innerHTML = ''; if (submitAnswerButton) submitAnswerButton.style.display = 'none'; if (feedbackArea) feedbackArea.innerHTML = ''; if (nextQuestionButton) nextQuestionButton.style.display = 'none'; if (quizLoading) quizLoading.classList.add('hidden'); console.log('[DEBUG] Quiz UI hidden.'); }
+function setQuizLoadingState(isLoading) { if (!quizLoading) { console.warn("Quiz loading element not found."); return; } quizLoading.classList.toggle('visible-loader', isLoading); quizLoading.classList.toggle('hidden', !isLoading); if(generateTasksButton) generateTasksButton.disabled = isLoading; if(submitAnswerButton) submitAnswerButton.disabled = isLoading; if(nextQuestionButton) nextQuestionButton.disabled = isLoading; console.log(`[DEBUG] Quiz loading state set to: ${isLoading}`); }
+function hideQuizElements() { if(answerCheckboxesContainer) answerCheckboxesContainer.innerHTML = ''; if(submitAnswerButton) submitAnswerButton.style.display = 'none'; if(feedbackArea) feedbackArea.innerHTML = ''; if(nextQuestionButton) nextQuestionButton.style.display = 'none'; }
 
-async function fetchAndDisplayFirstQuestions(context) { /* ... existing code v4 ... */
+// --- ИСПРАВЛЕНО: Fetch questions logic ---
+async function fetchAndDisplayFirstQuestions(context) {
     console.log('[DEBUG] fetchAndDisplayFirstQuestions called.');
-    if (!context) { showNotification('Chybí kontext pro kvíz.', 'warning'); console.warn('[DEBUG] No context provided for quiz.'); return; }
+    if (!context) { showNotification('Chybí kontext pro kvíz (žádné záznamy?).', 'warning'); console.warn('[DEBUG] No context provided for quiz.'); return; }
     if (isLoadingQuestions) { console.log("[DEBUG] Fetch already in progress, skipping."); return; }
     if (!quizContainer || !quizLoading) { console.error("[DEBUG] Missing quiz container or loading elements."); return; }
-    resetQuizState(); isLoadingQuestions = true;
-    setQuizLoadingState(true);
-    quizContainer.style.display = 'block';
-    if(questionDisplay) questionDisplay.innerHTML = ''; if(feedbackArea) feedbackArea.innerHTML = ''; if(answerCheckboxesContainer) answerCheckboxesContainer.innerHTML = ''; if(submitAnswerButton) submitAnswerButton.style.display = 'none'; if(nextQuestionButton) nextQuestionButton.style.display = 'none';
+
+    resetQuizState();
+    isLoadingQuestions = true;
+    setQuizLoadingState(true); // Show loader
+    if(quizContainer) quizContainer.style.display = 'block'; // Show container
+    // Clear previous question UI elements
+    if(questionDisplay) questionDisplay.innerHTML = '';
+    if(feedbackArea) feedbackArea.innerHTML = '';
+    if(answerCheckboxesContainer) answerCheckboxesContainer.innerHTML = '';
+    if(submitAnswerButton) submitAnswerButton.style.display = 'none';
+    if(nextQuestionButton) nextQuestionButton.style.display = 'none';
+
     try {
         console.log('[DEBUG] Fetching first batch from Gemini...');
         generatedQuestions = await generateMultipleChoiceQuestions(context);
-        if (generatedQuestions && generatedQuestions.length > 0) { console.log(`[DEBUG] Fetched ${generatedQuestions.length} initial questions.`); currentQuestionIndex = 0; displayCurrentQuestion(); }
-        else { console.warn('[DEBUG] No questions generated by AI.'); throw new Error('AI nevygenerovalo žádné otázky pro tento kontext.'); }
-    } catch (error) { console.error('[DEBUG] Failed fetch first questions:', error); showNotification(`Chyba generování kvízu: ${error.message}`, 'error'); displayEndOfQuizMessage(true); }
-    finally { isLoadingQuestions = false; setQuizLoadingState(false); }
-}
-
-async function fetchMoreQuestions() { /* ... existing code v4 ... */
-    console.log('[DEBUG] fetchMoreQuestions called.');
-    if (!fullLearningContextForQuiz) { console.warn("[DEBUG] No context to fetch more questions."); return; }
-    if (isLoadingQuestions) { console.warn("[DEBUG] Fetch more already in progress."); return; }
-    isLoadingQuestions = true;
-    if(nextQuestionButton) { nextQuestionButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Načítám...'; nextQuestionButton.disabled = true; }
-    let success = false;
-    try {
-        console.log('[DEBUG] Fetching more questions from Gemini...');
-        const newQuestions = await generateMultipleChoiceQuestions(fullLearningContextForQuiz);
-        if (newQuestions && newQuestions.length > 0) {
-            const existingQuestionsSet = new Set(generatedQuestions.map(q => q.question));
-            const uniqueNewQuestions = newQuestions.filter(nq => !existingQuestionsSet.has(nq.question));
-            if (uniqueNewQuestions.length > 0) { generatedQuestions.push(...uniqueNewQuestions); console.log(`[DEBUG] Added ${uniqueNewQuestions.length} new unique questions. Total: ${generatedQuestions.length}`); success = true; }
-            else { console.log("[DEBUG] Gemini returned only duplicate questions."); showNotification("AI vrátilo otázky, které již byly zobrazeny.", "info"); }
-        } else { console.log("[DEBUG] Gemini returned no new questions."); showNotification("Nebyly nalezeny další otázky pro tento kontext.", "info"); }
-    } catch (error) { console.error("[DEBUG] Failed fetch more questions:", error); showNotification(`Chyba načítání dalších otázek: ${error.message}`, 'error'); }
-    finally {
+        if (generatedQuestions && generatedQuestions.length > 0) {
+            console.log(`[DEBUG] Fetched ${generatedQuestions.length} initial questions.`);
+            currentQuestionIndex = 0;
+            displayCurrentQuestion(); // Display the first question
+        } else {
+            console.warn('[DEBUG] No questions generated by AI.');
+            throw new Error('AI nevygenerovalo žádné otázky pro tento kontext.');
+        }
+    } catch (error) {
+        console.error('[DEBUG] Failed fetch first questions:', error);
+        showNotification(`Chyba generování kvízu: ${error.message}`, 'error');
+        displayEndOfQuizMessage(true); // Show error state in UI
+    } finally {
         isLoadingQuestions = false;
-        if(nextQuestionButton) { nextQuestionButton.disabled = false; nextQuestionButton.innerHTML = 'Další otázka <i class="fas fa-arrow-right"></i>'; }
-        if (success) { if (currentQuestionIndex < generatedQuestions.length) { console.log(`[DEBUG] fetchMoreQuestions succeeded, displaying question at index ${currentQuestionIndex}`); displayCurrentQuestion(); } else { console.error("[DEBUG] Error: fetchMoreQuestions succeeded but index is still out of bounds."); displayEndOfQuizMessage(); } }
-        else { if (currentQuestionIndex >= generatedQuestions.length) { console.log("[DEBUG] Fetch more failed/no new questions, displaying end message."); displayEndOfQuizMessage(); } }
+        setQuizLoadingState(false); // Hide loader
     }
 }
 
-function displayCurrentQuestion() { /* ... existing code v4 ... */
+async function fetchMoreQuestions() {
+    console.log('[DEBUG] fetchMoreQuestions called.');
+    if (!fullLearningContextForQuiz) { console.warn("[DEBUG] No context to fetch more questions."); return; }
+    if (isLoadingQuestions) { console.warn("[DEBUG] Fetch more already in progress."); return; }
+
+    isLoadingQuestions = true;
+    // **FIX**: Indicate loading on the 'Next' button
+    if (nextQuestionButton) {
+        nextQuestionButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Načítám...';
+        nextQuestionButton.disabled = true;
+    }
+
+    let success = false;
+    try {
+        console.log('[DEBUG] Fetching more questions from Gemini...');
+        const newQuestions = await generateMultipleChoiceQuestions(fullLearningContextForQuiz); // Fetch another batch
+
+        if (newQuestions && newQuestions.length > 0) {
+            const existingQuestionsSet = new Set(generatedQuestions.map(q => q.question)); // Use question text as unique identifier
+            const uniqueNewQuestions = newQuestions.filter(nq => !existingQuestionsSet.has(nq.question));
+
+            if (uniqueNewQuestions.length > 0) {
+                generatedQuestions.push(...uniqueNewQuestions);
+                console.log(`[DEBUG] Added ${uniqueNewQuestions.length} new unique questions. Total: ${generatedQuestions.length}`);
+                success = true;
+            } else {
+                console.log("[DEBUG] Gemini returned only duplicate questions.");
+                showNotification("AI vrátilo otázky, které již byly zobrazeny.", "info");
+                // No new unique questions found
+            }
+        } else {
+            console.log("[DEBUG] Gemini returned no new questions.");
+            showNotification("Nebyly nalezeny další otázky pro tento kontext.", "info");
+        }
+    } catch (error) {
+        console.error("[DEBUG] Failed fetch more questions:", error);
+        showNotification(`Chyba načítání dalších otázek: ${error.message}`, 'error');
+    } finally {
+        isLoadingQuestions = false;
+        // **FIX**: Reset 'Next' button text and state
+        if (nextQuestionButton) {
+            nextQuestionButton.disabled = false; // Re-enable even on failure/duplicates, user might try again later
+            nextQuestionButton.innerHTML = 'Další otázka <i class="fas fa-arrow-right"></i>';
+        }
+
+        // Determine next step based on success and index
+        if (success && currentQuestionIndex < generatedQuestions.length) {
+            // Successfully added new unique questions, display the next one
+            console.log(`[DEBUG] fetchMoreQuestions succeeded, displaying question at index ${currentQuestionIndex}`);
+            displayCurrentQuestion();
+        } else if (currentQuestionIndex >= generatedQuestions.length) {
+            // Failed to fetch more OR fetched only duplicates OR reached end -> show end message
+            console.log("[DEBUG] Fetch more failed/no new questions or end reached, displaying end message.");
+            displayEndOfQuizMessage();
+        }
+        // If success=false but index is still within bounds (shouldn't happen logically, but as safeguard)
+        // do nothing here, let the user click 'Next' again if they want.
+    }
+}
+// --- End Fetch questions logic ---
+
+function displayCurrentQuestion() {
     console.log(`[DEBUG] displayCurrentQuestion called for index: ${currentQuestionIndex}, Total loaded: ${generatedQuestions.length}`);
     if (currentQuestionIndex < 0 || !generatedQuestions || generatedQuestions.length === 0) { console.warn("[DEBUG] displayCurrentQuestion: Invalid index or no questions array. Hiding UI."); hideQuizElements(); if(questionDisplay) questionDisplay.innerHTML = '<p>Kvíz není připraven nebo došlo k chybě.</p>'; return; }
     if (currentQuestionIndex >= generatedQuestions.length) { console.error(`[DEBUG] displayCurrentQuestion: Index ${currentQuestionIndex} is out of bounds for loaded questions (${generatedQuestions.length}). This should not happen.`); displayEndOfQuizMessage(); return; }
@@ -273,68 +508,39 @@ function displayCurrentQuestion() { /* ... existing code v4 ... */
     console.log(`[DEBUG] Displayed question ${currentQuestionIndex + 1}: ${question.question.substring(0,50)}...`);
 }
 
-function arraysContainSameElements(arr1, arr2) { /* ... existing code v4 ... */ if (!Array.isArray(arr1) || !Array.isArray(arr2) || arr1.length !== arr2.length) { console.log('[DEBUG arraysContainSameElements] Invalid arrays or different lengths.'); return false; } const sortedArr1 = [...arr1].sort(); const sortedArr2 = [...arr2].sort(); const result = sortedArr1.every((val, index) => val === sortedArr2[index]); console.log(`[DEBUG arraysContainSameElements] Comparing ${JSON.stringify(sortedArr1)} vs ${JSON.stringify(sortedArr2)} -> ${result}`); return result; }
-function handleAnswerSubmit() { /* ... existing code v4 ... */
-    console.log('[DEBUG] handleAnswerSubmit called.');
-    if (currentQuestionIndex < 0 || currentQuestionIndex >= generatedQuestions.length) { console.warn("[DEBUG] Submit ignored: Invalid question index:", currentQuestionIndex); return; }
-    if (!answerCheckboxesContainer || !feedbackArea || !submitAnswerButton || !nextQuestionButton) { console.error("[DEBUG] Submit ignored: Missing UI elements."); return; }
-    const selectedCheckboxes = answerCheckboxesContainer.querySelectorAll('input[type="checkbox"]:checked');
-    const selectedChoices = Array.from(selectedCheckboxes).map(cb => cb.value.toUpperCase());
-    console.log('[DEBUG] Selected choices:', selectedChoices);
-    if (selectedChoices.length === 0) { showNotification('Vyberte alespoň jednu odpověď.', 'warning'); return; }
-    const currentQuestion = generatedQuestions[currentQuestionIndex];
-    if (!currentQuestion || !Array.isArray(currentQuestion.answer)) { console.error("[DEBUG] Invalid current question data:", currentQuestion); return; }
-    const correctAnswers = currentQuestion.answer; const explanation = currentQuestion.explanation;
-    console.log('[DEBUG] Correct answers:', correctAnswers);
-    const isFullyCorrect = arraysContainSameElements(selectedChoices, correctAnswers);
-    const correctSelected = selectedChoices.filter(choice => correctAnswers.includes(choice));
-    const incorrectSelected = selectedChoices.filter(choice => !correctAnswers.includes(choice));
-    const missedCorrect = correctAnswers.filter(ans => !selectedChoices.includes(ans));
-    const isPartiallyCorrect = !isFullyCorrect && correctSelected.length > 0 && incorrectSelected.length === 0 && missedCorrect.length > 0;
-    let feedbackHTML = ''; let feedbackClass = '';
-    const allLabels = answerCheckboxesContainer.querySelectorAll('.checkbox-label');
-    allLabels.forEach(label => { const checkbox = label.querySelector('input[type="checkbox"]'); checkbox.disabled = true; label.classList.add('disabled'); const choice = checkbox.value.toUpperCase(); if (correctAnswers.includes(choice)) { label.classList.add('correct-answer-label'); } if (selectedChoices.includes(choice)) { if (correctAnswers.includes(choice)) { label.classList.add('selected-correct-label'); } else { label.classList.add('selected-incorrect-label'); } } });
-    if (isFullyCorrect) { feedbackClass = 'correct'; feedbackHTML = `<div class="feedback ${feedbackClass}"><i class="fas fa-check-circle"></i> <strong>Správně!</strong><p>${sanitizeHTML(explanation)}</p></div>`; showNotification('Výborně!', 'success', 2000); }
-    else if (isPartiallyCorrect) { feedbackClass = 'partial'; feedbackHTML = `<div class="feedback ${feedbackClass}"><i class="fas fa-exclamation-triangle"></i> <strong>Částečně správně.</strong><p>Správné odpovědi byly: <strong>${correctAnswers.join(', ')}</strong>. Chyběly: ${missedCorrect.join(', ')}.</p><p>Vysvětlení: ${sanitizeHTML(explanation)}</p></div>`; showNotification('Skoro!', 'info', 2500); }
-    else { feedbackClass = 'incorrect'; let mistakeDetail = ''; if(incorrectSelected.length > 0) mistakeDetail += ` Nesprávně zvolené: ${incorrectSelected.join(', ')}.`; if(missedCorrect.length > 0) { if (correctSelected.length === 0) mistakeDetail += ` Správné odpovědi (${correctAnswers.join(', ')}) nebyly zvoleny.`; else mistakeDetail += ` Navíc chyběly správné: ${missedCorrect.join(', ')}.`; } if (!mistakeDetail) mistakeDetail = " Vaše odpověď nebyla zcela správná."; feedbackHTML = `<div class="feedback ${feedbackClass}"><i class="fas fa-times-circle"></i> <strong>Špatně.</strong><p>Správné odpovědi: <strong>${correctAnswers.join(', ')}</strong>.${mistakeDetail}</p><p>Vysvětlení: ${sanitizeHTML(explanation)}</p></div>`; showNotification('Nevadí.', 'info', 2500); }
-    feedbackArea.innerHTML = feedbackHTML; submitAnswerButton.disabled = true; submitAnswerButton.style.display = 'none'; nextQuestionButton.style.display = 'inline-flex'; nextQuestionButton.disabled = false; nextQuestionButton.focus(); console.log(`[DEBUG] Answer submitted for Q${currentQuestionIndex + 1}. Fully Correct: ${isFullyCorrect}, Partially Correct: ${isPartiallyCorrect}`);
-}
-function handleNextQuestion() { /* ... existing code v4 ... */
-    console.log('[DEBUG] handleNextQuestion called.');
-    if (!nextQuestionButton || isLoadingQuestions) { console.warn("[DEBUG] Next button disabled or loading."); return; }
-    nextQuestionButton.disabled = true;
-    currentQuestionIndex++;
-    console.log(`[DEBUG] Incremented index to: ${currentQuestionIndex}`);
-    if (currentQuestionIndex < generatedQuestions.length) { console.log(`[DEBUG] Next question (${currentQuestionIndex + 1}) exists in cache. Displaying.`); displayCurrentQuestion(); }
-    else { console.log("[DEBUG] Reached end of current batch, attempting to fetch more..."); fetchMoreQuestions(); }
-}
-function displayEndOfQuizMessage(isError = false) { /* ... existing code v4 ... */
-     console.log(`[DEBUG] displayEndOfQuizMessage called. Is error: ${isError}`);
-     if (!questionDisplay) return;
-     hideQuizElements();
-     let messageHTML;
-     if (isError) { messageHTML = `<h2><i class="fas fa-exclamation-triangle"></i> Chyba Kvízu</h2><p>Nepodařilo se načíst otázky. Zkuste to prosím znovu nebo přidejte více záznamů o učení.</p>`; }
-     else { messageHTML = `<h2><i class="fas fa-flag-checkered"></i> Konec otázek</h2><p>Pro tento kontext již nejsou k dispozici další otázky. Přidejte nové záznamy o učení nebo zkuste restartovat kvíz pro novou sadu otázek.</p>`; }
-     questionDisplay.innerHTML = messageHTML;
-     if (generateTasksButton) { if (fullLearningContextForQuiz) { generateTasksButton.disabled = false; generateTasksButton.textContent = 'Restartovat Kvíz'; generateTasksButton.style.display = 'inline-flex'; } else { generateTasksButton.style.display = 'none'; } }
-     console.log("[DEBUG] End of quiz message displayed.");
-}
+function arraysContainSameElements(arr1, arr2) { if (!Array.isArray(arr1) || !Array.isArray(arr2) || arr1.length !== arr2.length) { console.log('[DEBUG arraysContainSameElements] Invalid arrays or different lengths.'); return false; } const sortedArr1 = [...arr1].sort(); const sortedArr2 = [...arr2].sort(); const result = sortedArr1.every((val, index) => val === sortedArr2[index]); console.log(`[DEBUG arraysContainSameElements] Comparing ${JSON.stringify(sortedArr1)} vs ${JSON.stringify(sortedArr2)} -> ${result}`); return result; }
+function handleAnswerSubmit() { console.log('[DEBUG] handleAnswerSubmit called.'); if (currentQuestionIndex < 0 || currentQuestionIndex >= generatedQuestions.length) { console.warn("[DEBUG] Submit ignored: Invalid question index:", currentQuestionIndex); return; } if (!answerCheckboxesContainer || !feedbackArea || !submitAnswerButton || !nextQuestionButton) { console.error("[DEBUG] Submit ignored: Missing UI elements."); return; } const selectedCheckboxes = answerCheckboxesContainer.querySelectorAll('input[type="checkbox"]:checked'); const selectedChoices = Array.from(selectedCheckboxes).map(cb => cb.value.toUpperCase()); console.log('[DEBUG] Selected choices:', selectedChoices); if (selectedChoices.length === 0) { showNotification('Vyberte alespoň jednu odpověď.', 'warning'); return; } const currentQuestion = generatedQuestions[currentQuestionIndex]; if (!currentQuestion || !Array.isArray(currentQuestion.answer)) { console.error("[DEBUG] Invalid current question data:", currentQuestion); return; } const correctAnswers = currentQuestion.answer; const explanation = currentQuestion.explanation; console.log('[DEBUG] Correct answers:', correctAnswers); const isFullyCorrect = arraysContainSameElements(selectedChoices, correctAnswers); const correctSelected = selectedChoices.filter(choice => correctAnswers.includes(choice)); const incorrectSelected = selectedChoices.filter(choice => !correctAnswers.includes(choice)); const missedCorrect = correctAnswers.filter(ans => !selectedChoices.includes(ans)); const isPartiallyCorrect = !isFullyCorrect && correctSelected.length > 0 && incorrectSelected.length === 0 && missedCorrect.length > 0; let feedbackHTML = ''; let feedbackClass = ''; const allLabels = answerCheckboxesContainer.querySelectorAll('.checkbox-label'); allLabels.forEach(label => { const checkbox = label.querySelector('input[type="checkbox"]'); checkbox.disabled = true; label.classList.add('disabled'); const choice = checkbox.value.toUpperCase(); if (correctAnswers.includes(choice)) { label.classList.add('correct-answer-label'); } if (selectedChoices.includes(choice)) { if (correctAnswers.includes(choice)) { label.classList.add('selected-correct-label'); } else { label.classList.add('selected-incorrect-label'); } } }); if (isFullyCorrect) { feedbackClass = 'correct'; feedbackHTML = `<div class="feedback ${feedbackClass}"><i class="fas fa-check-circle"></i> <strong>Správně!</strong><p>${sanitizeHTML(explanation)}</p></div>`; showNotification('Výborně!', 'success', 2000); } else if (isPartiallyCorrect) { feedbackClass = 'partial'; feedbackHTML = `<div class="feedback ${feedbackClass}"><i class="fas fa-exclamation-triangle"></i> <strong>Částečně správně.</strong><p>Správné odpovědi byly: <strong>${correctAnswers.join(', ')}</strong>. Chyběly: ${missedCorrect.join(', ')}.</p><p>Vysvětlení: ${sanitizeHTML(explanation)}</p></div>`; showNotification('Skoro!', 'info', 2500); } else { feedbackClass = 'incorrect'; let mistakeDetail = ''; if(incorrectSelected.length > 0) mistakeDetail += ` Nesprávně zvolené: ${incorrectSelected.join(', ')}.`; if(missedCorrect.length > 0) { if (correctSelected.length === 0) mistakeDetail += ` Správné odpovědi (${correctAnswers.join(', ')}) nebyly zvoleny.`; else mistakeDetail += ` Navíc chyběly správné: ${missedCorrect.join(', ')}.`; } if (!mistakeDetail) mistakeDetail = " Vaše odpověď nebyla zcela správná."; feedbackHTML = `<div class="feedback ${feedbackClass}"><i class="fas fa-times-circle"></i> <strong>Špatně.</strong><p>Správné odpovědi: <strong>${correctAnswers.join(', ')}</strong>.${mistakeDetail}</p><p>Vysvětlení: ${sanitizeHTML(explanation)}</p></div>`; showNotification('Nevadí.', 'info', 2500); } feedbackArea.innerHTML = feedbackHTML; submitAnswerButton.disabled = true; submitAnswerButton.style.display = 'none'; nextQuestionButton.style.display = 'inline-flex'; nextQuestionButton.disabled = false; nextQuestionButton.focus(); console.log(`[DEBUG] Answer submitted for Q${currentQuestionIndex + 1}. Fully Correct: ${isFullyCorrect}, Partially Correct: ${isPartiallyCorrect}`); }
+function handleNextQuestion() { console.log('[DEBUG] handleNextQuestion called.'); if (!nextQuestionButton || isLoadingQuestions) { console.warn("[DEBUG] Next button disabled or loading."); return; } nextQuestionButton.disabled = true; currentQuestionIndex++; console.log(`[DEBUG] Incremented index to: ${currentQuestionIndex}`); if (currentQuestionIndex < generatedQuestions.length) { console.log(`[DEBUG] Next question (${currentQuestionIndex + 1}) exists in cache. Displaying.`); displayCurrentQuestion(); } else { console.log("[DEBUG] Reached end of current batch, attempting to fetch more..."); fetchMoreQuestions(); } }
+function displayEndOfQuizMessage(isError = false) { console.log(`[DEBUG] displayEndOfQuizMessage called. Is error: ${isError}`); if (!questionDisplay) return; hideQuizElements(); let messageHTML; if (isError) { messageHTML = `<h2><i class="fas fa-exclamation-triangle"></i> Chyba Kvízu</h2><p>Nepodařilo se načíst otázky. Zkuste to prosím znovu nebo přidejte více záznamů o učení.</p>`; } else { messageHTML = `<h2><i class="fas fa-flag-checkered"></i> Konec otázek</h2><p>Pro tento kontext již nejsou k dispozici další otázky. Přidejte nové záznamy o učení nebo zkuste restartovat kvíz pro novou sadu otázek.</p>`; } questionDisplay.innerHTML = messageHTML; if (generateTasksButton) { if (fullLearningContextForQuiz) { generateTasksButton.disabled = false; generateTasksButton.textContent = 'Restartovat Kvíz'; generateTasksButton.style.display = 'inline-flex'; } else { generateTasksButton.style.display = 'none'; } } console.log("[DEBUG] End of quiz message displayed."); }
 
 
 // --- Инициализация приложения ---
-function initializeSupabase() { /* ... existing code v4 ... */
+function initializeSupabase() {
     console.log("[DEBUG] Initializing Supabase...");
-    try { if (!window.supabase?.createClient) throw new Error("Supabase lib not loaded."); supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); console.log("[DEBUG] Supabase client initialized."); return true; }
-    catch (e) { console.error("[DEBUG] Supabase init failed:", e); return false; }
+    try {
+        if (!window.supabase?.createClient) {
+            throw new Error("Supabase library not loaded.");
+        }
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        if (!supabaseClient) {
+             throw new Error("Supabase client creation failed.");
+        }
+        console.log("[DEBUG] Supabase client initialized.");
+        return true;
+    }
+    catch (e) {
+        console.error("[DEBUG] Supabase init failed:", e);
+        showNotification("Chyba připojení k databázi. Obnovte stránku.", "error", 0);
+        return false;
+    }
 }
 
-// MODIFIED initializeApp to log result of loadLearningLogs
 async function initializeApp() {
-    console.log("[DEBUG] initializeApp v5 - Start");
+    console.log("[DEBUG] initializeApp v6 - Start");
     cacheDOMElements();
     setupAuthListeners();
     setupLogFormListener();
-    // Quiz button listeners setup
+
     if (submitAnswerButton) submitAnswerButton.addEventListener('click', handleAnswerSubmit); else console.warn('Submit answer button not found.');
     if (nextQuestionButton) nextQuestionButton.addEventListener('click', handleNextQuestion); else console.warn('Next question button not found.');
     if (generateTasksButton) {
@@ -345,12 +551,11 @@ async function initializeApp() {
              showNotification('Generuji novou sadu otázek...', 'info');
              await fetchAndDisplayFirstQuestions(fullLearningContextForQuiz);
          });
-         generateTasksButton.style.display = 'none';
+         generateTasksButton.style.display = 'none'; // Initially hidden
     } else { console.warn('Generate/Restart button not found.'); }
 
-    if (!initializeSupabase()) { showNotification("Chyba připojení k databázi.", "error", 0); return; }
+    if (!initializeSupabase()) return;
 
-    // Auth State Listener
     if (supabaseClient && supabaseClient.auth) {
         console.log("[DEBUG] Setting up onAuthStateChange listener...");
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
@@ -366,8 +571,7 @@ async function initializeApp() {
 
                 try {
                     console.log('[DEBUG Auth State Change] Awaiting loadLearningLogs...');
-                    const logsLoaded = await loadLearningLogs(session.user.id); // Capture result
-                    // === ADDED LOG ===
+                    const logsLoaded = await loadLearningLogs(session.user.id);
                     console.log(`[DEBUG Auth State Change] loadLearningLogs finished. Result: ${logsLoaded}. Context length: ${fullLearningContextForQuiz?.length || 0}`);
 
                     if (logsLoaded && fullLearningContextForQuiz) {
@@ -375,13 +579,13 @@ async function initializeApp() {
                         await fetchAndDisplayFirstQuestions(fullLearningContextForQuiz);
                         console.log('[DEBUG Auth State Change] fetchAndDisplayFirstQuestions finished.');
                     } else if (logsLoaded && !fullLearningContextForQuiz) {
-                         console.log('[DEBUG Auth State Change] Logs loaded but no context (likely no logs found). Displaying prompt.');
+                         console.log('[DEBUG Auth State Change] Logs loaded but no context (likely no logs found). Displaying prompt in quiz area.');
                          if(quizContainer) quizContainer.style.display = 'block';
                          if(questionDisplay) questionDisplay.innerHTML = '<p>Vítejte! Přidejte záznam o učení, aby se zde objevily otázky k procvičení.</p>';
                          if (quizLoading) quizLoading.classList.add('hidden');
                          if (generateTasksButton) generateTasksButton.style.display = 'none';
                     } else { // logsLoaded is false
-                         console.error("[DEBUG Auth State Change] Failed to load learning logs (logsLoaded is false). Quiz cannot start.");
+                         console.error("[DEBUG Auth State Change] Failed to load learning logs. Quiz cannot start.");
                          if(quizContainer) quizContainer.style.display = 'block';
                          if(questionDisplay) questionDisplay.innerHTML = '<p style="color: var(--accent-pink);">Chyba načítání záznamů o učení. Kvíz nelze spustit.</p>';
                          if (quizLoading) quizLoading.classList.add('hidden');
@@ -399,7 +603,7 @@ async function initializeApp() {
                 authSection?.classList.remove('hidden');
                 appSection?.classList.add('hidden');
                 if (userEmailDisplay) userEmailDisplay.textContent = '';
-                if (logsContainer) logsContainer.innerHTML = '<p>Přihlaste se.</p>';
+                if (logsContainer) logsContainer.innerHTML = '<p style="text-align: center; margin-top: 1rem;">Pro zobrazení historie se přihlaste.</p>'; // Updated message
                 if (generateTasksButton) generateTasksButton.style.display = 'none';
                 hideQuizUI(); resetQuizState(); fullLearningContextForQuiz = '';
             }
@@ -409,11 +613,11 @@ async function initializeApp() {
          showNotification("Kritická chyba inicializace autentizace.", "error", 0);
     }
 
-    console.log("[DEBUG] initializeApp v5 - Initialization complete. Waiting for auth state...");
+    console.log("[DEBUG] initializeApp v6 - Initialization complete. Waiting for auth state...");
 }
 
 
 // --- Запуск приложения ---
 document.addEventListener('DOMContentLoaded', initializeApp);
 
-// --- КОНЕЦ ОБНОВЛЕННОГО КОДА JS ---
+// --- КОНЕЦ ИСПРАВЛЕННОГО КОДА JS ---
