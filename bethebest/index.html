@@ -3,21 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Be The Best - Deník učení</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <title>Justax - Buď Nejlepší - Deník učení</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
     <style>
-        /* CYBERPUNK STYLES - Začátek */
+        /* CYBERPUNK STYLES - Vylepšené */
         :root {
             --primary-color: #00ffea; /* Neon cyan/teal */
             --secondary-color: #ff00ff; /* Neon magenta */
             --accent-color: #ffff00; /* Neon yellow */
-            --background-color: #0d0221; /* Deep dark blue/purple */
-            --surface-color: #1a0a38; /* Slightly lighter dark purple */
-            --text-color: #e0e0e0; /* Light grey/white for readability */
-            --text-dark-color: #333;
+            --background-color: #0a011c; /* Ještě tmavší fialovo-modrá */
+            --surface-color: #1c0b3e; /* Tmavě fialová pro povrchy */
+            --text-color: #e0e0e0;
+            --text-dark-color: #1a0a38;
             --border-color: var(--primary-color);
-            --glow-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color), 0 0 15px var(--primary-color);
-            --input-background: rgba(26, 10, 56, 0.8);
+            --glow-shadow-primary: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color), 0 0 15px var(--primary-color), 0 0 20px var(--primary-color);
+            --glow-shadow-secondary: 0 0 5px var(--secondary-color), 0 0 10px var(--secondary-color), 0 0 15px var(--secondary-color);
+            --input-background: rgba(13, 2, 33, 0.7); /* Tmavší pozadí inputů */
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        @keyframes subtleGlitch {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(1px, -1px); }
+            50% { transform: translate(-1px, 1px); }
+            75% { transform: translate(1px, 1px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        @keyframes textPopIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        @keyframes scanline {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 50px; } /* Výška scanline */
         }
 
         body {
@@ -30,61 +54,86 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            padding-top: 20px;
-            padding-bottom: 20px;
+            padding: 20px;
             box-sizing: border-box;
+            /* Efekt scanline na pozadí */
+            background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 100% 3px; /* Šířka a výška linky */
+            animation: scanline 1s linear infinite;
+            overflow-x: hidden; /* Zabrání horizontálnímu scrollbaru kvůli glitch efektům */
         }
 
         .container {
-            background-color: var(--surface-color);
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0, 255, 234, 0.3), inset 0 0 10px rgba(0,0,0,0.5);
+            background: radial-gradient(ellipse at center, var(--surface-color) 0%, rgba(13, 2, 33, 0.9) 70%);
+            padding: 30px 40px;
+            border-radius: 10px; /* Mírně větší zaoblení */
+            box-shadow: 0 0 30px rgba(0, 255, 234, 0.25), 
+                        inset 0 0 15px rgba(0,0,0,0.6),
+                        0 0 0 1px var(--primary-color); /* Ostrá vnější linka */
             width: 90%;
-            max-width: 700px;
+            max-width: 750px; /* Mírně širší */
             border: 1px solid var(--border-color);
             position: relative;
-            overflow: hidden;
+            overflow: hidden; /* Důležité pro ::before/::after */
+            animation: textPopIn 0.5s ease-out forwards;
         }
 
-        .container::before { /* Glitchy border effect */
+        .container::before { /* Vylepšený glitch border */
             content: '';
             position: absolute;
             top: -2px; left: -2px;
             width: calc(100% + 4px);
             height: calc(100% + 4px);
-            border: 2px solid var(--secondary-color);
-            border-radius: 8px;
-            opacity: 0.7;
-            animation: glitch-border 5s infinite steps(1);
-            pointer-events: none;
+            border-radius: 10px;
+            opacity: 0.6;
+            z-index: -1;
+            background: transparent;
+            animation: glitch-border-complex 6s infinite steps(2, jump-none);
         }
         
-        @keyframes glitch-border {
-            0%, 100% { clip-path: inset(0 0 0 0); }
-            10% { clip-path: inset(10px 20px 30px 5px); }
-            20% { clip-path: inset(50px 5px 10px 20px); }
-            30% { clip-path: inset(25px 15px 5px 10px); }
-            40% { clip-path: inset(0 0 0 0); }
-            /* ... more steps for complex glitch */
+        @keyframes glitch-border-complex {
+            0% { border: 2px solid var(--secondary-color); clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);}
+            5% { clip-path: polygon(0 10%, 100% 0, 100% 90%, 0 100%); border-color: var(--accent-color); }
+            10% { clip-path: polygon(10% 0, 90% 10%, 100% 90%, 0% 80%); }
+            15% { border: 2px solid var(--primary-color); clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);}
+            /* ... pokračuj s dalšími kroky pro komplexnější efekt */
+            100% { border: 2px solid var(--secondary-color); }
         }
 
 
-        h1, h2 {
-            font-family: 'Orbitron', sans-serif;
-            color: var(--primary-color);
-            text-shadow: var(--glow-shadow);
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        
         h1 {
-            font-size: 2.5em;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900; /* Tučnější */
+            font-size: clamp(2em, 6vw, 3em); /* Responzivní velikost */
+            color: var(--primary-color);
+            text-shadow: var(--glow-shadow-primary), 0 0 30px var(--primary-color); /* Silnější stín */
+            text-align: center;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+            animation: flicker 3s infinite, subtleGlitch 5s infinite;
+            position: relative; /* Pro pseudo-elementy */
         }
+        h1::after { /* Dekorativní linka pod H1 */
+            content: '';
+            display: block;
+            width: 50%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--secondary-color), transparent);
+            margin: 10px auto 0;
+            opacity: 0.7;
+        }
+
         h2 {
-            font-size: 1.8em;
-            border-bottom: 1px dashed var(--secondary-color);
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.5em, 4vw, 2em);
+            color: var(--accent-color); /* Změna barvy pro odlišení */
+            text-shadow: 0 0 8px var(--accent-color);
+            border-bottom: 2px solid;
+            border-image: linear-gradient(to right, var(--secondary-color), var(--primary-color)) 1;
             padding-bottom: 10px;
+            margin-bottom: 25px;
+            animation: textPopIn 0.6s ease-out 0.2s forwards; /* Zpožděná animace */
+            opacity: 0; /* Počáteční stav pro animaci */
         }
 
         label {
@@ -92,28 +141,33 @@
             margin-bottom: 8px;
             color: var(--primary-color);
             font-weight: bold;
+            text-transform: uppercase; /* Velká písmena */
+            font-size: 0.9em;
+            letter-spacing: 1px;
         }
 
         input[type="email"],
         input[type="password"],
         textarea {
-            width: calc(100% - 22px);
+            width: calc(100% - 24px); /* Upraveno pro padding */
             margin-bottom: 20px;
-            padding: 12px 10px;
-            border-radius: 4px;
+            padding: 12px;
+            border-radius: 5px;
             border: 1px solid var(--border-color);
             background-color: var(--input-background);
             color: var(--text-color);
             font-size: 1em;
-            transition: box-shadow 0.3s ease;
+            transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+            caret-color: var(--primary-color); /* Barva kurzoru */
         }
 
         input[type="email"]:focus,
         input[type="password"]:focus,
         textarea:focus {
             outline: none;
-            box-shadow: var(--glow-shadow);
+            box-shadow: var(--glow-shadow-primary);
             border-color: var(--secondary-color);
+            transform: scale(1.01); /* Malé zvětšení při focusu */
         }
         
         textarea {
@@ -123,30 +177,56 @@
 
         button {
             font-family: 'Orbitron', sans-serif;
-            padding: 12px 20px;
-            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
-            color: var(--background-color);
-            font-weight: bold;
+            padding: 12px 25px; /* Více paddingu */
+            background: linear-gradient(45deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: var(--text-dark-color);
+            font-weight: 700; /* Tučnější */
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
             font-size: 1.1em;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease-in-out;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 0 5px var(--secondary-color), 0 0 10px var(--secondary-color);
+            letter-spacing: 1.5px;
+            position: relative; /* Pro ::before pseudo-element */
+            overflow: hidden; /* Pro ::before pseudo-element */
+            box-shadow: 0 0 8px var(--secondary-color), 0 0 12px var(--secondary-color);
+        }
+        
+        button::before { /* Efekt při hoveru */
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.4s ease;
+        }
+
+        button:hover::before {
+            left: 100%;
         }
 
         button:hover {
-            box-shadow: var(--glow-shadow), 0 0 15px var(--secondary-color);
-            transform: translateY(-2px);
+            box-shadow: var(--glow-shadow-primary), var(--glow-shadow-secondary);
+            transform: translateY(-3px) scale(1.05); /* Větší pohyb a zvětšení */
+            color: var(--background-color); /* Změna barvy textu pro lepší kontrast na světlém stínu */
+        }
+        button:active {
+            transform: translateY(-1px) scale(1.02);
         }
         button:disabled {
-            background: #555;
-            color: #888;
+            background: #444; /* Tmavší pro disabled */
+            color: #777;
             cursor: not-allowed;
             box-shadow: none;
+            transform: none;
         }
+        button:disabled::before {
+            display: none; /* Žádný hover efekt pro disabled */
+        }
+
 
         #authSection, #appSection {
             margin-bottom: 30px;
@@ -155,44 +235,126 @@
         .auth-toggle {
             color: var(--accent-color);
             cursor: pointer;
-            text-decoration: underline;
+            text-decoration: none; /* Odstranění podtržení, nahrazeno hover efektem */
             display: block;
             text-align: center;
-            margin-top: 15px;
+            margin-top: 20px;
+            font-weight: bold;
+            transition: color 0.3s ease, letter-spacing 0.3s ease;
         }
         .auth-toggle:hover {
             color: var(--primary-color);
+            letter-spacing: 1px; /* Malé rozšíření textu */
         }
 
         #userInfo {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             padding: 15px;
-            background-color: rgba(0, 255, 234, 0.1);
+            background-color: rgba(0, 255, 234, 0.05); /* Jemnější pozadí */
             border: 1px solid var(--primary-color);
-            border-radius: 4px;
+            border-radius: 5px;
             text-align: center;
+            box-shadow: inset 0 0 10px rgba(0, 255, 234, 0.2);
         }
-        #userInfo p { margin: 5px 0; }
+        #userInfo p { margin: 5px 0; font-size: 1.1em; }
+        #userInfo #userEmailDisplay { color: var(--accent-color); font-weight: bold;}
+        #userInfo button { margin-top: 10px; font-size: 0.9em; padding: 8px 15px; }
 
         #logHistory { margin-top: 30px; }
         .log-entry {
             background-color: var(--input-background);
-            border: 1px solid var(--secondary-color);
-            padding: 15px;
+            border-left: 4px solid var(--secondary-color); /* Akcentní proužek vlevo */
+            border-top: 1px solid rgba(var(--secondary-color-rgb), 0.3); /* RGB verze proměnné by byla potřeba */
+            border-right: 1px solid rgba(var(--secondary-color-rgb), 0.3);
+            border-bottom: 1px solid rgba(var(--secondary-color-rgb), 0.3);
+            padding: 15px 20px;
             margin-bottom: 15px;
-            border-radius: 4px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            border-radius: 0 5px 5px 0; /* Zaoblení jen na některých stranách */
+            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            opacity: 0; /* Pro animaci v JS */
+            transform: translateY(20px); /* Pro animaci v JS */
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
         }
-        .log-entry p { margin-top: 0; }
+        .log-entry:hover {
+            transform: translateX(5px) scale(1.02);
+            box-shadow: 0 5px 15px rgba(var(--secondary-color-rgb), 0.3); /* RGB verze proměnné by byla potřeba */
+        }
+
+        .log-entry p { margin-top: 0; line-height: 1.6; }
         .log-entry small { color: var(--accent-color); display: block; margin-top: 10px; font-size: 0.9em;}
 
-        #practiceFeed { margin-top: 30px; border-top: 2px solid var(--primary-color); padding-top: 20px;}
+        #practiceFeed { margin-top: 40px; border-top: 3px solid; border-image: linear-gradient(to right, var(--primary-color), var(--secondary-color)) 1; padding-top: 25px;}
         #practiceFeed h2 { color: var(--primary-color); }
         
         .hidden { display: none !important; }
-        /* CYBERPUNK STYLES - Konec */
+
+        /* Loader animace */
+        .loader {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-color);
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2em;
+            animation: flicker 1.5s infinite;
+        }
+        .loader::after {
+            content: '...';
+            display: inline-block;
+            overflow: hidden;
+            vertical-align: bottom;
+            animation: dots 1.5s steps(4, end) infinite;
+            width: 0px; /* Will be animated by 'dots' */
+        }
+        @keyframes dots {
+            0% { width: 0; }
+            25% { width: .5em; } /* Šířka jednoho znaku */
+            50% { width: 1em; } /* Šířka dvou znaků */
+            75% { width: 1.5em;} /* Šířka tří znaků */
+            100% { width: 0; }
+        }
+
+        /* Custom scrollbar (WebKit browsers) */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--input-background);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 10px;
+            box-shadow: var(--glow-shadow-primary);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-color);
+            box-shadow: var(--glow-shadow-secondary);
+        }
+
+        /* Pro Firefox by bylo potřeba jiné řešení pro scrollbar */
+        /* html { scrollbar-color: var(--primary-color) var(--input-background); scrollbar-width: thin; } */
+
+        /* Malý detail: "Data stream" textový efekt pro nějaký placeholder? */
+        /* Např. pro #practiceFeed <p> */
+        #practiceFeed p.data-stream {
+            font-family: 'Orbitron', monospace; /* Monospace pro efekt */
+            color: var(--primary-color);
+            font-size: 0.9em;
+            line-height: 1.5;
+            white-space: pre-wrap; /* Zachová formátování a zalamování */
+            opacity: 0;
+            animation: fadeInStream 1s forwards, streamText 5s infinite linear;
+        }
+
+        @keyframes fadeInStream {
+            to { opacity: 0.7; }
+        }
+        /* streamText by byl složitější, generování náhodných znaků v JS by bylo lepší
+           nebo použít pseudo-element s animovaným obsahem. Prozatím jen náznak. */
+        
     </style>
-</head>
+    </head>
 <body>
     <div class="container">
         <h1>Justax - Buď Nejlepší</h1>
@@ -203,11 +365,11 @@
                 <form id="loginForm">
                     <div>
                         <label for="loginEmail">E-mail:</label>
-                        <input type="email" id="loginEmail" required>
+                        <input type="email" id="loginEmail" required autocomplete="email">
                     </div>
                     <div>
                         <label for="loginPassword">Heslo:</label>
-                        <input type="password" id="loginPassword" required>
+                        <input type="password" id="loginPassword" required autocomplete="current-password">
                     </div>
                     <button type="submit">Přihlásit se</button>
                 </form>
@@ -219,11 +381,11 @@
                 <form id="registerForm">
                     <div>
                         <label for="registerEmail">E-mail:</label>
-                        <input type="email" id="registerEmail" required>
+                        <input type="email" id="registerEmail" required autocomplete="email">
                     </div>
                     <div>
                         <label for="registerPassword">Heslo:</label>
-                        <input type="password" id="registerPassword" required>
+                        <input type="password" id="registerPassword" required autocomplete="new-password">
                     </div>
                     <button type="submit">Zaregistrovat se</button>
                 </form>
@@ -239,6 +401,7 @@
 
             <h2>Co ses dnes naučil/a?</h2>
             <form id="learningLogForm">
+                <label for="learningInput">Tvoje poznámky:</label>
                 <textarea id="learningInput" placeholder="Například: Dnes jsem studoval/a trigonometrii, pochopil/a základní rovnice jako sin(2x)=1..." required></textarea>
                 <button type="submit">Uložit pokrok</button>
             </form>
@@ -246,14 +409,13 @@
             <div id="logHistory">
                 <h2>Moje předchozí záznamy:</h2>
                 <div id="logsContainer">
-                    <p>Načítání záznamů...</p>
-                </div>
+                    </div>
             </div>
 
             <div id="practiceFeed">
                 <h2>Cvičení (brzy zde budou úkoly od Gemini!):</h2>
                 <p>Zde se objeví personalizované úkoly k procvičení.</p>
-            </div>
+                </div>
         </div>
     </div>
 
