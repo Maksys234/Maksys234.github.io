@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Justax - Buď Nejlepší - Deník učení</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     <style>
         /* --- START: Киберпанк CSS Тема (из index.html v19 + sidebar toggle) --- */
         /* --- Глобальные Настройки и Переменные --- */
@@ -118,43 +119,31 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; font-size: 16px; -webkit-text-size-adjust: 100%; }
         body {
-            /* Вместо старого background-color: var(--bg-color); color: var(--primary-text-color); */
-            /* Теперь это будет --bg-color из киберпанк темы и --text-medium */
-            background-color: var(--bg-color); color: var(--text-medium); 
-            font-family: var(--font-primary); line-height: 1.7; /* Старый был 1.6 */
-            margin: 0; /* Уже был в * */
-            min-height: 100vh; 
-            
-            /* Старые стили для body страницы index.html (центрирование контейнера)
-               display: flex; justify-content: center; align-items: flex-start; padding: 20px; 
-               Эти стили могут конфликтовать с body, если он должен быть контейнером для sidebar + main.
-               Для ПРОСТОЙ страницы (как текущий index.html) их можно оставить.
-               Если же предполагается структура с сайдбаром (как в полной киберпанк теме), то body должен быть flex и overflow:hidden.
-               Пока оставляем как было в простом index.html для центрирования.
-            */
+            background-color: var(--bg-color); color: var(--text-medium);
+            font-family: var(--font-primary); line-height: 1.7;
+            margin: 0;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: flex-start; /* Чтобы контейнер был сверху, если страница длинная */
             padding: 20px; /* Отступы для всего body */
-
             -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-            position: relative; /* Для позиционирования псевдоэлементов */
-            /* overflow: hidden; /* Убрал, т.к. index.html простой и может скроллиться */
+            position: relative;
         }
 
-        /* Фоновые эффекты (опционально, можно убрать для дашборда) */
+        /* Фоновые эффекты */
         body::before { /* Сетка */
             content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -3;
             background-image:
                 linear-gradient(rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px);
-            background-size: 40px 40px; opacity: 0.6; /* Менее заметно */
+            background-size: 40px 40px; opacity: 0.6;
             animation: bg-grid-pan 100s linear infinite; pointer-events: none;
         }
         body::after { /* Сканлинии */
             content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -2;
             background: linear-gradient( to bottom, rgba(10, 7, 31, 0) 50%, rgba(0, 0, 0, 0.08) 50% );
-            background-size: 100% 3px; opacity: 0.15; /* Менее заметно */
+            background-size: 100% 3px; opacity: 0.15;
             animation: scanlines 25s linear infinite; pointer-events: none;
         }
         @keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 800px 400px; } }
@@ -162,7 +151,7 @@
 
         /* Свечение мыши */
         .mouse-follower-glow {
-            position: fixed; width: 200px; height: 200px; /* Чуть меньше */
+            position: fixed; width: 200px; height: 200px;
             background: radial-gradient(circle, rgba(var(--accent-primary-rgb), 0.05) 0%, transparent 70%);
             border-radius: 50%; pointer-events: none; z-index: -1;
             transform: translate(-50%, -50%); filter: blur(35px);
@@ -173,57 +162,49 @@
 
         /* Типография */
         h1, h2, h3, h4, h5, h6 { font-family: var(--font-secondary); font-weight: 600; color: var(--text-heading); line-height: 1.35; margin-bottom: 1em; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
-        
-        /* Стили для h1 и h2 из старого index.html, адаптированные: */
         h1 {
             text-align: center;
-            font-size: clamp(2.0rem, 4vw, 2.4rem); /* Чуть крупнее */
-            font-weight: 700; 
+            font-size: clamp(2.0rem, 4vw, 2.4rem);
+            font-weight: 700;
             margin-bottom: 25px;
-            color: var(--accent-primary); /* Используем акцентный цвет */
+            color: var(--accent-primary);
             letter-spacing: 1px;
-            text-shadow: 0 0 12px var(--accent-glow); /* Добавим свечение */
+            text-shadow: 0 0 12px var(--accent-glow);
         }
         h2 {
-            font-size: clamp(1.4rem, 3vw, 1.7rem); /* Чуть крупнее */
+            font-size: clamp(1.4rem, 3vw, 1.7rem);
             margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-color-medium); /* Используем новую переменную */
+            border-bottom: 1px solid var(--border-color-medium);
             padding-bottom: 10px;
-            color: var(--text-light); /* Светлее, чем просто --text-heading */
+            color: var(--text-light);
         }
-
         h3 { font-size: clamp(1.1rem, 2vw, 1.25rem); }
         p { margin-bottom: 1.2rem; font-size: clamp(0.9rem, 1.8vw, 1rem); max-width: 700px; color: var(--text-medium); }
         a { color: var(--text-link); text-decoration: none; transition: color var(--transition-fast), text-shadow 0.3s ease, outline-offset 0.1s ease; }
         a:hover { color: var(--text-link-hover); text-shadow: var(--shadow-text-glow); }
-
-        /* Стили фокуса */
         a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
             outline: 3px solid var(--accent-primary); outline-offset: 4px; border-radius: 6px;
             box-shadow: 0 0 12px var(--accent-glow);
         }
         :is(a, button, input, textarea, select):focus { outline: none; }
-
-        /* Скроллбар */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: rgba(var(--accent-secondary-rgb), 0.08); border-radius: 4px;}
         ::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.5); border-radius: 4px; border: 2px solid transparent; background-clip: content-box; }
         ::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--accent-primary-rgb), 0.8); }
-        body { /* Firefox scrollbar */ scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--accent-secondary-rgb), 0.08); }
+        body { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--accent-secondary-rgb), 0.08); }
 
-        /* --- КОНТЕЙНЕР из старого index.html, адаптированный --- */
+        /* Контейнер */
         .container {
-            background-color: var(--card-bg); /* Используем --card-bg */
-            padding: 30px; /* Оставляем паддинг */
-            border-radius: var(--card-radius); /* Используем --card-radius */
-            box-shadow: var(--shadow-card); /* Используем --shadow-card */
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: var(--card-radius);
+            box-shadow: var(--shadow-card);
             width: 100%;
-            max-width: 700px; /* Оставляем максимальную ширину */
-            animation: fadeInMain 0.7s ease-out forwards; /* Используем анимацию из киберпанка */
-            border: 1px solid var(--border-color-medium); /* Граница из киберпанка */
-            position: relative; /* Для возможных псевдоэлементов, как у .card */
+            max-width: 800px; /* Сделаем чуть шире для квиза */
+            animation: fadeInMain 0.7s ease-out forwards;
+            border: 1px solid var(--border-color-medium);
+            position: relative;
         }
-        /* Уголки для .container, как у .card */
         .container::before, .container::after {
             content: ''; position: absolute; width: 12px; height: 12px;
             border-color: var(--accent-primary); border-style: solid; opacity: 0;
@@ -235,31 +216,35 @@
         .container:hover::before { transform: translate(-3px, -3px); }
         .container:hover::after { transform: translate(3px, 3px); }
 
-        /* --- СТИЛИ ФОРМ из старого index.html, адаптированные --- */
+        /* Формы */
+        label.form-label, /* Добавляем класс для единообразия */
         label {
             display: block;
-            font-weight: 600; /* Чуть жирнее */
-            margin-bottom: 10px; /* Больше отступ */
-            color: var(--text-light); /* Светлее, было --secondary-text-color */
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-light);
             font-size: 0.9rem;
-            text-transform: uppercase; /* Киберпанк стиль */
+            text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
+        input[type="email"].form-control, /* Добавляем класс для единообразия */
+        input[type="password"].form-control,
+        textarea.form-control,
         input[type="email"],
         input[type="password"],
         textarea {
-            width: 100%; /* Был calc(100% - 24px) - теперь 100% т.к. box-sizing: border-box у всех */
-            padding: 14px 16px; /* Больше паддинг */
-            margin-bottom: 20px; /* Больше отступ */
-            background-color: var(--interface-bg); /* Темный фон инпута */
-            border: 1px solid var(--border-color-medium); /* Граница */
-            border-radius: var(--button-radius); /* Радиус как у кнопок */
+            width: 100%;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            background-color: var(--interface-bg);
+            border: 1px solid var(--border-color-medium);
+            border-radius: var(--button-radius);
             color: var(--text-light);
-            font-family: var(--font-mono); /* Моноширинный шрифт для инпутов */
+            font-family: var(--font-mono);
             font-size: 1rem;
             transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
-            caret-color: var(--accent-primary); /* Цвет курсора */
+            caret-color: var(--accent-primary);
         }
 
         input[type="email"]:focus,
@@ -267,59 +252,26 @@
         textarea:focus {
             outline: none;
             border-color: var(--accent-primary);
-            background-color: var(--card-solid); /* Чуть светлее фон при фокусе */
+            background-color: var(--card-solid);
             box-shadow: 0 0 15px var(--accent-glow), inset 0 0 5px rgba(var(--accent-primary-rgb),0.1);
         }
 
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-        
-        /* Автозаполнение */
+        textarea { min-height: 120px; resize: vertical; }
         input:-webkit-autofill,
-        input:-webkit-autofill:hover, 
-        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
         input:-webkit-autofill:active {
-            -webkit-box-shadow: 0 0 0 30px var(--interface-bg) inset !important; /* Фон автозаполнения */
-            -webkit-text-fill-color: var(--text-light) !important; /* Цвет текста автозаполнения */
+            -webkit-box-shadow: 0 0 0 30px var(--interface-bg) inset !important;
+            -webkit-text-fill-color: var(--text-light) !important;
             caret-color: var(--accent-primary);
-            font-family: var(--font-mono); /* Убедимся, что шрифт применяется */
+            font-family: var(--font-mono);
         }
 
-        /* КНОПКИ - используем стиль .btn из киберпанка */
-        /* Применяем .btn к существующим кнопкам через JS или добавляем класс в HTML */
-        /* Здесь общий стиль для button, который будет наследовать от .btn если класс добавлен,
-           или будет базовым, если нет. */
-        button { 
-            /* Наследуем от .btn, если этот класс будет добавлен к тегу <button> */
-            /* Если нет, то эти стили будут применены, но лучше использовать .btn */
-            font-family: var(--font-secondary);
-            background-color: transparent; /* По умолчанию прозрачные, как .btn */
-            color: var(--accent-primary);
-            padding: 0.8rem 1.5rem; /* Паддинги из .btn адаптированные */
-            border: 2px solid var(--accent-primary);
-            border-radius: var(--button-radius);
-            cursor: pointer;
-            font-size: 0.9rem; /* Размер шрифта из .btn */
-            font-weight: 600; /* Как в .btn */
-            transition: all var(--transition-medium);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            /* Если это основной button, то эти стили будут как fallback */
-        }
-        /* Чтобы применить стили .btn ко всем кнопкам по умолчанию: */
-        button {
-             /* Сброс дефолтных стилей, если есть */
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-        }
-        /* Копируем стили .btn сюда для всех <button> элементов,
-           но лучше добавлять класс .btn в HTML */
-        button:not(.btn-icon-only):not(.modal-close):not(.notification-bell) { /* Исключаем кнопки с особым стилем */
+        /* Кнопки */
+        button, .btn { /* Применяем стиль .btn ко всем кнопкам */
+            -webkit-appearance: none; -moz-appearance: none; appearance: none; /* Сброс */
             display: inline-flex; align-items: center; justify-content: center; gap: 0.5em;
-            padding: 0.7rem 1.4rem; /* Адаптировано */
+            padding: 0.7rem 1.4rem;
             background: transparent; color: var(--accent-primary);
             border: 2px solid var(--accent-primary); border-radius: var(--button-radius);
             font-family: var(--font-secondary); font-weight: 600; font-size: 0.9rem;
@@ -329,53 +281,53 @@
             box-shadow: 0 0 10px -3px var(--accent-glow), inset 0 0 8px -5px var(--accent-glow);
             backdrop-filter: blur(2px); will-change: transform, box-shadow, color, border-color;
         }
-        button:not(.btn-icon-only):not(.modal-close):not(.notification-bell)::before { 
-            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; 
-            background: var(--gradient-button); transition: left 0.35s ease-in-out; z-index: -1; 
-        }
-        button:not(.btn-icon-only):not(.modal-close):not(.notification-bell):hover:not(:disabled) { 
-            color: var(--text-fixed-dark); border-color: var(--accent-secondary); 
-            box-shadow: 0 0 20px var(--accent-secondary-glow), inset 0 0 10px rgba(var(--accent-secondary-rgb), 0.15); 
-            transform: translateY(-3px); 
-        }
-        button:not(.btn-icon-only):not(.modal-close):not(.notification-bell):hover:not(:disabled)::before { 
-            left: 0; background: var(--gradient-button-hover); 
-        }
-        button:not(.btn-icon-only):not(.modal-close):not(.notification-bell):active:not(:disabled) { 
-            transform: translateY(0px) scale(0.97); 
-            box-shadow: 0 0 8px var(--accent-secondary-glow), inset 0 0 12px rgba(0,0,0,0.3); 
-            transition-duration: 0.08s; 
-        }
-        button:disabled { 
-            opacity: 0.5; cursor: not-allowed; 
-            background-color: transparent !important; border-color: var(--text-muted) !important; 
-            color: var(--text-muted) !important; box-shadow: none !important; 
-            transform: none !important;
-        }
-        button:disabled::before { display: none; }
+        button::before, .btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--gradient-button); transition: left 0.35s ease-in-out; z-index: -1; }
+        button:hover:not(:disabled), .btn:hover:not(:disabled) { color: var(--text-fixed-dark); border-color: var(--accent-secondary); box-shadow: 0 0 20px var(--accent-secondary-glow), inset 0 0 10px rgba(var(--accent-secondary-rgb), 0.15); transform: translateY(-3px); }
+        button:hover:not(:disabled)::before, .btn:hover:not(:disabled)::before { left: 0; background: var(--gradient-button-hover); }
+        button:active:not(:disabled), .btn:active:not(:disabled) { transform: translateY(0px) scale(0.97); box-shadow: 0 0 8px var(--accent-secondary-glow), inset 0 0 12px rgba(0,0,0,0.3); transition-duration: 0.08s; }
+        button:disabled, .btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; transform: none !important; }
+        button:disabled::before, .btn:disabled::before { display: none; }
+        button i, .btn i { margin-right: 0.4em; }
 
+        /* Кнопка "Odhlásit se" */
+        button#logoutButton {
+            padding: 0.5rem 1rem; font-size: 0.8rem;
+            border-color: var(--accent-pink); color: var(--accent-pink);
+            box-shadow: 0 0 10px -3px var(--accent-pink-glow), inset 0 0 8px -5px var(--accent-pink-glow);
+        }
+         button#logoutButton::before { background: linear-gradient(100deg, var(--accent-pink) 0%, var(--accent-secondary) 100%); }
+        button#logoutButton:hover:not(:disabled) { color: var(--white); border-color: var(--accent-pink); }
+         button#logoutButton:hover:not(:disabled)::before { background: linear-gradient(100deg, var(--accent-secondary) 0%, var(--accent-pink) 100%); }
+
+         /* Кнопка "Odpovědět" и "Další otázka" */
+        #submitAnswerButton { /* Основная кнопка для ответа */
+             background: var(--gradient-button); border-color: transparent; color: var(--text-fixed-dark);
+         }
+         #submitAnswerButton::before { display: none; }
+         #submitAnswerButton:hover:not(:disabled) { background: var(--gradient-button-hover); border-color: transparent; color: var(--white); box-shadow: 0 0 22px var(--accent-pink-glow); transform: translateY(-3px); }
+         #nextQuestionButton { /* Второстепенная кнопка */
+            background-color: rgba(var(--text-muted-rgb), 0.1); border: 1px solid rgba(var(--text-muted-rgb), 0.3); color: var(--text-medium); box-shadow: none;
+         }
+         #nextQuestionButton::before { display: none; }
+         #nextQuestionButton:hover:not(:disabled) { background-color: rgba(var(--text-muted-rgb), 0.2); border-color: rgba(var(--text-muted-rgb), 0.5); color: var(--text-light); box-shadow: 0 0 15px rgba(var(--text-muted-rgb), 0.2); transform: translateY(-2px); }
 
         .auth-toggle {
-            color: var(--text-link); /* Используем --text-link */
+            color: var(--text-link);
             text-decoration: none;
-            font-size: 0.9rem; /* Чуть меньше */
+            font-size: 0.9rem;
             display: block;
             text-align: center;
-            margin-top: 20px; /* Больше отступ */
+            margin-top: 20px;
             cursor: pointer;
             font-weight: 500;
             transition: color 0.2s ease, letter-spacing 0.2s ease;
         }
-        .auth-toggle:hover {
-            text-decoration: none; /* Убираем подчеркивание, киберпанк не любит */
-            color: var(--text-link-hover); /* Свечение текста уже есть у <a> */
-            letter-spacing: 0.5px; /* Легкий эффект */
-        }
+        .auth-toggle:hover { color: var(--text-link-hover); letter-spacing: 0.5px; }
 
         #userInfo {
-            background-color: rgba(var(--accent-primary-rgb), 0.08); /* Полупрозрачный акцентный фон */
+            background-color: rgba(var(--accent-primary-rgb), 0.08);
             border: 1px solid var(--border-color-medium);
-            padding: 18px 20px; /* Больше паддинг */
+            padding: 18px 20px;
             margin-bottom: 25px;
             border-radius: var(--card-radius);
             display: flex;
@@ -383,466 +335,94 @@
             align-items: center;
             box-shadow: var(--shadow-hud);
         }
-        #userInfo p {
-            margin: 0;
-            color: var(--text-medium); /* Текст среднего тона */
-            font-size: 0.95rem;
-        }
-        #userInfo #userEmailDisplay {
-            font-weight: 600; /* Жирнее */
-            color: var(--text-light); /* Светлый текст */
-            text-shadow: 0 0 5px var(--accent-glow);
-        }
-        /* Кнопка Logout будет использовать общий стиль button, если ей не задан спец. класс */
-        #userInfo button#logoutButton { 
-            padding: 0.5rem 1rem; /* Меньше паддинг */
-            font-size: 0.8rem;
-            border-color: var(--accent-pink); /* Розовая рамка */
-            color: var(--accent-pink);
-            box-shadow: 0 0 10px -3px var(--accent-pink-glow), inset 0 0 8px -5px var(--accent-pink-glow);
-        }
-         #userInfo button#logoutButton::before {
-            background: linear-gradient(100deg, var(--accent-pink) 0%, var(--accent-secondary) 100%);
-        }
-        #userInfo button#logoutButton:hover:not(:disabled) {
-            color: var(--white); /* Белый текст на градиенте */
-            border-color: var(--accent-pink); /* Розовая рамка */
-        }
-         #userInfo button#logoutButton:hover:not(:disabled)::before {
-            background: linear-gradient(100deg, var(--accent-secondary) 0%, var(--accent-pink) 100%);
-        }
+        #userInfo p { margin: 0; color: var(--text-medium); font-size: 0.95rem; }
+        #userInfo #userEmailDisplay { font-weight: 600; color: var(--text-light); text-shadow: 0 0 5px var(--accent-glow); }
 
-
-        #logHistory {
-            margin-top: 30px;
-        }
+        #logHistory { margin-top: 30px; }
 
         .log-entry {
-            background-color: var(--interface-bg); /* Темный фон для записи */
-            padding: 18px 20px; /* Больше паддинг */
-            margin-bottom: 15px; /* Больше отступ */
-            border-radius: var(--button-radius); /* Меньше радиус, чем у card */
-            border-left: 4px solid var(--accent-primary); /* Акцентная линия слева */
-            box-shadow: var(--shadow-hud); /* Легкая тень */
-            opacity: 0; 
-            transform: translateY(20px); 
+            background-color: var(--interface-bg);
+            padding: 18px 20px;
+            margin-bottom: 15px;
+            border-radius: var(--button-radius);
+            border-left: 4px solid var(--accent-primary);
+            box-shadow: var(--shadow-hud);
+            opacity: 0;
+            transform: translateY(20px);
             transition: opacity 0.5s ease-out, transform 0.5s ease-out, background-color 0.3s ease, border-left-color 0.3s ease;
         }
-         .log-entry:hover {
-            background-color: var(--card-solid); /* Смена фона при наведении */
-            border-left-color: var(--accent-secondary); /* Смена цвета линии */
-        }
-        .log-entry p {
-            margin-top: 0;
-            margin-bottom: 8px;
-            color: var(--text-light); /* Светлый текст для содержимого */
-            line-height: 1.6;
-        }
-        .log-entry small {
-            font-size: 0.8rem; /* Меньше */
-            color: var(--text-muted); /* Приглушенный цвет */
-            font-family: var(--font-mono); /* Моноширинный для даты */
-        }
+         .log-entry:hover { background-color: var(--card-solid); border-left-color: var(--accent-secondary); }
+        .log-entry p { margin-top: 0; margin-bottom: 8px; color: var(--text-light); line-height: 1.6; }
+        .log-entry small { font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono); }
 
-        #practiceFeed {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color-medium); /* Используем новую переменную */
-        }
-        
-        .hidden {
-            display: none !important;
-        }
+        #practiceFeed { margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color-medium); }
+        #geminiTasksContainer { /* Контейнер старых задач, скрыт по умолчанию */ display: none; margin-top: 15px; padding: 20px; background-color: var(--interface-bg); border-radius: var(--button-radius); border: 1px solid var(--border-color-medium); color: var(--text-medium); min-height: 80px; line-height: 1.6; }
+        #geminiTasksContainer p, #geminiTasksContainer ul, #geminiTasksContainer li { color: var(--text-light); font-family: var(--font-primary); }
+        #geminiTasksContainer ul { list-style-type: none; padding-left: 0; }
+        #geminiTasksContainer li { padding: 0.5rem 0 0.5rem 1.5rem; position: relative; border-bottom: 1px solid var(--border-color-light); }
+        #geminiTasksContainer li:last-child { border-bottom: none; }
+        #geminiTasksContainer li::before { content: '»'; color: var(--accent-primary); position: absolute; left: 0; top: 0.5rem; font-weight: bold; font-size: 1.1em; }
+        #generateTasksButton { margin-bottom: 15px; display: none; /* Скрываем кнопку по умолчанию, JS покажет */ }
 
-        .loader { /* Общий лоадер */
-            text-align: center;
-            padding: 25px;
-            font-size: 1.1rem;
-            color: var(--text-muted);
-            display: flex; /* Для центрирования спиннера если он будет */
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-        }
-        /* Спиннер для лоадера */
-        .loader::before {
-            content: '';
-            display: block;
-            width: 32px; height: 32px; border: 4px solid var(--accent-primary); border-radius: 50%;
-            border-top-color: transparent; border-right-color: transparent;
-            animation: loading-spinner 0.8s linear infinite;
-        }
+        .hidden { display: none !important; }
+
+        .loader { text-align: center; padding: 25px; font-size: 1.1rem; color: var(--text-muted); display: none; /* По умолчанию скрыт */ flex-direction: column; align-items: center; gap: 1rem; }
+        .loader.visible-loader { display: flex; } /* Класс для показа */
+        .loader::before { content: ''; display: block; width: 32px; height: 32px; border: 4px solid var(--accent-primary); border-radius: 50%; border-top-color: transparent; border-right-color: transparent; animation: loading-spinner 0.8s linear infinite; }
         @keyframes loading-spinner { to { transform: rotate(360deg); } }
-        
-        /* --- Уведомления (Toast Notifications) из киберпанк темы --- */
-        /* Старая .notification-area может быть использована как .toast-container */
-        /* Переименуем #notificationArea в #toastContainer в HTML или добавим новый контейнер */
-        .toast-container { /* #notificationArea переименован или заменен */
-            position: fixed; 
-            /* Старые top: 20px; right: 20px; */
-            /* Новые из киберпанка: bottom: 1.5rem; right: 1.5rem; */
-            bottom: 1.5rem; 
-            right: 1.5rem; 
-            z-index: 1050; /* Высокий z-index */
-            width: auto; /* Автоматическая ширина, но ограничим */
-            max-width: 380px; 
-            display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
-            pointer-events: none; /* Контейнер не должен перехватывать клики */
-        }
 
-        /* Стили для .notification адаптируем под .toast */
-        .notification { /* Это будет наш .toast */
-            padding: 1rem 1.3rem; 
-            border-radius: 12px; /* Из киберпанка --card-radius или специфичный */
-            background: var(--interface-bg); /* Темный фон */
-            box-shadow: var(--shadow-card); 
-            display: flex; align-items: flex-start; 
-            color: var(--text-light);
-            animation: toast-in 0.45s cubic-bezier(0.215, 0.610, 0.355, 1) forwards;
-            pointer-events: auto; /* Сами тосты кликабельны (для закрытия) */
-            border: 1px solid var(--border-color-medium); 
-            border-left-width: 5px; /* Толстая левая граница */
-            opacity: 0; transform: translateX(110%); 
-            backdrop-filter: blur(4px);
-            margin-bottom: 0; /* Убираем margin-bottom, т.к. gap у контейнера */
-        }
-        .notification.show { /* Добавляем класс .show для анимации появления */
-            opacity: 1; transform: translateX(0);
-        }
-
-        /* Типы уведомлений */
+        .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; width: auto; max-width: 380px; display: flex; flex-direction: column; gap: 0.8rem; pointer-events: none; }
+        .notification { /* Используем этот стиль для тостов */ padding: 1rem 1.3rem; border-radius: 12px; background: var(--interface-bg); box-shadow: var(--shadow-card); display: flex; align-items: flex-start; color: var(--text-light); pointer-events: auto; border: 1px solid var(--border-color-medium); border-left-width: 5px; opacity: 0; transform: translateX(110%); backdrop-filter: blur(4px); margin-bottom: 0; animation: toast-in 0.45s cubic-bezier(0.215, 0.610, 0.355, 1) forwards; }
+        .notification.show { opacity: 1; transform: translateX(0); }
         .notification.success { border-left-color: var(--accent-lime); }
         .notification.error   { border-left-color: var(--accent-pink); }
         .notification.info    { border-left-color: var(--accent-primary); }
-        /* Добавим иконки (если есть HTML для них) */
-        .notification .toast-icon { /* Пример, если будет иконка */
-            margin-right: 0.8rem; font-size: 1.3rem; flex-shrink: 0; margin-top: 3px; 
-        }
+        .notification .toast-icon { margin-right: 0.8rem; font-size: 1.3rem; flex-shrink: 0; margin-top: 3px; }
         .notification.success .toast-icon { color: var(--accent-lime); }
         .notification.error .toast-icon   { color: var(--accent-pink); }
         .notification.info .toast-icon    { color: var(--accent-primary); }
-        
-        /* Старые анимации убираем, используем toast-in */
-        /* @keyframes slideInNotification ... убран */
+        .notification .toast-content { flex: 1; }
+        .notification .toast-title { font-weight: 600; margin-bottom: 0.3rem; font-size: 1rem; color: var(--text-heading); }
+        .notification .toast-message { font-size: 0.9rem; color: var(--text-medium); line-height: 1.5; }
+        .notification .toast-close { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.4rem; padding: 0.1rem 0.2rem; margin-left: 0.6rem; line-height: 1; opacity: 0.7; transition: opacity 0.2s, color 0.2s; }
+        .notification .toast-close:hover { opacity: 1; color: var(--accent-primary); }
         @keyframes toast-in { from { opacity: 0; transform: translateX(110%); } to { opacity: 1; transform: translateX(0); } }
 
-        /* Адаптивность для простого index.html */
+        /* --- Квиз --- */
+        #quizContainer { display: none; /* JS будет управлять видимостью */ animation: fadeInMain 0.6s ease-out forwards; } /* Анимация появления */
+        #questionDisplay p { color: var(--text-light); font-size: 1.1em; line-height: 1.6; }
+        #questionDisplay p strong { color: var(--accent-primary); }
+        #feedbackArea .feedback { animation: fadeInFeedback 0.5s ease-out; }
+        @keyframes fadeInFeedback { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        #answerInputArea { display: none; /* JS покажет */ margin-top: 15px; }
+        #userAnswerInput { display: none; /* JS покажет */ }
+        #submitAnswerButton { display: none; /* JS покажет */ }
+        #nextQuestionButton { display: none; /* JS покажет */ }
+
+        /* --- Адаптивность для квиза --- */
         @media (max-width: 768px) {
-            body { padding: 15px; }
-            .container { padding: 20px; }
-            h1 { font-size: clamp(1.8rem, 5vw, 2.2rem); }
-            h2 { font-size: clamp(1.2rem, 4vw, 1.5rem); }
-            input[type="email"], input[type="password"], textarea, button { font-size: 0.95rem; padding: 12px 14px; }
-            .toast-container { bottom: 1rem; right: 1rem; left: 1rem; max-width: none; width: auto; }
+            #quizContainer { padding: 15px; }
+            #questionDisplay p { font-size: 1.05em; }
+            label.form-label { margin-bottom: 8px; }
+            #userAnswerInput { padding: 10px 12px; margin-bottom: 8px; }
+            .feedback { padding: 8px 12px; }
+            .feedback p { font-size: 0.9em; }
+            #submitAnswerButton, #nextQuestionButton { padding: 0.6rem 1.2rem; font-size: 0.85rem; }
         }
         @media (max-width: 480px) {
-            h1 { font-size: 1.6rem; }
-            h2 { font-size: 1.1rem; }
-             label { font-size: 0.85rem; }
-            .container { padding: 15px; }
+            #quizContainer { padding: 10px; margin-top: 20px; }
+            h2 { font-size: 1.5rem; }
+            #questionDisplay p { font-size: 1em; }
+            #userAnswerInput { min-height: 80px; }
+            #submitAnswerButton, #nextQuestionButton { width: 100%; margin-top: 10px; }
         }
-
-        /* --- КОНЕЦ КИБЕРПАНК СТИЛЕЙ ДЛЯ ЭТОЙ СТРАНИЦЫ --- */
-        /* Здесь заканчивается CSS, который ты предоставил, с адаптациями */
-
-        /* --- Стили для конкретных элементов страницы index.html, если нужны доп. правки --- */
-        #geminiTasksContainer { 
-            margin-top: 15px; 
-            padding: 20px; /* Больше паддинг */
-            background-color: var(--interface-bg); /* Темный фон */
-            border-radius: var(--button-radius); /* Как у инпутов */
-            border: 1px solid var(--border-color-medium);
-            color: var(--text-medium);
-            min-height: 80px; /* Минимальная высота */
-            line-height: 1.6;
-        }
-        #geminiTasksContainer p, 
-        #geminiTasksContainer ul, 
-        #geminiTasksContainer li {
-            color: var(--text-light); /* Светлый текст для содержимого Gemini */
-            font-family: var(--font-primary);
-        }
-        #geminiTasksContainer ul {
-            list-style-type: none; /* Убираем стандартные маркеры */
-            padding-left: 0;
-        }
-        #geminiTasksContainer li {
-            padding: 0.5rem 0 0.5rem 1.5rem; /* Отступ для "маркера" */
-            position: relative;
-            border-bottom: 1px solid var(--border-color-light); /* Разделитель */
-        }
-        #geminiTasksContainer li:last-child { border-bottom: none; }
-        #geminiTasksContainer li::before { /* Кастомный маркер */
-            content: '»'; /* Или другая иконка/символ */
-            color: var(--accent-primary);
-            position: absolute;
-            left: 0;
-            top: 0.5rem; 
-            font-weight: bold;
-            font-size: 1.1em;
-        }
-        
-        /* Остальные переменные и стили из твоего CSS выше... */
-        /* Весь остальной CSS из твоего примера (sidebar, cards, modals и т.д.) 
-           будет здесь, но он не будет применяться, если в HTML нет соответствующих элементов.
-           Я включил весь предоставленный тобой CSS.
-        */
-        /* --- START: Киберпанк CSS Тема (из index.html v19 + sidebar toggle) --- */
-        /* --- Глобальные Настройки и Переменные --- */
-        /* ... (здесь был бы весь CSS который ты дал, но он уже вставлен выше) ... */
-        /* Если здесь дублируются переменные, то последние будут иметь приоритет, но лучше не дублировать */
-
-        /* --- Утилиты --- */
-        .btn { /* Базовый стиль кнопки, применяемый к кнопкам дашборда */
-            display: inline-flex; align-items: center; justify-content: center; gap: 0.5em;
-            padding: 0.6rem 1.2rem; /* Уменьшены паддинги для дашборда */
-            background: transparent; color: var(--accent-primary);
-            border: 2px solid var(--accent-primary); border-radius: var(--button-radius);
-            font-family: var(--font-secondary); font-weight: 600; font-size: 0.9rem;
-            text-align: center; text-transform: uppercase; letter-spacing: 1px;
-            cursor: pointer; transition: all var(--transition-medium), transform 0.15s ease-out;
-            position: relative; overflow: hidden; z-index: 1;
-            box-shadow: 0 0 10px -3px var(--accent-glow), inset 0 0 8px -5px var(--accent-glow);
-            backdrop-filter: blur(2px); will-change: transform, box-shadow, color, border-color;
-        }
-        .btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--gradient-button); transition: left 0.35s ease-in-out; z-index: -1; }
-        .btn:hover:not(:disabled) { color: var(--text-fixed-dark); border-color: var(--accent-secondary); box-shadow: 0 0 20px var(--accent-secondary-glow), inset 0 0 10px rgba(var(--accent-secondary-rgb), 0.15); transform: translateY(-3px); }
-        .btn:hover:not(:disabled)::before { left: 0; background: var(--gradient-button-hover); }
-        .btn:active:not(:disabled) { transform: translateY(0px) scale(0.97); box-shadow: 0 0 8px var(--accent-secondary-glow), inset 0 0 12px rgba(0,0,0,0.3); transition-duration: 0.08s; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; }
-        .btn:disabled::before { display: none; }
-
-        .btn-outline { /* Контурная кнопка */
-            border-color: var(--accent-secondary); color: var(--accent-secondary); box-shadow: 0 0 10px -3px var(--accent-secondary-glow), inset 0 0 8px -5px var(--accent-secondary-glow);
-        }
-        .btn-outline::before { display: none; }
-        .btn-outline:hover:not(:disabled) { background: rgba(var(--accent-secondary-rgb), 0.12); border-color: var(--accent-pink); color: var(--accent-pink); box-shadow: 0 0 18px var(--accent-pink-glow); transform: translateY(-3px); }
-        .btn-outline:active:not(:disabled) { transform: translateY(0px) scale(0.97); box-shadow: 0 0 8px var(--accent-pink-glow), inset 0 0 10px rgba(0,0,0,0.15); background: rgba(var(--accent-pink-rgb), 0.18); transition-duration: 0.08s; }
-
-        /* ... и так далее, весь остальной CSS, который ты предоставил ... */
-        /* Я не буду повторять его здесь полностью, так как он очень длинный, 
-           но предполагается, что он ВЕСЬ вставлен в этот блок <style> */
-        
-        /* --- Окончание ВСЕГО предоставленного CSS --- */
-        /* --- Карточки (базовый стиль) --- */
-        .card {
-            background: var(--card-bg); border-radius: var(--card-radius);
-            border: 1px solid var(--border-color-light);
-            box-shadow: var(--shadow-hud);
-            transition: transform var(--transition-medium), box-shadow var(--transition-medium), border-color var(--transition-medium);
-            position: relative; overflow: hidden;
-            will-change: transform, box-shadow;
-        }
-        .card:hover {
-             transform: translateY(-5px) scale(1.01);
-             box-shadow: var(--shadow-card-hover-enhanced);
-             border-color: var(--border-color-medium);
-        }
-         /* Уголки для карточек */
-         .card::before, .card::after {
-             content: ''; position: absolute; width: 12px; height: 12px;
-             border-color: var(--accent-primary); border-style: solid; opacity: 0;
-             transition: all 0.3s ease; pointer-events: none; z-index: 1;
-         }
-         .card::before { top: 10px; left: 10px; border-width: 2px 0 0 2px; }
-         .card::after { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
-         .card:hover::before, .card:hover::after { opacity: 0.6; }
-         .card:hover::before { transform: translate(-3px, -3px); }
-         .card:hover::after { transform: translate(3px, 3px); }
-
-        /* Все остальные стили из предоставленного тобой блока CSS должны быть здесь */
-        /* Sidebar, main, dashboard-header, notifications, modals, calendar, etc. */
-        /* Я вставил начало и конец, чтобы показать, где он должен быть, 
-           но не стал копировать весь огромный блок CSS снова, чтобы ответ не был слишком длинным.
-           ВАЖНО: Ты должен вставить ВЕСЬ CSS, который ты предоставил, в это место. 
-           Мой предыдущий блок адаптации стилей для index.html является ДОПОЛНЕНИЕМ и 
-           частичной заменой некоторых общих стилей из твоего большого блока.
-           В идеале, нужно аккуратно смержить их или убедиться, что мои адаптации не конфликтуют
-           с более специфичными правилами из твоего полного CSS.
-           Но для простоты я просто заменю старый style на твой полный CSS, а потом добавлю свои адаптации для index.html.
-        */
-
-        /* === ВЕСЬ ПРЕДОСТАВЛЕННЫЙ ТОБОЙ CSS БЛОК ДОЛЖЕН БЫТЬ ВСТАВЛЕН ЗДЕСЬ === */
-        /* --- START: Киберпанк CSS Тема (из index.html v19 + sidebar toggle) --- */
-        /* ... весь твой CSS ... */
-        /* --- END: Киберпанк CSS Тема --- */
-        /* === КОНЕЦ БЛОКА === */
-        /* ВАЖНО: Так как я уже применил адаптации выше, повторная вставка полного блока может привести к дублированию.
-           Правильнее всего - ВЗЯТЬ ТВОЙ ПОЛНЫЙ CSS и ПОСЛЕ него добавить мои адаптации, если они нужны.
-           Или же, если мой адаптированный блок уже содержит все что нужно для index.html, то твой полный CSS блок 
-           нужно вставить ДО моих адаптаций, чтобы мои адаптации могли переопределить что-то при необходимости.
-           
-           Для чистоты, я сейчас сделаю так: 
-           1. Вставлю ВЕСЬ твой CSS.
-           2. ПОСЛЕ него вставлю мои специфичные адаптации для элементов index.html, которые могут переопределить 
-              или дополнить твой CSS для текущей структуры страницы.
-        */
-
-        /* ======================================================================= */
-        /* === НАЧАЛО ПОЛНОГО CSS БЛОКА, ПРЕДОСТАВЛЕННОГО ТОБОЙ (до модалок) === */
-        /* --- Глобальные Настройки и Переменные --- уже определены выше, дублировать не буду */
-        /* --- Базовые Стили --- уже частично адаптированы выше */
-        /* --- Утилиты --- .btn уже адаптирован выше */
-        /* --- NEW: Styles for Sidebar Toggle Button --- (Если сайдбара нет, не применяется) */
-        /* --- Карточки (базовый стиль) --- .card адаптирован для .container */
-        /* --- Sidebar --- (Если сайдбара нет, не применяется) */
-        /* --- Основной контент --- (Если структуры main нет, не применяется) */
-        /* --- START: Collapsed Sidebar Styles --- (Если сайдбара нет, не применяется) */
-        /* --- Хедер дашборда --- (Если хедера нет, не применяется) */
-        /* --- START: Notification Styles --- (Адаптировано под .toast-container и .notification) */
-        /* --- Кнопка Refresh --- (Если кнопки нет, не применяется) */
-        /* --- Основной контент дашборда --- (Общие стили секций могут повлиять) */
-        /* --- Welcome баннер --- (Если баннера нет, не применяется) */
-        /* --- Карточки статистики --- (Если нет, не применяется) */
-        /* --- Ряд карточек быстрого доступа --- (Если нет, не применяется) */
-        /* --- Список недавних активностей --- (Если нет, не применяется) */
-        /* --- Состояния загрузки/ошибки/пустоты --- (Частично адаптировано для .loader) */
-        /* --- Скелетная загрузка --- (Если нет, не применяется) */
-        /* --- Сообщения об ошибках --- (Можно использовать для общих ошибок) */
-        /* --- Offline баннер --- (Если нет, не применяется) */
-        /* --- Toast уведомления --- (Уже адаптировано выше для .notification) */
-        /* --- Начальная загрузка --- (Можно использовать для всей страницы) */
-        /* --- Адаптивность для киберпанк темы --- (Уже частично адаптировано выше) */
-        /* --- Уменьшение движения --- (Применится глобально) */
-        /* ============================================= */
-        /* === НОВЫЕ СТИЛИ ДЛЯ СИСТЕМЫ НАГРАД v22 === */
-        /* ============================================= */
-        /* (Эти стили для модалок и календаря наград пока не будут видны, т.к. нет HTML) */
-        /* --- 1. Кнопка открытия Модального окна (в Баннере) --- */
-        #open-monthly-modal-btn { display: inline-flex; /* Убедимся, что кнопка видна */ }
-        /* --- 2. Модальное Окно (Общие стили, можно доработать существующие) --- */
-        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.75); z-index: 1050; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.4s ease, backdrop-filter 0.4s ease; backdrop-filter: blur(0px); padding: 1rem; }
-        .modal.active { display: flex; opacity: 1; backdrop-filter: blur(8px); }
-        .modal-content { background-color: var(--interface-bg); border-radius: var(--card-radius); width: 90%; max-width: 800px; box-shadow: var(--shadow-card); transform: translateY(-30px) scale(0.95); transform-origin: center; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden; border: 1px solid var(--border-color-medium); display: flex; flex-direction: column; max-height: 90vh; }
-        .modal.active .modal-content { transform: translateY(0) scale(1); }
-        .modal-header { padding: 1.2rem 1.8rem; border-bottom: 1px solid var(--border-color-light); display: flex; justify-content: space-between; align-items: center; background: rgba(var(--dark-purple-accent-rgb), 0.4); flex-shrink: 0; }
-        .modal-title { font-size: 1.3rem; font-weight: 600; color: var(--text-heading); text-shadow: var(--shadow-text-glow); margin: 0; display: flex; align-items: center; gap: 0.6em;}
-        .modal-title i { color: var(--accent-primary); }
-        .modal-close { background: none; border: none; font-size: 1.7rem; cursor: pointer; color: var(--text-muted); transition: color 0.2s ease, transform 0.2s ease; line-height: 1; padding: 0.3rem; }
-        .modal-close:hover { color: var(--accent-pink); transform: rotate(90deg); }
-        .modal-body { padding: 1.5rem 2rem; overflow-y: auto; flex-grow: 1; position: relative; }
-        .modal-body::-webkit-scrollbar { width: 6px; }
-        .modal-body::-webkit-scrollbar-track { background: transparent; }
-        .modal-body::-webkit-scrollbar-thumb { background-color: var(--border-color-medium); border-radius: 3px; }
-        .modal-footer { padding: 1.2rem 1.8rem; border-top: 1px solid var(--border-color-light); background-color: rgba(var(--bg-secondary-rgb), 0.4); display: flex; justify-content: flex-end; gap: 0.8rem; flex-shrink: 0;}
-        .modal-body .loading-overlay { position: absolute; inset: 0; background-color: rgba(var(--card-solid-rgb), 0.9); display: none; justify-content: center; align-items: center; z-index: 10; border-radius: 0; transition: opacity 0.3s ease-out; backdrop-filter: blur(3px); }
-        .modal-body.loading .loading-overlay { display: flex; }
-        .modal-body .loading-spinner { width: 36px; height: 36px; border: 4px solid var(--accent-primary); border-radius: 50%; border-top-color: transparent; border-right-color: transparent; animation: loading-spinner 0.8s linear infinite; }
-        /* --- 3. Стили Месячного Календаря (в Модальном Окне) --- */
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.8rem; }
-        .calendar-day { aspect-ratio: 1 / 1.1; background-color: rgba(var(--card-solid-rgb), 0.7); border: 1px solid var(--border-color-light); border-radius: 10px; padding: 0.8rem; display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: default; min-height: 100px; }
-        .calendar-day::before { content: ''; position: absolute; top: 0; left: 0; width: 0; height: 0; border-style: solid; border-width: 10px 10px 0 0; border-color: transparent transparent transparent transparent; transition: border-color 0.3s ease; }
-        .day-number { font-size: 0.9rem; font-weight: 700; color: var(--text-light); align-self: flex-start; line-height: 1; background: rgba(var(--bg-secondary-rgb), 0.5); padding: 0.2rem 0.4rem; border-radius: 4px; }
-        .reward-icon { font-size: 1.8rem; margin: 0.5rem 0; color: var(--accent-secondary); transition: color 0.3s ease, transform 0.3s ease; }
-        .reward-text { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); line-height: 1.3; margin-bottom: 0.5rem; }
-        .reward-status { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; position: absolute; bottom: 0.6rem; left: 0; right: 0; opacity: 0.7; transition: opacity 0.3s ease; }
-        .calendar-day .claim-button { display: none; position: absolute; bottom: 0.5rem; left: 50%; transform: translateX(-50%); padding: 0.3rem 0.7rem !important; font-size: 0.75rem !important; box-shadow: var(--shadow-interactive); z-index: 2; white-space: nowrap; border-color: var(--accent-lime); color: var(--accent-lime); }
-        .calendar-day .claim-button i { font-size: 0.9em; margin-right: 0.3em; }
-        .calendar-day .claim-button:hover:not(:disabled) { color: var(--text-fixed-dark); background: var(--gradient-success); border-color: transparent; box-shadow: 0 0 15px var(--accent-lime-glow); }
-        .calendar-day.available { border-color: var(--accent-primary); background: linear-gradient(160deg, rgba(var(--accent-primary-rgb), 0.1), rgba(var(--card-solid-rgb), 0.9)); cursor: pointer; box-shadow: 0 0 15px rgba(var(--accent-primary-rgb), 0.15); }
-        .calendar-day.available::before { border-left-color: var(--accent-primary); }
-        .calendar-day.available .reward-icon { color: var(--accent-primary); }
-        .calendar-day.available .reward-status { display: none; }
-        .calendar-day.available:hover { transform: scale(1.05); box-shadow: 0 0 25px rgba(var(--accent-primary-rgb), 0.3); border-color: var(--accent-cyan); z-index: 5; }
-        .calendar-day.available:hover .reward-icon { transform: scale(1.1); }
-        .calendar-day.claimed { opacity: 0.7; background-color: rgba(var(--accent-lime-rgb), 0.05); border-color: rgba(var(--accent-lime-rgb), 0.2); }
-        .calendar-day.claimed::before { border-left-color: var(--accent-lime); }
-        .calendar-day.claimed .reward-icon { color: var(--accent-lime); }
-        .calendar-day.claimed .reward-status { color: var(--accent-lime); }
-        .calendar-day.missed { opacity: 0.4; background-color: rgba(var(--text-muted-rgb), 0.05); border-color: rgba(var(--text-muted-rgb), 0.2); }
-        .calendar-day.missed::before { border-left-color: var(--text-muted); }
-        .calendar-day.missed .reward-icon { color: var(--text-muted); }
-        .calendar-day.missed .reward-status { color: var(--text-muted); }
-        .calendar-day.upcoming { opacity: 0.5; background-color: rgba(var(--card-solid-rgb), 0.5); border-style: dashed; }
-        .calendar-day.upcoming .reward-icon { color: var(--text-muted); opacity: 0.6; }
-        .calendar-day.upcoming .reward-status { color: var(--text-muted); }
-        .calendar-day.today { border-width: 2px; border-color: var(--accent-orange); box-shadow: inset 0 0 10px rgba(var(--accent-orange-rgb), 0.1), 0 0 10px rgba(var(--accent-orange-rgb), 0.1); }
-        .calendar-day.today .day-number { color: var(--accent-orange); box-shadow: 0 0 6px var(--accent-orange-glow); }
-        .calendar-day.today.available { border-color: var(--accent-lime); }
-        .calendar-day.skeleton { background: var(--skeleton-bg); position: relative; overflow: hidden; border-radius: 10px; }
-        .calendar-day.skeleton::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); animation: skeleton-loading 1.5s infinite linear; }
-        /* --- 4. Стили Наград за Серию (Milestones) --- */
-        .streak-rewards-section .loading-overlay { position: absolute; inset: 0; background-color: rgba(var(--card-solid-rgb), 0.8); display: none; justify-content: center; align-items: center; z-index: 10; border-radius: var(--card-radius); transition: opacity 0.3s ease-out; backdrop-filter: blur(3px); }
-        .streak-rewards-section.loading .loading-overlay { display: flex; }
-        .streak-rewards-section.loading .milestone-list { visibility: hidden; }
-        .milestone-list { display: flex; flex-direction: column; gap: 1.2rem; }
-        .milestone-item { display: flex; align-items: center; gap: 1.5rem; background-color: rgba(var(--card-solid-rgb), 0.7); padding: 1.2rem 1.5rem; border-radius: 12px; border: 1px solid var(--border-color-light); transition: all 0.3s ease; position: relative; overflow: hidden; }
-        .milestone-item::before { content: ''; position: absolute; top: 10px; bottom: 10px; left: 10px; width: 4px; background: var(--border-color-medium); border-radius: 2px; opacity: 0.5; transition: background 0.3s ease; }
-        .milestone-icon { width: 55px; height: 55px; flex-shrink: 0; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: var(--white); background: var(--gradient-cta); box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 1px solid rgba(var(--white-rgb), 0.1); text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
-        .milestone-info { flex-grow: 1; }
-        .milestone-title { font-size: 1.1rem; font-weight: 600; color: var(--text-light); margin: 0 0 0.4rem 0; }
-        .milestone-desc { font-size: 0.88rem; color: var(--text-medium); line-height: 1.5; margin: 0 0 0.5rem 0; }
-        .milestone-req { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
-        .milestone-status-action { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; text-align: right; margin-left: auto; }
-        .milestone-status { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 0.3rem 0.7rem; border-radius: 15px; display: inline-flex; align-items: center; gap: 0.4em; }
-        .milestone-item.locked { opacity: 0.6; filter: grayscale(30%); }
-        .milestone-item.locked::before { background: var(--text-muted); }
-        .milestone-item.locked .milestone-icon { background: var(--gradient-locked); opacity: 0.7; }
-        .milestone-status.locked { color: var(--text-muted); background: rgba(var(--text-muted-rgb), 0.1); border: 1px solid rgba(var(--text-muted-rgb), 0.2); }
-        .milestone-item.available { border-color: var(--accent-primary); }
-        .milestone-item.available::before { background: var(--accent-primary); opacity: 0.8; box-shadow: 0 0 8px var(--accent-glow); }
-        .milestone-item.available .milestone-icon { background: var(--gradient-button); box-shadow: 0 5px 12px rgba(var(--accent-primary-rgb), 0.25); }
-        .milestone-status.available { color: var(--accent-primary); background: rgba(var(--accent-primary-rgb), 0.1); border: 1px solid rgba(var(--accent-primary-rgb), 0.3); }
-        .milestone-item.claimed { border-color: var(--accent-lime); }
-        .milestone-item.claimed::before { background: var(--accent-lime); opacity: 0.7; }
-        .milestone-item.claimed .milestone-icon { background: var(--gradient-success); box-shadow: 0 5px 12px rgba(var(--accent-lime-rgb), 0.25); }
-        .milestone-status.claimed { color: var(--accent-lime); background: rgba(var(--accent-lime-rgb), 0.1); border: 1px solid rgba(var(--accent-lime-rgb), 0.3); }
-        .milestone-item.skeleton { background: var(--skeleton-bg); position: relative; overflow: hidden; padding: 1.2rem 1.5rem; border-radius: 12px; border: 1px solid var(--border-color-light); display: flex; align-items: center; gap: 1.5rem; }
-        .milestone-item.skeleton::before, .milestone-item.skeleton::after { display: none; }
-        .milestone-item.skeleton::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); animation: skeleton-loading 1.5s infinite linear; }
-        .milestone-item.skeleton .milestone-icon { background: var(--skeleton-bg); width: 55px; height: 55px; border-radius: 14px; }
-        .milestone-item.skeleton .milestone-info { flex-grow: 1; display: flex; flex-direction: column; gap: 0.6rem; }
-        .milestone-item.skeleton .milestone-title { height: 18px; width: 60%; background: var(--skeleton-bg); border-radius: 4px; }
-        .milestone-item.skeleton .milestone-desc { height: 14px; width: 90%; background: var(--skeleton-bg); border-radius: 4px; }
-        .milestone-item.skeleton .milestone-req { height: 12px; width: 45%; background: var(--skeleton-bg); border-radius: 4px; }
-        .milestone-item.skeleton .milestone-status-action { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; }
-        .milestone-item.skeleton .milestone-status { height: 24px; width: 80px; background: var(--skeleton-bg); border-radius: 15px; }
-        .empty-state { padding: 3rem 2rem; text-align: center; color: var(--text-muted); display: none; background-color: transparent; border-radius: var(--card-radius); border: 1px dashed var(--border-color-medium); margin-top: 1rem; }
-        .empty-state i { font-size: 3rem; margin-bottom: 1.2rem; color: var(--accent-secondary); opacity: 0.6; }
-        .empty-state p { margin: 0 auto; font-size: 1rem; max-width: 450px; color: var(--text-medium); }
-        /* --- Адаптивность (Дополнения) --- */
-        @media (max-width: 768px) {
-            .modal-content { max-width: 95%; }
-            .calendar-grid { gap: 0.5rem; }
-            .calendar-day { padding: 0.6rem; min-height: 90px; }
-            .day-number { font-size: 0.8rem; padding: 0.15rem 0.3rem; }
-            .reward-icon { font-size: 1.5rem; }
-            .reward-text { font-size: 0.7rem; }
-            .reward-status { font-size: 0.65rem; bottom: 0.4rem; }
-            .calendar-day .claim-button { font-size: 0.7rem !important; padding: 0.25rem 0.6rem !important; }
-            .milestone-item { flex-direction: column; align-items: flex-start; gap: 1rem; }
-            .milestone-status-action { flex-direction: row; width: 100%; justify-content: space-between; align-items: center; margin-top: 0.5rem; }
-        }
-        @media (max-width: 576px) {
-            .calendar-grid { grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
-            .modal-body { padding: 1rem 1.2rem; }
-            .modal-header, .modal-footer { padding: 1rem 1.2rem; }
-        }
-        /* --- Конец Новых Стилей --- */
-        /* --- END: Киберпанк CSS Тема --- */
-        
-        /* Дополнительные адаптации для index.html, если что-то перекрылось */
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: flex-start; 
-            padding: 20px; 
-             background: var(--gradient-hero-bg); /* Применяем градиентный фон из темы */
-        }
-        .container {
-            animation: fadeInMain 0.7s ease-out forwards; /* Убедимся, что анимация применяется */
-        }
-        @keyframes fadeInMain { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
     </style>
 </head>
 <body>
     <div class="mouse-follower-glow"></div>
 
-    <div class="toast-container" id="notificationArea"> 
-        </div>
+    <div class="toast-container" id="notificationArea"></div>
 
     <div class="container">
         <h1>Justax - Buď Nejlepší</h1>
@@ -897,18 +477,50 @@
             <div id="logHistory">
                 <h2>Moje předchozí záznamy:</h2>
                 <div id="logsContainer">
-                    </div>
+                    <div class="loader">Načítání záznamů...</div>
+                </div>
             </div>
 
             <div id="practiceFeed">
-                <h2>Cvičení od Gemini</h2>
-                <button id="generateTasksButton">Vygenerovat úkoly</button>
-                <div id="geminiTasksContainer" style="margin-top: 15px; /* остальное будет из CSS */">
-                    <p>Klikni na tlačítko pro vygenerování cvičných úkolů na základě tvých posledních záznamů.</p>
-                </div>
+                <h2>Cvičení na základě posledního záznamu</h2>
+                <button id="generateTasksButton" style="display: none; margin-bottom: 15px;">Spustit kvíz</button>
+                <div id="geminiTasksContainer" style="display: none; margin-top: 15px;"></div>
                 <div id="geminiLoading" class="loader hidden">Generuji úkoly...</div>
             </div>
-        </div>
+
+            <div id="quizContainer" style="display: none; margin-top: 30px; padding: 20px; background-color: var(--interface-bg); border-radius: var(--button-radius); border: 1px solid var(--border-color-medium);">
+                <h2><i class="fas fa-question-circle"></i> Rychlý Kvíz</h2>
+
+                <div id="quizLoading" class="loader hidden" style="margin-bottom: 15px;">Načítám otázky...</div>
+
+                <div id="questionDisplay" style="margin-bottom: 15px; min-height: 50px; font-size: 1.1em; color: var(--text-light);">
+                    </div>
+
+                <div class="form-group" id="answerInputArea" style="display: none;">
+                    <label for="userAnswerInput" class="form-label">Vaše odpověď:</label>
+                    <textarea id="userAnswerInput" class="form-control" rows="3" placeholder="Napište svou odpověď zde..." style="margin-bottom: 10px; display: none;"></textarea>
+                    <button id="submitAnswerButton" class="btn" style="display: none;">
+                        <i class="fas fa-paper-plane"></i> Odpovědět
+                    </button>
+                </div>
+
+                <div id="feedbackArea" style="margin-top: 15px; min-height: 60px;">
+                    <style> /* Basic Feedback Styles (Move to CSS ideally) */
+                        .feedback { padding: 10px 15px; border-radius: 8px; margin-top: 10px; border-left-width: 5px; border-left-style: solid; animation: fadeInFeedback 0.5s ease-out; }
+                        @keyframes fadeInFeedback { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+                        .feedback.correct { background-color: rgba(var(--accent-lime-rgb), 0.1); border-left-color: var(--accent-lime); color: var(--accent-lime); }
+                        .feedback.incorrect { background-color: rgba(var(--accent-pink-rgb), 0.1); border-left-color: var(--accent-pink); color: var(--accent-pink); }
+                        .feedback strong { display: inline-block; margin-right: 5px;}
+                        .feedback p { margin: 5px 0 0 0; font-size: 0.95em; color: var(--text-medium); }
+                        .feedback p strong { color: var(--text-light); }
+                    </style>
+                </div>
+
+                <button id="nextQuestionButton" class="btn btn-secondary" style="display: none; margin-top: 15px;">
+                    Další otázka <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -922,20 +534,10 @@
                     if (!document.body.classList.contains('mouse-has-moved')) {
                         document.body.classList.add('mouse-has-moved');
                     }
-                    // Задержка для более плавного следования
                     setTimeout(() => {
                         mouseGlow.style.left = e.clientX + 'px';
                         mouseGlow.style.top = e.clientY + 'px';
-                    }, 50); // 50ms задержка
-                });
-                document.body.addEventListener('mouseleave', () => {
-                     // Можно добавить, чтобы свечение исчезало, когда мышь уходит со страницы
-                     // mouseGlow.style.opacity = '0'; 
-                });
-                 document.body.addEventListener('mouseenter', () => {
-                    // if (document.body.classList.contains('mouse-has-moved')) { // Только если уже двигали
-                    //    mouseGlow.style.opacity = '1';
-                    // }
+                    }, 50);
                 });
             }
         });
