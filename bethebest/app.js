@@ -1,7 +1,9 @@
 // app.js
 
-const SUPABASE_URL = 'https://orjivlyliqxyffsvaqzu.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yaml2bHlsaXF4eWZmc3ZhcXp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2OTc5NTIsImV4cCI6MjA2MjI3Mzk1Mn0.Au1RyA2mcFZgO5vvBhz4yJO1tqjcSQZyLOZcDu58uLo';
+// --- ИЗМЕНЕННЫЕ ДАННЫЕ ДЛЯ ПОДКЛЮЧЕНИЯ К НОВОЙ БАЗЕ SUPABASE ---
+const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+// --- КОНЕЦ ИЗМЕНЕННЫХ ДАННЫХ ---
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -27,12 +29,9 @@ const geminiTasksContainer = document.getElementById('geminiTasksContainer');
 const geminiLoading = document.getElementById('geminiLoading');
 
 // !!! ВАЖНО: API КЛЮЧ GEMINI - НЕБЕЗОПАСНО ДЛЯ ПРОДАКШЕНА !!!
-// Этот ключ будет виден в коде на стороне клиента.
-// Используется только для тестовой страницы согласно инструкциям.
-const GEMINI_API_KEY = 'AIzaSyB4l6Yj9AjWfkG2Ob2LCAgTsnSwN-UZQcA'; // Убедись, что ключ все еще тот же, что ты предоставил.
-
-// --- ИЗМЕНЕННАЯ СТРОКА: Обновлена модель на gemini-2.0-flash ---
+const GEMINI_API_KEY = 'AIzaSyB4l6Yj9AjWfkG2Ob2LCAgTsnSwN-UZQcA'; 
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
 
 // Функция для zobrazení notifikací
 function showNotification(message, type = 'info', duration = 3000) {
@@ -116,7 +115,7 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
         authSection.classList.add('hidden');
         appSection.classList.remove('hidden');
         userEmailDisplay.textContent = session.user.email;
-        loadLearningLogs(session.user.id);
+        loadLearningLogs(session.user.id); // Загружаем логи для нового пользователя из новой базы
         logoutButton.disabled = false;
     } else {
         authSection.classList.remove('hidden');
@@ -128,6 +127,8 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
 });
 
 // --- Práce se záznamy o učení ---
+// Эта функция предполагает, что в новой базе есть таблица 'learning_logs'
+// с колонками user_id, log_text, created_at
 learningLogForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const logText = learningInput.value.trim();
@@ -150,20 +151,20 @@ learningLogForm.addEventListener('submit', async (event) => {
 
     try {
         const { data, error } = await supabaseClient
-            .from('learning_logs')
+            .from('learning_logs') // Убедись, что эта таблица существует в новой базе
             .insert([{ user_id: user.id, log_text: logText }])
             .select();
 
         if (error) {
-            console.error('Chyba ukládání záznamu:', error);
+            console.error('Chyba ukládání záznamu do nové databáze:', error);
             showNotification(`Nepodařilo se uložit záznam: ${error.message}`, 'error');
         } else {
             showNotification('Pokrok úspěšně uložen!', 'success');
             learningInput.value = '';
-            loadLearningLogs(user.id);
+            loadLearningLogs(user.id); // Перезагружаем логи из новой базы
         }
     } catch (err) {
-        console.error('Kritická chyba při ukládání:', err);
+        console.error('Kritická chyba při ukládání do nové databáze:', err);
         showNotification('Došlo ke kritické chybě při ukládání.', 'error');
     } finally {
         submitButton.disabled = false;
@@ -181,13 +182,13 @@ async function loadLearningLogs(userId) {
 
     try {
         const { data, error } = await supabaseClient
-            .from('learning_logs')
+            .from('learning_logs') // Убедись, что эта таблица существует в новой базе
             .select('log_text, created_at')
             .eq('user_id', userId)
             .order('created_at', { ascending: false });
 
         if (error) {
-            console.error('Chyba načítání záznamů:', error);
+            console.error('Chyba načítání záznamů z nové databáze:', error);
             logsContainer.innerHTML = `<p style="color: var(--error-color);">Chyba načítání: ${error.message}</p>`;
             return;
         }
@@ -211,12 +212,12 @@ async function loadLearningLogs(userId) {
             logsContainer.innerHTML = '<p>Zatím nemáš žádné záznamy. Začni se učit a zaznamenávej svůj pokrok!</p>';
         }
     } catch (err) {
-        console.error('Kritická chybaři načítání záznamů:', err);
+        console.error('Kritická chyba při načítání záznamů z nové databáze:', err);
         logsContainer.innerHTML = `<p style="color: var(--error-color);">Kritická chyba při načítání.</p>`;
     }
 }
 
-// --- НОВАЯ ФУНКЦИЯ ДЛЯ ПРЯМОГО ВЫЗОВА GEMINI API ---
+// --- Функция для прямого вызова GEMINI API (без изменений) ---
 async function generateTasksWithGeminiDirectly(learningContext) {
     const prompt = `
 Na základě následujících záznamů o učení studenta, vygeneruj 3-5 konkrétních cvičných úkolů nebo otázek, které mu pomohou prohloubit porozumění a procvičit si naučené. Úkoly by měly být formulovány jasně a stručně. Odpověď vrať jako HTML nečíslovaný seznam (<ul><li>První úkol</li><li>Druhý úkol</li>...</ul>). Nepoužívej Markdown.
@@ -233,20 +234,6 @@ Příklady úkolů:`;
                 text: prompt
             }]
         }],
-        // Опционально: Настройки генерации
-        // generationConfig: {
-        //   temperature: 0.7,
-        //   topK: 1,
-        //   topP: 1,
-        //   maxOutputTokens: 2048, // Увеличь, если ответы часто обрезаются
-        // },
-        // Опционально: Настройки безопасности (пример)
-        // safetySettings: [
-        //   { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" }, // Пример изменения порога
-        //   { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
-        //   { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
-        //   { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH"},
-        // ]
     };
 
     try {
@@ -259,9 +246,8 @@ Příklady úkolů:`;
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({})); // Попытка получить JSON, или пустой объект если не JSON
+            const errorData = await response.json().catch(() => ({})); 
             console.error('Chyba od Gemini API:', errorData, 'Status:', response.status, 'StatusText:', response.statusText);
-            // Формируем более детальное сообщение об ошибке
             let errorMessage = `Chyba ${response.status} od Gemini API: ${response.statusText}. `;
             if (errorData.error && errorData.error.message) {
                 errorMessage += errorData.error.message;
@@ -296,9 +282,8 @@ Příklady úkolů:`;
         throw error;
     }
 }
-// --- КОНЕЦ НОВОЙ ФУНКЦИИ ---
 
-// --- Gemini Integrace (ИЗМЕНЕНО для прямого вызова) ---
+// --- Gemini Integrace (без изменений, использует логи из текущей Supabase) ---
 if (generateTasksButton) {
     generateTasksButton.addEventListener('click', async () => {
         const { data: { user } } = await supabaseClient.auth.getUser();
@@ -314,14 +299,14 @@ if (generateTasksButton) {
 
         try {
             const { data: logs, error: logError } = await supabaseClient
-                .from('learning_logs')
+                .from('learning_logs') // Запрашиваем из новой базы
                 .select('log_text')
                 .eq('user_id', user.id)
                 .order('created_at', { ascending: false })
                 .limit(3); 
 
             if (logError) {
-                throw new Error(`Chyba načítání záznamů pro Gemini: ${logError.message}`);
+                throw new Error(`Chyba načítání záznamů pro Gemini z nové databáze: ${logError.message}`);
             }
             if (!logs || logs.length === 0) {
                 showNotification('Nemáš zatím žádné záznamy pro analýzu Gemini.', 'info');
@@ -333,12 +318,10 @@ if (generateTasksButton) {
             }
             
             const learningContext = logs.map(log => log.log_text).join("\n---\n");
-
-            // +++ НОВЫЙ КОД: ПРЯМОЙ ВЫЗОВ GEMINI +++
+            
             const tasksHtml = await generateTasksWithGeminiDirectly(learningContext);
             geminiTasksContainer.innerHTML = tasksHtml;
             showNotification('Úkoly od Gemini vygenerovány!', 'success');
-            // +++ КОНЕЦ НОВОГО КОДА +++
 
         } catch (error) {
             console.error('Celková chyba při generování úkolů Gemini:', error);
@@ -352,5 +335,5 @@ if (generateTasksButton) {
     });
 }
 
-// Inicializace - onAuthStateChange se postará o první načtení stavu
-console.log("app.js načten, Supabase klient inicializován. Gemini nastaven na přímý API volání s modelem gemini-2.0-flash.");
+// Inicializace
+console.log("app.js načten, Supabase klient inicializován s НОВЫМИ ДАННЫМИ. Gemini nastaven на přímý API volání.");
