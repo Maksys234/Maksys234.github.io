@@ -1,0 +1,16 @@
+-- Создание таблицы для хранения записей об обучении
+CREATE TABLE public.learning_logs (
+    id UUID DEFAULT gen_random_uuid() NOT NULL, -- Уникальный идентификатор записи, генерируется автоматически
+    user_id UUID REFERENCES auth.users(id) NOT NULL, -- Идентификатор пользователя, ссылается на таблицу auth.users
+    log_text TEXT NOT NULL, -- Текст записи об обучении, не может быть пустым
+    created_at TIMESTAMPTZ DEFAULT now() NOT NULL, -- Дата и время создания записи, по умолчанию текущее время
+
+    CONSTRAINT learning_logs_pkey PRIMARY KEY (id) -- Определение первичного ключа
+);
+
+-- Описание (комментарии) для таблицы и колонок (опционально, но полезно)
+COMMENT ON TABLE public.learning_logs IS 'Таблица для хранения ежедневных записей пользователей о том, что они выучили.';
+COMMENT ON COLUMN public.learning_logs.id IS 'Уникальный идентификатор записи (PK).';
+COMMENT ON COLUMN public.learning_logs.user_id IS 'Идентификатор пользователя (FK к auth.users), который сделал запись.';
+COMMENT ON COLUMN public.learning_logs.log_text IS 'Содержание записи об обучении.';
+COMMENT ON COLUMN public.learning_logs.created_at IS 'Время создания записи.';

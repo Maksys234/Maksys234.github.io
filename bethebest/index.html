@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Justax - Be The Best - Дневник обучения</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
+        .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1, h2 { color: #333; }
+        textarea { width: 100%; min-height: 100px; margin-bottom: 10px; padding: 10px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        #userInfo { margin-bottom: 20px; padding: 10px; background-color: #e9ecef; border-radius: 4px;}
+        #logHistory { margin-top: 20px; }
+        .log-entry { background-color: #f9f9f9; border: 1px solid #eee; padding: 10px; margin-bottom: 10px; border-radius: 4px; }
+        #practiceFeed { margin-top: 30px; border-top: 2px solid #007bff; padding-top: 20px;}
+        #practiceFeed h2 { color: #007bff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Justax - Be The Best</h1>
+
+        <div id="userInfo">
+            <p>Пользователь: <span id="userName">Гость</span></p>
+            </div>
+
+        <h2>Что ты выучил сегодня?</h2>
+        <form id="learningLogForm">
+            <textarea id="learningInput" placeholder="Например: Сегодня я изучал тригонометрию, разобрался с базовыми уравнениями типа sin(2x)=1..." required></textarea>
+            <button type="submit">Сохранить прогресс</button>
+        </form>
+
+        <div id="logHistory">
+            <h2>Мои предыдущие записи:</h2>
+            <div id="logsContainer">
+                <p>Загрузка записей...</p>
+            </div>
+        </div>
+
+        <div id="practiceFeed">
+            <h2>Лента для практики (скоро здесь будут задания от Gemini!):</h2>
+            <p>Здесь появятся персонализированные задания для практики.</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+</body>
+</html>
