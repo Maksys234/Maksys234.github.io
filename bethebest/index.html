@@ -1,47 +1,259 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="cs">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Be The Best - Дневник обучения</title>
+    <title>Justax - Be The Best - Deník učení</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
-        .container { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h1, h2 { color: #333; }
-        textarea { width: 100%; min-height: 100px; margin-bottom: 10px; padding: 10px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
-        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
-        #userInfo { margin-bottom: 20px; padding: 10px; background-color: #e9ecef; border-radius: 4px;}
-        #logHistory { margin-top: 20px; }
-        .log-entry { background-color: #f9f9f9; border: 1px solid #eee; padding: 10px; margin-bottom: 10px; border-radius: 4px; }
-        #practiceFeed { margin-top: 30px; border-top: 2px solid #007bff; padding-top: 20px;}
-        #practiceFeed h2 { color: #007bff; }
+        /* CYBERPUNK STYLES - Začátek */
+        :root {
+            --primary-color: #00ffea; /* Neon cyan/teal */
+            --secondary-color: #ff00ff; /* Neon magenta */
+            --accent-color: #ffff00; /* Neon yellow */
+            --background-color: #0d0221; /* Deep dark blue/purple */
+            --surface-color: #1a0a38; /* Slightly lighter dark purple */
+            --text-color: #e0e0e0; /* Light grey/white for readability */
+            --text-dark-color: #333;
+            --border-color: var(--primary-color);
+            --glow-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color), 0 0 15px var(--primary-color);
+            --input-background: rgba(26, 10, 56, 0.8);
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding-top: 20px;
+            padding-bottom: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: var(--surface-color);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 255, 234, 0.3), inset 0 0 10px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 700px;
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before { /* Glitchy border effect */
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px;
+            width: calc(100% + 4px);
+            height: calc(100% + 4px);
+            border: 2px solid var(--secondary-color);
+            border-radius: 8px;
+            opacity: 0.7;
+            animation: glitch-border 5s infinite steps(1);
+            pointer-events: none;
+        }
+        
+        @keyframes glitch-border {
+            0%, 100% { clip-path: inset(0 0 0 0); }
+            10% { clip-path: inset(10px 20px 30px 5px); }
+            20% { clip-path: inset(50px 5px 10px 20px); }
+            30% { clip-path: inset(25px 15px 5px 10px); }
+            40% { clip-path: inset(0 0 0 0); }
+            /* ... more steps for complex glitch */
+        }
+
+
+        h1, h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-color);
+            text-shadow: var(--glow-shadow);
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+        }
+        h2 {
+            font-size: 1.8em;
+            border-bottom: 1px dashed var(--secondary-color);
+            padding-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        input[type="email"],
+        input[type="password"],
+        textarea {
+            width: calc(100% - 22px);
+            margin-bottom: 20px;
+            padding: 12px 10px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-background);
+            color: var(--text-color);
+            font-size: 1em;
+            transition: box-shadow 0.3s ease;
+        }
+
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        textarea:focus {
+            outline: none;
+            box-shadow: var(--glow-shadow);
+            border-color: var(--secondary-color);
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        button {
+            font-family: 'Orbitron', sans-serif;
+            padding: 12px 20px;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: var(--background-color);
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 5px var(--secondary-color), 0 0 10px var(--secondary-color);
+        }
+
+        button:hover {
+            box-shadow: var(--glow-shadow), 0 0 15px var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            background: #555;
+            color: #888;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #authSection, #appSection {
+            margin-bottom: 30px;
+        }
+        
+        .auth-toggle {
+            color: var(--accent-color);
+            cursor: pointer;
+            text-decoration: underline;
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+        }
+        .auth-toggle:hover {
+            color: var(--primary-color);
+        }
+
+        #userInfo {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: rgba(0, 255, 234, 0.1);
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            text-align: center;
+        }
+        #userInfo p { margin: 5px 0; }
+
+        #logHistory { margin-top: 30px; }
+        .log-entry {
+            background-color: var(--input-background);
+            border: 1px solid var(--secondary-color);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        .log-entry p { margin-top: 0; }
+        .log-entry small { color: var(--accent-color); display: block; margin-top: 10px; font-size: 0.9em;}
+
+        #practiceFeed { margin-top: 30px; border-top: 2px solid var(--primary-color); padding-top: 20px;}
+        #practiceFeed h2 { color: var(--primary-color); }
+        
+        .hidden { display: none !important; }
+        /* CYBERPUNK STYLES - Konec */
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Justax - Be The Best</h1>
+        <h1>Justax - Buď Nejlepší</h1>
 
-        <div id="userInfo">
-            <p>Пользователь: <span id="userName">Гость</span></p>
+        <div id="authSection">
+            <div id="loginFormContainer">
+                <h2>Přihlášení</h2>
+                <form id="loginForm">
+                    <div>
+                        <label for="loginEmail">E-mail:</label>
+                        <input type="email" id="loginEmail" required>
+                    </div>
+                    <div>
+                        <label for="loginPassword">Heslo:</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit">Přihlásit se</button>
+                </form>
+                <p class="auth-toggle" onclick="toggleAuthForms()">Nemáš účet? Zaregistruj se</p>
             </div>
 
-        <h2>Что ты выучил сегодня?</h2>
-        <form id="learningLogForm">
-            <textarea id="learningInput" placeholder="Например: Сегодня я изучал тригонометрию, разобрался с базовыми уравнениями типа sin(2x)=1..." required></textarea>
-            <button type="submit">Сохранить прогресс</button>
-        </form>
-
-        <div id="logHistory">
-            <h2>Мои предыдущие записи:</h2>
-            <div id="logsContainer">
-                <p>Загрузка записей...</p>
+            <div id="registerFormContainer" class="hidden">
+                <h2>Registrace</h2>
+                <form id="registerForm">
+                    <div>
+                        <label for="registerEmail">E-mail:</label>
+                        <input type="email" id="registerEmail" required>
+                    </div>
+                    <div>
+                        <label for="registerPassword">Heslo:</label>
+                        <input type="password" id="registerPassword" required>
+                    </div>
+                    <button type="submit">Zaregistrovat se</button>
+                </form>
+                <p class="auth-toggle" onclick="toggleAuthForms()">Už máš účet? Přihlas se</p>
             </div>
         </div>
 
-        <div id="practiceFeed">
-            <h2>Лента для практики (скоро здесь будут задания от Gemini!):</h2>
-            <p>Здесь появятся персонализированные задания для практики.</p>
+        <div id="appSection" class="hidden">
+            <div id="userInfo">
+                <p>Uživatel: <span id="userEmailDisplay"></span></p>
+                <button id="logoutButton">Odhlásit se</button>
+            </div>
+
+            <h2>Co ses dnes naučil/a?</h2>
+            <form id="learningLogForm">
+                <textarea id="learningInput" placeholder="Například: Dnes jsem studoval/a trigonometrii, pochopil/a základní rovnice jako sin(2x)=1..." required></textarea>
+                <button type="submit">Uložit pokrok</button>
+            </form>
+
+            <div id="logHistory">
+                <h2>Moje předchozí záznamy:</h2>
+                <div id="logsContainer">
+                    <p>Načítání záznamů...</p>
+                </div>
+            </div>
+
+            <div id="practiceFeed">
+                <h2>Cvičení (brzy zde budou úkoly od Gemini!):</h2>
+                <p>Zde se objeví personalizované úkoly k procvičení.</p>
+            </div>
         </div>
     </div>
 
