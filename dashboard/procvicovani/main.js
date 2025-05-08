@@ -1,6 +1,6 @@
 // dashboard/procvicovani/main.js
-// Version: 25.0.24 - Fixed ReferenceError for handleNotificationClick.
-// Opraveno: ReferenceError pro handleNotificationClick.
+// Version: 25.0.25 - Simplified tab switching logic to ensure data reload on every click.
+// Opraveno: Zjednodušená logika přepínání záložek pro zajištění opětovného načtení dat při každém kliknutí.
 
 (function() { // Start IIFE
 	'use strict';
@@ -32,7 +32,7 @@
 	};
 	let goalSelectionInProgress = false;
 	let pendingGoal = null;
-	let isInitialTabLoad = true; // Flag to prevent loading data on the very first tab activation during init
+	let isInitialPageLoadComplete = false; // Renamed flag
 	// --- END: State Variables ---
 
 	// --- START: UI Elements Cache ---
@@ -108,62 +108,68 @@
 	function showStep2(goalType) { const step2Id = `goal-step-${goalType.replace('math_', '')}`; const step2Element = document.getElementById(step2Id); if (!ui.goalSelectionModal || !ui.goalStep1 || !step2Element) { console.error(`[GoalModal v6.2] Cannot show step 2 for ${goalType}: Missing critical elements (#goalSelectionModal, #goalStep1, or #${step2Id}).`); showError("Chyba zobrazení kroku 2.", true); return; } console.log(`[GoalModal v6.2] Showing step 2: #${step2Id}`); ui.goalSelectionModal.querySelectorAll('.modal-step').forEach(step => step.classList.remove('active')); step2Element.classList.add('active'); const backBtn = step2Element.querySelector('.modal-back-btn'); if (backBtn) { const oldHandler = backBtn._backHandler; if (oldHandler) backBtn.removeEventListener('click', oldHandler); const newHandler = () => handleBackToStep1(ui.goalStep1, step2Element); backBtn.addEventListener('click', newHandler); backBtn._backHandler = newHandler; } const confirmBtn = step2Element.querySelector('.modal-confirm-btn'); if (confirmBtn) { const oldHandler = confirmBtn._confirmHandler; if (oldHandler) confirmBtn.removeEventListener('click', oldHandler); const newHandler = () => handleStep2Confirm(goalType); confirmBtn.addEventListener('click', newHandler); confirmBtn._confirmHandler = newHandler; confirmBtn.disabled = false; confirmBtn.innerHTML = 'Potvrdit a pokračovat'; } }
 	function handleBackToStep1(step1Element, currentStep2Element) { console.log("[GoalModal v6.2] Back to step 1..."); if(currentStep2Element) currentStep2Element.classList.remove('active'); if(step1Element) step1Element.classList.add('active'); pendingGoal = null; }
 	function handleStep2Confirm(goalType) { if (goalSelectionInProgress) return; const step2Id = `goal-step-${goalType.replace('math_', '')}`; const step2Element = document.getElementById(step2Id); if (!step2Element) { console.error(`[GoalModal v6.2] Step 2 element ${step2Id} not found.`); return; } const details = {}; let isValid = true; try { if (goalType === 'math_accelerate') { details.accelerate_areas = Array.from(step2Element.querySelectorAll('input[name="accelerate_area"]:checked')).map(cb => cb.value); const reasonRadio = step2Element.querySelector('input[name="accelerate_reason"]:checked'); details.accelerate_reason = reasonRadio ? reasonRadio.value : null; if(details.accelerate_areas.length === 0) { showToast("Chyba", "Vyberte alespoň jednu oblast zájmu.", "warning"); isValid = false; } if(!details.accelerate_reason) { showToast("Chyba", "Vyberte důvod pro učení napřed.", "warning"); isValid = false; } } else if (goalType === 'math_review') { details.review_areas = Array.from(step2Element.querySelectorAll('input[name="review_area"]:checked')).map(cb => cb.value); } } catch (e) { console.error("[GoalModal v6.2] Error getting step 2 details:", e); isValid = false; showToast("Chyba", "Chyba zpracování výběru.", "error"); } if (isValid) { console.log(`[GoalModal v6.2] Step 2 details for ${goalType}:`, details); saveGoalAndProceed(pendingGoal, details); } }
-	async function saveGoalAndProceed(goal, details = null) { if (goalSelectionInProgress || !goal) return; goalSelectionInProgress = true; setLoadingState('goalSelection', true); console.log(`[GoalModal Save v6.2] Saving goal: ${goal}, details:`, details); const activeStep = ui.goalSelectionModal?.querySelector('.modal-step.active'); const confirmButton = activeStep?.querySelector('.modal-confirm-btn'); const backButton = activeStep?.querySelector('.modal-back-btn'); if (confirmButton) { confirmButton.disabled = true; confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...'; } if (backButton) backButton.disabled = true; try { if (!supabase || !currentUser || !currentProfile) throw new Error("Core dependencies missing."); const finalPreferences = { ...(currentProfile.preferences || {}), goal_details: (details && Object.keys(details).length > 0) ? details : undefined }; const updatePayload = { learning_goal: goal, preferences: finalPreferences, updated_at: new Date().toISOString() }; console.log("[GoalModal Save v6.2] Updating Supabase profile:", updatePayload); const { data: updatedProfileData, error } = await supabase.from('profiles').update(updatePayload).eq('id', currentUser.id).select('*, selected_title, preferences').single(); if (error) throw error; currentProfile = updatedProfileData; if (!currentProfile.preferences) currentProfile.preferences = {}; console.log("[GoalModal Save v6.2] Goal saved to DB:", currentProfile.learning_goal); let goalTextKey = `goal_${goal.replace('math_','')}`; let goalText = { goal_exam_prep: 'Příprava na zkoušky', goal_accelerate: 'Učení napřed', goal_review: 'Doplnění mezer', goal_explore: 'Volné prozkoumávání'}[goalTextKey] || goal; showToast('Cíl uložen!', `Váš cíl: ${goalText}.`, 'success'); hideGoalSelectionModal(); console.log("[SaveGoal] Making main content areas visible..."); if(ui.tabsWrapper) { ui.tabsWrapper.style.display = 'flex'; ui.tabsWrapper.classList.add('visible'); } else { console.warn("[SaveGoal] tabsWrapper not found in UI cache."); } if(ui.tabContentContainer) { ui.tabContentContainer.style.display = 'flex'; ui.tabContentContainer.classList.add('visible'); } else { console.warn("[SaveGoal] tabContentContainer not found in UI cache."); } configureUIForGoal(); await loadPageData(); if(ui.mainContent) ui.mainContent.classList.remove('interaction-disabled'); console.log("[SaveGoal] UI configured and page data loading initiated."); } catch (error) { console.error("[GoalModal Save v6.2] Error saving goal:", error); showToast('Chyba', 'Nepodařilo se uložit váš cíl.', 'error'); if (confirmButton) { confirmButton.disabled = false; confirmButton.innerHTML = 'Potvrdit a pokračovat'; } if (backButton) backButton.disabled = false; } finally { goalSelectionInProgress = false; setLoadingState('goalSelection', false); pendingGoal = null; } }
+	async function saveGoalAndProceed(goal, details = null) { if (goalSelectionInProgress || !goal) return; goalSelectionInProgress = true; setLoadingState('goalSelection', true); console.log(`[GoalModal Save v6.2] Saving goal: ${goal}, details:`, details); const activeStep = ui.goalSelectionModal?.querySelector('.modal-step.active'); const confirmButton = activeStep?.querySelector('.modal-confirm-btn'); const backButton = activeStep?.querySelector('.modal-back-btn'); if (confirmButton) { confirmButton.disabled = true; confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...'; } if (backButton) backButton.disabled = true; try { if (!supabase || !currentUser || !currentProfile) throw new Error("Core dependencies missing."); const finalPreferences = { ...(currentProfile.preferences || {}), goal_details: (details && Object.keys(details).length > 0) ? details : undefined }; const updatePayload = { learning_goal: goal, preferences: finalPreferences, updated_at: new Date().toISOString() }; console.log("[GoalModal Save v6.2] Updating Supabase profile:", updatePayload); const { data: updatedProfileData, error } = await supabase.from('profiles').update(updatePayload).eq('id', currentUser.id).select('*, selected_title, preferences').single(); if (error) throw error; currentProfile = updatedProfileData; if (!currentProfile.preferences) currentProfile.preferences = {}; console.log("[GoalModal Save v6.2] Goal saved to DB:", currentProfile.learning_goal); let goalTextKey = `goal_${goal.replace('math_','')}`; let goalText = { goal_exam_prep: 'Příprava na zkoušky', goal_accelerate: 'Učení napřed', goal_review: 'Doplnění mezer', goal_explore: 'Volné prozkoumávání'}[goalTextKey] || goal; showToast('Cíl uložen!', `Váš cíl: ${goalText}.`, 'success'); hideGoalSelectionModal(); console.log("[SaveGoal] Making main content areas visible..."); if(ui.tabsWrapper) { ui.tabsWrapper.style.display = 'flex'; ui.tabsWrapper.classList.add('visible'); } else { console.warn("[SaveGoal] tabsWrapper not found in UI cache."); } if(ui.tabContentContainer) { ui.tabContentContainer.style.display = 'flex'; ui.tabContentContainer.classList.add('visible'); } else { console.warn("[SaveGoal] tabContentContainer not found in UI cache."); } configureUIForGoal(); // This will set the default active tab UI
+            await loadPageData(); // This will load data for the default active tab
+            if(ui.mainContent) ui.mainContent.classList.remove('interaction-disabled'); console.log("[SaveGoal] UI configured and page data loading initiated."); } catch (error) { console.error("[GoalModal Save v6.2] Error saving goal:", error); showToast('Chyba', 'Nepodařilo se uložit váš cíl.', 'error'); if (confirmButton) { confirmButton.disabled = false; confirmButton.innerHTML = 'Potvrdit a pokračovat'; } if (backButton) backButton.disabled = false; } finally { goalSelectionInProgress = false; setLoadingState('goalSelection', false); pendingGoal = null; } }
 	// --- END: Goal Selection Logic ---
 
 	// --- START: UI Configuration and Data Loading ---
 	function getGoalDisplayName(goalKey) { const goalMap = { 'exam_prep': 'Příprava na přijímačky', 'math_accelerate': 'Učení napřed', 'math_review': 'Doplnění mezer', 'math_explore': 'Volné prozkoumávání' }; return goalMap[goalKey] || goalKey || 'Nenastaveno'; }
-	function configureUIForGoal() { if (!currentProfile || !currentProfile.learning_goal) { console.error("[UI Config v6.2] Profil nebo cíl nenalezen."); if (ui.goalSelectionModal && getComputedStyle(ui.goalSelectionModal).display === 'none') { showGoalSelectionModal(); } if (ui.tabsWrapper) ui.tabsWrapper.style.display = 'none'; if (ui.tabContentContainer) ui.tabContentContainer.style.display = 'none'; return; } const goal = currentProfile.learning_goal; console.log(`[UI Config v6.2] Konfigurace UI pro cíl: ${goal}`); if (!ui || Object.keys(ui).length === 0 || !ui.contentTabs || !ui.tabContents) { console.error("[UI Config v6.2] UI cache or tab elements are missing."); cacheDOMElements(); if (!ui.contentTabs || !ui.tabContents) { showError("Chyba: UI komponenty pro záložky nenalezeny.", true); return; } } const dashboardTitleEl = ui.dashboardTitle; if (dashboardTitleEl) { let titleText = "Procvičování // "; let iconClass = "fas fa-laptop-code"; switch(goal) { case 'exam_prep': titleText += "Příprava na Zkoušky"; iconClass = "fas fa-graduation-cap"; break; case 'math_accelerate': titleText += "Učení Napřed"; iconClass = "fas fa-rocket"; break; case 'math_review': titleText += "Doplnění Mezer"; iconClass = "fas fa-sync-alt"; break; case 'math_explore': titleText += "Volné Prozkoumávání"; iconClass = "fas fa-compass"; break; default: titleText += "Přehled"; } dashboardTitleEl.innerHTML = `<i class="${iconClass}"></i> ${sanitizeHTML(titleText)}`; } else { console.warn("[UI Config v6.2] Element titulku dashboardu (ui.dashboardTitle) nenalezen."); } if (ui.userGoalDisplay) { const goalName = getGoalDisplayName(goal); ui.userGoalDisplay.textContent = `Váš cíl: ${goalName}`; ui.userGoalDisplay.style.display = 'inline-block'; } else { console.warn("[UI Config] Element pro zobrazení cíle (ui.userGoalDisplay) nenalezen."); } if (ui.shortcutsGrid) { renderShortcutsForGoal(goal, ui.shortcutsGrid); } else { console.warn("[UI Config v6.2] Element mřížky zkratek (ui.shortcutsGrid) nenalezen."); } if (ui.tabsWrapper) { ui.tabsWrapper.style.display = 'flex'; ui.tabsWrapper.classList.add('visible'); } if (ui.tabContentContainer) { ui.tabContentContainer.style.display = 'flex'; ui.tabContentContainer.classList.add('visible'); } const alwaysVisibleTabs = ['practice-tab', 'study-plan-tab', 'vyuka-tab']; if (ui.contentTabs && ui.contentTabs.length > 0) { ui.contentTabs.forEach(tabButton => { const tabId = tabButton.dataset.tab; tabButton.style.display = alwaysVisibleTabs.includes(tabId) ? 'flex' : 'none'; }); console.log("[UI Config v6.2] Tab visibility set. Visible:", alwaysVisibleTabs.join(', ')); } else { console.warn("[UI Config v6.2] Nenalezeny žádné elementy záložek (ui.contentTabs)."); } let activeTabId = localStorage.getItem('lastActiveProcvicovaniTab') || 'practice-tab'; let activeTabButton = document.querySelector(`.content-tab[data-tab="${activeTabId}"]`); if (!activeTabButton || activeTabButton.style.display === 'none') { activeTabId = 'practice-tab'; activeTabButton = document.querySelector(`.content-tab[data-tab="${activeTabId}"]`); } if (activeTabButton) { console.log(`[UI Config v6.2] Setting active tab to: ${activeTabId}`); isInitialTabLoad = true; // Mark this as the initial setup call
-            switchActiveTab(activeTabId, true); // Pass flag to indicate initial load
-        } else { console.error("[UI Config v6.2] Failed to find a suitable active tab."); if(ui.tabContents) ui.tabContents.forEach(tc => { if(tc) tc.style.display = 'none'; }); } console.log(`[UI Config v6.2] UI configured for goal: ${goal}`); }
+	function configureUIForGoal() { if (!currentProfile || !currentProfile.learning_goal) { console.error("[UI Config v6.2] Profil nebo cíl nenalezen."); if (ui.goalSelectionModal && getComputedStyle(ui.goalSelectionModal).display === 'none') { showGoalSelectionModal(); } if (ui.tabsWrapper) ui.tabsWrapper.style.display = 'none'; if (ui.tabContentContainer) ui.tabContentContainer.style.display = 'none'; return; } const goal = currentProfile.learning_goal; console.log(`[UI Config v6.2] Konfigurace UI pro cíl: ${goal}`); if (!ui || Object.keys(ui).length === 0 || !ui.contentTabs || !ui.tabContents) { console.error("[UI Config v6.2] UI cache or tab elements are missing."); cacheDOMElements(); if (!ui.contentTabs || !ui.tabContents) { showError("Chyba: UI komponenty pro záložky nenalezeny.", true); return; } } const dashboardTitleEl = ui.dashboardTitle; if (dashboardTitleEl) { let titleText = "Procvičování // "; let iconClass = "fas fa-laptop-code"; switch(goal) { case 'exam_prep': titleText += "Příprava na Zkoušky"; iconClass = "fas fa-graduation-cap"; break; case 'math_accelerate': titleText += "Učení Napřed"; iconClass = "fas fa-rocket"; break; case 'math_review': titleText += "Doplnění Mezer"; iconClass = "fas fa-sync-alt"; break; case 'math_explore': titleText += "Volné Prozkoumávání"; iconClass = "fas fa-compass"; break; default: titleText += "Přehled"; } dashboardTitleEl.innerHTML = `<i class="${iconClass}"></i> ${sanitizeHTML(titleText)}`; } else { console.warn("[UI Config v6.2] Element titulku dashboardu (ui.dashboardTitle) nenalezen."); } if (ui.userGoalDisplay) { const goalName = getGoalDisplayName(goal); ui.userGoalDisplay.textContent = `Váš cíl: ${goalName}`; ui.userGoalDisplay.style.display = 'inline-block'; } else { console.warn("[UI Config] Element pro zobrazení cíle (ui.userGoalDisplay) nenalezen."); } if (ui.shortcutsGrid) { renderShortcutsForGoal(goal, ui.shortcutsGrid); } else { console.warn("[UI Config v6.2] Element mřížky zkratek (ui.shortcutsGrid) nenalezen."); } if (ui.tabsWrapper) { ui.tabsWrapper.style.display = 'flex'; ui.tabsWrapper.classList.add('visible'); } if (ui.tabContentContainer) { ui.tabContentContainer.style.display = 'flex'; ui.tabContentContainer.classList.add('visible'); } const alwaysVisibleTabs = ['practice-tab', 'study-plan-tab', 'vyuka-tab']; if (ui.contentTabs && ui.contentTabs.length > 0) { ui.contentTabs.forEach(tabButton => { const tabId = tabButton.dataset.tab; tabButton.style.display = alwaysVisibleTabs.includes(tabId) ? 'flex' : 'none'; }); console.log("[UI Config v6.2] Tab visibility set. Visible:", alwaysVisibleTabs.join(', ')); } else { console.warn("[UI Config v6.2] Nenalezeny žádné elementy záložek (ui.contentTabs)."); } let activeTabId = localStorage.getItem('lastActiveProcvicovaniTab') || 'practice-tab'; let activeTabButton = document.querySelector(`.content-tab[data-tab="${activeTabId}"]`); if (!activeTabButton || activeTabButton.style.display === 'none') { activeTabId = 'practice-tab'; activeTabButton = document.querySelector(`.content-tab[data-tab="${activeTabId}"]`); } if (activeTabButton) {
+        console.log(`[UI Config v6.2] Setting initial active tab UI for: ${activeTabId}`);
+        // Only set active class, don't trigger load/switch yet
+        if(ui.contentTabs) ui.contentTabs.forEach(tab => tab.classList.remove('active'));
+        activeTabButton.classList.add('active');
+        const activeContentId = `${activeTabId}-content`;
+        if(ui.tabContents) ui.tabContents.forEach(content => { if(content) content.style.display = content.id === activeContentId ? 'block' : 'none'; });
+    } else { console.error("[UI Config v6.2] Failed to find initial active tab button."); } console.log(`[UI Config v6.2] UI configured for goal: ${goal}`); }
 	async function loadTabData(tabId) { const camelCaseKey = tabId.replace(/-([a-z])/g, (g) => g[1].toUpperCase()); const contentKey = `${camelCaseKey}Content`; if (!currentProfile || !currentProfile.learning_goal) { console.warn(`[Load Tab Data v6.2] Cannot load data for tab '${tabId}', missing profile or goal.`); const contentElement = ui[contentKey]; if (contentElement) { contentElement.innerHTML = `<div class="empty-state" style="display:flex; flex-direction:column; align-items:center;"><i class="fas fa-info-circle"></i><h3>Vyberte cíl</h3><p>Pro zobrazení obsahu této záložky si nejprve vyberte svůj studijní cíl.</p><button class="btn btn-primary" id="selectGoalBtnInTab_${tabId}">Vybrat cíl</button></div>`; contentElement.style.display = 'block'; const selectGoalBtn = document.getElementById(`selectGoalBtnInTab_${tabId}`); if(selectGoalBtn) selectGoalBtn.addEventListener('click', showGoalSelectionModal); } else { console.error(`[Load Tab Data v6.2] Content element '${contentKey}' not found.`); } return; } const goal = currentProfile.learning_goal; console.log(`[Load Tab Data v6.2] Loading data for tab: ${tabId}, goal: ${goal}, UI content key: ${contentKey}`); const sectionKey = tabIdToSectionKey(tabId); if (sectionKey !== 'none') setLoadingState(sectionKey, true); try { const targetContentElement = ui[contentKey]; if (!targetContentElement) { console.error(`[Load Tab Data v6.2] Content element '${contentKey}' (ID: ${tabId}-content) not found.`); if (sectionKey !== 'none') setLoadingState(sectionKey, false); return; } targetContentElement.innerHTML = ''; targetContentElement.style.display = 'block'; if (tabId !== 'vyuka-tab') { switch (tabId) { case 'practice-tab': if (ui.statsCards) renderStatsSkeletons(ui.statsCards); if (ui.shortcutsGrid) renderShortcutSkeletons(ui.shortcutsGrid); break; case 'study-plan-tab': if (ui.studyPlanContent) renderPlanSkeletons(ui.studyPlanContent); break; default: break; } } switch (tabId) { case 'practice-tab': userStatsData = await fetchDashboardStats(currentUser.id, currentProfile); renderStatsCards(userStatsData); if (ui.shortcutsGrid) renderShortcutsForGoal(goal, ui.shortcutsGrid); if(ui.diagnosticPrompt) await checkUserGoalAndDiagnostic(); break; case 'study-plan-tab': studyPlanData = await fetchActiveStudyPlan(currentUser.id, goal); planActivitiesData = studyPlanData ? await fetchPlanActivities(studyPlanData.id, goal) : []; renderStudyPlanOverview(studyPlanData, planActivitiesData, goal); break; case 'vyuka-tab': if (!targetContentElement.querySelector('h3')) { targetContentElement.innerHTML = `<div class="empty-state" style="display:flex; flex-direction:column; align-items:center;"><i class="fas fa-person-chalkboard empty-state-icon"></i><h3>Výuka s AI</h3><p>Zde naleznete interaktivní lekce s AI tutorem Justaxem. Obsah se přizpůsobí vašemu plánu.</p><a href="vyuka/vyuka.html" class="btn btn-primary" style="margin-top: 1rem;"> <i class="fas fa-book-open"></i> Spustit výuku </a></div>`; } console.log("[Load Tab Data v6.2] Displaying static content for vyuka-tab."); if (sectionKey !== 'none') setLoadingState(sectionKey, false); break; default: console.warn(`[Load Tab Data v6.2] No specific data loading logic for tab: ${tabId}`); if (targetContentElement) targetContentElement.innerHTML = `<div class="empty-state" style="display:block;"><i class="fas fa-question-circle"></i><p>Obsah pro tuto záložku se připravuje.</p></div>`; if (sectionKey !== 'none') setLoadingState(sectionKey, false); break; } if(sectionKey !== 'none' && isLoading[sectionKey]) { setLoadingState(sectionKey, false); } } catch (error) { console.error(`[Load Tab Data v6.2] Error loading data for tab ${tabId}:`, error); showError(`Nepodařilo se načíst data pro záložku: ${error.message}`); const contentEl = ui[contentKey]; if (contentEl) { contentEl.innerHTML = `<div class="empty-state" style="display:block;"><i class="fas fa-exclamation-triangle"></i><p>Chyba načítání dat.</p></div>`; contentEl.style.display = 'block'; } if (sectionKey !== 'none') setLoadingState(sectionKey, false); } }
 	function tabIdToSectionKey(tabId) { switch (tabId) { case 'practice-tab': return 'stats'; case 'test-results-tab': return 'tests'; case 'study-plan-tab': return 'plan'; case 'vyuka-tab': return 'none'; default: return 'all'; } }
-	async function loadPageData() { if (!currentProfile) { console.error("[Load Page Data v6.2] Cannot load page data, profile missing."); return; } if (!currentProfile.learning_goal) { console.log("[Load Page Data v6.2] Goal missing, modal should handle this. Skipping data load."); return; } console.log(`🔄 [Load Page Data v6.2] Initial page data load for goal: ${currentProfile.learning_goal}...`); hideError(); let activeTabId = localStorage.getItem('lastActiveProcvicovaniTab') || 'practice-tab'; let activeTabButton = document.querySelector(`.content-tab[data-tab="${activeTabId}"]`); if (!activeTabButton || activeTabButton.style.display === 'none') { activeTabId = 'practice-tab'; } console.log(`[Load Page Data v6.2] Loading data for initially determined active tab: ${activeTabId}`); await loadTabData(activeTabId); initTooltips(); console.log("✅ [Load Page Data v6.2] Initial page data loading process complete for active tab."); isInitialTabLoad = false; // Set flag to false AFTER initial load is complete
+	async function loadPageData() { if (!currentProfile) { console.error("[Load Page Data v6.2] Cannot load page data, profile missing."); return; } if (!currentProfile.learning_goal) { console.log("[Load Page Data v6.2] Goal missing, modal should handle this. Skipping data load."); return; } console.log(`🔄 [Load Page Data v6.2] Initial page data load for goal: ${currentProfile.learning_goal}...`); hideError(); let activeTabId = localStorage.getItem('lastActiveProcvicovaniTab') || 'practice-tab'; let activeTabButton = document.querySelector(`.content-tab[data-tab="${activeTabId}"]`); if (!activeTabButton || activeTabButton.style.display === 'none') { activeTabId = 'practice-tab'; } console.log(`[Load Page Data v6.2] Loading data for initially determined active tab: ${activeTabId}`); await loadTabData(activeTabId); initTooltips(); console.log("✅ [Load Page Data v6.2] Initial page data loading process complete for active tab."); isInitialPageLoadComplete = true; // Set flag AFTER initial load is complete
     }
 	function handleTabSwitch(event) {
         const targetTabButton = event.currentTarget;
         const tabId = targetTabButton.dataset.tab;
         if (!tabId) return;
 
-        const currentActiveTab = document.querySelector('.content-tab.active');
-        if (targetTabButton === currentActiveTab) {
+        const currentActiveTabButton = document.querySelector('.content-tab.active');
+        if (targetTabButton === currentActiveTabButton) {
             console.log(`[Tabs v6.2] Tab ${tabId} is already active. Ignoruji.`);
-            return;
+            return; // Do nothing if the clicked tab is already active
         }
 
-        console.log(`[Tabs v6.2] Switching to tab: ${tabId}`);
-        switchActiveTab(tabId); // Call the main switching function
-    }
-	function switchActiveTab(tabId, isInitialCall = false) {
-        const targetTabButton = document.querySelector(`.content-tab[data-tab="${tabId}"]`);
-        if (!targetTabButton) { console.warn(`[SwitchActiveTab v6.2] Tab button for '${tabId}' not found.`); return; }
+        console.log(`[Tabs v6.2] User clicked tab: ${tabId}`);
 
-        console.log(`[SwitchActiveTab v6.2] Activating tab: ${tabId}. Initial call: ${isInitialCall}`);
-
+        // Update button active states
         if (ui.contentTabs && ui.contentTabs.length > 0) { ui.contentTabs.forEach(tab => tab.classList.remove('active')); }
-        else { console.warn("[SwitchActiveTab v6.2] ui.contentTabs not found."); }
-
+        else { console.warn("[handleTabSwitch] ui.contentTabs not found."); }
         targetTabButton.classList.add('active');
-        const activeContentId = `${tabId}-content`;
 
+        // Update content pane visibility
+        const activeContentId = `${tabId}-content`;
         if(ui.tabContents && ui.tabContents.length > 0) {
             ui.tabContents.forEach(content => {
-                if(content){
-                    // content.classList.toggle('active', content.id === activeContentId); // Active class is less important than display
-                    content.style.display = content.id === activeContentId ? 'block' : 'none';
-                }
+                if(content){ content.style.display = content.id === activeContentId ? 'block' : 'none'; }
             });
-        } else { console.warn("[SwitchActiveTab v6.2] ui.tabContents not found."); }
+        } else { console.warn("[handleTabSwitch] ui.tabContents not found."); }
 
         localStorage.setItem('lastActiveProcvicovaniTab', tabId);
 
-        // Load data UNLESS it's the very first call during initialization
-        if (!isInitialCall) {
-            console.log(`[SwitchActiveTab v6.2] Not initial call, loading data for ${tabId}...`);
-            loadTabData(tabId);
+        // Always load data when a tab is manually clicked
+        loadTabData(tabId);
+    }
+	function switchActiveTab(tabId) { // This function is now mainly for programmatic switching IF NEEDED, or just setting initial state.
+        const tabButton = document.querySelector(`.content-tab[data-tab="${tabId}"]`);
+        if (tabButton) {
+             console.log(`[SwitchActiveTab v6.2] Programmatically setting active tab UI to: ${tabId}`);
+             if(ui.contentTabs) ui.contentTabs.forEach(tab => tab.classList.remove('active'));
+             tabButton.classList.add('active');
+             const activeContentId = `${tabId}-content`;
+             if(ui.tabContents) ui.tabContents.forEach(content => { if(content) content.style.display = content.id === activeContentId ? 'block' : 'none'; });
+             localStorage.setItem('lastActiveProcvicovaniTab', tabId);
+             // Data loading should be handled by the caller (e.g., loadPageData for initial, handleTabSwitch for clicks)
         } else {
-            console.log(`[SwitchActiveTab v6.2] Initial call, data load should be handled by loadPageData.`);
-             // Data for the initial tab is loaded via loadPageData called from initializeApp or saveGoalAndProceed
+            console.warn(`[SwitchActiveTab v6.2] Tab button for '${tabId}' not found.`);
         }
     }
 	async function handleRefreshClick() { if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné se přihlásit.", "error"); return; } if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; } console.log("🔄 Manual refresh triggered..."); const icon = ui.refreshDataBtn?.querySelector('i'); const text = ui.refreshDataBtn?.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'RELOADING...'; if (ui.refreshDataBtn) ui.refreshDataBtn.disabled = true; let activeTabId = localStorage.getItem('lastActiveProcvicovaniTab') || 'practice-tab'; let activeTabButton = document.querySelector(`.content-tab[data-tab="${activeTabId}"]`); if (!activeTabButton || activeTabButton.style.display === 'none') { activeTabId = 'practice-tab'; } await loadTabData(activeTabId); // Reload only the active tab's data
@@ -193,8 +199,6 @@
 		console.log("[Procvičování SETUP v6.2] Setting up base listeners...");
 		const safeAddListener = (elementOrElements, eventType, handler, descriptiveKey) => { const elements = (elementOrElements instanceof NodeList || Array.isArray(elementOrElements)) ? elementOrElements : [elementOrElements]; let count = 0; elements.forEach(element => { if (element) { const handlerKey = descriptiveKey + '_' + eventType; if (element._eventHandlers?.[handlerKey]) { console.log(`[SETUP] Listener ${eventType} for ${descriptiveKey} already seems attached. Skipping.`); return; } element.addEventListener(eventType, handler); if (!element._eventHandlers) element._eventHandlers = {}; element._eventHandlers[handlerKey] = handler; count++; } }); if (count === 0 && elements.length > 0 && elements[0] !== document && elements[0] !== window) { const nonCriticalMissing = ['markAllReadBtn', 'createPlanBtnEmpty', 'startTestBtnPlan', 'startTestBtnPrompt', 'startTestBtnResults', 'startTestBtnAnalysis', 'testResultsContainer', 'testResultsLoading', 'testResultsContent', 'testResultsEmpty', 'studyPlanContainer', 'studyPlanLoading', 'studyPlanContent', 'studyPlanEmpty', 'topicAnalysisContainer', 'topicAnalysisContent', 'topicAnalysisEmpty', 'topicGrid']; if (ui && !ui[descriptiveKey] && nonCriticalMissing.includes(descriptiveKey)) { } else if (ui && !ui[descriptiveKey]) { console.warn(`[SETUP v6.2] Element not found for listener: ${descriptiveKey}.`); } } };
 
-        // --- Listeners NOT attached here anymore for tabs ---
-
         safeAddListener(ui.refreshDataBtn, 'click', handleRefreshClick, 'refreshDataBtn');
         safeAddListener(ui.startTestBtnPrompt, 'click', () => window.location.href = 'test1.html', 'startTestBtnPrompt');
         safeAddListener(ui.startTestBtnResults, 'click', () => window.location.href = 'test1.html', 'startTestBtnResults');
@@ -207,7 +211,6 @@
         safeAddListener(ui.markAllReadBtn, 'click', markAllNotificationsRead, 'markAllReadBtn');
         safeAddListener(ui.notificationBell, 'click', (event) => { event.stopPropagation(); if (ui.notificationsDropdown) { ui.notificationsDropdown.classList.toggle('active'); if (ui.notificationsDropdown.classList.contains('active') && ui.notificationsList?.innerHTML.trim() === '' && !isLoading.notifications) { if (currentUser?.id) fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT); else console.warn("[NotificationBell] Chybí currentUser.id pro načtení notifikací."); } } else { console.warn("[NotificationBell] ui.notificationsDropdown nenalezeno.");} }, 'notificationBell');
 
-        // <<< FIXED: Define notification click handler directly >>>
         if (ui.notificationsList) {
              const notificationClickHandler = async (event) => {
                 const item = event.target.closest('.notification-item');
@@ -236,7 +239,6 @@
             };
             safeAddListener(ui.notificationsList, 'click', notificationClickHandler, 'notificationsList');
         } else { console.warn("[SETUP v6.2] ui.notificationsList nenalezeno."); }
-        // <<< END FIX >>>
 
         document.removeEventListener('click', handleOutsideNotificationClick); // Ensure only one listener
         document.addEventListener('click', handleOutsideNotificationClick);
@@ -250,7 +252,7 @@
 	// --- START: Initialization ---
 	async function initializeApp() {
 		try {
-			console.log(`[INIT Procvičování] App Init Start v25.0.23...`); // Version updated
+			console.log(`[INIT Procvičování] App Init Start v25.0.25...`); // Version updated
 			cacheDOMElements();
 
 			if (!initializeSupabase()) { throw new Error("Supabase initialization failed."); }
@@ -261,8 +263,7 @@
             initHeaderScrollDetection();
             updateOnlineStatus();
             initTooltips();
-            // Setup base listeners FIRST
-            setupEventListeners();
+            setupEventListeners(); // Setup base listeners
 
 			if (ui.initialLoader) { ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden'); }
 			if (ui.mainContent) ui.mainContent.style.display = 'none';
@@ -319,23 +320,17 @@
 					  ui.mainContent.style.display = 'flex';
 				 }
 
-                // --- Attach tab click listener AFTER initial setup is done ---
+                // Attach tab click listener AFTER initial setup is done
                 const tabs = ui.contentTabs && ui.contentTabs.length > 0 ? ui.contentTabs : document.querySelectorAll('.content-tab');
                 if (tabs.length > 0) {
-                    const safeAddListener = (el, ev, fn, key) => { /* Simple version for brevity */ if (el) { el.addEventListener(ev, fn); } else { console.warn(`[SafeListener] Element not found for: ${key}`); }};
+                     const safeAddListener = (el, ev, fn, key) => { if (el) { if (el._eventHandlers?.[key+'_'+ev]) return; el.addEventListener(ev, fn); if (!el._eventHandlers) el._eventHandlers = {}; el._eventHandlers[key+'_'+ev] = fn; } else { console.warn(`[SafeListener] Element not found for: ${key}`); }};
                     tabs.forEach(tab => {
-                         // Remove previous listener if exists (using a simple property check)
-                        if (tab._tabClickHandler) {
-                            tab.removeEventListener('click', tab._tabClickHandler);
-                        }
-                        tab._tabClickHandler = handleTabSwitch; // Store reference
-                        safeAddListener(tab, 'click', tab._tabClickHandler, `tab_${tab.dataset.tab}`);
+                         safeAddListener(tab, 'click', handleTabSwitch, `tab_${tab.dataset.tab}`);
                      });
                     console.log("[INIT Procvičování] Listener pro kliknutí на záložky připojen.");
                 } else {
                     console.warn("[INIT Procvičování] Elementy záložek nenalezeny pro připojení listeneru.");
                 }
-                // --- End attaching tab click listener ---
 
 				console.log("✅ [INIT Procvičování] Nastavení specifické pro stránku dokončeno.");
 
