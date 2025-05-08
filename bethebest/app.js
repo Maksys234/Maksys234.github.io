@@ -26,8 +26,13 @@ const generateTasksButton = document.getElementById('generateTasksButton');
 const geminiTasksContainer = document.getElementById('geminiTasksContainer');
 const geminiLoading = document.getElementById('geminiLoading');
 
+// !!! ВАЖНО: API КЛЮЧ GEMINI - НЕБЕЗОПАСНО ДЛЯ ПРОДАКШЕНА !!!
+// Этот ключ будет виден в коде на стороне клиента.
+// Используется только для тестовой страницы согласно инструкциям.
+const GEMINI_API_KEY = 'AIzaSyB4l6Yj9AjWfkG2Ob2LCAgTsnSwN-UZQcA';
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
 
-// Funkce pro zobrazení notifikací
+// Функция для zobrazení notifikací
 function showNotification(message, type = 'info', duration = 3000) {
     if (!notificationArea) return;
 
@@ -37,17 +42,16 @@ function showNotification(message, type = 'info', duration = 3000) {
     
     notificationArea.appendChild(notificationDiv);
 
-    // Po krátké chvíli spustíme animaci zmizení, pokud je duration > 0
     if (duration > 0) {
         setTimeout(() => {
             notificationDiv.style.opacity = '0';
-            notificationDiv.style.transform = 'translateX(120%)'; // Odsuneme pryč
-            setTimeout(() => notificationDiv.remove(), 500); // Odstraníme z DOM po dokončení animace
+            notificationDiv.style.transform = 'translateX(120%)';
+            setTimeout(() => notificationDiv.remove(), 500);
         }, duration);
     }
 }
 
-// Funkce pro přepínání mezi přihlašovacím a registračním formulářem
+// Функция для přepínání mezi přihlašovacím a registračním formulářem
 window.toggleAuthForms = () => {
     loginFormContainer.classList.toggle('hidden');
     registerFormContainer.classList.toggle('hidden');
@@ -69,7 +73,6 @@ loginForm.addEventListener('submit', async (event) => {
     } else {
         showNotification('Přihlášení úspěšné!', 'success');
         loginForm.reset();
-        // onAuthStateChange se postará o zbytek
     }
     loginButton.disabled = false;
     loginButton.textContent = 'Přihlásit se';
@@ -90,7 +93,7 @@ registerForm.addEventListener('submit', async (event) => {
     } else {
         showNotification('Registrace úspěšná! Zkontrolujte svůj e-mail pro potvrzení (pokud je nastaveno).', 'success');
         registerForm.reset();
-        toggleAuthForms(); // Přepne na přihlašovací formulář
+        toggleAuthForms();
     }
     registerButton.disabled = false;
     registerButton.textContent = 'Zaregistrovat se';
@@ -103,19 +106,16 @@ logoutButton.addEventListener('click', async () => {
         showNotification(`Chyba odhlášení: ${error.message}`, 'error');
     } else {
         showNotification('Odhlášení úspěšné.', 'info');
-        // onAuthStateChange se postará o zbytek
     }
-    // Tlačítko se znovu povolí v onAuthStateChange skrytím appSection
 });
 
-// Sledování změn stavu autentizace
 supabaseClient.auth.onAuthStateChange((event, session) => {
     if (session && session.user) {
         authSection.classList.add('hidden');
         appSection.classList.remove('hidden');
         userEmailDisplay.textContent = session.user.email;
         loadLearningLogs(session.user.id);
-        logoutButton.disabled = false; // Povolit logout tlačítko
+        logoutButton.disabled = false;
     } else {
         authSection.classList.remove('hidden');
         appSection.classList.add('hidden');
@@ -124,7 +124,6 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
         geminiTasksContainer.innerHTML = '<p>Pro generování úkolů se musíte přihlásit.</p>';
     }
 });
-
 
 // --- Práce se záznamy o učení ---
 learningLogForm.addEventListener('submit', async (event) => {
@@ -159,7 +158,7 @@ learningLogForm.addEventListener('submit', async (event) => {
         } else {
             showNotification('Pokrok úspěšně uložen!', 'success');
             learningInput.value = '';
-            loadLearningLogs(user.id); // Znovu načteme logy, aby se zobrazil nový
+            loadLearningLogs(user.id);
         }
     } catch (err) {
         console.error('Kritická chyba při ukládání:', err);
@@ -192,16 +191,15 @@ async function loadLearningLogs(userId) {
         }
 
         if (data && data.length > 0) {
-            logsContainer.innerHTML = ''; // Vyčistíme předchozí obsah
+            logsContainer.innerHTML = '';
             data.forEach(log => {
                 const logElement = document.createElement('div');
                 logElement.classList.add('log-entry');
                 logElement.innerHTML = `
-                    <p>${log.log_text}</p>
+                    <p>${log.log_text.replace(/\n/g, '<br>')}</p> 
                     <small>Datum: ${new Date(log.created_at).toLocaleString('cs-CZ')}</small>
                 `;
                 logsContainer.appendChild(logElement);
-                // Spustíme animaci pro nově přidaný prvek
                 requestAnimationFrame(() => {
                     logElement.style.opacity = '1';
                     logElement.style.transform = 'translateY(0)';
@@ -216,7 +214,82 @@ async function loadLearningLogs(userId) {
     }
 }
 
-// --- Gemini Integrace ---
+// --- НОВАЯ ФУНКЦИЯ ДЛЯ ПРЯМОГО ВЫЗОВА GEMINI API ---
+async function generateTasksWithGeminiDirectly(learningContext) {
+    const prompt = `
+Na základě následujících záznamů o učení studenta, vygeneruj 3-5 konkrétních cvičných úkolů nebo otázek, které mu pomohou prohloubit porozumění a procvičit si naučené. Úkoly by měly být formulovány jasně a stručně. Odpověď vrať jako HTML nečíslovaný seznam (<ul><li>První úkol</li><li>Druhý úkol</li>...</ul>). Nepoužívej Markdown.
+
+Kontext učení:
+---
+${learningContext}
+---
+Příklady úkolů:`;
+
+    const requestBody = {
+        contents: [{
+            parts: [{
+                text: prompt
+            }]
+        }],
+        // Опционально: Настройки генерации
+        // generationConfig: {
+        //   temperature: 0.7,
+        //   topK: 1,
+        //   topP: 1,
+        //   maxOutputTokens: 2048,
+        // },
+        // Опционально: Настройки безопасности (пример)
+        // safetySettings: [
+        //   { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+        //   { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+        //   { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+        //   { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE"},
+        // ]
+    };
+
+    try {
+        const response = await fetch(GEMINI_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Chyba od Gemini API:', errorData);
+            throw new Error(`Chyba ${response.status} od Gemini API: ${errorData.error?.message || response.statusText}`);
+        }
+
+        const data = await response.json();
+        
+        if (data.candidates && data.candidates.length > 0 &&
+            data.candidates[0].content && data.candidates[0].content.parts &&
+            data.candidates[0].content.parts.length > 0) {
+            // Убедимся, что это не заблокировано настройками безопасности
+            if (data.candidates[0].finishReason === "SAFETY") {
+                console.warn("Gemini odpověď zablokována kvůli bezpečnostním nastavením:", data.candidates[0].safetyRatings);
+                return "<p>Odpověď byla zablokována bezpečnostními filtry Gemini. Zkuste přeformulovat své záznamy o učení.</p>";
+            }
+            return data.candidates[0].content.parts[0].text;
+        } else if (data.promptFeedback && data.promptFeedback.blockReason) {
+             console.warn("Gemini dotaz zablokován:", data.promptFeedback.blockReason, data.promptFeedback.safetyRatings);
+             return `<p>Váš dotaz byl zablokován filtrem Gemini (${data.promptFeedback.blockReason}). Zkuste prosím upravit své záznamy o učení.</p>`;
+        } 
+        else {
+            console.warn('Gemini API nevrátilo očekávaný formát textu:', data);
+            throw new Error('Nepodařilo se získat text z odpovědi Gemini.');
+        }
+
+    } catch (error) {
+        console.error('Chyba při přímém volání Gemini API:', error);
+        throw error; // Передаем ошибку дальше для обработки
+    }
+}
+// --- КОНЕЦ НОВОЙ ФУНКЦИИ ---
+
+// --- Gemini Integrace (ИЗМЕНЕНО для прямого вызова) ---
 if (generateTasksButton) {
     generateTasksButton.addEventListener('click', async () => {
         const { data: { user } } = await supabaseClient.auth.getUser();
@@ -236,7 +309,7 @@ if (generateTasksButton) {
                 .select('log_text')
                 .eq('user_id', user.id)
                 .order('created_at', { ascending: false })
-                .limit(3); // Poslední 3 záznamy pro kontext
+                .limit(3); 
 
             if (logError) {
                 throw new Error(`Chyba načítání záznamů pro Gemini: ${logError.message}`);
@@ -244,11 +317,17 @@ if (generateTasksButton) {
             if (!logs || logs.length === 0) {
                 showNotification('Nemáš zatím žádné záznamy pro analýzu Gemini.', 'info');
                 geminiTasksContainer.innerHTML = '<p>Nejprve přidej nějaké záznamy o svém učení.</p>';
-                return; // Nepokračujeme, pokud nejsou logy
+                // Возвращаемся, но сначала восстанавливаем кнопку и убираем лоадер
+                geminiLoading.classList.add('hidden');
+                generateTasksButton.disabled = false;
+                generateTasksButton.textContent = 'Vygenerovat úkoly';
+                return; 
             }
             
             const learningContext = logs.map(log => log.log_text).join("\n---\n");
 
+            // --- СТАРЫЙ КОД С SUPABASE FUNCTION (ЗАКОММЕНТИРОВАН) ---
+            /*
             const { data: tasksData, error: functionError } = await supabaseClient.functions.invoke('get-gemini-tasks', {
                 body: { learningContext: learningContext }
             });
@@ -258,17 +337,26 @@ if (generateTasksButton) {
             }
 
             if (tasksData && tasksData.tasks) {
-                geminiTasksContainer.innerHTML = tasksData.tasks; // Zobrazí HTML od Gemini
+                geminiTasksContainer.innerHTML = tasksData.tasks; 
                 showNotification('Úkoly od Gemini vygenerovány!', 'success');
             } else {
                 geminiTasksContainer.innerHTML = '<p>Nepodařilo se získat úkoly od Gemini. Zkuste to později.</p>';
                 console.warn('Gemini funkce nevrátila očekávaná data:', tasksData);
             }
+            */
+            // --- КОНЕЦ СТАРОГО КОДА ---
+
+            // +++ НОВЫЙ КОД: ПРЯМОЙ ВЫЗОВ GEMINI +++
+            const tasksHtml = await generateTasksWithGeminiDirectly(learningContext);
+            geminiTasksContainer.innerHTML = tasksHtml;
+            showNotification('Úkoly od Gemini vygenerovány!', 'success');
+            // +++ КОНЕЦ НОВОГО КОДА +++
+
 
         } catch (error) {
             console.error('Celková chyba při generování úkolů Gemini:', error);
             showNotification(error.message || 'Nastala chyba při generování úkolů.', 'error');
-            geminiTasksContainer.innerHTML = `<p>Nastala chyba. Zkuste to prosím znovu.</p>`;
+            geminiTasksContainer.innerHTML = `<p>Nastala chyba: ${error.message}. Zkuste to prosím znovu.</p>`;
         } finally {
             geminiLoading.classList.add('hidden');
             generateTasksButton.disabled = false;
@@ -278,4 +366,4 @@ if (generateTasksButton) {
 }
 
 // Inicializace - onAuthStateChange se postará o první načtení stavu
-console.log("app.js načten, Supabase klient inicializován.");
+console.log("app.js načten, Supabase klient inicializován. Gemini nastaven na přímý API volání.");
