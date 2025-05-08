@@ -1,5 +1,5 @@
 /* dashboard/procvicovani/main.css */
-/* Версия: 25.0.19-CSS - Добавлены стили для прокрутки goal-list и улучшения layout модального окна */
+/* Версия: 25.0.21-CSS - Добавлены стили для прокрутки modal-body в шагах выбора деталей */
 
 /* --- START: Киберпанк CSS Тема (Скопировано из dashboard.css + адаптации для этой страницы) --- */
 /* --- Глобальные Настройки и Переменные --- */
@@ -71,11 +71,11 @@
 	--shimmer-gradient: linear-gradient(90deg, transparent, rgba(var(--accent-primary-rgb), 0.2), transparent);
 	--gradient-sidebar: linear-gradient(190deg, var(--bg-secondary) 0%, var(--dark-purple-accent) 100%);
 	--gradient-level-up: linear-gradient(45deg, var(--accent-pink), var(--accent-secondary));
-	--gradient-welcome: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.2), rgba(var(--accent-secondary-rgb), 0.25));
-	--gradient-success: linear-gradient(135deg, var(--accent-lime), #45a247);
-	--gradient-warning: linear-gradient(135deg, var(--accent-orange), #f3722c);
-	--gradient-danger: linear-gradient(135deg, var(--accent-pink), #b5179e);
-	--gradient-info: linear-gradient(135deg, var(--accent-cyan), var(--accent-primary));
+    --gradient-welcome: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.2), rgba(var(--accent-secondary-rgb), 0.25));
+    --gradient-success: linear-gradient(135deg, var(--accent-lime), #45a247);
+    --gradient-warning: linear-gradient(135deg, var(--accent-orange), #f3722c);
+    --gradient-danger: linear-gradient(135deg, var(--accent-pink), #b5179e);
+    --gradient-info: linear-gradient(135deg, var(--accent-cyan), var(--accent-primary));
     --gradient-claimed: linear-gradient(135deg, rgba(var(--text-muted-rgb, 128, 141, 176), 0.15), rgba(var(--card-solid-rgb, 15, 10, 45), 0.25));
     --gradient-available: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.2), rgba(var(--accent-lime-rgb), 0.15));
 
@@ -324,7 +324,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .content-tab.active { color: var(--accent-primary); border-bottom-color: var(--accent-primary); font-weight: 700; text-shadow: 0 0 5px var(--accent-glow); }
 .content-tab.active i { opacity: 1; }
 
-/* <<< NEW: Styles for Tab Content Container >>> */
+/* Tab Content Container */
 .tab-content-container {
     background: var(--card-bg);
     border-radius: 0 0 var(--card-radius) var(--card-radius);
@@ -333,26 +333,21 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     border-top: none;
     position: relative;
     overflow: hidden;
-    flex-grow: 1; /* Allow container to grow */
-    display: none; /* Hidden initially */
-    flex-direction: column; /* Ensure content flows vertically */
-    min-height: 0; /* Important for flex children with overflow */
+    flex-grow: 1;
+    display: none;
+    flex-direction: column;
+    min-height: 0;
     visibility: hidden;
     opacity: 0;
     transition: opacity 0.3s ease, visibility 0s 0.3s;
 }
-.tab-content-container.visible { /* Shown by JS */
-    display: flex;
-    visibility: visible;
-    opacity: 1;
-    transition-delay: 0s;
-}
+.tab-content-container.visible { display: flex; visibility: visible; opacity: 1; transition-delay: 0s; }
 
 .tab-content {
     padding: 2rem 2.5rem;
-    display: none; /* Hide individual tabs initially */
-    flex-grow: 1; /* Allow tab content to fill container */
-    overflow-y: auto; /* Enable scrolling for individual tab content */
+    display: none;
+    flex-grow: 1;
+    overflow-y: auto; /* Changed from hidden to auto */
     scrollbar-width: thin;
     scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--bg-secondary-rgb), 0.3);
 }
@@ -362,14 +357,13 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .tab-content::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--accent-primary-rgb), 0.8); }
 .tab-content.active { display: block; animation: fadeInContent 0.6s ease-out forwards; }
 @keyframes fadeInContent { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-/* <<< END: New Tab Container Styles >>> */
 
+/* Specific Section Styles */
 .section-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-heading); padding-bottom: 0.8rem; position: relative; display: flex; align-items: center; gap: 0.7rem; }
 .section-title i { font-size: 1.1em; color: var(--accent-secondary); text-shadow: 0 0 8px var(--accent-secondary-glow); }
 .section-title::after { content: ''; position: absolute; bottom: 0; left: 0; width: 60px; height: 3px; background: var(--gradient-border-anim); background-size: 300% 100%; animation: gradient-move 4s linear infinite; border-radius: 1.5px; filter: drop-shadow(0 0 5px var(--accent-primary)); }
 @keyframes gradient-move { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 
-/* Stats Cards specific to this page */
 .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 2rem; }
 .dashboard-card { padding: 1.9rem; display: flex; flex-direction: column; min-height: 190px; }
 .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.2rem; }
@@ -386,7 +380,6 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .card-footer.negative { color: var(--accent-pink); }
 .card-footer i { font-size: 0.9em; }
 
-/* Shortcuts Grid */
 .shortcuts-section { margin-bottom: 2.5rem; }
 .shortcut-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.8rem; }
 .shortcut-card { padding: 1.8rem; text-decoration: none; color: var(--text-medium); display: flex; flex-direction: column; align-items: center; text-align: center; }
@@ -411,29 +404,39 @@ button.shortcut-card:hover::after { transform: translate(3px, 3px); }
 .empty-state p { margin: 0 auto 1.5rem auto; font-size: 0.95rem; max-width: 450px; color: var(--text-medium); }
 .empty-state .btn { margin-top: 0.5rem; }
 
-/* --- MODAL STYLES (Consistent with other pages) --- */
-.modal { display: none; position: fixed; inset: 0; background-color: rgba(var(--bg-secondary-rgb), 0.85); z-index: 1050; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease, backdrop-filter 0.3s ease; backdrop-filter: blur(0px); padding: 1.5rem; overflow: hidden; }
-.modal.active { display: flex; opacity: 1; backdrop-filter: blur(8px); }
-.modal-content { background-color: var(--interface-bg); border-radius: var(--card-radius); width: 100%; max-width: 700px; /* Adjusted width */ box-shadow: var(--shadow-card); border: 1px solid var(--border-color-medium); display: flex; flex-direction: column; max-height: calc(100vh - 4rem); /* Adjusted max-height */ animation: modalScaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden; position: relative; }
+/* --- START: Modal Styles Refined --- */
+.modal { display: none; position: fixed; inset: 0; background-color: rgba(var(--bg-secondary-rgb), 0.85); z-index: 1050; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease, backdrop-filter 0.3s ease; backdrop-filter: blur(10px); padding: 1.5rem; overflow: hidden; }
+.modal.active { display: flex; opacity: 1; }
+.modal-content { background-color: var(--interface-bg); border-radius: var(--card-radius); width: 100%; max-width: 700px; /* Adjusted max-width */ box-shadow: var(--shadow-card); border: 1px solid var(--border-color-medium); display: flex; flex-direction: column; max-height: calc(100vh - 4rem); /* Adjusted max-height */ animation: modalScaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden; /* Important: Prevent content overflow */ }
 @keyframes modalScaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-.modal-header { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border-color-medium); display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; background: rgba(var(--dark-purple-accent-rgb), 0.2); }
-.modal-title { font-size: 1.5rem; /* Adjusted size */ margin: 0; display: flex; align-items: center; gap: 0.8rem; color: var(--accent-primary); text-shadow: 0 0 10px var(--accent-glow); text-align: center; }
+.modal-header { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border-color-light); display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; background: rgba(var(--dark-purple-accent-rgb), 0.2); }
+.modal-title { font-size: 1.5rem; margin: 0; display: flex; align-items: center; gap: 0.8rem; color: var(--accent-primary); text-shadow: 0 0 10px var(--accent-glow); text-align: center; }
 .modal-title i { font-size: 1em; }
 .modal-close { background: none; border: none; font-size: 1.8rem; cursor: pointer; color: var(--text-muted); transition: color 0.2s ease, transform 0.2s ease; line-height: 1; padding: 0.3rem; position: absolute; right: 1.5rem; top: 50%; transform: translateY(-50%); }
 .modal-close:hover { color: var(--accent-pink); transform: translateY(-50%) rotate(90deg) scale(1.1); }
-.modal-body { padding: 1.5rem 2.5rem; overflow-y: auto; flex-grow: 1; min-height: 0; /* Important for flex */ scrollbar-width: thin; scrollbar-color: var(--accent-primary) rgba(var(--bg-secondary-rgb), 0.5); }
-.modal-body::-webkit-scrollbar { width: 10px; }
-.modal-body::-webkit-scrollbar-track { background: rgba(var(--bg-secondary-rgb), 0.5); border-radius: 5px; margin: 5px 0; }
-.modal-body::-webkit-scrollbar-thumb { background-color: var(--accent-primary); border-radius: 5px; border: 2px solid rgba(var(--bg-secondary-rgb), 0.5); background-clip: padding-box; }
+.modal-step { display: none; flex-direction: column; /* Crucial for body/footer layout */ width: 100%; height: 100%; /* Ensure step fills modal content area */ overflow: hidden; /* Prevent step itself from overflowing */ animation: stepFadeIn 0.4s ease-out forwards; }
+.modal-step.active { display: flex; }
+@keyframes stepFadeIn { from { opacity: 0; transform: translateX(15px); } to { opacity: 1; transform: translateX(0); } }
+
+/* Styles for modal body to enable scrolling */
+.modal-body {
+    padding: 1.5rem 2.5rem;
+    overflow-y: auto; /* Enable vertical scroll *only* if needed */
+    flex-grow: 1; /* Allow body to take available space */
+    min-height: 0; /* Crucial for scrolling within flex column */
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-primary) rgba(var(--bg-secondary-rgb), 0.5);
+}
+.modal-body::-webkit-scrollbar { width: 8px; }
+.modal-body::-webkit-scrollbar-track { background: rgba(var(--bg-secondary-rgb), 0.5); border-radius: 4px; }
+.modal-body::-webkit-scrollbar-thumb { background-color: var(--accent-primary); border-radius: 4px; border: 2px solid rgba(var(--bg-secondary-rgb), 0.5); }
 .modal-body::-webkit-scrollbar-thumb:hover { background-color: var(--accent-secondary); border-color: rgba(var(--bg-secondary-rgb), 0.6); }
+
 .modal-body > p:first-of-type { font-size: 1.05rem; color: var(--text-medium); max-width: 650px; margin: 0 auto 1.5rem auto; text-align: center; line-height: 1.6; }
-.modal-footer { padding: 1.5rem 2rem; border-top: 1px solid var(--border-color-medium); display: flex; justify-content: flex-end; align-items: center; gap: 1rem; flex-shrink: 0; background-color: rgba(var(--card-solid-rgb), 0.8); }
+.modal-footer { padding: 1.5rem 2rem; border-top: 1px solid var(--border-color-light); display: flex; justify-content: flex-end; align-items: center; gap: 1rem; flex-shrink: 0; background-color: rgba(var(--card-solid-rgb), 0.8); }
 .modal-footer small { font-size: 0.85rem; color: var(--text-muted); margin-right: auto; }
 .modal-footer small a { font-weight: 500; text-decoration: underline; text-decoration-color: var(--accent-primary); transition: color 0.2s ease, text-decoration-color 0.2s ease; }
 .modal-footer small a:hover { color: var(--white); text-decoration-color: var(--white); }
-.modal-step { display: none; flex-direction: column; width: 100%; height: 100%; /* Ensure step fills modal content */ animation: stepFadeIn 0.4s ease-out forwards; }
-.modal-step.active { display: flex; }
-@keyframes stepFadeIn { from { opacity: 0; transform: translateX(15px); } to { opacity: 1; transform: translateX(0); } }
 .modal-back-btn { background: none; border: none; color: var(--text-muted); font-size: 1rem; cursor: pointer; padding: 0.3rem 0.6rem; transition: color 0.2s ease; display: flex; align-items: center; gap: 0.4em; position: absolute; left: 1.5rem; top: 50%; transform: translateY(-50%); }
 .modal-back-btn:hover { color: var(--accent-primary); }
 .modal-step .form-group { background-color: rgba(var(--bg-secondary-rgb), 0.5); border: 1px solid var(--border-color-medium); padding: 1.5rem; border-radius: var(--card-radius); margin-bottom: 1.8rem; text-align: left; }
@@ -447,26 +450,21 @@ button.shortcut-card:hover::after { transform: translate(3px, 3px); }
 .modal-step .form-group input[type="checkbox"]:checked::before { content: '\f00c'; font-family: "Font Awesome 6 Free"; font-weight: 900; font-size: 10px; color: var(--text-fixed-dark); background-color: transparent; border-radius: 0; }
 .modal-step p small { font-size: 0.9rem; color: var(--text-muted); display: block; margin-top: 1rem; text-align: center; }
 
-/* --- NEW: Goal List Scroll Container --- */
-#goal-step-1 .modal-body {
-    /* Adjust padding if needed */
-    padding-bottom: 1rem; /* Ensure space for the list */
-}
+/* Goal List Scroll Container (Step 1) */
 .goal-list-scroll-container {
-    max-height: 50vh; /* Limit height (adjust as needed) */
-    overflow-y: auto;   /* Enable vertical scroll */
+    max-height: calc(85vh - 250px); /* Adjust max-height based on typical header/footer/padding height */
+    overflow-y: auto;
     padding-right: 10px; /* Space for scrollbar */
-    margin-right: -10px; /* Counteract padding */
+    margin-right: -10px; /* Offset padding */
     scrollbar-width: thin;
     scrollbar-color: var(--accent-primary) rgba(var(--bg-secondary-rgb), 0.5);
 }
 .goal-list-scroll-container::-webkit-scrollbar { width: 8px; }
 .goal-list-scroll-container::-webkit-scrollbar-track { background: rgba(var(--bg-secondary-rgb), 0.5); border-radius: 4px; }
 .goal-list-scroll-container::-webkit-scrollbar-thumb { background-color: var(--accent-primary); border-radius: 4px; border: 2px solid rgba(var(--bg-secondary-rgb), 0.5); }
-/* --- END: Goal List Scroll Container --- */
 
-/* --- IMPROVED: Goal Radio List Styles --- */
-.goal-radio-list { display: flex; flex-direction: column; gap: 1rem; /* Remove margin-top */ }
+/* Improved Goal Radio List Styles */
+.goal-radio-list { display: flex; flex-direction: column; gap: 1rem; }
 .goal-radio-label { display: block; padding: 1.2rem 1.5rem; border: 1px solid var(--border-color-medium); border-radius: var(--card-radius); background-color: var(--card-solid); cursor: pointer; transition: all 0.25s ease; position: relative; }
 .goal-radio-label:hover { background-color: rgba(var(--accent-primary-rgb), 0.08); border-color: var(--accent-primary); transform: scale(1.01); box-shadow: 0 4px 15px rgba(var(--accent-primary-rgb), 0.1); }
 .goal-radio-label input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
@@ -481,8 +479,6 @@ button.shortcut-card:hover::after { transform: translate(3px, 3px); }
 .goal-radio-label::before { content: ''; width: 20px; height: 20px; border: 2px solid var(--border-color-medium); border-radius: 50%; position: absolute; right: 1.5rem; top: 50%; transform: translateY(-50%); transition: all 0.2s ease; }
 .goal-radio-label.selected-goal::before { background-color: var(--accent-lime); border-color: var(--accent-lime); }
 .goal-radio-label.selected-goal::after { content: '\f00c'; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; right: calc(1.5rem + 5px); top: 50%; transform: translateY(-50%); font-size: 10px; color: var(--text-fixed-dark); }
-/* --- END: Goal Radio List Styles --- */
-
 /* --- END MODAL STYLES --- */
 
 /* Loading & Skeleton */
@@ -517,7 +513,7 @@ button.shortcut-card:hover::after { transform: translate(3px, 3px); }
     .header-actions { justify-content: flex-end; margin-top: 0.5rem; gap: 0.8rem; }
     .section-title { font-size: 1.3rem; }
     .tab-content { padding: 1.5rem; }
-    .modal-content { max-width: 95%; }
+    .modal-content { max-width: 95%; max-height: calc(100vh - 3rem); }
     .modal-body, .modal-footer, .modal-header { padding: 1.2rem; }
     .goal-radio-list { gap: 0.8rem; }
     .goal-radio-label { padding: 1rem 1.2rem; }
@@ -541,6 +537,7 @@ button.shortcut-card:hover::after { transform: translate(3px, 3px); }
     .tab-content { padding: 1.2rem; }
     .toast-container { bottom: 1rem; right: 1rem; max-width: calc(100% - 1.5rem); }
     .mouse-follower-glow { display: none !important; }
+    .modal-content { max-height: calc(100vh - 2rem); }
 }
 
 /* Reduced Motion */
