@@ -7,10 +7,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        /* --- START: Киберпанк CSS Тема (из index.html v19 + sidebar toggle) --- */
-        /* --- Глобальные Настройки и Переменные --- */
-        :root {
-            /* Основа */
+        /* --- Полный CSS Киберпанк темы --- */
+        :root { /* ... все CSS переменные ... */
+             /* Основа */
             --bg-color: #03020c; --bg-secondary: #0a071f; --card-bg: rgba(15, 10, 45, 0.88);
             --card-solid: #0f0a2d; --card-solid-rgb: 15, 10, 45; --interface-bg: rgba(6, 4, 22, 0.92);
             --interface-border: rgba(0, 240, 255, 0.35); --dark-purple-accent: #160c41;
@@ -88,7 +87,6 @@
         ::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.5); border-radius: 4px; border: 2px solid transparent; background-clip: content-box; }
         ::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--accent-primary-rgb), 0.8); }
         body { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--accent-secondary-rgb), 0.08); }
-        /* Контейнер */
         .container { background-color: var(--card-bg); padding: 30px; border-radius: var(--card-radius); box-shadow: var(--shadow-card); width: 100%; max-width: 800px; animation: fadeInMain 0.7s ease-out forwards; border: 1px solid var(--border-color-medium); position: relative; }
         @keyframes fadeInMain { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .container::before, .container::after { content: ''; position: absolute; width: 12px; height: 12px; border-color: var(--accent-primary); border-style: solid; opacity: 0; transition: all 0.3s ease; pointer-events: none; z-index: 1; }
@@ -97,13 +95,11 @@
         .container:hover::before, .container:hover::after { opacity: 0.6; }
         .container:hover::before { transform: translate(-3px, -3px); }
         .container:hover::after { transform: translate(3px, 3px); }
-        /* Формы */
         label.form-label, label { display: block; font-weight: 600; margin-bottom: 10px; color: var(--text-light); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
         input[type="email"].form-control, input[type="password"].form-control, textarea.form-control, input[type="email"], input[type="password"], textarea { width: 100%; padding: 14px 16px; margin-bottom: 20px; background-color: var(--interface-bg); border: 1px solid var(--border-color-medium); border-radius: var(--button-radius); color: var(--text-light); font-family: var(--font-mono); font-size: 1rem; transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease; caret-color: var(--accent-primary); }
         input[type="email"]:focus, input[type="password"]:focus, textarea:focus { outline: none; border-color: var(--accent-primary); background-color: var(--card-solid); box-shadow: 0 0 15px var(--accent-glow), inset 0 0 5px rgba(var(--accent-primary-rgb),0.1); }
         textarea { min-height: 120px; resize: vertical; }
         input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, input:-webkit-autofill:active { -webkit-box-shadow: 0 0 0 30px var(--interface-bg) inset !important; -webkit-text-fill-color: var(--text-light) !important; caret-color: var(--accent-primary); font-family: var(--font-mono); }
-        /* Кнопки */
         button, .btn { -webkit-appearance: none; -moz-appearance: none; appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5em; padding: 0.7rem 1.4rem; background: transparent; color: var(--accent-primary); border: 2px solid var(--accent-primary); border-radius: var(--button-radius); font-family: var(--font-secondary); font-weight: 600; font-size: 0.9rem; text-align: center; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all var(--transition-medium), transform 0.15s ease-out; position: relative; overflow: hidden; z-index: 1; box-shadow: 0 0 10px -3px var(--accent-glow), inset 0 0 8px -5px var(--accent-glow); backdrop-filter: blur(2px); will-change: transform, box-shadow, color, border-color; }
         button::before, .btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--gradient-button); transition: left 0.35s ease-in-out; z-index: -1; }
         button:hover:not(:disabled), .btn:hover:not(:disabled) { color: var(--text-fixed-dark); border-color: var(--accent-secondary); box-shadow: 0 0 20px var(--accent-secondary-glow), inset 0 0 10px rgba(var(--accent-secondary-rgb), 0.15); transform: translateY(-3px); }
@@ -132,10 +128,7 @@
         .log-entry:hover { background-color: var(--card-solid); border-left-color: var(--accent-secondary); }
         .log-entry p { margin-top: 0; margin-bottom: 8px; color: var(--text-light); line-height: 1.6; }
         .log-entry small { font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono); }
-        #practiceFeed { margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color-medium); }
-        #geminiTasksContainer { display: none; } /* Скрываем старое */
-        #geminiLoading { display: none; } /* Скрываем старый лоадер */
-        #generateTasksButton { display: none; margin-bottom: 15px; } /* Скрываем кнопку запуска */
+        #practiceFeed { display: none; } /* Скрываем старый блок */
         .hidden { display: none !important; }
         .loader { text-align: center; padding: 25px; font-size: 1.1rem; color: var(--text-muted); display: none; flex-direction: column; align-items: center; gap: 1rem; }
         .loader.visible-loader { display: flex; }
@@ -165,118 +158,27 @@
         #questionDisplay p strong { color: var(--accent-primary); }
 
         /* Контейнер для чекбоксов */
-        #answerCheckboxesContainer {
-            display: none; /* JS покажет */
-            flex-direction: column;
-            gap: 12px; /* Отступ между чекбоксами */
-            margin-top: 20px;
-            margin-bottom: 15px;
-        }
-        label.checkbox-label { /* Стиль для обертки чекбокса */
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            border: 1px solid var(--border-color-medium);
-            border-radius: var(--button-radius);
-            background-color: var(--interface-bg);
-            color: var(--text-medium);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 1rem;
-            position: relative; /* Для подсветки */
-        }
-        label.checkbox-label span { flex-grow: 1; } /* Чтобы текст занимал доступное место */
-         label.checkbox-label:hover:not(.disabled) {
-            background-color: rgba(var(--accent-primary-rgb), 0.1);
-            border-color: var(--accent-primary);
-            color: var(--text-light);
-        }
-        input[type="checkbox"] {
-            appearance: none;
-            width: 18px; height: 18px;
-            border: 2px solid var(--border-color-medium);
-            border-radius: 4px;
-            margin-right: 12px;
-            cursor: pointer;
-            position: relative;
-            top: -1px; /* Выравнивание */
-            transition: all 0.2s ease;
-            flex-shrink: 0;
-        }
-        input[type="checkbox"]:checked {
-            background-color: var(--accent-primary);
-            border-color: var(--accent-primary);
-        }
-        input[type="checkbox"]:checked::before { /* Галочка */
-            content: '\f00c';
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
-            font-size: 10px;
-            color: var(--bg-secondary);
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-        }
-         /* Стили для заблокированных чекбоксов */
-         label.checkbox-label.disabled {
-             opacity: 0.6;
-             cursor: not-allowed;
-             background-color: var(--interface-bg) !important;
-             border-color: var(--border-color-light) !important;
-             pointer-events: none; /* Блокируем события */
-         }
-         label.checkbox-label.disabled input[type="checkbox"] {
-             cursor: not-allowed;
-             border-color: var(--border-color-light);
-             background-color: rgba(var(--text-muted-rgb), 0.1);
-         }
-         label.checkbox-label.disabled input[type="checkbox"]:checked::before {
-             opacity: 0.5;
-         }
-          /* Стили для подсветки ответов ПОСЛЕ отправки */
-         label.checkbox-label.selected-correct-label { /* Выбранный правильный */
-             border-color: var(--accent-lime);
-             background-color: rgba(var(--accent-lime-rgb), 0.1);
-             color: var(--white);
-         }
-         label.checkbox-label.correct-answer-label { /* ПРАВИЛЬНЫЙ ответ */
-             border-color: var(--accent-lime);
-             /* Можно добавить легкий фон, если нужно явно показать все правильные */
-             /* background-color: rgba(var(--accent-lime-rgb), 0.05); */
-         }
-          label.checkbox-label.correct-answer-label::after { /* Галочка у правильного */
-              content: '\f00c';
-              font-family: "Font Awesome 6 Free"; font-weight: 900;
-              color: var(--accent-lime);
-              position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
-              font-size: 1.1em;
-              text-shadow: 0 0 5px var(--accent-lime-glow);
-          }
-         label.checkbox-label.selected-incorrect-label { /* Выбранный неправильный */
-             border-color: var(--accent-pink);
-             background-color: rgba(var(--accent-pink-rgb), 0.08);
-             color: var(--accent-pink);
-         }
-          label.checkbox-label.selected-incorrect-label::after { /* Крестик у неправильно выбранного */
-              content: '\f00d';
-              font-family: "Font Awesome 6 Free"; font-weight: 900;
-              color: var(--accent-pink);
-              position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
-              font-size: 1.1em;
-          }
-          /* Убираем ховер эффекты после ответа */
-          label.checkbox-label.disabled:hover {
-               background-color: inherit !important;
-               border-color: inherit !important;
-               transform: none !important;
-               box-shadow: none !important;
-           }
-
+        #answerCheckboxesContainer { display: none; flex-direction: column; gap: 12px; margin-top: 20px; margin-bottom: 15px; }
+        label.checkbox-label { display: flex; align-items: center; padding: 12px 16px; border: 1px solid var(--border-color-medium); border-radius: var(--button-radius); background-color: var(--interface-bg); color: var(--text-medium); cursor: pointer; transition: all 0.2s ease; font-size: 1rem; position: relative; }
+        label.checkbox-label span { flex-grow: 1; }
+        label.checkbox-label:hover:not(.disabled) { background-color: rgba(var(--accent-primary-rgb), 0.1); border-color: var(--accent-primary); color: var(--text-light); }
+        input[type="checkbox"] { appearance: none; width: 18px; height: 18px; border: 2px solid var(--border-color-medium); border-radius: 4px; margin-right: 12px; cursor: pointer; position: relative; top: -1px; transition: all 0.2s ease; flex-shrink: 0; }
+        input[type="checkbox"]:checked { background-color: var(--accent-primary); border-color: var(--accent-primary); }
+        input[type="checkbox"]:checked::before { content: '\f00c'; font-family: "Font Awesome 6 Free"; font-weight: 900; font-size: 10px; color: var(--bg-secondary); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        label.checkbox-label.disabled { opacity: 0.6; cursor: not-allowed; background-color: var(--interface-bg) !important; border-color: var(--border-color-light) !important; pointer-events: none; }
+        label.checkbox-label.disabled input[type="checkbox"] { cursor: not-allowed; border-color: var(--border-color-light); background-color: rgba(var(--text-muted-rgb), 0.1); }
+        label.checkbox-label.disabled input[type="checkbox"]:checked::before { opacity: 0.5; }
+        label.checkbox-label.selected-correct-label { border-color: var(--accent-lime); background-color: rgba(var(--accent-lime-rgb), 0.1); color: var(--white); }
+        label.checkbox-label.correct-answer-label { border-color: var(--accent-lime); }
+        label.checkbox-label.correct-answer-label::after { content: '\f00c'; font-family: "Font Awesome 6 Free"; font-weight: 900; color: var(--accent-lime); position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 1.1em; text-shadow: 0 0 5px var(--accent-lime-glow); }
+        label.checkbox-label.selected-incorrect-label { border-color: var(--accent-pink); background-color: rgba(var(--accent-pink-rgb), 0.08); color: var(--accent-pink); }
+        label.checkbox-label.selected-incorrect-label::after { content: '\f00d'; font-family: "Font Awesome 6 Free"; font-weight: 900; color: var(--accent-pink); position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 1.1em; }
+        label.checkbox-label.disabled:hover { background-color: inherit !important; border-color: inherit !important; transform: none !important; box-shadow: none !important; }
 
         #submitAnswerButton { display: none; margin-top: 15px; }
         #feedbackArea .feedback { animation: fadeInFeedback 0.5s ease-out; }
         @keyframes fadeInFeedback { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        #feedbackArea .feedback { padding: 10px 15px; border-radius: 8px; margin-top: 10px; border-left-width: 5px; border-left-style: solid; animation: fadeInFeedback 0.5s ease-out; }
+        #feedbackArea .feedback { padding: 10px 15px; border-radius: 8px; margin-top: 10px; border-left-width: 5px; border-left-style: solid; }
         #feedbackArea .feedback.correct { background-color: rgba(var(--accent-lime-rgb), 0.1); border-left-color: var(--accent-lime); color: var(--accent-lime); }
         #feedbackArea .feedback.incorrect { background-color: rgba(var(--accent-pink-rgb), 0.1); border-left-color: var(--accent-pink); color: var(--accent-pink); }
         #feedbackArea .feedback.partial { background-color: rgba(var(--accent-orange-rgb), 0.1); border-left-color: var(--accent-orange); color: var(--accent-orange); }
@@ -337,25 +239,20 @@
             </div>
 
             <div id="practiceFeed" style="display: none;">
-                <h2>Cvičení na základě posledního záznamu</h2>
-                <button id="generateTasksButton" style="display: none; margin-bottom: 15px;">Spustit kvíz</button>
-                <div id="geminiTasksContainer" style="display: none; margin-top: 15px;"></div>
+                <button id="generateTasksButton" style="display: none; margin-bottom: 15px;">Obnovit Otázky</button>
+                <div id="geminiTasksContainer" style="display: none;"></div>
                 <div id="geminiLoading" class="loader hidden"></div>
             </div>
 
             <div id="quizContainer" style="display: none; margin-top: 30px; padding: 20px; background-color: var(--interface-bg); border-radius: var(--button-radius); border: 1px solid var(--border-color-medium);">
                 <h2><i class="fas fa-question-circle"></i> Kvíz k Procvičení</h2>
                 <div id="quizLoading" class="loader hidden" style="margin-bottom: 15px;">Načítám otázky...</div>
-                <div id="questionDisplay" style="margin-bottom: 15px; min-height: 50px; font-size: 1.1em; color: var(--text-light);"></div>
+                <div id="questionDisplay" style="margin-bottom: 15px; min-height: 50px; font-size: 1.1em; color: var(--text-light);">
+                    </div>
 
                 <div id="answerCheckboxesContainer" style="display: none; flex-direction: column; gap: 12px; margin-top: 20px; margin-bottom: 15px;">
-                    <style>
-                        label.checkbox-label { /* Стиль для обертки чекбокса */
-                            display: flex; align-items: center; padding: 12px 16px;
-                            border: 1px solid var(--border-color-medium); border-radius: var(--button-radius);
-                            background-color: var(--interface-bg); color: var(--text-medium);
-                            cursor: pointer; transition: all 0.2s ease; font-size: 1rem; position: relative;
-                        }
+                    <style> /* Перенесите стили в CSS! */
+                        label.checkbox-label { display: flex; align-items: center; padding: 12px 16px; border: 1px solid var(--border-color-medium); border-radius: var(--button-radius); background-color: var(--interface-bg); color: var(--text-medium); cursor: pointer; transition: all 0.2s ease; font-size: 1rem; position: relative; }
                         label.checkbox-label span { flex-grow: 1; }
                         label.checkbox-label:hover:not(.disabled) { background-color: rgba(var(--accent-primary-rgb), 0.1); border-color: var(--accent-primary); color: var(--text-light); }
                         input[type="checkbox"] { appearance: none; width: 18px; height: 18px; border: 2px solid var(--border-color-medium); border-radius: 4px; margin-right: 12px; cursor: pointer; position: relative; top: -1px; transition: all 0.2s ease; flex-shrink: 0; }
@@ -372,6 +269,7 @@
                         label.checkbox-label.disabled:hover { background-color: inherit !important; border-color: inherit !important; transform: none !important; box-shadow: none !important; }
                     </style>
                 </div>
+
                 <button id="submitAnswerButton" class="btn" style="display: none; margin-top: 15px;">
                     <i class="fas fa-check-square"></i> Potvrdit odpověď
                 </button>
@@ -382,7 +280,7 @@
                         @keyframes fadeInFeedback { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
                         .feedback.correct { background-color: rgba(var(--accent-lime-rgb), 0.1); border-left-color: var(--accent-lime); color: var(--accent-lime); }
                         .feedback.incorrect { background-color: rgba(var(--accent-pink-rgb), 0.1); border-left-color: var(--accent-pink); color: var(--accent-pink); }
-                        .feedback.partial { background-color: rgba(var(--accent-orange-rgb), 0.1); border-left-color: var(--accent-orange); color: var(--accent-orange); } /* Стиль для частичного ответа */
+                        .feedback.partial { background-color: rgba(var(--accent-orange-rgb), 0.1); border-left-color: var(--accent-orange); color: var(--accent-orange); }
                         .feedback strong { display: inline-block; margin-right: 5px;}
                         .feedback p { margin: 5px 0 0 0; font-size: 0.95em; color: var(--text-medium); }
                         .feedback p strong { color: var(--text-light); }
@@ -399,8 +297,7 @@
     <script src="bethebest.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const mouseGlow = document.querySelector('.mouse-follower-glow');
-            if (mouseGlow) { /* ... код для свечения мыши ... */ }
+            // Код для свечения мыши, если нужно
         });
     </script>
 </body>
