@@ -1,160 +1,175 @@
 // app.js
 
-// Замени на свои учетные данные Supabase
 const SUPABASE_URL = 'https://orjivlyliqxyffsvaqzu.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yaml2bHlsaXF4eWZmc3ZhcXp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2OTc5NTIsImV4cCI6MjA2MjI3Mzk1Mn0.Au1RyA2mcFZgO5vvBhz4yJO1tqjcSQZyLOZcDu58uLo';
 
 const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// --- Аутентификация (Очень упрощенный пример) ---
-// В реальном приложении нужна полноценная система логина/регистрации
-// Supabase предоставляет удобные методы для этого: supabase.auth.signUp(), supabase.auth.signInWithPassword() и т.д.
-// Пока что будем считать, что у нас есть некий ID пользователя (замени на реальный механизм)
-let FAKE_USER_ID = 'user_fixed_id_for_testing'; // Замени это после настройки аутентификации
+// HTML Elementy
+const authSection = document.getElementById('authSection');
+const appSection = document.getElementById('appSection');
+const loginFormContainer = document.getElementById('loginFormContainer');
+const registerFormContainer = document.getElementById('registerFormContainer');
 
-async function checkUser() {
-    // Попытка получить текущего пользователя
-    // В Supabase v2:
-    const { data: { user } } = await supabase.auth.getUser();
+const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
+const logoutButton = document.getElementById('logoutButton');
+const userEmailDisplay = document.getElementById('userEmailDisplay');
 
-    if (user) {
-        document.getElementById('userName').textContent = user.email || user.id;
-        FAKE_USER_ID = user.id; // Используем ID реального пользователя
-        console.log('Пользователь:', user);
-        loadLearningLogs(); // Загружаем логи для аутентифицированного пользователя
-    } else {
-        document.getElementById('userName').textContent = 'Гость (требуется вход)';
-        console.log('Пользователь не аутентифицирован.');
-        // Здесь можно перенаправить на страницу входа или показать форму входа/регистрации
-        // Для простоты, пока оставляем возможность добавлять логи от имени "Гостя" с FAKE_USER_ID,
-        // но в идеале нужно требовать вход.
-        // Для примера, если пользователь не вошел, можно скрыть форму добавления логов.
-        // document.getElementById('learningLogForm').style.display = 'none';
-        // document.getElementById('logsContainer').innerHTML = '<p>Войдите, чтобы видеть и добавлять записи.</p>';
-
-        // Пока для теста, если нет пользователя, все равно загрузим логи (если они есть для FAKE_USER_ID)
-        loadLearningLogs();
-    }
-}
-
-
-// --- Работа с записями об обучении ---
 const learningLogForm = document.getElementById('learningLogForm');
 const learningInput = document.getElementById('learningInput');
 const logsContainer = document.getElementById('logsContainer');
 
-learningLogForm.addEventListener('submit', async (event) => {
-    event.preventDefault(); // Предотвращаем стандартную отправку формы
-    const logText = learningInput.value.trim();
+// Funkce pro přepínání mezi přihlašovacím a registračním formulářem
+window.toggleAuthForms = () => {
+    loginFormContainer.classList.toggle('hidden');
+    registerFormContainer.classList.toggle('hidden');
+};
 
-    if (!logText) {
-        alert('Пожалуйста, напиши, что ты выучил.');
-        return;
-    }
+// --- Autentizace ---
+loginForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-    // Проверяем, вошел ли пользователь (для этого FAKE_USER_ID должен быть обновлен реальным ID)
-    const { data: { user } } = await supabase.auth.getUser();
-    let userIdToLog = FAKE_USER_ID; // По умолчанию
-
-    if (user) {
-        userIdToLog = user.id;
+    if (error) {
+        alert(`Chyba přihlášení: ${error.message}`);
     } else {
-        // Можно либо запретить запись без входа, либо использовать ID по умолчанию для анонимных (не рекомендуется для персонализации)
-        alert('Ты не вошел в систему. Запись будет сохранена как гостевая (если разрешено).');
-        // Для полноценной работы требуется вход.
-    }
-
-
-    // Сохраняем в Supabase
-    // Убедись, что у тебя есть таблица 'learning_logs' с колонками:
-    // - id (uuid, primary key, можно автогенерировать)
-    // - user_id (uuid или text, соответствует ID пользователя из auth.users)
-    // - log_text (text)
-    // - created_at (timestamp with time zone, default now())
-    try {
-        const { data, error } = await supabase
-            .from('learning_logs') // Название твоей таблицы
-            .insert([
-                {
-                    // user_id: FAKE_USER_ID, // Замени на реальный ID пользователя после настройки аутентификации
-                    user_id: userIdToLog,
-                    log_text: logText
-                    // created_at будет добавлен автоматически Supabase, если так настроено в таблице
-                }
-            ])
-            .select(); // Чтобы получить обратно вставленные данные
-
-        if (error) {
-            console.error('Ошибка сохранения записи:', error);
-            alert(`Не удалось сохранить запись: ${error.message}`);
-            return;
-        }
-
-        console.log('Запись успешно сохранена:', data);
-        alert('Прогресс сохранен!');
-        learningInput.value = ''; // Очищаем поле ввода
-        loadLearningLogs(); // Перезагружаем список записей
-    } catch (err) {
-        console.error('Критическая ошибка при сохранении:', err);
-        alert('Произошла критическая ошибка при сохранении.');
+        // Přihlášení úspěšné, onAuthStateChange se postará o UI
+        loginForm.reset();
+        console.log('Přihlášený uživatel:', data.user);
     }
 });
 
-// Загрузка и отображение записей
-async function loadLearningLogs() {
-    const { data: { user } } = await supabase.auth.getUser();
-    let userIdToLoad = FAKE_USER_ID;
+registerForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const email = document.getElementById('registerEmail').value;
+    const password = document.getElementById('registerPassword').value;
+    const { data, error } = await supabase.auth.signUp({ email, password });
 
-    if (user) {
-        userIdToLoad = user.id;
+    if (error) {
+        alert(`Chyba registrace: ${error.message}`);
     } else {
-        logsContainer.innerHTML = '<p>Войдите, чтобы просмотреть свои записи.</p>';
-        // Если не хотим показывать ничего для неавторизованных:
-        // return;
+        alert('Registrace úspěšná! Zkontrolujte svůj e-mail pro potvrzení (pokud je vyžadováno). Nyní se můžete přihlásit.');
+        // Automaticky nepřihlašujeme, necháme uživatele se přihlásit explicitně
+        // nebo Supabase může automaticky přihlásit po potvrzení emailu
+        registerForm.reset();
+        toggleAuthForms(); // Přepne na přihlašovací formulář
+        console.log('Zaregistrovaný uživatel:', data.user);
+    }
+});
+
+logoutButton.addEventListener('click', async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+        alert(`Chyba odhlášení: ${error.message}`);
+    } else {
+        // Odhlášení úspěšné, onAuthStateChange se postará o UI
+        console.log('Uživatel odhlášen.');
+    }
+});
+
+// Sledování změn stavu autentizace
+supabase.auth.onAuthStateChange((event, session) => {
+    console.log('Auth event:', event, session);
+    if (session && session.user) {
+        // Uživatel je přihlášen
+        authSection.classList.add('hidden');
+        appSection.classList.remove('hidden');
+        userEmailDisplay.textContent = session.user.email;
+        loadLearningLogs(session.user.id);
+    } else {
+        // Uživatel není přihlášen
+        authSection.classList.remove('hidden');
+        appSection.classList.add('hidden');
+        userEmailDisplay.textContent = '';
+        logsContainer.innerHTML = '<p>Přihlaste se, abyste mohli vidět a přidávat záznamy.</p>';
+    }
+});
+
+
+// --- Práce se záznamy o učení ---
+learningLogForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const logText = learningInput.value.trim();
+
+    if (!logText) {
+        alert('Prosím, napiš, co ses naučil/a.');
+        return;
     }
 
+    const { data: { user } } = await supabase.auth.getUser();
 
-    logsContainer.innerHTML = '<p>Загрузка записей...</p>'; // Сообщение о загрузке
+    if (!user) {
+        alert('Pro uložení záznamu se musíš přihlásit.');
+        return;
+    }
+
+    try {
+        const { data, error } = await supabase
+            .from('learning_logs')
+            .insert([{ user_id: user.id, log_text: logText }])
+            .select();
+
+        if (error) {
+            console.error('Chyba ukládání záznamu:', error);
+            alert(`Nepodařilo se uložit záznam: ${error.message}`);
+            return;
+        }
+
+        console.log('Záznam úspěšně uložen:', data);
+        alert('Pokrok uložen!');
+        learningInput.value = '';
+        loadLearningLogs(user.id);
+    } catch (err) {
+        console.error('Kritická chyba při ukládání:', err);
+        alert('Došlo ke kritické chybě při ukládání.');
+    }
+});
+
+async function loadLearningLogs(userId) {
+    if (!userId) {
+        logsContainer.innerHTML = '<p>Přihlaste se pro zobrazení záznamů.</p>';
+        return;
+    }
+
+    logsContainer.innerHTML = '<p>Načítání záznamů...</p>';
 
     try {
         const { data, error } = await supabase
             .from('learning_logs')
             .select('log_text, created_at')
-            .eq('user_id', userIdToLoad) // Фильтруем по ID пользователя
-            .order('created_at', { ascending: false }); // Сортируем по дате, новые сверху
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
 
         if (error) {
-            console.error('Ошибка загрузки записей:', error);
-            logsContainer.innerHTML = `<p style="color: red;">Ошибка загрузки: ${error.message}</p>`;
+            console.error('Chyba načítání záznamů:', error);
+            logsContainer.innerHTML = `<p style="color: var(--secondary-color);">Chyba načítání: ${error.message}</p>`;
             return;
         }
 
         if (data && data.length > 0) {
-            logsContainer.innerHTML = ''; // Очищаем контейнер
+            logsContainer.innerHTML = '';
             data.forEach(log => {
                 const logElement = document.createElement('div');
                 logElement.classList.add('log-entry');
                 logElement.innerHTML = `
                     <p>${log.log_text}</p>
-                    <small>Дата: ${new Date(log.created_at).toLocaleString()}</small>
+                    <small>Datum: ${new Date(log.created_at).toLocaleString('cs-CZ')}</small>
                 `;
                 logsContainer.appendChild(logElement);
             });
         } else {
-            logsContainer.innerHTML = '<p>У тебя пока нет записей. Начни учиться и записывай свой прогресс!</p>';
+            logsContainer.innerHTML = '<p>Zatím nemáš žádné záznamy. Začni se učit a zaznamenávej svůj pokrok!</p>';
         }
     } catch (err) {
-        console.error('Критическая ошибка при загрузке записей:', err);
-        logsContainer.innerHTML = `<p style="color: red;">Критическая ошибка при загрузке.</p>`;
+        console.error('Kritická chyba při načítání záznamů:', err);
+        logsContainer.innerHTML = `<p style="color: var(--secondary-color);">Kritická chyba při načítání.</p>`;
     }
 }
 
-// --- Инициализация ---
-// Проверяем статус пользователя при загрузке страницы
-document.addEventListener('DOMContentLoaded', () => {
-    checkUser();
-    // Тут можно добавить слушателей для кнопок логина/логаута, если они есть на странице
-    // Например:
-    // const loginButton = document.getElementById('loginButton');
-    // if (loginButton) loginButton.addEventListener('click', () => { /* логика входа */ });
-});
+// Inicializace - kontrola stavu přihlášení při načtení stránky
+// onAuthStateChange se o to postará automaticky po načtení klienta Supabase
+// Není potřeba volat checkUser() explicitně, pokud je onAuthStateChange aktivní od začátku.
+console.log("app.js načten, Supabase klient inicializován.");
