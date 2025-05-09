@@ -115,9 +115,9 @@
         #submitAnswerButton { background: var(--gradient-button); border-color: transparent; color: var(--text-fixed-dark); }
         #submitAnswerButton::before { display: none; }
         #submitAnswerButton:hover:not(:disabled) { background: var(--gradient-button-hover); border-color: transparent; color: var(--white); box-shadow: 0 0 22px var(--accent-pink-glow); transform: translateY(-3px); }
-        #nextQuestionButton { background-color: rgba(var(--text-muted-rgb), 0.1); border: 1px solid rgba(var(--text-muted-rgb), 0.3); color: var(--text-medium); box-shadow: none; }
-        #nextQuestionButton::before { display: none; }
-        #nextQuestionButton:hover:not(:disabled) { background-color: rgba(var(--text-muted-rgb), 0.2); border-color: rgba(var(--text-muted-rgb), 0.5); color: var(--text-light); box-shadow: 0 0 15px rgba(var(--text-muted-rgb), 0.2); transform: translateY(-2px); }
+        #nextQuestionButton, #loadMoreTasksButton { background-color: rgba(var(--text-muted-rgb), 0.1); border: 1px solid rgba(var(--text-muted-rgb), 0.3); color: var(--text-medium); box-shadow: none; } /* Adjusted */
+        #nextQuestionButton::before, #loadMoreTasksButton::before { display: none; } /* Adjusted */
+        #nextQuestionButton:hover:not(:disabled), #loadMoreTasksButton:hover:not(:disabled) { background-color: rgba(var(--text-muted-rgb), 0.2); border-color: rgba(var(--text-muted-rgb), 0.5); color: var(--text-light); box-shadow: 0 0 15px rgba(var(--text-muted-rgb), 0.2); transform: translateY(-2px); } /* Adjusted */
         .auth-toggle { color: var(--text-link); text-decoration: none; font-size: 0.9rem; display: block; text-align: center; margin-top: 20px; cursor: pointer; font-weight: 500; transition: color 0.2s ease, letter-spacing 0.2s ease; }
         .auth-toggle:hover { color: var(--text-link-hover); letter-spacing: 0.5px; }
         #userInfo { background-color: rgba(var(--accent-primary-rgb), 0.08); border: 1px solid var(--border-color-medium); padding: 18px 20px; margin-bottom: 25px; border-radius: var(--card-radius); display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-hud); }
@@ -128,7 +128,6 @@
         .log-entry:hover { background-color: var(--card-solid); border-left-color: var(--accent-secondary); }
         .log-entry p { margin-top: 0; margin-bottom: 8px; color: var(--text-light); line-height: 1.6; }
         .log-entry small { font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono); }
-        #practiceFeed { display: none; } /* Скрываем старый блок */
         .hidden { display: none !important; }
         .loader { text-align: center; padding: 25px; font-size: 1.1rem; color: var(--text-muted); display: none; flex-direction: column; align-items: center; gap: 1rem; }
         .loader.visible-loader { display: flex; }
@@ -150,14 +149,10 @@
         .notification .toast-close { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.4rem; padding: 0.1rem 0.2rem; margin-left: 0.6rem; line-height: 1; opacity: 0.7; transition: opacity 0.2s, color 0.2s; }
         .notification .toast-close:hover { opacity: 1; color: var(--accent-primary); }
         @keyframes toast-in { from { opacity: 0; transform: translateX(110%); } to { opacity: 1; transform: translateX(0); } }
-
-        /* --- Стили Квиза --- */
         #quizContainer { display: none; animation: fadeInMain 0.6s ease-out forwards; margin-top: 30px; padding: 20px; background-color: var(--interface-bg); border-radius: var(--button-radius); border: 1px solid var(--border-color-medium); }
         #quizContainer h2 i { color: var(--accent-secondary); }
         #questionDisplay p { color: var(--text-light); font-size: 1.1em; line-height: 1.6; }
         #questionDisplay p strong { color: var(--accent-primary); }
-
-        /* Контейнер для чекбоксов */
         #answerCheckboxesContainer { display: none; flex-direction: column; gap: 12px; margin-top: 20px; margin-bottom: 15px; }
         label.checkbox-label { display: flex; align-items: center; padding: 12px 16px; border: 1px solid var(--border-color-medium); border-radius: var(--button-radius); background-color: var(--interface-bg); color: var(--text-medium); cursor: pointer; transition: all 0.2s ease; font-size: 1rem; position: relative; }
         label.checkbox-label span { flex-grow: 1; }
@@ -174,7 +169,6 @@
         label.checkbox-label.selected-incorrect-label { border-color: var(--accent-pink); background-color: rgba(var(--accent-pink-rgb), 0.08); color: var(--accent-pink); }
         label.checkbox-label.selected-incorrect-label::after { content: '\f00d'; font-family: "Font Awesome 6 Free"; font-weight: 900; color: var(--accent-pink); position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 1.1em; }
         label.checkbox-label.disabled:hover { background-color: inherit !important; border-color: inherit !important; transform: none !important; box-shadow: none !important; }
-
         #submitAnswerButton { display: none; margin-top: 15px; }
         #feedbackArea .feedback { animation: fadeInFeedback 0.5s ease-out; }
         @keyframes fadeInFeedback { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -186,10 +180,27 @@
         #feedbackArea .feedback p { margin: 5px 0 0 0; font-size: 0.95em; color: var(--text-medium); }
         #feedbackArea .feedback p strong { color: var(--text-light); }
         #nextQuestionButton { display: none; }
-
+        /* Стили для "бесконечной ленты" */
+        #quizFeedContainer { margin-top: 20px; }
+        .quiz-question-item {
+            margin-bottom: 25px; padding: 20px;
+            background-color: rgba(var(--card-solid-rgb), 0.7); /* Slightly more opaque than interface-bg */
+            border-radius: var(--button-radius);
+            border: 1px solid var(--border-color-light);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            animation: fadeInItem 0.5s ease-out;
+        }
+        @keyframes fadeInItem { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .quiz-question-item h3 { font-size: 1.15em; color: var(--accent-primary); margin-bottom: 10px; }
+        .quiz-question-item p { font-size: 1em; color: var(--text-light); margin-bottom: 15px; line-height: 1.6; }
+        .quiz-options-list { list-style: none; padding: 0; margin: 0; }
+        .quiz-options-list li { margin-bottom: 8px; }
+        .quiz-options-list li label { display: block; /* Ensures label takes full width for click */ }
+        .quiz-explanation { margin-top: 15px; padding: 10px; background-color: rgba(var(--dark-purple-accent-rgb), 0.3); border-radius: 6px; font-size: 0.9em; color: var(--text-medium); }
+        #loadMoreTasksButton { display: none; margin: 20px auto; /* Center button */ }
         /* Адаптивность */
-        @media (max-width: 768px) { body { padding: 15px; } .container { padding: 20px; } h1 { font-size: clamp(1.8rem, 5vw, 2.2rem); } h2 { font-size: clamp(1.2rem, 4vw, 1.5rem); } input[type="email"], input[type="password"], textarea, button { font-size: 0.95rem; padding: 12px 14px; } .toast-container { bottom: 1rem; right: 1rem; left: 1rem; max-width: none; width: auto; } #quizContainer { padding: 15px; } #questionDisplay p { font-size: 1.05em; } label.form-label { margin-bottom: 8px; } .feedback { padding: 8px 12px; } .feedback p { font-size: 0.9em; } button, #submitAnswerButton, #nextQuestionButton { padding: 0.6rem 1.2rem; font-size: 0.85rem; } label.checkbox-label { padding: 10px 14px; } }
-        @media (max-width: 480px) { h1 { font-size: 1.6rem; } h2 { font-size: 1.1rem; } label { font-size: 0.85rem; } .container { padding: 15px; } #quizContainer { padding: 10px; margin-top: 20px; } #questionDisplay p { font-size: 1em; } #submitAnswerButton, #nextQuestionButton { width: 100%; margin-top: 10px; } label.checkbox-label { font-size: 0.95rem; padding: 10px; } input[type="checkbox"] { width: 16px; height: 16px; margin-right: 10px; } }
+        @media (max-width: 768px) { body { padding: 15px; } .container { padding: 20px; } h1 { font-size: clamp(1.8rem, 5vw, 2.2rem); } h2 { font-size: clamp(1.2rem, 4vw, 1.5rem); } input[type="email"], input[type="password"], textarea, button { font-size: 0.95rem; padding: 12px 14px; } .toast-container { bottom: 1rem; right: 1rem; left: 1rem; max-width: none; width: auto; } #quizContainer, .quiz-question-item { padding: 15px; } #questionDisplay p, .quiz-question-item p { font-size: 1.05em; } label.form-label { margin-bottom: 8px; } .feedback { padding: 8px 12px; } .feedback p { font-size: 0.9em; } button, #submitAnswerButton, #nextQuestionButton, #loadMoreTasksButton { padding: 0.6rem 1.2rem; font-size: 0.85rem; } label.checkbox-label { padding: 10px 14px; } }
+        @media (max-width: 480px) { h1 { font-size: 1.6rem; } h2 { font-size: 1.1rem; } label { font-size: 0.85rem; } .container { padding: 15px; } #quizContainer, .quiz-question-item { padding: 10px; margin-top: 20px; } #questionDisplay p, .quiz-question-item p { font-size: 1em; } #submitAnswerButton, #nextQuestionButton, #loadMoreTasksButton { width: 100%; margin-top: 10px; } label.checkbox-label { font-size: 0.95rem; padding: 10px; } input[type="checkbox"] { width: 16px; height: 16px; margin-right: 10px; } }
     </style>
 </head>
 <body>
@@ -235,70 +246,24 @@
 
             <div id="logHistory">
                 <h2>Moje předchozí záznamy:</h2>
-                <div id="logsContainer"><div class="loader">Načítám záznamy...</div></div>
+                <div id="logsContainer"><div class="loader visible-loader">Načítám záznamy...</div></div>
             </div>
 
-            <div id="practiceFeed" style="display: none;">
-                <button id="generateTasksButton" style="display: none; margin-bottom: 15px;">Obnovit Otázky</button>
-                <div id="geminiTasksContainer" style="display: none;"></div>
-                <div id="geminiLoading" class="loader hidden"></div>
-            </div>
-
-            <div id="quizContainer" style="display: none; margin-top: 30px; padding: 20px; background-color: var(--interface-bg); border-radius: var(--button-radius); border: 1px solid var(--border-color-medium);">
-                <h2><i class="fas fa-question-circle"></i> Kvíz k Procvičení</h2>
+            <div id="quizFeedContainer" style="margin-top: 30px;">
+                <h2><i class="fas fa-tasks"></i> Procvičovací Kvíz</h2>
                 <div id="quizLoading" class="loader hidden" style="margin-bottom: 15px;">Načítám otázky...</div>
-                <div id="questionDisplay" style="margin-bottom: 15px; min-height: 50px; font-size: 1.1em; color: var(--text-light);">
+                <div id="quizContainer" style="display: none;">
                     </div>
-
-                <div id="answerCheckboxesContainer" style="display: none; flex-direction: column; gap: 12px; margin-top: 20px; margin-bottom: 15px;">
-                    <style> /* Перенесите стили в CSS! */
-                        label.checkbox-label { display: flex; align-items: center; padding: 12px 16px; border: 1px solid var(--border-color-medium); border-radius: var(--button-radius); background-color: var(--interface-bg); color: var(--text-medium); cursor: pointer; transition: all 0.2s ease; font-size: 1rem; position: relative; }
-                        label.checkbox-label span { flex-grow: 1; }
-                        label.checkbox-label:hover:not(.disabled) { background-color: rgba(var(--accent-primary-rgb), 0.1); border-color: var(--accent-primary); color: var(--text-light); }
-                        input[type="checkbox"] { appearance: none; width: 18px; height: 18px; border: 2px solid var(--border-color-medium); border-radius: 4px; margin-right: 12px; cursor: pointer; position: relative; top: -1px; transition: all 0.2s ease; flex-shrink: 0; }
-                        input[type="checkbox"]:checked { background-color: var(--accent-primary); border-color: var(--accent-primary); }
-                        input[type="checkbox"]:checked::before { content: '\f00c'; font-family: "Font Awesome 6 Free"; font-weight: 900; font-size: 10px; color: var(--bg-secondary); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-                        label.checkbox-label.disabled { opacity: 0.6; cursor: not-allowed; background-color: var(--interface-bg) !important; border-color: var(--border-color-light) !important; pointer-events: none; }
-                        label.checkbox-label.disabled input[type="checkbox"] { cursor: not-allowed; border-color: var(--border-color-light); background-color: rgba(var(--text-muted-rgb), 0.1); }
-                        label.checkbox-label.disabled input[type="checkbox"]:checked::before { opacity: 0.5; }
-                        label.checkbox-label.selected-correct-label { border-color: var(--accent-lime); background-color: rgba(var(--accent-lime-rgb), 0.1); color: var(--white); }
-                        label.checkbox-label.correct-answer-label { border-color: var(--accent-lime); }
-                        label.checkbox-label.correct-answer-label::after { content: '\f00c'; font-family: "Font Awesome 6 Free"; font-weight: 900; color: var(--accent-lime); position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 1.1em; text-shadow: 0 0 5px var(--accent-lime-glow); }
-                        label.checkbox-label.selected-incorrect-label { border-color: var(--accent-pink); background-color: rgba(var(--accent-pink-rgb), 0.08); color: var(--accent-pink); }
-                        label.checkbox-label.selected-incorrect-label::after { content: '\f00d'; font-family: "Font Awesome 6 Free"; font-weight: 900; color: var(--accent-pink); position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 1.1em; }
-                        label.checkbox-label.disabled:hover { background-color: inherit !important; border-color: inherit !important; transform: none !important; box-shadow: none !important; }
-                    </style>
-                </div>
-
-                <button id="submitAnswerButton" class="btn" style="display: none; margin-top: 15px;">
-                    <i class="fas fa-check-square"></i> Potvrdit odpověď
-                </button>
-
-                <div id="feedbackArea" style="margin-top: 15px; min-height: 60px;">
-                    <style>
-                        .feedback { padding: 10px 15px; border-radius: 8px; margin-top: 10px; border-left-width: 5px; border-left-style: solid; animation: fadeInFeedback 0.5s ease-out; }
-                        @keyframes fadeInFeedback { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-                        .feedback.correct { background-color: rgba(var(--accent-lime-rgb), 0.1); border-left-color: var(--accent-lime); color: var(--accent-lime); }
-                        .feedback.incorrect { background-color: rgba(var(--accent-pink-rgb), 0.1); border-left-color: var(--accent-pink); color: var(--accent-pink); }
-                        .feedback.partial { background-color: rgba(var(--accent-orange-rgb), 0.1); border-left-color: var(--accent-orange); color: var(--accent-orange); }
-                        .feedback strong { display: inline-block; margin-right: 5px;}
-                        .feedback p { margin: 5px 0 0 0; font-size: 0.95em; color: var(--text-medium); }
-                        .feedback p strong { color: var(--text-light); }
-                    </style>
-                </div>
-                <button id="nextQuestionButton" class="btn btn-secondary" style="display: none; margin-top: 15px;">
-                    Další otázka <i class="fas fa-arrow-right"></i>
+                <button id="loadMoreTasksButton" class="btn" style="display: none; margin: 20px auto;">
+                    <i class="fas fa-plus"></i> Načíst další otázky
                 </button>
             </div>
-            </div>
+            <button id="generateTasksButton" class="btn" style="display: none; margin-top: 20px; margin-bottom: 15px;">Restartovat Kvíz</button>
+
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="bethebest.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Код для свечения мыши, если нужно
-        });
-    </script>
 </body>
 </html>
