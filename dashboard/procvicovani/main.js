@@ -2,6 +2,7 @@
 // Version: 25.0.31 - Enhanced initialization error handling & loader hiding.
 // Opraveno: Přidána robustnější kontrola chyb během inicializace (session, profil)
 // a zajištěno spolehlivé skrytí úvodního načítacího overlaye.
+// НОВОЕ: Добавлена функциональность бесконечной загрузки (демо)
 
 (function() { // Start IIFE
 	'use strict';
@@ -14,6 +15,9 @@
 	const LEARNING_GOAL_KEY = 'userLearningGoal';
 	const GOAL_DETAILS_KEY = 'userLearningGoalDetails';
 	const LAST_ACTIVE_TAB_KEY = 'lastActiveProcvicovaniTab';
+    // НОВОЕ: Константы для демо бесконечной загрузки
+    const DEMO_ITEMS_PER_PAGE = 6; // Сколько элементов загружать за раз
+    const DEMO_MAX_PAGES = 5;      // Максимальное количество "страниц" для демо
 	// --- END: Constants and Configuration ---
 
 	// --- START: State Variables ---
@@ -39,10 +43,16 @@
 	let pendingGoal = null;
 	let isInitialPageLoadComplete = false;
 	let currentlyLoadingTabId = null;
+
+    // НОВЫЕ: Переменные состояния для демо бесконечной загрузки
+    let demoCurrentPage = 1;
+    let demoIsLoadingMore = false;
+    let demoAllItemsLoaded = false;
+    let demoScrollHandler = null; // Для хранения ссылки на обработчик
 	// --- END: State Variables ---
 
 	// --- START: UI Elements Cache ---
-	const ui = {};
+	const ui = {}; // Заполняется в cacheDOMElements
 	// --- END: UI Elements Cache ---
 
 	// --- START: Helper Functions ---
@@ -250,6 +260,143 @@
 	async function saveGoalAndProceed(goal, details = null) { if (goalSelectionInProgress || !goal) return; goalSelectionInProgress = true; setLoadingState('goalSelection', true); console.log(`[GoalModal Save] Saving goal: ${goal}, details:`, details); const activeStep = ui.goalSelectionModal?.querySelector('.modal-step.active'); const confirmButton = activeStep?.querySelector('.modal-confirm-btn'); const backButton = activeStep?.querySelector('.modal-back-btn'); if (confirmButton) { confirmButton.disabled = true; confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...'; } if (backButton) backButton.disabled = true; try { if (!supabase || !currentUser || !currentProfile) throw new Error("Core dependencies missing."); const finalPreferences = { ...(currentProfile.preferences || {}), goal_details: (details && Object.keys(details).length > 0) ? details : undefined }; const updatePayload = { learning_goal: goal, preferences: finalPreferences, updated_at: new Date().toISOString() }; console.log("[GoalModal Save] Updating Supabase profile:", updatePayload); const { data: updatedProfileData, error } = await supabase.from('profiles').update(updatePayload).eq('id', currentUser.id).select('*, selected_title, preferences').single(); if (error) throw error; currentProfile = updatedProfileData; if (!currentProfile.preferences) currentProfile.preferences = {}; console.log("[GoalModal Save] Goal saved to DB:", currentProfile.learning_goal); let goalTextKey = `goal_${goal.replace('math_','')}`; let goalText = { goal_exam_prep: 'Příprava na zkoušky', goal_accelerate: 'Učení napřed', goal_review: 'Doplnění mezer', goal_explore: 'Volné prozkoumávání'}[goalTextKey] || goal; showToast('Cíl uložen!', `Váš cíl: ${goalText}.`, 'success'); hideGoalSelectionModal(); console.log("[GoalModal Save] Making main content areas visible..."); if(ui.tabsWrapper) { ui.tabsWrapper.style.display = 'flex'; ui.tabsWrapper.classList.add('visible'); } else { console.warn("[GoalModal Save] tabsWrapper not found."); } if(ui.tabContentContainer) { ui.tabContentContainer.style.display = 'flex'; ui.tabContentContainer.classList.add('visible'); } else { console.warn("[GoalModal Save] tabContentContainer not found."); } configureUIForGoal(); await loadPageData(); if(ui.mainContent) ui.mainContent.classList.remove('interaction-disabled'); console.log("[GoalModal Save] UI configured and page data loading initiated."); } catch (error) { console.error("[GoalModal Save] Error saving goal:", error); showToast('Chyba', 'Nepodařilo se uložit váš cíl.', 'error'); if (confirmButton) { confirmButton.disabled = false; confirmButton.innerHTML = 'Potvrdit a pokračovat'; } if (backButton) backButton.disabled = false; } finally { goalSelectionInProgress = false; setLoadingState('goalSelection', false); pendingGoal = null; } }
 	// --- END: Goal Selection Logic ---
 
+    // --- START: Demo Infinite Scroll Logic ---
+    /**
+     * Fetches (simulates fetching) more demo items for infinite scroll.
+     */
+    async function fetchDemoInfiniteItems() {
+        console.log(`[InfiniteScroll] Fetching page ${demoCurrentPage}...`);
+        demoIsLoadingMore = true;
+        if (ui.demoInfiniteLoader) ui.demoInfiniteLoader.style.display = 'flex';
+
+        await new Promise(resolve => setTimeout(resolve, 1200)); // Simulate network delay
+
+        const newItems = [];
+        if (demoCurrentPage > DEMO_MAX_PAGES) {
+            demoAllItemsLoaded = true;
+            console.log("[InfiniteScroll] All demo items loaded.");
+        } else {
+            for (let i = 0; i < DEMO_ITEMS_PER_PAGE; i++) {
+                const itemId = (demoCurrentPage -1) * DEMO_ITEMS_PER_PAGE + i + 1;
+                newItems.push({
+                    id: `demo-${itemId}`,
+                    title: `Položka ${itemId}`,
+                    description: `Toto je ukázková položka #${itemId} pro demonstraci nekonečného načítání.`,
+                    icon: ['fa-cube', 'fa-star', 'fa-puzzle-piece', 'fa-lightbulb', 'fa-flask', 'fa-atom'][itemId % 6]
+                });
+            }
+            demoCurrentPage++;
+        }
+
+        if (ui.demoInfiniteLoader) ui.demoInfiniteLoader.style.display = 'none';
+        demoIsLoadingMore = false;
+        return newItems;
+    }
+
+    /**
+     * Renders fetched demo items and appends them to the container.
+     * @param {Array} items - Array of item objects to render.
+     */
+    function renderDemoInfiniteItems(items) {
+        if (!ui.demoInfiniteScrollContainer) {
+            console.error("[InfiniteScroll] Demo items container not found.");
+            return;
+        }
+        if (!items || items.length === 0) {
+            console.log("[InfiniteScroll] No new demo items to render.");
+            if(demoAllItemsLoaded && ui.demoInfiniteScrollContainer.children.length > 0) { // Only show "no more" if some items are already there
+                 const noMoreMsg = document.createElement('p');
+                 noMoreMsg.textContent = 'Všechny demo položky byly načteny.';
+                 noMoreMsg.style.textAlign = 'center';
+                 noMoreMsg.style.padding = '1rem';
+                 noMoreMsg.style.color = 'var(--text-muted)';
+                 noMoreMsg.style.gridColumn = '1 / -1'; // Span across all columns if it's a grid
+                 if(!ui.demoInfiniteScrollContainer.querySelector('.no-more-items-msg')) { // Prevent multiple messages
+                    noMoreMsg.classList.add('no-more-items-msg');
+                    ui.demoInfiniteScrollContainer.appendChild(noMoreMsg);
+                 }
+            }
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        items.forEach(item => {
+            const card = document.createElement('div');
+            // Using shortcut-card style for consistency, can be any card style
+            card.className = 'shortcut-card card'; // Re-using existing card style
+            card.innerHTML = `
+                <div class="shortcut-icon" style="background: var(--gradient-info); color: var(--white);"><i class="fas ${item.icon || 'fa-question-circle'}"></i></div>
+                <h3 class="shortcut-title">${sanitizeHTML(item.title)}</h3>
+                <p class="shortcut-desc">${sanitizeHTML(item.description)}</p>
+            `;
+            fragment.appendChild(card);
+        });
+        ui.demoInfiniteScrollContainer.appendChild(fragment);
+        console.log(`[InfiniteScroll] Rendered ${items.length} demo items.`);
+    }
+
+    /**
+     * Handles the scroll event for the demo infinite scroll section.
+     */
+    async function handleDemoInfiniteScroll() {
+        if (demoIsLoadingMore || demoAllItemsLoaded) return;
+
+        // Используем ui.practiceTabContent как контейнер для прокрутки
+        const container = ui.practiceTabContent;
+        if (!container) {
+            console.warn("[InfiniteScroll] Scroll container (practiceTabContent) not found.");
+            return;
+        }
+
+        // Проверяем, насколько близко пользователь к низу контейнера
+        // Отступ в 200px для более ранней загрузки
+        const nearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 200;
+
+        if (nearBottom) {
+            console.log("[InfiniteScroll] Near bottom, loading more items...");
+            const newItems = await fetchDemoInfiniteItems();
+            renderDemoInfiniteItems(newItems);
+        }
+    }
+
+    /**
+     * Initializes the demo infinite scroll feature for the practice tab.
+     */
+    async function initializeDemoInfiniteScroll() {
+        console.log("[InfiniteScroll] Initializing demo infinite scroll...");
+        if (!ui.practiceTabContent || !ui.demoInfiniteScrollContainer) {
+            console.error("[InfiniteScroll] Required elements for demo infinite scroll not found in cache.");
+            return;
+        }
+
+        // Reset state for new initialization (e.g., when tab is re-selected)
+        demoCurrentPage = 1;
+        demoIsLoadingMore = false;
+        demoAllItemsLoaded = false;
+        ui.demoInfiniteScrollContainer.innerHTML = ''; // Clear previous items
+        const existingNoMoreMsg = ui.demoInfiniteScrollContainer.querySelector('.no-more-items-msg');
+        if (existingNoMoreMsg) existingNoMoreMsg.remove();
+
+
+        // Load initial items
+        const initialItems = await fetchDemoInfiniteItems();
+        renderDemoInfiniteItems(initialItems);
+
+        // Remove previous scroll listener if it exists
+        if (demoScrollHandler && ui.practiceTabContent._scrollHandlerAttached) {
+            ui.practiceTabContent.removeEventListener('scroll', demoScrollHandler);
+            ui.practiceTabContent._scrollHandlerAttached = false;
+            console.log("[InfiniteScroll] Removed previous scroll listener.");
+        }
+
+        // Attach new scroll listener
+        demoScrollHandler = handleDemoInfiniteScroll; // Store the current handler
+        ui.practiceTabContent.addEventListener('scroll', demoScrollHandler);
+        ui.practiceTabContent._scrollHandlerAttached = true; // Mark that listener is attached
+        console.log("[InfiniteScroll] Scroll listener attached to practiceTabContent.");
+    }
+    // --- END: Demo Infinite Scroll Logic ---
+
 	// --- START: UI Configuration and Data Loading ---
 	function getGoalDisplayName(goalKey) { const goalMap = { 'exam_prep': 'Příprava na přijímačky', 'math_accelerate': 'Učení napřed', 'math_review': 'Doplnění mezer', 'math_explore': 'Volné prozkoumávání' }; return goalMap[goalKey] || goalKey || 'Nenastaveno'; }
 	function configureUIForGoal() { console.log("[Configure UI] Starting UI configuration based on goal..."); if (!currentProfile || !currentProfile.learning_goal) { console.error("[Configure UI] Profile or goal missing. Cannot configure UI."); if (ui.goalSelectionModal && getComputedStyle(ui.goalSelectionModal).display === 'none') { showGoalSelectionModal(); } if (ui.tabsWrapper) { ui.tabsWrapper.style.display = 'none'; ui.tabsWrapper.classList.remove('visible'); } if (ui.tabContentContainer) { ui.tabContentContainer.style.display = 'none'; ui.tabContentContainer.classList.remove('visible'); } return; } const goal = currentProfile.learning_goal; console.log(`[Configure UI] Configuring UI for goal: ${goal}`); const dashboardTitleEl = ui.dashboardTitle; if (dashboardTitleEl) { let titleText = "Procvičování // "; let iconClass = "fas fa-laptop-code"; switch(goal) { case 'exam_prep': titleText += "Příprava na Zkoušky"; iconClass = "fas fa-graduation-cap"; break; case 'math_accelerate': titleText += "Učení Napřed"; iconClass = "fas fa-rocket"; break; case 'math_review': titleText += "Doplnění Mezer"; iconClass = "fas fa-sync-alt"; break; case 'math_explore': titleText += "Volné Prozkoumávání"; iconClass = "fas fa-compass"; break; default: titleText += "Přehled"; } dashboardTitleEl.innerHTML = `<i class="${iconClass}"></i> ${sanitizeHTML(titleText)}`; } else { console.warn("[Configure UI] Dashboard title element not found."); } if (ui.userGoalDisplay) { const goalName = getGoalDisplayName(goal); ui.userGoalDisplay.textContent = `Váš cíl: ${goalName}`; ui.userGoalDisplay.style.display = 'inline-block'; } else { console.warn("[Configure UI] User goal display element not found."); } if (ui.tabsWrapper) { ui.tabsWrapper.style.display = 'flex'; ui.tabsWrapper.classList.add('visible'); } if (ui.tabContentContainer) { ui.tabContentContainer.style.display = 'flex'; ui.tabContentContainer.classList.add('visible'); } const alwaysVisibleTabs = ['practice-tab', 'study-plan-tab', 'vyuka-tab']; if (ui.contentTabs && ui.contentTabs.length > 0) { ui.contentTabs.forEach(tabButton => { const tabId = tabButton.dataset.tab; tabButton.style.display = alwaysVisibleTabs.includes(tabId) ? 'flex' : 'none'; }); console.log("[Configure UI] Tab visibility set."); } else { console.warn("[Configure UI] Tab buttons not found."); } let activeTabId = localStorage.getItem(LAST_ACTIVE_TAB_KEY) || 'practice-tab'; let activeTabButton = document.querySelector(`.content-tab[data-tab="${activeTabId}"]`); if (!activeTabButton || getComputedStyle(activeTabButton).display === 'none') { console.log(`[Configure UI] Last active tab '${activeTabId}' is invalid or hidden, defaulting to 'practice-tab'.`); activeTabId = 'practice-tab'; } console.log(`[Configure UI] Setting initial active tab UI to: ${activeTabId}`); switchActiveTabUI(activeTabId); console.log(`[Configure UI] UI configuration complete.`); }
@@ -272,6 +419,8 @@
 					if (statsResult.status === 'fulfilled') renderStatsCards(statsResult.value); else { console.error(`[Load Tab Data v30] Error fetching stats:`, statsResult.reason); renderMessage(ui.statsCards || targetContentElement, 'error', 'Chyba statistik', statsResult.reason.message); }
 					if (ui.shortcutsGrid) { setLoadingState('shortcuts', true); renderShortcutsForGoal(goal, ui.shortcutsGrid); setLoadingState('shortcuts', false); } else console.warn(`[Load Tab Data v30] Shortcuts grid not found.`);
                     if(ui.diagnosticPrompt) await checkUserGoalAndDiagnostic();
+                    // НОВОЕ: Инициализация бесконечной загрузки для вкладки "Obecné"
+                    await initializeDemoInfiniteScroll();
 					break;
 				case 'study-plan-tab':
                     const planContentEl = ui.studyPlanContent; const planEmptyEl = ui.studyPlanEmpty; // Target specific inner divs
@@ -442,6 +591,9 @@
             { key: 'sidebarOverlay', id: 'sidebar-overlay', critical: false }, { key: 'mainMobileMenuToggle', id: 'main-mobile-menu-toggle', critical: false }, { key: 'sidebarCloseToggle', id: 'sidebar-close-toggle', critical: false }, { key: 'sidebarToggleBtn', id: 'sidebar-toggle-btn', critical: false }, { key: 'sidebarAvatar', id: 'sidebar-avatar', critical: false }, { key: 'sidebarName', id: 'sidebar-name', critical: false }, { key: 'sidebarUserTitle', id: 'sidebar-user-title', critical: false }, { key: 'currentYearSidebar', id: 'currentYearSidebar', critical: false }, { key: 'dashboardHeader', query: '.dashboard-header', critical: false }, { key: 'dashboardTitle', id: 'dashboard-title', critical: false }, { key: 'userGoalDisplay', id: 'user-goal-display', critical: false }, { key: 'refreshDataBtn', id: 'refresh-data-btn', critical: false }, { key: 'currentYearFooter', id: 'currentYearFooter', critical: false }, { key: 'mouseFollower', id: 'mouse-follower', critical: false }, { key: 'toastContainer', id: 'toastContainer', critical: false }, { key: 'notificationBell', id: 'notification-bell', critical: false }, { key: 'notificationCount', id: 'notification-count', critical: false }, { key: 'notificationsDropdown', id: 'notifications-dropdown', critical: false }, { key: 'notificationsList', id: 'notifications-list', critical: false }, { key: 'noNotificationsMsg', id: 'no-notifications-msg', critical: false }, { key: 'markAllReadBtn', id: 'mark-all-read-btn', critical: false }, { key: 'diagnosticPrompt', id: 'diagnostic-prompt', critical: false },
 			{ key: 'statsCards', id: 'stats-cards', critical: false }, { key: 'shortcutsGrid', id: 'shortcuts-grid', critical: false }, { key: 'studyPlanContainer', id: 'study-plan-container', critical: false }, { key: 'studyPlanContent', id: 'study-plan-content', critical: false }, { key: 'studyPlanEmpty', id: 'study-plan-empty', critical: false },
 			{ key: 'goalStepAccelerate', id: 'goal-step-accelerate', critical: false }, { key: 'accelerateAreasGroup', id: 'accelerate-areas-group', critical: false }, { key: 'accelerateReasonGroup', id: 'accelerate-reason-group', critical: false }, { key: 'goalStepReview', id: 'goal-step-review', critical: false }, { key: 'reviewAreasGroup', id: 'review-areas-group', critical: false }, { key: 'goalStepExplore', id: 'goal-step-explore', critical: false },
+            // НОВОЕ: Элементы для демо бесконечной загрузки
+            { key: 'demoInfiniteScrollContainer', id: 'demo-infinite-scroll-items-container', critical: false }, // Сделал некритичным для случая, если HTML еще не обновлен
+            { key: 'demoInfiniteLoader', id: 'demo-infinite-loader', critical: false } // Аналогично
 		];
 		const notFoundCritical = []; const notFoundNonCritical = [];
 		elementDefinitions.forEach(def => { const element = def.id ? document.getElementById(def.id) : document.querySelector(def.query); if (element) { ui[def.key] = element; } else { ui[def.key] = null; if (def.critical) notFoundCritical.push(`${def.key} (${def.id || def.query})`); else notFoundNonCritical.push(`${def.key} (${def.id || def.query})`); } });
@@ -451,6 +603,13 @@
 		if (!ui.contentTabs || ui.contentTabs.length === 0) console.warn("[CACHE DOM v6.3] Nenalezeny žádné elementy záložek (.content-tab).");
 		if (!ui.tabContentContainer) console.error("[CACHE DOM v6.3] Kritický element '.tab-content-container' nebyl nalezen!");
 		if (!ui.tabContents || ui.tabContents.length === 0) console.warn("[CACHE DOM v6.3] Nenalezeny žádné elementy obsahu záložek (.tab-content).");
+
+        // Проверка наличия новых элементов для бесконечной загрузки
+        if (!ui.demoInfiniteScrollContainer) console.warn("[CACHE DOM v6.3] Element #demo-infinite-scroll-items-container nenalezen. Funkce nekonečného načítání nemusí fungovat správně.");
+        if (!ui.demoInfiniteLoader) console.warn("[CACHE DOM v6.3] Element #demo-infinite-loader nenalezen.");
+        if (!ui.practiceTabContent) console.warn("[CACHE DOM v6.3] Element #practice-tab-content nenalezen. Posluchač scroll pro nekonečné načítání nebude připojen.");
+
+
 		console.log("[CACHE DOM v6.3] Cachování dokončeno.");
 	}
 	// --- END: DOM Element Caching Function ---
