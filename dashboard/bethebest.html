@@ -3,204 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Buď Nejlepší - Kvíz</title>
+    <title>Justax - Buď Nejlepší - Kyber-kalendář</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        /* --- Полный CSS Киберпанк темы --- */
-        :root { /* ... все CSS переменные ... */
-             /* Основа */
-            --bg-color: #03020c; --bg-secondary: #0a071f; --card-bg: rgba(15, 10, 45, 0.88);
-            --card-solid: #0f0a2d; --card-solid-rgb: 15, 10, 45; --interface-bg: rgba(6, 4, 22, 0.92);
-            --interface-border: rgba(0, 240, 255, 0.35); --dark-purple-accent: #160c41;
-            --dark-purple-accent-rgb: 22, 12, 65; --bg-secondary-rgb: 10, 7, 31;
-            /* Акценты */
-            --accent-primary: #00e0ff; --accent-primary-rgb: 0, 224, 255; --accent-secondary: #a05cff;
-            --accent-secondary-rgb: 160, 92, 255; --accent-pink: #ff33a8; --accent-pink-rgb: 255, 51, 168;
-            --accent-lime: #6fff3a; --accent-lime-rgb: 111, 255, 58; --accent-cyan: var(--accent-primary);
-            --accent-cyan-rgb: var(--accent-primary-rgb); --accent-cyan-glow: rgba(var(--accent-cyan-rgb), 0.6);
-            --accent-glow: rgba(var(--accent-primary-rgb), 0.6); --accent-secondary-glow: rgba(var(--accent-secondary-rgb), 0.5);
-            --accent-pink-glow: rgba(var(--accent-pink-rgb), 0.4); --accent-lime-glow: rgba(var(--accent-lime-rgb), 0.5);
-            --accent-border-glow: rgba(var(--accent-primary-rgb), 0.7); --accent-orange: #f8961e;
-            --accent-orange-rgb: 248, 150, 30; --accent-orange-glow: rgba(var(--accent-orange-rgb), 0.5);
-            /* Текст */
+        /* --- CSS Proměnné (převzato a upraveno z dashboard.css pro cyberpunk vzhled) --- */
+        :root {
+            /* Základní barvy */
+            --bg-color: #03020c; --bg-secondary: #0a071f; --bg-secondary-rgb: 10, 7, 31;
+            --card-bg: rgba(15, 10, 45, 0.88); --card-solid: #0f0a2d; --card-solid-rgb: 15, 10, 45;
+            --interface-bg: rgba(6, 4, 22, 0.92); --interface-border: rgba(0, 240, 255, 0.35);
+            --dark-purple-accent: #160c41; --dark-purple-accent-rgb: 22, 12, 65;
+
+            /* Akcenty */
+            --accent-primary: #00e0ff; --accent-primary-rgb: 0, 224, 255;
+            --accent-secondary: #a05cff; --accent-secondary-rgb: 160, 92, 255;
+            --accent-pink: #ff33a8; --accent-pink-rgb: 255, 51, 168;
+            --accent-lime: #6fff3a; --accent-lime-rgb: 111, 255, 58;
+            --accent-orange: #f8961e; --accent-orange-rgb: 248, 150, 30;
+            --accent-glow: rgba(var(--accent-primary-rgb), 0.6);
+            --accent-secondary-glow: rgba(var(--accent-secondary-rgb), 0.5);
+
+            /* Text */
             --text-light: #f1f5f9; --text-medium: #b8c4e0; --text-muted: #808db0;
-            --text-muted-rgb: 128, 141, 176; --text-heading: #ffffff; --text-link: var(--accent-primary);
-            --text-link-hover: #ffffff; --text-fixed-dark: #03020c; --white: #ffffff; --white-rgb: 255,255,255; --black: #000000;
-            /* Границы */
-            --border-color-light: rgba(var(--accent-secondary-rgb), 0.25); --border-color-medium: rgba(var(--accent-secondary-rgb), 0.45);
-            --border-color-strong: rgba(var(--accent-primary-rgb), 0.65); --border-interactive: var(--accent-primary);
-            --border-glow-gradient: linear-gradient(90deg, transparent, var(--accent-primary), var(--accent-pink), var(--accent-primary), transparent);
-            /* Градиенты */
-            --gradient-header: linear-gradient(180deg, rgba(3, 2, 12, 0.97) 0%, rgba(3, 2, 12, 0.9) 100%);
-            --gradient-border-anim: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary), var(--accent-pink), var(--accent-primary), var(--accent-secondary));
+            --text-heading: #ffffff; --text-link: var(--accent-primary);
+            --text-link-hover: #ffffff; --text-fixed-dark: #03020c;
+
+            /* Okraje */
+            --border-color-light: rgba(var(--accent-secondary-rgb), 0.25);
+            --border-color-medium: rgba(var(--accent-secondary-rgb), 0.45);
+            --border-color-strong: rgba(var(--accent-primary-rgb), 0.65);
+
+            /* Gradienty */
             --gradient-button: linear-gradient(100deg, var(--accent-secondary) 0%, var(--accent-primary) 100%);
             --gradient-button-hover: linear-gradient(100deg, var(--accent-primary) 0%, var(--accent-pink) 100%);
-            --gradient-hero-bg: radial-gradient(ellipse at 15% 15%, rgba(var(--accent-primary-rgb), 0.18), transparent 55%), radial-gradient(ellipse at 85% 85%, rgba(var(--accent-secondary-rgb), 0.15), transparent 60%), var(--bg-color);
-            --gradient-card-highlight: linear-gradient(160deg, rgba(var(--accent-primary-rgb), 0.15), rgba(var(--accent-secondary-rgb), 0.12));
-            --gradient-cta: linear-gradient(110deg, var(--accent-secondary) 0%, var(--accent-pink) 100%);
-            --shimmer-gradient: linear-gradient(90deg, transparent, rgba(var(--accent-primary-rgb), 0.2), transparent);
-            --gradient-sidebar: linear-gradient(190deg, var(--bg-secondary) 0%, var(--dark-purple-accent) 100%);
-            --gradient-level-up: linear-gradient(45deg, var(--accent-pink), var(--accent-secondary));
-            --gradient-welcome: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.2), rgba(var(--accent-secondary-rgb), 0.25));
-            --gradient-success: linear-gradient(100deg, var(--accent-lime) 0%, #a7ff8a 100%);
-            --gradient-locked: linear-gradient(145deg, #44495c, #2c303a);
-            /* Шрифты */
+            --gradient-modal-header: linear-gradient(180deg, rgba(var(--dark-purple-accent-rgb), 0.5) 0%, rgba(var(--dark-purple-accent-rgb), 0.3) 100%);
+
+            /* Fonty */
             --font-primary: 'Inter', sans-serif; --font-secondary: 'Poppins', sans-serif; --font-mono: 'Roboto Mono', monospace;
-            /* Тени */
-            --shadow-glow: 0 0 25px var(--accent-glow); --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.4);
-            --shadow-interactive: 0 8px 20px rgba(var(--accent-primary-rgb), 0.4); --shadow-interactive-hover: 0 10px 28px rgba(var(--accent-pink-rgb), 0.45);
-            --shadow-card-hover-enhanced: 0 18px 50px rgba(0, 0, 0, 0.45), 0 0 30px var(--accent-glow), inset 0 0 15px rgba(var(--accent-primary-rgb), 0.15);
+
+            /* Stíny */
+            --shadow-glow: 0 0 25px var(--accent-glow);
+            --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.4);
             --shadow-hud: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 2px rgba(var(--accent-primary-rgb), 0.1);
             --shadow-text-glow: 0 0 8px rgba(var(--accent-primary-rgb), 0.6);
-            /* Размеры и переходы */
-            --sidebar-width: 260px; --sidebar-collapsed-width: 80px; --card-radius: 14px; --button-radius: 10px;
-            --section-padding-y: clamp(2rem, 5vh, 3rem); --container-padding-x: 2rem; --transition-speed: 0.3s;
+
+            /* Rozměry & přechody */
+            --card-radius: 14px; --button-radius: 10px;
             --transition-fast: all 0.2s ease-out; --transition-medium: all 0.35s ease-out;
-            --transition-long: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1); --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            --transition-entrance: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
-            /* Skeleton Loader Colors */
-            --skeleton-bg: rgba(var(--accent-secondary-rgb), 0.1); --skeleton-highlight: rgba(var(--accent-secondary-rgb), 0.2);
         }
-        /* --- Базовые Стили --- */
+
+        /* --- Základní Styly --- */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html { scroll-behavior: smooth; font-size: 16px; -webkit-text-size-adjust: 100%; }
-        body { background-color: var(--bg-color); color: var(--text-medium); font-family: var(--font-primary); line-height: 1.7; margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 20px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; position: relative; }
-        body::before { content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -3; background-image: linear-gradient(rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px); background-size: 40px 40px; opacity: 0.6; animation: bg-grid-pan 100s linear infinite; pointer-events: none; }
-        body::after { content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -2; background: linear-gradient( to bottom, rgba(10, 7, 31, 0) 50%, rgba(0, 0, 0, 0.08) 50% ); background-size: 100% 3px; opacity: 0.15; animation: scanlines 25s linear infinite; pointer-events: none; }
-        @keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 800px 400px; } }
-        @keyframes scanlines { from { background-position: 0 0; } to { background-position: 0 75px; } }
-        .mouse-follower-glow { position: fixed; width: 200px; height: 200px; background: radial-gradient(circle, rgba(var(--accent-primary-rgb), 0.05) 0%, transparent 70%); border-radius: 50%; pointer-events: none; z-index: -1; transform: translate(-50%, -50%); filter: blur(35px); transition: top 0.1s ease-out, left 0.1s ease-out, background 0.3s ease, opacity 0.3s ease; opacity: 0; will-change: top, left, opacity; }
-        body.mouse-has-moved .mouse-follower-glow { opacity: 1; }
-        h1, h2, h3, h4, h5, h6 { font-family: var(--font-secondary); font-weight: 600; color: var(--text-heading); line-height: 1.35; margin-bottom: 1em; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
-        h1 { text-align: center; font-size: clamp(2.0rem, 4vw, 2.4rem); font-weight: 700; margin-bottom: 25px; color: var(--accent-primary); letter-spacing: 1px; text-shadow: 0 0 12px var(--accent-glow); }
+        html { scroll-behavior: smooth; font-size: 16px; }
+        body {
+            background-color: var(--bg-color); color: var(--text-medium);
+            font-family: var(--font-primary); line-height: 1.7;
+            margin: 0; min-height: 100vh; display: flex;
+            justify-content: center; align-items: flex-start; padding: 20px;
+            position: relative;
+        }
+        body::before { /* Efekt mřížky */
+            content: ""; position: fixed; inset: 0; z-index: -3;
+            background-image: linear-gradient(rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px);
+            background-size: 30px 30px; opacity: 0.5; pointer-events: none;
+        }
+        body::after { /* Efekt scanlines */
+            content: ""; position: fixed; inset: 0; z-index: -2;
+            background: linear-gradient(to bottom, rgba(10, 7, 31, 0) 50%, rgba(0, 0, 0, 0.06) 50%);
+            background-size: 100% 2.5px; opacity: 0.1; animation: scanlines 20s linear infinite; pointer-events: none;
+        }
+        @keyframes scanlines { from { background-position: 0 0; } to { background-position: 0 60px; } }
+
+        .container {
+            background-color: var(--card-bg); padding: 25px; border-radius: var(--card-radius);
+            box-shadow: var(--shadow-card); width: 100%; max-width: 900px; /* Širší kontejner pro kalendář */
+            border: 1px solid var(--border-color-medium); position: relative;
+            animation: fadeInContainer 0.7s ease-out forwards;
+        }
+        @keyframes fadeInContainer { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .container::before, .container::after { /* Rohové prvky */
+            content: ''; position: absolute; width: 10px; height: 10px; border-color: var(--accent-primary); border-style: solid;
+            opacity: 0; transition: all 0.3s ease; pointer-events: none; z-index: 1;
+        }
+        .container::before { top: 8px; left: 8px; border-width: 2px 0 0 2px; }
+        .container::after { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; }
+        .container:hover::before, .container:hover::after { opacity: 0.7; }
+        .container:hover::before { transform: translate(-2px, -2px); }
+        .container:hover::after { transform: translate(2px, 2px); }
+
+        h1 { text-align: center; font-size: clamp(2.0rem, 4vw, 2.4rem); font-weight: 700; margin-bottom: 25px; color: var(--accent-primary); letter-spacing: 1px; text-shadow: 0 0 12px var(--accent-glow); font-family: 'Orbitron', sans-serif; }
         h2 { font-size: clamp(1.4rem, 3vw, 1.7rem); margin-bottom: 20px; border-bottom: 1px solid var(--border-color-medium); padding-bottom: 10px; color: var(--text-light); display: flex; align-items: center; gap: 0.5em; }
         h2 i { color: var(--accent-secondary); font-size: 1em; }
-        h3 { font-size: clamp(1.1rem, 2vw, 1.25rem); }
-        p { margin-bottom: 1.2rem; font-size: clamp(0.9rem, 1.8vw, 1rem); max-width: 700px; color: var(--text-medium); }
-        a { color: var(--text-link); text-decoration: none; transition: color var(--transition-fast), text-shadow 0.3s ease; }
-        a:hover { color: var(--text-link-hover); text-shadow: var(--shadow-text-glow); }
-        a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid var(--accent-primary); outline-offset: 4px; border-radius: 6px; box-shadow: 0 0 12px var(--accent-glow); }
-        :is(a, button, input, textarea, select):focus { outline: none; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: rgba(var(--accent-secondary-rgb), 0.08); border-radius: 4px;}
-        ::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.5); border-radius: 4px; border: 2px solid transparent; background-clip: content-box; }
-        ::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--accent-primary-rgb), 0.8); }
-        body { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--accent-secondary-rgb), 0.08); }
-        .container { background-color: var(--card-bg); padding: 30px; border-radius: var(--card-radius); box-shadow: var(--shadow-card); width: 100%; max-width: 800px; animation: fadeInMain 0.7s ease-out forwards; border: 1px solid var(--border-color-medium); position: relative; }
-        @keyframes fadeInMain { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .container::before, .container::after { content: ''; position: absolute; width: 12px; height: 12px; border-color: var(--accent-primary); border-style: solid; opacity: 0; transition: all 0.3s ease; pointer-events: none; z-index: 1; }
-        .container::before { top: 10px; left: 10px; border-width: 2px 0 0 2px; }
-        .container::after { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
-        .container:hover::before, .container:hover::after { opacity: 0.6; }
-        .container:hover::before { transform: translate(-3px, -3px); }
-        .container:hover::after { transform: translate(3px, 3px); }
+
+        /* Tlačítka & Formuláře (základ z originálu) */
         label.form-label, label { display: block; font-weight: 600; margin-bottom: 10px; color: var(--text-light); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        input[type="email"].form-control, input[type="password"].form-control, textarea.form-control, input[type="email"], input[type="password"], textarea { width: 100%; padding: 14px 16px; margin-bottom: 20px; background-color: var(--interface-bg); border: 1px solid var(--border-color-medium); border-radius: var(--button-radius); color: var(--text-light); font-family: var(--font-mono); font-size: 1rem; transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease; caret-color: var(--accent-primary); }
-        input[type="email"]:focus, input[type="password"]:focus, textarea:focus { outline: none; border-color: var(--accent-primary); background-color: var(--card-solid); box-shadow: 0 0 15px var(--accent-glow), inset 0 0 5px rgba(var(--accent-primary-rgb),0.1); }
+        input[type="email"], input[type="password"], textarea {
+            width: 100%; padding: 14px 16px; margin-bottom: 20px; background-color: var(--interface-bg);
+            border: 1px solid var(--border-color-medium); border-radius: var(--button-radius); color: var(--text-light);
+            font-family: var(--font-mono); font-size: 1rem; transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            caret-color: var(--accent-primary);
+        }
+        input[type="email"]:focus, input[type="password"]:focus, textarea:focus {
+            outline: none; border-color: var(--accent-primary);
+            box-shadow: 0 0 15px var(--accent-glow), inset 0 0 5px rgba(var(--accent-primary-rgb),0.1);
+        }
         textarea { min-height: 120px; resize: vertical; }
-        input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, input:-webkit-autofill:active { -webkit-box-shadow: 0 0 0 30px var(--interface-bg) inset !important; -webkit-text-fill-color: var(--text-light) !important; caret-color: var(--accent-primary); font-family: var(--font-mono); }
-        button, .btn { -webkit-appearance: none; -moz-appearance: none; appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5em; padding: 0.7rem 1.4rem; background: transparent; color: var(--accent-primary); border: 2px solid var(--accent-primary); border-radius: var(--button-radius); font-family: var(--font-secondary); font-weight: 600; font-size: 0.9rem; text-align: center; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all var(--transition-medium), transform 0.15s ease-out; position: relative; overflow: hidden; z-index: 1; box-shadow: 0 0 10px -3px var(--accent-glow), inset 0 0 8px -5px var(--accent-glow); backdrop-filter: blur(2px); will-change: transform, box-shadow, color, border-color; }
+        button, .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 0.5em; padding: 0.7rem 1.4rem;
+            background: transparent; color: var(--accent-primary); border: 2px solid var(--accent-primary);
+            border-radius: var(--button-radius); font-family: var(--font-secondary); font-weight: 600;
+            font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; cursor: pointer;
+            transition: all var(--transition-medium); position: relative; overflow: hidden; z-index: 1;
+            box-shadow: 0 0 10px -3px var(--accent-glow), inset 0 0 8px -5px var(--accent-glow);
+        }
         button::before, .btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--gradient-button); transition: left 0.35s ease-in-out; z-index: -1; }
-        button:hover:not(:disabled), .btn:hover:not(:disabled) { color: var(--text-fixed-dark); border-color: var(--accent-secondary); box-shadow: 0 0 20px var(--accent-secondary-glow), inset 0 0 10px rgba(var(--accent-secondary-rgb), 0.15); transform: translateY(-3px); }
+        button:hover:not(:disabled), .btn:hover:not(:disabled) { color: var(--text-fixed-dark); border-color: var(--accent-secondary); box-shadow: 0 0 20px var(--accent-secondary-glow); transform: translateY(-3px); }
         button:hover:not(:disabled)::before, .btn:hover:not(:disabled)::before { left: 0; background: var(--gradient-button-hover); }
-        button:active:not(:disabled), .btn:active:not(:disabled) { transform: translateY(0px) scale(0.97); box-shadow: 0 0 8px var(--accent-secondary-glow), inset 0 0 12px rgba(0,0,0,0.3); transition-duration: 0.08s; }
-        button:disabled, .btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; transform: none !important; }
-        button:disabled::before, .btn:disabled::before { display: none; }
-        button i, .btn i { margin-right: 0.4em; }
-        button#logoutButton { padding: 0.5rem 1rem; font-size: 0.8rem; border-color: var(--accent-pink); color: var(--accent-pink); box-shadow: 0 0 10px -3px var(--accent-pink-glow), inset 0 0 8px -5px var(--accent-pink-glow); }
-        button#logoutButton::before { background: linear-gradient(100deg, var(--accent-pink) 0%, var(--accent-secondary) 100%); }
-        button#logoutButton:hover:not(:disabled) { color: var(--white); border-color: var(--accent-pink); }
-        button#logoutButton:hover:not(:disabled)::before { background: linear-gradient(100deg, var(--accent-secondary) 0%, var(--accent-pink) 100%); }
-        #submitAnswerButton { background: var(--gradient-button); border-color: transparent; color: var(--text-fixed-dark); }
-        #submitAnswerButton::before { display: none; }
-        #submitAnswerButton:hover:not(:disabled) { background: var(--gradient-button-hover); border-color: transparent; color: var(--white); box-shadow: 0 0 22px var(--accent-pink-glow); transform: translateY(-3px); }
-        #nextQuestionButton, #loadMoreTasksButton { background-color: rgba(var(--text-muted-rgb), 0.1); border: 1px solid rgba(var(--text-muted-rgb), 0.3); color: var(--text-medium); box-shadow: none; } /* Adjusted */
-        #nextQuestionButton::before, #loadMoreTasksButton::before { display: none; } /* Adjusted */
-        #nextQuestionButton:hover:not(:disabled), #loadMoreTasksButton:hover:not(:disabled) { background-color: rgba(var(--text-muted-rgb), 0.2); border-color: rgba(var(--text-muted-rgb), 0.5); color: var(--text-light); box-shadow: 0 0 15px rgba(var(--text-muted-rgb), 0.2); transform: translateY(-2px); } /* Adjusted */
-        .auth-toggle { color: var(--text-link); text-decoration: none; font-size: 0.9rem; display: block; text-align: center; margin-top: 20px; cursor: pointer; font-weight: 500; transition: color 0.2s ease, letter-spacing 0.2s ease; }
-        .auth-toggle:hover { color: var(--text-link-hover); letter-spacing: 0.5px; }
+        button:disabled, .btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none !important; transform: none !important; }
+        .auth-toggle { color: var(--text-link); font-size: 0.9rem; display: block; text-align: center; margin-top: 20px; cursor: pointer; }
+
+        /* Skryté prvky */
+        .hidden { display: none !important; }
         #userInfo { background-color: rgba(var(--accent-primary-rgb), 0.08); border: 1px solid var(--border-color-medium); padding: 18px 20px; margin-bottom: 25px; border-radius: var(--card-radius); display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-hud); }
         #userInfo p { margin: 0; color: var(--text-medium); font-size: 0.95rem; }
-        #userInfo #userEmailDisplay { font-weight: 600; color: var(--text-light); text-shadow: 0 0 5px var(--accent-glow); }
-        #logHistory { margin-top: 30px; }
-        .log-entry { background-color: var(--interface-bg); padding: 18px 20px; margin-bottom: 15px; border-radius: var(--button-radius); border-left: 4px solid var(--accent-primary); box-shadow: var(--shadow-hud); opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease-out, transform 0.5s ease-out, background-color 0.3s ease, border-left-color 0.3s ease; }
-        .log-entry:hover { background-color: var(--card-solid); border-left-color: var(--accent-secondary); }
-        .log-entry p { margin-top: 0; margin-bottom: 8px; color: var(--text-light); line-height: 1.6; }
-        .log-entry small { font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono); }
-        .hidden { display: none !important; }
+        #userInfo #userEmailDisplay { font-weight: 600; color: var(--text-light); }
+
+        /* --- Kalendář --- */
+        .calendar-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        #monthYearDisplay { font-size: 1.4rem; font-weight: 600; color: var(--accent-secondary); text-shadow: 0 0 6px var(--accent-secondary-glow); }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+        .calendar-header-cell { text-align: center; font-weight: 600; color: var(--text-muted); padding-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; }
+        .calendar-day-cell {
+            background-color: var(--interface-bg); border: 1px solid var(--border-color-light);
+            border-radius: 8px; padding: 10px; min-height: 100px;
+            display: flex; flex-direction: column; cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        .calendar-day-cell:hover:not(.empty-cell) {
+            background-color: var(--card-solid); border-color: var(--accent-primary);
+            transform: translateY(-3px); box-shadow: 0 4px 12px rgba(var(--accent-primary-rgb), 0.2);
+        }
+        .calendar-day-cell.empty-cell { background-color: transparent; border-color: transparent; cursor: default; }
+        .calendar-day-cell .day-number { font-weight: 600; font-size: 0.9rem; color: var(--text-light); }
+        .calendar-day-cell .log-preview {
+            font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;
+            overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
+            -webkit-line-clamp: 3; -webkit-box-orient: vertical; flex-grow: 1;
+        }
+        .calendar-day-cell .log-preview strong { color: var(--accent-lime); } /* Zvýraznění pro naučená témata */
+        .calendar-day-cell.has-log { border-left: 4px solid var(--accent-lime); }
+
+        /* --- Modální okno pro zadání logu --- */
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%; overflow: auto; background-color: rgba(var(--bg-color), 0.85);
+            backdrop-filter: blur(5px); animation: fadeInModalBg 0.4s ease-out;
+        }
+        @keyframes fadeInModalBg { from { opacity: 0; } to { opacity: 1; } }
+        .modal-content {
+            background-color: var(--card-solid); margin: 10% auto; padding: 25px;
+            border: 1px solid var(--accent-primary); border-radius: var(--card-radius);
+            width: 90%; max-width: 600px;
+            box-shadow: 0 10px 30px rgba(var(--accent-primary-rgb), 0.25);
+            animation: slideInModalContent 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        @keyframes slideInModalContent { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color-medium); }
+        .modal-title { font-size: 1.5rem; color: var(--accent-primary); margin: 0; }
+        .modal-close-btn { color: var(--text-muted); font-size: 2rem; font-weight: bold; cursor: pointer; background: none; border: none; transition: color var(--transition-fast); }
+        .modal-close-btn:hover, .modal-close-btn:focus { color: var(--accent-pink); text-decoration: none; }
+        #logDateDisplay { font-size: 1.1rem; color: var(--text-medium); margin-bottom: 1rem; }
+
+        /* --- Sekce Úkolů --- */
+        #taskFeedContainer { margin-top: 30px; }
+        .task-item {
+            background-color: var(--interface-bg); padding: 18px 20px; margin-bottom: 15px;
+            border-radius: var(--button-radius); border-left: 4px solid var(--accent-secondary);
+            box-shadow: var(--shadow-hud); opacity: 0; transform: translateY(20px);
+            animation: fadeInTask 0.5s ease-out forwards;
+        }
+        @keyframes fadeInTask { to { opacity: 1; transform: translateY(0); } }
+        .task-item:hover { background-color: var(--card-solid); border-left-color: var(--accent-pink); }
+        .task-item h3 { font-size: 1.1rem; color: var(--accent-secondary); margin-top: 0; margin-bottom: 8px; }
+        .task-item p { font-size: 0.95rem; color: var(--text-light); margin-bottom: 10px; line-height: 1.6; }
+        .task-item small.task-topic { font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono); display: block; margin-top: 5px; }
+        #loadMoreTasksButton { display: block; margin: 20px auto; }
+
+        /* --- Loader --- */
         .loader { text-align: center; padding: 25px; font-size: 1.1rem; color: var(--text-muted); display: none; flex-direction: column; align-items: center; gap: 1rem; }
         .loader.visible-loader { display: flex; }
         .loader::before { content: ''; display: block; width: 32px; height: 32px; border: 4px solid var(--accent-primary); border-radius: 50%; border-top-color: transparent; border-right-color: transparent; animation: loading-spinner 0.8s linear infinite; }
         @keyframes loading-spinner { to { transform: rotate(360deg); } }
-        .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; width: auto; max-width: 380px; display: flex; flex-direction: column; gap: 0.8rem; pointer-events: none; }
-        .notification { padding: 1rem 1.3rem; border-radius: 12px; background: var(--interface-bg); box-shadow: var(--shadow-card); display: flex; align-items: flex-start; color: var(--text-light); pointer-events: auto; border: 1px solid var(--border-color-medium); border-left-width: 5px; opacity: 0; transform: translateX(110%); backdrop-filter: blur(4px); margin-bottom: 0; animation: toast-in 0.45s cubic-bezier(0.215, 0.610, 0.355, 1) forwards; }
-        .notification.show { opacity: 1; transform: translateX(0); }
-        .notification.success { border-left-color: var(--accent-lime); }
-        .notification.error   { border-left-color: var(--accent-pink); }
-        .notification.info    { border-left-color: var(--accent-primary); }
-        .notification .toast-icon { margin-right: 0.8rem; font-size: 1.3rem; flex-shrink: 0; margin-top: 3px; }
-        .notification.success .toast-icon { color: var(--accent-lime); }
-        .notification.error .toast-icon   { color: var(--accent-pink); }
-        .notification.info .toast-icon    { color: var(--accent-primary); }
-        .notification .toast-content { flex: 1; }
-        .notification .toast-title { font-weight: 600; margin-bottom: 0.3rem; font-size: 1rem; color: var(--text-heading); }
-        .notification .toast-message { font-size: 0.9rem; color: var(--text-medium); line-height: 1.5; }
-        .notification .toast-close { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.4rem; padding: 0.1rem 0.2rem; margin-left: 0.6rem; line-height: 1; opacity: 0.7; transition: opacity 0.2s, color 0.2s; }
-        .notification .toast-close:hover { opacity: 1; color: var(--accent-primary); }
-        @keyframes toast-in { from { opacity: 0; transform: translateX(110%); } to { opacity: 1; transform: translateX(0); } }
-        #quizContainer { display: none; animation: fadeInMain 0.6s ease-out forwards; margin-top: 30px; padding: 20px; background-color: var(--interface-bg); border-radius: var(--button-radius); border: 1px solid var(--border-color-medium); }
-        #quizContainer h2 i { color: var(--accent-secondary); }
-        #questionDisplay p { color: var(--text-light); font-size: 1.1em; line-height: 1.6; }
-        #questionDisplay p strong { color: var(--accent-primary); }
-        #answerCheckboxesContainer { display: none; flex-direction: column; gap: 12px; margin-top: 20px; margin-bottom: 15px; }
-        label.checkbox-label { display: flex; align-items: center; padding: 12px 16px; border: 1px solid var(--border-color-medium); border-radius: var(--button-radius); background-color: var(--interface-bg); color: var(--text-medium); cursor: pointer; transition: all 0.2s ease; font-size: 1rem; position: relative; }
-        label.checkbox-label span { flex-grow: 1; }
-        label.checkbox-label:hover:not(.disabled) { background-color: rgba(var(--accent-primary-rgb), 0.1); border-color: var(--accent-primary); color: var(--text-light); }
-        input[type="checkbox"] { appearance: none; width: 18px; height: 18px; border: 2px solid var(--border-color-medium); border-radius: 4px; margin-right: 12px; cursor: pointer; position: relative; top: -1px; transition: all 0.2s ease; flex-shrink: 0; }
-        input[type="checkbox"]:checked { background-color: var(--accent-primary); border-color: var(--accent-primary); }
-        input[type="checkbox"]:checked::before { content: '\f00c'; font-family: "Font Awesome 6 Free"; font-weight: 900; font-size: 10px; color: var(--bg-secondary); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        label.checkbox-label.disabled { opacity: 0.6; cursor: not-allowed; background-color: var(--interface-bg) !important; border-color: var(--border-color-light) !important; pointer-events: none; }
-        label.checkbox-label.disabled input[type="checkbox"] { cursor: not-allowed; border-color: var(--border-color-light); background-color: rgba(var(--text-muted-rgb), 0.1); }
-        label.checkbox-label.disabled input[type="checkbox"]:checked::before { opacity: 0.5; }
-        label.checkbox-label.selected-correct-label { border-color: var(--accent-lime); background-color: rgba(var(--accent-lime-rgb), 0.1); color: var(--white); }
-        label.checkbox-label.correct-answer-label { border-color: var(--accent-lime); }
-        label.checkbox-label.correct-answer-label::after { content: '\f00c'; font-family: "Font Awesome 6 Free"; font-weight: 900; color: var(--accent-lime); position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 1.1em; text-shadow: 0 0 5px var(--accent-lime-glow); }
-        label.checkbox-label.selected-incorrect-label { border-color: var(--accent-pink); background-color: rgba(var(--accent-pink-rgb), 0.08); color: var(--accent-pink); }
-        label.checkbox-label.selected-incorrect-label::after { content: '\f00d'; font-family: "Font Awesome 6 Free"; font-weight: 900; color: var(--accent-pink); position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 1.1em; }
-        label.checkbox-label.disabled:hover { background-color: inherit !important; border-color: inherit !important; transform: none !important; box-shadow: none !important; }
-        #submitAnswerButton { display: none; margin-top: 15px; }
-        #feedbackArea .feedback { animation: fadeInFeedback 0.5s ease-out; }
-        @keyframes fadeInFeedback { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        #feedbackArea .feedback { padding: 10px 15px; border-radius: 8px; margin-top: 10px; border-left-width: 5px; border-left-style: solid; }
-        #feedbackArea .feedback.correct { background-color: rgba(var(--accent-lime-rgb), 0.1); border-left-color: var(--accent-lime); color: var(--accent-lime); }
-        #feedbackArea .feedback.incorrect { background-color: rgba(var(--accent-pink-rgb), 0.1); border-left-color: var(--accent-pink); color: var(--accent-pink); }
-        #feedbackArea .feedback.partial { background-color: rgba(var(--accent-orange-rgb), 0.1); border-left-color: var(--accent-orange); color: var(--accent-orange); }
-        #feedbackArea .feedback strong { display: inline-block; margin-right: 5px;}
-        #feedbackArea .feedback p { margin: 5px 0 0 0; font-size: 0.95em; color: var(--text-medium); }
-        #feedbackArea .feedback p strong { color: var(--text-light); }
-        #nextQuestionButton { display: none; }
-        /* Стили для "бесконечной ленты" */
-        #quizFeedContainer { margin-top: 20px; }
-        .quiz-question-item {
-            margin-bottom: 25px; padding: 20px;
-            background-color: rgba(var(--card-solid-rgb), 0.7); /* Slightly more opaque than interface-bg */
-            border-radius: var(--button-radius);
-            border: 1px solid var(--border-color-light);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-            animation: fadeInItem 0.5s ease-out;
-        }
-        @keyframes fadeInItem { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        .quiz-question-item h3 { font-size: 1.15em; color: var(--accent-primary); margin-bottom: 10px; }
-        .quiz-question-item p { font-size: 1em; color: var(--text-light); margin-bottom: 15px; line-height: 1.6; }
-        .quiz-options-list { list-style: none; padding: 0; margin: 0; }
-        .quiz-options-list li { margin-bottom: 8px; }
-        .quiz-options-list li label { display: block; /* Ensures label takes full width for click */ }
-        .quiz-explanation { margin-top: 15px; padding: 10px; background-color: rgba(var(--dark-purple-accent-rgb), 0.3); border-radius: 6px; font-size: 0.9em; color: var(--text-medium); }
-        #loadMoreTasksButton { display: none; margin: 20px auto; /* Center button */ }
-        /* Адаптивность */
-        @media (max-width: 768px) { body { padding: 15px; } .container { padding: 20px; } h1 { font-size: clamp(1.8rem, 5vw, 2.2rem); } h2 { font-size: clamp(1.2rem, 4vw, 1.5rem); } input[type="email"], input[type="password"], textarea, button { font-size: 0.95rem; padding: 12px 14px; } .toast-container { bottom: 1rem; right: 1rem; left: 1rem; max-width: none; width: auto; } #quizContainer, .quiz-question-item { padding: 15px; } #questionDisplay p, .quiz-question-item p { font-size: 1.05em; } label.form-label { margin-bottom: 8px; } .feedback { padding: 8px 12px; } .feedback p { font-size: 0.9em; } button, #submitAnswerButton, #nextQuestionButton, #loadMoreTasksButton { padding: 0.6rem 1.2rem; font-size: 0.85rem; } label.checkbox-label { padding: 10px 14px; } }
-        @media (max-width: 480px) { h1 { font-size: 1.6rem; } h2 { font-size: 1.1rem; } label { font-size: 0.85rem; } .container { padding: 15px; } #quizContainer, .quiz-question-item { padding: 10px; margin-top: 20px; } #questionDisplay p, .quiz-question-item p { font-size: 1em; } #submitAnswerButton, #nextQuestionButton, #loadMoreTasksButton { width: 100%; margin-top: 10px; } label.checkbox-label { font-size: 0.95rem; padding: 10px; } input[type="checkbox"] { width: 16px; height: 16px; margin-right: 10px; } }
+
+        /* Notifikace (základní z originálu) */
+        .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; max-width: 380px; }
+        /* ... (další styly pro notifikace, pokud jsou potřeba, lze převzít) ... */
+
     </style>
 </head>
 <body>
@@ -208,28 +207,10 @@
     <div class="toast-container" id="notificationArea"></div>
 
     <div class="container">
-        <h1>Justax - Buď Nejlepší</h1>
+        <h1>Buď Nejlepší // Kyber Kalendář</h1>
 
         <div id="authSection">
-            <div id="loginFormContainer">
-                <h2>Přihlášení</h2>
-                <form id="loginForm">
-                    <div><label for="loginEmail">E-mail:</label><input type="email" id="loginEmail" required autocomplete="email"></div>
-                    <div><label for="loginPassword">Heslo:</label><input type="password" id="loginPassword" required autocomplete="current-password"></div>
-                    <button type="submit">Přihlásit se</button>
-                </form>
-                <p class="auth-toggle" onclick="toggleAuthForms()">Nemáš účet? Zaregistruj se</p>
             </div>
-            <div id="registerFormContainer" class="hidden">
-                <h2>Registrace</h2>
-                <form id="registerForm">
-                    <div><label for="registerEmail">E-mail:</label><input type="email" id="registerEmail" required autocomplete="email"></div>
-                    <div><label for="registerPassword">Heslo:</label><input type="password" id="registerPassword" required autocomplete="new-password"></div>
-                    <button type="submit">Zaregistrovat se</button>
-                </form>
-                <p class="auth-toggle" onclick="toggleAuthForms()">Už máš účet? Přihlas se</p>
-            </div>
-        </div>
 
         <div id="appSection" class="hidden">
             <div id="userInfo">
@@ -237,33 +218,53 @@
                 <button id="logoutButton">Odhlásit se</button>
             </div>
 
-            <h2>Co ses dnes naučil/a?</h2>
-            <form id="learningLogForm">
-                <label for="learningInput">Tvoje poznámky:</label>
-                <textarea id="learningInput" placeholder="Napište, co jste se dnes naučili nebo opakovali..." required></textarea>
-                <button type="submit">Uložit pokrok</button>
+            <h2><i class="fas fa-calendar-alt"></i> Můj Studijní Kalendář</h2>
+            <div class="calendar-controls">
+                <button id="prevMonthBtn" class="btn btn-secondary"><i class="fas fa-chevron-left"></i></button>
+                <div id="monthYearDisplay">Červen 2024</div>
+                <button id="nextMonthBtn" class="btn btn-secondary"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="calendar-header-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 8px;">
+                 <div class="calendar-header-cell">Po</div>
+                 <div class="calendar-header-cell">Út</div>
+                 <div class="calendar-header-cell">St</div>
+                 <div class="calendar-header-cell">Čt</div>
+                 <div class="calendar-header-cell">Pá</div>
+                 <div class="calendar-header-cell">So</div>
+                 <div class="calendar-header-cell">Ne</div>
+            </div>
+            <div id="calendarGrid" class="calendar-grid">
+                </div>
+
+            <div id="taskFeedContainer">
+                <h2><i class="fas fa-tasks"></i> Doporučené Úkoly</h2>
+                <div id="tasksFeed" class="loader visible-loader">Načítám úkoly...</div>
+                <button id="loadMoreTasksButton" class="btn btn-secondary hidden">Načíst další úkoly</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="learningLogModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Záznam o studiu pro <span id="logDateDisplay"></span></h3>
+                <button class="modal-close-btn" id="closeLogModalBtn">&times;</button>
+            </div>
+            <form id="dailyLearningLogForm">
+                <input type="hidden" id="logSelectedDate">
+                <div class="form-group">
+                    <label for="logTopic" class="form-label">Hlavní téma dne:</label>
+                    <input type="text" id="logTopic" class="form-control" placeholder="Např. Lineární rovnice, Kondicionály v Pythonu" required>
+                </div>
+                <div class="form-group">
+                    <label for="logDetails" class="form-label">Podrobnosti a poznámky:</label>
+                    <textarea id="logDetails" class="form-control" rows="6" placeholder="Co konkrétně jste se naučili? Jaké příklady jste řešili? Nějaké aha momenty nebo problémy?"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Uložit záznam</button>
             </form>
-
-            <div id="logHistory">
-                <h2>Moje předchozí záznamy:</h2>
-                <div id="logsContainer"><div class="loader visible-loader">Načítám záznamy...</div></div>
-            </div>
-
-            <div id="quizFeedContainer" style="margin-top: 30px;">
-                <h2><i class="fas fa-tasks"></i> Procvičovací Kvíz</h2>
-                <div id="quizLoading" class="loader hidden" style="margin-bottom: 15px;">Načítám otázky...</div>
-                <div id="quizContainer" style="display: none;">
-                    </div>
-                <button id="loadMoreTasksButton" class="btn" style="display: none; margin: 20px auto;">
-                    <i class="fas fa-plus"></i> Načíst další otázky
-                </button>
-            </div>
-            <button id="generateTasksButton" class="btn" style="display: none; margin-top: 20px; margin-bottom: 15px;">Restartovat Kvíz</button>
-
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="bethebest.js"></script>
-</body>
+    <script src="bethebest.js"></script> </body>
 </html>
