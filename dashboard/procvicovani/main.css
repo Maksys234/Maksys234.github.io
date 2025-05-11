@@ -264,7 +264,7 @@ main#main-content.loaded { animation: fadeInMain 0.5s ease-out forwards; }
 body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb), 0.85); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
 .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; width: 100%; }
 .header-left-group { display: flex; align-items: center; gap: 0.8rem; flex-grow: 1; }
-.mobile-menu-toggle#main-mobile-menu-toggle { display: none; background: none; border: none; color: var(--text-medium); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; z-index: 1010; transition: color 0.2s ease; }
+.mobile-menu-toggle#main-mobile-menu-toggle { display: none; background: none; border: none; color: var(--text-muted); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; z-index: 1010; transition: color 0.2s ease; }
 .mobile-menu-toggle#main-mobile-menu-toggle:hover { color: var(--accent-primary); }
 @media (max-width: 992px) { .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } }
 .header-content h1 { font-size: 1.7rem; font-weight: 700; color: var(--text-heading); margin: 0; text-shadow: 0 0 10px var(--accent-glow); display: flex; align-items: center; gap: 0.7rem;}
@@ -363,20 +363,48 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 
 .shortcuts-section { margin-bottom: 2.5rem; }
 .shortcut-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.8rem; }
-.shortcut-card { padding: 1.8rem; text-decoration: none; color: var(--text-medium); display: flex; flex-direction: column; align-items: center; text-align: center; }
-.shortcut-card:hover { background-color: rgba(var(--accent-primary-rgb), 0.05); }
-button.shortcut-card { background: var(--card-bg); border: 1px solid var(--border-color-light); cursor: pointer; }
-button.shortcut-card:hover { transform: translateY(-5px) scale(1.01); box-shadow: var(--shadow-card-hover-enhanced); border-color: var(--border-color-medium); background-color: rgba(var(--card-solid-rgb), 0.95); }
-button.shortcut-card::before, button.shortcut-card::after { content: ''; position: absolute; width: 12px; height: 12px; border-color: var(--accent-primary); border-style: solid; opacity: 0; transition: all 0.3s ease; pointer-events: none; z-index: 1; }
-button.shortcut-card::before { top: 10px; left: 10px; border-width: 2px 0 0 2px; }
-button.shortcut-card::after { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
-button.shortcut-card:hover::before, button.shortcut-card:hover::after { opacity: 0.6; }
-button.shortcut-card:hover::before { transform: translate(-3px, -3px); }
-button.shortcut-card:hover::after { transform: translate(3px, 3px); }
-.shortcut-icon { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.7rem; margin-bottom: 1.2rem; background: linear-gradient(145deg, rgba(var(--accent-primary-rgb), 0.15), rgba(var(--accent-secondary-rgb), 0.1)); color: var(--accent-primary); transition: all 0.3s ease; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
-.shortcut-card:hover .shortcut-icon { background: var(--accent-primary); color: var(--text-fixed-dark); transform: scale(1.1) rotate(5deg); box-shadow: 0 6px 15px rgba(var(--accent-primary-rgb), 0.3); }
-.shortcut-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-light); }
-.shortcut-desc { font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; }
+/* UPRAVENO A ROZŠÍŘENO: .shortcut-card a .item-card */
+.shortcut-card, .item-card {
+    padding: 1.8rem; text-decoration: none; color: var(--text-medium); display: flex; flex-direction: column; align-items: center; text-align: center;
+    background: var(--card-solid); /* Jednolitější pozadí pro karty */
+    border: 1px solid var(--border-color-light); /* Jemnější hranice */
+}
+.shortcut-card:hover, .item-card:hover {
+    background-color: rgba(var(--accent-primary-rgb), 0.08); /* Světlejší hover */
+    border-color: var(--accent-primary);
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 8px 25px rgba(var(--accent-primary-rgb), 0.15);
+}
+.shortcut-icon {
+    width: 65px; height: 65px; border-radius: 18px; /* Mírně ostřejší hrany */
+    display: flex; align-items: center; justify-content: center; font-size: 2rem; /* Větší ikona */
+    margin-bottom: 1.3rem; color: var(--white); transition: all 0.3s ease;
+    box-shadow: 0 5px 12px rgba(0,0,0,0.3);
+    /* Unikátní gradienty z HTML jsou aplikovány inline */
+}
+.shortcut-card:hover .shortcut-icon, .item-card:hover .shortcut-icon {
+    transform: scale(1.12) rotate(-6deg); /* Výraznější efekt */
+    box-shadow: 0 8px 20px rgba(var(--accent-primary-rgb), 0.35);
+}
+.shortcut-title { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.6rem; color: var(--text-light); }
+.shortcut-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.55; margin-bottom: 1.2rem; flex-grow: 1; }
+
+/* NOVÉ: Styly pro .item-card (Témata k Procvičení) */
+.item-card .shortcut-icon {
+    background: var(--gradient-info); /* Výchozí gradient, pokud není specifikován inline */
+}
+.item-card-btn {
+    margin-top: auto; /* Tlačitko se přichytí ke spodní části karty */
+    padding: 0.6rem 1.2rem;
+    font-size: 0.85rem;
+    width: calc(100% - 1rem); /* Tlačítko s mírným odsazením */
+    max-width: 200px;
+    display: inline-flex; /* Zajistí správné zobrazení */
+    box-shadow: 0 3px 8px rgba(var(--accent-primary-rgb), 0.2);
+}
+.item-card-btn:hover {
+    box-shadow: 0 5px 15px rgba(var(--accent-primary-rgb), 0.3);
+}
 
 .empty-state { padding: 3rem 2rem; text-align: center; color: var(--text-muted); display: none; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; min-height: 200px; }
 .empty-state-icon { font-size: 3rem; margin-bottom: 1.2rem; color: var(--accent-secondary); opacity: 0.6; }
@@ -572,3 +600,13 @@ button.shortcut-card:hover::after { transform: translate(3px, 3px); }
 .tooltipster-shadow { border-radius: 8px; background: var(--interface-bg); color: var(--text-light); box-shadow: var(--shadow-card); border: 1px solid var(--border-color-medium); }
 .tooltipster-shadow .tooltipster-content { padding: 8px 14px; font-size: 0.88rem; font-family: var(--font-primary); }
 /* --- END: Cyberpunk CSS Theme --- */
+
+/* NOVÉ STYLY PRO INFINITE SCROLL LOADER (pokud je potřeba odlišit od .loading-overlay) */
+#demo-infinite-loader .loading-spinner {
+    width: 30px; /* Menší spinner */
+    height: 30px;
+    border-width: 3px;
+}
+#demo-infinite-loader p {
+    font-size: 0.9rem; /* Menší text */
+}
