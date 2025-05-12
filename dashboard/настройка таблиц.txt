@@ -669,3 +669,23 @@ ADD COLUMN IF NOT EXISTS details JSONB;      -- Doplňující strukturované inf
 COMMENT ON COLUMN public.activities.icon IS 'Název ikony (např. Font Awesome) reprezentující typ aktivity.';
 COMMENT ON COLUMN public.activities.link_url IS 'URL odkazující na stránku související s aktivitou.';
 COMMENT ON COLUMN public.activities.details IS 'Další JSON data k aktivitě, např. {"score": 80, "topic": "Algebra"}.';
+CREATE TABLE public.credit_transactions (
+    id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    transaction_type TEXT NOT NULL, -- např. 'earned_exercise', 'spent_title_shop', 'reward_streak', 'manual_adjustment'
+    amount INTEGER NOT NULL, -- Kladné pro zisk, záporné pro utracení
+    description TEXT, -- Popis transakce, např. "Dokončení cvičení: Rovnice", "Nákup titulu: Měsíční Maratonec"
+    balance_after_transaction INTEGER, -- Volitelný sloupec pro zůstatek po transakci
+    reference_activity_id UUID NULL REFERENCES public.activities(id) ON DELETE SET NULL, -- Odkaz na související aktivitu, pokud existuje
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE public.credit_transactions IS 'Zaznamenává historii kreditových transakcí pro uživatele.';
+COMMENT ON COLUMN public.credit_transactions.transaction_type IS 'Typ transakce (např. zisk z cvičení, útrata v obchodě).';
+COMMENT ON COLUMN public.credit_transactions.amount IS 'Počet kreditů přidaných (kladné) nebo odebraných (záporné).';
+COMMENT ON COLUMN public.credit_transactions.description IS 'Textový popis transakce.';
+COMMENT ON COLUMN public.credit_transactions.balance_after_transaction IS 'Zůstatek kreditů uživatele po provedení této transakce (volitelné).';
+COMMENT ON COLUMN public.credit_transactions.reference_activity_id IS 'Odkaz na ID záznamu v tabulce activities, pokud transakce souvisí s konkrétní aktivitou.';
+
+-- Indexy pro rychlejší dotazování
+CREATE INDEX IF NOT EXISTS idx_credit_transactions_user_id_created_at ON public.credit_transactions (user_id, created_at DESC);
