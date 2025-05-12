@@ -648,3 +648,24 @@ COMMENT ON COLUMN public.profiles.preferences
 IS 'Stores user interface and learning goal preferences as a JSONB object. Includes keys like "dark_mode", "language", and potentially "goal_details" for specific goal settings.';
 ALTER TABLE profiles
 ADD COLUMN longest_streak_days INTEGER DEFAULT 0;
+CREATE TABLE public.claimed_streak_milestones (
+    id UUID PRIMARY KEY DEFAULT extensions.uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    milestone_day INTEGER NOT NULL,
+    claimed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    reward_name TEXT, -- Název odměny pro referenci
+    CONSTRAINT unique_user_milestone UNIQUE (user_id, milestone_day)
+);
+
+COMMENT ON TABLE public.claimed_streak_milestones IS 'Sleduje milníky studijní série, které si uživatelé vyzvedli.';
+COMMENT ON COLUMN public.claimed_streak_milestones.milestone_day IS 'Počet dní série pro tento milník (např. 5, 10, 30).';
+COMMENT ON COLUMN public.claimed_streak_milestones.reward_name IS 'Popisný název odměny za tento milník.';
+-- Rozšíření existující tabulky 'activities'
+ALTER TABLE public.activities
+ADD COLUMN IF NOT EXISTS icon TEXT,          -- Název Font Awesome ikony (např. 'fa-vial', 'fa-book-open')
+ADD COLUMN IF NOT EXISTS link_url TEXT,      -- URL pro proklik na detail aktivity
+ADD COLUMN IF NOT EXISTS details JSONB;      -- Doplňující strukturované informace k aktivitě (např. skóre testu)
+
+COMMENT ON COLUMN public.activities.icon IS 'Název ikony (např. Font Awesome) reprezentující typ aktivity.';
+COMMENT ON COLUMN public.activities.link_url IS 'URL odkazující na stránku související s aktivitou.';
+COMMENT ON COLUMN public.activities.details IS 'Další JSON data k aktivitě, např. {"score": 80, "topic": "Algebra"}.';
