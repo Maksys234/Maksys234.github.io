@@ -624,6 +624,13 @@ ALTER TABLE public.title_shop ENABLE ROW LEVEL SECURITY;
 -- Povolit čtení všech dostupných titulů všem přihlášeným uživatelům:
 CREATE POLICY "Allow logged-in users to read available titles"
 ON public.title_shop
+CREATE TABLE public.learning_logs (
+    id UUID DEFAULT gen_random_uuid() NOT NULL,
+    user_id UUID REFERENCES auth.users(id) NOT NULL,
+    log_text TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
+    CONSTRAINT learning_logs_pkey PRIMARY KEY (id)
+);
 FOR SELECT
 USING (auth.role() = 'authenticated' AND is_available = true);
 ) TABLESPACE pg_default;
@@ -639,3 +646,5 @@ ALTER COLUMN preferences SET DEFAULT '{}'::jsonb;
 -- (Необязательно) Добавляем комментарий к столбцу для ясности
 COMMENT ON COLUMN public.profiles.preferences
 IS 'Stores user interface and learning goal preferences as a JSONB object. Includes keys like "dark_mode", "language", and potentially "goal_details" for specific goal settings.';
+ALTER TABLE profiles
+ADD COLUMN longest_streak_days INTEGER DEFAULT 0;
