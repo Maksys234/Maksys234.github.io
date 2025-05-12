@@ -621,58 +621,67 @@ body.scrolled .dashboard-header {
 .shortcut-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-light); }
 .shortcut-desc { font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; }
 
-/* --- START: Улучшенные стили для "Nedávná aktivita" и "Historie Kreditů" (v2) --- */
+/* --- START: Улучшенные стили для "Nedávná aktivita" и "Historie Kreditů" (v3) --- */
 .activity-list-container {
-    min-height: 300px; /* Уменьшено, если не так много контента */
+    min-height: 300px;
     display: flex; flex-direction: column;
-    padding: 0; /* Убран padding, если он не нужен */
-    background: transparent; /* Если это вложено в .card, фон не нужен */
-    border: none; /* Убрана граница, если вложено в .card */
-    box-shadow: none; /* Убрана тень, если вложено в .card */
+    padding: 0;
+    background: var(--card-solid); /* Темнее, чем обычный card-bg для контраста */
+    border: 1px solid var(--border-color-medium); /* Заметнее граница */
+    border-radius: var(--card-radius); /* Общий радиус для контейнера */
+    box-shadow: var(--shadow-hud);
 }
 
 #credit-history-section .activity-list-container {
-     /* Если используется специальная секция для истории, можно добавить отступы */
-     padding-top: 1rem;
+     padding-top: 0; /* Убираем отступ, если заголовок секции уже есть */
+     border-top-left-radius: 0; /* Убираем скругление, если примыкает к заголовку */
+     border-top-right-radius: 0;
+     background: transparent; /* Прозрачный, если секция уже card */
+     border: none;
+     box-shadow: none;
 }
 
 .activity-list {
     flex-grow: 1; overflow-y: auto;
-    max-height: 450px; /* Можно оставить или убрать, если нет нужды в ограничении */
-    padding: 0;
+    max-height: 480px;
+    padding: 0; /* Отступы будут у .activity-item */
     visibility: visible;
 }
 
 .activity-item {
     display: flex; align-items: flex-start;
-    padding: 1.2rem 1.5rem; /* Консистентные отступы */
+    padding: 1.1rem 1.3rem; /* Уменьшил вертикальный padding для компактности */
     border-bottom: 1px solid var(--border-color-light);
     transition: background-color 0.25s ease, transform 0.2s ease;
-    gap: 1.2rem;
+    gap: 1rem; /* Уменьшил gap */
     position: relative;
     overflow: hidden;
 }
-.activity-item::before {
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
-    background-color: transparent; transition: background-color 0.25s ease;
-    border-radius: 0; /* Убрано скругление, чтобы линия была от края до края */
+.activity-item::before { /* Акцентная линия слева */
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background-color: transparent;
+    transition: background-color 0.25s ease, width 0.25s ease;
 }
 .activity-item:hover {
-    background-color: rgba(var(--accent-primary-rgb), 0.07);
-    transform: translateX(2px); /* Меньший сдвиг */
+    background-color: rgba(var(--accent-primary-rgb), 0.05); /* Чуть менее интенсивный hover */
 }
-.activity-item:hover::before { background-color: var(--accent-primary); }
+.activity-item:hover::before {
+    background-color: var(--accent-primary);
+    width: 4px; /* Сделать линию чуть толще при наведении */
+}
 .activity-item:last-child { border-bottom: none; }
 
 .activity-icon {
-    width: 40px; height: 40px; border-radius: 8px; /* Менее круглые */
+    width: 38px; height: 38px; /* Чуть меньше */
+    border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.15rem; color: var(--white); flex-shrink: 0;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+    font-size: 1.1rem; /* Уменьшил размер иконки */
+    color: var(--white); flex-shrink: 0;
+    box-shadow: 0 3px 7px rgba(0,0,0,0.2);
     text-shadow: 0 1px 1px rgba(0,0,0,0.3);
     transition: transform 0.2s ease, filter 0.2s ease;
 }
-.activity-item:hover .activity-icon { filter: brightness(1.15); transform: scale(1.03); }
+.activity-item:hover .activity-icon { filter: brightness(1.1); transform: scale(1.02); }
 
 /* Иконки по типам (оставляем как есть или адаптируем) */
 .activity-icon.completed, .activity-icon.exercise { background: var(--gradient-success); }
@@ -683,100 +692,138 @@ body.scrolled .dashboard-header {
 .activity-icon.plan_generated { background: var(--dark-purple-accent); border: 1px solid var(--accent-secondary); }
 .activity-icon.level_up { background: var(--gradient-level-up); }
 .activity-icon.default, .activity-icon.other { background: var(--text-muted); }
+/* Иконки для Истории Кредитов */
+.activity-icon.points_earned { background: var(--accent-lime); color: var(--text-fixed-dark); }
+.activity-icon.points_spent { background: var(--accent-pink); }
+.activity-icon.reward_streak, .activity-icon.reward_monthly_calendar { background: var(--accent-secondary); }
+
 
 .activity-content {
     flex-grow: 1;
-    display: flex; /* Добавляем flex для лучшего контроля над элементами */
-    flex-direction: column; /* Элементы идут друг под другом */
-    justify-content: center; /* Вертикальное выравнивание, если нужно */
-    min-height: 40px; /* Минимальная высота для выравнивания иконок с текстом */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; /* Выравнивание по верху */
+    min-width: 0;
 }
 .activity-title {
-    font-size: 1rem; /* Чуть меньше для компактности */
-    font-weight: 600; margin-bottom: 0.2rem; /* Меньше отступ */
-    color: var(--text-light); line-height: 1.35;
+    font-size: 0.95rem; /* Немного меньше */
+    font-weight: 600; margin-bottom: 0.15rem; /* Меньше отступ */
+    color: var(--text-light); line-height: 1.3;
+    word-break: break-word;
 }
 .activity-desc {
-    font-size: 0.88rem; /* Немного меньше */
+    font-size: 0.85rem; /* Немного меньше */
     color: var(--text-medium);
-    margin-bottom: 0.3rem; line-height: 1.45;
-    max-width: 100%; /* Занимает всю доступную ширину */
+    margin-bottom: 0.25rem; line-height: 1.4;
+    word-break: break-word;
 }
-.activity-meta { /* Новый класс для Skóre или других метаданных */
-    font-size: 0.8rem; color: var(--accent-secondary-glow);
+.activity-desc p { margin-bottom: 0.1rem; } /* Для <p> внутри описания */
+
+.activity-meta {
+    font-size: 0.8rem;
+    color: var(--accent-secondary); /* Более яркий цвет для Skóre */
     font-weight: 500;
     margin-bottom: 0.3rem;
+    line-height: 1.3;
 }
 .activity-time {
-    font-size: 0.75rem; /* Меньше */
+    font-size: 0.7rem; /* Совсем маленький */
     color: var(--text-muted);
-    display: inline-flex; align-items: center; gap: 0.3em; /* Меньше отступ */
+    display: inline-flex; align-items: center; gap: 0.3em;
     font-family: var(--font-mono);
-    opacity: 0.7; /* Более приглушенно */
-    margin-top: auto; /* Прижимаем к низу, если activity-content это flex-column */
+    opacity: 0.75;
+    margin-top: auto; /* Прижимаем к низу */
+    padding-top: 0.2rem;
 }
 .activity-time i { font-size: 0.9em; }
 
-/* Специфичные стили для Historie Kreditů (v2 - более выразительно) */
+/* Специфичные стили для Historie Kreditů (v3 - еще более выразительно) */
 .credit-transaction-item {
-    border-radius: var(--button-radius); /* Более явные карточки */
-    margin-bottom: 0.8rem; /* Отступ между карточками */
+    border-radius: 10px; /* Чуть менее скругленные */
+    margin-bottom: 0.7rem; /* Отступ между карточками */
     box-shadow: var(--shadow-hud);
-    background: var(--card-solid); /* Темнее, чтобы текст выделялся */
+    background: rgba(var(--card-solid-rgb), 0.95); /* Слегка прозрачный фон */
+    border: 1px solid transparent; /* Убираем стандартную рамку */
+    /* border-left-width: 5px; /* Убрано, будем использовать псевдоэлемент для линии */
+    padding: 0.9rem 1.2rem; /* Уменьшил padding для компактности */
+    position: relative;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.credit-transaction-item:last-child { margin-bottom: 0; }
+/* Общий акцент для всех транзакций */
+.credit-transaction-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0; width: 5px;
+    border-radius: 10px 0 0 10px;
+    transition: background-color 0.25s ease;
+}
 
-.credit-transaction-item::before { display: none; } /* Убираем левую линию, если есть от .activity-item */
+.credit-transaction-item.positive::before { background-color: var(--accent-lime); }
+.credit-transaction-item.negative::before { background-color: var(--accent-pink); }
+.credit-transaction-item.neutral::before { background-color: var(--text-muted); }
+
+.credit-transaction-item:hover {
+    transform: scale(1.01) translateX(2px);
+    box-shadow: var(--shadow-card), 0 0 10px rgba(var(--accent-primary-rgb), 0.1) inset;
+    border-color: var(--border-color-medium);
+}
 
 .credit-transaction-item .activity-icon {
-    border-radius: 50%; /* Круглые иконки */
-    width: 36px; height: 36px; font-size: 1rem;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    border-radius: 50%;
+    width: 32px; height: 32px; font-size: 0.9rem; /* Уменьшена иконка */
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    filter: none; /* Убираем предыдущий drop-shadow */
 }
 .credit-transaction-item .activity-icon.positive { background: var(--accent-lime); color: var(--text-fixed-dark); }
-.credit-transaction-item .activity-icon.negative { background: var(--accent-pink); color: var(--white); }
+.credit-transaction-item .activity-icon.negative { background: var(--accent-pink); }
 .credit-transaction-item .activity-icon.neutral { background: var(--text-muted); }
 
 .credit-transaction-item .activity-content {
-    flex-direction: row; /* Иконка, текст, сумма - в ряд */
-    justify-content: space-between; /* Растягиваем элементы */
-    align-items: center; /* Выравниваем по центру */
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
 }
 .credit-transaction-item .activity-title {
-    font-size: 0.95rem;
-    flex-grow: 1; /* Заголовок занимает доступное место */
-    margin-right: 1rem; /* Отступ от суммы */
-    margin-bottom: 0; /* Убираем нижний отступ, т.к. все в ряд */
-}
-.credit-transaction-item .activity-desc { /* Описание под заголовком, если нужно */
-    display: none; /* По умолчанию скрываем, если не используется для описания транзакции */
+    font-size: 0.9rem; /* Уменьшен заголовок */
+    flex-grow: 1;
+    margin-right: 0.8rem; /* Меньше отступ */
+    margin-bottom: 0;
+    line-height: 1.3; /* Слегка уменьшил для компактности */
 }
 .credit-transaction-item .credit-amount {
-    font-weight: 700; font-size: 1.15rem;
-    white-space: nowrap; /* Чтобы сумма не переносилась */
+    font-weight: 700; font-size: 1.05rem; /* Немного меньше, но все еще заметно */
+    white-space: nowrap;
     font-family: var(--font-mono);
-    padding: 0.3rem 0.6rem;
-    border-radius: 6px;
+    padding: 0.25rem 0.5rem; /* Уменьшен padding */
+    border-radius: 5px; /* Меньше скругление */
+    border: 1px solid transparent;
+    line-height: 1.2;
 }
 .credit-transaction-item .credit-amount.positive {
-    color: var(--accent-lime); text-shadow: 0 0 6px var(--accent-lime-glow);
+    color: var(--accent-lime); text-shadow: 0 0 5px rgba(var(--accent-lime-rgb), 0.5);
     background-color: rgba(var(--accent-lime-rgb), 0.08);
+    border-color: rgba(var(--accent-lime-rgb), 0.25);
 }
 .credit-transaction-item .credit-amount.negative {
-    color: var(--accent-pink); text-shadow: 0 0 6px var(--accent-pink-glow);
+    color: var(--accent-pink); text-shadow: 0 0 5px rgba(var(--accent-pink-rgb), 0.5);
     background-color: rgba(var(--accent-pink-rgb), 0.08);
+    border-color: rgba(var(--accent-pink-rgb), 0.25);
 }
 .credit-transaction-item .credit-amount.neutral {
     color: var(--text-medium);
     background-color: rgba(var(--text-muted-rgb), 0.08);
+    border-color: rgba(var(--text-muted-rgb), 0.25);
 }
-.credit-transaction-item .credit-amount i { font-size: 0.85em; margin-left: 0.3em; }
+.credit-transaction-item .credit-amount i { font-size: 0.8em; margin-left: 0.2em; }
+
 .credit-transaction-item .activity-time {
-    font-size: 0.7rem; margin-left: 1rem; /* Отступ от суммы */
+    font-size: 0.65rem; /* Очень маленький */
+    margin-left: 0.8rem; /* Отступ от суммы */
     white-space: nowrap;
-    align-self: center; /* Выравниваем по центру с суммой */
+    align-self: center;
+    opacity: 0.7;
 }
-/* --- END: Улучшенные стили (v2) --- */
+/* --- END: Улучшенные стили (v3) --- */
 
 
 .view-all-link {
@@ -808,7 +855,8 @@ body.scrolled .dashboard-header {
 }
 @keyframes loading-spinner { to { transform: rotate(360deg); } }
 .activity-list-container .empty-state, .card-error-state {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%;
+    /* position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); */ /* Убрано, т.к. контейнер flex */
+    width: 90%; margin: auto; /* Центрирование внутри flex-контейнера */
     padding: 2rem; text-align: center; color: var(--text-muted); display: none; /* Скрыто */
 }
 .activity-list-container .empty-state i, .card-error-state i { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.6; }
@@ -831,12 +879,13 @@ body.scrolled .dashboard-header {
 .stat-card .loading-skeleton { display: none; padding: 1.5rem; align-items: flex-start; justify-content: space-between; width: 100%; }
 .stat-card .loading-skeleton .skeleton-info { flex-grow: 1; }
 .stat-card.loading .loading-skeleton { display: flex; }
-.activity-list .loading-placeholder { padding: 0.5rem 0; display: none; }
+.activity-list .loading-placeholder { padding: 0.5rem 0; display: none; flex-direction: column; gap: 0.8rem; } /* Изменено на flex */
 .activity-list .skeleton-activity-item { display: flex; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color-light); align-items: flex-start; gap: 1.2rem; }
 .activity-list .skeleton-activity-item:last-child { border-bottom: none; }
 .stat-card.loading .stat-card-content, .stat-card.loading .stat-card-footer { visibility: hidden; }
-.activity-list-container.loading .activity-list { visibility: hidden; }
-.activity-list-container.loading .loading-placeholder { display: block; }
+.activity-list-container.loading .activity-list { visibility: hidden; height: 0; /* Схлопываем, чтобы плейсхолдер занял место */ }
+.activity-list-container.loading .loading-placeholder { display: flex; /* Показываем плейсхолдер */ }
+
 
 /* Сообщения об ошибках */
 .error-container { display: none; margin-bottom: 1.5rem; }
