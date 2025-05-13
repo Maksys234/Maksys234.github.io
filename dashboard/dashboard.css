@@ -190,13 +190,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .btn:active:not(:disabled) { transform: translateY(0px) scale(0.97); box-shadow: 0 0 8px var(--accent-secondary-glow), inset 0 0 12px rgba(0,0,0,0.3); transition-duration: 0.08s; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; }
 .btn:disabled::before { display: none; }
-
-.btn-outline { /* Контурная кнопка */
-    border-color: var(--accent-secondary); color: var(--accent-secondary); box-shadow: 0 0 10px -3px var(--accent-secondary-glow), inset 0 0 8px -5px var(--accent-secondary-glow);
-}
-.btn-outline::before { display: none; }
-.btn-outline:hover:not(:disabled) { background: rgba(var(--accent-secondary-rgb), 0.12); border-color: var(--accent-pink); color: var(--accent-pink); box-shadow: 0 0 18px var(--accent-pink-glow); transform: translateY(-3px); }
-.btn-outline:active:not(:disabled) { transform: translateY(0px) scale(0.97); box-shadow: 0 0 8px var(--accent-pink-glow), inset 0 0 10px rgba(0,0,0,0.15); background: rgba(var(--accent-pink-rgb), 0.18); transition-duration: 0.08s; }
+.btn-primary { background: var(--gradient-button); border-color: transparent; color: var(--text-fixed-dark); box-shadow: 0 0 15px -2px var(--accent-glow); }
+.btn-primary::before { display: none; }
+.btn-primary:hover:not(:disabled) { background: var(--gradient-button-hover); border-color: transparent; color: var(--white); box-shadow: 0 0 22px var(--accent-pink-glow); transform: translateY(-3px); }
 
 /* --- NEW: Styles for Sidebar Toggle Button --- */
 .btn-icon-only { /* Style for icon-only buttons like the toggle */
@@ -276,7 +272,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000;
     box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4); /* Тень */
     border-right: 1px solid var(--border-color-light);
-    transition: width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), transform var(--transition-medium) ease; /* Added transform transition for mobile */
+    transition: width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), transform var(--transition-medium) ease; /* Apply transition to width */
     overflow: hidden; /* Hide overflow during transition */
 }
 .sidebar-header { display: flex; align-items: center; margin-bottom: 2.5rem; padding: 0 0.5rem; position: relative; min-height: 45px; transition: padding var(--transition-medium) ease; }
@@ -352,10 +348,10 @@ body.sidebar-collapsed .sidebar-menu::-webkit-scrollbar {
 .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .user-info { flex-grow: 1; overflow: hidden; transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; }
 .user-name { font-weight: 600; font-size: 1rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-role { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
+.user-role { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;} /* Added overflow and ellipsis */
 .sidebar-footer { /* Подвал сайдбара */
     margin-top: 1.5rem; padding: 1rem; font-size: 0.8rem; color: var(--text-muted);
-    text-align: center; flex-shrink: 0; opacity: 0.7;
+    text-align: center; flex-shrink: 0; /* Prevent shrinking */ opacity: 0.7;
     transition: opacity 0.2s ease, max-width 0.2s linear 0.1s;
     overflow: hidden; white-space: nowrap; max-width: 200px;
 }
@@ -366,10 +362,10 @@ main {
     flex: 1; margin-left: var(--sidebar-width);
     transition: margin-left var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1); /* Apply transition */
     width: calc(100% - var(--sidebar-width)); overflow-y: auto; height: 100vh;
-    display: none; /* Initially hidden by default */
+    display: block; /* Changed from none */
     padding: 0 var(--container-padding-x); /* Add padding back */
 }
-main.loaded { display: block; animation: fadeInMain 0.5s ease-out forwards; }
+main.loaded { animation: fadeInMain 0.5s ease-out forwards; }
 @keyframes fadeInMain { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 
@@ -415,7 +411,7 @@ body.sidebar-collapsed .user-avatar {
     height: 40px;
     font-size: 1rem; /* Smaller initials font */
 }
-body.sidebar-collapsed main#main-content {
+body.sidebar-collapsed main#main-content { /* Specific to dashboard.html */
     margin-left: var(--sidebar-collapsed-width);
     width: calc(100% - var(--sidebar-collapsed-width));
 }
@@ -435,7 +431,7 @@ body.sidebar-collapsed #sidebar-close-toggle {
 /* --- END: Collapsed Sidebar Styles --- */
 
 
-/* Хедер дашборда (используется в профиле) */
+/* Хедер дашборда */
 .dashboard-header {
     margin-bottom: var(--section-padding-y);
     background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.7);
@@ -602,7 +598,12 @@ body.scrolled .dashboard-header {
 .progress-icon i::before { content: "\f080"; } /* fa-chart-line */
 .points-icon i::before { content: "\f005"; } /* fa-star */
 .streak-icon i::before { content: "\f7e4"; } /* fa-fire */
-.stat-card-footer { display: none; /* Скрываем футер, инфо интегрируем */ }
+.stat-card-footer { /* Новый футер */
+    display: flex; align-items: center; gap: 0.5em;
+    margin-top: auto; padding-top: 0.8rem; /* Прижимаем к низу */
+    border-top: 1px solid var(--border-color-light);
+    font-size: 0.85rem; color: var(--text-muted);
+}
 
 /* Ряд карточек быстрого доступа */
 .shortcut-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.8rem; }
@@ -625,7 +626,8 @@ body.scrolled .dashboard-header {
 .shortcut-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-light); }
 .shortcut-desc { font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; }
 
-/* --- START: Улучшенные стили для "Nedávná aktivita" и "Historie Kreditů" (v3) --- */
+/* --- START: Nedávná aktivita & Historie Kreditů (Enhanced v3) --- */
+.activity-section { padding: 0; /* Убираем padding с секции, добавляем к контейнеру */ }
 .activity-list-container {
     min-height: 300px; /* Может быть настроено в JS, если список динамически загружается */
     display: flex; flex-direction: column;
@@ -653,8 +655,9 @@ body.scrolled .dashboard-header {
 }
 
 .activity-item {
-    display: flex; /* Основной layout: иконка слева, контент справа */
-    align-items: flex-start; /* Выравнивание по верху для иконки и текстового блока */
+    display: flex;
+    /* align-items: flex-start; OLD - replaced with center */
+    align-items: center; /* <<< MODIFICATION: Align items vertically to center */
     padding: 1.1rem 1.3rem; /* Компактнее */
     border-bottom: 1px solid var(--border-color-light);
     transition: background-color 0.25s ease, transform 0.2s ease;
@@ -680,11 +683,11 @@ body.scrolled .dashboard-header {
     box-shadow: 0 3px 7px rgba(0,0,0,0.2);
     text-shadow: 0 1px 1px rgba(0,0,0,0.3);
     transition: transform 0.2s ease, filter 0.2s ease;
-    margin-top: 2px; /* Небольшой отступ сверху для лучшего визуального выравнивания с текстом */
+    /* margin-top: 2px; <<< MODIFICATION: Removed to allow align-items: center to work properly */
 }
 .activity-item:hover .activity-icon { filter: brightness(1.1); transform: scale(1.02); }
 
-/* Иконки по типам */
+/* Иконки по типам (остаются как есть) */
 .activity-icon.completed, .activity-icon.exercise { background: var(--gradient-success); }
 .activity-icon.badge { background: var(--gradient-warning); }
 .activity-icon.streak { background: var(--gradient-danger); }
@@ -702,7 +705,7 @@ body.scrolled .dashboard-header {
     flex-grow: 1; /* Занимает оставшееся пространство */
     display: flex;
     flex-direction: column; /* Элементы внутри идут друг под другом */
-    justify-content: flex-start; /* Выравнивание по верху */
+    justify-content: center; /* <<< MODIFICATION: Center content if align-items: center on parent, or flex-start if preferred */
     min-width: 0; /* Для корректного переноса текста */
 }
 .activity-title {
@@ -737,19 +740,20 @@ body.scrolled .dashboard-header {
 }
 .activity-time i { font-size: 0.9em; }
 
-/* Специфичные стили для Historie Kreditů (v3) */
+/* --- MODIFICATIONS for .credit-transaction-item --- */
 .credit-transaction-item {
     border-radius: 10px;
-    margin-bottom: 0.7rem;
-    box-shadow: var(--shadow-hud), 0 0 10px rgba(var(--bg-secondary-rgb), 0.2) inset; /* Усиленная тень */
-    background: rgba(var(--card-solid-rgb), 0.95);
-    border: 1px solid transparent; /* Убираем основную рамку, используем псевдоэлемент */
-    padding: 0.9rem 1.2rem 0.9rem calc(1.2rem + 5px + 0.5rem); /* Дополнительный отступ слева для линии */
-    position: relative; /* Для псевдоэлемента */
+    margin-bottom: 0.7rem; /* Slightly less margin */
+    box-shadow: none; /* <<< MODIFICATION: Removed individual shadow */
+    background: rgba(var(--card-solid-rgb), 0.6); /* <<< MODIFICATION: Lighter/different background */
+    border: 1px solid transparent;
+    padding: 0.9rem 1.2rem 0.9rem calc(1.2rem + 6px + 0.8rem); /* Increased left padding for accent line */
+    position: relative;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: auto; /* <<< MODIFICATION: Allow natural height */
 }
 .credit-transaction-item::before { /* Акцентная линия слева */
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; /* <<< MODIFICATION: Wider line */
     border-radius: 10px 0 0 10px; transition: background-color 0.25s ease;
 }
 .credit-transaction-item.positive::before { background-color: var(--accent-lime); }
@@ -757,14 +761,13 @@ body.scrolled .dashboard-header {
 .credit-transaction-item.neutral::before { background-color: var(--text-muted); }
 
 .credit-transaction-item:hover {
-    transform: scale(1.01) translateX(2px);
-    box-shadow: var(--shadow-card), 0 0 15px rgba(var(--accent-primary-rgb), 0.15) inset;
-    border-color: var(--border-color-medium); /* Показать рамку при наведении */
+    transform: scale(1.01) translateX(3px); /* Subtle hover */
+    background: rgba(var(--card-solid-rgb), 0.8); /* Darken slightly on hover */
+    border-color: var(--border-color-light);
 }
-.credit-transaction-item .activity-icon { /* Иконки для транзакций */
+.credit-transaction-item .activity-icon {
     border-radius: 50%; width: 32px; height: 32px; font-size: 0.9rem;
     box-shadow: 0 1px 4px rgba(0,0,0,0.2); filter: drop-shadow(0 0 4px currentColor);
-    margin-top: 0; /* Убираем отступ, если иконка меньше */
 }
 .credit-transaction-item .activity-content {
     flex-direction: row; /* Элементы в ряд */
@@ -774,12 +777,12 @@ body.scrolled .dashboard-header {
 .credit-transaction-item .activity-title {
     font-size: 0.9rem; flex-grow: 1; margin-right: 0.8rem; margin-bottom: 0; line-height: 1.3;
 }
-.credit-transaction-item .activity-desc { display: none; } /* Скрываем, если не используется */
+.credit-transaction-item .activity-desc { display: none; }
 
 .credit-transaction-item .credit-amount {
     font-weight: 700; font-size: 1.05rem; white-space: nowrap; font-family: var(--font-mono);
     padding: 0.25rem 0.5rem; border-radius: 5px; border: 1px solid transparent; line-height: 1.2;
-    margin-left: auto; /* Прижимает сумму вправо, если заголовок короткий */
+    margin-left: auto;
 }
 .credit-transaction-item .credit-amount.positive { color: var(--accent-lime); text-shadow: 0 0 5px rgba(var(--accent-lime-rgb), 0.5); background-color: rgba(var(--accent-lime-rgb), 0.08); border-color: rgba(var(--accent-lime-rgb), 0.25); }
 .credit-transaction-item .credit-amount.negative { color: var(--accent-pink); text-shadow: 0 0 5px rgba(var(--accent-pink-rgb), 0.5); background-color: rgba(var(--accent-pink-rgb), 0.08); border-color: rgba(var(--accent-pink-rgb), 0.25); }
@@ -788,12 +791,12 @@ body.scrolled .dashboard-header {
 
 .credit-transaction-item .activity-time {
     font-size: 0.65rem; margin-left: 0.8rem; white-space: nowrap; align-self: center; opacity: 0.7;
-    margin-top: 0; padding-top: 0; /* Убираем отступы, т.к. в ряд */
+    margin-top: 0; padding-top: 0;
 }
-/* --- END: Улучшенные стили (v3) --- */
+/* --- END: Enhanced Styles (v3) --- */
 
 
-.view-all-link {
+.view-all-link { /* Уже удалено из HTML, но стиль остается на всякий случай */
     display: block; text-align: center; padding: 0.8rem 1rem;
     color: var(--accent-secondary); text-decoration: none;
     font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.8px;
@@ -998,31 +1001,31 @@ body.scrolled .dashboard-header {
 
 /* --- 2. Модальное Окно (Общие стили, можно доработать существующие) --- */
 .modal {
-	display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-	background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.75); /* Темнее фон */
-	z-index: 1050; /* Выше большинства элементов */
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.75); /* Темнее фон */
+    z-index: 1050; /* Выше большинства элементов */
     align-items: center; justify-content: center;
-	opacity: 0; transition: opacity 0.4s ease, backdrop-filter 0.4s ease;
-	backdrop-filter: blur(0px);
-	padding: 1rem; /* Отступы для мобильных */
+    opacity: 0; transition: opacity 0.4s ease, backdrop-filter 0.4s ease;
+    backdrop-filter: blur(0px);
+    padding: 1rem; /* Отступы для мобильных */
 }
 .modal.active { display: flex; opacity: 1; backdrop-filter: blur(8px); }
 .modal-content {
-	background-color: var(--interface-bg); border-radius: var(--card-radius);
-	width: 90%;
+    background-color: var(--interface-bg); border-radius: var(--card-radius);
+    width: 90%;
     max-width: 800px; /* Шире для календаря */
-	box-shadow: var(--shadow-card);
-	transform: translateY(-30px) scale(0.95); transform-origin: center;
-	transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-	overflow: hidden;
-	border: 1px solid var(--border-color-medium);
-	display: flex; flex-direction: column;
+    box-shadow: var(--shadow-card);
+    transform: translateY(-30px) scale(0.95); transform-origin: center;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+    border: 1px solid var(--border-color-medium);
+    display: flex; flex-direction: column;
     max-height: 90vh; /* Ограничение высоты */
 }
 .modal.active .modal-content { transform: translateY(0) scale(1); }
 .modal-header {
-	padding: 1.2rem 1.8rem; border-bottom: 1px solid var(--border-color-light);
-	display: flex; justify-content: space-between; align-items: center;
+    padding: 1.2rem 1.8rem; border-bottom: 1px solid var(--border-color-light);
+    display: flex; justify-content: space-between; align-items: center;
     background: rgba(var(--dark-purple-accent-rgb), 0.4); /* Немного фона */
     flex-shrink: 0;
 }
@@ -1229,99 +1232,118 @@ body.scrolled .dashboard-header {
 .streak-rewards-section.loading .loading-overlay { display: flex; }
 .streak-rewards-section.loading .milestone-list { visibility: hidden; }
 
-.milestone-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem; /* Отступ между этапами */
+.milestone-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Адаптивная сетка */
+    gap: 1.5rem; /* Отступ между этапами */
 }
 
-.milestone-item {
+.milestone-card { /* Переименовано из .milestone-item для согласованности с .card */
     display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    background-color: rgba(var(--card-solid-rgb), 0.7);
-    padding: 1.2rem 1.5rem;
+    flex-direction: column; /* Основное направление */
+    background-color: rgba(var(--card-solid-rgb), 0.8);
+    padding: 1.5rem;
     border-radius: 12px;
     border: 1px solid var(--border-color-light);
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    box-shadow: var(--shadow-hud);
 }
-.milestone-item::before { /* Декоративная линия */
+.milestone-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-card);
+    border-color: var(--accent-primary);
+}
+.milestone-card::before { /* Декоративная линия */
     content: '';
     position: absolute;
-    top: 10px; bottom: 10px; left: 10px;
-    width: 4px;
+    top: 0; bottom: 0; left: 0;
+    width: 5px; /* Толще линия */
     background: var(--border-color-medium);
-    border-radius: 2px;
-    opacity: 0.5;
-    transition: background 0.3s ease;
+    border-radius: 12px 0 0 12px; /* Скругление только слева */
+    opacity: 0.6;
+    transition: background 0.3s ease, width 0.3s ease;
 }
 
-.milestone-icon {
-    width: 55px; height: 55px;
+.milestone-card .day-number { /* Надпись "Série X" */
+    font-size: 0.9rem; font-weight: 700; color: var(--accent-primary);
+    margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 0.8px;
+    text-shadow: 0 0 5px var(--accent-glow);
+}
+
+.milestone-card .reward-icon { /* Иконка награды */
+    width: 60px; height: 60px;
     flex-shrink: 0;
-    border-radius: 14px;
+    border-radius: 16px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.6rem;
+    font-size: 1.8rem;
     color: var(--white);
     background: var(--gradient-cta); /* Default gradient */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    border: 1px solid rgba(var(--white-rgb), 0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    border: 1px solid rgba(var(--white-rgb), 0.08);
     text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    margin: 0 auto 1rem auto; /* Центрирование и отступ */
 }
 
-.milestone-info { flex-grow: 1; }
-.milestone-title { font-size: 1.1rem; font-weight: 600; color: var(--text-light); margin: 0 0 0.4rem 0; }
-.milestone-desc { font-size: 0.88rem; color: var(--text-medium); line-height: 1.5; margin: 0 0 0.5rem 0; }
-.milestone-req { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+.milestone-card .reward-text { /* Название награды */
+    font-size: 1.1rem; font-weight: 600; color: var(--text-light);
+    margin: 0 0 0.5rem 0; text-align: center;
+    line-height: 1.3;
+}
+.milestone-card .milestone-desc { /* Описание - если есть, использовать его вместо reward-text */
+    font-size: 0.85rem; color: var(--text-medium);
+    margin: 0 0 1rem 0; text-align: center; line-height: 1.4;
+    flex-grow: 1; /* Занять доступное место */
+}
 
-.milestone-status-action { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; text-align: right; margin-left: auto; }
-.milestone-status { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 0.3rem 0.7rem; border-radius: 15px; display: inline-flex; align-items: center; gap: 0.4em; }
-.milestone-status i { font-size: 0.9em; }
+.milestone-card .reward-status { /* Статус: Доступно, Зískáno, Zamčeno */
+    font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 0.4rem 0.8rem; border-radius: 18px; display: inline-block; margin-top: 1rem;
+    align-self: center; /* Центрирование статуса */
+}
 
 /* Состояния этапов */
-.milestone-item.locked { opacity: 0.6; filter: grayscale(30%); }
-.milestone-item.locked::before { background: var(--text-muted); }
-.milestone-item.locked .milestone-icon { background: var(--gradient-locked); opacity: 0.7; }
-.milestone-status.locked { color: var(--text-muted); background: rgba(var(--text-muted-rgb), 0.1); border: 1px solid rgba(var(--text-muted-rgb), 0.2); }
+.milestone-card.locked { opacity: 0.65; filter: grayscale(40%); }
+.milestone-card.locked::before { background: var(--text-muted); }
+.milestone-card.locked .reward-icon { background: var(--gradient-locked); opacity: 0.8; }
+.milestone-card .reward-status.locked { color: var(--text-muted); background: rgba(var(--text-muted-rgb), 0.1); border: 1px solid rgba(var(--text-muted-rgb), 0.2); }
 
-.milestone-item.available { border-color: var(--accent-primary); }
-.milestone-item.available::before { background: var(--accent-primary); opacity: 0.8; box-shadow: 0 0 8px var(--accent-glow); }
-.milestone-item.available .milestone-icon { background: var(--gradient-button); box-shadow: 0 5px 12px rgba(var(--accent-primary-rgb), 0.25); }
-.milestone-status.available { color: var(--accent-primary); background: rgba(var(--accent-primary-rgb), 0.1); border: 1px solid rgba(var(--accent-primary-rgb), 0.3); }
-.milestone-item.available .claim-button { /* Inherits .btn-success */ }
+.milestone-card.available { border-color: var(--accent-primary); }
+.milestone-card.available::before { background: var(--accent-primary); opacity: 0.9; box-shadow: 0 0 10px var(--accent-glow); }
+.milestone-card.available .reward-icon { background: var(--gradient-button); box-shadow: 0 6px 15px rgba(var(--accent-primary-rgb), 0.3); }
+.milestone-card .reward-status.available { color: var(--accent-primary); background: rgba(var(--accent-primary-rgb), 0.12); border: 1px solid rgba(var(--accent-primary-rgb), 0.35); }
+.milestone-card.available .claim-button { /* Наследует .btn-success */ margin-top: 1rem; align-self: center; }
 
-.milestone-item.claimed { border-color: var(--accent-lime); }
-.milestone-item.claimed::before { background: var(--accent-lime); opacity: 0.7; }
-.milestone-item.claimed .milestone-icon { background: var(--gradient-success); box-shadow: 0 5px 12px rgba(var(--accent-lime-rgb), 0.25); }
-.milestone-status.claimed { color: var(--accent-lime); background: rgba(var(--accent-lime-rgb), 0.1); border: 1px solid rgba(var(--accent-lime-rgb), 0.3); }
+.milestone-card.claimed { border-color: var(--accent-lime); }
+.milestone-card.claimed::before { background: var(--accent-lime); opacity: 0.8; }
+.milestone-card.claimed .reward-icon { background: var(--gradient-success); box-shadow: 0 6px 15px rgba(var(--accent-lime-rgb), 0.3); }
+.milestone-card .reward-status.claimed { color: var(--accent-lime); background: rgba(var(--accent-lime-rgb), 0.12); border: 1px solid rgba(var(--accent-lime-rgb), 0.35); }
 
 /* Skeleton для этапов */
-.milestone-item.skeleton {
+.milestone-card.skeleton {
     background: var(--skeleton-bg);
     position: relative;
     overflow: hidden;
-    padding: 1.2rem 1.5rem;
+    padding: 1.5rem;
     border-radius: 12px;
     border: 1px solid var(--border-color-light);
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1rem;
 }
-.milestone-item.skeleton::before, .milestone-item.skeleton::after { display: none; } /* Hide decorative elements */
-.milestone-item.skeleton::after { /* Loading shimmer */
+.milestone-card.skeleton::before, .milestone-card.skeleton::after { display: none; } /* Hide decorative elements */
+.milestone-card.skeleton::after { /* Loading shimmer */
     content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
     background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent);
     animation: skeleton-loading-anim 1.5s infinite linear; /* Переименовал анимацию */
 }
-.milestone-item.skeleton .milestone-icon { background: var(--skeleton-bg); width: 55px; height: 55px; border-radius: 14px; }
-.milestone-item.skeleton .milestone-info { flex-grow: 1; display: flex; flex-direction: column; gap: 0.6rem; }
-.milestone-item.skeleton .milestone-title { height: 18px; width: 60%; background: var(--skeleton-bg); border-radius: 4px; }
-.milestone-item.skeleton .milestone-desc { height: 14px; width: 90%; background: var(--skeleton-bg); border-radius: 4px; }
-.milestone-item.skeleton .milestone-req { height: 12px; width: 45%; background: var(--skeleton-bg); border-radius: 4px; }
-.milestone-item.skeleton .milestone-status-action { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; }
-.milestone-item.skeleton .milestone-status { height: 24px; width: 80px; background: var(--skeleton-bg); border-radius: 15px; }
+.milestone-card.skeleton .day-number { height: 16px; width: 70px; background: var(--skeleton-bg); border-radius: 4px; margin-bottom: 0.5rem; }
+.milestone-card.skeleton .reward-icon { background: var(--skeleton-bg); width: 60px; height: 60px; border-radius: 16px; }
+.milestone-card.skeleton .reward-text { height: 18px; width: 120px; background: var(--skeleton-bg); border-radius: 4px; margin-bottom: 0.5rem; }
+.milestone-card.skeleton .milestone-desc { height: 14px; width: 160px; background: var(--skeleton-bg); border-radius: 4px; }
+.milestone-card.skeleton .reward-status { height: 26px; width: 90px; background: var(--skeleton-bg); border-radius: 18px; margin-top: 0.8rem; }
 
 /* Empty state */
 .empty-state { /* Shared styles for empty states */
@@ -1350,6 +1372,5 @@ body.scrolled .dashboard-header {
     .modal-body { padding: 1rem 1.2rem; }
     .modal-header, .modal-footer { padding: 1rem 1.2rem; }
 }
-
 /* --- Конец Новых Стилей --- */
         /* --- END: Киберпанк CSS Тема --- */
