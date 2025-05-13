@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax Kyber-Nástěnka v24.8 - Finální</title>
+    <title>Justax Kyber-Nástěnka v26.0 - Refactored</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -195,15 +195,12 @@
                     </div>
                 </section>
 
-                <section class="activity-section">
-                    <h2 class="section-title" data-animate style="--animation-order: 10;"><i class="fas fa-history"></i>Nedávná aktivita</h2>
-                    <div class="activity-list-container card" id="activity-list-container" data-animate style="--animation-order: 11;">
-                        <div class="loading-placeholder">
-                             <div class="skeleton-activity-item"> <div class="skeleton icon-placeholder"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line"></div> <div class="skeleton activity-line text-short"></div> <div class="skeleton activity-line-short"></div> </div> </div>
-                             <div class="skeleton-activity-item"> <div class="skeleton icon-placeholder"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line"></div> <div class="skeleton activity-line text-short"></div> <div class="skeleton activity-line-short"></div> </div> </div>
-                        </div>
-                        <div class="activity-list" id="activity-list" style="display: none;">
-                             </div>
+                <section class="activity-section card" id="recent-activities-container-wrapper" data-animate style="--animation-order: 10;">
+                    <h2 class="section-title"><i class="fas fa-history"></i>Nedávná aktivita</h2>
+                    <div class="activity-list-container" id="activity-list-container">
+                        <div class="loading-placeholder" style="display: none; flex-direction: column; gap: 0.8rem;">
+                            </div>
+                        <div class="activity-list" id="activity-list" style="display: none;"></div>
                         <div class="empty-state" id="activity-list-empty-state" style="display: none;">
                             <i class="fas fa-moon"></i>
                             <p>Zatím žádná aktivita. Začněte procvičovat!</p>
@@ -216,15 +213,12 @@
                     </div>
                 </section>
 
-                <section class="card" id="credit-history-section" data-animate style="--animation-order: 12;">
+                <section class="card" id="credit-history-container-wrapper" data-animate style="--animation-order: 11;">
                     <h2 class="section-title"><i class="fas fa-wallet"></i>Historie Kreditů</h2>
-                    <div class="activity-list-container" id="credit-history-list-container"> <div class="loading-placeholder">
-                            <div class="skeleton-activity-item"> <div class="skeleton icon-placeholder" style="background-color: var(--accent-orange);"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line" style="width: 70%;"></div> <div class="skeleton activity-line text-short" style="width: 30%;"></div> <div class="skeleton activity-line-short" style="width: 40%;"></div> </div> </div>
-                            <div class="skeleton-activity-item"> <div class="skeleton icon-placeholder" style="background-color: var(--accent-lime);"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line"></div> <div class="skeleton activity-line text-short"></div> <div class="skeleton activity-line-short"></div> </div> </div>
-                            <div class="skeleton-activity-item"> <div class="skeleton icon-placeholder" style="background-color: var(--accent-pink);"></div> <div style="flex-grow: 1;"> <div class="skeleton activity-line" style="width: 80%;"></div> <div class="skeleton activity-line text-short" style="width: 50%;"></div> <div class="skeleton activity-line-short"></div> </div> </div>
-                        </div>
-                        <div class="activity-list" id="credit-history-list" style="display: none;">
+                    <div class="activity-list-container" id="credit-history-list-container">
+                        <div class="loading-placeholder" style="display: none; flex-direction: column; gap: 0.8rem;">
                             </div>
+                        <div class="activity-list" id="credit-history-list" style="display: none;"></div>
                         <div class="empty-state" id="credit-history-empty-state" style="display: none;">
                             <i class="fas fa-receipt"></i>
                             <p>Zatím žádné kreditové transakce.</p>
@@ -235,7 +229,7 @@
                         </div>
                         </div>
                 </section>
-                </div>
+            </div>
 
              <footer class="dashboard-footer">
                  <p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p>
@@ -286,5 +280,5 @@
     <div id="mouse-follower" class="mouse-follower-glow"></div>
 
     <script src="dashboard.js" defer></script>
-</body>
+    <script src="dashboard-lists.js" defer></script> </body>
 </html>
