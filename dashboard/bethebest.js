@@ -1,5 +1,5 @@
 // dashboard/bethebest.js
-// Verze: 7.5 - Robustnější správa načítání kalendáře a inicializace
+// Verze: 7.6 - Robustnější timeout a logování pro načítání kalendáře
 
 // --- Konstanty a Supabase klient ---
 const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
@@ -16,10 +16,11 @@ let authSection, appSection, loginFormContainer, registerFormContainer, notifica
 let currentUser = null;
 let currentDisplayedMonth = new Date().getMonth();
 let currentDisplayedYear = new Date().getFullYear();
-let learningLogsCache = {}; // Cache pro načtené logy { 'YYYY-MM-DD': { topic, details } }
+let learningLogsCache = {};
 
-let isLoadingCalendarLogs = false; // Zámek pro operace načítání logů kalendáře
-let isUserSessionInitialized = false; // Zda byla session uživatele plně inicializována
+let isLoadingCalendarLogs = false;
+let isUserSessionInitialized = false;
+const SUPABASE_FETCH_TIMEOUT = 15000; // 15 sekund timeout pro Supabase fetch
 
 function cacheDOMElements() {
     authSection = document.getElementById('authSection');
@@ -42,7 +43,7 @@ function cacheDOMElements() {
     logDateDisplay = document.getElementById('logDateDisplay');
     logTopicInput = document.getElementById('logTopic');
     logDetailsInput = document.getElementById('logDetails');
-    console.log("[DEBUG v7.5 Cache] DOM elements cached.");
+    console.log("[DEBUG v7.6 Cache] DOM elements cached.");
 }
 
 function showNotification(message, type = 'info', duration = 3500) {
@@ -102,7 +103,6 @@ function setupAuthListeners() {
                 const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
                 if (error) throw error;
                 showNotification("Přihlášení úspěšné!", "success");
-                // onAuthStateChange se postará o zbytek
             } catch (error) {
                 showNotification(`Chyba přihlášení: ${error.message}`, "error");
             }
@@ -130,7 +130,6 @@ function setupAuthListeners() {
                 const { error } = await supabaseClient.auth.signOut();
                 if (error) throw error;
                 showNotification("Odhlášení úspěšné.", "info");
-                // onAuthStateChange se postará o zbytek
             } catch (error) {
                 showNotification(`Chyba odhlášení: ${error.message}`, "error");
             }
@@ -140,28 +139,26 @@ function setupAuthListeners() {
 
 function renderCalendar() {
     if (!calendarGrid || !monthYearDisplay) {
-        console.error("[Calendar v7.5] Chybí elementy kalendáře (calendarGrid nebo monthYearDisplay).");
+        console.error("[Calendar v7.6] Chybí elementy kalendáře (calendarGrid nebo monthYearDisplay).");
         return;
     }
-    console.log(`[Calendar v7.5] Vykreslování kalendáře pro ${currentDisplayedMonth + 1}/${currentDisplayedYear}`);
-    calendarGrid.innerHTML = ''; // Vyčistit předchozí buňky
+    console.log(`[Calendar v7.6] Vykreslování kalendáře pro ${currentDisplayedMonth + 1}/${currentDisplayedYear}`);
+    calendarGrid.innerHTML = '';
     const firstDayOfMonth = new Date(currentDisplayedYear, currentDisplayedMonth, 1);
     const lastDayOfMonth = new Date(currentDisplayedYear, currentDisplayedMonth + 1, 0);
     const daysInMonth = lastDayOfMonth.getDate();
 
     monthYearDisplay.textContent = `${firstDayOfMonth.toLocaleString('cs-CZ', { month: 'long' })} ${currentDisplayedYear}`;
 
-    let startingDay = firstDayOfMonth.getDay(); // 0 (Ne) - 6 (So)
-    startingDay = (startingDay === 0) ? 6 : startingDay - 1; // Převod na 0 (Po) - 6 (Ne)
+    let startingDay = firstDayOfMonth.getDay();
+    startingDay = (startingDay === 0) ? 6 : startingDay - 1;
 
-    // Přidat prázdné buňky pro dny před začátkem měsíce
     for (let i = 0; i < startingDay; i++) {
         const emptyCell = document.createElement('div');
         emptyCell.classList.add('calendar-day-cell', 'empty-cell');
         calendarGrid.appendChild(emptyCell);
     }
 
-    // Přidat buňky pro každý den v měsíci
     for (let day = 1; day <= daysInMonth; day++) {
         const dayCell = document.createElement('div');
         dayCell.classList.add('calendar-day-cell');
@@ -185,19 +182,19 @@ function renderCalendar() {
         dayCell.addEventListener('click', () => openLearningLogModal(dateStr));
         calendarGrid.appendChild(dayCell);
     }
-    console.log(`[Calendar v7.5] Kalendář pro ${monthYearDisplay.textContent} vykreslen.`);
+    console.log(`[Calendar v7.6] Kalendář pro ${monthYearDisplay.textContent} vykreslen.`);
 }
 
 function changeMonth(offset) {
-    console.log(`[DEBUG v7.5 ChangeMonth] POKUS O VOLÁNÍ s offset: ${offset}. isLoadingCalendarLogs: ${isLoadingCalendarLogs}`);
+    console.log(`[DEBUG v7.6 ChangeMonth] POKUS O VOLÁNÍ s offset: ${offset}. isLoadingCalendarLogs: ${isLoadingCalendarLogs}`);
 
     if (isLoadingCalendarLogs) {
-        console.warn(`[DEBUG v7.5 ChangeMonth] ZABLOKOVÁNO: Načítání kalendáře již probíhá.`);
+        console.warn(`[DEBUG v7.6 ChangeMonth] ZABLOKOVÁNO: Načítání kalendáře již probíhá.`);
         showNotification("Kalendář se stále načítá, počkejte prosím.", "info", 2000);
         return;
     }
 
-    console.log(`[DEBUG v7.5 ChangeMonth] VSTUP - offset: ${offset}. Aktuální M/R: ${currentDisplayedMonth}/${currentDisplayedYear}`);
+    console.log(`[DEBUG v7.6 ChangeMonth] VSTUP - offset: ${offset}. Aktuální M/R: ${currentDisplayedMonth}/${currentDisplayedYear}`);
     currentDisplayedMonth += offset;
     if (currentDisplayedMonth < 0) {
         currentDisplayedMonth = 11;
@@ -206,49 +203,58 @@ function changeMonth(offset) {
         currentDisplayedMonth = 0;
         currentDisplayedYear++;
     }
-    console.log(`[DEBUG v7.5 ChangeMonth] Nový M/R: ${currentDisplayedMonth}/${currentDisplayedYear}. Volám loadLogs...`);
-    loadLogsForMonthAndRenderCalendar(); // Tato funkce nyní nastaví isLoadingCalendarLogs
-    console.log(`[DEBUG v7.5 ChangeMonth] VÝSTUP - Nový M/R: ${currentDisplayedMonth}/${currentDisplayedYear}.`);
+    console.log(`[DEBUG v7.6 ChangeMonth] Nový M/R: ${currentDisplayedMonth}/${currentDisplayedYear}. Volám loadLogs...`);
+    loadLogsForMonthAndRenderCalendar();
+    console.log(`[DEBUG v7.6 ChangeMonth] VÝSTUP - Nový M/R: ${currentDisplayedMonth}/${currentDisplayedYear}.`);
 }
 
 async function loadLogsForMonthAndRenderCalendar() {
     if (!currentUser || !supabaseClient) {
-        console.warn("[LogsCal v7.5] Chybí uživatel nebo Supabase klient. Kalendář se nevykreslí/neaktualizuje.");
+        console.warn("[LogsCal v7.6] Chybí uživatel nebo Supabase klient. Kalendář se nevykreslí/neaktualizuje.");
         if (typeof renderCalendar === 'function') renderCalendar();
         return;
     }
 
     if (isLoadingCalendarLogs) {
-        console.warn("[LogsCal v7.5] Duplicitní volání loadLogsForMonthAndRenderCalendar, zatímco již probíhá načítání. Ignoruji.");
+        console.warn("[LogsCal v7.6] Duplicitní volání loadLogsForMonthAndRenderCalendar, zatímco již probíhá načítání. Ignoruji.");
         return;
     }
 
     isLoadingCalendarLogs = true;
-    const displayMonthForLog = currentDisplayedMonth; // Uložit hodnoty PŘED asynchronní operací
+    const displayMonthForLog = currentDisplayedMonth;
     const displayYearForLog = currentDisplayedYear;
-    console.log(`[LogsCal v7.5] isLoadingCalendarLogs nastaveno na true. Cílové datum: ${displayYearForLog}-${String(displayMonthForLog + 1).padStart(2, '0')}`);
+    console.log(`[LogsCal v7.6] START: isLoadingCalendarLogs nastaveno na true. Cílové datum: ${displayYearForLog}-${String(displayMonthForLog + 1).padStart(2, '0')}`);
 
     if (monthYearDisplay) monthYearDisplay.textContent = "Načítám...";
 
     const startDateStr = `${displayYearForLog}-${String(displayMonthForLog + 1).padStart(2, '0')}-01`;
     const tempEndDate = new Date(displayYearForLog, displayMonthForLog + 1, 0);
     const endDateStr = `${tempEndDate.getFullYear()}-${String(tempEndDate.getMonth() + 1).padStart(2, '0')}-${String(tempEndDate.getDate()).padStart(2, '0')}`;
-    console.log(`[LogsCal v7.5] Načítání logů pro ${startDateStr} až ${endDateStr}`);
+    console.log(`[LogsCal v7.6] Načítání logů pro ${startDateStr} až ${endDateStr}`);
 
+    let supabaseRequestCompleted = false; // Flag pro sledování dokončení požadavku
     try {
-        const { data, error } = await supabaseClient
-            .from('learning_logs_detailed') // Ujistěte se, že tento název tabulky je správný!
+        const fetchPromise = supabaseClient
+            .from('learning_logs_detailed') // !! ZKONTROLUJTE NÁZEV TABULKY !!
             .select('log_date, topic, details')
             .eq('user_id', currentUser.id)
             .gte('log_date', startDateStr)
             .lte('log_date', endDateStr);
 
-        if (error) {
-            console.error("[LogsCal v7.5] Supabase chyba při načítání logů:", error);
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Supabase fetch timeout")), SUPABASE_FETCH_TIMEOUT)
+        );
+
+        console.log("[LogsCal v7.6] Spouštím Supabase fetch s timeoutem...");
+        const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
+        supabaseRequestCompleted = true; // Požadavek (nebo timeout) se dokončil
+        console.log("[LogsCal v7.6] Supabase fetch nebo timeout dokončen.");
+
+        if (error) { // Chyba může být i z timeoutPromise
+            console.error("[LogsCal v7.6] Supabase chyba nebo timeout při načítání logů:", error);
             throw error;
         }
 
-        // Vyčistit cache POUZE pro aktuálně načítaný měsíc
         Object.keys(learningLogsCache).forEach(key => {
             if (key.startsWith(`${displayYearForLog}-${String(displayMonthForLog + 1).padStart(2, '0')}`)) {
                 delete learningLogsCache[key];
@@ -257,26 +263,38 @@ async function loadLogsForMonthAndRenderCalendar() {
 
         if (data) {
             data.forEach(log => { learningLogsCache[log.log_date] = { topic: log.topic, details: log.details }; });
-            console.log(`[LogsCal v7.5] Logy pro měsíc načteny (${data.length} záznamů) a cache aktualizována.`);
+            console.log(`[LogsCal v7.6] Logy pro měsíc načteny (${data.length} záznamů) a cache aktualizována.`);
         } else {
-            console.log("[LogsCal v7.5] Nebyla vrácena žádná data ze Supabase pro daný měsíc.");
+            console.log("[LogsCal v7.6] Nebyla vrácena žádná data ze Supabase pro daný měsíc.");
         }
-        if (typeof renderCalendar === 'function') renderCalendar();
+
+        if (typeof renderCalendar === 'function') {
+             console.log("[LogsCal v7.6] Volám renderCalendar() z try bloku.");
+             renderCalendar();
+        } else {
+            console.error("[LogsCal v7.6] Funkce renderCalendar není definována!");
+        }
+
     } catch (err) {
-        console.error("[LogsCal v7.5] Chyba zpracování logů:", err);
-        if (typeof showNotification === 'function') showNotification("Chyba při načítání záznamů z kalendáře.", "error");
-        if (typeof renderCalendar === 'function') renderCalendar(); // I při chybě se pokusit vykreslit (prázdný/stará cache)
+        console.error("[LogsCal v7.6] Chyba v bloku try-catch:", err.message);
+        if (typeof showNotification === 'function') showNotification(`Chyba při načítání záznamů: ${err.message === "Supabase fetch timeout" ? "Server neodpověděl včas." : err.message}`, "error");
+        if (typeof renderCalendar === 'function') {
+            console.log("[LogsCal v7.6] Volám renderCalendar() z catch bloku.");
+            renderCalendar(); // I při chybě se pokusit vykreslit (může být prázdný/stará cache)
+        }
     } finally {
-        isLoadingCalendarLogs = false; // Vždy resetovat zámek
-        console.log(`[LogsCal v7.5] isLoadingCalendarLogs nastaveno na false. Cílové datum: ${displayYearForLog}-${String(displayMonthForLog + 1).padStart(2, '0')}`);
-        // Obnovit text měsíce/roku, pokud se mezitím nezměnil uživatelem
+        console.log(`[LogsCal v7.6] FINALLY: isLoadingCalendarLogs se nastaví na false. Bylo supabaseRequestCompleted: ${supabaseRequestCompleted}`);
+        isLoadingCalendarLogs = false;
+        // Obnovit text měsíce/roku, pouze pokud se mezitím nezměnil uživatelem
+        // a pokud jsme ve stejném kontextu měsíce/roku, pro který se načítalo
         if (monthYearDisplay && currentDisplayedMonth === displayMonthForLog && currentDisplayedYear === displayYearForLog) {
              const firstDay = new Date(currentDisplayedYear, currentDisplayedMonth, 1);
              monthYearDisplay.textContent = `${firstDay.toLocaleString('cs-CZ', { month: 'long' })} ${currentDisplayedYear}`;
+             console.log(`[LogsCal v7.6] FINALLY: monthYearDisplay aktualizován na ${monthYearDisplay.textContent}`);
         } else if (monthYearDisplay) {
-            // Pokud se mezitím měsíc změnil, monthYearDisplay se aktualizuje v renderCalendar() při příštím volání
-            console.log("[LogsCal v7.5] Měsíc byl změněn během načítání, monthYearDisplay se neaktualizuje zde.");
+            console.log(`[LogsCal v7.6] FINALLY: monthYearDisplay NEBUDE aktualizován, protože (currentMonth: ${currentDisplayedMonth} vs displayMonth: ${displayMonthForLog}) nebo (currentYear: ${currentDisplayedYear} vs displayYear: ${displayYearForLog})`);
         }
+        console.log(`[LogsCal v7.6] KONEC: isLoadingCalendarLogs je nyní ${isLoadingCalendarLogs}.`);
     }
 }
 
@@ -285,8 +303,8 @@ function openLearningLogModal(dateStr) {
         console.error("Chybí elementy modálního okna pro log.");
         return;
     }
-    const dateObj = new Date(dateStr + 'T00:00:00'); // Zajistit správné zacházení s časovou zónou
-    logDateDisplay.textContent = dateObj.toLocaleDateString('cs-CZ', { year: 'numeric', month: 'long', day: 'numeric' });
+    const dateObj = new Date(dateStr + 'T00:00:00Z');
+    logDateDisplay.textContent = dateObj.toLocaleDateString('cs-CZ', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Europe/Prague' });
     logSelectedDateInput.value = dateStr;
 
     const existingLog = learningLogsCache[dateStr];
@@ -325,18 +343,17 @@ async function handleDailyLogSubmit(event) {
     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...';
 
     try {
-        // Používáme 'learning_logs_detailed' - ujistěte se, že tento název odpovídá vaší DB!
         const { data, error } = await supabaseClient
-            .from('learning_logs_detailed')
+            .from('learning_logs_detailed') // !! ZKONTROLUJTE NÁZEV TABULKY !!
             .upsert({ user_id: currentUser.id, log_date: date, topic: topic, details: details }, { onConflict: 'user_id, log_date' })
-            .select(); // Přidáno select() pro vrácení dat po operaci
+            .select();
 
         if (error) throw error;
 
-        learningLogsCache[date] = { topic, details }; // Aktualizace lokální cache
+        learningLogsCache[date] = { topic, details };
         showNotification("Záznam úspěšně uložen!", "success");
         closeLearningLogModal();
-        if (typeof renderCalendar === 'function') renderCalendar(); // Překreslit kalendář
+        if (typeof renderCalendar === 'function') renderCalendar();
     } catch (error) {
         console.error("Chyba ukládání záznamu:", error);
         showNotification(`Chyba ukládání: ${error.message}`, "error");
@@ -347,57 +364,57 @@ async function handleDailyLogSubmit(event) {
 }
 
 async function initializeApp() {
-    console.log("[DEBUG v7.5 InitApp - Calendar Only] Start");
+    console.log("[DEBUG v7.6 InitApp - Calendar Only] Start");
     cacheDOMElements();
-    if (!initializeSupabase()) return; // Zajistit, že Supabase je inicializován
+    if (!initializeSupabase()) return;
     setupAuthListeners();
 
     if (prevMonthBtn) {
-        console.log("[DEBUG v7.5 InitApp] Přidávám listener pro prevMonthBtn.");
+        console.log("[DEBUG v7.6 InitApp] Přidávám listener pro prevMonthBtn.");
         prevMonthBtn.addEventListener('click', () => changeMonth(-1));
-    } else { console.warn("[DEBUG v7.5 InitApp] prevMonthBtn nenalezen!");}
+    } else { console.warn("[DEBUG v7.6 InitApp] prevMonthBtn nenalezen!");}
 
     if (nextMonthBtn) {
-        console.log("[DEBUG v7.5 InitApp] Přidávám listener pro nextMonthBtn.");
+        console.log("[DEBUG v7.6 InitApp] Přidávám listener pro nextMonthBtn.");
         nextMonthBtn.addEventListener('click', () => changeMonth(1));
-    } else { console.warn("[DEBUG v7.5 InitApp] nextMonthBtn nenalezen!");}
+    } else { console.warn("[DEBUG v7.6 InitApp] nextMonthBtn nenalezen!");}
 
     if (closeLogModalBtn) closeLogModalBtn.addEventListener('click', closeLearningLogModal);
     if (dailyLearningLogForm) dailyLearningLogForm.addEventListener('submit', handleDailyLogSubmit);
 
-    console.log("[DEBUG v7.5 InitApp] Nastavuji onAuthStateChange listener...");
+    console.log("[DEBUG v7.6 InitApp] Nastavuji onAuthStateChange listener...");
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
-        console.log(`[DEBUG v7.5 AuthChange] Event: ${event}, Session Active: ${!!session}, User Initialized: ${isUserSessionInitialized}`);
+        console.log(`[DEBUG v7.6 AuthChange] Event: ${event}, Session Active: ${!!session}, User Initialized: ${isUserSessionInitialized}`);
         if (session && session.user) {
             const isNewUserOrFirstInit = !currentUser || currentUser.id !== session.user.id || !isUserSessionInitialized;
             currentUser = session.user;
 
             if (isNewUserOrFirstInit) {
-                console.log('[DEBUG v7.5 AuthChange] Uživatel přihlášen/změněn nebo první inicializace. Načítám data...');
-                isUserSessionInitialized = false;
+                console.log('[DEBUG v7.6 AuthChange] Uživatel přihlášen/změněn nebo první inicializace. Načítám data...');
+                isUserSessionInitialized = false; // Bude true až po úspěšném načtení
 
                 if (userEmailDisplay) userEmailDisplay.textContent = currentUser.email;
                 if (authSection) authSection.classList.add('hidden');
                 if (appSection) appSection.classList.remove('hidden');
 
                 try {
-                    console.log("[DEBUG v7.5 AuthChange] Čekám na loadLogsForMonthAndRenderCalendar()...");
-                    await loadLogsForMonthAndRenderCalendar();
-                    console.log('[DEBUG v7.5 AuthChange] Kalendář načten a vykreslen po přihlášení.');
+                    console.log("[DEBUG v7.6 AuthChange] Čekám na loadLogsForMonthAndRenderCalendar()...");
+                    await loadLogsForMonthAndRenderCalendar(); // Počkat na dokončení
+                    console.log('[DEBUG v7.6 AuthChange] Kalendář načten a vykreslen po přihlášení.');
 
                     isUserSessionInitialized = true;
-                    console.log('[DEBUG v7.5 AuthChange] isUserSessionInitialized nastaveno na true.');
+                    console.log('[DEBUG v7.6 AuthChange] isUserSessionInitialized nastaveno na true.');
                 } catch (initError) {
-                    console.error("[DEBUG v7.5 AuthChange] Chyba během inicializace dat po přihlášení:", initError);
+                    console.error("[DEBUG v7.6 AuthChange] Chyba během inicializace dat po přihlášení:", initError);
                     if (typeof showNotification === 'function') showNotification("Nepodařilo se plně načíst data po přihlášení. Zkuste obnovit stránku.", "error", 5000);
                 }
             } else {
-                 console.log('[DEBUG v7.5 AuthChange] Session obnovena, uživatel stejný a již inicializováno. Žádná akce.');
+                 console.log('[DEBUG v7.6 AuthChange] Session obnovena, uživatel stejný a již inicializováno. Žádná akce.');
             }
         } else {
             currentUser = null;
             isUserSessionInitialized = false;
-            console.log('[DEBUG v7.5 AuthChange] Uživatel odhlášen nebo session neaktivní.');
+            console.log('[DEBUG v7.6 AuthChange] Uživatel odhlášen nebo session neaktivní.');
             if (userEmailDisplay) userEmailDisplay.textContent = '';
             if (authSection) authSection.classList.remove('hidden');
             if (appSection) appSection.classList.add('hidden');
@@ -405,7 +422,7 @@ async function initializeApp() {
             if(calendarGrid) calendarGrid.innerHTML = '<p style="text-align:center; color: var(--text-muted);">Pro zobrazení kalendáře se přihlaste.</p>';
         }
     });
-    console.log("[DEBUG v7.5 InitApp - Calendar Only] Konec");
+    console.log("[DEBUG v7.6 InitApp - Calendar Only] Konec");
 }
 
 function initializeSupabase() {
@@ -417,17 +434,17 @@ function initializeSupabase() {
         if (!supabaseClient) {
             throw new Error("Supabase client creation failed (returned null/undefined).");
         }
-        window.supabase = supabaseClient; // Pro případné přímé použití v konzoli
+        window.supabase = supabaseClient;
         console.log('[Supabase] Klient úspěšně inicializován.');
         return true;
     } catch (error) {
         console.error('[Supabase] Initialization failed:', error);
         const container = document.querySelector('.container') || document.body;
         const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message'; // Použijte existující třídu pro styl chyby
+        errorDiv.className = 'error-message';
         errorDiv.textContent = `Kritická chyba: Nepodařilo se připojit k databázi. ${error.message}`;
         if (container) {
-            container.innerHTML = ''; // Vyčistit předchozí obsah, pokud existuje
+            container.innerHTML = '';
             container.appendChild(errorDiv);
         } else {
             document.body.innerHTML = `<div class="error-message" style="padding:20px; text-align:center;">Kritická chyba: ${error.message}</div>`;
