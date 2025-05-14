@@ -78,7 +78,7 @@
             { key: 'welcomeTitle', id: 'welcome-title', critical: true },
             { key: 'statsCardsContainer', query: '.stat-cards', critical: true },
             { key: 'activityListContainerWrapper', id: 'recent-activities-container-wrapper', critical: true },
-            { key: 'creditHistoryContainerWrapper', id: 'credit-history-container-wrapper', critical: true }, // Správné ID
+            { key: 'creditHistoryContainerWrapper', id: 'credit-history-container-wrapper', critical: true },
             { key: 'sidebarOverlay', id: 'sidebar-overlay', critical: false },
             { key: 'mainMobileMenuToggle', id: 'main-mobile-menu-toggle', critical: false },
             { key: 'sidebarCloseToggle', id: 'sidebar-close-toggle', critical: false },
@@ -136,6 +136,14 @@
             }
         });
 
+        if (ui.statsCardsContainer) {
+            ui.progressCard = ui.statsCardsContainer.querySelector('#progress-card') || ui.progressCard;
+            ui.pointsCard = ui.statsCardsContainer.querySelector('#points-card') || ui.pointsCard;
+            ui.streakCard = ui.statsCardsContainer.querySelector('#streak-card') || ui.streakCard;
+        } else {
+            console.warn("[CACHE DOM] Main stats card container (.stat-cards) not found. Individual stat cards might not be found if not explicitly cached.");
+        }
+
         if (notFoundCritical.length > 0) {
             console.error(`[CACHE DOM] CRITICAL elements not found: (${notFoundCritical.length})`, notFoundCritical);
             throw new Error(`Chyba načítání stránky: Kritické komponenty chybí (${notFoundCritical.join(', ')}).`);
@@ -159,7 +167,10 @@
 
     function setLoadingState(sectionKey, isLoadingFlag) {
         if (!ui || Object.keys(ui).length === 0) { console.error("[SetLoadingState] UI cache not ready."); return; }
-        if (isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return;
+        if (isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') {
+            // console.log(`[SetLoadingState v26.0.5] State for ${sectionKey} already ${isLoadingFlag}. Skipping.`);
+            return;
+        }
 
         if (sectionKey === 'all') {
             Object.keys(isLoading).forEach(key => {
@@ -188,14 +199,16 @@
                  if(ui.noNotificationsMsg) ui.noNotificationsMsg.style.display = 'block';
             }
         } else if (sectionKey === 'activities') {
-            if (ui.activityListContainerWrapper) { // Toto je <section class="card" id="recent-activities-container-wrapper">
+            if (ui.activityListContainerWrapper) {
                 ui.activityListContainerWrapper.classList.toggle('loading-section', isLoadingFlag);
-                console.log(`[SetLoadingState] ${sectionKey} wrapper class 'loading-section' set to ${isLoadingFlag}`);
+                console.log(`[SetLoadingState] 'activities' wrapper class 'loading-section' set to ${isLoadingFlag}`);
+                // Vnitřní skeletony spravuje DashboardLists.js
             } else { console.warn("[SetLoadingState] ui.activityListContainerWrapper not found for 'activities'."); }
         } else if (sectionKey === 'creditHistory') {
-            if (ui.creditHistoryContainerWrapper) { // Toto je <section class="card" id="credit-history-container-wrapper">
+            if (ui.creditHistoryContainerWrapper) {
                 ui.creditHistoryContainerWrapper.classList.toggle('loading-section', isLoadingFlag);
-                console.log(`[SetLoadingState] ${sectionKey} wrapper class 'loading-section' set to ${isLoadingFlag}`);
+                console.log(`[SetLoadingState] 'creditHistory' wrapper class 'loading-section' set to ${isLoadingFlag}`);
+                 // Vnitřní skeletony spravuje DashboardLists.js
             } else { console.warn(`[SetLoadingState] Target container for section "creditHistory" (ui.creditHistoryContainerWrapper) not found.`); }
         } else if (sectionKey === 'monthlyRewards' || sectionKey === 'streakMilestones') {
             const modal = sectionKey === 'monthlyRewards' ? ui.monthlyRewardModal : ui.streakMilestonesModal;
@@ -209,8 +222,8 @@
                 if (sectionKey === 'streakMilestones' && typeof renderMilestoneSkeletons === 'function') renderMilestoneSkeletons();
             }
         } else if (sectionKey === 'titles') {
-            // Pro 'titles' není zatím žádný vizuální indikátor v této funkci, pouze logování.
-            console.log(`[SetLoadingState] Loading state for 'titles' is now ${isLoadingFlag}. No specific UI element to toggle here.`);
+            // Pro 'titles' není zatím žádný vizuální indikátor v této funkci
+            console.log(`[SetLoadingState] Loading state for 'titles' is now ${isLoadingFlag}.`);
         }
         else {
             console.warn(`[SetLoadingState] Unknown section key or unhandled UI in dashboard.js: ${sectionKey}`);
@@ -424,16 +437,16 @@
         hideError();
         setLoadingState('stats', true);
         setLoadingState('notifications', true);
-        setLoadingState('activities', true); // Explicitně nastavujeme načítání pro tyto sekce
+        setLoadingState('activities', true);
         setLoadingState('creditHistory', true);
 
         try {
-            await checkAndUpdateLoginStreak(); // Aktualizuje currentProfile
-            updateSidebarProfile(currentProfile); // Aktualizuje sidebar s potenciálně novými daty
+            await checkAndUpdateLoginStreak();
+            updateSidebarProfile(profile); // Aktualizace sidebaru s potenciálně novými daty ze streak checku
 
             console.log("[MAIN] loadDashboardData: Načítání statistik a notifikací.");
             const [statsResult, notificationsResult] = await Promise.allSettled([
-                fetchUserStats(user.id, currentProfile), // Použijeme aktualizovaný currentProfile
+                fetchUserStats(user.id, currentProfile), // Používáme aktualizovaný currentProfile
                 fetchNotifications(user.id, 5)
             ]);
             console.log("[MAIN] loadDashboardData: Načítání statistik a notifikací dokončeno.");
@@ -444,9 +457,9 @@
             } else {
                 console.error("❌ Chyba při načítání statistik:", statsResult.reason);
                 showError("Nepodařilo se načíst statistiky.", false);
-                updateStatsCards(profile); // Zobrazit alespoň data z profilu
+                updateStatsCards(profile); // Zobrazit alespoň data z profilu jako fallback
             }
-            // Zde již není voláno setLoadingState('stats', false); - bude v finally
+            // setLoadingState('stats', false); // Přesunuto do finally
 
             if (notificationsResult.status === 'fulfilled' && notificationsResult.value) {
                 const { unreadCount, notifications } = notificationsResult.value;
@@ -455,16 +468,15 @@
                 console.error("❌ Chyba při načítání oznámení:", notificationsResult.reason);
                 renderNotifications(0, []); // Zobrazit prázdný stav
             }
-            // Zde již není voláno setLoadingState('notifications', false);
+            // setLoadingState('notifications', false); // Přesunuto do finally
+
 
             if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderAll === 'function') {
                 console.log("[MAIN] Calling DashboardLists.loadAndRenderAll...");
-                await DashboardLists.loadAndRenderAll(user.id, 5); // Limit na 5 položek
-                 // DashboardLists interně spravuje své isLoading stavy (activities, creditHistory)
+                await DashboardLists.loadAndRenderAll(user.id, 5);
             } else {
                 console.error("DashboardLists.loadAndRenderAll function not found!");
-                 // Manuálně vypnout loading, pokud modul chybí
-                setLoadingState('activities', false);
+                setLoadingState('activities', false); // Manuální vypnutí, pokud modul chybí
                 setLoadingState('creditHistory', false);
             }
 
@@ -473,8 +485,8 @@
         } catch (error) {
             console.error('[MAIN] loadDashboardData: Zachycena hlavní chyba:', error);
             showError('Nepodařilo se kompletně načíst data nástěnky: ' + error.message);
-            updateStatsCards(profile);
-            renderNotifications(0, []);
+            updateStatsCards(profile); // Zobrazit data z profilu jako fallback
+            renderNotifications(0, []); // Zobrazit prázdné notifikace
             if (typeof DashboardLists !== 'undefined') {
                 if (typeof DashboardLists.renderActivities === 'function') DashboardLists.renderActivities(null);
                 if (typeof DashboardLists.renderCreditHistory === 'function') DashboardLists.renderCreditHistory(null);
@@ -482,9 +494,10 @@
         } finally {
             setLoadingState('stats', false);
             setLoadingState('notifications', false);
-            // Není třeba zde volat setLoadingState pro 'activities' a 'creditHistory',
-            // protože DashboardLists.js by to měl udělat interně po dokončení svých operací.
-            // Pokud by DashboardLists.js neexistoval, fallback v DashboardLists.setLoadingState by to řešil.
+            // Stavy pro activities a creditHistory jsou spravovány modulem DashboardLists,
+            // který volá své vlastní set...Loading(false) na konci svých renderovacích funkcí.
+            // Pokud DashboardLists neexistuje, fallback v setLoadingState (v dashboard.js) by se měl postarat
+            // o vypnutí indikátorů pro 'activities' a 'creditHistory', pokud byly zapnuty globálně.
             if (typeof initTooltips === 'function') initTooltips();
             console.log("[MAIN] loadDashboardData: Blok finally dokončen.");
         }
@@ -555,12 +568,12 @@
                         activityVisuals: activityVisuals,
                         formatRelativeTime: formatRelativeTime,
                         sanitizeHTML: sanitizeHTML,
-                        setLoadingStateGlobal: setLoadingState // Pass the dashboard's setLoadingState
+                        // DŮLEŽITÉ: Zde předáváme globální funkci setLoadingState z dashboard.js
+                        setLoadingStateGlobal: setLoadingState
                     });
                 } else {
                     console.error("Modul DashboardLists není definován nebo nemá funkci initialize!");
-                     // Fallback or error handling if DashboardLists is critical
-                    setLoadingState('activities', false); // Ensure these are reset if module fails
+                    setLoadingState('activities', false);
                     setLoadingState('creditHistory', false);
                 }
 
@@ -589,7 +602,6 @@
         initializeApp();
     }
 
-    // Pomocné funkce, které nemusí být v hlavním toku, ale jsou užitečné
     function isSameDate(date1, date2) { if (!date1 || !date2) return false; const d1 = new Date(date1); const d2 = new Date(date2); return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate(); }
     function isYesterday(date1, date2) { if (!date1 || !date2) return false; const yesterday = new Date(date2); yesterday.setDate(yesterday.getDate() - 1); return isSameDate(date1, yesterday); }
     function getCurrentMonthYearString() { const now = new Date(); const year = now.getFullYear(); const month = String(now.getMonth() + 1).padStart(2, '0'); return `${year}-${month}`; }
