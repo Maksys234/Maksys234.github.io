@@ -1,28 +1,24 @@
 // dashboard-lists.js
-// Verze: 1.0 - Модуль для управления списками "Nedávná aktivita" и "Historie Kreditů"
-// Выделен из dashboard.js (v26.0.1)
+// Verze: 1.2 - Definitivně odstraněno rekurzivní/chybné volání setLoadingStateGlobal
 
 (function(window) {
     'use strict';
 
     const DashboardLists = {
-        // --- Зависимости и Состояние ---
         dependencies: {
             supabaseClient: null,
             currentUser: null,
             activityVisuals: {},
             formatRelativeTime: () => '',
             sanitizeHTML: (str) => str,
-            setLoadingStateGlobal: () => {} // Ссылка на глобальную setLoadingState из dashboard.js
+            // setLoadingStateGlobal: () => {} // Odebráno z explicitních závislostí, pokud již není voláno
         },
         uiLists: {
-            // Элементы для Nedávná aktivita
             activityListContainer: null,
             activityList: null,
             activityListEmptyState: null,
             activityListErrorState: null,
             activityListLoadingPlaceholder: null,
-            // Элементы для Historie Kreditů
             creditHistoryListContainer: null,
             creditHistoryList: null,
             creditHistoryEmptyState: null,
@@ -32,24 +28,18 @@
         isLoadingActivities: false,
         isLoadingCreditHistory: false,
 
-        // --- Инициализация ---
         initialize: function(deps) {
-            console.log("[DashboardLists] Initializing...");
-            // Сохраняем переданные зависимости
+            console.log("[DashboardLists] Initializing (v1.2)...");
             this.dependencies.supabaseClient = deps.supabaseClient;
-            this.dependencies.currentUser = deps.currentUser; // Важно: это объект, будет обновляться в dashboard.js
+            this.dependencies.currentUser = deps.currentUser;
             this.dependencies.activityVisuals = deps.activityVisuals;
             this.dependencies.formatRelativeTime = deps.formatRelativeTime;
             this.dependencies.sanitizeHTML = deps.sanitizeHTML;
-            this.dependencies.setLoadingStateGlobal = deps.setLoadingState; // Сохраняем ссылку на глобальную функцию
-
-            // Кэшируем UI элементы, специфичные для этих списков
+            // Globální setLoadingState se již nebude volat z tohoto modulu pro klíče 'activities' a 'creditHistory'
+            // this.dependencies.setLoadingStateGlobal = deps.setLoadingStateGlobal; 
             this._cacheDOMElements();
-
-            if (!this.dependencies.supabaseClient) console.error("[DashboardLists] Supabase client is missing in dependencies!");
-            if (!this.dependencies.activityVisuals) console.warn("[DashboardLists] Activity visuals map is missing in dependencies!");
-
-            console.log("[DashboardLists] Initialized successfully.");
+            if (!this.dependencies.supabaseClient) console.error("[DashboardLists] Supabase client is missing!");
+            console.log("[DashboardLists] Initialized successfully (v1.2).");
         },
 
         _cacheDOMElements: function() {
@@ -65,22 +55,14 @@
             this.uiLists.creditHistoryEmptyState = document.getElementById('credit-history-empty-state');
             this.uiLists.creditHistoryErrorState = document.getElementById('credit-history-error-state');
             this.uiLists.creditHistoryLoadingPlaceholder = this.uiLists.creditHistoryListContainer?.querySelector('.loading-placeholder');
-
-            // Проверка на отсутствующие критические элементы для списков
-            if (!this.uiLists.activityListContainer) console.warn("[DashboardLists CacheDOM] Activity list container NOT FOUND.");
-            if (!this.uiLists.activityListLoadingPlaceholder) console.warn("[DashboardLists CacheDOM] Activity list loading placeholder NOT FOUND.");
-            if (!this.uiLists.creditHistoryListContainer) console.warn("[DashboardLists CacheDOM] Credit history list container NOT FOUND.");
-            if (!this.uiLists.creditHistoryLoadingPlaceholder) console.warn("[DashboardLists CacheDOM] Credit history loading placeholder NOT FOUND.");
             console.log("[DashboardLists CacheDOM] Caching complete.");
         },
 
-        // --- Управление состоянием загрузки для конкретных списков ---
         setActivitiesLoading: function(isLoadingFlag) {
             this.isLoadingActivities = isLoadingFlag;
-            // Вызываем глобальный setLoadingState для общей индикации секции, если нужно
-            this.dependencies.setLoadingStateGlobal('activities', isLoadingFlag);
+            console.log(`[DashboardLists] Inner setActivitiesLoading set to: ${isLoadingFlag}`);
 
-            // Управляем специфичными элементами UI для activities
+            // Tato funkce nyní spravuje pouze UI prvky UVNITŘ activityListContainer
             if (this.uiLists.activityListContainer) {
                 this.uiLists.activityListContainer.classList.toggle('loading', isLoadingFlag);
                 if (isLoadingFlag) {
@@ -88,19 +70,18 @@
                     if (this.uiLists.activityListEmptyState) this.uiLists.activityListEmptyState.style.display = 'none';
                     if (this.uiLists.activityListErrorState) this.uiLists.activityListErrorState.style.display = 'none';
                     if (this.uiLists.activityListLoadingPlaceholder) {
-                        this.renderActivitySkeletons(5); // Рендерим скелетоны в плейсхолдер
+                        this.renderActivitySkeletons(5);
                         this.uiLists.activityListLoadingPlaceholder.style.display = 'flex';
                     }
                 } else {
                     if (this.uiLists.activityListLoadingPlaceholder) this.uiLists.activityListLoadingPlaceholder.style.display = 'none';
-                    // Видимость списка/сообщения об ошибке/пустом состоянии управляется в renderActivities
                 }
             }
         },
 
         setCreditHistoryLoading: function(isLoadingFlag) {
             this.isLoadingCreditHistory = isLoadingFlag;
-            this.dependencies.setLoadingStateGlobal('creditHistory', isLoadingFlag);
+            console.log(`[DashboardLists] Inner setCreditHistoryLoading set to: ${isLoadingFlag}`);
 
             if (this.uiLists.creditHistoryListContainer) {
                 this.uiLists.creditHistoryListContainer.classList.toggle('loading', isLoadingFlag);
@@ -118,11 +99,10 @@
             }
         },
 
-        // --- Загрузка данных ---
         fetchRecentActivities: async function(userId, limit = 5) {
             if (!this.dependencies.supabaseClient || !userId) {
                 console.error("[DashboardLists Activities] Supabase client or User ID missing.");
-                return null; // Возвращаем null при ошибке, чтобы renderActivities мог это обработать
+                return null;
             }
             console.log(`[DashboardLists Activities] Fetching last ${limit} activities for user ${userId}`);
             try {
@@ -137,11 +117,10 @@
                 return data || [];
             } catch (e) {
                 console.error('[DashboardLists Activities] Exception fetching activities:', e);
-                // Используем showToast из зависимостей, если он есть
-                if (typeof this.dependencies.showToast === 'function') {
+                if (typeof this.dependencies.showToast === 'function') { // Použijeme globální showToast
                     this.dependencies.showToast('Chyba aktivit', 'Nepodařilo se načíst nedávné aktivity.', 'error');
                 }
-                return null; // Возвращаем null при ошибке
+                return null;
             }
         },
 
@@ -170,7 +149,6 @@
             }
         },
 
-        // --- Рендеринг ---
         renderActivities: function(activities) {
             const ui = this.uiLists;
             const { sanitizeHTML, formatRelativeTime, activityVisuals } = this.dependencies;
@@ -183,16 +161,16 @@
             console.log("[DashboardLists Render Activities] Rendering, count:", activities?.length);
 
             ui.activityList.innerHTML = '';
-            ui.activityListLoadingPlaceholder.style.display = 'none';
+            // Již řešeno v setActivitiesLoading: ui.activityListLoadingPlaceholder.style.display = 'none';
             ui.activityListErrorState.style.display = 'none';
             ui.activityListEmptyState.style.display = 'none';
             ui.activityList.style.display = 'none';
 
-            if (activities === null) { // Ошибка при загрузке
+            if (activities === null) {
                 ui.activityListErrorState.style.display = 'block';
-            } else if (!activities || activities.length === 0) { // Нет данных
+            } else if (!activities || activities.length === 0) {
                 ui.activityListEmptyState.style.display = 'block';
-            } else { // Есть данные
+            } else {
                 const fragment = document.createDocumentFragment();
                 activities.forEach(activity => {
                     const typeLower = activity.type?.toLowerCase() || 'default';
@@ -232,8 +210,7 @@
                 ui.activityList.appendChild(fragment);
                 ui.activityList.style.display = 'block';
             }
-            ui.activityListContainer.classList.remove('loading'); // Общий класс загрузки контейнера
-            this.setActivitiesLoading(false); // Устанавливаем флаг загрузки модуля
+            this.setActivitiesLoading(false);
             console.log("[DashboardLists Render Activities] Finished.");
         },
 
@@ -259,7 +236,7 @@
             console.log("[DashboardLists Render Credits] Rendering, count:", transactions?.length);
 
             ui.creditHistoryList.innerHTML = '';
-            ui.creditHistoryLoadingPlaceholder.style.display = 'none';
+            // Již řešeno v setCreditHistoryLoading: ui.creditHistoryLoadingPlaceholder.style.display = 'none';
             ui.creditHistoryErrorState.style.display = 'none';
             ui.creditHistoryEmptyState.style.display = 'none';
             ui.creditHistoryList.style.display = 'none';
@@ -275,8 +252,11 @@
                     item.className = 'activity-item credit-transaction-item';
                     const amountClass = tx.amount > 0 ? 'positive' : (tx.amount < 0 ? 'negative' : 'neutral');
                     const amountSign = tx.amount > 0 ? '+' : '';
-                    const typeLower = tx.transaction_type?.toLowerCase() || (tx.amount > 0 ? 'points_earned' : tx.amount < 0 ? 'points_spent' : 'default');
-                    const visual = activityVisuals[typeLower] || activityVisuals.default; // Используем общие visuals
+                    let typeLower = tx.transaction_type?.toLowerCase();
+                    if (!activityVisuals[typeLower]) {
+                        typeLower = tx.amount > 0 ? 'points_earned' : (tx.amount < 0 ? 'points_spent' : 'default');
+                    }
+                    const visual = activityVisuals[typeLower] || activityVisuals.default;
                     const iconClass = visual.icon;
                     const iconBgClass = visual.class || typeLower;
 
@@ -298,7 +278,6 @@
                 ui.creditHistoryList.appendChild(fragment);
                 ui.creditHistoryList.style.display = 'block';
             }
-            ui.creditHistoryListContainer.classList.remove('loading');
             this.setCreditHistoryLoading(false);
             console.log("[DashboardLists Render Credits] Finished.");
         },
@@ -313,20 +292,20 @@
             ui.creditHistoryLoadingPlaceholder.innerHTML = skeletonHTML;
         },
 
-        // --- Публичные методы для вызова из dashboard.js ---
         loadAndRenderAll: async function(userId, limit) {
             console.log("[DashboardLists] loadAndRenderAll called.");
-            // Параллельная загрузка
             const [activitiesResult, creditHistoryResult] = await Promise.allSettled([
                 this.loadAndRenderRecentActivities(userId, limit),
                 this.loadAndRenderCreditHistory(userId, limit)
             ]);
 
             if (activitiesResult.status === 'rejected') {
-                console.error("[DashboardLists] Error loading recent activities:", activitiesResult.reason);
+                console.error("[DashboardLists] Error loading recent activities in loadAndRenderAll:", activitiesResult.reason);
+                // renderActivities(null) se volá uvnitř loadAndRenderRecentActivities v případě chyby
             }
             if (creditHistoryResult.status === 'rejected') {
-                console.error("[DashboardLists] Error loading credit history:", creditHistoryResult.reason);
+                console.error("[DashboardLists] Error loading credit history in loadAndRenderAll:", creditHistoryResult.reason);
+                // renderCreditHistory(null) se volá uvnitř loadAndRenderCreditHistory v případě chyby
             }
             console.log("[DashboardLists] loadAndRenderAll finished.");
         },
@@ -334,19 +313,17 @@
         loadAndRenderRecentActivities: async function(userId, limit) {
             this.setActivitiesLoading(true);
             const activities = await this.fetchRecentActivities(userId, limit);
-            this.renderActivities(activities); // renderActivities вызовет setActivitiesLoading(false)
+            this.renderActivities(activities); // Tato funkce již volá setActivitiesLoading(false)
         },
 
         loadAndRenderCreditHistory: async function(userId, limit) {
             this.setCreditHistoryLoading(true);
             const transactions = await this.fetchCreditHistory(userId, limit);
-            this.renderCreditHistory(transactions); // renderCreditHistory вызовет setCreditHistoryLoading(false)
+            this.renderCreditHistory(transactions); // Tato funkce již volá setCreditHistoryLoading(false)
         }
     };
 
-    // Прикрепляем объект к window для доступа из dashboard.js
     window.DashboardLists = DashboardLists;
-
-    console.log("dashboard-lists.js loaded.");
+    console.log("dashboard-lists.js loaded with fix for recursive call (v1.2).");
 
 })(window);
