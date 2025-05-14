@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Buď Nejlepší - Kyber Kalendář v7.3</title> <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <title>Justax - Buď Nejlepší - Kyber Kalendář & AI Úkoly</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         /* --- CSS Proměnné (převzato a upraveno z dashboard.css pro cyberpunk vzhled) --- */
@@ -133,7 +134,7 @@
         #logDateDisplay { font-size: 1rem; color: var(--text-medium); margin-bottom: 1rem; font-weight: 500; }
         #dailyLearningLogForm button[type="submit"] { margin-top: 0.5rem; }
 
-        #taskFeedContainer { margin-top: 25px; }
+        #taskFeedContainer { margin-top: 30px; } /* Upravený margin-top */
         .task-item { background-color: rgba(var(--interface-bg), 0.8); padding: 15px; margin-bottom: 12px; border-radius: var(--button-radius); border-left: 3px solid var(--accent-secondary); box-shadow: var(--shadow-hud); opacity: 0; transform: translateY(15px); animation: fadeInTask 0.4s ease-out forwards; }
         @keyframes fadeInTask { to { opacity: 1; transform: translateY(0); } }
         .task-item:hover { background-color: rgba(var(--card-solid-rgb), 0.9); border-left-color: var(--accent-pink); }
@@ -143,8 +144,8 @@
         #loadMoreTasksButton { display: block; margin: 15px auto; }
 
         .loader { text-align: center; padding: 20px; font-size: 1rem; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 0.8rem; }
-        .loader.visible-loader { display: flex; } /* Used to show loader by JS */
-        .loader:not(.visible-loader) { display: none; } /* Hide if not explicitly visible */
+        .loader.visible-loader { display: flex; }
+        .loader:not(.visible-loader) { display: none; }
         .loader::before { content: ''; display: block; width: 28px; height: 28px; border: 3px solid var(--accent-primary); border-radius: 50%; border-top-color: transparent; border-right-color: transparent; animation: loading-spinner 0.7s linear infinite; }
         @keyframes loading-spinner { to { transform: rotate(360deg); } }
 
@@ -161,8 +162,41 @@
         .notification .toast-close:hover { opacity: 1; color: var(--accent-primary); }
         .error-message { color: var(--accent-pink); background-color: rgba(var(--accent-pink-rgb), 0.1); border: 1px solid rgba(var(--accent-pink-rgb), 0.3); padding: 10px; margin-bottom: 15px; border-radius: var(--button-radius); }
 
-        @media (max-width: 768px) { /* ... (responzivní styly jako v7.2) ... */ }
-        @media (max-width: 480px) { /* ... (responzivní styly jako v7.2) ... */ }
+        @media (max-width: 768px) {
+            .container { padding: 20px; margin-top: 10px; }
+            h1 { font-size: 1.6rem; margin-bottom: 20px; }
+            h2 { font-size: 1.2rem; }
+            .calendar-controls { flex-direction: column; gap: 10px; margin-bottom: 15px; }
+            .calendar-controls button { width: 100%; }
+            #monthYearDisplay { margin: 5px 0; }
+            .calendar-day-cell { min-height: 70px; padding: 6px; font-size: 0.9rem; }
+            .calendar-day-cell .day-number { font-size: 0.75rem; }
+            .calendar-day-cell .log-preview { font-size: 0.65rem; -webkit-line-clamp: 2; }
+            .modal-content { margin: 10% auto; width: 95%; padding: 15px; }
+            .modal-title {font-size: 1.1rem;}
+            input[type="email"], input[type="password"], input[type="text"], textarea, button, .btn { font-size: 0.9rem; padding: 10px; }
+            #taskFeedContainer { margin-top: 20px; }
+            .task-item h3 { font-size: 1rem; }
+            .task-item p { font-size: 0.85rem; }
+        }
+        @media (max-width: 480px) {
+            body { padding: 10px; }
+            .container { padding: 15px; }
+            h1 { font-size: 1.4rem; margin-bottom: 15px;}
+            h2 { font-size: 1.1rem; margin-bottom: 0.8rem;}
+            .calendar-grid { gap: 4px; }
+            .calendar-header-cell { font-size: 0.7rem; padding-bottom: 0.2rem; }
+            .calendar-day-cell { min-height: 60px; padding: 4px; }
+            .calendar-day-cell .day-number { font-size: 0.7rem; }
+            .calendar-day-cell .log-preview { font-size: 0.6rem; -webkit-line-clamp: 2;}
+            .modal-content { margin: 5% auto; padding: 10px;}
+            .modal-title {font-size: 1rem;}
+            #logDateDisplay { font-size: 0.9rem;}
+            input[type="email"], input[type="password"], input[type="text"], textarea, button, .btn { font-size: 0.85rem; padding: 8px; }
+            .task-item { padding: 10px; }
+            .task-item h3 { font-size: 0.95rem; }
+            .task-item p { font-size: 0.8rem; }
+        }
     </style>
 </head>
 <body>
@@ -170,10 +204,40 @@
     <div class="toast-container" id="notificationArea"></div>
 
     <div class="container">
-        <h1>Buď Nejlepší // Kyber Kalendář</h1>
+        <h1>Buď Nejlepší // Kyber Kalendář & AI Úkoly</h1>
 
         <div id="authSection">
+            <div id="loginFormContainer">
+                <h2>Přihlášení</h2>
+                <form id="loginForm">
+                    <div>
+                        <label for="login-email" class="form-label">Email:</label>
+                        <input type="email" id="login-email" name="email" required>
+                    </div>
+                    <div>
+                        <label for="login-password" class="form-label">Heslo:</label>
+                        <input type="password" id="login-password" name="password" required>
+                    </div>
+                    <button type="submit">Přihlásit se</button>
+                </form>
+                <p class="auth-toggle" onclick="toggleAuthForms()">Nemáte účet? Zaregistrujte se.</p>
             </div>
+            <div id="registerFormContainer" class="hidden">
+                <h2>Registrace</h2>
+                <form id="registerForm">
+                    <div>
+                        <label for="register-email" class="form-label">Email:</label>
+                        <input type="email" id="register-email" name="email" required>
+                    </div>
+                    <div>
+                        <label for="register-password" class="form-label">Heslo:</label>
+                        <input type="password" id="register-password" name="password" required>
+                    </div>
+                    <button type="submit">Zaregistrovat se</button>
+                </form>
+                <p class="auth-toggle" onclick="toggleAuthForms()">Máte již účet? Přihlaste se.</p>
+            </div>
+        </div>
 
         <div id="appSection" class="hidden">
             <div id="userInfo">
@@ -199,12 +263,12 @@
             <div id="calendarGrid" class="calendar-grid">
                 </div>
 
-            <div id="taskFeedContainer">
-                <h2><i class="fas fa-tasks"></i> Doporučené Úkoly</h2>
+            <div id="taskFeedContainer" style="margin-top: 30px;">
+                <h2><i class="fas fa-tasks"></i> Doporučené Úkoly od AI</h2>
                 <div id="tasksFeed">
                     <div class="loader visible-loader">Načítám úkoly...</div>
                 </div>
-                <button id="loadMoreTasksButton" class="btn btn-secondary hidden">Načíst další úkoly</button>
+                <button id="loadMoreTasksButton" class="btn btn-secondary hidden" style="display: block; margin: 15px auto;">Načíst další úkoly (Momentálně neaktivní)</button>
             </div>
         </div>
     </div>
@@ -231,5 +295,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="bethebest.js"></script> </body>
+    <script src="bethebest.js"></script>
+</body>
 </html>
