@@ -1,6 +1,5 @@
-
 // dashboard/bethebest.js
-// Verze: 7.8 - Finální verze s AI úkoly, timeouty a vylepšeným logováním
+// Verze: 7.8.1 - Улучшено логирование, обработка инициализации сессии + рекомендации по индексам БД
 
 // --- Konstanty a Supabase klient ---
 const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
@@ -30,8 +29,20 @@ let isLoadingTasks = false;
 
 let isLoadingCalendarLogs = false;
 let isUserSessionInitialized = false;
-const SUPABASE_FETCH_TIMEOUT = 15000; // 15 sekund
+const SUPABASE_FETCH_TIMEOUT = 15000; // 15 sekund (Рассмотрите увеличение до 20-25 секунд, если индексация не решит полностью)
 const GEMINI_FETCH_TIMEOUT = 25000; // 25 sekund
+
+// --- START: Новая функция логирования ---
+/**
+ * Helper function for consistent debug logging.
+ * @param {string} module - The name of the module/component logging the message.
+ * @param {string} message - The log message.
+ * @param  {...any} args - Additional arguments to log.
+ */
+function logDebug(module, message, ...args) {
+    console.log(`[DEBUG v7.8.1 ${module}] ${message}`, ...args);
+}
+// --- END: Новая функция логирования ---
 
 function cacheDOMElements() {
     authSection = document.getElementById('authSection');
@@ -56,7 +67,7 @@ function cacheDOMElements() {
     logDetailsInput = document.getElementById('logDetails');
     tasksFeed = document.getElementById('tasksFeed');
     loadMoreTasksButton = document.getElementById('loadMoreTasksButton');
-    console.log("[DEBUG v7.8 Cache] DOM elements cached.");
+    logDebug("Cache", "DOM elements cached.");
 }
 
 function showNotification(message, type = 'info', duration = 3500) {
@@ -94,7 +105,7 @@ function setupAuthListeners() {
 }
 
 function renderCalendar() {
-    if (!calendarGrid || !monthYearDisplay) { console.error("[Calendar v7.8] Chybí elementy."); return; }
+    if (!calendarGrid || !monthYearDisplay) { console.error("[Calendar v7.8.1] Chybí elementy."); return; }
     calendarGrid.innerHTML = '';
     const firstDay = new Date(currentDisplayedYear, currentDisplayedMonth, 1);
     monthYearDisplay.textContent = `${firstDay.toLocaleString('cs-CZ', { month: 'long' })} ${currentDisplayedYear}`;
@@ -111,7 +122,7 @@ function renderCalendar() {
         dayCell.addEventListener('click', () => openLearningLogModal(dateStr));
         calendarGrid.appendChild(dayCell);
     }
-    console.log(`[Calendar v7.8] Vykreslen pro ${monthYearDisplay.textContent}.`);
+    logDebug("Calendar", `Vykreslen pro ${monthYearDisplay.textContent}.`);
 }
 
 function changeMonth(offset) {
@@ -124,10 +135,10 @@ function changeMonth(offset) {
 
 async function loadLogsForMonthAndRenderCalendar() {
     if (!currentUser || !supabaseClient) { if (typeof renderCalendar === 'function') renderCalendar(); return; }
-    if (isLoadingCalendarLogs) { console.warn("[LogsCal v7.8] Duplicitní volání."); return; }
+    if (isLoadingCalendarLogs) { console.warn("[LogsCal v7.8.1] Duplicitní volání, ale je aktivní isLoadingCalendarLogs."); return; }
     isLoadingCalendarLogs = true;
     const displayMonth = currentDisplayedMonth, displayYear = currentDisplayedYear;
-    console.log(`[LogsCal v7.8] START: isLoading. Cíl: ${displayYear}-${String(displayMonth + 1).padStart(2, '0')}`);
+    logDebug("LogsCal", `START: isLoading. Cíl: ${displayYear}-${String(displayMonth + 1).padStart(2, '0')}`);
     if (monthYearDisplay) monthYearDisplay.textContent = "Načítám...";
     const startDate = `${displayYear}-${String(displayMonth + 1).padStart(2, '0')}-01`;
     const endDate = `${displayYear}-${String(displayMonth + 1).padStart(2, '0')}-${new Date(displayYear, displayMonth + 1, 0).getDate()}`;
@@ -139,18 +150,18 @@ async function loadLogsForMonthAndRenderCalendar() {
         if (error) throw error;
         Object.keys(learningLogsCache).forEach(k => { if (k.startsWith(`${displayYear}-${String(displayMonth+1).padStart(2,'0')}`)) delete learningLogsCache[k]; });
         if (data) data.forEach(log => learningLogsCache[log.log_date] = { topic: log.topic, details: log.details });
-        console.log(`[LogsCal v7.8] Logy načteny (${data?.length || 0}).`);
+        logDebug("LogsCal", `Logy načteny (${data?.length || 0}).`);
         if (typeof renderCalendar === 'function') renderCalendar();
     } catch (err) {
-        console.error("[LogsCal v7.8] Chyba:", err.message);
-        if (typeof showNotification === 'function') showNotification(`Chyba načítání záznamů: ${err.message.includes("timeout") ? "Server neodpověděl." : err.message}`, "error");
-        if (typeof renderCalendar === 'function') renderCalendar();
+        console.error("[LogsCal v7.8.1] Chyba:", err.message);
+        if (typeof showNotification === 'function') showNotification(`Chyba načítání záznamů: ${err.message.includes("timeout") ? "Server neodpověděl včas. Zkontrolujte indexy v databázi Supabase pro tabulku 'learning_logs_detailed' (user_id, log_date)." : err.message}`, "error", 7000);
+        if (typeof renderCalendar === 'function') renderCalendar(); // Render calendar even on error (will be empty or show old cache)
     } finally {
         isLoadingCalendarLogs = false;
         if (monthYearDisplay && currentDisplayedMonth === displayMonth && currentDisplayedYear === displayYear) {
             monthYearDisplay.textContent = `${new Date(displayYear, displayMonth).toLocaleString('cs-CZ', { month: 'long' })} ${displayYear}`;
         }
-        console.log(`[LogsCal v7.8] KONEC: isLoading je ${isLoadingCalendarLogs}.`);
+        logDebug("LogsCal", `KONEC: isLoading je ${isLoadingCalendarLogs}.`);
     }
 }
 
@@ -189,7 +200,7 @@ async function handleDailyLogSubmit(event) {
 }
 
 async function generateTasksFromTopics(topicsContext, existingTasksCount = 0) {
-    console.log(`[AI Tasks v7.8] Generuji úkoly. Kontext: "${topicsContext.substring(0, 100)}...", Existující: ${existingTasksCount}`);
+    logDebug("AI Tasks", `Generuji úkoly. Kontext: "${topicsContext.substring(0, 100)}...", Existující: ${existingTasksCount}`);
     if (!GEMINI_API_KEY || !GEMINI_API_KEY.startsWith('AIzaSy')) {
         return [{ title: "Chyba konfigurace AI", description: "Chybí platný API klíč.", topic: "Systém" }];
     }
@@ -207,9 +218,9 @@ async function generateTasksFromTopics(topicsContext, existingTasksCount = 0) {
         const jsonMatch = textResponse.match(/```json\s*([\s\S]*?)\s*```/);
         let parsedTasks = jsonMatch && jsonMatch[1] ? JSON.parse(jsonMatch[1]) : JSON.parse(textResponse);
         if (!Array.isArray(parsedTasks)) parsedTasks = typeof parsedTasks === 'object' && parsedTasks !== null ? [parsedTasks] : [];
-        return parsedTasks.filter(t => t && t.title && t.description && t.topic); // Základní validace
+        return parsedTasks.filter(t => t && t.title && t.description && t.topic);
     } catch (error) {
-        console.error("[AI Tasks v7.8] Chyba:", error.message);
+        console.error("[AI Tasks v7.8.1] Chyba:", error.message);
         const desc = error.message.includes("timeout") ? "AI neodpovědělo včas." : `Chyba generování: ${error.message}`;
         return [{ title: "Chyba AI", description: desc, topic: "Systém" }];
     }
@@ -220,7 +231,7 @@ async function fetchAndDisplayTasks(forceRefresh = false) {
         if (tasksFeed) tasksFeed.innerHTML = '<p class="error-message">Chyba inicializace úkolů.</p>';
         return;
     }
-    if (isLoadingTasks && !forceRefresh) { console.log("[Tasks v7.8] Načítání již probíhá."); return; }
+    if (isLoadingTasks && !forceRefresh) { logDebug("Tasks", "Načítání již probíhá."); return; }
     isLoadingTasks = true;
     tasksFeed.innerHTML = '<div class="loader visible-loader">Načítám AI úkoly...</div>';
     if (loadMoreTasksButton) loadMoreTasksButton.classList.add('hidden');
@@ -229,24 +240,23 @@ async function fetchAndDisplayTasks(forceRefresh = false) {
         const { data: logs, error: logError } = await supabaseClient.from('learning_logs_detailed').select('topic, details, log_date').eq('user_id', currentUser.id).order('log_date', { ascending: false }).limit(10);
         if (logError) throw new Error(`DB chyba (logy pro AI): ${logError.message}`);
 
-        if (forceRefresh || logs?.length > 0) { // Generovat vždy, pokud jsou logy, nebo při forceRefresh
+        if (forceRefresh || logs?.length > 0) {
             const topicsContext = logs && logs.length > 0 ? logs.map(l => `- ${new Date(l.log_date+'T00:00:00Z').toLocaleDateString('cs-CZ',{timeZone:'Europe/Prague'})}, Téma: ${l.topic}${l.details ? (': '+l.details.substring(0,70)+'...') : ''}`).join("\n") : "Žádná nedávná témata. Navrhni obecné opakovací otázky z matematiky pro 9. třídu ZŠ.";
             if (forceRefresh || topicsContext !== lastTaskTopicContext || generatedTasks.length === 0) {
                 lastTaskTopicContext = topicsContext;
                 generatedTasks = await generateTasksFromTopics(topicsContext, generatedTasks.length);
             }
         } else {
-            generatedTasks = []; // Žádné logy, žádné specifické úkoly
+            generatedTasks = [];
         }
         displayTasks();
     } catch (err) {
-        console.error("[Tasks v7.8] Chyba:", err);
+        console.error("[Tasks v7.8.1] Chyba:", err);
         tasksFeed.innerHTML = `<p class="error-message">Nepodařilo se načíst AI úkoly: ${err.message}</p>`;
         generatedTasks = [];
     } finally {
         isLoadingTasks = false;
-        // loadMoreTasksButton zůstává skrytý, jelikož není implementováno stránkování úkolů
-        console.log("[Tasks v7.8] Dokončeno.");
+        logDebug("Tasks", "Dokončeno.");
     }
 }
 
@@ -266,7 +276,7 @@ function displayTasks() {
 }
 
 async function initializeApp() {
-    console.log("[DEBUG v7.8 InitApp] Start");
+    logDebug("InitApp", "Start");
     cacheDOMElements();
     if (!initializeSupabase()) return;
     setupAuthListeners();
@@ -276,32 +286,40 @@ async function initializeApp() {
     if (closeLogModalBtn) closeLogModalBtn.addEventListener('click', closeLearningLogModal);
     if (dailyLearningLogForm) dailyLearningLogForm.addEventListener('submit', handleDailyLogSubmit);
 
-    console.log("[DEBUG v7.8 InitApp] Nastavuji onAuthStateChange listener...");
+    logDebug("InitApp", "Nastavuji onAuthStateChange listener...");
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
-        console.log(`[DEBUG v7.8 AuthChange] Event: ${event}, Session: ${!!session}, Initialized: ${isUserSessionInitialized}`);
+        logDebug("AuthChange", `Event: ${event}, Session: ${!!session}, UserSessionInitialized: ${isUserSessionInitialized}`);
+
         if (session && session.user) {
-            const isNew = !currentUser || currentUser.id !== session.user.id || !isUserSessionInitialized;
+            const isNewUserOrSession = !currentUser || currentUser.id !== session.user.id;
             currentUser = session.user;
-            if (isNew) {
-                console.log('[DEBUG v7.8 AuthChange] Nový uživatel/první init. Načítám data...');
-                isUserSessionInitialized = false;
+
+            if (isNewUserOrSession || !isUserSessionInitialized) {
+                logDebug("AuthChange", "Nový uživatel nebo neinicializovaná session. Startuji inicializaci dat...");
+                // Помечаем, что инициализация для этой сессии началась/произошла.
+                isUserSessionInitialized = true;
+
                 if (userEmailDisplay) userEmailDisplay.textContent = currentUser.email;
                 if (authSection) authSection.classList.add('hidden');
                 if (appSection) appSection.classList.remove('hidden');
+
                 try {
                     await loadLogsForMonthAndRenderCalendar();
-                    await fetchAndDisplayTasks(true);
-                    isUserSessionInitialized = true;
-                    console.log('[DEBUG v7.8 AuthChange] Data úspěšně inicializována.');
+                    await fetchAndDisplayTasks(true); // forceRefresh = true
+                    logDebug("AuthChange", "Data úspěšně inicializována po prvním načtení.");
                 } catch (initError) {
-                    console.error("[DEBUG v7.8 AuthChange] Chyba inicializace dat:", initError);
+                    console.error("[DEBUG v7.8.1 AuthChange] Chyba inicializace dat:", initError);
                     showNotification("Chyba při načítání dat po přihlášení.", "error");
+                    // Если инициализация не удалась, возможно, стоит сбросить флаг,
+                    // чтобы следующая попытка (например, после TOKEN_REFRESHED) могла снова попытаться.
+                    isUserSessionInitialized = false;
                 }
             } else {
-                console.log('[DEBUG v7.8 AuthChange] Session obnovena, žádná akce.');
+                logDebug("AuthChange", "Session obnovena nebo již inicializována, žádná akция načítání dat.");
             }
         } else {
-            currentUser = null; isUserSessionInitialized = false;
+            currentUser = null;
+            isUserSessionInitialized = false; // Сброс при выходе из системы
             if (userEmailDisplay) userEmailDisplay.textContent = '';
             if (authSection) authSection.classList.remove('hidden');
             if (appSection) appSection.classList.add('hidden');
@@ -309,9 +327,10 @@ async function initializeApp() {
             if(calendarGrid) calendarGrid.innerHTML = '<p style="text-align:center;color:var(--text-muted);">Přihlaste se pro zobrazení kalendáře.</p>';
             if(tasksFeed) tasksFeed.innerHTML = '<p style="text-align:center;color:var(--text-muted);">Přihlaste se pro AI úkoly.</p>';
             if(loadMoreTasksButton) loadMoreTasksButton.classList.add('hidden');
+            logDebug("AuthChange", "Uživatel odhlášen, UI resetováno.");
         }
     });
-    console.log("[DEBUG v7.8 InitApp] Konec");
+    logDebug("InitApp", "Konec");
 }
 
 function initializeSupabase() {
@@ -320,10 +339,10 @@ function initializeSupabase() {
         supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         if (!supabaseClient) throw new Error("Supabase client creation failed.");
         window.supabase = supabaseClient; // Pro konzoli
-        console.log('[Supabase] Klient inicializován (v7.8).');
+        console.log('[Supabase] Klient inicializován (v7.8.1).');
         return true;
     } catch (error) {
-        console.error('[Supabase] Init Chyba (v7.8):', error.message);
+        console.error('[Supabase] Init Chyba (v7.8.1):', error.message);
         const el = document.querySelector('.container') || document.body;
         el.innerHTML = `<div class="error-message" style="padding:20px;text-align:center;">Kritická chyba DB: ${error.message}</div>`;
         return false;
