@@ -20,7 +20,7 @@
 <body class="dark">
     <div class="initial-loading-overlay" id="initial-loader">
          <div class="loading-spinner"></div>
-         <p>SYNCHRONIZACE...</p>
+         <p>SYNCHRONIZACE SYSTÉMŮ...</p>
      </div>
 
      <div class="offline-banner" id="offline-banner">
@@ -53,7 +53,7 @@
     </aside>
 
     <main id="main-content">
-        <div class="error-container" id="global-error"></div>
+        <div class="error-container" id="global-error" style="display: none;"></div>
 
         <header class="dashboard-header">
              <div class="header-content">
@@ -92,6 +92,9 @@
                  </div>
              </div>
         </header>
+
+        <div id="main-content-area-placeholder" style="display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 3rem 1rem; flex-grow: 1; color: var(--text-muted);">
+            </div>
         <div class="main-content-wrapper">
             <div class="main-content-grid">
 
@@ -117,8 +120,8 @@
                  </section>
                  <section class="stats-section">
                     <h2 class="section-title" data-animate style="--animation-order: 1;"><i class="fas fa-chart-pie"></i>BOJOVÉ STATISTIKY</h2>
-                    <div class="stat-cards">
-                        <div class="stat-card card" id="progress-card" data-animate style="--animation-order: 2;">
+                    <div class="stat-cards" id="stats-cards-container">
+                        <div class="stat-card card loading" id="progress-card" data-animate style="--animation-order: 2;">
                             <div class="loading-skeleton">
                                 <div class="skeleton-info">
                                     <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div>
@@ -134,7 +137,7 @@
                             <div class="stat-card-footer" id="overall-progress-footer"><i class="fas fa-minus"></i> Načítání...</div>
                             <div class="stat-card-icon-bg progress-icon"><i class="fas fa-chart-line"></i></div>
                         </div>
-                        <div class="stat-card card" id="points-card" data-animate style="--animation-order: 3;">
+                        <div class="stat-card card loading" id="points-card" data-animate style="--animation-order: 3;">
                             <div class="loading-skeleton">
                                 <div class="skeleton-info">
                                     <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div>
@@ -150,7 +153,7 @@
                             <div class="stat-card-footer" id="total-points-footer"><i class="fas fa-minus"></i> Načítání...</div>
                             <div class="stat-card-icon-bg points-icon"><i class="fas fa-star"></i></div>
                         </div>
-                        <div class="stat-card card" id="streak-card" data-animate style="--animation-order: 4;">
+                        <div class="stat-card card loading" id="streak-card" data-animate style="--animation-order: 4;">
                             <div class="loading-skeleton">
                                 <div class="skeleton-info">
                                     <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div>
@@ -195,7 +198,7 @@
                     </div>
                 </section>
 
-                <section class="activity-section card" id="recent-activities-container-wrapper" data-animate style="--animation-order: 10;">
+                <section class="activity-section card loading-section" id="recent-activities-container-wrapper" data-animate style="--animation-order: 10;">
                     <h2 class="section-title"><i class="fas fa-history"></i>Nedávná aktivita</h2>
                     <div class="activity-list-container" id="activity-list-container">
                         <div class="loading-placeholder" style="display: none; flex-direction: column; gap: 0.8rem;">
@@ -212,7 +215,7 @@
                         </div>
                 </section>
 
-                <section class="card" id="credit-history-container-wrapper" data-animate style="--animation-order: 11;">
+                <section class="activity-section card loading-section" id="credit-history-container-wrapper" data-animate style="--animation-order: 11;">
                     <h2 class="section-title"><i class="fas fa-wallet"></i>Historie Kreditů</h2>
                     <div class="activity-list-container" id="credit-history-list-container">
                         <div class="loading-placeholder" style="display: none; flex-direction: column; gap: 0.8rem;">
@@ -229,11 +232,11 @@
                         </div>
                 </section>
             </div>
-
-             <footer class="dashboard-footer">
-                 <p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p>
-             </footer>
         </div>
+
+        <footer class="dashboard-footer">
+             <p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p>
+        </footer>
     </main>
 
     <div class="toast-container" id="toast-container"></div>
