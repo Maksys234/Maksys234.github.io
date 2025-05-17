@@ -20,7 +20,7 @@
 <body class="dark">
     <div class="initial-loading-overlay" id="initial-loader">
          <div class="loading-spinner"></div>
-         <p>SYNCHRONIZACE SYSTÉMŮ...</p>
+         <p>NAČÍTÁNÍ SYSTÉMŮ...</p>
      </div>
 
      <div class="offline-banner" id="offline-banner">
@@ -98,7 +98,7 @@
         <div class="main-content-wrapper">
             <div class="main-content-grid">
 
-                 <section class="welcome-banner card" data-animate style="--animation-order: 0;">
+                 <section class="welcome-banner card" id="welcome-banner-real" data-animate style="--animation-order: 0; display: none;">
                      <div class="welcome-content">
                          <div class="welcome-text-content">
                              <h2 class="welcome-title" id="welcome-title">Vítejte!</h2>
@@ -118,16 +118,28 @@
                          </div>
                      </div>
                  </section>
+                 <section class="welcome-banner card skeleton-mode" id="welcome-banner-skeleton" style="display: none;" data-animate style="--animation-order: 0;">
+                    <div class="welcome-content">
+                        <div class="welcome-text-content">
+                            <div class="skeleton title" style="height: 28px; width: 70%; margin-bottom: 1rem;"></div>
+                            <div class="skeleton text" style="height: 16px; width: 90%; margin-bottom: 0.7rem;"></div>
+                            <div class="skeleton text" style="height: 16px; width: 80%; margin-bottom: 1.5rem;"></div>
+                            <div class="skeleton" style="height: 44px; width: 180px; border-radius: var(--button-radius);"></div>
+                        </div>
+                        <div class="welcome-image">
+                             <div class="skeleton" style="width: 150px; height: 150px; border-radius: 12px;"></div>
+                        </div>
+                    </div>
+                 </section>
                  <section class="stats-section">
                     <h2 class="section-title" data-animate style="--animation-order: 1;"><i class="fas fa-chart-pie"></i>BOJOVÉ STATISTIKY</h2>
-                    <div class="stat-cards" id="stats-cards-container">
+                    <div class="stat-cards skeleton-mode" id="stats-cards-skeleton-container" style="display: none;">
+                        <div class="stat-card card loading"> <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder" style="width:40px; height:40px; border-radius: 8px;"></div> </div> </div>
+                        <div class="stat-card card loading"> <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder" style="width:40px; height:40px; border-radius: 8px;"></div> </div> </div>
+                        <div class="stat-card card loading"> <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder" style="width:40px; height:40px; border-radius: 8px;"></div> </div> </div>
+                    </div>
+                    <div class="stat-cards" id="stats-cards-container" style="display: none;">
                         <div class="stat-card card loading" id="progress-card" data-animate style="--animation-order: 2;">
-                            <div class="loading-skeleton">
-                                <div class="skeleton-info">
-                                    <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div>
-                                </div>
-                                <div class="skeleton icon-placeholder" style="width:40px; height:40px; border-radius: 8px;"></div>
-                            </div>
                             <div class="stat-card-content">
                                 <div class="stat-card-info">
                                     <div class="stat-card-title"><i class="fas fa-tasks"></i>Celkový Progress</div>
@@ -138,12 +150,6 @@
                             <div class="stat-card-icon-bg progress-icon"><i class="fas fa-chart-line"></i></div>
                         </div>
                         <div class="stat-card card loading" id="points-card" data-animate style="--animation-order: 3;">
-                            <div class="loading-skeleton">
-                                <div class="skeleton-info">
-                                    <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div>
-                                </div>
-                                <div class="skeleton icon-placeholder" style="width:40px; height:40px; border-radius: 8px;"></div>
-                            </div>
                             <div class="stat-card-content">
                                 <div class="stat-card-info">
                                     <div class="stat-card-title"><i class="fas fa-coins"></i>Kredity</div>
@@ -154,12 +160,6 @@
                             <div class="stat-card-icon-bg points-icon"><i class="fas fa-star"></i></div>
                         </div>
                         <div class="stat-card card loading" id="streak-card" data-animate style="--animation-order: 4;">
-                            <div class="loading-skeleton">
-                                <div class="skeleton-info">
-                                    <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div>
-                                </div>
-                                <div class="skeleton icon-placeholder" style="width:40px; height:40px; border-radius: 8px;"></div>
-                            </div>
                             <div class="stat-card-content">
                                 <div class="stat-card-info">
                                     <div class="stat-card-title"><i class="fas fa-calendar-check"></i>Série</div>
@@ -174,7 +174,13 @@
 
                 <section class="shortcuts-section">
                     <h2 class="section-title" data-animate style="--animation-order: 5;"><i class="fas fa-bolt"></i>Rychlé Odkazy</h2>
-                    <div class="shortcut-grid">
+                    <div class="shortcut-grid skeleton-mode" id="shortcut-grid-skeleton-container" style="display: none;">
+                        <div class="shortcut-card card loading"> <div class="loading-skeleton" style="padding:1.8rem; align-items: center; text-align: center;"> <div class="skeleton" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div> <div class="skeleton" style="height: 18px; width: 70%; margin: 0 auto 0.8rem auto;"></div> <div class="skeleton text" style="height: 14px; width: 90%; margin: 0 auto 0.4rem auto;"></div> <div class="skeleton text" style="height: 14px; width: 80%; margin: 0 auto;"></div> </div> </div>
+                        <div class="shortcut-card card loading"> <div class="loading-skeleton" style="padding:1.8rem; align-items: center; text-align: center;"> <div class="skeleton" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div> <div class="skeleton" style="height: 18px; width: 65%; margin: 0 auto 0.8rem auto;"></div> <div class="skeleton text" style="height: 14px; width: 85%; margin: 0 auto 0.4rem auto;"></div> <div class="skeleton text" style="height: 14px; width: 75%; margin: 0 auto;"></div> </div> </div>
+                        <div class="shortcut-card card loading"> <div class="loading-skeleton" style="padding:1.8rem; align-items: center; text-align: center;"> <div class="skeleton" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div> <div class="skeleton" style="height: 18px; width: 70%; margin: 0 auto 0.8rem auto;"></div> <div class="skeleton text" style="height: 14px; width: 90%; margin: 0 auto 0.4rem auto;"></div> <div class="skeleton text" style="height: 14px; width: 80%; margin: 0 auto;"></div> </div> </div>
+                        <div class="shortcut-card card loading"> <div class="loading-skeleton" style="padding:1.8rem; align-items: center; text-align: center;"> <div class="skeleton" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div> <div class="skeleton" style="height: 18px; width: 75%; margin: 0 auto 0.8rem auto;"></div> <div class="skeleton text" style="height: 14px; width: 88%; margin: 0 auto 0.4rem auto;"></div> <div class="skeleton text" style="height: 14px; width: 82%; margin: 0 auto;"></div> </div> </div>
+                    </div>
+                    <div class="shortcut-grid" id="shortcut-grid-real" style="display: none;">
                          <button class="shortcut-card card btn-tooltip" id="open-monthly-modal-btn" title="Zobrazit měsíční kalendář odměn" data-animate style="--animation-order: 6;">
                             <div class="shortcut-icon"><i class="fas fa-calendar-alt"></i></div>
                             <h3 class="shortcut-title">Měsíční Odměny</h3>
@@ -200,10 +206,15 @@
 
                 <section class="activity-section card loading-section" id="recent-activities-container-wrapper" data-animate style="--animation-order: 10;">
                     <h2 class="section-title"><i class="fas fa-history"></i>Nedávná aktivita</h2>
-                    <div class="activity-list-container" id="activity-list-container">
-                        <div class="loading-placeholder" style="display: none; flex-direction: column; gap: 0.8rem;">
-                            </div>
-                        <div class="activity-list" id="activity-list" style="display: none;"></div>
+                    <div class="activity-list-container skeleton-mode" id="activity-list-skeleton-container" style="display: none;">
+                        <div class="loading-placeholder" style="display: flex; flex-direction: column; gap: 0.8rem;">
+                            <div class="skeleton-activity-item"><div class="skeleton icon-placeholder"></div><div style="flex-grow: 1;"><div class="skeleton activity-line"></div><div class="skeleton activity-line text-short"></div><div class="skeleton activity-line-short"></div></div></div>
+                            <div class="skeleton-activity-item"><div class="skeleton icon-placeholder"></div><div style="flex-grow: 1;"><div class="skeleton activity-line"></div><div class="skeleton activity-line text-short"></div><div class="skeleton activity-line-short"></div></div></div>
+                            <div class="skeleton-activity-item"><div class="skeleton icon-placeholder"></div><div style="flex-grow: 1;"><div class="skeleton activity-line"></div><div class="skeleton activity-line text-short"></div><div class="skeleton activity-line-short"></div></div></div>
+                        </div>
+                    </div>
+                    <div class="activity-list-container" id="activity-list-container" style="display: none;">
+                        <div class="activity-list" id="activity-list"></div>
                         <div class="empty-state" id="activity-list-empty-state" style="display: none;">
                             <i class="fas fa-moon"></i>
                             <p>Zatím žádná aktivita. Začněte procvičovat!</p>
@@ -212,15 +223,20 @@
                              <i class="fas fa-exclamation-triangle"></i>
                              <p>Nepodařilo se načíst aktivitu.</p>
                         </div>
-                        </div>
+                    </div>
                 </section>
 
                 <section class="activity-section card loading-section" id="credit-history-container-wrapper" data-animate style="--animation-order: 11;">
                     <h2 class="section-title"><i class="fas fa-wallet"></i>Historie Kreditů</h2>
-                    <div class="activity-list-container" id="credit-history-list-container">
-                        <div class="loading-placeholder" style="display: none; flex-direction: column; gap: 0.8rem;">
-                            </div>
-                        <div class="activity-list" id="credit-history-list" style="display: none;"></div>
+                    <div class="activity-list-container skeleton-mode" id="credit-history-skeleton-container" style="display: none;">
+                        <div class="loading-placeholder" style="display: flex; flex-direction: column; gap: 0.8rem;">
+                            <div class="skeleton-activity-item"><div class="skeleton icon-placeholder" style="background-color: var(--accent-orange);"></div><div style="flex-grow: 1;"><div class="skeleton activity-line" style="width: 60%;"></div><div class="skeleton activity-line text-short" style="width: 40%; margin-bottom: 0.3rem;"></div><div class="skeleton activity-line-short" style="width: 30%;"></div></div></div>
+                            <div class="skeleton-activity-item"><div class="skeleton icon-placeholder" style="background-color: var(--accent-orange);"></div><div style="flex-grow: 1;"><div class="skeleton activity-line" style="width: 70%;"></div><div class="skeleton activity-line text-short" style="width: 35%; margin-bottom: 0.3rem;"></div><div class="skeleton activity-line-short" style="width: 25%;"></div></div></div>
+                            <div class="skeleton-activity-item"><div class="skeleton icon-placeholder" style="background-color: var(--accent-orange);"></div><div style="flex-grow: 1;"><div class="skeleton activity-line" style="width: 55%;"></div><div class="skeleton activity-line text-short" style="width: 45%; margin-bottom: 0.3rem;"></div><div class="skeleton activity-line-short" style="width: 35%;"></div></div></div>
+                        </div>
+                    </div>
+                    <div class="activity-list-container" id="credit-history-list-container" style="display: none;">
+                        <div class="activity-list" id="credit-history-list"></div>
                         <div class="empty-state" id="credit-history-empty-state" style="display: none;">
                             <i class="fas fa-receipt"></i>
                             <p>Zatím žádné kreditové transakce.</p>
@@ -251,7 +267,7 @@
                   <div class="loading-overlay hidden"> <div class="loading-spinner"></div> </div>
                   <p>Odemkněte denní odměny za přihlášení a aktivitu! Vyzvedněte si je kliknutím na dostupné dny.</p>
                  <div class="calendar-grid" id="modal-monthly-calendar-grid">
-                 </div>
+                     </div>
                  <div class="empty-state" id="modal-monthly-calendar-empty" style="display: none;">
                     <i class="fas fa-calendar-times"></i>
                     <p>Kalendář pro tento měsíc se nepodařilo načíst.</p>
@@ -268,9 +284,9 @@
              </div>
              <div class="modal-body">
                   <div class="loading-overlay hidden"> <div class="loading-spinner"></div> </div>
-                  <p>Vaše aktuální série: <strong id="modal-current-streak-value">-</strong> dní. Udržujte sérii a odemkněte odměny!</p>
+                  <p>Vaše aktuální série: <strong id="modal-current-streak-value">-</strong> dní. Nejdelší série: <strong id="modal-longest-streak-value">-</strong> dní. Udržujte sérii a odemkněte odměny!</p>
                  <div class="milestone-grid" id="modal-milestones-grid">
-                 </div>
+                     </div>
                  <div class="empty-state" id="modal-milestones-empty" style="display: none;">
                      <i class="fas fa-road"></i>
                      <p>Milníky pro studijní sérii se nepodařilo načíst.</p>
@@ -282,5 +298,6 @@
     <div id="mouse-follower" class="mouse-follower-glow"></div>
 
     <script src="dashboard.js" defer></script>
-    <script src="dashboard-lists.js" defer></script> </body>
+    <script src="dashboard-lists.js" defer></script>
+</body>
 </html>
