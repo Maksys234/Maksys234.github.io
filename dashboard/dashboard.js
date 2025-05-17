@@ -1,5 +1,7 @@
 // dashboard.js
 // Verze: 26.0.11 - Oprava kritické chyby s chybějícím placeholderem a robustnější skrývání initialLoaderu
+// --- START: SKELETON INTEGRATION ---
+// Verze: 26.0.12 - Integrace skeletonů, úprava načítání a zobrazení
 (function() {
     'use strict';
 
@@ -24,7 +26,11 @@
         monthlyRewards: false,
         streakMilestones: false,
         all: false,
-        session: false
+        session: false,
+        // --- START: SKELETON LOADING STATES ---
+        welcomeBanner: false,
+        shortcuts: false
+        // --- END: SKELETON LOADING STATES ---
     };
     const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
     const MONTHLY_REWARD_DAYS = 31;
@@ -37,13 +43,14 @@
     };
     const sortedMilestoneDays = Object.keys(STREAK_MILESTONES_CONFIG).map(Number).sort((a, b) => a - b);
 
-    const mayRewards = {
+    const mayRewards = { // Příklad, toto by se mělo načítat dynamicky nebo konfigurovat jinde
         1: { type: 'title', key: 'majovy_poutnik', name: 'Titul: Májový Poutník', icon: 'fa-hiking', value: null },
         7: { type: 'credits', key: 'may_credits_10', name: '10 Kreditů', icon: 'fa-coins', value: 10 },
         14: { type: 'credits', key: 'may_credits_14_day', name: '10 Kreditů (Den 14)', icon: 'fa-coins', value: 10 },
+        // ... další dny
     };
 
-    let ui = {};
+    let ui = {}; // Bude naplněno v cacheDOMElements
 
     const activityVisuals = {
         exercise: { name: 'Trénink', icon: 'fa-laptop-code', class: 'exercise' },
@@ -67,6 +74,67 @@
     };
     // --- END: Initialization and Configuration ---
 
+    // --- START: SKELETON UI Function ---
+    /**
+     * Přepíná viditelnost mezi skeletonem a skutečným obsahem pro danou sekci.
+     * @param {string} sectionKey Klíč sekce (např. 'welcomeBanner', 'stats', 'shortcuts', 'activities', 'creditHistory').
+     * @param {boolean} showSkeleton True pro zobrazení skeletonu, false pro zobrazení obsahu.
+     */
+    function toggleSkeletonUI(sectionKey, showSkeleton) {
+        console.log(`[Skeleton Toggle] Section: ${sectionKey}, Show Skeleton: ${showSkeleton}`);
+        let skeletonContainer, realContainer;
+
+        switch (sectionKey) {
+            case 'welcomeBanner':
+                skeletonContainer = ui.welcomeBannerSkeleton;
+                realContainer = ui.welcomeBannerReal;
+                break;
+            case 'stats':
+                skeletonContainer = ui.statsCardsSkeletonContainer;
+                realContainer = ui.statsCardsContainer;
+                break;
+            case 'shortcuts':
+                skeletonContainer = ui.shortcutGridSkeletonContainer;
+                realContainer = ui.shortcutGridReal;
+                break;
+            case 'activities': // Pro "Nedávná aktivita"
+                skeletonContainer = ui.activityListSkeletonContainer;
+                realContainer = ui.activityListContainer; // Předpokládám, že toto je rodičovský kontejner pro seznam
+                break;
+            case 'creditHistory':
+                skeletonContainer = ui.creditHistorySkeletonContainer;
+                realContainer = ui.creditHistoryListContainer; // Předpokládám, že toto je rodičovský kontejner
+                break;
+            default:
+                console.warn(`[Skeleton Toggle] Unknown sectionKey: ${sectionKey}`);
+                return;
+        }
+
+        if (skeletonContainer) {
+            skeletonContainer.style.display = showSkeleton ? 'grid' : 'none'; // Nebo 'flex' podle layoutu skeletonu
+            if (showSkeleton) {
+                 // Přidání třídy skeleton-active na rodičovský element sekce pro CSS
+                 skeletonContainer.closest('section')?.classList.add('skeleton-active');
+            } else {
+                 skeletonContainer.closest('section')?.classList.remove('skeleton-active');
+            }
+        } else {
+            console.warn(`[Skeleton Toggle] Skeleton container not found for section: ${sectionKey}`);
+        }
+
+        if (realContainer) {
+            realContainer.style.display = showSkeleton ? 'none' : (sectionKey === 'stats' || sectionKey === 'shortcuts' ? 'grid' : 'block');
+            if (!showSkeleton) {
+                 // Odstranění skeleton-active, pokud zobrazujeme reálný obsah
+                 realContainer.closest('section')?.classList.remove('skeleton-active');
+            }
+        } else {
+            console.warn(`[Skeleton Toggle] Real content container not found for section: ${sectionKey}`);
+        }
+    }
+    // --- END: SKELETON UI Function ---
+
+
     // --- START: DOM Element Caching ---
     function cacheDOMElements() {
         const startTime = performance.now();
@@ -82,10 +150,10 @@
             { key: 'sidebarUserTitle', id: 'sidebar-user-title', critical: true },
             { key: 'sidebarToggleBtn', id: 'sidebar-toggle-btn', critical: true },
             { key: 'welcomeTitle', id: 'welcome-title', critical: true },
-            { key: 'statsCardsContainer', query: '.stat-cards', critical: true },
+            { key: 'statsCardsContainer', id: 'stats-cards-container', critical: true }, // Skutečný kontejner
             { key: 'activityListContainerWrapper', id: 'recent-activities-container-wrapper', critical: true },
             { key: 'creditHistoryContainerWrapper', id: 'credit-history-container-wrapper', critical: true },
-            { key: 'mainContentAreaPlaceholder', id: 'main-content-area-placeholder', critical: true },
+            { key: 'mainContentAreaPlaceholder', id: 'main-content-area-placeholder', critical: true }, // Placeholder
             { key: 'sidebarOverlay', id: 'sidebar-overlay', critical: false },
             { key: 'mainMobileMenuToggle', id: 'main-mobile-menu-toggle', critical: false },
             { key: 'sidebarCloseToggle', id: 'sidebar-close-toggle', critical: false },
@@ -124,10 +192,21 @@
             { key: 'offlineBanner', id: 'offline-banner', critical: false },
             { key: 'mouseFollower', id: 'mouse-follower', critical: false },
             { key: 'currentYearFooter', id: 'currentYearFooter', critical: false },
+            // --- START: SKELETON CONTAINERS ---
+            { key: 'welcomeBannerReal', id: 'welcome-banner-real', critical: false }, // Skutečný banner
+            { key: 'welcomeBannerSkeleton', id: 'welcome-banner-skeleton', critical: false },
+            { key: 'statsCardsSkeletonContainer', id: 'stats-cards-skeleton-container', critical: false },
+            { key: 'shortcutGridReal', id: 'shortcut-grid-real', critical: false }, // Skutečné odkazy
+            { key: 'shortcutGridSkeletonContainer', id: 'shortcut-grid-skeleton-container', critical: false },
+            { key: 'activityListContainer', id: 'activity-list-container', critical: false }, // Skutečný kontejner pro seznam
+            { key: 'activityListSkeletonContainer', id: 'activity-list-skeleton-container', critical: false },
+            { key: 'creditHistoryListContainer', id: 'credit-history-list-container', critical: false }, // Skutečný kontejner
+            { key: 'creditHistorySkeletonContainer', id: 'credit-history-skeleton-container', critical: false },
+            // --- END: SKELETON CONTAINERS ---
         ];
 
         const notFoundCritical = [];
-        ui = {};
+        ui = {}; // Reset ui object before caching
 
         elementDefinitions.forEach(def => {
             const element = def.id ? document.getElementById(def.id) : document.querySelector(def.query);
@@ -142,13 +221,19 @@
                 }
             }
         });
+        // Důležité: Ujistěte se, že kontejnery pro seznamy jsou také cachované, pokud je používá DashboardLists
+        ui.activityList = document.getElementById('activity-list');
+        ui.activityListEmptyState = document.getElementById('activity-list-empty-state');
+        ui.activityListErrorState = document.getElementById('activity-list-error-state');
+        ui.creditHistoryList = document.getElementById('credit-history-list');
+        ui.creditHistoryEmptyState = document.getElementById('credit-history-empty-state');
+        ui.creditHistoryErrorState = document.getElementById('credit-history-error-state');
 
-        if (ui.statsCardsContainer) {
-            ui.progressCard = ui.statsCardsContainer.querySelector('#progress-card') || ui.progressCard;
-            ui.pointsCard = ui.statsCardsContainer.querySelector('#points-card') || ui.pointsCard;
-            ui.streakCard = ui.statsCardsContainer.querySelector('#streak-card') || ui.streakCard;
-        } else {
-            console.warn("[CACHE DOM] Main stats card container (.stat-cards) not found.");
+
+        if (ui.statsCardsContainer && !ui.progressCard) { // Zkontrolujeme, zda nejsou karty již cachované
+            ui.progressCard = ui.statsCardsContainer.querySelector('#progress-card');
+            ui.pointsCard = ui.statsCardsContainer.querySelector('#points-card');
+            ui.streakCard = ui.statsCardsContainer.querySelector('#streak-card');
         }
 
         if (notFoundCritical.length > 0) {
@@ -178,15 +263,15 @@
                  if (retryBtn) {
                      retryBtn.addEventListener('click', () => {
                          hideError(errorDisplayElement);
-                         initializeApp();
+                         initializeApp(); // Opětovné spuštění celé inicializace
                      });
                  }
-            } else {
+            } else { // Globální chyba nebo chyba v již existujícím kontejneru
                 errorDisplayElement.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" id="global-retry-btn">Obnovit Stránku</button></div>`;
                 errorDisplayElement.style.display = 'block';
                 const retryBtn = errorDisplayElement.querySelector('#global-retry-btn');
                 if (retryBtn) {
-                    retryBtn.addEventListener('click', () => { location.reload(); });
+                    retryBtn.onclick = () => location.reload(); // Jednoduché obnovení stránky
                 }
             }
         } else {
@@ -197,7 +282,7 @@
     function hideError(targetElement = ui.globalError) {
         if (targetElement) {
             targetElement.style.display = 'none';
-            targetElement.innerHTML = '';
+            targetElement.innerHTML = ''; // Vyčistit obsah chyby
         }
     }
     function getInitials(userData) { if (!userData) return '?'; const f = userData.first_name?.[0] || ''; const l = userData.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || 'P'; }
@@ -215,12 +300,12 @@
                 if (key !== 'all') setLoadingState(key, isLoadingFlag);
             });
             isLoading.all = isLoadingFlag;
-            console.log(`[SetLoadingState v26.0.7] Section: all, isLoading: ${isLoadingFlag}`);
+            console.log(`[SetLoadingState v26.0.12] Section: all, isLoading: ${isLoadingFlag}`);
             return;
         }
 
         isLoading[sectionKey] = isLoadingFlag;
-        console.log(`[SetLoadingState v26.0.7] Section: ${sectionKey}, isLoading: ${isLoadingFlag}`);
+        console.log(`[SetLoadingState v26.0.12] Section: ${sectionKey}, isLoading: ${isLoadingFlag}`);
 
         if (sectionKey === 'session') {
             if (ui.mainContentAreaPlaceholder) {
@@ -228,16 +313,21 @@
                  if(isLoadingFlag) {
                      ui.mainContentAreaPlaceholder.innerHTML = '<div class="loading-spinner" style="margin: auto;"></div><p>Ověřování sezení...</p>';
                      ui.mainContentAreaPlaceholder.style.display = 'flex';
-                 } else {
-                     // Skrytí placeholderu bude řešeno po úspěšném načtení dat nebo zobrazení chyby
                  }
             }
             return;
         }
 
+        const skeletonMap = {
+            welcomeBanner: { skeleton: ui.welcomeBannerSkeleton, real: ui.welcomeBannerReal, display: 'block' },
+            stats: { skeleton: ui.statsCardsSkeletonContainer, real: ui.statsCardsContainer, display: 'grid' },
+            shortcuts: { skeleton: ui.shortcutGridSkeletonContainer, real: ui.shortcutGridReal, display: 'grid' },
+            activities: { skeleton: ui.activityListSkeletonContainer, real: ui.activityListContainer, display: 'block' },
+            creditHistory: { skeleton: ui.creditHistorySkeletonContainer, real: ui.creditHistoryListContainer, display: 'block' }
+        };
 
-        if (sectionKey === 'stats') {
-            (ui.statsCardsContainer || ui.progressCard?.parentElement)?.querySelectorAll('.stat-card').forEach(card => card.classList.toggle('loading', isLoadingFlag));
+        if (skeletonMap[sectionKey]) {
+            toggleSkeletonUI(sectionKey, isLoadingFlag);
         } else if (sectionKey === 'notifications') {
             if (ui.notificationBell) ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1;
             if (ui.markAllReadBtn) {
@@ -250,14 +340,6 @@
             } else if (!isLoadingFlag && ui.notificationsList && ui.noNotificationsMsg && ui.notificationsList.children.length === 0) {
                  if(ui.noNotificationsMsg) ui.noNotificationsMsg.style.display = 'block';
             }
-        } else if (sectionKey === 'activities') {
-            if (ui.activityListContainerWrapper) {
-                ui.activityListContainerWrapper.classList.toggle('loading-section', isLoadingFlag);
-            } else { console.warn("[SetLoadingState] ui.activityListContainerWrapper not found for 'activities'."); }
-        } else if (sectionKey === 'creditHistory') {
-            if (ui.creditHistoryContainerWrapper) {
-                ui.creditHistoryContainerWrapper.classList.toggle('loading-section', isLoadingFlag);
-            } else { console.warn(`[SetLoadingState] Target container for section "creditHistory" (ui.creditHistoryContainerWrapper) not found.`); }
         } else if (sectionKey === 'monthlyRewards' || sectionKey === 'streakMilestones') {
             const modal = sectionKey === 'monthlyRewards' ? ui.monthlyRewardModal : ui.streakMilestonesModal;
             const modalBody = modal?.querySelector('.modal-body');
@@ -332,42 +414,46 @@
     // --- START: App Initialization ---
     async function initializeApp() {
         const totalStartTime = performance.now();
-        console.log("[INIT Dashboard] initializeApp: Start v26.0.11");
+        console.log("[INIT Dashboard] initializeApp: Start v26.0.12");
         let stepStartTime = performance.now();
 
-        const initialLoaderElement = document.getElementById('initial-loader'); // Získat přímo zde
+        const initialLoaderElement = document.getElementById('initial-loader');
         const mainContentElement = document.getElementById('main-content');
         const sidebarElement = document.getElementById('sidebar');
         const headerElement = document.querySelector('.dashboard-header');
 
         try {
-            // Zobrazit základní UI okamžitě
             if (sidebarElement) sidebarElement.style.display = 'flex';
             if (headerElement) headerElement.style.display = 'flex';
             if (mainContentElement) mainContentElement.style.display = 'block';
 
-            // AŽ POTOM cachovat DOM elementy, včetně nového placeholderu
             cacheDOMElements();
             console.log(`[INIT Dashboard] cacheDOMElements Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
             stepStartTime = performance.now();
 
-            // Zobrazit placeholder v hlavní části
             if (ui.mainContentAreaPlaceholder) {
                 ui.mainContentAreaPlaceholder.innerHTML = '<div class="loading-spinner" style="margin:auto;"></div><p>Načítání palubní desky...</p>';
                 ui.mainContentAreaPlaceholder.style.display = 'flex';
+                 // --- START: SKELETON - Zobrazení skeletonů na začátku ---
+                 toggleSkeletonUI('welcomeBanner', true);
+                 toggleSkeletonUI('stats', true);
+                 toggleSkeletonUI('shortcuts', true);
+                 // Pro seznamy, které načítá DashboardLists, bude skeleton řešen tam,
+                 // ale můžeme nastavit rodičovský kontejner na "loading"
+                 if (ui.activityListContainerWrapper) ui.activityListContainerWrapper.classList.add('loading-section');
+                 if (ui.creditHistoryContainerWrapper) ui.creditHistoryContainerWrapper.classList.add('loading-section');
+                 // --- END: SKELETON - Zobrazení skeletonů na začátku ---
             } else {
-                // Pokud placeholder neexistuje, logovat a zkusit pokračovat, ale může to znamenat, že UI nebude ideální
                 console.warn("[INIT Dashboard] mainContentAreaPlaceholder NOT FOUND in DOM after cache. Layout might be affected.");
             }
-
-            // Skrýt hlavní obsahové části, dokud se nenahrají data
+            // Skrýt skutečné kontejnery na začátku
+            if (ui.welcomeBannerReal) ui.welcomeBannerReal.style.display = 'none';
             if (ui.statsCardsContainer) ui.statsCardsContainer.style.display = 'none';
-            if (ui.activityListContainerWrapper) ui.activityListContainerWrapper.style.display = 'none';
-            if (ui.creditHistoryContainerWrapper) ui.creditHistoryContainerWrapper.style.display = 'none';
-            // ... případně další hlavní obsahové bloky ...
+            if (ui.shortcutGridReal) ui.shortcutGridReal.style.display = 'none';
+            if (ui.activityListContainer) ui.activityListContainer.style.display = 'none';
+            if (ui.creditHistoryListContainer) ui.creditHistoryListContainer.style.display = 'none';
 
 
-            // Skrýt initialLoader rychleji, jakmile je základní UI (včetně placeholderu) zobrazeno
             if (initialLoaderElement) {
                 initialLoaderElement.classList.add('hidden');
                 setTimeout(() => { if (initialLoaderElement) initialLoaderElement.style.display = 'none'; }, 50);
@@ -441,20 +527,29 @@
                         showToast('Varování', 'Nepodařilo se načíst seznam titulů.', 'warning');
                     }
 
-                    updateSidebarProfile(currentProfile);
+                    updateSidebarProfile(currentProfile); // Zde již máme allTitles
                     updateCopyrightYear();
                     updateOnlineStatus();
 
                     if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.initialize === 'function') {
-                        DashboardLists.initialize({ supabaseClient: supabase, currentUser: currentUser, activityVisuals: activityVisuals, formatRelativeTime: formatRelativeTime, sanitizeHTML: sanitizeHTML, setLoadingStateGlobal: setLoadingState });
+                        DashboardLists.initialize({
+                            supabaseClient: supabase,
+                            currentUser: currentUser,
+                            activityVisuals: activityVisuals,
+                            formatRelativeTime: formatRelativeTime,
+                            sanitizeHTML: sanitizeHTML,
+                            // setLoadingStateGlobal již nebude přímo voláno z DashboardLists
+                        });
                     } else {
                         console.error("Modul DashboardLists není definován nebo nemá funkci initialize!");
                         setLoadingState('activities', false); setLoadingState('creditHistory', false);
                     }
 
-                    if (ui.statsCardsContainer) ui.statsCardsContainer.style.display = 'grid';
-                    if (ui.activityListContainerWrapper) ui.activityListContainerWrapper.style.display = 'block';
-                    if (ui.creditHistoryContainerWrapper) ui.creditHistoryContainerWrapper.style.display = 'block';
+                    // Zobrazit skutečné kontejnery pro data
+                    toggleSkeletonUI('welcomeBanner', false); // Skryje skeleton, zobrazí skutečný obsah
+                    toggleSkeletonUI('stats', false);
+                    toggleSkeletonUI('shortcuts', false);
+                    // Pro seznamy to bude řešit DashboardLists ve svých render funkcích
 
                     await loadDashboardData(currentUser, currentProfile);
                     console.log(`[INIT Dashboard] loadDashboardData Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
@@ -475,7 +570,7 @@
                 } else {
                     console.log('[INIT Dashboard] V sezení není uživatel, přesměrování.');
                     if (ui.mainContentAreaPlaceholder) ui.mainContentAreaPlaceholder.style.display = 'none';
-                    showError("Nejste přihlášeni. Přesměrovávám na přihlašovací stránku...", false, ui.mainContentAreaPlaceholder); // Zobrazit chybu v placeholderu
+                    showError("Nejste přihlášeni. Přesměrovávám na přihlašovací stránku...", false, ui.mainContentAreaPlaceholder);
                     setTimeout(() => { window.location.href = '/auth/index.html'; }, 3000);
                 }
 
@@ -489,7 +584,7 @@
                     userFriendlyMessage = "Chyba sítě. Zkontrolujte své internetové připojení a zkuste to znovu.";
                 }
                 showError(userFriendlyMessage, false, ui.mainContentAreaPlaceholder);
-                if (ui.mainContent) ui.mainContent.style.display = 'block';
+                if (ui.mainContent) ui.mainContent.style.display = 'block'; // Zobrazit hlavní kontejner pro chybu
             }
 
             const totalEndTime = performance.now();
@@ -512,7 +607,7 @@
                  }
             }
             const mainContentForError = document.getElementById('main-content');
-            if (mainContentForError) mainContentForError.style.display = 'none';
+            if (mainContentForError) mainContentForError.style.display = 'none'; // Skryjeme hlavní obsah, pokud došlo k chybě
             if (typeof setLoadingState === 'function') setLoadingState('all', false);
         }
     }
@@ -525,6 +620,7 @@
         initializeApp();
     }
 
+    // Následující funkce zůstávají pro kontext, ale jejich UI části jsou spravovány v toggleSkeletonUI nebo DashboardLists
     function isSameDate(date1, date2) { if (!date1 || !date2) return false; const d1 = new Date(date1); const d2 = new Date(date2); return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate(); }
     function isYesterday(date1, date2) { if (!date1 || !date2) return false; const yesterday = new Date(date2); yesterday.setDate(yesterday.getDate() - 1); return isSameDate(date1, yesterday); }
     function getCurrentMonthYearString() { const now = new Date(); const year = now.getFullYear(); const month = String(now.getMonth() + 1).padStart(2, '0'); return `${year}-${month}`; }
