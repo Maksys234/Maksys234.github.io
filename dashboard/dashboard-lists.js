@@ -1,5 +1,7 @@
 // dashboard-lists.js
-// Verze: 1.2 - Definitivně odstraněno rekurzivní/chybné volání setLoadingStateGlobal
+// Verze: 2.0 - Úprava pro integraci se skeletony řízenými z dashboard.js
+// Globální setLoadingStateGlobal je nahrazeno externím voláním toggleSkeletonUI.
+// Tento modul nyní spravuje pouze vnitřní skeletony pro samotné seznamy.
 
 (function(window) {
     'use strict';
@@ -11,46 +13,54 @@
             activityVisuals: {},
             formatRelativeTime: () => '',
             sanitizeHTML: (str) => str,
-            // setLoadingStateGlobal: () => {} // Odebráno z explicitních závislostí, pokud již není voláno
+            // toggleSkeletonUI: () => {} // Předpokládáme, že tuto funkci zavolá dashboard.js
         },
         uiLists: {
-            activityListContainer: null,
+            activityListContainerWrapper: null, // Rodičovský kontejner pro celou sekci aktivit
+            activityListContainer: null, // Kontejner, kde se střídá placeholder a seznam
             activityList: null,
             activityListEmptyState: null,
             activityListErrorState: null,
-            activityListLoadingPlaceholder: null,
-            creditHistoryListContainer: null,
+            activityListLoadingPlaceholder: null, // Vnitřní placeholder/skeleton pro položky seznamu
+
+            creditHistoryListContainerWrapper: null, // Rodičovský kontejner pro celou sekci kreditů
+            creditHistoryListContainer: null, // Kontejner, kde se střídá placeholder a seznam
             creditHistoryList: null,
             creditHistoryEmptyState: null,
             creditHistoryErrorState: null,
-            creditHistoryLoadingPlaceholder: null
+            creditHistoryLoadingPlaceholder: null // Vnitřní placeholder/skeleton
         },
         isLoadingActivities: false,
         isLoadingCreditHistory: false,
 
         initialize: function(deps) {
-            console.log("[DashboardLists] Initializing (v1.2)...");
+            console.log("[DashboardLists] Initializing (v2.0 - Skeleton Integration)...");
             this.dependencies.supabaseClient = deps.supabaseClient;
             this.dependencies.currentUser = deps.currentUser;
             this.dependencies.activityVisuals = deps.activityVisuals;
             this.dependencies.formatRelativeTime = deps.formatRelativeTime;
             this.dependencies.sanitizeHTML = deps.sanitizeHTML;
-            // Globální setLoadingState se již nebude volat z tohoto modulu pro klíče 'activities' a 'creditHistory'
-            // this.dependencies.setLoadingStateGlobal = deps.setLoadingStateGlobal; 
+            // this.dependencies.toggleSkeletonUI = deps.toggleSkeletonUI; // Pokud by dashboard.js předával referenci
+
             this._cacheDOMElements();
             if (!this.dependencies.supabaseClient) console.error("[DashboardLists] Supabase client is missing!");
-            console.log("[DashboardLists] Initialized successfully (v1.2).");
+            console.log("[DashboardLists] Initialized successfully (v2.0).");
         },
 
         _cacheDOMElements: function() {
             console.log("[DashboardLists CacheDOM] Caching list-specific elements...");
-            this.uiLists.activityListContainer = document.getElementById('activity-list-container');
+            // Recent Activities
+            this.uiLists.activityListContainerWrapper = document.getElementById('recent-activities-container-wrapper');
+            this.uiLists.activityListContainer = document.getElementById('activity-list-container'); // Toto je <div class="activity-list-container">
             this.uiLists.activityList = document.getElementById('activity-list');
             this.uiLists.activityListEmptyState = document.getElementById('activity-list-empty-state');
             this.uiLists.activityListErrorState = document.getElementById('activity-list-error-state');
+            // Placeholder pro skeletony položek seznamu (je *uvnitř* activityListContainer)
             this.uiLists.activityListLoadingPlaceholder = this.uiLists.activityListContainer?.querySelector('.loading-placeholder');
 
-            this.uiLists.creditHistoryListContainer = document.getElementById('credit-history-list-container');
+            // Credit History
+            this.uiLists.creditHistoryContainerWrapper = document.getElementById('credit-history-container-wrapper');
+            this.uiLists.creditHistoryListContainer = document.getElementById('credit-history-list-container'); // Toto je <div class="activity-list-container">
             this.uiLists.creditHistoryList = document.getElementById('credit-history-list');
             this.uiLists.creditHistoryEmptyState = document.getElementById('credit-history-empty-state');
             this.uiLists.creditHistoryErrorState = document.getElementById('credit-history-error-state');
@@ -58,45 +68,47 @@
             console.log("[DashboardLists CacheDOM] Caching complete.");
         },
 
+        // Interní funkce pro zobrazení/skrytí skeletonů položek seznamu
+        _setListSpecificLoading: function(listType, isLoadingFlag) {
+            const ui = listType === 'activities' ? this.uiLists : this.uiLists; // Upravit pokud budou odlišné ui klíče
+            const listEl = listType === 'activities' ? ui.activityList : ui.creditHistoryList;
+            const emptyEl = listType === 'activities' ? ui.activityListEmptyState : ui.creditHistoryEmptyState;
+            const errorEl = listType === 'activities' ? ui.activityListErrorState : ui.creditHistoryErrorState;
+            const placeholderEl = listType === 'activities' ? ui.activityListLoadingPlaceholder : ui.creditHistoryLoadingPlaceholder;
+            const listContainer = listType === 'activities' ? ui.activityListContainer : ui.creditHistoryListContainer;
+
+            console.log(`[DashboardLists _setListSpecificLoading] ${listType} - isLoading: ${isLoadingFlag}`);
+
+            if (!listContainer) {
+                console.warn(`[DashboardLists] ${listType} list container not found.`);
+                return;
+            }
+            
+            listContainer.classList.toggle('loading-items', isLoadingFlag);
+
+            if (isLoadingFlag) {
+                if (listEl) listEl.style.display = 'none';
+                if (emptyEl) emptyEl.style.display = 'none';
+                if (errorEl) errorEl.style.display = 'none';
+                if (placeholderEl) {
+                    if (listType === 'activities') this.renderActivitySkeletons(5);
+                    else if (listType === 'creditHistory') this.renderCreditHistorySkeletons(5);
+                    placeholderEl.style.display = 'flex'; // Placeholder je flex kontejner
+                }
+            } else {
+                if (placeholderEl) placeholderEl.style.display = 'none';
+                // Zobrazení listEl, emptyEl, errorEl se řeší v render funkcích
+            }
+        },
+
         setActivitiesLoading: function(isLoadingFlag) {
             this.isLoadingActivities = isLoadingFlag;
-            console.log(`[DashboardLists] Inner setActivitiesLoading set to: ${isLoadingFlag}`);
-
-            // Tato funkce nyní spravuje pouze UI prvky UVNITŘ activityListContainer
-            if (this.uiLists.activityListContainer) {
-                this.uiLists.activityListContainer.classList.toggle('loading', isLoadingFlag);
-                if (isLoadingFlag) {
-                    if (this.uiLists.activityList) this.uiLists.activityList.style.display = 'none';
-                    if (this.uiLists.activityListEmptyState) this.uiLists.activityListEmptyState.style.display = 'none';
-                    if (this.uiLists.activityListErrorState) this.uiLists.activityListErrorState.style.display = 'none';
-                    if (this.uiLists.activityListLoadingPlaceholder) {
-                        this.renderActivitySkeletons(5);
-                        this.uiLists.activityListLoadingPlaceholder.style.display = 'flex';
-                    }
-                } else {
-                    if (this.uiLists.activityListLoadingPlaceholder) this.uiLists.activityListLoadingPlaceholder.style.display = 'none';
-                }
-            }
+            this._setListSpecificLoading('activities', isLoadingFlag);
         },
 
         setCreditHistoryLoading: function(isLoadingFlag) {
             this.isLoadingCreditHistory = isLoadingFlag;
-            console.log(`[DashboardLists] Inner setCreditHistoryLoading set to: ${isLoadingFlag}`);
-
-            if (this.uiLists.creditHistoryListContainer) {
-                this.uiLists.creditHistoryListContainer.classList.toggle('loading', isLoadingFlag);
-                 if (isLoadingFlag) {
-                    if (this.uiLists.creditHistoryList) this.uiLists.creditHistoryList.style.display = 'none';
-                    if (this.uiLists.creditHistoryEmptyState) this.uiLists.creditHistoryEmptyState.style.display = 'none';
-                    if (this.uiLists.creditHistoryErrorState) this.uiLists.creditHistoryErrorState.style.display = 'none';
-                    if (this.uiLists.creditHistoryLoadingPlaceholder) {
-                        this.renderCreditHistorySkeletons(5);
-                        this.uiLists.creditHistoryLoadingPlaceholder.style.display = 'flex';
-                    }
-                } else {
-                    if (this.uiLists.creditHistoryLoadingPlaceholder) this.uiLists.creditHistoryLoadingPlaceholder.style.display = 'none';
-                }
-            }
+            this._setListSpecificLoading('creditHistory', isLoadingFlag);
         },
 
         fetchRecentActivities: async function(userId, limit = 5) {
@@ -117,9 +129,7 @@
                 return data || [];
             } catch (e) {
                 console.error('[DashboardLists Activities] Exception fetching activities:', e);
-                if (typeof this.dependencies.showToast === 'function') { // Použijeme globální showToast
-                    this.dependencies.showToast('Chyba aktivit', 'Nepodařilo se načíst nedávné aktivity.', 'error');
-                }
+                // Globální showToast bude voláno z dashboard.js nebo hlavní logiky
                 return null;
             }
         },
@@ -142,9 +152,7 @@
                 return data || [];
             } catch (error) {
                 console.error('[DashboardLists CreditHistory] Exception fetching credit history:', error);
-                if (typeof this.dependencies.showToast === 'function') {
-                     this.dependencies.showToast('Chyba historie kreditů', 'Nepodařilo se načíst historii kreditů.', 'error');
-                }
+                // Globální showToast bude voláno z dashboard.js
                 return null;
             }
         },
@@ -153,20 +161,20 @@
             const ui = this.uiLists;
             const { sanitizeHTML, formatRelativeTime, activityVisuals } = this.dependencies;
 
-            if (!ui.activityList || !ui.activityListContainer || !ui.activityListEmptyState || !ui.activityListErrorState || !ui.activityListLoadingPlaceholder) {
+            if (!ui.activityList || !ui.activityListContainer || !ui.activityListEmptyState || !ui.activityListErrorState) {
                 console.error("[DashboardLists Render Activities] Essential UI elements missing.");
-                this.setActivitiesLoading(false);
+                this.setActivitiesLoading(false); // Zajistíme vypnutí interního skeletonu
                 return;
             }
             console.log("[DashboardLists Render Activities] Rendering, count:", activities?.length);
 
             ui.activityList.innerHTML = '';
-            // Již řešeno v setActivitiesLoading: ui.activityListLoadingPlaceholder.style.display = 'none';
+            // Placeholder se skryje ve funkci _setListSpecificLoading
             ui.activityListErrorState.style.display = 'none';
             ui.activityListEmptyState.style.display = 'none';
-            ui.activityList.style.display = 'none';
+            ui.activityList.style.display = 'none'; // Skryjeme hlavní seznam před naplněním
 
-            if (activities === null) {
+            if (activities === null) { // Explicitní null značí chybu načítání
                 ui.activityListErrorState.style.display = 'block';
             } else if (!activities || activities.length === 0) {
                 ui.activityListEmptyState.style.display = 'block';
@@ -208,8 +216,9 @@
                     fragment.appendChild(item);
                 });
                 ui.activityList.appendChild(fragment);
-                ui.activityList.style.display = 'block';
+                ui.activityList.style.display = 'block'; // Zobrazíme naplněný seznam
             }
+            // Voláme interní funkci pro skrytí skeletonu položek
             this.setActivitiesLoading(false);
             console.log("[DashboardLists Render Activities] Finished.");
         },
@@ -228,7 +237,7 @@
             const ui = this.uiLists;
             const { sanitizeHTML, formatRelativeTime, activityVisuals } = this.dependencies;
 
-            if (!ui.creditHistoryList || !ui.creditHistoryListContainer || !ui.creditHistoryEmptyState || !ui.creditHistoryErrorState || !ui.creditHistoryLoadingPlaceholder) {
+            if (!ui.creditHistoryList || !ui.creditHistoryListContainer || !ui.creditHistoryEmptyState || !ui.creditHistoryErrorState) {
                 console.error("[DashboardLists Render Credits] Essential UI elements missing.");
                 this.setCreditHistoryLoading(false);
                 return;
@@ -236,7 +245,6 @@
             console.log("[DashboardLists Render Credits] Rendering, count:", transactions?.length);
 
             ui.creditHistoryList.innerHTML = '';
-            // Již řešeno v setCreditHistoryLoading: ui.creditHistoryLoadingPlaceholder.style.display = 'none';
             ui.creditHistoryErrorState.style.display = 'none';
             ui.creditHistoryEmptyState.style.display = 'none';
             ui.creditHistoryList.style.display = 'none';
@@ -253,9 +261,15 @@
                     const amountClass = tx.amount > 0 ? 'positive' : (tx.amount < 0 ? 'negative' : 'neutral');
                     const amountSign = tx.amount > 0 ? '+' : '';
                     let typeLower = tx.transaction_type?.toLowerCase();
-                    if (!activityVisuals[typeLower]) {
+
+                    // Mapování transaction_type na existující visuals klíče, pokud je to možné
+                    if (typeLower === 'reward_streak_milestone') typeLower = 'streak_milestone_claimed';
+                    else if (typeLower === 'reward_monthly_calendar') typeLower = 'monthly_reward_claimed';
+                    else if (typeLower === 'purchase_title_shop') typeLower = 'points_spent'; // Nebo jiný obecný typ pro útratu
+                    else if (!activityVisuals[typeLower]) { // Fallback pro neznámé typy
                         typeLower = tx.amount > 0 ? 'points_earned' : (tx.amount < 0 ? 'points_spent' : 'default');
                     }
+
                     const visual = activityVisuals[typeLower] || activityVisuals.default;
                     const iconClass = visual.icon;
                     const iconBgClass = visual.class || typeLower;
@@ -294,18 +308,27 @@
 
         loadAndRenderAll: async function(userId, limit) {
             console.log("[DashboardLists] loadAndRenderAll called.");
+            // dashboard.js bude řídit hlavní skeletony sekcí
+            // Tento modul se postará pouze o vnitřní skeletony a obsah seznamů
+
             const [activitiesResult, creditHistoryResult] = await Promise.allSettled([
-                this.loadAndRenderRecentActivities(userId, limit),
-                this.loadAndRenderCreditHistory(userId, limit)
+                (async () => {
+                    this.setActivitiesLoading(true); // Zobrazí vnitřní skeleton seznamu aktivit
+                    const activities = await this.fetchRecentActivities(userId, limit);
+                    this.renderActivities(activities); // Vykreslí data nebo chybový/prázdný stav
+                })(),
+                (async () => {
+                    this.setCreditHistoryLoading(true); // Zobrazí vnitřní skeleton historie kreditů
+                    const transactions = await this.fetchCreditHistory(userId, limit);
+                    this.renderCreditHistory(transactions); // Vykreslí data nebo chybový/prázdný stav
+                })()
             ]);
 
             if (activitiesResult.status === 'rejected') {
                 console.error("[DashboardLists] Error loading recent activities in loadAndRenderAll:", activitiesResult.reason);
-                // renderActivities(null) se volá uvnitř loadAndRenderRecentActivities v případě chyby
             }
             if (creditHistoryResult.status === 'rejected') {
                 console.error("[DashboardLists] Error loading credit history in loadAndRenderAll:", creditHistoryResult.reason);
-                // renderCreditHistory(null) se volá uvnitř loadAndRenderCreditHistory v případě chyby
             }
             console.log("[DashboardLists] loadAndRenderAll finished.");
         },
@@ -313,17 +336,17 @@
         loadAndRenderRecentActivities: async function(userId, limit) {
             this.setActivitiesLoading(true);
             const activities = await this.fetchRecentActivities(userId, limit);
-            this.renderActivities(activities); // Tato funkce již volá setActivitiesLoading(false)
+            this.renderActivities(activities);
         },
 
         loadAndRenderCreditHistory: async function(userId, limit) {
             this.setCreditHistoryLoading(true);
             const transactions = await this.fetchCreditHistory(userId, limit);
-            this.renderCreditHistory(transactions); // Tato funkce již volá setCreditHistoryLoading(false)
+            this.renderCreditHistory(transactions);
         }
     };
 
     window.DashboardLists = DashboardLists;
-    console.log("dashboard-lists.js loaded with fix for recursive call (v1.2).");
+    console.log("dashboard-lists.js loaded (v2.0 - Skeleton Integration).");
 
 })(window);
