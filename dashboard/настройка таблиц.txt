@@ -689,3 +689,18 @@ COMMENT ON COLUMN public.credit_transactions.reference_activity_id IS 'Odkaz na 
 
 -- Indexy pro rychlejší dotazování
 CREATE INDEX IF NOT EXISTS idx_credit_transactions_user_id_created_at ON public.credit_transactions (user_id, created_at DESC);
+-- Přidání sloupce reward_key
+ALTER TABLE public.claimed_streak_milestones
+ADD COLUMN IF NOT EXISTS reward_key TEXT;
+
+-- Aktualizace komentáře (volitelné, pro dokumentaci)
+COMMENT ON COLUMN public.claimed_streak_milestones.reward_key IS 'Unikátní klíč odměny z konfigurace (např. streak_7_days_points_15).';
+
+-- Úprava unikátního omezení, aby zahrnovalo reward_key
+-- Nejprve odstraníme staré omezení (pokud existuje a má tento název)
+ALTER TABLE public.claimed_streak_milestones
+DROP CONSTRAINT IF EXISTS unique_user_milestone;
+
+-- Přidáme nové unikátní omezení
+ALTER TABLE public.claimed_streak_milestones
+ADD CONSTRAINT unique_user_milestone_reward UNIQUE (user_id, milestone_day, reward_key);
