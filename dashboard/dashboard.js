@@ -1,7 +1,8 @@
 // dashboard.js
 // Verze: 26.0.16 - Oddělení UPDATE a SELECT operací na tabulce profiles pro řešení chyby 406.
-// ПЛЮС: Исправление обновления currentProfile.monthly_claims (Этап 3)
+// ПЛЮС: Исправление обновления currentProfile.monthly_claims (Этап 4)
 // ПЛЮС: Исправление ошибки 406 при обновлении XP в claimMonthlyReward
+// ПЛЮС: Улучшенная обработка ошибок и откат состояния в claimMonthlyReward
 (function() {
     'use strict';
 
@@ -358,60 +359,58 @@
         return false;
     }
 
-    // <<<< НАЧАЛО ИЗМЕНЕНИЙ (Этап 3) >>>>
+    // <<<< НАЧАЛО ИЗМЕНЕНИЙ (Этап 4) >>>>
     async function updateMonthlyClaimsInDB(newClaimsData) {
-        if (!currentUser || !supabase) return false;
+        if (!currentUser || !supabase) {
+            console.error("[DB Update] Pre-condition failed: No user or supabase client.");
+            return false;
+        }
         const functionStartTime = performance.now();
-        console.log(`[DB Update] Updating monthly_claims in DB with:`, JSON.parse(JSON.stringify(newClaimsData)));
+        console.log(`[DB Update] Attempting to update monthly_claims in DB for user ${currentUser.id} with:`, JSON.parse(JSON.stringify(newClaimsData)));
+
         try {
-            // Шаг 1: Обновление данных в БД
-            const { error: dbUpdateError } = await supabase
+            // Шаг 1: Обновление данных в БД, ЗАПРАШИВАЕМ обновленные данные через .select()
+            const { data: updateResult, error: dbUpdateError } = await supabase
                 .from('profiles')
                 .update({ monthly_claims: newClaimsData, updated_at: new Date().toISOString() })
-                .eq('id', currentUser.id);
+                .eq('id', currentUser.id)
+                .select('monthly_claims'); // <<< Запрашиваем ТОЛЬКО monthly_claims
 
             if (dbUpdateError) {
-                console.error("[DB Update] Supabase update error:", dbUpdateError);
+                console.error("[DB Update] Supabase UPDATE error:", dbUpdateError);
                 throw dbUpdateError;
             }
-            console.log(`[DB Update] Database update successful for monthly_claims. Time: ${(performance.now() - functionStartTime).toFixed(2)}ms`);
 
-            // Шаг 2: Обновление локального currentProfile.monthly_claims
-            // Это гарантирует, что UI немедленно отразит изменение, даже если fetchUserProfile ниже вернет кэш
-            const updatedMonthKey = Object.keys(newClaimsData)[0]; // e.g., "2025-05"
-            if (updatedMonthKey) {
-                if (!currentProfile.monthly_claims) {
-                    currentProfile.monthly_claims = {};
-                }
-                if (Array.isArray(newClaimsData[updatedMonthKey])) {
-                    currentProfile.monthly_claims[updatedMonthKey] = [...newClaimsData[updatedMonthKey]]; // Создаем копию
-                    console.log(`[DB Update] Local currentProfile.monthly_claims for ${updatedMonthKey} updated:`, JSON.parse(JSON.stringify(currentProfile.monthly_claims[updatedMonthKey])));
-                } else {
-                    console.warn(`[DB Update] newClaimsData for ${updatedMonthKey} is not an array:`, newClaimsData[updatedMonthKey]);
-                }
-            } else {
-                console.warn("[DB Update] Could not determine monthYearKey from newClaimsData for local profile update.");
+            // Проверяем, что обновление прошло успешно и данные вернулись
+            if (!updateResult || updateResult.length === 0) {
+                console.warn("[DB Update] Supabase update operation returned 0 rows or no data. This might indicate an RLS issue or the row was not found/matched. Monthly claims might not have been saved to DB.");
+                throw new Error("Aktualizace v databázi nevrátila data. Zkontrolujte RLS nebo zda záznam existuje.");
             }
-            console.log("[DB Update] Local currentProfile.monthly_claims now:", JSON.parse(JSON.stringify(currentProfile.monthly_claims)));
 
-            // Шаг 3: НЕ ДЕЛАЕМ принудительный fetchUserProfile здесь.
-            // Вместо этого, мы доверяем нашему локальному обновлению для немедленного UI.
-            // Если другие части профиля (например, очки, опыт) были изменены *в этой же транзакции на стороне сервера* (через триггеры),
-            // то эти изменения НЕ будут немедленно отражены в currentProfile, пока он не будет перезагружен где-то еще.
-            // Для ежемесячных наград, если они дают очки/XP, эти функции (awardPoints/updateXP) должны сами обновлять currentProfile.
-            console.log("[DB Update] Skipped full profile re-fetch from updateMonthlyClaimsInDB to preserve immediate UI consistency for monthly_claims.");
+            console.log(`[DB Update] Database update successful. Result from DB:`, JSON.parse(JSON.stringify(updateResult)), `Time: ${(performance.now() - functionStartTime).toFixed(2)}ms`);
+
+            // Шаг 2: Обновление локального currentProfile.monthly_claims *на основе данных из БД*
+            // Это самый надежный способ, так как мы используем то, что реально записалось.
+            currentProfile.monthly_claims = updateResult[0].monthly_claims;
+            console.log("[DB Update] Local currentProfile.monthly_claims updated from DB response:", JSON.parse(JSON.stringify(currentProfile.monthly_claims)));
+
+            // Шаг 3: Можно дополнительно обновить локальный updated_at, если это нужно для UI
+            // currentProfile.updated_at = new Date().toISOString(); // Обновим, так как мы его меняли
+
+            // Шаг 4: НЕ ДЕЛАЕМ ПОЛНЫЙ fetchUserProfile здесь, чтобы избежать перезаписи другими кэшированными данными
+            console.log("[DB Update] Skipped full profile re-fetch from updateMonthlyClaimsInDB. Local profile updated with returned claims.");
 
             const functionEndTime = performance.now();
-            console.log(`[DB Update] updateMonthlyClaimsInDB finished. Total time: ${(functionEndTime - functionStartTime).toFixed(2)}ms`);
+            console.log(`[DB Update] updateMonthlyClaimsInDB finished successfully. Total time: ${(functionEndTime - functionStartTime).toFixed(2)}ms`);
             return true;
 
         } catch (error) {
-            console.error("[DB Update] Error updating monthly_claims in DB or locally:", error);
-            showToast('Chyba', 'Nepodařilo se uložit vyzvednutí měsíční odměny.', 'error');
+            console.error("[DB Update] Catch block: Error updating monthly_claims in DB or locally:", error);
+            showToast('Chyba databáze', `Nepodařilo se uložit vyzvednutí měsíční odměny: ${error.message}`, 'error');
             return false;
         }
     }
-    // <<<< КОНЕЦ ИЗМЕНЕНИЙ (Этап 3) >>>>
+    // <<<< КОНЕЦ ИЗМЕНЕНИЙ (Этап 4) >>>>
 
 
     async function updateLastMilestoneClaimedInDB(milestoneDay, rewardKey, rewardName) {
@@ -432,10 +431,9 @@
                     .eq('id', currentUser.id);
                 if (profileUpdateError) { console.error(`[DB Update] Error updating profiles.last_milestone_claimed for ${milestoneDay}:`, profileUpdateError); }
                 else {
-                    // Znovu načteme profil, abychom měli jistotu
                     const refreshedProfile = await fetchUserProfile(currentUser.id);
                     if (refreshedProfile) currentProfile = refreshedProfile;
-                    else currentProfile.last_milestone_claimed = milestoneDay; // Fallback
+                    else currentProfile.last_milestone_claimed = milestoneDay;
                     console.log(`[DB Update] profiles.last_milestone_claimed updated to ${milestoneDay}.`);
                 }
             }
@@ -451,20 +449,21 @@
         const currentPoints = currentProfile.points || 0;
         const newPoints = currentPoints + pointsValue;
         try {
-            const { error: profileError } = await supabase
+            // Шаг 1: Обновление очков в БД
+            const { error: profileUpdateError } = await supabase
                 .from('profiles')
                 .update({ points: newPoints, updated_at: new Date().toISOString() })
                 .eq('id', currentUser.id);
-            if (profileError) throw profileError;
+            if (profileUpdateError) throw profileUpdateError;
+            console.log("[Points] Points successfully updated in DB.");
 
-            // Znovu načteme profil pro aktualizaci currentProfile
-            const refreshedProfile = await fetchUserProfile(currentUser.id);
-            if (refreshedProfile) {
-                currentProfile = refreshedProfile;
-            } else {
-                console.warn("[Award Points] Could not re-fetch profile, manually updating points.");
-                currentProfile.points = newPoints; // Manuální update, pokud re-fetch selže
-            }
+            // Шаг 2: Обновление локального currentProfile новыми данными очков
+            currentProfile.points = newPoints;
+            currentProfile.updated_at = new Date().toISOString();
+            console.log("[Points] Local currentProfile.points updated:", currentProfile.points);
+
+            // Можно выборочно перезапросить только user_stats, если они зависят от очков
+            // Или дождаться общего обновления данных, если это не критично для немедленного UI
 
             const { error: transactionError } = await supabase.from('credit_transactions').insert({ user_id: currentUser.id, transaction_type: transactionType, amount: pointsValue, description: reason, balance_after_transaction: newPoints, reference_activity_id: referenceActivityId });
             if (transactionError) { console.error("[Points] Error logging credit transaction:", transactionError); showToast('Varování', 'Kredity připsány, ale záznam transakce selhal.', 'warning'); }
@@ -473,7 +472,8 @@
             if (pointsValue > 0) { showToast('Kredity Získány!', `+${pointsValue} kreditů za: ${reason}`, 'success', 2500); }
             else if (pointsValue < 0) { showToast('Kredity Utraceny!', `${pointsValue} kreditů za: ${reason}`, 'info', 2500); }
 
-            userStatsData = await fetchUserStats(currentUser.id, currentProfile); // Znovu načteme user_stats s aktualizovaným profilem
+            // Обновляем UI статистики, используя уже обновленный currentProfile
+            userStatsData = await fetchUserStats(currentUser.id, currentProfile);
             updateStatsCards(userStatsData);
 
             if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderCreditHistory === 'function') {
@@ -587,99 +587,125 @@
     async function claimMonthlyReward(day, buttonElement, rewardType = 'default', rewardValue = 1, rewardName = `Odměna dne ${day}`) {
         console.log(`[ClaimMonthly] Claiming reward for day ${day}: ${rewardName}, Type: ${rewardType}, Value: ${rewardValue}`);
         if (!currentUser || !currentProfile || !supabase || isLoading.monthlyRewards) return;
+
         const currentMonthYear = getCurrentMonthYearString();
         let claimedDaysThisMonth = currentProfile.monthly_claims?.[currentMonthYear] || [];
         console.log(`[ClaimMonthly] Před vyzvednutím - currentProfile.monthly_claims[${currentMonthYear}]:`, JSON.parse(JSON.stringify(claimedDaysThisMonth)));
 
-        if (claimedDaysThisMonth.includes(day)) { showToast('Již Vyzvednuto', 'Tuto odměnu jste již vyzvedli.', 'info'); return; }
+        if (claimedDaysThisMonth.includes(day)) {
+            showToast('Již Vyzvednuto', 'Tuto odměnu jste již vyzvedli.', 'info');
+            return;
+        }
+
         setLoadingState('monthlyRewards', true);
         if (buttonElement) { buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
 
         const newClaimsForMonth = [...claimedDaysThisMonth, day];
         const newAllClaims = { ...currentProfile.monthly_claims, [currentMonthYear]: newClaimsForMonth };
 
-        const dbSuccess = await updateMonthlyClaimsInDB(newAllClaims);
+        let dbSuccess = false;
+        try {
+            dbSuccess = await updateMonthlyClaimsInDB(newAllClaims);
+        } catch (e) {
+            console.error("[ClaimMonthly] Error calling updateMonthlyClaimsInDB:", e);
+            dbSuccess = false;
+        }
 
         if (dbSuccess) {
             console.log(`[ClaimMonthly] Po DB úspěchu - currentProfile.monthly_claims[${currentMonthYear}] (z lokálního currentProfile):`, JSON.parse(JSON.stringify(currentProfile.monthly_claims[currentMonthYear])));
             let activityTitle = `Měsíční odměna: ${rewardName}`;
             let activityDescription = `Uživatel si vyzvedl měsíční odměnu za ${day}. den.`;
+            let rewardAppliedSuccessfully = false;
 
-            if (rewardType === 'credits' && rewardValue > 0) {
-                await awardPoints(rewardValue, `Měsíční odměna - Den ${day}`, 'reward_monthly_calendar', null, true);
-                activityDescription += ` Získáno ${rewardValue} kreditů.`;
-            } else if (rewardType === 'xp' && rewardValue > 0) {
-                const currentXP = currentProfile.experience || 0;
-                const newXP = currentXP + rewardValue;
-                // <<<< НАЧАЛО ИЗМЕНЕНИЙ (Этап 3 - XP Update) >>>>
-                // Шаг 1: Обновление XP в БД
-                const { error: updateXpError } = await supabase
-                    .from('profiles')
-                    .update({ experience: newXP, updated_at: new Date().toISOString() })
-                    .eq('id', currentUser.id);
+            try {
+                if (rewardType === 'credits' && rewardValue > 0) {
+                    await awardPoints(rewardValue, `Měsíční odměna - Den ${day}`, 'reward_monthly_calendar', null, true);
+                    activityDescription += ` Získáno ${rewardValue} kreditů.`;
+                    rewardAppliedSuccessfully = true;
+                } else if (rewardType === 'xp' && rewardValue > 0) {
+                    const currentXP = currentProfile.experience || 0;
+                    const newXP = currentXP + rewardValue;
+                    const { error: updateXpError } = await supabase
+                        .from('profiles')
+                        .update({ experience: newXP, updated_at: new Date().toISOString() })
+                        .eq('id', currentUser.id);
 
-                if (updateXpError) {
-                    console.error("Error updating XP in DB:", updateXpError); // Log original error
-                    showToast('Chyba', 'Nepodařilo se připsat zkušenosti (DB).', 'error');
-                } else {
-                    console.log(`[ClaimMonthly] XP updated in DB to ${newXP}. Attempting to re-fetch profile.`);
-                    // Шаг 2: Перезагрузка всего профиля для обновления currentProfile
-                    const refreshedProfileAfterXP = await fetchUserProfile(currentUser.id);
-                    if (refreshedProfileAfterXP) {
-                        currentProfile = refreshedProfileAfterXP; // Обновляем глобальный currentProfile
-                        console.log("[ClaimMonthly] Profile re-fetched after XP update. New XP:", currentProfile.experience);
-                        showToast('Zkušenosti Získány!', `+${rewardValue} ZKU za: ${rewardName}`, 'success');
-                        activityDescription += ` Získáno ${rewardValue} ZKU.`;
+                    if (updateXpError) {
+                        console.error("Error updating XP in DB:", updateXpError);
+                        showToast('Chyba XP', 'Nepodařilo se připsat zkušenosti (DB).', 'error');
                     } else {
-                        console.warn("[ClaimMonthly] Could not re-fetch profile after XP update. Local XP might be stale.");
-                        currentProfile.experience = newXP; // Fallback: update local profile directly
-                        showToast('Zkušenosti Získány!', `+${rewardValue} ZKU za: ${rewardName} (lokálně)`, 'info');
-                        activityDescription += ` Získáno ${rewardValue} ZKU.`;
+                        console.log(`[ClaimMonthly] XP updated in DB to ${newXP}. Attempting to re-fetch profile.`);
+                        const refreshedProfileAfterXP = await fetchUserProfile(currentUser.id);
+                        if (refreshedProfileAfterXP) {
+                            currentProfile = refreshedProfileAfterXP;
+                            console.log("[ClaimMonthly] Profile re-fetched after XP update. New XP:", currentProfile.experience);
+                            showToast('Zkušenosti Získány!', `+${rewardValue} ZKU za: ${rewardName}`, 'success');
+                            activityDescription += ` Získáno ${rewardValue} ZKU.`;
+                            rewardAppliedSuccessfully = true;
+                        } else {
+                            console.warn("[ClaimMonthly] Could not re-fetch profile after XP update. Local XP might be stale.");
+                            currentProfile.experience = newXP; // Fallback
+                            showToast('Zkušenosti Získány!', `+${rewardValue} ZKU za: ${rewardName} (lokálně)`, 'info');
+                            activityDescription += ` Získáno ${rewardValue} ZKU.`;
+                            rewardAppliedSuccessfully = true;
+                        }
+                    }
+                } else if (rewardType === 'title') {
+                    const currentTitles = Array.isArray(currentProfile.purchased_titles) ? currentProfile.purchased_titles : [];
+                    const titleKeyToAward = buttonElement.closest('.calendar-day').dataset.rewardKey || rewardName.replace(/\s/g, '_').toLowerCase();
+                    if (!currentTitles.includes(titleKeyToAward)) {
+                        const newTitles = [...currentTitles, titleKeyToAward];
+                        const { error: titleUpdateError } = await supabase.from('profiles').update({ purchased_titles: newTitles, updated_at: new Date().toISOString() }).eq('id', currentUser.id);
+                        if (titleUpdateError) { console.error("Error awarding title (DB):", titleUpdateError); showToast('Chyba', 'Nepodařilo se udělit titul.', 'error'); }
+                        else {
+                            const refreshedProfile = await fetchUserProfile(currentUser.id);
+                            if (refreshedProfile) currentProfile = refreshedProfile; else currentProfile.purchased_titles = newTitles;
+                            showToast('Titul Získán!', `Získali jste titul: ${rewardName}`, 'success'); activityDescription += ` Získán titul: ${rewardName}.`; rewardAppliedSuccessfully = true;
+                        }
+                    } else { showToast('Titul Již Vlastníte', `Titul ${rewardName} již máte.`, 'info'); rewardAppliedSuccessfully = true; }
+                } else { // Default reward type
+                    showToast('Odměna Získána!', `Získali jste: ${rewardName}`, 'success');
+                    rewardAppliedSuccessfully = true;
+                }
+
+                if (rewardAppliedSuccessfully) {
+                    await logActivity(currentUser.id, 'monthly_reward_claimed', activityTitle, activityDescription, { day: day, reward_name: rewardName, reward_type: rewardType, reward_value: rewardValue });
+                } else {
+                    // Откат, если награда не была применена (например, ошибка обновления XP)
+                    console.warn(`[ClaimMonthly] Reward application failed for day ${day}. Attempting to revert monthly_claims.`);
+                    const claimsToRevert = { ...currentProfile.monthly_claims }; // копия
+                    const monthClaimsToRevert = claimsToRevert[currentMonthYear] || [];
+                    const revertedMonthClaims = monthClaimsToRevert.filter(d => d !== day);
+                    const claimsAfterRevert = { ...claimsToRevert, [currentMonthYear]: revertedMonthClaims };
+
+                    const { error: revertError } = await supabase
+                        .from('profiles')
+                        .update({ monthly_claims: claimsAfterRevert, updated_at: new Date().toISOString() })
+                        .eq('id', currentUser.id);
+
+                    if (revertError) {
+                        console.error("[ClaimMonthly] CRITICAL: Failed to revert monthly_claims in DB after reward failure. Data inconsistency possible.", revertError);
+                        showToast('Kritická chyba', 'Nepodařilo se obnovit stav odměn po chybě. Kontaktujte podporu.', 'error');
+                    } else {
+                        currentProfile.monthly_claims = claimsAfterRevert; // Обновляем локальный профиль
+                        console.log("[ClaimMonthly] monthly_claims successfully reverted in DB and locally after reward failure.");
+                         showToast('Chyba odměny', 'Při udělování dodatečné odměny nastala chyba, vyzvednutí dne bylo zrušeno.', 'warning');
                     }
                 }
-                // <<<< КОНЕЦ ИЗМЕНЕНИЙ (Этап 3 - XP Update) >>>>
-            } else if (rewardType === 'title') {
-                 const currentTitles = Array.isArray(currentProfile.purchased_titles) ? currentProfile.purchased_titles : [];
-                 const titleKeyToAward = buttonElement.closest('.calendar-day').dataset.rewardKey || rewardName.replace(/\s/g, '_').toLowerCase();
-                 if (!currentTitles.includes(titleKeyToAward)) {
-                     const newTitles = [...currentTitles, titleKeyToAward];
-                     // <<<< НАЧАЛО ИЗМЕНЕНИЙ (Этап 3 - Title Update) >>>>
-                     // Шаг 1: Обновление titles в БД
-                     const { error: updateTitleError } = await supabase
-                         .from('profiles')
-                         .update({ purchased_titles: newTitles, updated_at: new Date().toISOString() })
-                         .eq('id', currentUser.id);
-
-                     if (updateTitleError) {
-                         console.error("Error awarding title in DB:", updateTitleError);
-                         showToast('Chyba', 'Nepodařilo se udělit titul (DB).', 'error');
-                     } else {
-                         console.log(`[ClaimMonthly] Title '${titleKeyToAward}' awarded in DB. Attempting to re-fetch profile.`);
-                         // Шаг 2: Перезагрузка всего профиля
-                         const refreshedProfileAfterTitle = await fetchUserProfile(currentUser.id);
-                         if (refreshedProfileAfterTitle) {
-                             currentProfile = refreshedProfileAfterTitle;
-                             console.log("[ClaimMonthly] Profile re-fetched after title award. Purchased titles:", currentProfile.purchased_titles);
-                             showToast('Titul Získán!', `Získali jste titul: ${rewardName}`, 'success');
-                             activityDescription += ` Získán titul: ${rewardName}.`;
-                         } else {
-                             console.warn("[ClaimMonthly] Could not re-fetch profile after title award. Local titles might be stale.");
-                             currentProfile.purchased_titles = newTitles; // Fallback
-                             showToast('Titul Získán!', `Získali jste titul: ${rewardName} (lokálně)`, 'info');
-                             activityDescription += ` Získán titul: ${rewardName}.`;
-                         }
-                     }
-                     // <<<< КОНЕЦ ИЗМЕНЕНИЙ (Этап 3 - Title Update) >>>>
-                 } else {
-                     showToast('Titul Již Vlastníte', `Titul ${rewardName} již máte.`, 'info');
-                 }
-            } else { // Default reward type
-                showToast('Odměna Získána!', `Získali jste: ${rewardName}`, 'success');
+            } catch (rewardApplicationError) {
+                console.error("[ClaimMonthly] Error applying reward effects:", rewardApplicationError);
+                 const claimsToRevert = { ...currentProfile.monthly_claims };
+                 const monthClaimsToRevert = claimsToRevert[currentMonthYear] || [];
+                 const revertedMonthClaims = monthClaimsToRevert.filter(d => d !== day);
+                 claimsToRevert[currentMonthYear] = revertedMonthClaims; // Присваиваем измененный массив обратно
+                 await supabase.from('profiles').update({ monthly_claims: claimsToRevert, updated_at: new Date().toISOString() }).eq('id', currentUser.id);
+                 currentProfile.monthly_claims = claimsToRevert;
+                 showToast('Chyba', 'Nepodařilo se zpracovat odměnu, vyzvednutí zrušeno.', 'error');
             }
-            await logActivity(currentUser.id, 'monthly_reward_claimed', activityTitle, activityDescription, { day: day, reward_name: rewardName, reward_type: rewardType, reward_value: rewardValue });
-        } else {
-            showToast('Chyba', 'Nepodařilo se uložit vyzvednutí měsíční odměny.', 'error');
+        } else { // dbSuccess is false for updateMonthlyClaimsInDB
+            showToast('Chyba', 'Nepodařilo se uložit vyzvednutí měsíční odměny. Zkuste to prosím znovu.', 'error');
         }
+
         setLoadingState('monthlyRewards', false);
         renderMonthlyCalendar();
     }
@@ -711,14 +737,12 @@
                         else if (insertBadgeError && insertBadgeError.code === '23505') { showToast('Info', `Odznak "${badgeData.title}" již vlastníte.`, 'info'); }
                         else {
                             const newBadgeCount = (currentProfile.badges_count || 0) + 1;
-                            // <<<< НАЧАЛО ИЗМЕНЕНИЙ (Этап 3 - Badge Count Update) >>>>
                             const { error: profileUpdateErrorBadge } = await supabase.from('profiles').update({ badges_count: newBadgeCount, updated_at: new Date().toISOString() }).eq('id', currentUser.id);
                             if (profileUpdateErrorBadge) { console.error("Error updating profile badge_count:", profileUpdateErrorBadge); }
                             else {
                                 const refreshedProfileAfterBadge = await fetchUserProfile(currentUser.id);
                                 if (refreshedProfileAfterBadge) currentProfile = refreshedProfileAfterBadge; else currentProfile.badges_count = newBadgeCount;
                             }
-                            // <<<< КОНЕЦ ИЗМЕНЕНИЙ (Этап 3 - Badge Count Update) >>>>
                             showToast('Odznak Získán!', `Získali jste odznak: ${badgeData.title}`, 'success'); activityDescription += ` Získán odznak: ${badgeData.title}.`;
                         }
                     }
@@ -728,7 +752,6 @@
                     const currentTitles = Array.isArray(currentProfile.purchased_titles) ? currentProfile.purchased_titles : [];
                     if (!currentTitles.includes(titleKeyToAward)) {
                         const newTitles = [...currentTitles, titleKeyToAward];
-                        // <<<< НАЧАЛО ИЗМЕНЕНИЙ (Этап 3 - Streak Title Update) >>>>
                         const { error: titleUpdateError } = await supabase.from('profiles').update({ purchased_titles: newTitles, updated_at: new Date().toISOString() }).eq('id', currentUser.id);
                         if (titleUpdateError) { console.error("Error awarding title (streak):", titleUpdateError); showToast('Chyba', 'Nepodařilo se udělit titul ze série.', 'error'); }
                         else {
@@ -736,7 +759,6 @@
                             if (refreshedProfileAfterStreakTitle) currentProfile = refreshedProfileAfterStreakTitle; else currentProfile.purchased_titles = newTitles;
                             showToast('Titul Získán!', `Získali jste titul: ${rewardName}`, 'success'); activityDescription += ` Získán titul: ${rewardName}.`;
                         }
-                        // <<<< КОНЕЦ ИЗМЕНЕНИЙ (Этап 3 - Streak Title Update) >>>>
                     } else { showToast('Titul Již Vlastníte', `Titul ${rewardName} již máte.`, 'info'); }
                     break;
                 default: showToast('Milník Dosažen!', `Získali jste: ${rewardName}`, 'success');
