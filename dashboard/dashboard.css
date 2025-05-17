@@ -1,1376 +1,635 @@
-/* --- START: Киберпанк CSS Тема (v4 - Улучшения + Сворачивание сайдбара + Дизайн) --- */
-/* --- Глобальные Настройки и Переменные --- */
-:root {
-    /* Основа */
-    --bg-color: #03020c;
-    --bg-secondary: #0a071f;
-    --bg-secondary-rgb: 10, 7, 31; /* Added for RGBA usage */
-    --card-bg: rgba(15, 10, 45, 0.88);
-    --card-solid: #0f0a2d;
-    --card-solid-rgb: 15, 10, 45; /* Added for RGBA usage */
-    --interface-bg: rgba(6, 4, 22, 0.92);
-    --interface-border: rgba(0, 240, 255, 0.35);
-    --dark-purple-accent: #160c41;
-    --dark-purple-accent-rgb: 22, 12, 65; /* Added for RGBA usage */
+// dashboard.js
+// Verze: 26.0.11 - Oprava kritické chyby s chybějícím placeholderem a robustnější skrývání initialLoaderu
+// --- START: SKELETON INTEGRATION ---
+// Verze: 26.0.12 - Integrace skeletonů, úprava načítání a zobrazení
+(function() {
+    'use strict';
 
-    /* Акценты */
-    --accent-primary: #00e0ff; /* Циан - основной интерактивный */
-    --accent-primary-rgb: 0, 224, 255;
-    --accent-secondary: #a05cff; /* Фиолетовый */
-    --accent-secondary-rgb: 160, 92, 255;
-    --accent-pink: #ff33a8; /* Розовый - для Danger/Streak */
-    --accent-pink-rgb: 255, 51, 168;
-    --accent-lime: #6fff3a; /* Лайм - для Success */
-    --accent-lime-rgb: 111, 255, 58;
-    --accent-cyan: var(--accent-primary);
-    --accent-cyan-rgb: var(--accent-primary-rgb);
-    --accent-cyan-glow: rgba(var(--accent-cyan-rgb), 0.6);
-    --accent-glow: rgba(var(--accent-primary-rgb), 0.6);
-    --accent-secondary-glow: rgba(var(--accent-secondary-rgb), 0.5);
-    --accent-pink-glow: rgba(var(--accent-pink-rgb), 0.4);
-    --accent-lime-glow: rgba(var(--accent-lime-rgb), 0.5);
-    --accent-border-glow: rgba(var(--accent-primary-rgb), 0.7);
-    --accent-orange: #f8961e; /* Оранжевый для Warning */
-    --accent-orange-rgb: 248, 150, 30;
-    --accent-orange-glow: rgba(var(--accent-orange-rgb), 0.5);
+    // --- START: Initialization and Configuration ---
+    const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+    let supabase = null;
+    let currentUser = null;
+    let currentProfile = null;
+    let allTitles = [];
+    let userStatsData = null;
 
+    const AUTH_TIMEOUT = 30000;
+    const DATA_FETCH_TIMEOUT = 20000;
 
-    /* Текст */
-    --text-light: #f1f5f9; /* Почти белый */
-    --text-medium: #b8c4e0; /* Светло-серый/голубой */
-    --text-muted: #808db0; /* Приглушенный */
-    --text-muted-rgb: 128, 141, 176; /* Added for RGBA */
-    --text-heading: #ffffff; /* Белый */
-    --text-link: var(--accent-primary);
-    --text-link-hover: #ffffff;
-    --text-fixed-dark: #03020c; /* Для текста на светлых/ярких фонах */
-    --white: #ffffff;
-    --white-rgb: 255, 255, 255; /* Added for RGBA */
-    --black: #000000; /* Иногда нужен чистый черный */
+    let isLoading = {
+        stats: false,
+        activities: false,
+        creditHistory: false,
+        notifications: false,
+        titles: false,
+        monthlyRewards: false,
+        streakMilestones: false,
+        all: false,
+        session: false,
+        // --- START: SKELETON LOADING STATES ---
+        welcomeBanner: false,
+        shortcuts: false
+        // --- END: SKELETON LOADING STATES ---
+    };
+    const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
+    const MONTHLY_REWARD_DAYS = 31;
 
-    /* Границы */
-    --border-color-light: rgba(var(--accent-secondary-rgb), 0.25); /* Тонкие разделители */
-    --border-color-medium: rgba(var(--accent-secondary-rgb), 0.45); /* Заметнее */
-    --border-color-strong: rgba(var(--accent-primary-rgb), 0.65); /* Для ховеров/активных */
-    --border-interactive: var(--accent-primary);
-    --border-glow-gradient: linear-gradient(90deg, transparent, var(--accent-primary), var(--accent-pink), var(--accent-primary), transparent);
+    const STREAK_MILESTONES_CONFIG = {
+        3: { name: "Zahřívací Kolečko", description: "3 dny v řadě! Dobrý začátek!", icon: "fa-running", reward_type: "points", reward_value: 5, reward_key: "streak_3_days_points_5" },
+        7: { name: "Týdenní Vytrvalec", description: "Celý týden bez přestávky! Skvělé!", icon: "fa-calendar-week", reward_type: "points", reward_value: 15, reward_key: "streak_7_days_points_15" },
+        14: { name: "Dvou Týdenní Hrdina", description: "Již 14 dní studia! Neuvěřitelné!", icon: "fa-star", reward_type: "badge", reward_value: "badge_streak_14", reward_key: "streak_14_days_badge_perseverance" },
+        30: { name: "Měsíční Maratonec", description: "Celý měsíc konzistence! Jsi legenda!", icon: "fa-trophy", reward_type: "title", reward_value: "title_monthly_marathon", reward_key: "streak_30_days_title_marathon" },
+    };
+    const sortedMilestoneDays = Object.keys(STREAK_MILESTONES_CONFIG).map(Number).sort((a, b) => a - b);
 
-    /* Градиенты */
-    --gradient-header: linear-gradient(180deg, rgba(3, 2, 12, 0.97) 0%, rgba(3, 2, 12, 0.9) 100%);
-    --gradient-border-anim: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary), var(--accent-pink), var(--accent-primary), var(--accent-secondary));
-    --gradient-button: linear-gradient(100deg, var(--accent-secondary) 0%, var(--accent-primary) 100%);
-    --gradient-button-hover: linear-gradient(100deg, var(--accent-primary) 0%, var(--accent-pink) 100%);
-    --gradient-hero-bg: radial-gradient(ellipse at 15% 15%, rgba(var(--accent-primary-rgb), 0.18), transparent 55%),
-                         radial-gradient(ellipse at 85% 85%, rgba(var(--accent-secondary-rgb), 0.15), transparent 60%),
-                         var(--bg-color); /* Этот градиент можно использовать для фона main */
-    --gradient-card-highlight: linear-gradient(160deg, rgba(var(--accent-primary-rgb), 0.15), rgba(var(--accent-secondary-rgb), 0.12));
-    --gradient-cta: linear-gradient(110deg, var(--accent-secondary) 0%, var(--accent-pink) 100%);
-    --shimmer-gradient: linear-gradient(90deg, transparent, rgba(var(--accent-primary-rgb), 0.2), transparent); /* Для шиммера */
-    --gradient-sidebar: linear-gradient(190deg, var(--bg-secondary) 0%, var(--dark-purple-accent) 100%); /* Новый для сайдбара */
-    --gradient-level-up: linear-gradient(45deg, var(--accent-pink), var(--accent-secondary)); /* Для Level Up */
-     --gradient-welcome: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.2), rgba(var(--accent-secondary-rgb), 0.25)); /* Для Welcome Banner */
-     --gradient-success: linear-gradient(135deg, var(--accent-lime), #45a247);
-     --gradient-danger: linear-gradient(135deg, var(--accent-pink), #b5179e);
-     --gradient-warning: linear-gradient(135deg, var(--accent-orange), #f3722c);
-     --gradient-info: linear-gradient(135deg, var(--accent-cyan), #277eed);
+    const mayRewards = { // Příklad, toto by se mělo načítat dynamicky nebo konfigurovat jinde
+        1: { type: 'title', key: 'majovy_poutnik', name: 'Titul: Májový Poutník', icon: 'fa-hiking', value: null },
+        7: { type: 'credits', key: 'may_credits_10', name: '10 Kreditů', icon: 'fa-coins', value: 10 },
+        14: { type: 'credits', key: 'may_credits_14_day', name: '10 Kreditů (Den 14)', icon: 'fa-coins', value: 10 },
+        // ... další dny
+    };
 
+    let ui = {}; // Bude naplněno v cacheDOMElements
 
-    /* Шрифты */
-    --font-primary: 'Inter', sans-serif;
-    --font-secondary: 'Poppins', sans-serif; /* Заголовки, кнопки */
-    --font-mono: 'Roboto Mono', monospace; /* AI демо, код */
+    const activityVisuals = {
+        exercise: { name: 'Trénink', icon: 'fa-laptop-code', class: 'exercise' },
+        test: { name: 'Test', icon: 'fa-vial', class: 'test' },
+        test_diagnostic_completed: { name: 'Diagnostický Test Dokončen', icon: 'fa-microscope', class: 'diagnostic' },
+        vyuka_topic_started: { name: 'Výuka Zahájena', icon: 'fa-chalkboard-teacher', class: 'lesson' },
+        vyuka_topic_finished: { name: 'Výuka Dokončena', icon: 'fa-graduation-cap', class: 'lesson' },
+        badge: { name: 'Odznak Získán', icon: 'fa-medal', class: 'badge' },
+        diagnostic: { name: 'Diagnostika', icon: 'fa-microscope', class: 'diagnostic' },
+        lesson: { name: 'Nová Data', icon: 'fa-book-open', class: 'lesson' },
+        plan_generated: { name: 'Plán Aktualizován', icon: 'fa-route', class: 'plan_generated' },
+        level_up: { name: 'Level UP!', icon: 'fa-angle-double-up', class: 'level_up' },
+        streak_milestone_claimed: { name: 'Milník Série', icon: 'fa-meteor', class: 'streak' },
+        monthly_reward_claimed: { name: 'Měsíční Odměna', icon: 'fa-gift', class: 'badge' },
+        profile_updated: { name: 'Profil Aktualizován', icon: 'fa-user-edit', class: 'other' },
+        custom_task_completed: { name: 'Úkol Dokončen', icon: 'fa-check-square', class: 'exercise' },
+        points_earned: { name: 'Kredity Získány', icon: 'fa-arrow-up', class: 'points_earned' },
+        points_spent: { name: 'Kredity Utraceny', icon: 'fa-arrow-down', class: 'points_spent' },
+        other: { name: 'Systémová Zpráva', icon: 'fa-info-circle', class: 'other' },
+        default: { name: 'Aktivita', icon: 'fa-check-circle', class: 'default' }
+    };
+    // --- END: Initialization and Configuration ---
 
-    /* Тени */
-    --shadow-glow: 0 0 25px var(--accent-glow);
-    --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.4);
-    --shadow-interactive: 0 8px 20px rgba(var(--accent-primary-rgb), 0.4);
-    --shadow-interactive-hover: 0 10px 28px rgba(var(--accent-pink-rgb), 0.45);
-    --shadow-card-hover-enhanced: 0 18px 50px rgba(0, 0, 0, 0.45), 0 0 30px var(--accent-glow), inset 0 0 15px rgba(var(--accent-primary-rgb), 0.15);
-    --shadow-hud: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 2px rgba(var(--accent-primary-rgb), 0.1); /* Тень для элементов интерфейса */
-    --shadow-text-glow: 0 0 8px rgba(var(--accent-primary-rgb), 0.6); /* Свечение текста */
+    // --- START: SKELETON UI Function ---
+    /**
+     * Přepíná viditelnost mezi skeletonem a skutečným obsahem pro danou sekci.
+     * @param {string} sectionKey Klíč sekce (např. 'welcomeBanner', 'stats', 'shortcuts', 'activities', 'creditHistory').
+     * @param {boolean} showSkeleton True pro zobrazení skeletonu, false pro zobrazení obsahu.
+     */
+    function toggleSkeletonUI(sectionKey, showSkeleton) {
+        console.log(`[Skeleton Toggle] Section: ${sectionKey}, Show Skeleton: ${showSkeleton}`);
+        let skeletonContainer, realContainer;
 
-    /* Размеры и переходы */
-    --sidebar-width: 260px; /* Оставляем переменную */
-    --sidebar-collapsed-width: 80px; /* <<< NEW: Width for collapsed sidebar */
-    --card-radius: 14px;
-    --button-radius: 10px;
-    --section-padding-y: clamp(2rem, 5vh, 3rem); /* Паддинги для секций дашборда */
-    --container-padding-x: 2rem; /* Паддинги контейнера дашборда */
-    --transition-speed: 0.3s; /* Совпадает с --transition-medium */
-    --transition-fast: all 0.2s ease-out;
-    --transition-medium: all 0.35s ease-out;
-    --transition-long: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
-    --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    --transition-entrance: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1); /* Немного быстрее */
+        switch (sectionKey) {
+            case 'welcomeBanner':
+                skeletonContainer = ui.welcomeBannerSkeleton;
+                realContainer = ui.welcomeBannerReal;
+                break;
+            case 'stats':
+                skeletonContainer = ui.statsCardsSkeletonContainer;
+                realContainer = ui.statsCardsContainer;
+                break;
+            case 'shortcuts':
+                skeletonContainer = ui.shortcutGridSkeletonContainer;
+                realContainer = ui.shortcutGridReal;
+                break;
+            case 'activities': // Pro "Nedávná aktivita"
+                skeletonContainer = ui.activityListSkeletonContainer;
+                realContainer = ui.activityListContainer; // Předpokládám, že toto je rodičovský kontejner pro seznam
+                break;
+            case 'creditHistory':
+                skeletonContainer = ui.creditHistorySkeletonContainer;
+                realContainer = ui.creditHistoryListContainer; // Předpokládám, že toto je rodičovský kontejner
+                break;
+            default:
+                console.warn(`[Skeleton Toggle] Unknown sectionKey: ${sectionKey}`);
+                return;
+        }
 
-    /* Skeleton Loader Colors */
-     --skeleton-bg: rgba(var(--accent-secondary-rgb), 0.1);
-     --skeleton-highlight: rgba(var(--accent-secondary-rgb), 0.2);
-}
+        if (skeletonContainer) {
+            skeletonContainer.style.display = showSkeleton ? 'grid' : 'none'; // Nebo 'flex' podle layoutu skeletonu
+            if (showSkeleton) {
+                 // Přidání třídy skeleton-active na rodičovský element sekce pro CSS
+                 skeletonContainer.closest('section')?.classList.add('skeleton-active');
+            } else {
+                 skeletonContainer.closest('section')?.classList.remove('skeleton-active');
+            }
+        } else {
+            console.warn(`[Skeleton Toggle] Skeleton container not found for section: ${sectionKey}`);
+        }
 
-/* --- Базовые Стили --- */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; font-size: 16px; -webkit-text-size-adjust: 100%; }
-body {
-    background-color: var(--bg-color); color: var(--text-medium); /* Базовый цвет текста */
-    font-family: var(--font-primary); line-height: 1.7;
-    min-height: 100vh; display: flex; overflow: hidden; /* Важно для layout с sidebar */
-    -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-    position: relative; /* Для позиционирования псевдоэлементов */
-}
-
-/* Фоновые эффекты (опционально, можно убрать для дашборда) */
-body::before { /* Сетка */
-    content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -3;
-    background-image:
-        linear-gradient(rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px);
-    background-size: 40px 40px; opacity: 0.6; /* Менее заметно */
-    animation: bg-grid-pan 100s linear infinite; pointer-events: none;
-}
-body::after { /* Сканлинии */
-    content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -2;
-    background: linear-gradient( to bottom, rgba(10, 7, 31, 0) 50%, rgba(0, 0, 0, 0.08) 50% );
-    background-size: 100% 3px; opacity: 0.15; /* Менее заметно */
-    animation: scanlines 25s linear infinite; pointer-events: none;
-}
-@keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 800px 400px; } }
-@keyframes scanlines { from { background-position: 0 0; } to { background-position: 0 75px; } }
-
-/* Свечение мыши */
-.mouse-follower-glow {
-    position: fixed; width: 200px; height: 200px; /* Чуть меньше */
-    background: radial-gradient(circle, rgba(var(--accent-primary-rgb), 0.05) 0%, transparent 70%);
-    border-radius: 50%; pointer-events: none; z-index: -1;
-    transform: translate(-50%, -50%); filter: blur(35px);
-    transition: top 0.1s ease-out, left 0.1s ease-out, background 0.3s ease, opacity 0.3s ease;
-    opacity: 0; will-change: top, left, opacity;
-}
-body.mouse-has-moved .mouse-follower-glow { opacity: 1; }
-
-/* Типография */
-h1, h2, h3, h4, h5, h6 { font-family: var(--font-secondary); font-weight: 600; color: var(--text-heading); line-height: 1.35; margin-bottom: 1em; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
-h1 { font-size: clamp(1.6rem, 3vw, 1.9rem); font-weight: 700; } /* Уменьшено для дашборда */
-h2 { font-size: clamp(1.3rem, 2.5vw, 1.5rem); margin-bottom: 1.5rem; /* Section title */ }
-h3 { font-size: clamp(1.1rem, 2vw, 1.25rem); }
-p { margin-bottom: 1.2rem; font-size: clamp(0.9rem, 1.8vw, 1rem); max-width: 700px; color: var(--text-medium); }
-a { color: var(--text-link); text-decoration: none; transition: color var(--transition-fast), text-shadow 0.3s ease, outline-offset 0.1s ease; }
-a:hover { color: var(--text-link-hover); text-shadow: var(--shadow-text-glow); }
-
-/* Стили фокуса */
-a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
-    outline: 3px solid var(--accent-primary); outline-offset: 4px; border-radius: 6px;
-    box-shadow: 0 0 12px var(--accent-glow);
-}
-:is(a, button, input, textarea, select):focus { outline: none; }
-
-/* Скроллбар */
- ::-webkit-scrollbar { width: 8px; height: 8px; }
- ::-webkit-scrollbar-track { background: rgba(var(--accent-secondary-rgb), 0.08); border-radius: 4px;}
- ::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.5); border-radius: 4px; border: 2px solid transparent; background-clip: content-box; }
- ::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--accent-primary-rgb), 0.8); }
- body { /* Firefox scrollbar */ scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--accent-secondary-rgb), 0.08); }
-
-/* --- Утилиты --- */
-.btn { /* Базовый стиль кнопки, применяемый к кнопкам дашборда */
-    display: inline-flex; align-items: center; justify-content: center; gap: 0.5em;
-    padding: 0.6rem 1.2rem; /* Уменьшены паддинги для дашборда */
-    background: transparent; color: var(--accent-primary);
-    border: 2px solid var(--accent-primary); border-radius: var(--button-radius);
-    font-family: var(--font-secondary); font-weight: 600; font-size: 0.9rem;
-    text-align: center; text-transform: uppercase; letter-spacing: 1px;
-    cursor: pointer; transition: all var(--transition-medium), transform 0.15s ease-out;
-    position: relative; overflow: hidden; z-index: 1;
-    box-shadow: 0 0 10px -3px var(--accent-glow), inset 0 0 8px -5px var(--accent-glow);
-    backdrop-filter: blur(2px); will-change: transform, box-shadow, color, border-color;
-}
-.btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--gradient-button); transition: left 0.35s ease-in-out; z-index: -1; }
-.btn:hover:not(:disabled) { color: var(--text-fixed-dark); border-color: var(--accent-secondary); box-shadow: 0 0 20px var(--accent-secondary-glow), inset 0 0 10px rgba(var(--accent-secondary-rgb), 0.15); transform: translateY(-3px); }
-.btn:hover:not(:disabled)::before { left: 0; background: var(--gradient-button-hover); }
-.btn:active:not(:disabled) { transform: translateY(0px) scale(0.97); box-shadow: 0 0 8px var(--accent-secondary-glow), inset 0 0 12px rgba(0,0,0,0.3); transition-duration: 0.08s; }
-.btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; }
-.btn:disabled::before { display: none; }
-.btn-primary { background: var(--gradient-button); border-color: transparent; color: var(--text-fixed-dark); box-shadow: 0 0 15px -2px var(--accent-glow); }
-.btn-primary::before { display: none; }
-.btn-primary:hover:not(:disabled) { background: var(--gradient-button-hover); border-color: transparent; color: var(--white); box-shadow: 0 0 22px var(--accent-pink-glow); transform: translateY(-3px); }
-
-/* --- NEW: Styles for Sidebar Toggle Button --- */
-.btn-icon-only { /* Style for icon-only buttons like the toggle */
-    padding: 0.5rem; /* Reduced padding */
-    width: 38px; /* Slightly smaller */
-    height: 38px; /* Slightly smaller */
-    border-radius: 50%; /* Make it circular */
-    border: 1px solid var(--border-color-medium); /* Subtle border */
-    color: var(--text-muted);
-    background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.3); /* Darker background */
-    box-shadow: none;
-    line-height: 1;
-    display: inline-flex; /* Ensure flex properties apply */
-    align-items: center;
-    justify-content: center;
-}
-.btn-icon-only i {
-    margin-right: 0; /* No margin for icon-only */
-    font-size: 1rem; /* Adjusted size */
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth rotate */
-}
-.btn-icon-only:hover:not(:disabled) {
-    background-color: rgba(var(--accent-primary-rgb), 0.15);
-    border-color: var(--accent-primary);
-    color: var(--accent-primary);
-    box-shadow: 0 0 12px rgba(var(--accent-glow), 0.5); /* Adjusted glow */
-    transform: translateY(-2px) scale(1.05); /* Slight lift */
-}
-.btn-icon-only:active:not(:disabled) {
-    transform: translateY(0) scale(0.95);
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.4); /* Inset shadow on press */
-}
-.sidebar-toggle-btn {
-     margin-right: 0.8rem; /* Space between toggle and title/mobile btn */
-     display: none; /* Hide by default, show on larger screens */
-}
-@media (min-width: 993px) {
-     .sidebar-toggle-btn {
-         display: inline-flex; /* Show on desktop */
-     }
-}
-/* --- END: Sidebar Toggle Button --- */
-
-
-/* Карточки (базовый стиль) */
-.card {
-    background: var(--card-bg); border-radius: var(--card-radius);
-    border: 1px solid var(--border-color-light);
-    box-shadow: var(--shadow-hud);
-    transition: transform var(--transition-medium), box-shadow var(--transition-medium), border-color var(--transition-medium);
-    position: relative; overflow: hidden;
-    will-change: transform, box-shadow;
-}
-.card:hover {
-     transform: translateY(-5px) scale(1.01);
-     box-shadow: var(--shadow-card-hover-enhanced);
-     border-color: var(--border-color-medium);
-}
- /* Уголки для карточек */
- .card::before, .card::after {
-     content: ''; position: absolute; width: 12px; height: 12px;
-     border-color: var(--accent-primary); border-style: solid; opacity: 0;
-     transition: all 0.3s ease; pointer-events: none; z-index: 1;
- }
- .card::before { top: 10px; left: 10px; border-width: 2px 0 0 2px; }
- .card::after { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
- .card:hover::before, .card:hover::after { opacity: 0.6; }
- .card:hover::before { transform: translate(-3px, -3px); }
- .card:hover::after { transform: translate(3px, 3px); }
-
-
-/* --- Sidebar (Переделанный под киберпанк) --- */
-.sidebar {
-    width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0;
-    background: var(--gradient-sidebar); /* Новый градиент */
-    color: var(--text-medium); /* Базовый цвет текста */
-    padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000;
-    box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4); /* Тень */
-    border-right: 1px solid var(--border-color-light);
-    transition: width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), transform var(--transition-medium) ease; /* Apply transition to width */
-    overflow: hidden; /* Hide overflow during transition */
-}
-.sidebar-header { display: flex; align-items: center; margin-bottom: 2.5rem; padding: 0 0.5rem; position: relative; min-height: 45px; transition: padding var(--transition-medium) ease; }
-#sidebar-close-toggle { /* Кнопка закрытия на мобильных */
-     display: none; position: absolute; right: 0px; top: 50%; transform: translateY(-50%);
-     background: none; border: none; color: var(--text-muted); font-size: 1.8rem; cursor: pointer;
-     padding: 0.5rem; line-height: 1; transition: color 0.2s ease;
-}
-#sidebar-close-toggle:hover { color: var(--accent-primary); }
-.sidebar-logo {
-     font-size: 1.7rem; font-weight: 700; color: var(--text-heading); text-decoration: none;
-     display: flex; align-items: center; gap: 0.8rem; text-shadow: 0 0 8px var(--accent-secondary-glow);
-     transition: gap var(--transition-medium) ease;
-     width: 100%; /* Ensure it takes full width for centering */
-}
-.sidebar-logo i { font-size: 1.8rem; color: var(--accent-secondary); flex-shrink: 0; /* Prevent icon shrinking */}
-.sidebar-logo span { transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; display: inline-block; } /* Adjusted transition */
-.sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; overflow-x: hidden; } /* Hide horizontal scroll */
-/* --- Скрыть скроллбар в свернутом состоянии --- */
-body.sidebar-collapsed .sidebar-menu {
-    overflow-y: hidden;
-    scrollbar-width: none; /* Firefox */
-}
-body.sidebar-collapsed .sidebar-menu::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
-}
-/* --------------------------------------------- */
-.sidebar-item { margin-bottom: 0.6rem; }
-.sidebar-link {
-    display: flex; align-items: center; padding: 0.85rem 1rem; /* Немного больше */
-    color: var(--text-medium); text-decoration: none; border-radius: var(--button-radius);
-    transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, border-left-color 0.25s ease;
-    font-weight: 500; position: relative;
-    border-left: 4px solid transparent; /* Основа для активной метки */
-    overflow: hidden; /* Prevent text wrapping */
-    white-space: nowrap; /* Keep icon and text on one line */
-}
-.sidebar-link i {
-    margin-right: 0.85rem; font-size: 1.25rem; width: 25px; text-align: center;
-    transition: color 0.25s ease, margin-right var(--transition-medium) ease, font-size var(--transition-medium) ease; /* Added font-size */
-    color: var(--text-muted); flex-shrink: 0; /* Prevent icon shrinking */
-}
-.sidebar-link span { transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; overflow: hidden; white-space: nowrap; display: inline-block; vertical-align: middle;} /* Adjusted transition and alignment */
-.sidebar-link:hover {
-    background-color: rgba(var(--accent-primary-rgb), 0.1); color: var(--text-light);
-    box-shadow: inset 3px 0 8px -2px rgba(var(--accent-primary-rgb), 0.3);
-}
-.sidebar-link:hover i { color: var(--accent-primary); }
-.sidebar-link.active {
-    background-color: rgba(var(--accent-primary-rgb), 0.15); color: var(--white);
-    font-weight: 600; border-left-color: var(--accent-primary);
-    box-shadow: inset 4px 0 10px -3px rgba(var(--accent-primary-rgb), 0.4);
-}
-.sidebar-link.active i { color: var(--accent-primary); }
-/* Убираем ::before, используем border-left */
-
-.user-profile { /* Профиль пользователя */
-    display: flex; align-items: center; padding: 1rem; margin-top: 1.5rem;
-    background-color: rgba(var(--accent-secondary-rgb), 0.1); border-radius: 12px;
-    border: 1px solid var(--border-color-light); flex-shrink: 0;
-    transition: padding var(--transition-medium) ease; overflow: hidden;
-    white-space: nowrap; /* Prevent wrapping inside */
-}
-.user-avatar {
-    width: 42px; height: 42px; border-radius: 50%;
-    background-color: var(--accent-secondary); /* Цвет фона аватарки */
-    display: flex; align-items: center; justify-content: center; margin-right: 0.85rem;
-    font-weight: 600; font-size: 1.1rem; overflow: hidden; color: var(--white);
-    border: 2px solid rgba(var(--accent-primary-rgb), 0.3); flex-shrink: 0;
-    box-shadow: 0 0 8px rgba(var(--accent-secondary-rgb), 0.4);
-    transition: all var(--transition-medium) ease; /* Animate size and margin */
-}
-.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.user-info { flex-grow: 1; overflow: hidden; transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; }
-.user-name { font-weight: 600; font-size: 1rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-role { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;} /* Added overflow and ellipsis */
-.sidebar-footer { /* Подвал сайдбара */
-    margin-top: 1.5rem; padding: 1rem; font-size: 0.8rem; color: var(--text-muted);
-    text-align: center; flex-shrink: 0; /* Prevent shrinking */ opacity: 0.7;
-    transition: opacity 0.2s ease, max-width 0.2s linear 0.1s;
-    overflow: hidden; white-space: nowrap; max-width: 200px;
-}
-/* --- Конец Sidebar --- */
-
-/* --- Основной контент --- */
-main {
-    flex: 1; margin-left: var(--sidebar-width);
-    transition: margin-left var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1); /* Apply transition */
-    width: calc(100% - var(--sidebar-width)); overflow-y: auto; height: 100vh;
-    display: block; /* Changed from none */
-    padding: 0 var(--container-padding-x); /* Add padding back */
-}
-main.loaded { animation: fadeInMain 0.5s ease-out forwards; }
-@keyframes fadeInMain { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-
-/* --- START: Collapsed Sidebar Styles --- */
-body.sidebar-collapsed .sidebar {
-    width: var(--sidebar-collapsed-width);
-}
-body.sidebar-collapsed .sidebar-logo span,
-body.sidebar-collapsed .sidebar-link span,
-body.sidebar-collapsed .user-info,
-body.sidebar-collapsed .sidebar-footer {
-    opacity: 0;
-    max-width: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    pointer-events: none;
-}
-body.sidebar-collapsed .sidebar-header {
-    padding: 0 0.5rem;
-    justify-content: center;
-}
-body.sidebar-collapsed .sidebar-logo {
-    gap: 0;
-    justify-content: center;
-}
-body.sidebar-collapsed .sidebar-link {
-    justify-content: center;
-    padding: 0.85rem 0.5rem;
-}
-body.sidebar-collapsed .sidebar-link i {
-    margin-right: 0;
-    font-size: 1.4rem; /* Slightly larger icon */
-}
-body.sidebar-collapsed .user-profile {
-    padding: 0.8rem 0; /* Vertical padding only */
-    justify-content: center;
-    border-left: none; /* Remove side borders if they exist */
-    border-right: none;
-}
-body.sidebar-collapsed .user-avatar {
-    margin-right: 0; /* Remove margin */
-    width: 40px; /* Slightly smaller avatar */
-    height: 40px;
-    font-size: 1rem; /* Smaller initials font */
-}
-body.sidebar-collapsed main#main-content { /* Specific to dashboard.html */
-    margin-left: var(--sidebar-collapsed-width);
-    width: calc(100% - var(--sidebar-collapsed-width));
-}
-body.sidebar-collapsed .sidebar-toggle-btn i {
-    transform: rotate(180deg); /* Rotate arrow */
-}
-/* Hide mobile-specific close button when collapsed on desktop */
-body.sidebar-collapsed #sidebar-close-toggle {
-     display: none;
-}
-/* Hide the main mobile menu toggle when sidebar is collapsed on desktop */
-@media (min-width: 993px) {
-     body.sidebar-collapsed .mobile-menu-toggle#main-mobile-menu-toggle {
-         display: none;
-     }
-}
-/* --- END: Collapsed Sidebar Styles --- */
-
-
-/* Хедер дашборда */
-.dashboard-header {
-    margin-bottom: var(--section-padding-y);
-    background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.7);
-    backdrop-filter: blur(12px); border-radius: 0 0 var(--card-radius) var(--card-radius);
-    padding: 1rem var(--container-padding-x); box-shadow: var(--shadow-hud);
-    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
-    position: sticky; top: 0; z-index: 900;
-    border-bottom: 1px solid var(--border-color-light);
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    margin-left: calc(var(--container-padding-x) * -1); /* Extend to edges */
-     margin-right: calc(var(--container-padding-x) * -1);
-}
-body.scrolled .dashboard-header {
-     background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.85);
-     box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-}
-.header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; width: 100%; padding: 0 var(--container-padding-x); /* Add padding here */ }
-.header-left-group { display: flex; align-items: center; gap: 0.8rem; flex-grow: 1; } /* Style for the new wrapper */
-.mobile-menu-toggle#main-mobile-menu-toggle { /* Specific ID for main toggle */
-     display: none; background: none; border: none; color: var(--text-medium); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; z-index: 1010; transition: color 0.2s ease;
-}
-.mobile-menu-toggle#main-mobile-menu-toggle:hover { color: var(--accent-primary); }
-@media (max-width: 992px) { .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } }
-
-.header-content h1 {
-     font-size: 1.7rem; font-weight: 700; color: var(--text-heading); margin: 0;
-     text-shadow: 0 0 10px var(--accent-glow);
-}
-.header-actions { display: flex; align-items: center; gap: 1rem; }
-
-/* --- START: Notification Styles --- */
-.notifications { position: relative; }
-.notification-bell { cursor: pointer; padding: 0.6rem; position: relative; display: inline-block; line-height: 1; }
-.notification-bell i { font-size: 1.4rem; color: var(--text-muted); transition: color 0.2s, transform 0.2s; }
-.notification-bell:hover i { color: var(--accent-primary); transform: scale(1.1); }
-.notification-badge { position: absolute; top: 0px; right: 0px; width: 18px; height: 18px; background-color: var(--accent-pink); color: var(--white); font-size: 0.65rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; border: 2px solid var(--bg-secondary); pointer-events: none; opacity: 0; transform: scale(0.5); transition: opacity 0.2s, transform 0.2s; box-shadow: 0 0 8px var(--accent-pink-glow); }
-.notification-badge.visible { opacity: 1; transform: scale(1); }
-.notifications-dropdown-wrapper { position: absolute; top: calc(100% + 12px); right: -10px; width: 380px; background-color: var(--interface-bg); border-radius: 12px; box-shadow: var(--shadow-card); border: 1px solid var(--border-color-medium); z-index: 1010; opacity: 0; visibility: hidden; transform: translateY(15px) scale(0.98); transform-origin: top right; transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.3s; backdrop-filter: blur(5px); }
-.notifications-dropdown-wrapper.active { opacity: 1; visibility: visible; transform: translateY(0) scale(1); transition-delay: 0s; }
-.notifications-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color-light); display: flex; justify-content: space-between; align-items: center; }
-.notifications-title { font-size: 1rem; font-weight: 600; color: var(--text-light); }
-.mark-all-read-btn { font-size: 0.8rem; color: var(--accent-primary); background: none; border: none; cursor: pointer; font-weight: 500; padding: 0.25rem 0; opacity: 0.8; transition: opacity 0.2s; }
-.mark-all-read-btn:hover:not(:disabled) { text-decoration: underline; opacity: 1; }
-.mark-all-read-btn:disabled { opacity: 0.4; cursor: not-allowed; text-decoration: none !important; }
-#notifications-list { max-height: 350px; overflow-y: auto; padding: 0.5rem 0; }
-#notifications-list::-webkit-scrollbar { width: 6px; }
-#notifications-list::-webkit-scrollbar-track { background: transparent; }
-#notifications-list::-webkit-scrollbar-thumb { background-color: var(--border-color-medium); border-radius: 3px; }
-.notification-item { display: flex; padding: 0.9rem 1.25rem; gap: 1rem; border-bottom: 1px solid var(--border-color-light); transition: background-color 0.2s ease; cursor: pointer; position: relative; }
-.notification-item:last-child { border-bottom: none; }
-.notification-item:hover { background-color: rgba(var(--accent-primary-rgb), 0.08); }
-.notification-item.is-read { opacity: 0.6; }
-.notification-item.is-read:hover { opacity: 0.8; }
-.notification-item.is-read .unread-dot { display: none; }
-.notification-icon { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem; color: var(--white); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-/* Specific Icon Styles */
-.notification-icon.info { background-color: var(--accent-primary); } .notification-icon.success { background-color: var(--accent-lime); color: var(--text-fixed-dark); } .notification-icon.warning { background-color: var(--accent-orange); } .notification-icon.danger { background-color: var(--accent-pink); } .notification-icon.badge { background: linear-gradient(45deg, var(--accent-orange), var(--accent-pink)); } .notification-icon.level_up { background: var(--gradient-level-up); } .notification-icon.plan_generated { background: linear-gradient(45deg, var(--accent-secondary), var(--accent-cyan)); } .notification-icon.exercise { background: linear-gradient(45deg, #2a9d8f, var(--accent-lime)); } .notification-icon.test { background: linear-gradient(45deg, var(--accent-secondary), var(--accent-pink)); } .notification-icon.default { background-color: var(--text-muted); }
-.notification-content { flex-grow: 1; }
-.notification-title { font-weight: 600; color: var(--text-light); margin-bottom: 0.25rem; font-size: 0.95rem; }
-.notification-message { font-size: 0.88rem; color: var(--text-medium); line-height: 1.45; margin-bottom: 0.3rem; }
-.notification-time { font-size: 0.78rem; color: var(--text-muted); }
-.unread-dot { position: absolute; top: 50%; right: 1.25rem; transform: translateY(-50%); width: 9px; height: 9px; background-color: var(--accent-primary); border-radius: 50%; box-shadow: 0 0 8px var(--accent-glow); }
-.notifications-footer { padding: 0.8rem 1.25rem; border-top: 1px solid var(--border-color-light); text-align: center; background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.5); border-radius: 0 0 12px 12px; }
-.view-all-notifications-link { font-size: 0.9rem; color: var(--accent-primary); text-decoration: none; font-weight: 500; }
-.view-all-notifications-link:hover { color: var(--white); text-decoration: underline; }
-#no-notifications-msg { padding: 2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; display: none; }
-/* --- END: Notification Styles --- */
-
-
-/* Кнопка Refresh */
-.refresh-btn {
-    background: rgba(var(--accent-primary-rgb), 0.1); border: 1px solid rgba(var(--accent-primary-rgb), 0.3);
-    color: var(--accent-primary); font-size: 0.9rem; cursor: pointer; padding: 0.5rem 1rem;
-    border-radius: var(--button-radius); transition: all 0.25s ease;
-    display: flex; align-items: center; gap: 0.5em;
-}
-.refresh-btn:hover:not(:disabled) { background-color: rgba(var(--accent-primary-rgb), 0.2); color: var(--white); border-color: var(--accent-primary); box-shadow: 0 0 12px rgba(var(--accent-primary-rgb), 0.4); transform: translateY(-2px); }
-.refresh-btn:active:not(:disabled) { transform: translateY(0px) scale(0.98); background-color: rgba(var(--accent-primary-rgb), 0.15); box-shadow: 0 0 5px rgba(var(--accent-primary-rgb), 0.3); }
-.refresh-btn .refresh-text { display: none; font-weight: 600; } /* Скрыт текст по умолчанию */
-@media (min-width: 768px) { .refresh-btn .refresh-text { display: inline; } }
-.refresh-btn.loading i { animation: spin 1s linear infinite; }
-.refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* --- Основной контент дашборда --- */
-.main-content-wrapper { padding: var(--section-padding-y) 0; /* Вертикальные отступы для контента */ }
-.main-content-grid { display: grid; gap: 2rem; /* Увеличен gap */ }
-.section-title { /* Используем стиль из index */
-    font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-heading);
-    padding-bottom: 0.8rem; position: relative;
-    display: flex; align-items: center; gap: 0.7rem;
-}
- .section-title i { /* Иконка секции */
-     font-size: 1.1em; color: var(--accent-secondary);
-     text-shadow: 0 0 8px var(--accent-secondary-glow);
- }
- .section-title::after { /* Подчеркивание */
-    content: ''; position: absolute; bottom: 0; left: 0; width: 60px; height: 3px;
-    background: var(--gradient-border-anim); background-size: 300% 100%;
-    animation: gradient-move 4s linear infinite; border-radius: 1.5px;
-    filter: drop-shadow(0 0 5px var(--accent-primary));
-}
-
-/* Welcome баннер */
-.welcome-banner {
-    background: var(--gradient-welcome); border-radius: var(--card-radius);
-    box-shadow: var(--shadow-hud); overflow: hidden; position: relative;
-    border: 1px solid var(--border-color-medium); /* Заметнее */
-    margin-bottom: 2rem; /* Отступ после баннера */
-}
-.welcome-content { display: flex; justify-content: space-between; align-items: center; padding: 2rem 2.5rem; position: relative; z-index: 1; }
-.welcome-text-content { max-width: 65%; color: var(--text-light); }
-.welcome-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.8rem; line-height: 1.3; color: var(--white); text-shadow: 0 1px 5px rgba(0,0,0,0.4); }
-.welcome-text { font-size: 1rem; margin-bottom: 1.5rem; opacity: 0.9; line-height: 1.65; color: var(--text-medium); }
-.welcome-button { /* Стилизуем как .btn */
-    display: inline-flex; align-items: center; gap: 0.6em; padding: 0.7rem 1.4rem;
-    background: var(--accent-primary); color: var(--text-fixed-dark); /* Яркая кнопка */
-    border: none; border-radius: var(--button-radius);
-    font-family: var(--font-secondary); font-weight: 600; font-size: 0.9rem;
-    text-transform: uppercase; letter-spacing: 1px; cursor: pointer;
-    transition: all 0.25s ease; box-shadow: 0 4px 12px rgba(var(--accent-primary-rgb), 0.3);
-}
-.welcome-button i { transition: transform 0.2s ease; }
-.welcome-button:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 6px 18px rgba(var(--accent-primary-rgb), 0.4); background: var(--accent-cyan); }
-.welcome-button:hover i { transform: translateX(4px); }
-.welcome-image { width: 250px; height: auto; display: flex; align-items: center; justify-content: center; opacity: 0.6; /* Менее навязчиво */ filter: drop-shadow(0 5px 15px rgba(0,0,0,0.2)); }
-.welcome-image svg { width: 100%; height: auto; max-height: 160px; }
-.welcome-image svg path { stroke: var(--accent-primary); stroke-opacity: 0.5; }
-.welcome-image svg circle { fill: var(--accent-secondary); fill-opacity: 0.6; }
-.welcome-image svg rect { fill: url(#paint0_linear_dash_db); } /* Используем градиент */
-.welcome-image svg #paint0_linear_dash_db stop:first-child { stop-color: var(--accent-primary); stop-opacity: 0.15; }
-.welcome-image svg #paint0_linear_dash_db stop:last-child { stop-color: var(--accent-secondary); stop-opacity: 0; }
-
-
-/* Карточки статистики */
-.stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.8rem; }
-.stat-card { /* Используем базовый стиль .card */
-    min-height: 190px; position: relative; display: flex; flex-direction: column;
-    padding: 1.5rem; /* Паддинг внутри */
-}
-.stat-card-content { display: flex; align-items: flex-start; justify-content: space-between; flex-grow: 1; visibility: visible; }
-.stat-card-info { flex-grow: 1; z-index: 1; /* Текст над иконкой */ }
-.stat-card-title {
-    font-size: 0.9rem; font-weight: 500; color: var(--text-muted); margin-bottom: 0.5rem;
-    display: flex; align-items: center; gap: 0.5em; text-transform: uppercase; letter-spacing: 0.8px;
-}
-.stat-card-title i { font-size: 1em; } /* Иконка в заголовке */
-.stat-card-value {
-    font-size: 2.3rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.5rem;
-    min-height: 38px; line-height: 1.2; text-shadow: 0 0 8px rgba(var(--white-rgb, 255,255,255), 0.3); /* Легкое свечение */
-}
-.stat-card-change { font-size: 0.88rem; color: var(--text-muted); min-height: 20px; display: inline-flex; align-items: center; gap: 0.4em; font-weight: 500; }
-.stat-card-change.positive { color: var(--accent-lime); }
-.stat-card-change.negative { color: var(--accent-pink); }
-.stat-card-change i { font-size: 0.85em; }
-.stat-card-icon-bg { /* Большая иконка как фон */
-     position: absolute; right: 1rem; bottom: 1rem; font-size: 4rem; /* Крупнее */
-     opacity: 0.08; /* Очень прозрачная */
-     color: var(--accent-primary); /* Цвет иконки */
-     z-index: 0; transition: opacity 0.3s ease, color 0.3s ease;
-}
-.stat-card:hover .stat-card-icon-bg { opacity: 0.15; color: var(--accent-cyan); }
-/* Убираем цветные фоны, используем цвет иконки */
-.progress-icon i::before { content: "\f080"; } /* fa-chart-line */
-.points-icon i::before { content: "\f005"; } /* fa-star */
-.streak-icon i::before { content: "\f7e4"; } /* fa-fire */
-.stat-card-footer { /* Новый футер */
-    display: flex; align-items: center; gap: 0.5em;
-    margin-top: auto; padding-top: 0.8rem; /* Прижимаем к низу */
-    border-top: 1px solid var(--border-color-light);
-    font-size: 0.85rem; color: var(--text-muted);
-}
-
-/* Ряд карточек быстрого доступа */
-.shortcut-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.8rem; }
-.shortcut-card { /* Используем базовый .card */
-    padding: 1.8rem; text-decoration: none; color: var(--text-medium); /* Цвет текста */
-    display: flex; flex-direction: column; align-items: center; text-align: center;
-}
-.shortcut-card:hover { background-color: rgba(var(--accent-primary-rgb), 0.05); }
-.shortcut-icon {
-    width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center;
-    font-size: 1.7rem; margin-bottom: 1.2rem;
-    background: linear-gradient(145deg, rgba(var(--accent-primary-rgb), 0.15), rgba(var(--accent-secondary-rgb), 0.1));
-    color: var(--accent-primary); transition: all 0.3s ease;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-}
-.shortcut-card:hover .shortcut-icon {
-    background: var(--accent-primary); color: var(--text-fixed-dark);
-    transform: scale(1.1) rotate(5deg); box-shadow: 0 6px 15px rgba(var(--accent-primary-rgb), 0.3);
-}
-.shortcut-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-light); }
-.shortcut-desc { font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; }
-
-/* --- START: Nedávná aktivita & Historie Kreditů (Enhanced v3) --- */
-.activity-section { padding: 0; /* Убираем padding с секции, добавляем к контейнеру */ }
-.activity-list-container {
-    min-height: 300px; /* Может быть настроено в JS, если список динамически загружается */
-    display: flex; flex-direction: column;
-    padding: 0; /* Убираем padding, т.к. он будет у .activity-item */
-    background: var(--card-solid); /* Темнее, для контраста с основной картой секции */
-    border: 1px solid var(--border-color-medium);
-    border-radius: var(--card-radius); /* Общий радиус для контейнера */
-    box-shadow: var(--shadow-hud);
-}
-
-#credit-history-section .activity-list-container {
-     padding-top: 0;
-     border-top-left-radius: 0;
-     border-top-right-radius: 0;
-     background: transparent;
-     border: none;
-     box-shadow: none;
-}
-
-.activity-list {
-    flex-grow: 1; overflow-y: auto;
-    max-height: 480px; /* Можно настроить или убрать */
-    padding: 0; /* Отступы будут у .activity-item */
-    visibility: visible; /* Убедимся, что список виден, если .loading-placeholder скрыт */
-}
-
-.activity-item {
-    display: flex;
-    /* align-items: flex-start; OLD - replaced with center */
-    align-items: center; /* <<< MODIFICATION: Align items vertically to center */
-    padding: 1.1rem 1.3rem; /* Компактнее */
-    border-bottom: 1px solid var(--border-color-light);
-    transition: background-color 0.25s ease, transform 0.2s ease;
-    gap: 1rem; /* Пространство между иконкой и контентом */
-    position: relative;
-    overflow: hidden;
-    min-height: 70px; /* Базовая минимальная высота для выравнивания */
-}
-.activity-item::before {
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-    background-color: transparent;
-    transition: background-color 0.25s ease, width 0.25s ease;
-}
-.activity-item:hover { background-color: rgba(var(--accent-primary-rgb), 0.05); }
-.activity-item:hover::before { background-color: var(--accent-primary); width: 4px; }
-.activity-item:last-child { border-bottom: none; }
-
-.activity-icon {
-    width: 38px; height: 38px; /* Фиксированный размер иконки */
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem; color: var(--white); flex-shrink: 0; /* Не сжимать иконку */
-    box-shadow: 0 3px 7px rgba(0,0,0,0.2);
-    text-shadow: 0 1px 1px rgba(0,0,0,0.3);
-    transition: transform 0.2s ease, filter 0.2s ease;
-    /* margin-top: 2px; <<< MODIFICATION: Removed to allow align-items: center to work properly */
-}
-.activity-item:hover .activity-icon { filter: brightness(1.1); transform: scale(1.02); }
-
-/* Иконки по типам (остаются как есть) */
-.activity-icon.completed, .activity-icon.exercise { background: var(--gradient-success); }
-.activity-icon.badge { background: var(--gradient-warning); }
-.activity-icon.streak { background: var(--gradient-danger); }
-.activity-icon.test, .activity-icon.diagnostic { background: var(--gradient-info); }
-.activity-icon.lesson { background: var(--gradient-button); }
-.activity-icon.plan_generated { background: var(--dark-purple-accent); border: 1px solid var(--accent-secondary); }
-.activity-icon.level_up { background: var(--gradient-level-up); }
-.activity-icon.default, .activity-icon.other { background: var(--text-muted); }
-.activity-icon.points_earned { background: var(--accent-lime); color: var(--text-fixed-dark); }
-.activity-icon.points_spent { background: var(--accent-pink); }
-.activity-icon.reward_streak, .activity-icon.reward_monthly_calendar { background: var(--accent-secondary); }
-
-
-.activity-content {
-    flex-grow: 1; /* Занимает оставшееся пространство */
-    display: flex;
-    flex-direction: column; /* Элементы внутри идут друг под другом */
-    justify-content: center; /* <<< MODIFICATION: Center content if align-items: center on parent, or flex-start if preferred */
-    min-width: 0; /* Для корректного переноса текста */
-}
-.activity-title {
-    font-size: 0.95rem;
-    font-weight: 600; margin-bottom: 0.15rem;
-    color: var(--text-light); line-height: 1.3;
-    word-break: break-word; /* Перенос длинных слов */
-}
-.activity-desc {
-    font-size: 0.85rem;
-    color: var(--text-medium);
-    margin-bottom: 0.25rem; line-height: 1.4;
-    word-break: break-word;
-}
-.activity-desc p { margin-bottom: 0.1rem; } /* Если описание содержит параграфы */
-
-.activity-meta { /* Для "Skóre" */
-    font-size: 0.8rem;
-    color: var(--accent-secondary);
-    font-weight: 500;
-    margin-bottom: 0.3rem; /* Отступ перед временем */
-    line-height: 1.3;
-}
-.activity-time {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    display: inline-flex; align-items: center; gap: 0.3em;
-    font-family: var(--font-mono);
-    opacity: 0.75;
-    margin-top: auto; /* Прижимает время к низу контейнера .activity-content */
-    padding-top: 0.2rem; /* Небольшой отступ, чтобы не слипалось с предыдущим элементом */
-}
-.activity-time i { font-size: 0.9em; }
-
-/* --- MODIFICATIONS for .credit-transaction-item --- */
-.credit-transaction-item {
-    border-radius: 10px;
-    margin-bottom: 0.7rem; /* Slightly less margin */
-    box-shadow: none; /* <<< MODIFICATION: Removed individual shadow */
-    background: rgba(var(--card-solid-rgb), 0.6); /* <<< MODIFICATION: Lighter/different background */
-    border: 1px solid transparent;
-    padding: 0.9rem 1.2rem 0.9rem calc(1.2rem + 6px + 0.8rem); /* Increased left padding for accent line */
-    position: relative;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    min-height: auto; /* <<< MODIFICATION: Allow natural height */
-}
-.credit-transaction-item::before { /* Акцентная линия слева */
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; /* <<< MODIFICATION: Wider line */
-    border-radius: 10px 0 0 10px; transition: background-color 0.25s ease;
-}
-.credit-transaction-item.positive::before { background-color: var(--accent-lime); }
-.credit-transaction-item.negative::before { background-color: var(--accent-pink); }
-.credit-transaction-item.neutral::before { background-color: var(--text-muted); }
-
-.credit-transaction-item:hover {
-    transform: scale(1.01) translateX(3px); /* Subtle hover */
-    background: rgba(var(--card-solid-rgb), 0.8); /* Darken slightly on hover */
-    border-color: var(--border-color-light);
-}
-.credit-transaction-item .activity-icon {
-    border-radius: 50%; width: 32px; height: 32px; font-size: 0.9rem;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2); filter: drop-shadow(0 0 4px currentColor);
-}
-.credit-transaction-item .activity-content {
-    flex-direction: row; /* Элементы в ряд */
-    justify-content: space-between; /* Растянуть элементы */
-    align-items: center; /* Выровнять по центру вертикально */
-}
-.credit-transaction-item .activity-title {
-    font-size: 0.9rem; flex-grow: 1; margin-right: 0.8rem; margin-bottom: 0; line-height: 1.3;
-}
-.credit-transaction-item .activity-desc { display: none; }
-
-.credit-transaction-item .credit-amount {
-    font-weight: 700; font-size: 1.05rem; white-space: nowrap; font-family: var(--font-mono);
-    padding: 0.25rem 0.5rem; border-radius: 5px; border: 1px solid transparent; line-height: 1.2;
-    margin-left: auto;
-}
-.credit-transaction-item .credit-amount.positive { color: var(--accent-lime); text-shadow: 0 0 5px rgba(var(--accent-lime-rgb), 0.5); background-color: rgba(var(--accent-lime-rgb), 0.08); border-color: rgba(var(--accent-lime-rgb), 0.25); }
-.credit-transaction-item .credit-amount.negative { color: var(--accent-pink); text-shadow: 0 0 5px rgba(var(--accent-pink-rgb), 0.5); background-color: rgba(var(--accent-pink-rgb), 0.08); border-color: rgba(var(--accent-pink-rgb), 0.25); }
-.credit-transaction-item .credit-amount.neutral { color: var(--text-medium); background-color: rgba(var(--text-muted-rgb), 0.08); border-color: rgba(var(--text-muted-rgb), 0.25); }
-.credit-transaction-item .credit-amount i { font-size: 0.8em; margin-left: 0.2em; }
-
-.credit-transaction-item .activity-time {
-    font-size: 0.65rem; margin-left: 0.8rem; white-space: nowrap; align-self: center; opacity: 0.7;
-    margin-top: 0; padding-top: 0;
-}
-/* --- END: Enhanced Styles (v3) --- */
-
-
-.view-all-link { /* Уже удалено из HTML, но стиль остается на всякий случай */
-    display: block; text-align: center; padding: 0.8rem 1rem;
-    color: var(--accent-secondary); text-decoration: none;
-    font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.8px;
-    background-color: transparent; margin: 1.2rem 1.5rem 1.5rem; border-radius: var(--button-radius);
-    transition: all 0.25s ease; border: 1px solid var(--accent-secondary);
-    box-shadow: 0 0 10px -2px var(--accent-secondary-glow);
-}
-.view-all-link:hover {
-    background-color: rgba(var(--accent-secondary-rgb), 0.15); border-color: var(--accent-pink);
-    color: var(--accent-pink); box-shadow: 0 0 18px var(--accent-pink-glow); transform: translateY(-2px) scale(1.02);
-}
-.view-all-link i { margin-left: 0.6rem; transition: transform 0.2s ease; }
-.view-all-link:hover i { transform: translateX(5px); }
-
-/* Состояния загрузки/ошибки/пустоты */
-.loading-overlay { /* Используем темный фон */
-    position: absolute; inset: 0; background-color: rgba(var(--card-solid-rgb, 15, 10, 45), 0.8);
-    display: flex; justify-content: center; align-items: center; z-index: 10; border-radius: var(--card-radius);
-    transition: opacity 0.3s ease-out; opacity: 1; backdrop-filter: blur(3px);
-}
-.loading-overlay.hidden { opacity: 0; pointer-events: none; }
-.loading-spinner { /* Используем акцентный цвет */
-    width: 32px; height: 32px; border: 4px solid var(--accent-primary); border-radius: 50%;
-    border-top-color: transparent; border-right-color: transparent; /* Полукруг */
-    animation: loading-spinner-anim 0.8s linear infinite; /* Переименовал анимацию, чтобы не конфликтовать с .refresh-btn.loading i */
-}
-@keyframes loading-spinner-anim { to { transform: rotate(360deg); } } /* Переименовал анимацию */
-
-.activity-list-container .empty-state, .card-error-state {
-    /* position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); */ /* Убрано для flex */
-    width: 90%; margin: auto; /* Центрирование в flex-контейнере */
-    padding: 2rem; text-align: center; color: var(--text-muted); display: none; /* Скрыто */
-}
-.activity-list-container .empty-state i, .card-error-state i { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.6; }
-.activity-list-container .empty-state p, .card-error-state p { margin-bottom: 0; font-size: 1rem;}
-.activity-list-container .empty-state i { color: var(--accent-secondary); }
-.card-error-state i { color: var(--accent-pink); }
-
-/* Скелетная загрузка */
-.skeleton { background-color: var(--skeleton-bg); border-radius: 6px; position: relative; overflow: hidden; }
-.skeleton::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); animation: skeleton-loading-anim 1.5s infinite linear; /* Переименовал анимацию */ }
-@keyframes skeleton-loading-anim { 0% { left: -150%; } 100% { left: 150%; } } /* Переименовал анимацию */
-.skeleton.title { height: 16px; width: 55%; margin-bottom: 0.8rem; }
-.skeleton.value { height: 32px; width: 35%; margin-bottom: 0.6rem; border-radius: 8px; }
-.skeleton.text { height: 14px; width: 75%; margin-bottom: 0.4rem; }
-.skeleton.text-short { width: 45%; }
-.skeleton.icon-placeholder { width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0; } /* Для иконок статистики/активности */
-.skeleton.activity-line { height: 16px; width: 70%; margin-bottom: 0.5rem; }
-.skeleton.activity-line-short { width: 40%; margin-top: 0.4rem; height: 12px; }
-/* Применение скелета */
-.stat-card .loading-skeleton { display: none; padding: 1.5rem; align-items: flex-start; justify-content: space-between; width: 100%; }
-.stat-card .loading-skeleton .skeleton-info { flex-grow: 1; }
-.stat-card.loading .loading-skeleton { display: flex; }
-.activity-list .loading-placeholder { padding: 0.5rem 0; display: none; flex-direction: column; gap: 0.8rem; } /* Изменен на flex */
-.activity-list .skeleton-activity-item { display: flex; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color-light); align-items: flex-start; gap: 1.2rem; }
-.activity-list .skeleton-activity-item:last-child { border-bottom: none; }
-.stat-card.loading .stat-card-content, .stat-card.loading .stat-card-footer { visibility: hidden; }
-.activity-list-container.loading .activity-list { visibility: hidden; height: 0; /* Схлопываем, чтобы плейсхолдер занял место */ }
-.activity-list-container.loading .loading-placeholder { display: flex; /* Показываем плейсхолдер */ }
-
-/* Сообщения об ошибках */
-.error-container { display: none; margin-bottom: 1.5rem; }
-.error-message {
-    background-color: rgba(var(--accent-pink-rgb), 0.1); border-left: 5px solid var(--accent-pink);
-    color: var(--accent-pink); padding: 1rem 1.2rem; margin: 0; border-radius: 8px;
-    font-size: 0.95rem; display: flex; align-items: center; box-shadow: 0 3px 8px rgba(var(--accent-pink-rgb), 0.2);
-}
-.error-message i { margin-right: 0.8rem; font-size: 1.3rem; }
-.retry-button { /* Используем стиль .btn */
-    margin-left: auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;
-    background: var(--accent-pink); color: var(--white); border: none;
-}
-.retry-button:hover { background: var(--accent-secondary); }
-
-/* Offline баннер */
-.offline-banner { display: none; background-color: var(--accent-orange); color: var(--text-fixed-dark); padding: 0.8rem; text-align: center; position: fixed; top: 0; left: 0; right: 0; z-index: 1050; font-size: 0.95rem; font-weight: 500; box-shadow: 0 4px 10px rgba(var(--accent-orange-rgb), 0.3); }
-.offline-banner i { margin-right: 0.5rem; }
-
-/* Toast уведомления */
-.toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; display: flex; flex-direction: column; gap: 0.8rem; max-width: 380px; pointer-events: none; }
-.toast {
-    padding: 1rem 1.3rem; border-radius: 12px; background: var(--interface-bg); /* Темный фон */
-    box-shadow: var(--shadow-card); display: flex; align-items: flex-start; color: var(--text-light);
-    animation: toast-in-anim 0.45s cubic-bezier(0.215, 0.610, 0.355, 1) forwards; /* Переименовал анимацию */
-    pointer-events: auto; border: 1px solid var(--border-color-medium); border-left-width: 5px;
-    opacity: 0; transform: translateX(110%); backdrop-filter: blur(4px);
-}
-.toast.show { opacity: 1; transform: translateX(0); }
-.toast.success { border-left-color: var(--accent-lime); } .toast.error { border-left-color: var(--accent-pink); } .toast.info { border-left-color: var(--accent-primary); } .toast.warning { border-left-color: var(--accent-orange); }
-.toast-icon { margin-right: 0.8rem; font-size: 1.3rem; flex-shrink: 0; margin-top: 3px; }
-.toast.success .toast-icon { color: var(--accent-lime); } .toast.error .toast-icon { color: var(--accent-pink); } .toast.info .toast-icon { color: var(--accent-primary); } .toast.warning .toast-icon { color: var(--accent-orange); }
-.toast-content { flex: 1; } .toast-title { font-weight: 600; margin-bottom: 0.3rem; font-size: 1rem; color: var(--text-heading); } .toast-message { font-size: 0.9rem; color: var(--text-medium); line-height: 1.5; }
-.toast-close { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.4rem; padding: 0.1rem 0.2rem; margin-left: 0.6rem; line-height: 1; opacity: 0.7; transition: opacity 0.2s, color 0.2s; }
-.toast-close:hover { opacity: 1; color: var(--accent-primary); }
-@keyframes toast-in-anim { from { opacity: 0; transform: translateX(110%); } to { opacity: 1; transform: translateX(0); } } /* Переименовал анимацию */
-
-/* Начальная загрузка */
-.initial-loading-overlay {
-     position: fixed; inset: 0; background-color: var(--bg-color);
-     z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1.2rem;
-     transition: opacity 0.6s ease-out, visibility 0s 0.6s;
-     opacity: 1; visibility: visible;
-}
-.initial-loading-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-.initial-loading-overlay .loading-spinner {
-     width: 40px; height: 40px; border-width: 5px; border-color: var(--accent-primary); border-top-color: transparent; border-right-color: transparent;
-     animation: loading-spinner-anim 0.9s linear infinite; /* Переименовал анимацию */
-}
-.initial-loading-overlay p { color: var(--text-medium); font-size: 1.1rem; font-weight: 500; letter-spacing: 0.5px; }
-
-/* Адаптивность для киберпанк темы */
-@media (max-width: 992px) { /* Планшет - сжатый сайдбар */
-    /* :root { --sidebar-width: 85px; } Already handled by .sidebar-collapsed */
-    .stat-cards, .shortcut-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-}
-@media (max-width: 768px) { /* Мобильный */
-     main { padding: 0 1rem; } /* Меньше паддинг */
-     .header-content { flex-direction: column; align-items: stretch; }
-     .header-content > div:first-child { justify-content: space-between;}
-     .header-actions { justify-content: flex-end; margin-top: 0.5rem; gap: 0.8rem; }
-     .refresh-btn { padding: 0.6rem; }
-     .refresh-btn .refresh-text { display: none; }
-     .notification-bell { padding: 0.6rem; }
-     .welcome-content { flex-direction: column; text-align: center; padding: 1.5rem; }
-     .welcome-text-content { max-width: 100%; }
-     .welcome-image { display: none; }
-     .stat-cards, .shortcut-grid { grid-template-columns: 1fr; gap: 1.5rem; }
-     .dashboard-header { padding: 0.8rem 1rem; }
-     .section-title { font-size: 1.3rem; }
-}
-@media (max-width: 576px) { /* Маленький мобильный */
-    /* Mobile menu toggling is handled by JS adding .active */
-    .sidebar { transform: translateX(-110%); width: 280px; z-index: 1000; } /* Скрыт по умолчанию */
-    .sidebar.active { transform: translateX(0); }
-    /* Восстанавливаем вид активного сайдбара */
-    .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span,
-    .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; }
-    .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; }
-    .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; }
-    .sidebar.active .user-profile { padding: 1rem; }
-    .sidebar.active .user-avatar { margin-right: 0.85rem; width: 42px; height: 42px; }
-    .sidebar.active #sidebar-close-toggle { display: block; } /* Показать кнопку закрытия */
-    main { margin-left: 0; width: 100%; padding: 0 0.75rem; }
-    .header-actions { gap: 0.5rem; }
-    .stat-card-value { font-size: 2rem; }
-    .mouse-follower-glow { display: none !important; } /* Отключить свечение мыши */
-    .toast-container { bottom: 1rem; right: 1rem; max-width: calc(100% - 2rem); }
-    /* Hide desktop sidebar toggle on small mobile */
-    .sidebar-toggle-btn { display: none; }
-}
-
- /* Оверлей для мобильного меню */
- .sidebar-overlay {
-     display: none; position: fixed; inset: 0;
-     background-color: rgba(3, 2, 12, 0.7); /* Темный полупрозрачный */
-     z-index: 999; opacity: 0;
-     transition: opacity var(--transition-medium) ease;
-     backdrop-filter: blur(5px);
- }
- .sidebar-overlay.active { display: block; opacity: 1; }
-
-/* --- Анимации появления --- */
-.main-content-wrapper [data-animate] { /* Применяем только к контенту */
-     opacity: 0;
-     transform: translateY(25px) scale(0.98) rotateX(-4deg);
-     transform-origin: center bottom;
-     transition: opacity var(--transition-entrance) ease-out, transform var(--transition-entrance) ease-out;
-     will-change: opacity, transform;
-}
-.main-content-wrapper [data-animate].animated { opacity: 1; transform: translateY(0) scale(1) rotateX(0); }
-.stat-cards [data-animate], .shortcut-grid [data-animate], .activity-list-container [data-animate] { transition-delay: calc(var(--animation-order, 0) * 0.1s); }
-
-/* --- Уменьшение движения --- */
-@media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    *, *::before, *::after {
-        animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important; animation-delay: -0.01ms !important;
-        transition-delay: 0ms !important; will-change: auto !important;
+        if (realContainer) {
+            realContainer.style.display = showSkeleton ? 'none' : (sectionKey === 'stats' || sectionKey === 'shortcuts' ? 'grid' : 'block');
+            if (!showSkeleton) {
+                 // Odstranění skeleton-active, pokud zobrazujeme reálný obsah
+                 realContainer.closest('section')?.classList.remove('skeleton-active');
+            }
+        } else {
+            console.warn(`[Skeleton Toggle] Real content container not found for section: ${sectionKey}`);
+        }
     }
-    .sidebar { transition: transform 0.01ms !important, width 0.01ms !important; } /* Added width */
-    main { transition: margin-left 0.01ms !important, width 0.01ms !important; } /* Added width */
-    .main-content-wrapper [data-animate] { opacity: 1 !important; transform: none !important; transition: none !important; }
-    .mouse-follower-glow { display: none !important; }
-    body::before, body::after { animation: none !important; }
-    .refresh-btn.loading i { animation: none !important; }
-    .loading-spinner, .initial-loading-overlay .loading-spinner { animation: none !important; border: 4px solid var(--accent-primary) !important; } /* Просто рамка */
-    .card:hover, .shortcut-card:hover, .btn:hover, .btn-outline:hover, .welcome-button:hover, .refresh-btn:hover, .view-all-link:hover { transform: none !important; }
-    .skeleton::after { animation: none !important; background: var(--skeleton-highlight) !important; }
-     .btn-icon-only i { transition: none !important; } /* Disable icon rotation */
-}
-/* ============================================= */
-/* === НОВЫЕ СТИЛИ ДЛЯ СИСТЕМЫ НАГРАД v22 === */
-/* ============================================= */
+    // --- END: SKELETON UI Function ---
 
-/* --- 1. Кнопка открытия Модального окна (в Баннере) --- */
-/* Используем существующий стиль .welcome-button, ID добавлен в HTML */
-#open-monthly-modal-btn {
-    /* Можно добавить специфичные стили при необходимости, но пока наследует .welcome-button */
-    display: inline-flex; /* Убедимся, что кнопка видна */
-}
 
-/* --- 2. Модальное Окно (Общие стили, можно доработать существующие) --- */
-.modal {
-    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.75); /* Темнее фон */
-    z-index: 1050; /* Выше большинства элементов */
-    align-items: center; justify-content: center;
-    opacity: 0; transition: opacity 0.4s ease, backdrop-filter 0.4s ease;
-    backdrop-filter: blur(0px);
-    padding: 1rem; /* Отступы для мобильных */
-}
-.modal.active { display: flex; opacity: 1; backdrop-filter: blur(8px); }
-.modal-content {
-    background-color: var(--interface-bg); border-radius: var(--card-radius);
-    width: 90%;
-    max-width: 800px; /* Шире для календаря */
-    box-shadow: var(--shadow-card);
-    transform: translateY(-30px) scale(0.95); transform-origin: center;
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    overflow: hidden;
-    border: 1px solid var(--border-color-medium);
-    display: flex; flex-direction: column;
-    max-height: 90vh; /* Ограничение высоты */
-}
-.modal.active .modal-content { transform: translateY(0) scale(1); }
-.modal-header {
-    padding: 1.2rem 1.8rem; border-bottom: 1px solid var(--border-color-light);
-    display: flex; justify-content: space-between; align-items: center;
-    background: rgba(var(--dark-purple-accent-rgb), 0.4); /* Немного фона */
-    flex-shrink: 0;
-}
-.modal-title { font-size: 1.3rem; font-weight: 600; color: var(--text-heading); text-shadow: var(--shadow-text-glow); margin: 0; display: flex; align-items: center; gap: 0.6em;}
- .modal-title i { color: var(--accent-primary); }
-.modal-close { background: none; border: none; font-size: 1.7rem; cursor: pointer; color: var(--text-muted); transition: color 0.2s ease, transform 0.2s ease; line-height: 1; padding: 0.3rem; }
-.modal-close:hover { color: var(--accent-pink); transform: rotate(90deg); }
-.modal-body { padding: 1.5rem 2rem; overflow-y: auto; flex-grow: 1; position: relative; }
- /* Скроллбар для модального окна */
-.modal-body::-webkit-scrollbar { width: 6px; }
-.modal-body::-webkit-scrollbar-track { background: transparent; }
-.modal-body::-webkit-scrollbar-thumb { background-color: var(--border-color-medium); border-radius: 3px; }
-.modal-footer { padding: 1.2rem 1.8rem; border-top: 1px solid var(--border-color-light); background-color: rgba(var(--bg-secondary-rgb), 0.4); display: flex; justify-content: flex-end; gap: 0.8rem; flex-shrink: 0;}
+    // --- START: DOM Element Caching ---
+    function cacheDOMElements() {
+        const startTime = performance.now();
+        console.log("[CACHE DOM] Caching elements...");
+        const elementDefinitions = [
+            { key: 'initialLoader', id: 'initial-loader', critical: true },
+            { key: 'sidebar', id: 'sidebar', critical: true },
+            { key: 'mainContent', id: 'main-content', critical: true },
+            { key: 'dashboardHeader', query: '.dashboard-header', critical: true },
+            { key: 'globalError', id: 'global-error', critical: true },
+            { key: 'sidebarAvatar', id: 'sidebar-avatar', critical: true },
+            { key: 'sidebarName', id: 'sidebar-name', critical: true },
+            { key: 'sidebarUserTitle', id: 'sidebar-user-title', critical: true },
+            { key: 'sidebarToggleBtn', id: 'sidebar-toggle-btn', critical: true },
+            { key: 'welcomeTitle', id: 'welcome-title', critical: true },
+            { key: 'statsCardsContainer', id: 'stats-cards-container', critical: true }, // Skutečný kontejner
+            { key: 'activityListContainerWrapper', id: 'recent-activities-container-wrapper', critical: true },
+            { key: 'creditHistoryContainerWrapper', id: 'credit-history-container-wrapper', critical: true },
+            { key: 'mainContentAreaPlaceholder', id: 'main-content-area-placeholder', critical: true }, // Placeholder
+            { key: 'sidebarOverlay', id: 'sidebar-overlay', critical: false },
+            { key: 'mainMobileMenuToggle', id: 'main-mobile-menu-toggle', critical: false },
+            { key: 'sidebarCloseToggle', id: 'sidebar-close-toggle', critical: false },
+            { key: 'currentYearSidebar', id: 'currentYearSidebar', critical: false },
+            { key: 'dashboardTitle', id: 'dashboard-title', critical: false },
+            { key: 'refreshDataBtn', id: 'refresh-data-btn', critical: false },
+            { key: 'notificationBell', id: 'notification-bell', critical: false },
+            { key: 'notificationCount', id: 'notification-count', critical: false },
+            { key: 'notificationsDropdown', id: 'notifications-dropdown', critical: false },
+            { key: 'notificationsList', id: 'notifications-list', critical: false },
+            { key: 'noNotificationsMsg', id: 'no-notifications-msg', critical: false },
+            { key: 'markAllReadBtn', id: 'mark-all-read', critical: false },
+            { key: 'startPracticeBtn', id: 'start-practice-btn', critical: false },
+            { key: 'openMonthlyModalBtn', id: 'open-monthly-modal-btn', critical: false },
+            { key: 'openStreakModalBtn', id: 'open-streak-modal-btn', critical: false },
+            { key: 'progressCard', id: 'progress-card', critical: false },
+            { key: 'overallProgressValue', id: 'overall-progress-value', critical: false },
+            { key: 'overallProgressFooter', id: 'overall-progress-footer', critical: false },
+            { key: 'pointsCard', id: 'points-card', critical: false },
+            { key: 'totalPointsValue', id: 'total-points-value', critical: false },
+            { key: 'totalPointsFooter', id: 'total-points-footer', critical: false },
+            { key: 'streakCard', id: 'streak-card', critical: false },
+            { key: 'streakValue', id: 'streak-value', critical: false },
+            { key: 'streakFooter', id: 'streak-footer', critical: false },
+            { key: 'monthlyRewardModal', id: 'monthly-reward-modal', critical: false },
+            { key: 'modalMonthlyCalendarGrid', id: 'modal-monthly-calendar-grid', critical: false },
+            { key: 'modalMonthlyCalendarEmpty', id: 'modal-monthly-calendar-empty', critical: false },
+            { key: 'modalCurrentMonthYearSpan', id: 'modal-current-month-year', critical: false },
+            { key: 'closeMonthlyModalBtn', id: 'close-monthly-modal-btn', critical: false },
+            { key: 'streakMilestonesModal', id: 'streak-milestones-modal', critical: false },
+            { key: 'modalMilestonesGrid', id: 'modal-milestones-grid', critical: false },
+            { key: 'modalMilestonesEmpty', id: 'modal-milestones-empty', critical: false },
+            { key: 'modalCurrentStreakValue', id: 'modal-current-streak-value', critical: false },
+            { key: 'closeStreakModalBtn', id: 'close-streak-modal-btn', critical: false },
+            { key: 'toastContainer', id: 'toast-container', critical: false },
+            { key: 'offlineBanner', id: 'offline-banner', critical: false },
+            { key: 'mouseFollower', id: 'mouse-follower', critical: false },
+            { key: 'currentYearFooter', id: 'currentYearFooter', critical: false },
+            // --- START: SKELETON CONTAINERS ---
+            { key: 'welcomeBannerReal', id: 'welcome-banner-real', critical: false }, // Skutečný banner
+            { key: 'welcomeBannerSkeleton', id: 'welcome-banner-skeleton', critical: false },
+            { key: 'statsCardsSkeletonContainer', id: 'stats-cards-skeleton-container', critical: false },
+            { key: 'shortcutGridReal', id: 'shortcut-grid-real', critical: false }, // Skutečné odkazy
+            { key: 'shortcutGridSkeletonContainer', id: 'shortcut-grid-skeleton-container', critical: false },
+            { key: 'activityListContainer', id: 'activity-list-container', critical: false }, // Skutečný kontejner pro seznam
+            { key: 'activityListSkeletonContainer', id: 'activity-list-skeleton-container', critical: false },
+            { key: 'creditHistoryListContainer', id: 'credit-history-list-container', critical: false }, // Skutečný kontejner
+            { key: 'creditHistorySkeletonContainer', id: 'credit-history-skeleton-container', critical: false },
+            // --- END: SKELETON CONTAINERS ---
+        ];
 
-/* Стили для оверлея загрузки ВНУТРИ модального окна */
-.modal-body .loading-overlay {
-    position: absolute; /* Позиционируется относительно modal-body */
-    inset: 0;
-    background-color: rgba(var(--card-solid-rgb), 0.9); /* Полупрозрачный фон */
-    display: none; /* Скрыт по умолчанию */
-    justify-content: center;
-    align-items: center;
-    z-index: 10;
-    border-radius: 0; /* Без скругления внутри */
-    transition: opacity 0.3s ease-out;
-    backdrop-filter: blur(3px);
-}
-.modal-body.loading .loading-overlay { display: flex; } /* Показываем при загрузке */
-.modal-body .loading-spinner { /* Стили спиннера остаются */
-    width: 36px; height: 36px; border: 4px solid var(--accent-primary); border-radius: 50%;
-    border-top-color: transparent; border-right-color: transparent;
-    animation: loading-spinner-anim 0.8s linear infinite; /* Переименовал анимацию, чтобы не конфликтовать */
-}
+        const notFoundCritical = [];
+        ui = {}; // Reset ui object before caching
 
-/* --- 3. Стили Месячного Календаря (в Модальном Окне) --- */
-.calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr); /* 7 дней в неделе */
-    gap: 0.8rem; /* Пространство между днями */
-}
+        elementDefinitions.forEach(def => {
+            const element = def.id ? document.getElementById(def.id) : document.querySelector(def.query);
+            if (element) {
+                ui[def.key] = element;
+            } else {
+                ui[def.key] = null;
+                if (def.critical) {
+                    notFoundCritical.push(`${def.key} (ID/Query: ${def.id || def.query})`);
+                } else {
+                    console.warn(`[CACHE DOM] Non-critical element not found: ${def.key}`);
+                }
+            }
+        });
+        // Důležité: Ujistěte se, že kontejnery pro seznamy jsou také cachované, pokud je používá DashboardLists
+        ui.activityList = document.getElementById('activity-list');
+        ui.activityListEmptyState = document.getElementById('activity-list-empty-state');
+        ui.activityListErrorState = document.getElementById('activity-list-error-state');
+        ui.creditHistoryList = document.getElementById('credit-history-list');
+        ui.creditHistoryEmptyState = document.getElementById('credit-history-empty-state');
+        ui.creditHistoryErrorState = document.getElementById('credit-history-error-state');
 
-.calendar-day {
-    aspect-ratio: 1 / 1.1; /* Соотношение сторон, чуть выше */
-    background-color: rgba(var(--card-solid-rgb), 0.7);
-    border: 1px solid var(--border-color-light);
-    border-radius: 10px; /* Менее скругленные углы */
-    padding: 0.8rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between; /* Распределяем контент */
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    cursor: default; /* По умолчанию не кликабельно */
-    min-height: 100px; /* Минимальная высота */
-}
 
-.calendar-day::before { /* Декоративный верхний уголок */
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 0; height: 0;
-    border-style: solid;
-    border-width: 10px 10px 0 0;
-    border-color: transparent transparent transparent transparent; /* Изначально невидимый */
-    transition: border-color 0.3s ease;
-}
+        if (ui.statsCardsContainer && !ui.progressCard) { // Zkontrolujeme, zda nejsou karty již cachované
+            ui.progressCard = ui.statsCardsContainer.querySelector('#progress-card');
+            ui.pointsCard = ui.statsCardsContainer.querySelector('#points-card');
+            ui.streakCard = ui.statsCardsContainer.querySelector('#streak-card');
+        }
 
-.day-number {
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--text-light);
-    align-self: flex-start; /* Номер в левом верхнем углу */
-    line-height: 1;
-    background: rgba(var(--bg-secondary-rgb), 0.5);
-    padding: 0.2rem 0.4rem;
-    border-radius: 4px;
-}
+        if (notFoundCritical.length > 0) {
+            console.error(`[CACHE DOM] CRITICAL elements not found: (${notFoundCritical.length})`, notFoundCritical);
+            throw new Error(`Chyba načítání stránky: Kritické komponenty chybí (${notFoundCritical.join(', ')}).`);
+        } else {
+            console.log("[CACHE DOM] All critical elements found.");
+        }
+        const endTime = performance.now();
+        console.log(`[CACHE DOM] Caching complete. UI object:`, ui, `Time: ${(endTime - startTime).toFixed(2)}ms`);
+    }
+    // --- END: DOM Element Caching ---
 
-.reward-icon {
-    font-size: 1.8rem; /* Крупнее иконка */
-    margin: 0.5rem 0;
-    color: var(--accent-secondary); /* Фиолетовый по умолчанию */
-    transition: color 0.3s ease, transform 0.3s ease;
-}
+    // --- START: Helper Functions ---
+    function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
+    function showToast(title, message, type = 'info', duration = 4500) { if (!ui.toastContainer) { console.warn("Toast container not found."); return; } try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content">${title ? `<div class="toast-title">${sanitizeHTML(title)}</div>` : ''}<div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-triangle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Error displaying toast:", e); } }
 
-.reward-text {
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--text-muted);
-    line-height: 1.3;
-    margin-bottom: 0.5rem; /* Отступ перед статусом */
-}
+    function showError(message, isGlobal = false, targetElement = ui.globalError) {
+        console.error("Error:", message);
+        const errorDisplayElement = isGlobal ? ui.globalError : targetElement;
 
-.reward-status {
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    position: absolute;
-    bottom: 0.6rem; /* Ближе к низу */
-    left: 0;
-    right: 0;
-    opacity: 0.7;
-    transition: opacity 0.3s ease;
-}
+        if (errorDisplayElement) {
+            if (targetElement === ui.mainContentAreaPlaceholder && !isGlobal) {
+                 errorDisplayElement.innerHTML = `<div class="error-message card" style="margin: 2rem; padding: 2rem; text-align: center;"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" id="content-retry-btn" style="margin-top:1rem;">Zkusit znovu</button></div>`;
+                 errorDisplayElement.style.display = 'flex';
+                 const retryBtn = errorDisplayElement.querySelector('#content-retry-btn');
+                 if (retryBtn) {
+                     retryBtn.addEventListener('click', () => {
+                         hideError(errorDisplayElement);
+                         initializeApp(); // Opětovné spuštění celé inicializace
+                     });
+                 }
+            } else { // Globální chyba nebo chyba v již existujícím kontejneru
+                errorDisplayElement.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" id="global-retry-btn">Obnovit Stránku</button></div>`;
+                errorDisplayElement.style.display = 'block';
+                const retryBtn = errorDisplayElement.querySelector('#global-retry-btn');
+                if (retryBtn) {
+                    retryBtn.onclick = () => location.reload(); // Jednoduché obnovení stránky
+                }
+            }
+        } else {
+            showToast('CHYBA', message, 'error', 10000);
+        }
+    }
 
-.calendar-day .claim-button {
-    display: none; /* Скрыта по умолчанию */
-    position: absolute;
-    bottom: 0.5rem;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 0.3rem 0.7rem !important; /* Меньше паддинг */
-    font-size: 0.75rem !important;
-    box-shadow: var(--shadow-interactive);
-    z-index: 2;
-    white-space: nowrap; /* Предотвратить перенос */
-    border-color: var(--accent-lime); /* Зеленая рамка */
-    color: var(--accent-lime); /* Зеленый текст */
-}
-.calendar-day .claim-button i { font-size: 0.9em; margin-right: 0.3em; }
-.calendar-day .claim-button:hover:not(:disabled) {
-     color: var(--text-fixed-dark);
-     background: var(--gradient-success);
-     border-color: transparent;
-     box-shadow: 0 0 15px var(--accent-lime-glow);
-}
+    function hideError(targetElement = ui.globalError) {
+        if (targetElement) {
+            targetElement.style.display = 'none';
+            targetElement.innerHTML = ''; // Vyčistit obsah chyby
+        }
+    }
+    function getInitials(userData) { if (!userData) return '?'; const f = userData.first_name?.[0] || ''; const l = userData.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || 'P'; }
+    function formatRelativeTime(timestamp) { if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); if (isNaN(date.getTime())) return '-'; const diffMs = now - date; const diffSec = Math.round(diffMs / 1000); const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60); const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7); if (diffSec < 60) return 'Nyní'; if (diffMin < 60) return `Před ${diffMin} min`; if (diffHour < 24) return `Před ${diffHour} hod`; if (diffDay === 1) return `Včera`; if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`; return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { console.error("Error formatting time:", e, "Timestamp:", timestamp); return '-'; } }
+    function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { document.body.classList.remove('sidebar-collapsed'); ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
+    function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
+    function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Offline', 'Spojení ztraceno.', 'warning'); }
 
-/* Состояния дней */
-.calendar-day.available {
-    border-color: var(--accent-primary);
-    background: linear-gradient(160deg, rgba(var(--accent-primary-rgb), 0.1), rgba(var(--card-solid-rgb), 0.9));
-    cursor: pointer;
-    box-shadow: 0 0 15px rgba(var(--accent-primary-rgb), 0.15);
-}
-.calendar-day.available::before { border-left-color: var(--accent-primary); }
-.calendar-day.available .reward-icon { color: var(--accent-primary); }
-.calendar-day.available .reward-status { display: none; } /* Статус не нужен, есть кнопка */
-.calendar-day.available:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 25px rgba(var(--accent-primary-rgb), 0.3);
-    border-color: var(--accent-cyan);
-    z-index: 5; /* Поверх других */
-}
-.calendar-day.available:hover .reward-icon { transform: scale(1.1); }
+    function setLoadingState(sectionKey, isLoadingFlag) {
+        if (!ui || Object.keys(ui).length === 0) { console.error("[SetLoadingState] UI cache not ready."); return; }
+        if (isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return;
 
-.calendar-day.claimed {
-    opacity: 0.7;
-    background-color: rgba(var(--accent-lime-rgb), 0.05);
-    border-color: rgba(var(--accent-lime-rgb), 0.2);
-}
-.calendar-day.claimed::before { border-left-color: var(--accent-lime); }
-.calendar-day.claimed .reward-icon { color: var(--accent-lime); }
-.calendar-day.claimed .reward-status { color: var(--accent-lime); }
+        if (sectionKey === 'all') {
+            Object.keys(isLoading).forEach(key => {
+                if (key !== 'all') setLoadingState(key, isLoadingFlag);
+            });
+            isLoading.all = isLoadingFlag;
+            console.log(`[SetLoadingState v26.0.12] Section: all, isLoading: ${isLoadingFlag}`);
+            return;
+        }
 
-.calendar-day.missed {
-    opacity: 0.4;
-    background-color: rgba(var(--text-muted-rgb), 0.05);
-    border-color: rgba(var(--text-muted-rgb), 0.2);
-}
-.calendar-day.missed::before { border-left-color: var(--text-muted); }
-.calendar-day.missed .reward-icon { color: var(--text-muted); }
-.calendar-day.missed .reward-status { color: var(--text-muted); }
+        isLoading[sectionKey] = isLoadingFlag;
+        console.log(`[SetLoadingState v26.0.12] Section: ${sectionKey}, isLoading: ${isLoadingFlag}`);
 
-.calendar-day.upcoming {
-    opacity: 0.5;
-    background-color: rgba(var(--card-solid-rgb), 0.5);
-    border-style: dashed;
-}
-.calendar-day.upcoming .reward-icon { color: var(--text-muted); opacity: 0.6; }
-.calendar-day.upcoming .reward-status { color: var(--text-muted); }
+        if (sectionKey === 'session') {
+            if (ui.mainContentAreaPlaceholder) {
+                ui.mainContentAreaPlaceholder.classList.toggle('loading', isLoadingFlag);
+                 if(isLoadingFlag) {
+                     ui.mainContentAreaPlaceholder.innerHTML = '<div class="loading-spinner" style="margin: auto;"></div><p>Ověřování sezení...</p>';
+                     ui.mainContentAreaPlaceholder.style.display = 'flex';
+                 }
+            }
+            return;
+        }
 
-.calendar-day.today {
-     border-width: 2px;
-     border-color: var(--accent-orange);
-     box-shadow: inset 0 0 10px rgba(var(--accent-orange-rgb), 0.1), 0 0 10px rgba(var(--accent-orange-rgb), 0.1);
-}
-.calendar-day.today .day-number {
-     color: var(--accent-orange);
-     box-shadow: 0 0 6px var(--accent-orange-glow);
-}
-.calendar-day.today.available { border-color: var(--accent-lime); /* Если доступно, приоритет зеленой рамке */}
+        const skeletonMap = {
+            welcomeBanner: { skeleton: ui.welcomeBannerSkeleton, real: ui.welcomeBannerReal, display: 'block' },
+            stats: { skeleton: ui.statsCardsSkeletonContainer, real: ui.statsCardsContainer, display: 'grid' },
+            shortcuts: { skeleton: ui.shortcutGridSkeletonContainer, real: ui.shortcutGridReal, display: 'grid' },
+            activities: { skeleton: ui.activityListSkeletonContainer, real: ui.activityListContainer, display: 'block' },
+            creditHistory: { skeleton: ui.creditHistorySkeletonContainer, real: ui.creditHistoryListContainer, display: 'block' }
+        };
 
-/* Skeleton для дней календаря */
-.calendar-day.skeleton {
-    background: var(--skeleton-bg);
-    position: relative;
-    overflow: hidden;
-    border-radius: 10px; /* Match day radius */
-}
-.calendar-day.skeleton::after {
-    content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent);
-    animation: skeleton-loading-anim 1.5s infinite linear; /* Переименовал анимацию */
-}
+        if (skeletonMap[sectionKey]) {
+            toggleSkeletonUI(sectionKey, isLoadingFlag);
+        } else if (sectionKey === 'notifications') {
+            if (ui.notificationBell) ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1;
+            if (ui.markAllReadBtn) {
+                const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
+                ui.markAllReadBtn.disabled = isLoadingFlag || currentUnreadCount === 0;
+            }
+            if (isLoadingFlag && ui.notificationsList && typeof renderNotificationSkeletons === 'function') {
+                renderNotificationSkeletons(2);
+                if(ui.noNotificationsMsg) ui.noNotificationsMsg.style.display = 'none';
+            } else if (!isLoadingFlag && ui.notificationsList && ui.noNotificationsMsg && ui.notificationsList.children.length === 0) {
+                 if(ui.noNotificationsMsg) ui.noNotificationsMsg.style.display = 'block';
+            }
+        } else if (sectionKey === 'monthlyRewards' || sectionKey === 'streakMilestones') {
+            const modal = sectionKey === 'monthlyRewards' ? ui.monthlyRewardModal : ui.streakMilestonesModal;
+            const modalBody = modal?.querySelector('.modal-body');
+            const loaderOverlay = modalBody?.querySelector('.loading-overlay');
+            if (loaderOverlay) loaderOverlay.classList.toggle('hidden', !isLoadingFlag);
+            if (modalBody) modalBody.classList.toggle('loading', isLoadingFlag);
+            if (isLoadingFlag) {
+                if (sectionKey === 'monthlyRewards' && typeof renderMonthlyCalendarSkeletons === 'function') renderMonthlyCalendarSkeletons();
+                if (sectionKey === 'streakMilestones' && typeof renderMilestoneSkeletons === 'function') renderMilestoneSkeletons();
+            }
+        } else if (sectionKey === 'titles') {
+            console.log(`[SetLoadingState] Loading state for 'titles' is now ${isLoadingFlag}.`);
+        } else {
+            console.warn(`[SetLoadingState] Unknown section key or unhandled UI in dashboard.js: ${sectionKey}`);
+        }
+    }
+    // --- END: Helper Functions ---
 
-/* --- 4. Стили Наград за Серию (Milestones) --- */
-.streak-rewards-section .loading-overlay { /* Overlay specific to this section */
-    position: absolute; inset: 0; background-color: rgba(var(--card-solid-rgb), 0.8); display: none; justify-content: center; align-items: center; z-index: 10; border-radius: var(--card-radius); transition: opacity 0.3s ease-out; backdrop-filter: blur(3px);
-}
-.streak-rewards-section.loading .loading-overlay { display: flex; }
-.streak-rewards-section.loading .milestone-list { visibility: hidden; }
+    // --- START: Sidebar Toggle Logic ---
+    function applyInitialSidebarState() { const startTime = performance.now(); if (!ui.sidebarToggleBtn) { console.warn("[Sidebar State] Sidebar toggle button (#sidebar-toggle-btn) not found for initial state application."); return; } try { const savedState = localStorage.getItem(SIDEBAR_STATE_KEY); const shouldBeCollapsed = savedState === 'collapsed'; console.log(`[Sidebar State] Initial read state from localStorage: '${savedState}', Applying collapsed: ${shouldBeCollapsed}`); document.body.classList.toggle('sidebar-collapsed', shouldBeCollapsed); const icon = ui.sidebarToggleBtn.querySelector('i'); if (icon) { icon.className = shouldBeCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; ui.sidebarToggleBtn.setAttribute('aria-label', shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); ui.sidebarToggleBtn.setAttribute('title', shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); const endTime = performance.now(); console.log(`[Sidebar State] Initial icon and attributes set. Icon class: ${icon.className}. Time: ${(endTime - startTime).toFixed(2)}ms`); } else { console.warn("[Sidebar State] Sidebar toggle button icon not found for initial state update."); } } catch (error) { console.error("[Sidebar State] Error applying initial state:", error); document.body.classList.remove('sidebar-collapsed'); } }
+    function toggleSidebar() { try { const isCollapsed = document.body.classList.toggle('sidebar-collapsed'); localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded'); const icon = ui.sidebarToggleBtn.querySelector('i'); if (icon) { icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; ui.sidebarToggleBtn.setAttribute('aria-label', isCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); ui.sidebarToggleBtn.setAttribute('title', isCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); } console.log(`[Sidebar Toggle] Sidebar toggled. New state: ${isCollapsed ? 'collapsed' : 'expanded'}`); } catch(e){console.error("[Sidebar Toggle] Error:",e);}}
+    // --- END: Sidebar Toggle Logic ---
 
-.milestone-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Адаптивная сетка */
-    gap: 1.5rem; /* Отступ между этапами */
-}
+    // --- START: Supabase Client Initialization ---
+    function initializeSupabase() { const startTime = performance.now(); console.log("[Supabase] Attempting initialization..."); try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not loaded or createClient is not a function."); } supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); if (!supabase) { throw new Error("Supabase client creation failed (returned null/undefined)."); } window.supabaseClient = supabase; const endTime = performance.now(); console.log(`[Supabase] Klient úspěšně inicializován a globálně dostupný. Time: ${(endTime - startTime).toFixed(2)}ms`); return true; } catch (error) { console.error('[Supabase] Initialization failed:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi. Zkuste obnovit stránku.", true); return false; } }
+    // --- END: Supabase Client Initialization ---
 
-.milestone-card { /* Переименовано из .milestone-item для согласованности с .card */
-    display: flex;
-    flex-direction: column; /* Основное направление */
-    background-color: rgba(var(--card-solid-rgb), 0.8);
-    padding: 1.5rem;
-    border-radius: 12px;
-    border: 1px solid var(--border-color-light);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    box-shadow: var(--shadow-hud);
-}
-.milestone-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-card);
-    border-color: var(--accent-primary);
-}
-.milestone-card::before { /* Декоративная линия */
-    content: '';
-    position: absolute;
-    top: 0; bottom: 0; left: 0;
-    width: 5px; /* Толще линия */
-    background: var(--border-color-medium);
-    border-radius: 12px 0 0 12px; /* Скругление только слева */
-    opacity: 0.6;
-    transition: background 0.3s ease, width 0.3s ease;
-}
+    // --- START: Data Loading and Processing ---
+    function withTimeout(promise, ms, timeoutError = new Error('Operace vypršela')) { const timeoutPromise = new Promise((_, reject) => { setTimeout(() => reject(timeoutError), ms); }); return Promise.race([promise, timeoutPromise]); }
+    async function fetchUserProfile(userId) { const startTime = performance.now(); console.log(`[Profile] Fetching profile for user ID: ${userId}`); if (!supabase || !userId) return null; try { const { data: profile, error } = await withTimeout(supabase.from('profiles').select('*, selected_title, last_login, streak_days, longest_streak_days, monthly_claims, last_milestone_claimed, purchased_titles').eq('id', userId).single(), DATA_FETCH_TIMEOUT, new Error('Načítání profilu vypršelo.')); if (error && error.code !== 'PGRST116') { throw error; } if (!profile) { console.warn(`[Profile] Profile for ${userId} not found. Returning null.`); return null; } profile.monthly_claims = profile.monthly_claims || {}; profile.last_milestone_claimed = profile.last_milestone_claimed || 0; profile.purchased_titles = profile.purchased_titles || []; const endTime = performance.now(); console.log(`[Profile] Profile data fetched successfully. Time: ${(endTime - startTime).toFixed(2)}ms`, profile); return profile; } catch (error) { console.error('[Profile] Exception fetching profile:', error); return null; } }
+    async function createDefaultProfile(userId, userEmail) { const startTime = performance.now(); if (!supabase || !userId || !userEmail) return null; console.log(`[Profile Create] Creating default profile for user ${userId}`); try { const defaultData = { id: userId, email: userEmail, username: userEmail.split('@')[0] || `user_${userId.substring(0, 6)}`, level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0, longest_streak_days: 0, last_login: new Date().toISOString(), monthly_claims: {}, last_milestone_claimed: 0, purchased_titles: [], created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches, language: 'cs' }, notifications: { email: true, study_tips: true, content_updates: true, practice_reminders: true } }; const { data: newProfile, error } = await withTimeout(supabase.from('profiles').insert(defaultData).select('*, selected_title, last_login, streak_days, longest_streak_days, monthly_claims, last_milestone_claimed, purchased_titles').single(), DATA_FETCH_TIMEOUT, new Error('Vytváření profilu vypršelo.')); if (error) { if (error.code === '23505') { console.warn("[Profile Create] Profile likely already exists, fetching again."); return await fetchUserProfile(userId); } throw error; } const endTime = performance.now(); console.log(`[Profile Create] Default profile created. Time: ${(endTime - startTime).toFixed(2)}ms`, newProfile); return newProfile; } catch (error) { console.error("[Profile Create] Failed to create default profile:", error); return null; } }
+    async function fetchTitles() { const startTime = performance.now(); if (!supabase) return []; console.log("[Titles] Fetching available titles..."); setLoadingState('titles', true); try { const { data, error } = await withTimeout(supabase.from('title_shop').select('title_key, name'), DATA_FETCH_TIMEOUT, new Error('Načítání titulů vypršelo.')); if (error) throw error; const endTime = performance.now(); console.log(`[Titles] Fetched titles. Time: ${(endTime - startTime).toFixed(2)}ms`, data); return data || []; } catch (error) { console.error("[Titles] Error fetching titles:", error); return []; } finally { setLoadingState('titles', false); } }
+    async function fetchUserStats(userId, profileData) { const startTime = performance.now(); if (!supabase || !userId || !profileData) { console.error("[Stats] Chybí Supabase klient, ID uživatele nebo data profilu."); return null; } console.log(`[Stats] Načítání statistik pro uživatele ${userId}...`); let fetchedStats = null; let statsError = null; try { const { data, error } = await supabase.from('user_stats').select('progress, progress_weekly, points_weekly, streak_longest, completed_tests').eq('user_id', userId).maybeSingle(); fetchedStats = data; statsError = error; if (statsError) { console.warn("[Stats] Chyba Supabase při načítání user_stats:", statsError.message); } } catch (error) { console.error("[Stats] Neočekávaná chyba při načítání user_stats:", error); statsError = error; } const finalStats = { progress: fetchedStats?.progress ?? profileData.progress ?? 0, progress_weekly: fetchedStats?.progress_weekly ?? 0, points: profileData.points ?? 0, points_weekly: fetchedStats?.points_weekly ?? 0, streak_current: profileData.streak_days ?? 0, longest_streak_days: profileData.longest_streak_days ?? Math.max(fetchedStats?.streak_longest ?? 0, profileData.streak_days ?? 0), completed_exercises: profileData.completed_exercises ?? 0, completed_tests: profileData.completed_tests ?? fetchedStats?.completed_tests ?? 0 }; const endTime = performance.now(); if (statsError) { console.warn(`[Stats] Vracení statistik primárně z profilu kvůli chybě načítání. Time: ${(endTime - startTime).toFixed(2)}ms`); } else { console.log(`[Stats] Statistiky úspěšně načteny/sestaveny. Time: ${(endTime - startTime).toFixed(2)}ms`, finalStats); } return finalStats; }
+    async function checkAndUpdateLoginStreak() { const startTime = performance.now(); if (!currentUser || !currentProfile || !supabase) { console.warn("[StreakCheck] Cannot perform check: missing user, profile, or supabase."); return false; } console.log("[StreakCheck] Performing daily login check/update..."); const today = new Date(); const lastLogin = currentProfile.last_login ? new Date(currentProfile.last_login) : null; let currentStreak = currentProfile.streak_days || 0; let longestStreak = currentProfile.longest_streak_days || 0; let needsDbUpdate = false; let updateData = {}; const currentMonthYear = getCurrentMonthYearString(); if (!lastLogin || !isSameDate(today, lastLogin)) { needsDbUpdate = true; console.log("[StreakCheck] First login of the day detected."); if (lastLogin && isYesterday(lastLogin, today)) { currentStreak++; console.log(`[StreakCheck] Streak continued! New current streak: ${currentStreak}`); } else if (lastLogin) { currentStreak = 1; console.log("[StreakCheck] Streak broken. Resetting to 1."); } else { currentStreak = 1; console.log("[StreakCheck] First login ever. Setting streak to 1."); } updateData.streak_days = currentStreak; updateData.last_login = today.toISOString(); if (currentStreak > longestStreak) { longestStreak = currentStreak; updateData.longest_streak_days = longestStreak; console.log(`[StreakCheck] New longest streak: ${longestStreak}!`); } } else { console.log("[StreakCheck] Already logged in today. No streak update needed for current streak."); if (currentProfile.streak_days > (currentProfile.longest_streak_days || 0) ) { console.warn(`[StreakCheck] Discrepancy found: streak_days (${currentProfile.streak_days}) > longest_streak_days (${currentProfile.longest_streak_days || 0}). Updating longest_streak.`); updateData.longest_streak_days = currentProfile.streak_days; longestStreak = currentProfile.streak_days; needsDbUpdate = true; } } currentProfile.streak_days = currentStreak; currentProfile.longest_streak_days = longestStreak; if (ui.modalCurrentStreakValue) ui.modalCurrentStreakValue.textContent = currentStreak; currentProfile.monthly_claims = currentProfile.monthly_claims || {}; if (!currentProfile.monthly_claims[currentMonthYear]) { console.log(`[StreakCheck] Initializing claims for new month: ${currentMonthYear}`); const updatedClaims = { ...currentProfile.monthly_claims, [currentMonthYear]: [] }; currentProfile.monthly_claims = updatedClaims; updateData.monthly_claims = updatedClaims; needsDbUpdate = true; } else { console.log(`[StreakCheck] Monthly claims for ${currentMonthYear} already exist.`); } if (needsDbUpdate) { console.log("[StreakCheck] Updating profile in DB with:", updateData); try { const { error: updateError } = await supabase.from('profiles').update(updateData).eq('id', currentUser.id); if (updateError) throw updateError; if (updateData.last_login) currentProfile.last_login = updateData.last_login; if (updateData.monthly_claims) currentProfile.monthly_claims = updateData.monthly_claims; const endTime = performance.now(); console.log(`[StreakCheck] Profile updated successfully in DB. Time: ${(endTime - startTime).toFixed(2)}ms`); return true; } catch (error) { console.error("[StreakCheck] Error updating profile:", error); showToast('Chyba', 'Nepodařilo se aktualizovat data přihlášení.', 'error'); return false; } } const endTimeUnchanged = performance.now(); console.log(`[StreakCheck] No DB update needed. Time: ${(endTimeUnchanged - startTime).toFixed(2)}ms`); return false; }
+    async function updateMonthlyClaimsInDB(newClaimsData) { if (!currentUser || !supabase) return false; console.log("[DB Update] Updating monthly claims in DB:", newClaimsData); try { const { error } = await supabase.from('profiles').update({ monthly_claims: newClaimsData, updated_at: new Date().toISOString() }).eq('id', currentUser.id); if (error) throw error; console.log("[DB Update] Monthly claims update successful."); return true; } catch (error) { console.error("[DB Update] Error updating monthly claims:", error); showToast('Chyba', 'Nepodařilo se uložit vyzvednutí měsíční odměny.', 'error'); return false; } }
+    async function updateLastMilestoneClaimedInDB(milestoneDay, rewardKey, rewardName) { if (!currentUser || !supabase) return false; console.log(`[DB Update] Attempting to record claim for milestoneDay: ${milestoneDay}, rewardKey: ${rewardKey}`); try { const { error: insertError } = await supabase.from('claimed_streak_milestones').insert({ user_id: currentUser.id, milestone_day: milestoneDay, reward_key: rewardKey, reward_name: rewardName }); if (insertError && insertError.code !== '23505') { console.error(`[DB Update] Error inserting into claimed_streak_milestones for milestone ${milestoneDay}:`, insertError); throw insertError; } else if (insertError && insertError.code === '23505') { console.warn(`[DB Update] Milestone ${milestoneDay} (key: ${rewardKey}) already claimed by user ${currentUser.id}. No new record inserted.`); return true; } console.log(`[DB Update] Milestone ${milestoneDay} (key: ${rewardKey}) successfully recorded in claimed_streak_milestones.`); if (currentProfile && milestoneDay > (currentProfile.last_milestone_claimed || 0)) { const { error: profileUpdateError } = await supabase.from('profiles').update({ last_milestone_claimed: milestoneDay, updated_at: new Date().toISOString() }).eq('id', currentUser.id); if (profileUpdateError) { console.error(`[DB Update] Error updating profiles.last_milestone_claimed for ${milestoneDay}:`, profileUpdateError); } else { currentProfile.last_milestone_claimed = milestoneDay; console.log(`[DB Update] profiles.last_milestone_claimed updated to ${milestoneDay}.`); } } return true; } catch (error) { console.error(`[DB Update] General error in updateLastMilestoneClaimedInDB for ${milestoneDay}:`, error); showToast('Chyba', 'Nepodařilo se uložit vyzvednutí milníkové odměny.', 'error'); return false; } }
+    async function awardPoints(pointsValue, reason = "Nespecifikováno", transactionType = 'points_earned', referenceActivityId = null, suppressActivityLog = false) { if (!currentUser || !currentProfile || !supabase) { console.warn("Cannot award points: User, profile, or Supabase missing."); return; } if (pointsValue === 0) { console.log("No points to award (value is 0)."); return; } console.log(`[Points] Awarding/deducting ${pointsValue} points for: ${reason}. Type: ${transactionType}, SuppressLog: ${suppressActivityLog}`); setLoadingState('stats', true); const currentPoints = currentProfile.points || 0; const newPoints = currentPoints + pointsValue; try { const { error: profileError } = await supabase.from('profiles').update({ points: newPoints, updated_at: new Date().toISOString() }).eq('id', currentUser.id); if (profileError) throw profileError; currentProfile.points = newPoints; const { error: transactionError } = await supabase.from('credit_transactions').insert({ user_id: currentUser.id, transaction_type: transactionType, amount: pointsValue, description: reason, balance_after_transaction: newPoints, reference_activity_id: referenceActivityId }); if (transactionError) { console.error("[Points] Error logging credit transaction:", transactionError); showToast('Varování', 'Kredity připsány, ale záznam transakce selhal.', 'warning'); } else { console.log(`[Points] Credit transaction logged: ${pointsValue} for ${reason}`); } if (pointsValue > 0) { showToast('Kredity Získány!', `+${pointsValue} kreditů za: ${reason}`, 'success', 2500); } else if (pointsValue < 0) { showToast('Kredity Utraceny!', `${pointsValue} kreditů za: ${reason}`, 'info', 2500); } userStatsData = await fetchUserStats(currentUser.id, currentProfile); updateStatsCards(userStatsData); if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderCreditHistory === 'function') { await DashboardLists.loadAndRenderCreditHistory(currentUser.id, 5); } if (pointsValue > 0 && !suppressActivityLog) { await logActivity( currentUser.id, 'points_earned', `Získáno ${pointsValue} kreditů`, `Důvod: ${reason}`, { points_change: pointsValue, new_total_points: newPoints, source: transactionType }, null, referenceActivityId, 'fa-coins' ); } } catch (error) { console.error(`[Points] Error awarding/deducting points:`, error); showToast('Chyba', 'Nepodařilo se upravit kredity.', 'error'); } finally { setLoadingState('stats', false); } }
+    async function logActivity(userId, type, title, description = null, details = null, link_url = null, reference_id = null, icon = null) { if (!supabase || !userId) { console.error("Cannot log activity: Supabase client or user ID is missing."); return; } console.log(`[Log Activity] Logging: User ${userId}, Type: ${type}, Title: ${title}`); try { const { error } = await supabase.from('activities').insert({ user_id: userId, type: type, title: title, description: description, details: details, link_url: link_url, reference_id: reference_id, icon: icon || activityVisuals[type]?.icon || activityVisuals.default.icon }); if (error) { console.error("Error logging activity:", error); } else { console.log("Activity logged successfully."); if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderRecentActivities === 'function' && window.location.pathname.includes('dashboard.html')) { await DashboardLists.loadAndRenderRecentActivities(userId, 5); } } } catch (err) { console.error("Exception during activity logging:", err); } }
+    // --- END: Data Loading and Processing ---
 
-.milestone-card .day-number { /* Надпись "Série X" */
-    font-size: 0.9rem; font-weight: 700; color: var(--accent-primary);
-    margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 0.8px;
-    text-shadow: 0 0 5px var(--accent-glow);
-}
+    // --- START: Notification Logic ---
+    async function fetchNotifications(userId, limit = 5) { const startTime = performance.now(); if (!supabase || !userId) { console.error("[Notifications] Chybí Supabase nebo ID uživatele."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications] Načítání nepřečtených oznámení pro uživatele ${userId}`); try { const { data, error, count } = await withTimeout(supabase.from('user_notifications').select('*', { count: 'exact' }).eq('user_id', userId).eq('is_read', false).order('created_at', { ascending: false }).limit(limit), DATA_FETCH_TIMEOUT, new Error('Načítání notifikací vypršelo.')); if (error) throw error; const endTime = performance.now(); console.log(`[Notifications] Načteno ${data?.length || 0} oznámení. Celkem nepřečtených: ${count}. Time: ${(endTime - startTime).toFixed(2)}ms`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications] Výjimka při načítání oznámení:", error); return { unreadCount: 0, notifications: [] }; } }
+    function renderNotifications(count, notifications) { const startTime = performance.now(); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.warn("[Render Notifications] Chybí UI elementy pro notifikace."); return; } console.log("[Render Notifications] Start, Počet:", count, "Oznámení:", notifications); ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${visual.class || 'default'}"><i class="fas ${visual.icon}"></i></div> <div class="notification-content"> <div class="notification-title">${sanitizeHTML(n.title)}</div> <div class="notification-message">${sanitizeHTML(n.message)}</div> <div class="notification-time">${formatRelativeTime(n.created_at)}</div> </div> </div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; } ui.markAllReadBtn.disabled = count === 0; const endTime = performance.now(); console.log(`[Render Notifications] Hotovo. Time: ${(endTime - startTime).toFixed(2)}ms`); }
+    function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) { console.warn("[Render Notifications Skeletons] Chybí UI elementy."); return; } let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
+    async function markNotificationRead(notificationId) { console.log("[FUNC] markNotificationRead: Označení ID:", notificationId); if (!currentUser || !notificationId || !supabase) return false; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[FUNC] markNotificationRead: Úspěch pro ID:", notificationId); return true; } catch (error) { console.error("[FUNC] markNotificationRead: Chyba:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
+    async function markAllNotificationsRead() { console.log("[FUNC] markAllNotificationsRead: Start pro uživatele:", currentUser?.id); if (!currentUser || !ui.markAllReadBtn || !supabase) { console.warn("Cannot mark all read: Missing user, button, or supabase."); return; } if (isLoading.notifications) return; setLoadingState('notifications', true); try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false); if (error) throw error; console.log("[FUNC] markAllNotificationsRead: Úspěch"); const { unreadCount, notifications } = await fetchNotifications(currentUser.id, 5); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Chyba:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = currentCount === 0; } finally { setLoadingState('notifications', false); } }
+    // --- END: Notification Logic ---
 
-.milestone-card .reward-icon { /* Иконка награды */
-    width: 60px; height: 60px;
-    flex-shrink: 0;
-    border-radius: 16px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.8rem;
-    color: var(--white);
-    background: var(--gradient-cta); /* Default gradient */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    border: 1px solid rgba(var(--white-rgb), 0.08);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-    margin: 0 auto 1rem auto; /* Центрирование и отступ */
-}
 
-.milestone-card .reward-text { /* Название награды */
-    font-size: 1.1rem; font-weight: 600; color: var(--text-light);
-    margin: 0 0 0.5rem 0; text-align: center;
-    line-height: 1.3;
-}
-.milestone-card .milestone-desc { /* Описание - если есть, использовать его вместо reward-text */
-    font-size: 0.85rem; color: var(--text-medium);
-    margin: 0 0 1rem 0; text-align: center; line-height: 1.4;
-    flex-grow: 1; /* Занять доступное место */
-}
+    // --- START: UI Update Functions (General) ---
+    function updateSidebarProfile(profile) { if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { cacheDOMElements(); if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { console.warn("[UI Update Sidebar] Sidebar elements not found in cache."); return; } } console.log("[UI Update] Aktualizace sidebaru..."); if (profile) { const firstName = profile.first_name ?? ''; const displayName = firstName || profile.username || currentUser?.email?.split('@')[0] || 'Pilot'; ui.sidebarName.textContent = sanitizeHTML(displayName); const initials = getInitials(profile); const avatarUrl = profile.avatar_url; ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials); const sidebarImg = ui.sidebarAvatar.querySelector('img'); if (sidebarImg) { sidebarImg.onerror = () => { ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); }; } const selectedTitleKey = profile.selected_title; let displayTitle = 'Pilot'; if (selectedTitleKey && allTitles && allTitles.length > 0) { const foundTitle = allTitles.find(t => t.title_key === selectedTitleKey); if (foundTitle && foundTitle.name) displayTitle = foundTitle.name; else console.warn(`[UI Update Sidebar] Title key "${selectedTitleKey}" not found in titles list.`); } else if (selectedTitleKey) { console.warn(`[UI Update Sidebar] Selected title key present, but titles list is empty or not loaded.`); } ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle); ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle)); if (ui.welcomeTitle) ui.welcomeTitle.textContent = `Vítej zpět, ${sanitizeHTML(displayName)}!`; console.log("[UI Update] Sidebar aktualizován."); } else { console.warn("[UI Update Sidebar] Missing profile data. Setting defaults."); ui.sidebarName.textContent = "Nepřihlášen"; ui.sidebarAvatar.textContent = '?'; if (ui.sidebarUserTitle) ui.sidebarUserTitle.textContent = 'Pilot'; if (ui.sidebarUserTitle) ui.sidebarUserTitle.removeAttribute('title'); if (ui.welcomeTitle) ui.welcomeTitle.textContent = `Vítejte!`; } }
+    function updateStatsCards(stats) { console.log("[UI Update] Aktualizace karet statistik:", stats); const statElements = { progress: ui.overallProgressValue, points: ui.totalPointsValue, streak: ui.streakValue, progressFooter: ui.overallProgressFooter, pointsFooter: ui.totalPointsFooter, streakFooter: ui.streakFooter }; const cards = [ui.progressCard, ui.pointsCard, ui.streakCard]; const requiredElements = Object.values(statElements); if (requiredElements.some(el => !el)) { console.error("[UI Update Stats] Chybějící elementy statistik."); cards.forEach(card => card?.classList.remove('loading')); return; } cards.forEach(card => card?.classList.remove('loading')); if (!stats) { console.warn("[UI Update Stats] Chybí data statistik, zobrazuji placeholder."); Object.values(statElements).forEach(els => { if (els.value) els.value.textContent = '-'; if (els.desc) els.desc.textContent = 'Data nedostupná'; if (els.footer) els.footer.innerHTML = `<i class="fas fa-exclamation-circle"></i> Data nenalezena`; }); return; } statElements.progress.textContent = `${stats.progress ?? 0}%`; const weeklyProgress = stats.progress_weekly ?? 0; statElements.progressFooter.classList.remove('positive', 'negative'); statElements.progressFooter.innerHTML = weeklyProgress > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyProgress}% týdně` : weeklyProgress < 0 ? `<i class="fas fa-arrow-down"></i> ${weeklyProgress}% týdně` : `<i class="fas fa-minus"></i> --`; if (weeklyProgress > 0) statElements.progressFooter.classList.add('positive'); else if (weeklyProgress < 0) statElements.progressFooter.classList.add('negative'); statElements.points.textContent = stats.points ?? 0; const weeklyPoints = stats.points_weekly ?? 0; statElements.pointsFooter.classList.remove('positive', 'negative'); statElements.pointsFooter.innerHTML = weeklyPoints > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyPoints} týdně` : weeklyPoints < 0 ? `<i class="fas fa-arrow-down"></i> ${weeklyPoints} týdně` : `<i class="fas fa-minus"></i> --`; if (weeklyPoints > 0) statElements.pointsFooter.classList.add('positive'); else if (weeklyPoints < 0) statElements.pointsFooter.classList.add('negative'); statElements.streak.textContent = stats.streak_current ?? 0; statElements.streakFooter.innerHTML = `MAX: ${stats.longest_streak_days ?? 0} dní`; if ((stats.streak_current ?? 0) > 0 && (stats.streak_current !== stats.longest_streak_days)) { statElements.streakFooter.innerHTML += ` <span style="color:var(--text-muted); font-size:0.9em;">(Aktuální: ${stats.streak_current ?? 0})</span>`; } console.log("[UI Update] Karty statistik aktualizovány."); }
+    function renderMonthlyCalendar() { if (!ui.modalMonthlyCalendarGrid || !ui.modalCurrentMonthYearSpan || !ui.modalMonthlyCalendarEmpty) { console.error("Monthly calendar MODAL UI elements missing. Cannot render."); setLoadingState('monthlyRewards', false); return; } console.log("[RenderMonthly] Rendering calendar..."); setLoadingState('monthlyRewards', true); const gridContainer = ui.modalMonthlyCalendarGrid; const modalTitleSpan = ui.modalCurrentMonthYearSpan; const emptyState = ui.modalMonthlyCalendarEmpty; const now = new Date(); const year = now.getFullYear(); const month = now.getMonth(); const today = now.getDate(); const daysInMonth = new Date(year, month + 1, 0).getDate(); const monthString = getCurrentMonthYearString(); const monthName = now.toLocaleString('cs-CZ', { month: 'long', year: 'numeric' }); const claimedDaysThisMonth = currentProfile?.monthly_claims?.[monthString] || []; console.log(`[RenderMonthly] Claimed days for ${monthString}:`, claimedDaysThisMonth); modalTitleSpan.textContent = monthName; gridContainer.innerHTML = ''; emptyState.style.display = 'none'; gridContainer.style.display = 'grid'; const fragment = document.createDocumentFragment(); let daysRendered = 0; for (let day = 1; day <= daysInMonth; day++) { const dayElement = document.createElement('div'); dayElement.classList.add('calendar-day'); dayElement.dataset.day = day; const isClaimed = claimedDaysThisMonth.includes(day); const isClaimable = (day <= today && !isClaimed); const isUpcoming = day > today; let rewardIconHtml = '<i class="fas fa-gift"></i>'; let rewardText = `Den ${day}`; let specificReward = null; let rewardType = 'default'; let rewardKey = `day_${day}`; let rewardValue = 1; let rewardIcon = 'fa-gift'; if (month === 4) { specificReward = mayRewards[day]; } if (specificReward) { rewardIcon = specificReward.icon || 'fa-gift'; rewardText = specificReward.name; rewardType = specificReward.type; rewardKey = specificReward.key || `may_reward_${day}`; rewardValue = specificReward.value !== undefined ? specificReward.value : 1; } else { if (day % 7 === 0) { rewardIcon = 'fa-coins'; rewardText = '10 Kreditů'; rewardType = 'credits'; rewardValue = 10; } else if (day % 5 === 0) { rewardIcon = 'fa-star'; rewardText = '5 EXP'; rewardType = 'xp'; rewardValue = 5; } } dayElement.dataset.rewardType = rewardType; dayElement.dataset.rewardKey = rewardKey; dayElement.dataset.rewardValue = rewardValue; dayElement.innerHTML = `<span class="day-number">${day}</span><div class="reward-icon"><i class="fas ${rewardIcon}"></i></div><span class="reward-text">${rewardText}</span><span class="reward-status"></span><button class="claim-button btn btn-sm" style="display: none;"><i class="fas fa-check"></i> Vyzvednout</button>`; const statusSpan = dayElement.querySelector('.reward-status'); const claimButton = dayElement.querySelector('.claim-button'); if (isClaimed) { dayElement.classList.add('claimed'); if (statusSpan) statusSpan.textContent = 'Získáno'; } else if (isClaimable) { dayElement.classList.add('available'); if (statusSpan) statusSpan.textContent = 'Dostupné'; if (claimButton) { claimButton.style.display = 'block'; claimButton.addEventListener('click', (e) => { e.stopPropagation(); claimMonthlyReward(day, claimButton, rewardType, rewardValue, rewardText); }); } } else if (isUpcoming) { dayElement.classList.add('upcoming'); if (statusSpan) statusSpan.textContent = 'Připravuje se'; } else { dayElement.classList.add('missed'); if (statusSpan) statusSpan.textContent = 'Zmeškáno'; } if (day === today) { dayElement.classList.add('today'); } fragment.appendChild(dayElement); daysRendered++; } if (daysRendered > 0) { gridContainer.appendChild(fragment); } else { emptyState.style.display = 'block'; gridContainer.style.display = 'none'; } ui.monthlyRewardModal?.querySelector('.modal-body')?.classList.remove('loading'); console.log("[RenderMonthly] Modal calendar rendered with dynamic rewards."); setLoadingState('monthlyRewards', false); initTooltips(); }
+    function renderMonthlyCalendarSkeletons() { const gridContainer = ui.modalMonthlyCalendarGrid; if (!gridContainer) return; gridContainer.innerHTML = ''; gridContainer.style.display = 'grid'; const skeletonCount = 21; let skeletonHTML = ''; for(let i=0; i < skeletonCount; i++) { skeletonHTML += '<div class="calendar-day skeleton"></div>'; } gridContainer.innerHTML = skeletonHTML; }
+    function renderStreakMilestones() { if (!ui.modalMilestonesGrid || !ui.modalMilestonesEmpty || !ui.modalCurrentStreakValue) { console.error("Streak milestones MODAL UI elements missing."); setLoadingState('streakMilestones', false); return; } console.log("[RenderMilestones] Rendering streak milestones..."); setLoadingState('streakMilestones', true); const gridContainer = ui.modalMilestonesGrid; const emptyState = ui.modalMilestonesEmpty; const streakSpan = ui.modalCurrentStreakValue; const currentStreak = currentProfile?.streak_days || 0; streakSpan.textContent = currentStreak; gridContainer.innerHTML = ''; emptyState.style.display = 'none'; gridContainer.style.display = 'grid'; supabase.from('claimed_streak_milestones').select('milestone_day, reward_key').eq('user_id', currentUser.id) .then(({ data: claimedData, error: fetchClaimedError }) => { if (fetchClaimedError) { console.error("Error fetching claimed streak milestones:", fetchClaimedError); showToast('Chyba', 'Nepodařilo se načíst vyzvednuté milníky série.', 'error'); setLoadingState('streakMilestones', false); return; } const claimedMilestoneEntries = new Set((claimedData || []).map(c => `${c.milestone_day}_${c.reward_key}`)); console.log("[RenderMilestones] Claimed milestones loaded:", claimedMilestoneEntries); const fragment = document.createDocumentFragment(); let milestonesToShow = 0; sortedMilestoneDays.forEach(milestoneDay => { const config = STREAK_MILESTONES_CONFIG[milestoneDay]; if (!config) return; const milestoneElement = document.createElement('div'); milestoneElement.classList.add('milestone-card'); milestoneElement.dataset.milestone = milestoneDay; const uniqueClaimKey = `${milestoneDay}_${config.reward_key}`; const isClaimed = claimedMilestoneEntries.has(uniqueClaimKey); const isClaimable = currentStreak >= milestoneDay && !isClaimed; const isLocked = currentStreak < milestoneDay; let statusHTML = ''; let buttonHTML = ''; if (isClaimed) { milestoneElement.classList.add('claimed'); statusHTML = `<span class="reward-status claimed">Získáno</span>`; } else if (isClaimable) { milestoneElement.classList.add('available'); statusHTML = `<span class="reward-status available">Dostupné</span>`; buttonHTML = `<button class="claim-button btn btn-sm btn-success"><i class="fas fa-check"></i> Vyzvednout</button>`; } else { milestoneElement.classList.add('locked'); const daysNeeded = milestoneDay - currentStreak; statusHTML = `<span class="reward-status locked">Ještě ${daysNeeded} ${daysNeeded === 1 ? 'den' : (daysNeeded < 5 ? 'dny' : 'dní')}</span>`; } milestoneElement.innerHTML = `<span class="day-number">Série ${milestoneDay}</span><div class="reward-icon"><i class="fas ${config.icon || 'fa-award'}"></i></div><span class="reward-text" title="${sanitizeHTML(config.description)}">${sanitizeHTML(config.name)}</span><div class="milestone-desc">${sanitizeHTML(config.description || '')}</div>${statusHTML}${buttonHTML}`; const claimButton = milestoneElement.querySelector('.claim-button'); if (claimButton) { claimButton.addEventListener('click', (e) => { e.stopPropagation(); claimMilestoneReward(milestoneDay, claimButton, config.reward_type, config.reward_value, config.name, config.reward_key); }); } fragment.appendChild(milestoneElement); milestonesToShow++; }); if (milestonesToShow > 0) { gridContainer.appendChild(fragment); } else { emptyState.innerHTML = '<i class="fas fa-road"></i><p>Pro tuto sérii nejsou definovány žádné milníky.</p>'; emptyState.style.display = 'block'; gridContainer.style.display = 'none'; } setLoadingState('streakMilestones', false); initTooltips(); }) .catch(error => { console.error("Error in renderStreakMilestones fetching claimed data:", error); showToast('Chyba', 'Nepodařilo se načíst data o milnících.', 'error'); emptyState.innerHTML = '<i class="fas fa-exclamation-triangle"></i><p>Chyba načítání milníků.</p>'; emptyState.style.display = 'block'; gridContainer.style.display = 'none'; setLoadingState('streakMilestones', false); }); console.log("[RenderMilestones] Milestones rendering initiated in modal."); }
+    function renderMilestoneSkeletons() { const gridContainer = ui.modalMilestonesGrid; if (!gridContainer) return; gridContainer.innerHTML = ''; gridContainer.style.display = 'grid'; const skeletonCount = 6; let skeletonHTML = ''; for(let i=0; i < skeletonCount; i++) { skeletonHTML += '<div class="milestone-card skeleton"></div>'; } gridContainer.innerHTML = skeletonHTML; }
+    // --- END: UI Update Functions ---
 
-.milestone-card .reward-status { /* Статус: Доступно, Зískáno, Zamčeno */
-    font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
-    padding: 0.4rem 0.8rem; border-radius: 18px; display: inline-block; margin-top: 1rem;
-    align-self: center; /* Центрирование статуса */
-}
+    // --- START: Claim Reward Logic ---
+    async function claimMonthlyReward(day, buttonElement, rewardType = 'default', rewardValue = 1, rewardName = `Odměna dne ${day}`) { console.log(`[ClaimMonthly] Claiming reward for day ${day}: ${rewardName}, Type: ${rewardType}, Value: ${rewardValue}`); if (!currentUser || !currentProfile || !supabase || isLoading.monthlyRewards) return; const currentMonthYear = getCurrentMonthYearString(); const claimedDaysThisMonth = currentProfile.monthly_claims?.[currentMonthYear] || []; if (claimedDaysThisMonth.includes(day)) { showToast('Již Vyzvednuto', 'Tuto odměnu jste již vyzvedli.', 'info'); return; } setLoadingState('monthlyRewards', true); if (buttonElement) { buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; } const newClaimsForMonth = [...claimedDaysThisMonth, day]; const newAllClaims = { ...currentProfile.monthly_claims, [currentMonthYear]: newClaimsForMonth }; const dbSuccess = await updateMonthlyClaimsInDB(newAllClaims); if (dbSuccess) { currentProfile.monthly_claims = newAllClaims; let activityTitle = `Měsíční odměna: ${rewardName}`; let activityDescription = `Uživatel si vyzvedl měsíční odměnu za ${day}. den.`; let mainLogMessage = `Vyzvednuta měsíční odměna: ${rewardName}.`; if (rewardType === 'credits' && rewardValue > 0) { await awardPoints(rewardValue, `Měsíční odměna - Den ${day}`, 'reward_monthly_calendar', null, true); activityDescription += ` Získáno ${rewardValue} kreditů.`; mainLogMessage += ` (+${rewardValue} kreditů)`; } else if (rewardType === 'xp' && rewardValue > 0) { const currentXP = currentProfile.experience || 0; const newXP = currentXP + rewardValue; const { error: xpError } = await supabase.from('profiles').update({ experience: newXP }).eq('id', currentUser.id); if (xpError) { console.error("Error updating XP:", xpError); showToast('Chyba', 'Nepodařilo se připsat zkušenosti.', 'error'); } else { currentProfile.experience = newXP; showToast('Zkušenosti Získány!', `+${rewardValue} ZKU za: ${rewardName}`, 'success'); activityDescription += ` Získáno ${rewardValue} ZKU.`; mainLogMessage += ` (+${rewardValue} ZKU)`;} } else if (rewardType === 'title') { const currentTitles = Array.isArray(currentProfile.purchased_titles) ? currentProfile.purchased_titles : []; const titleKeyToAward = buttonElement.closest('.calendar-day').dataset.rewardKey || rewardName.replace(/\s/g, '_').toLowerCase(); if (!currentTitles.includes(titleKeyToAward)) { const newTitles = [...currentTitles, titleKeyToAward]; const { error: titleError } = await supabase.from('profiles').update({ purchased_titles: newTitles }).eq('id', currentUser.id); if (titleError) { console.error("Error awarding title:", titleError); showToast('Chyba', 'Nepodařilo se udělit titul.', 'error'); } else { currentProfile.purchased_titles = newTitles; showToast('Titul Získán!', `Získali jste titul: ${rewardName}`, 'success'); activityDescription += ` Získán titul: ${rewardName}.`; mainLogMessage += ` (Titul: ${rewardName})`;} } else { showToast('Titul Již Vlastníte', `Titul ${rewardName} již máte.`, 'info'); } } else { showToast('Odměna Získána!', `Získali jste: ${rewardName}`, 'success'); } await logActivity(currentUser.id, 'monthly_reward_claimed', activityTitle, activityDescription, { day: day, reward_name: rewardName, reward_type: rewardType, reward_value: rewardValue }); } else { showToast('Chyba', 'Nepodařilo se uložit vyzvednutí měsíční odměny.', 'error'); } setLoadingState('monthlyRewards', false); renderMonthlyCalendar(); }
+    async function claimMilestoneReward(milestoneDay, buttonElement, rewardType, rewardValue, rewardName, rewardKey) { console.log(`[ClaimMilestone] Attempting claim for milestone ${milestoneDay}. Reward: ${rewardType}, Value: ${rewardValue}, Name: ${rewardName}, Key: ${rewardKey}`); if (!currentUser || !currentProfile || !supabase || isLoading.streakMilestones) return; const { data: existingClaimCheck, error: clientCheckError } = await supabase.from('claimed_streak_milestones').select('id').eq('user_id', currentUser.id).eq('milestone_day', milestoneDay).maybeSingle(); if (clientCheckError) { console.error("Error checking claim (client-side):", clientCheckError); showToast('Chyba', 'Ověření milníku selhalo.', 'error'); return; } if (existingClaimCheck) { console.warn(`Milestone ${milestoneDay} already claimed (client check).`); showToast('Již Vyzvednuto', 'Tento milník byl již vyzvednut.', 'info'); renderStreakMilestones(); return; } setLoadingState('streakMilestones', true); if (buttonElement) { buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; } const currentStreak = currentProfile?.streak_days || 0; if (currentStreak < milestoneDay) { console.warn(`[ClaimMilestone] Milestone ${milestoneDay} not yet reached (current streak: ${currentStreak}).`); showToast('Chyba', 'Podmínky pro tento milník ještě nebyly splněny.', 'warning'); setLoadingState('streakMilestones', false); renderStreakMilestones(); return; } const dbSuccess = await updateLastMilestoneClaimedInDB(milestoneDay, rewardKey, rewardName); if (dbSuccess) { console.log(`[ClaimMilestone] DB update successful for milestone ${milestoneDay}.`); let activityTitle = `Odměna za milník: ${rewardName}`; let activityDescription = `Uživatel dosáhl ${milestoneDay} dní studijní série a vyzvedl si odměnu.`; switch (rewardType) { case 'points': await awardPoints(rewardValue, `Odměna za sérii ${milestoneDay} dní`, 'reward_streak_milestone', null, true); activityDescription += ` Získáno ${rewardValue} kreditů.`; break; case 'badge': const badgeKeyToAward = rewardValue; console.log(`[ClaimMilestone] Attempting to award badge with key: ${badgeKeyToAward}`); const { data: badgeData, error: badgeError } = await supabase.from('badges').select('id, title').eq('title_key', badgeKeyToAward).single(); if (badgeError || !badgeData) { console.error(`[ClaimMilestone] Error fetching badge data for key ${badgeKeyToAward}:`, badgeError); showToast('Chyba', `Odznak "${rewardName}" nenalezen.`, 'error'); } else { const { error: insertBadgeError } = await supabase.from('user_badges').insert({ user_id: currentUser.id, badge_id: badgeData.id }); if (insertBadgeError && insertBadgeError.code !== '23505') { console.error(`[ClaimMilestone] Error inserting user_badge for badge ID ${badgeData.id}:`, insertBadgeError); showToast('Chyba', `Nepodařilo se udělit odznak "${badgeData.title}".`, 'error'); } else if (insertBadgeError && insertBadgeError.code === '23505') { showToast('Info', `Odznak "${badgeData.title}" již vlastníte.`, 'info'); } else { const newBadgeCount = (currentProfile.badges_count || 0) + 1; const { error: profileUpdateError } = await supabase.from('profiles').update({ badges_count: newBadgeCount }).eq('id', currentUser.id); if (profileUpdateError) console.error("Error updating profile badge_count:", profileUpdateError); else currentProfile.badges_count = newBadgeCount; showToast('Odznak Získán!', `Získali jste odznak: ${badgeData.title}`, 'success'); activityDescription += ` Získán odznak: ${badgeData.title}.`; } } break; case 'title': const titleKeyToAward = rewardValue; console.log(`[ClaimMilestone] Attempting to award title with key: ${titleKeyToAward}`); const currentTitles = Array.isArray(currentProfile.purchased_titles) ? currentProfile.purchased_titles : []; if (!currentTitles.includes(titleKeyToAward)) { const newTitles = [...currentTitles, titleKeyToAward]; const { error: titleError } = await supabase.from('profiles').update({ purchased_titles: newTitles }).eq('id', currentUser.id); if (titleError) { console.error("Error awarding title:", titleError); showToast('Chyba', 'Nepodařilo se udělit titul.', 'error'); } else { currentProfile.purchased_titles = newTitles; showToast('Titul Získán!', `Získali jste titul: ${rewardName}`, 'success'); activityDescription += ` Získán titul: ${rewardName} (${titleKeyToAward}).`; } } else { showToast('Titul Již Vlastníte', `Titul ${rewardName} již máte.`, 'info'); } break; case 'item': console.warn(`[ClaimMilestone] Item awarding for '${rewardValue}' (key: ${rewardKey}) not implemented yet.`); showToast('Milník Dosažen!', `Získali jste předmět: ${rewardName} (Implementace TODO)`, 'success'); activityDescription += ` Získán předmět: ${rewardName} (klíč: ${rewardKey}).`; break; default: showToast('Milník Dosažen!', `Získali jste: ${rewardName}`, 'success'); } await logActivity(currentUser.id, 'streak_milestone_claimed', activityTitle, activityDescription, { milestone_day: milestoneDay, reward_key: rewardKey, reward_name: rewardName, reward_type: rewardType, reward_value: rewardValue }); } else { showToast('Chyba', 'Nepodařilo se uložit vyzvednutí milníkové odměny.', 'error'); } setLoadingState('streakMilestones', false); renderStreakMilestones(); }
+    // --- END: Claim Reward Logic ---
 
-/* Состояния этапов */
-.milestone-card.locked { opacity: 0.65; filter: grayscale(40%); }
-.milestone-card.locked::before { background: var(--text-muted); }
-.milestone-card.locked .reward-icon { background: var(--gradient-locked); opacity: 0.8; }
-.milestone-card .reward-status.locked { color: var(--text-muted); background: rgba(var(--text-muted-rgb), 0.1); border: 1px solid rgba(var(--text-muted-rgb), 0.2); }
+    // --- START: Main Data Loading Orchestration ---
+    async function loadDashboardData(user, profile) { const startTime = performance.now(); if (!user || !profile) { showError("Chyba: Nelze načíst data bez profilu uživatele.", true); setLoadingState('all', false); return; } console.log("[MAIN] loadDashboardData: Start pro uživatele:", user.id); hideError(); setLoadingState('stats', true); setLoadingState('notifications', true); setLoadingState('activities', true); setLoadingState('creditHistory', true); try { await checkAndUpdateLoginStreak(); updateSidebarProfile(profile); console.log("[MAIN] loadDashboardData: Paralelní načítání statistik, notifikací a seznamů."); const [statsResult, notificationsResult, dashboardListsResult] = await Promise.allSettled([ fetchUserStats(user.id, currentProfile), fetchNotifications(user.id, 5), (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderAll === 'function') ? DashboardLists.loadAndRenderAll(user.id, 5) : Promise.resolve({ status: 'fulfilled', value: console.warn("DashboardLists.loadAndRenderAll not found or module not ready for parallel load.") }) ]); console.log("[MAIN] loadDashboardData: Načítání statistik, notifikací a seznamů dokončeno."); if (statsResult.status === 'fulfilled' && statsResult.value) { userStatsData = statsResult.value; updateStatsCards(userStatsData); } else { console.error("❌ Chyba při načítání statistik:", statsResult.reason); showError("Nepodařilo se načíst statistiky.", false); updateStatsCards(profile); } if (notificationsResult.status === 'fulfilled' && notificationsResult.value) { const { unreadCount, notifications } = notificationsResult.value; renderNotifications(unreadCount, notifications); } else { console.error("❌ Chyba při načítání oznámení:", notificationsResult.reason); renderNotifications(0, []); } if (dashboardListsResult.status === 'rejected') { console.error("❌ Chyba při DashboardLists.loadAndRenderAll:", dashboardListsResult.reason); setLoadingState('activities', false); setLoadingState('creditHistory', false); } const endTime = performance.now(); console.log(`[MAIN] loadDashboardData: Data načtena a zobrazena. Time: ${(endTime - startTime).toFixed(2)}ms`); } catch (error) { console.error('[MAIN] loadDashboardData: Zachycena hlavní chyba:', error); showError('Nepodařilo se kompletně načíst data nástěnky: ' + error.message); updateStatsCards(profile); renderNotifications(0, []); if (typeof DashboardLists !== 'undefined') { if (typeof DashboardLists.renderActivities === 'function') DashboardLists.renderActivities(null); if (typeof DashboardLists.renderCreditHistory === 'function') DashboardLists.renderCreditHistory(null); } } finally { setLoadingState('stats', false); setLoadingState('notifications', false); setLoadingState('activities', false); setLoadingState('creditHistory', false); if (typeof initTooltips === 'function') initTooltips(); console.log("[MAIN] loadDashboardData: Blok finally dokončen."); } }
+    // --- END: Main Data Loading ---
 
-.milestone-card.available { border-color: var(--accent-primary); }
-.milestone-card.available::before { background: var(--accent-primary); opacity: 0.9; box-shadow: 0 0 10px var(--accent-glow); }
-.milestone-card.available .reward-icon { background: var(--gradient-button); box-shadow: 0 6px 15px rgba(var(--accent-primary-rgb), 0.3); }
-.milestone-card .reward-status.available { color: var(--accent-primary); background: rgba(var(--accent-primary-rgb), 0.12); border: 1px solid rgba(var(--accent-primary-rgb), 0.35); }
-.milestone-card.available .claim-button { /* Наследует .btn-success */ margin-top: 1rem; align-self: center; }
+    // --- START: Event Listeners Setup ---
+    function setupEventListeners() { const startTime = performance.now(); console.log("[SETUP] setupUIEventListeners: Start"); if (!ui || Object.keys(ui).length === 0) { console.error("[SETUP] UI cache is empty! Cannot setup listeners."); return; } const listenersAdded = new Set(); const safeAddListener = (element, eventType, handler, key) => { if (element) { element.removeEventListener(eventType, handler); element.addEventListener(eventType, handler); listenersAdded.add(key); } else { console.warn(`[SETUP] Element not found for listener: ${key}`); } }; safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle'); safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle'); safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay'); safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn'); document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); }); safeAddListener(ui.startPracticeBtn, 'click', () => { window.location.href = '/dashboard/procvicovani/main.html'; }, 'startPracticeBtn'); safeAddListener(ui.openMonthlyModalBtn, 'click', () => showModal('monthly-reward-modal'), 'openMonthlyModalBtn'); safeAddListener(ui.openStreakModalBtn, 'click', () => showModal('streak-milestones-modal'), 'openStreakModalBtn'); safeAddListener(ui.refreshDataBtn, 'click', async () => { if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné se přihlásit.", "error"); return; } if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; } const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'RELOADING...'; ui.refreshDataBtn.disabled = true; await loadDashboardData(currentUser, currentProfile); if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'RELOAD'; ui.refreshDataBtn.disabled = false; }, 'refreshDataBtn'); safeAddListener(ui.notificationBell, 'click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell'); safeAddListener(ui.markAllReadBtn, 'click', markAllNotificationsRead, 'markAllReadBtn'); safeAddListener(ui.notificationsList, 'click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount?.textContent?.replace('+', '') || '0'; const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); if(ui.notificationCount) { ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); } if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }, 'notificationsList'); document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown?.classList.remove('active'); } }); safeAddListener(ui.closeMonthlyModalBtn, 'click', () => hideModal('monthly-reward-modal'), 'closeMonthlyModalBtn'); safeAddListener(ui.monthlyRewardModal, 'click', (event) => { if (event.target === ui.monthlyRewardModal) { hideModal('monthly-reward-modal'); } }, 'monthlyRewardModal'); safeAddListener(ui.closeStreakModalBtn, 'click', () => hideModal('streak-milestones-modal'), 'closeStreakModalBtn'); safeAddListener(ui.streakMilestonesModal, 'click', (event) => { if (event.target === ui.streakMilestonesModal) { hideModal('streak-milestones-modal'); } }, 'streakMilestonesModal'); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); if (ui.mainContent) ui.mainContent.addEventListener('scroll', initHeaderScrollDetection, { passive: true }); const endTime = performance.now(); console.log(`[SETUP] Event listeners set up. Added: ${[...listenersAdded].length}. Time: ${(endTime - startTime).toFixed(2)}ms`); }
+    // --- END: Event Listeners Setup ---
 
-.milestone-card.claimed { border-color: var(--accent-lime); }
-.milestone-card.claimed::before { background: var(--accent-lime); opacity: 0.8; }
-.milestone-card.claimed .reward-icon { background: var(--gradient-success); box-shadow: 0 6px 15px rgba(var(--accent-lime-rgb), 0.3); }
-.milestone-card .reward-status.claimed { color: var(--accent-lime); background: rgba(var(--accent-lime-rgb), 0.12); border: 1px solid rgba(var(--accent-lime-rgb), 0.35); }
+    // --- START: App Initialization ---
+    async function initializeApp() {
+        const totalStartTime = performance.now();
+        console.log("[INIT Dashboard] initializeApp: Start v26.0.12");
+        let stepStartTime = performance.now();
 
-/* Skeleton для этапов */
-.milestone-card.skeleton {
-    background: var(--skeleton-bg);
-    position: relative;
-    overflow: hidden;
-    padding: 1.5rem;
-    border-radius: 12px;
-    border: 1px solid var(--border-color-light);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-}
-.milestone-card.skeleton::before, .milestone-card.skeleton::after { display: none; } /* Hide decorative elements */
-.milestone-card.skeleton::after { /* Loading shimmer */
-    content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent);
-    animation: skeleton-loading-anim 1.5s infinite linear; /* Переименовал анимацию */
-}
-.milestone-card.skeleton .day-number { height: 16px; width: 70px; background: var(--skeleton-bg); border-radius: 4px; margin-bottom: 0.5rem; }
-.milestone-card.skeleton .reward-icon { background: var(--skeleton-bg); width: 60px; height: 60px; border-radius: 16px; }
-.milestone-card.skeleton .reward-text { height: 18px; width: 120px; background: var(--skeleton-bg); border-radius: 4px; margin-bottom: 0.5rem; }
-.milestone-card.skeleton .milestone-desc { height: 14px; width: 160px; background: var(--skeleton-bg); border-radius: 4px; }
-.milestone-card.skeleton .reward-status { height: 26px; width: 90px; background: var(--skeleton-bg); border-radius: 18px; margin-top: 0.8rem; }
+        const initialLoaderElement = document.getElementById('initial-loader');
+        const mainContentElement = document.getElementById('main-content');
+        const sidebarElement = document.getElementById('sidebar');
+        const headerElement = document.querySelector('.dashboard-header');
 
-/* Empty state */
-.empty-state { /* Shared styles for empty states */
-    padding: 3rem 2rem; text-align: center; color: var(--text-muted); display: none;
-    background-color: transparent; border-radius: var(--card-radius);
-    border: 1px dashed var(--border-color-medium); margin-top: 1rem;
-}
-.empty-state i { font-size: 3rem; margin-bottom: 1.2rem; color: var(--accent-secondary); opacity: 0.6; }
-.empty-state p { margin: 0 auto; font-size: 1rem; max-width: 450px; color: var(--text-medium); }
+        try {
+            if (sidebarElement) sidebarElement.style.display = 'flex';
+            if (headerElement) headerElement.style.display = 'flex';
+            if (mainContentElement) mainContentElement.style.display = 'block';
 
-/* --- Адаптивность (Дополнения) --- */
-@media (max-width: 768px) {
-    .modal-content { max-width: 95%; }
-    .calendar-grid { gap: 0.5rem; }
-    .calendar-day { padding: 0.6rem; min-height: 90px; }
-    .day-number { font-size: 0.8rem; padding: 0.15rem 0.3rem; }
-    .reward-icon { font-size: 1.5rem; }
-    .reward-text { font-size: 0.7rem; }
-    .reward-status { font-size: 0.65rem; bottom: 0.4rem; }
-    .calendar-day .claim-button { font-size: 0.7rem !important; padding: 0.25rem 0.6rem !important; }
-    .milestone-item { flex-direction: column; align-items: flex-start; gap: 1rem; }
-    .milestone-status-action { flex-direction: row; width: 100%; justify-content: space-between; align-items: center; margin-top: 0.5rem; }
-}
-@media (max-width: 576px) {
-    .calendar-grid { grid-template-columns: repeat(4, 1fr); gap: 0.4rem; } /* 4 колонки на моб */
-    .modal-body { padding: 1rem 1.2rem; }
-    .modal-header, .modal-footer { padding: 1rem 1.2rem; }
-}
-/* --- Конец Новых Стилей --- */
-        /* --- END: Киберпанк CSS Тема --- */
+            cacheDOMElements();
+            console.log(`[INIT Dashboard] cacheDOMElements Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
+            stepStartTime = performance.now();
+
+            if (ui.mainContentAreaPlaceholder) {
+                ui.mainContentAreaPlaceholder.innerHTML = '<div class="loading-spinner" style="margin:auto;"></div><p>Načítání palubní desky...</p>';
+                ui.mainContentAreaPlaceholder.style.display = 'flex';
+                 // --- START: SKELETON - Zobrazení skeletonů na začátku ---
+                 toggleSkeletonUI('welcomeBanner', true);
+                 toggleSkeletonUI('stats', true);
+                 toggleSkeletonUI('shortcuts', true);
+                 // Pro seznamy, které načítá DashboardLists, bude skeleton řešen tam,
+                 // ale můžeme nastavit rodičovský kontejner na "loading"
+                 if (ui.activityListContainerWrapper) ui.activityListContainerWrapper.classList.add('loading-section');
+                 if (ui.creditHistoryContainerWrapper) ui.creditHistoryContainerWrapper.classList.add('loading-section');
+                 // --- END: SKELETON - Zobrazení skeletonů na začátku ---
+            } else {
+                console.warn("[INIT Dashboard] mainContentAreaPlaceholder NOT FOUND in DOM after cache. Layout might be affected.");
+            }
+            // Skrýt skutečné kontejnery na začátku
+            if (ui.welcomeBannerReal) ui.welcomeBannerReal.style.display = 'none';
+            if (ui.statsCardsContainer) ui.statsCardsContainer.style.display = 'none';
+            if (ui.shortcutGridReal) ui.shortcutGridReal.style.display = 'none';
+            if (ui.activityListContainer) ui.activityListContainer.style.display = 'none';
+            if (ui.creditHistoryListContainer) ui.creditHistoryListContainer.style.display = 'none';
+
+
+            if (initialLoaderElement) {
+                initialLoaderElement.classList.add('hidden');
+                setTimeout(() => { if (initialLoaderElement) initialLoaderElement.style.display = 'none'; }, 50);
+            }
+            console.log(`[INIT Dashboard] Basic UI visible, initialLoader hidden. Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
+            stepStartTime = performance.now();
+
+
+            const waitForSupabase = new Promise((resolve, reject) => { const maxAttempts = 10; let attempts = 0; const intervalId = setInterval(() => { attempts++; if (typeof window.supabase !== 'undefined' && typeof window.supabase.createClient === 'function') { console.log(`[INIT Dashboard] Supabase library found after ${attempts} attempts.`); clearInterval(intervalId); resolve(); } else if (attempts >= maxAttempts) { console.error("[INIT Dashboard] Supabase library not found after waiting. Aborting."); clearInterval(intervalId); reject(new Error("Knihovna Supabase nebyla nalezena včas.")); } else { console.log(`[INIT Dashboard] Waiting for Supabase library... (Attempt ${attempts}/${maxAttempts})`); } }, 200); });
+            await waitForSupabase;
+            console.log(`[INIT Dashboard] waitForSupabase Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
+            stepStartTime = performance.now();
+
+            if (!initializeSupabase()) { console.error("[INIT Dashboard] Supabase init function failed. Aborting."); return; }
+            console.log(`[INIT Dashboard] initializeSupabase Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
+            stepStartTime = performance.now();
+
+            applyInitialSidebarState();
+            console.log(`[INIT Dashboard] applyInitialSidebarState Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
+            stepStartTime = performance.now();
+
+            setupEventListeners();
+            console.log(`[INIT Dashboard] setupEventListeners Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
+            stepStartTime = performance.now();
+
+            setLoadingState('session', true);
+            console.log("[INIT Dashboard] Checking auth session (async)...");
+
+            try {
+                const { data: { session }, error: sessionError } = await withTimeout(supabase.auth.getSession(), AUTH_TIMEOUT, new Error('Ověření sezení vypršelo.'));
+                 console.log(`[INIT Dashboard] getSession Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
+                 stepStartTime = performance.now();
+                setLoadingState('session', false);
+
+                if (sessionError) {
+                    if (sessionError.message.toLowerCase().includes('networkerror')) {
+                         throw new Error('Chyba sítě při ověřování sezení. Zkontrolujte své připojení k internetu.');
+                    }
+                     throw new Error(`Nepodařilo se ověřit sezení: ${sessionError.message}`);
+                }
+
+                if (session?.user) {
+                    currentUser = session.user;
+                    console.log(`[INIT Dashboard] User authenticated (ID: ${currentUser.id}). Loading profile and titles...`);
+                    if (ui.mainContentAreaPlaceholder) ui.mainContentAreaPlaceholder.style.display = 'none';
+
+                    const [profileResult, titlesResult] = await Promise.allSettled([
+                        fetchUserProfile(currentUser.id),
+                        fetchTitles()
+                    ]);
+                    console.log(`[INIT Dashboard] fetchProfile & fetchTitles (parallel) Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
+                    stepStartTime = performance.now();
+
+                    if (profileResult.status === 'fulfilled' && profileResult.value) {
+                        currentProfile = profileResult.value;
+                        console.log("[INIT Dashboard] Profile loaded:", currentProfile);
+                    } else {
+                        const profileErrorReason = profileResult.reason || 'Neznámá chyba při načítání profilu.';
+                        console.warn(`[INIT Dashboard] Profile not found or fetch failed (${profileErrorReason}), attempting to create default...`);
+                        currentProfile = await createDefaultProfile(currentUser.id, currentUser.email);
+                        if (!currentProfile) throw new Error(`Nepodařilo se vytvořit/načíst profil uživatele. Důvod: ${profileErrorReason}`);
+                        console.log("[INIT Dashboard] Default profile created/retrieved.");
+                    }
+
+                    if (titlesResult.status === 'fulfilled') {
+                        allTitles = titlesResult.value || [];
+                        console.log("[INIT Dashboard] Titles loaded:", allTitles.length);
+                    } else {
+                        console.warn("[INIT Dashboard] Failed to load titles:", titlesResult.reason);
+                        allTitles = [];
+                        showToast('Varování', 'Nepodařilo se načíst seznam titulů.', 'warning');
+                    }
+
+                    updateSidebarProfile(currentProfile); // Zde již máme allTitles
+                    updateCopyrightYear();
+                    updateOnlineStatus();
+
+                    if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.initialize === 'function') {
+                        DashboardLists.initialize({
+                            supabaseClient: supabase,
+                            currentUser: currentUser,
+                            activityVisuals: activityVisuals,
+                            formatRelativeTime: formatRelativeTime,
+                            sanitizeHTML: sanitizeHTML,
+                            // setLoadingStateGlobal již nebude přímo voláno z DashboardLists
+                        });
+                    } else {
+                        console.error("Modul DashboardLists není definován nebo nemá funkci initialize!");
+                        setLoadingState('activities', false); setLoadingState('creditHistory', false);
+                    }
+
+                    // Zobrazit skutečné kontejnery pro data
+                    toggleSkeletonUI('welcomeBanner', false); // Skryje skeleton, zobrazí skutečný obsah
+                    toggleSkeletonUI('stats', false);
+                    toggleSkeletonUI('shortcuts', false);
+                    // Pro seznamy to bude řešit DashboardLists ve svých render funkcích
+
+                    await loadDashboardData(currentUser, currentProfile);
+                    console.log(`[INIT Dashboard] loadDashboardData Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
+
+                    requestAnimationFrame(() => {
+                        if (ui.mainContent) ui.mainContent.classList.add('loaded');
+                        initScrollAnimations();
+                    });
+
+                    initMouseFollower();
+                    initHeaderScrollDetection();
+                    initTooltips();
+
+                    const readyEvent = new CustomEvent('dashboardReady', { detail: { user: currentUser, profile: currentProfile, client: supabase, titles: allTitles } });
+                    document.dispatchEvent(readyEvent);
+                    console.log("[INIT Dashboard] Dispatching 'dashboardReady' event.");
+
+                } else {
+                    console.log('[INIT Dashboard] V sezení není uživatel, přesměrování.');
+                    if (ui.mainContentAreaPlaceholder) ui.mainContentAreaPlaceholder.style.display = 'none';
+                    showError("Nejste přihlášeni. Přesměrovávám na přihlašovací stránku...", false, ui.mainContentAreaPlaceholder);
+                    setTimeout(() => { window.location.href = '/auth/index.html'; }, 3000);
+                }
+
+            } catch (authError) {
+                console.error("❌ [INIT Dashboard] Auth/Session Check Error:", authError);
+                setLoadingState('session', false);
+                let userFriendlyMessage = `Chyba ověření: ${authError.message}`;
+                if (authError.message.toLowerCase().includes('ověření sezení vypršelo')) {
+                    userFriendlyMessage = "Ověření sezení vypršelo. Zkuste prosím obnovit stránku, nebo zkontrolujte své internetové připojení.";
+                } else if (authError.message.toLowerCase().includes('networkerror')) {
+                    userFriendlyMessage = "Chyba sítě. Zkontrolujte své internetové připojení a zkuste to znovu.";
+                }
+                showError(userFriendlyMessage, false, ui.mainContentAreaPlaceholder);
+                if (ui.mainContent) ui.mainContent.style.display = 'block'; // Zobrazit hlavní kontejner pro chybu
+            }
+
+            const totalEndTime = performance.now();
+            console.log(`✅ [INIT Dashboard] App initializeApp function finished. Total Time: ${(totalEndTime - totalStartTime).toFixed(2)}ms`);
+
+        } catch (error) {
+            console.error("❌ [INIT Dashboard] Kritická chyba PŘED ověřením sezení:", error);
+            const endTime = performance.now();
+            console.log(`[INIT Dashboard] Initialization failed. Time: ${(endTime - totalStartTime).toFixed(2)}ms`);
+            const initialLoaderElementForError = document.getElementById('initial-loader');
+            if (initialLoaderElementForError && !initialLoaderElementForError.classList.contains('hidden')) {
+                initialLoaderElementForError.innerHTML = `<p style="color: var(--accent-pink);">CHYBA (${error.message}). OBNOVTE STRÁNKU.</p>`;
+            } else {
+                const globalErrorElement = document.getElementById('global-error');
+                 if (globalErrorElement) {
+                     globalErrorElement.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>Kritická chyba inicializace: ${sanitizeHTML(error.message)}</div><button class="retry-button btn" onclick="location.reload()">Obnovit Stránku</button></div>`;
+                     globalErrorElement.style.display = 'block';
+                 } else {
+                    alert(`Kritická chyba inicializace: ${error.message}`);
+                 }
+            }
+            const mainContentForError = document.getElementById('main-content');
+            if (mainContentForError) mainContentForError.style.display = 'none'; // Skryjeme hlavní obsah, pokud došlo k chybě
+            if (typeof setLoadingState === 'function') setLoadingState('all', false);
+        }
+    }
+    // --- END: App Initialization ---
+
+    // --- START THE APP ---
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    } else {
+        initializeApp();
+    }
+
+    // Následující funkce zůstávají pro kontext, ale jejich UI části jsou spravovány v toggleSkeletonUI nebo DashboardLists
+    function isSameDate(date1, date2) { if (!date1 || !date2) return false; const d1 = new Date(date1); const d2 = new Date(date2); return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate(); }
+    function isYesterday(date1, date2) { if (!date1 || !date2) return false; const yesterday = new Date(date2); yesterday.setDate(yesterday.getDate() - 1); return isSameDate(date1, yesterday); }
+    function getCurrentMonthYearString() { const now = new Date(); const year = now.getFullYear(); const month = String(now.getMonth() + 1).padStart(2, '0'); return `${year}-${month}`; }
+    function showModal(modalId) { const modal = document.getElementById(modalId); if (modal) { console.log(`[Modal] Opening modal: ${modalId}`); modal.style.display = 'flex'; if (modalId === 'monthly-reward-modal') { renderMonthlyCalendar(); } else if (modalId === 'streak-milestones-modal') { renderStreakMilestones(); } requestAnimationFrame(() => { modal.classList.add('active'); }); } else { console.error(`Modal element not found: #${modalId}`); } }
+    function hideModal(modalId) { const modal = document.getElementById(modalId); if (modal) { console.log(`[Modal] Closing modal: ${modalId}`); modal.classList.remove('active'); setTimeout(() => { modal.style.display = 'none'; }, 300); } }
+    const initMouseFollower = () => { const follower = ui.mouseFollower; if (!follower || window.innerWidth <= 576) return; let hasMoved = false; const updatePosition = (event) => { if (!hasMoved) { document.body.classList.add('mouse-has-moved'); hasMoved = true; } requestAnimationFrame(() => { follower.style.left = `${event.clientX}px`; follower.style.top = `${event.clientY}px`; }); }; window.addEventListener('mousemove', updatePosition, { passive: true }); document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; }); document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; }); window.addEventListener('touchstart', () => { if(follower) follower.style.display = 'none'; }, { passive: true, once: true }); };
+    const initScrollAnimations = () => { const animatedElements = document.querySelectorAll('.main-content-wrapper [data-animate]'); if (!animatedElements.length || !('IntersectionObserver' in window)) return; const observer = new IntersectionObserver((entries, observerInstance) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('animated'); observerInstance.unobserve(entry.target); } }); }, { threshold: 0.15, rootMargin: "0px 0px -50px 0px" }); animatedElements.forEach(element => observer.observe(element)); };
+    const initHeaderScrollDetection = () => { let lastScrollY = window.scrollY; const mainEl = ui.mainContent; if (!mainEl) return; mainEl.addEventListener('scroll', () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 50); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; }, { passive: true }); if (mainEl && mainEl.scrollTop > 50) document.body.classList.add('scrolled'); };
+    const updateCopyrightYear = () => { const currentYearSpan = ui.currentYearFooter; const currentYearSidebar = ui.currentYearSidebar; const year = new Date().getFullYear(); if (currentYearSpan) { currentYearSpan.textContent = year; } if (currentYearSidebar) { currentYearSidebar.textContent = year; } };
+    function initTooltips() { try { if (window.jQuery && typeof window.jQuery.fn.tooltipster === 'function') { window.jQuery('.btn-tooltip.tooltipstered').each(function() { if (document.body.contains(this)) { try { window.jQuery(this).tooltipster('destroy'); } catch (destroyError) { console.warn("Tooltipster destroy error:", destroyError); } } }); window.jQuery('.btn-tooltip').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 150, distance: 6, side: 'top' }); console.log("[Tooltips] Initialized/Re-initialized."); } else { console.warn("[Tooltips] jQuery or Tooltipster library not loaded."); } } catch (e) { console.error("[Tooltips] Error initializing Tooltipster:", e); } }
+
+})();
