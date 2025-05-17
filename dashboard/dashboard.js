@@ -1,5 +1,6 @@
 // dashboard.js
 // Verze: 26.0.16 - Oddělení UPDATE a SELECT operací na tabulce profiles pro řešení chyby 406.
+// ПЛЮС: Исправление обновления currentProfile.monthly_claims
 (function() {
     'use strict';
 
@@ -361,23 +362,52 @@
 
     async function updateMonthlyClaimsInDB(newClaimsData) {
         if (!currentUser || !supabase) return false;
-        console.log("[DB Update] Updating monthly_claims in DB:", newClaimsData);
+        console.log("[DB Update] Updating monthly_claims in DB:", JSON.parse(JSON.stringify(newClaimsData)));
         try {
             const { error } = await supabase
                 .from('profiles')
                 .update({ monthly_claims: newClaimsData, updated_at: new Date().toISOString() })
                 .eq('id', currentUser.id);
+
             if (error) throw error;
 
-            // Znovu načteme profil pro aktualizaci currentProfile
+            // <<<< НАЧАЛО ИЗМЕНЕНИЙ >>>>
+            // Немедленно обновить локальный currentProfile для обеспечения отзывчивости UI
+            const updatedMonthKey = Object.keys(newClaimsData)[0]; // e.g., "2025-05"
+            if (updatedMonthKey) {
+                if (!currentProfile.monthly_claims) {
+                    currentProfile.monthly_claims = {};
+                }
+                // Убедимся, что newClaimsData[updatedMonthKey] это массив
+                if (Array.isArray(newClaimsData[updatedMonthKey])) {
+                    // Создаем копию массива, чтобы избежать проблем с мутацией, если newClaimsData используется где-то еще
+                    currentProfile.monthly_claims[updatedMonthKey] = [...newClaimsData[updatedMonthKey]];
+                    console.log(`[DB Update] Local currentProfile.monthly_claims for ${updatedMonthKey} updated:`, JSON.parse(JSON.stringify(currentProfile.monthly_claims[updatedMonthKey])));
+                } else {
+                    console.warn(`[DB Update] newClaimsData for ${updatedMonthKey} is not an array:`, newClaimsData[updatedMonthKey]);
+                    // Если это не массив, возможно, стоит записать ошибку или обработать по-другому,
+                    // вместо того чтобы молча пропускать или присваивать некорректные данные.
+                    // Пока что, для безопасности, не будем изменять currentProfile.monthly_claims[updatedMonthKey], если это не массив.
+                }
+            } else {
+                console.warn("[DB Update] Could not determine monthYearKey from newClaimsData for local profile update.");
+                // Если ключ не найден, то обновление всего объекта monthly_claims может быть рискованным,
+                // так как newClaimsData содержит только один месяц.
+                // Вместо этого, лучше залогировать и полагаться на последующий fetchUserProfile.
+                // currentProfile.monthly_claims = { ...currentProfile.monthly_claims, ...newClaimsData }; // Это может быть небезопасно
+            }
+            console.log("[DB Update] monthly_claims update successful. Updated local currentProfile.monthly_claims:", JSON.parse(JSON.stringify(currentProfile.monthly_claims)));
+
+            // Попытка перезагрузить весь профиль для синхронизации остальных данных (если необходимо)
+            // Это также подтвердит, что данные в БД действительно обновились, как ожидалось.
             const refreshedProfile = await fetchUserProfile(currentUser.id);
             if (refreshedProfile) {
-                currentProfile = refreshedProfile;
+                currentProfile = refreshedProfile; // Перезаписываем локальный профиль свежими данными из БД
+                console.log("[DB Update] Full profile re-fetched. Current monthly_claims from DB:", JSON.parse(JSON.stringify(currentProfile.monthly_claims)));
             } else {
-                console.warn("[DB Update Monthly] Could not re-fetch profile, manually updating monthly_claims.");
-                currentProfile.monthly_claims = newClaimsData; // Manuální update, pokud re-fetch selže
+                console.warn("[DB Update Monthly] Could not re-fetch profile after updating claims. UI will rely on locally updated monthly_claims.");
             }
-            console.log("[DB Update] monthly_claims update successful. currentProfile.monthly_claims:", currentProfile.monthly_claims);
+            // <<<< КОНЕЦ ИЗМЕНЕНИЙ >>>>
             return true;
         } catch (error) {
             console.error("[DB Update] Error updating monthly_claims:", error);
@@ -483,7 +513,7 @@
 
         console.log(`[RenderMonthly] currentProfile PŘED renderováním:`, JSON.parse(JSON.stringify(currentProfile)));
         const claimedDaysThisMonth = currentProfile?.monthly_claims?.[monthString] || [];
-        console.log(`[RenderMonthly] Claimed days for ${monthString} (z currentProfile):`, claimedDaysThisMonth);
+        console.log(`[RenderMonthly] Claimed days for ${monthString} (z currentProfile):`, JSON.parse(JSON.stringify(claimedDaysThisMonth)));
 
         modalTitleSpan.textContent = monthName; gridContainer.innerHTML = ''; emptyState.style.display = 'none'; gridContainer.style.display = 'grid';
         const fragment = document.createDocumentFragment(); let daysRendered = 0;
@@ -573,7 +603,7 @@
         const dbSuccess = await updateMonthlyClaimsInDB(newAllClaims);
 
         if (dbSuccess) {
-            console.log(`[ClaimMonthly] Po DB úspěchu - currentProfile.monthly_claims[${currentMonthYear}]:`, currentProfile.monthly_claims[currentMonthYear]);
+            console.log(`[ClaimMonthly] Po DB úspěchu - currentProfile.monthly_claims[${currentMonthYear}] (z lokálního currentProfile):`, JSON.parse(JSON.stringify(currentProfile.monthly_claims[currentMonthYear])));
             let activityTitle = `Měsíční odměna: ${rewardName}`;
             let activityDescription = `Uživatel si vyzvedl měsíční odměnu za ${day}. den.`;
 
@@ -586,7 +616,7 @@
             showToast('Chyba', 'Nepodařilo se uložit vyzvednutí měsíční odměny.', 'error');
         }
         setLoadingState('monthlyRewards', false);
-        renderMonthlyCalendar();
+        renderMonthlyCalendar(); // Перерендеринг календаря для обновления UI
     }
 
     async function claimMilestoneReward(milestoneDay, buttonElement, rewardType, rewardValue, rewardName, rewardKey) {
