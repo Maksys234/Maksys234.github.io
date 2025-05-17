@@ -1,6 +1,6 @@
 // dashboard.js
 // Verze: 26.0.16 - Oddělení UPDATE a SELECT operací na tabulce profiles pro řešení chyby 406.
-// ПЛЮС: Исправление обновления currentProfile.monthly_claims
+// ПЛЮС: Исправление обновления currentProfile.monthly_claims (Этап 2)
 (function() {
     'use strict';
 
@@ -16,7 +16,6 @@
     const AUTH_TIMEOUT = 30000;
     const DATA_FETCH_TIMEOUT = 20000;
 
-    // Seznam všech sloupců v tabulce profiles, které chceme načítat/aktualizovat
     const PROFILE_COLUMNS_TO_SELECT = 'id, username, first_name, last_name, email, avatar_url, bio, school, grade, level, completed_exercises, streak_days, last_login, badges_count, points, preferences, notifications, experience, purchased_titles, selected_title, monthly_claims, last_milestone_claimed, longest_streak_days, created_at, updated_at';
 
     let isLoading = {
@@ -333,13 +332,11 @@
 
                 if (updateError) throw updateError;
 
-                // Po úspěšném update znovu načteme profil, abychom měli 100% aktuální data
                 const refreshedProfile = await fetchUserProfile(currentUser.id);
                 if (refreshedProfile) {
                     currentProfile = refreshedProfile;
                 } else {
                     console.warn("[StreakCheck] Could not re-fetch profile after update, local currentProfile might be partially stale for non-updated fields.");
-                    // Alespoň aktualizujeme manuálně to, co jsme měnili
                     if (updateData.last_login) currentProfile.last_login = updateData.last_login;
                     if (updateData.monthly_claims) currentProfile.monthly_claims = updateData.monthly_claims;
                     if (updateData.streak_days !== undefined) currentProfile.streak_days = updateData.streak_days;
@@ -364,14 +361,16 @@
         if (!currentUser || !supabase) return false;
         console.log("[DB Update] Updating monthly_claims in DB:", JSON.parse(JSON.stringify(newClaimsData)));
         try {
+            // Только обновляем, не делаем select в этой же операции
             const { error } = await supabase
                 .from('profiles')
                 .update({ monthly_claims: newClaimsData, updated_at: new Date().toISOString() })
                 .eq('id', currentUser.id);
 
             if (error) throw error;
+            console.log("[DB Update] Database update part successful for monthly_claims.");
 
-            // <<<< НАЧАЛО ИЗМЕНЕНИЙ >>>>
+            // <<<< НАЧАЛО ИЗМЕНЕНИЙ (Этап 2) >>>>
             // Немедленно обновить локальный currentProfile для обеспечения отзывчивости UI
             const updatedMonthKey = Object.keys(newClaimsData)[0]; // e.g., "2025-05"
             if (updatedMonthKey) {
@@ -385,29 +384,24 @@
                     console.log(`[DB Update] Local currentProfile.monthly_claims for ${updatedMonthKey} updated:`, JSON.parse(JSON.stringify(currentProfile.monthly_claims[updatedMonthKey])));
                 } else {
                     console.warn(`[DB Update] newClaimsData for ${updatedMonthKey} is not an array:`, newClaimsData[updatedMonthKey]);
-                    // Если это не массив, возможно, стоит записать ошибку или обработать по-другому,
-                    // вместо того чтобы молча пропускать или присваивать некорректные данные.
-                    // Пока что, для безопасности, не будем изменять currentProfile.monthly_claims[updatedMonthKey], если это не массив.
+                    // Можно или проигнорировать, или присвоить как есть, или обработать ошибку
+                    // Для безопасности, если это не массив, не будем изменять currentProfile.monthly_claims[updatedMonthKey]
                 }
             } else {
                 console.warn("[DB Update] Could not determine monthYearKey from newClaimsData for local profile update.");
-                // Если ключ не найден, то обновление всего объекта monthly_claims может быть рискованным,
-                // так как newClaimsData содержит только один месяц.
-                // Вместо этого, лучше залогировать и полагаться на последующий fetchUserProfile.
-                // currentProfile.monthly_claims = { ...currentProfile.monthly_claims, ...newClaimsData }; // Это может быть небезопасно
             }
             console.log("[DB Update] monthly_claims update successful. Updated local currentProfile.monthly_claims:", JSON.parse(JSON.stringify(currentProfile.monthly_claims)));
 
-            // Попытка перезагрузить весь профиль для синхронизации остальных данных (если необходимо)
-            // Это также подтвердит, что данные в БД действительно обновились, как ожидалось.
+            // После локального обновления, ЗАПРОСИМ профиль из БД, чтобы синхронизировать ВСЕ поля currentProfile.
+            // Это гарантирует, что updated_at и другие серверные изменения будут отражены.
             const refreshedProfile = await fetchUserProfile(currentUser.id);
             if (refreshedProfile) {
                 currentProfile = refreshedProfile; // Перезаписываем локальный профиль свежими данными из БД
                 console.log("[DB Update] Full profile re-fetched. Current monthly_claims from DB:", JSON.parse(JSON.stringify(currentProfile.monthly_claims)));
             } else {
-                console.warn("[DB Update Monthly] Could not re-fetch profile after updating claims. UI will rely on locally updated monthly_claims.");
+                console.warn("[DB Update Monthly] Could not re-fetch full profile after updating claims. UI will rely on locally updated monthly_claims, but other profile fields might be stale.");
             }
-            // <<<< КОНЕЦ ИЗМЕНЕНИЙ >>>>
+            // <<<< КОНЕЦ ИЗМЕНЕНИЙ (Этап 2) >>>>
             return true;
         } catch (error) {
             console.error("[DB Update] Error updating monthly_claims:", error);
