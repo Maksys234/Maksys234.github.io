@@ -3,7 +3,7 @@
 // ПЛЮС: Исправление обновления currentProfile.monthly_claims (Этап 4)
 // ПЛЮС: Исправление ошибки 406 при обновлении XP в claimMonthlyReward
 // ПЛЮС: Улучшенная обработка ошибок и откат состояния в claimMonthlyReward
-// <<< ИЗМЕНЕНИЕ: Исправлена логика setLoadingState для latestCreditChange и добавлены заглушки для модальных окон >>>
+// <<< ИЗМЕНЕНИЕ: Скорректирована логика setLoadingState для latestCreditChange. Добавлены заглушки для модальных окон. >>>
 (function() {
     'use strict';
 
@@ -200,7 +200,7 @@
     function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
     function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Offline', 'Spojení ztraceno.', 'warning'); }
 
-    // <<< ИЗМЕНЕНО: setLoadingState для latestCreditChange >>>
+    // <<< ИЗМЕНЕНО: Логика для latestCreditChange в setLoadingState >>>
     function setLoadingState(sectionKey, isLoadingFlag) {
         if (!ui || Object.keys(ui).length === 0) { console.error("[SetLoadingState] UI cache not ready."); return; }
         if (isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return;
@@ -264,20 +264,29 @@
             console.log(`[SetLoadingState] Loading state for 'titles' is now ${isLoadingFlag}.`);
         } else if (sectionKey === 'latestCreditChange') {
             if (ui.latestCreditChange) {
-                // Только показываем/скрываем спиннер, не меняем содержимое на '--' при isLoadingFlag = false
                 if (isLoadingFlag) {
                     ui.latestCreditChange.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size: 0.8em;"></i>';
-                } else if (ui.latestCreditChange.innerHTML.includes('fa-spinner')) {
-                    // Если был спиннер, но данные еще не пришли (или ошибка), вернем '--'
-                    // Это условие может понадобиться доработать, если '--' нежелательно после ошибки
-                    if(ui.latestCreditChange.textContent.trim() === '') ui.latestCreditChange.textContent = '--';
+                } else {
+                    // Только убираем спиннер, если он там был.
+                    // Содержимое (число или '--') устанавливается функцией fetchAndDisplayLatestCreditChange.
+                    if (ui.latestCreditChange.innerHTML.includes('fa-spinner')) {
+                        // Если после загрузки fetchAndDisplayLatestCreditChange не успел обновить,
+                        // или если он завершился ошибкой и не установил '--' или 'Chyba',
+                        // тогда можно вернуть '--'. Но в идеале fetchAndDisplayLatestCreditChange
+                        // сам должен позаботиться об отображении ошибки или '--'.
+                        // Оставляем как есть, если там уже число или "Chyba".
+                        // Можно добавить проверку, если там вообще пусто, тогда '--'.
+                        if (ui.latestCreditChange.textContent.trim() === '' || ui.latestCreditChange.innerHTML.includes('fa-spinner')) {
+                             ui.latestCreditChange.textContent = '--';
+                        }
+                    }
                 }
             }
         } else {
             console.warn(`[SetLoadingState] Unknown section key or unhandled UI in dashboard.js: ${sectionKey}`);
         }
     }
-    // <<< КОНЕЦ ИЗМЕНЕНИЙ >>>
+    // <<< КОНЕЦ ИЗМЕНЕНИЙ setLoadingState >>>
 
     function applyInitialSidebarState() { const startTime = performance.now(); if (!ui.sidebarToggleBtn) { console.warn("[Sidebar State] Sidebar toggle button (#sidebar-toggle-btn) not found for initial state application."); return; } try { const savedState = localStorage.getItem(SIDEBAR_STATE_KEY); const shouldBeCollapsed = savedState === 'collapsed'; console.log(`[Sidebar State] Initial read state from localStorage: '${savedState}', Applying collapsed: ${shouldBeCollapsed}`); document.body.classList.toggle('sidebar-collapsed', shouldBeCollapsed); const icon = ui.sidebarToggleBtn.querySelector('i'); if (icon) { icon.className = shouldBeCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; ui.sidebarToggleBtn.setAttribute('aria-label', shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); ui.sidebarToggleBtn.setAttribute('title', shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); const endTime = performance.now(); console.log(`[Sidebar State] Initial icon and attributes set. Icon class: ${icon.className}. Time: ${(endTime - startTime).toFixed(2)}ms`); } else { console.warn("[Sidebar State] Sidebar toggle button icon not found for initial state update."); } } catch (error) { console.error("[Sidebar State] Error applying initial state:", error); document.body.classList.remove('sidebar-collapsed'); } }
     function toggleSidebar() { try { const isCollapsed = document.body.classList.toggle('sidebar-collapsed'); localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded'); const icon = ui.sidebarToggleBtn.querySelector('i'); if (icon) { icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; ui.sidebarToggleBtn.setAttribute('aria-label', isCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); ui.sidebarToggleBtn.setAttribute('title', isCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); } console.log(`[Sidebar Toggle] Sidebar toggled. New state: ${isCollapsed ? 'collapsed' : 'expanded'}`); } catch(e){console.error("[Sidebar Toggle] Error:",e);}}
@@ -676,7 +685,6 @@
         } finally {
             setLoadingState('stats', false);
             setLoadingState('notifications', false);
-            // <<< ИЗМЕНЕНО: Явный сброс состояния для activities и creditHistory >>>
             setLoadingState('activities', false);
             setLoadingState('creditHistory', false);
             setLoadingState('latestCreditChange', false);
@@ -685,7 +693,6 @@
         }
     }
 
-    // <<< НОВОЕ: Функции-заглушки для модальных окон >>>
     function renderMonthlyCalendar() {
         console.log("[STUB] renderMonthlyCalendar called");
         if (ui.modalMonthlyCalendarGrid) ui.modalMonthlyCalendarGrid.innerHTML = '<p style="padding: 1rem; text-align:center;">Měsíční kalendář se připravuje...</p>';
@@ -693,7 +700,6 @@
             const now = new Date();
             ui.modalCurrentMonthYearSpan.textContent = now.toLocaleString('cs-CZ', { month: 'long', year: 'numeric' });
         }
-        // Сброс состояния загрузки, если оно было установлено для этого модального окна
         setLoadingState('monthlyRewards', false);
     }
 
@@ -707,10 +713,8 @@
             if (ui.modalCurrentStreakValue) ui.modalCurrentStreakValue.textContent = '-';
             if (ui.modalLongestStreakValue) ui.modalLongestStreakValue.textContent = '-';
         }
-        // Сброс состояния загрузки
         setLoadingState('streakMilestones', false);
     }
-    // <<< КОНЕЦ НОВЫХ ФУНКЦИЙ-ЗАГЛУШЕК >>>
 
 
     async function initializeApp() {
