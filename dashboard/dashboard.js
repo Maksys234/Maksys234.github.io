@@ -3,7 +3,7 @@
 // ПЛЮС: Исправление обновления currentProfile.monthly_claims (Этап 4)
 // ПЛЮС: Исправление ошибки 406 при обновлении XP в claimMonthlyReward
 // ПЛЮС: Улучшенная обработка ошибок и откат состояния в claimMonthlyReward
-// <<< ИЗМЕНЕНИЕ: Обновлен total-points-footer (описание последней транзакции), убран span latest-credit-change из основной строки. Упрощены модальные окна (без скелетонов). >>>
+// <<< ИЗМЕНЕНИЕ: Реализован календарь наград на Май (Měsíční Odměny), обновлен футер кредитов, скрыт span (+10) у баланса. Milníky Série - заглушка. >>>
 (function() {
     'use strict';
 
@@ -27,16 +27,16 @@
         creditHistory: false,
         notifications: false,
         titles: false,
-        monthlyRewards: false,
-        streakMilestones: false,
+        monthlyRewards: false, // Будет использоваться для оверлея модалки
+        streakMilestones: false, // Будет использоваться для оверлея модалки
         all: false,
         session: false,
         welcomeBanner: false,
         shortcuts: false,
-        latestCreditChange: false // Keep this for internal state if needed, but UI element is hidden
+        // latestCreditChange: false // Больше не нужен для UI, т.к. span скрыт
     };
     const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
-    const MONTHLY_REWARD_DAYS = 31;
+    const MONTHLY_REWARD_DAYS = 31; // Используется для генерации календаря
 
     const STREAK_MILESTONES_CONFIG = {
         3: { name: "Zahřívací Kolečko", description: "3 dny v řadě! Dobrý začátek!", icon: "fa-running", reward_type: "points", reward_value: 5, reward_key: "streak_3_days_points_5" },
@@ -46,10 +46,14 @@
     };
     const sortedMilestoneDays = Object.keys(STREAK_MILESTONES_CONFIG).map(Number).sort((a, b) => a - b);
 
-    const mayRewards = {
-        1: { type: 'title', key: 'majovy_poutnik', name: 'Titul: Májový Poutník', icon: 'fa-hiking', value: null },
-        7: { type: 'credits', key: 'may_credits_10', name: '10 Kreditů', icon: 'fa-coins', value: 10 },
-        14: { type: 'credits', key: 'may_credits_14_day', name: '10 Kreditů (Den 14)', icon: 'fa-coins', value: 10 },
+    // Награды на Май (для примера)
+    const mayRewardsConfig = { // Переименовал для ясности
+        // Ключ - номер дня в Мае
+        1: { type: 'title', key: 'majovy_poutnik', name: 'Titul: Májový Poutník', icon: 'fa-hiking', value: null, description: "Speciální titul za aktivitu na začátku května." },
+        7: { type: 'credits', key: 'may_credits_10_day7', name: '10 Kreditů', icon: 'fa-coins', value: 10, description: "Bonus 10 kreditů za týdenní aktivitu." },
+        14: { type: 'credits', key: 'may_credits_10_day14', name: '10 Kreditů', icon: 'fa-coins', value: 10, description: "Další bonus 10 kreditů." },
+        21: { type: 'badge', key: 'badge_may_commitment', name: 'Odznak: Májové Nasazení', icon: 'fa-leaf', value: 'badge_may_commitment', description: "Odznak za vytrvalost v květnu." },
+        28: { type: 'credits', key: 'may_credits_20_day28', name: '20 Kreditů', icon: 'fa-star', value: 20, description: "Velký kreditní bonus na konci měsíce." }
     };
 
     let ui = {};
@@ -66,7 +70,8 @@
         plan_generated: { name: 'Plán Aktualizován', icon: 'fa-route', class: 'plan_generated' },
         level_up: { name: 'Level UP!', icon: 'fa-angle-double-up', class: 'level_up' },
         streak_milestone_claimed: { name: 'Milník Série', icon: 'fa-meteor', class: 'streak' },
-        monthly_reward_claimed: { name: 'Měsíční Odměna', icon: 'fa-gift', class: 'badge' },
+        monthly_reward_claimed: { name: 'Měsíční Odměna', icon: 'fa-gift', class: 'badge' }, // Используется для лога активности
+        title_awarded: { name: 'Titul Získán', icon: 'fa-crown', class: 'badge' },
         profile_updated: { name: 'Profil Aktualizován', icon: 'fa-user-edit', class: 'other' },
         custom_task_completed: { name: 'Úkol Dokončen', icon: 'fa-check-square', class: 'exercise' },
         points_earned: { name: 'Kredity Získány', icon: 'fa-arrow-up', class: 'points_earned' },
@@ -136,7 +141,7 @@
             { key: 'overallProgressFooter', id: 'overall-progress-footer', critical: false },
             { key: 'pointsCard', id: 'points-card', critical: false },
             { key: 'totalPointsValue', id: 'total-points-value', critical: false },
-            { key: 'latestCreditChange', id: 'latest-credit-change', critical: false }, // Will be hidden
+            { key: 'latestCreditChange', id: 'latest-credit-change', critical: false },
             { key: 'totalPointsFooter', id: 'total-points-footer', critical: false },
             { key: 'streakCard', id: 'streak-card', critical: false },
             { key: 'streakValue', id: 'streak-value', critical: false },
@@ -245,33 +250,33 @@
                 ui.markAllReadBtn.disabled = isLoadingFlag || currentUnreadCount === 0;
             }
             if (isLoadingFlag && ui.notificationsList && typeof renderNotificationSkeletons === 'function') {
-                renderNotificationSkeletons(2); // Assume this function exists
+                renderNotificationSkeletons(2);
                 if(ui.noNotificationsMsg) ui.noNotificationsMsg.style.display = 'none';
             } else if (!isLoadingFlag && ui.notificationsList && ui.noNotificationsMsg && ui.notificationsList.children.length === 0) {
                  if(ui.noNotificationsMsg) ui.noNotificationsMsg.style.display = 'block';
             }
-        // <<< ИЗМЕНЕНО: Упрощено управление загрузкой модальных окон >>>
         } else if (sectionKey === 'monthlyRewards' || sectionKey === 'streakMilestones') {
             const modal = sectionKey === 'monthlyRewards' ? ui.monthlyRewardModal : ui.streakMilestonesModal;
             const modalBody = modal?.querySelector('.modal-body');
-            const loaderOverlay = modalBody?.querySelector('.loading-overlay');
+            const loaderOverlay = modalBody?.querySelector('.loading-overlay'); // HTML должен содержать <div class="loading-overlay hidden">...</div>
 
             if (loaderOverlay) loaderOverlay.classList.toggle('hidden', !isLoadingFlag);
             if (modalBody) modalBody.classList.toggle('loading', isLoadingFlag);
-            // Скелетоны и контент управляются функциями renderMonthlyCalendar/renderStreakMilestones
+            // Скелетоны для контента модалки теперь не управляются отсюда, а из renderMonthlyCalendar/renderStreakMilestones
         } else if (sectionKey === 'titles') {
             console.log(`[SetLoadingState] Loading state for 'titles' is now ${isLoadingFlag}.`);
         } else if (sectionKey === 'latestCreditChange') {
-            // This span is now hidden, but if we were to show a spinner for it:
-            if (ui.latestCreditChange) {
-                if (isLoadingFlag) {
-                    // ui.latestCreditChange.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size: 0.8em;"></i>';
-                } else {
-                    // if (ui.latestCreditChange.innerHTML.includes('fa-spinner')) {
-                    //     ui.latestCreditChange.textContent = '--';
-                    // }
-                }
-            }
+            // Этот span теперь скрыт, так что управление спиннером для него не требуется.
+            // Если бы он был видим и требовал спиннер:
+            // if (ui.latestCreditChange) {
+            //     if (isLoadingFlag) {
+            //         ui.latestCreditChange.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size: 0.8em;"></i>';
+            //     } else {
+            //         if (ui.latestCreditChange.innerHTML.includes('fa-spinner')) {
+            //             ui.latestCreditChange.textContent = '--'; // или оставить пустым, т.к. он скрыт
+            //         }
+            //     }
+            // }
         } else {
             console.warn(`[SetLoadingState] Unknown section key or unhandled UI in dashboard.js: ${sectionKey}`);
         }
@@ -289,25 +294,23 @@
     async function fetchTitles() { const startTime = performance.now(); if (!supabase) return []; console.log("[Titles] Fetching available titles..."); setLoadingState('titles', true); try { const { data, error } = await withTimeout(supabase.from('title_shop').select('title_key, name'), DATA_FETCH_TIMEOUT, new Error('Načítání titulů vypršelo.')); if (error) throw error; const endTime = performance.now(); console.log(`[Titles] Fetched titles. Time: ${(endTime - startTime).toFixed(2)}ms`); return data || []; } catch (error) { console.error("[Titles] Error fetching titles:", error); return []; } finally { setLoadingState('titles', false); } }
     async function fetchUserStats(userId, profileData) { const startTime = performance.now(); if (!supabase || !userId || !profileData) { console.error("[Stats] Chybí Supabase klient, ID uživatele nebo data profilu."); return null; } console.log(`[Stats] Načítání statistik pro uživatele ${userId}...`); let fetchedStats = null; let statsError = null; try { const { data, error } = await supabase.from('user_stats').select('progress, progress_weekly, points_weekly, streak_longest, completed_tests').eq('user_id', userId).maybeSingle(); fetchedStats = data; statsError = error; if (statsError) { console.warn("[Stats] Chyba Supabase při načítání user_stats:", statsError.message); } } catch (error) { console.error("[Stats] Neočekávaná chyba při načítání user_stats:", error); statsError = error; } const finalStats = { progress: fetchedStats?.progress ?? profileData.progress ?? 0, progress_weekly: fetchedStats?.progress_weekly ?? 0, points: profileData.points ?? 0, points_weekly: fetchedStats?.points_weekly ?? 0, streak_current: profileData.streak_days ?? 0, longest_streak_days: profileData.longest_streak_days ?? Math.max(fetchedStats?.streak_longest ?? 0, profileData.streak_days ?? 0), completed_exercises: profileData.completed_exercises ?? 0, completed_tests: profileData.completed_tests ?? fetchedStats?.completed_tests ?? 0 }; const endTime = performance.now(); if (statsError) { console.warn(`[Stats] Vracení statistik primárně z profilu kvůli chybě načítání. Time: ${(endTime - startTime).toFixed(2)}ms`); } else { console.log(`[Stats] Statistiky úspěšně načteny/sestaveny. Time: ${(endTime - startTime).toFixed(2)}ms`); } return finalStats; }
 
-    // <<< ИЗМЕНЕНО: fetchAndDisplayLatestCreditChange теперь возвращает {amount, description} и скрывает ui.latestCreditChange >>>
     async function fetchAndDisplayLatestCreditChange(userId) {
         console.log(`[CreditChange] Fetching latest credit change for user ${userId}...`);
-        if (ui.latestCreditChange) { // Скрываем этот span, так как информация будет в футере
+        // Скрываем span #latest-credit-change, так как он больше не нужен в основной строке
+        if (ui.latestCreditChange) {
             ui.latestCreditChange.innerHTML = '';
             ui.latestCreditChange.style.display = 'none';
         }
 
         if (!supabase || !userId ) {
             console.warn("[CreditChange] Missing Supabase or userId.");
-            // setLoadingState('latestCreditChange', false); // No longer needed to manage spinner here directly
             return null;
         }
-        // setLoadingState('latestCreditChange', true); // No longer needed to manage spinner here directly
 
         try {
             const { data, error } = await supabase
                 .from('credit_transactions')
-                .select('amount, description, created_at') // Добавляем description
+                .select('amount, description, created_at')
                 .eq('user_id', userId)
                 .order('created_at', { ascending: false })
                 .limit(1)
@@ -321,14 +324,12 @@
                 console.log(`[CreditChange] Latest change: ${data.amount}, Description: ${data.description}`);
                 return { amount: data.amount, description: data.description };
             } else {
-                console.log('[CreditChange] No credit transactions found or amount is undefined.');
+                console.log('[CreditChange] No credit transactions found.');
                 return null;
             }
         } catch (error) {
             console.error('[CreditChange] Error fetching latest credit change:', error);
             return null;
-        } finally {
-            // setLoadingState('latestCreditChange', false); // No longer needed to manage spinner here directly
         }
     }
 
@@ -435,7 +436,7 @@
                 .from('profiles')
                 .update({ monthly_claims: newClaimsData, updated_at: new Date().toISOString() })
                 .eq('id', currentUser.id)
-                .select('monthly_claims');
+                .select('monthly_claims'); // Возвращаем обновленные данные
 
             if (dbUpdateError) {
                 console.error("[DB Update] Supabase UPDATE error:", dbUpdateError);
@@ -444,12 +445,14 @@
 
             if (!updateResult || updateResult.length === 0) {
                 console.warn("[DB Update] Supabase update operation returned 0 rows or no data. Monthly claims might not have been saved to DB.");
-                throw new Error("Aktualizace v databázi nevrátila data.");
+                // Не бросаем ошибку, если обновление прошло, но ничего не вернуло (хотя select должен вернуть)
+                // Обновляем локальный профиль на основе того, что отправили
+                currentProfile.monthly_claims = newClaimsData;
+            } else {
+                 currentProfile.monthly_claims = updateResult[0].monthly_claims; // Обновляем из ответа БД
             }
 
-            console.log(`[DB Update] Database update successful. Result from DB:`, JSON.parse(JSON.stringify(updateResult)), `Time: ${(performance.now() - functionStartTime).toFixed(2)}ms`);
-            currentProfile.monthly_claims = updateResult[0].monthly_claims;
-            console.log("[DB Update] Local currentProfile.monthly_claims updated from DB response:", JSON.parse(JSON.stringify(currentProfile.monthly_claims)));
+            console.log(`[DB Update] Database update successful. Local currentProfile.monthly_claims updated:`, JSON.parse(JSON.stringify(currentProfile.monthly_claims)));
             const functionEndTime = performance.now();
             console.log(`[DB Update] updateMonthlyClaimsInDB finished successfully. Total time: ${(functionEndTime - functionStartTime).toFixed(2)}ms`);
             return true;
@@ -480,9 +483,9 @@
                     .eq('id', currentUser.id);
                 if (profileUpdateError) { console.error(`[DB Update] Error updating profiles.last_milestone_claimed for ${milestoneDay}:`, profileUpdateError); }
                 else {
-                    const refreshedProfile = await fetchUserProfile(currentUser.id);
+                    const refreshedProfile = await fetchUserProfile(currentUser.id); // Обновляем профиль, чтобы получить актуальное last_milestone_claimed
                     if (refreshedProfile) currentProfile = refreshedProfile;
-                    else currentProfile.last_milestone_claimed = milestoneDay;
+                    else currentProfile.last_milestone_claimed = milestoneDay; // Fallback
                     console.log(`[DB Update] profiles.last_milestone_claimed updated to ${milestoneDay}.`);
                 }
             }
@@ -505,7 +508,7 @@
             if (profileUpdateError) throw profileUpdateError;
             console.log("[Points] Points successfully updated in DB.");
 
-            currentProfile.points = newPoints;
+            currentProfile.points = newPoints; // Обновляем локальный профиль
             currentProfile.updated_at = new Date().toISOString();
             console.log("[Points] Local currentProfile.points updated:", currentProfile.points);
 
@@ -516,19 +519,22 @@
             if (pointsValue > 0) { showToast('Kredity Získány!', `+${pointsValue} kreditů za: ${reason}`, 'success', 2500); }
             else if (pointsValue < 0) { showToast('Kredity Utraceny!', `${pointsValue} kreditů za: ${reason}`, 'info', 2500); }
 
+            // Обновляем статы и футер кредитов после изменения очков
             userStatsData = await fetchUserStats(currentUser.id, currentProfile); // Обновляем userStatsData
-            const latestTxForFooter = await fetchAndDisplayLatestCreditChange(currentUser.id); // Получаем данные для футера
+            const latestTxData = await fetchAndDisplayLatestCreditChange(currentUser.id); // Получаем данные для футера
             updateStatsCards(userStatsData); // Обновляем карточки (установит weekly)
             
-            // Дополнительно обновляем футер кредитов на основе последней транзакции, если weekly = 0
-            if (ui.totalPointsFooter && userStatsData && (userStatsData.points_weekly === 0 || userStatsData.points_weekly == null) && latestTxForFooter) {
-                 const sign = latestTxForFooter.amount > 0 ? '+' : (latestTxForFooter.amount < 0 ? '' : '');
-                 const desc = latestTxForFooter.description || `Transakce: ${sign}${latestTxForFooter.amount}`;
-                 const amountColorClass = latestTxForFooter.amount > 0 ? 'positive' : (latestTxForFooter.amount < 0 ? 'negative' : '');
-                 ui.totalPointsFooter.innerHTML = `<i class="fas fa-history"></i> Poslední: <span title="${sanitizeHTML(desc)}" style="font-weight:bold;" class="${amountColorClass}">${sign}${latestTxForFooter.amount}</span>`;
+            if (ui.totalPointsFooter && userStatsData && (userStatsData.points_weekly === 0 || userStatsData.points_weekly == null) && latestTxData) {
+                 const sign = latestTxData.amount > 0 ? '+' : (latestTxData.amount < 0 ? '' : '');
+                 const descText = latestTxData.description || `Transakce`;
+                 let displayDesc = descText;
+                 if (displayDesc.length > 25) displayDesc = displayDesc.substring(0, 22) + "...";
+                 const amountColorClass = latestTxData.amount > 0 ? 'positive' : (latestTxData.amount < 0 ? 'negative' : '');
+
+                 ui.totalPointsFooter.innerHTML = `<i class="fas fa-history"></i> <span title="${sanitizeHTML(descText)}: ${sign}${latestTxData.amount}">${sanitizeHTML(displayDesc)}: <span style="font-weight:bold;" class="${amountColorClass}">${sign}${latestTxData.amount}</span></span>`;
                  ui.totalPointsFooter.classList.remove('positive', 'negative');
-                 if(latestTxForFooter.amount > 0) ui.totalPointsFooter.classList.add('positive');
-                 if(latestTxForFooter.amount < 0) ui.totalPointsFooter.classList.add('negative');
+                 if(latestTxData.amount > 0) ui.totalPointsFooter.classList.add('positive');
+                 if(latestTxData.amount < 0) ui.totalPointsFooter.classList.add('negative');
             }
 
 
@@ -545,6 +551,52 @@
             setLoadingState('stats', false);
         }
     }
+
+    // <<< НОВАЯ ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ: Начисление титула >>>
+    async function awardUserTitle(titleKey, titleName, reason = "Měsíční odměna") {
+        if (!currentProfile || !currentUser || !supabase) {
+            console.error("Cannot award title: Missing profile, user or supabase.");
+            return false;
+        }
+        if (currentProfile.purchased_titles && currentProfile.purchased_titles.includes(titleKey)) {
+            showToast("Titul již vlastněn", `Titul "${titleName}" již máte.`, "info");
+            return true; // Считаем успешным, так как титул уже есть
+        }
+
+        const newTitles = [...(currentProfile.purchased_titles || []), titleKey];
+        let newSelectedTitle = currentProfile.selected_title;
+        if (!newSelectedTitle) { // Автоматически выбрать, если никакой не выбран
+            newSelectedTitle = titleKey;
+        }
+
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({
+                    purchased_titles: newTitles,
+                    selected_title: newSelectedTitle,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', currentUser.id);
+
+            if (error) throw error;
+
+            currentProfile.purchased_titles = newTitles;
+            currentProfile.selected_title = newSelectedTitle;
+            currentProfile.updated_at = new Date().toISOString();
+
+            await logActivity(currentUser.id, 'title_awarded', `Získán titul: ${titleName}`, `Důvod: ${reason}. Klíč: ${titleKey}`);
+            showToast("Nový titul získán!", `Gratulujeme k titulu: "${titleName}"!`, 'success');
+            updateSidebarProfile(currentProfile); // Обновить сайдбар, если выбранный титул изменился
+            return true;
+        } catch (error) {
+            console.error("Error awarding title:", error);
+            showToast("Chyba", "Nepodařilo se udělit titul.", "error");
+            return false;
+        }
+    }
+    // <<< КОНЕЦ НОВОЙ ФУНКЦИИ >>>
+
     async function logActivity(userId, type, title, description = null, details = null, link_url = null, reference_id = null, icon = null) { if (!supabase || !userId) { console.error("Cannot log activity: Supabase client or user ID is missing."); return; } console.log(`[Log Activity] Logging: User ${userId}, Type: ${type}, Title: ${title}`); try { const { error } = await supabase.from('activities').insert({ user_id: userId, type: type, title: title, description: description, details: details, link_url: link_url, reference_id: reference_id, icon: icon || activityVisuals[type]?.icon || activityVisuals.default.icon }); if (error) { console.error("Error logging activity:", error); } else { console.log("Activity logged successfully."); if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderRecentActivities === 'function' && window.location.pathname.includes('dashboard.html')) { await DashboardLists.loadAndRenderRecentActivities(userId, 5); } } } catch (err) { console.error("Exception during activity logging:", err); } }
 
     async function fetchNotifications(userId, limit = 5) { const startTime = performance.now(); if (!supabase || !userId) { console.error("[Notifications] Chybí Supabase nebo ID uživatele."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications] Načítání nepřečtených oznámení pro uživatele ${userId}`); try { const { data, error, count } = await withTimeout(supabase.from('user_notifications').select('*', { count: 'exact' }).eq('user_id', userId).eq('is_read', false).order('created_at', { ascending: false }).limit(limit), DATA_FETCH_TIMEOUT, new Error('Načítání notifikací vypršelo.')); if (error) throw error; const endTime = performance.now(); console.log(`[Notifications] Načteno ${data?.length || 0} oznámení. Celkem nepřečtených: ${count}. Time: ${(endTime - startTime).toFixed(2)}ms`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications] Výjimka při načítání oznámení:", error); return { unreadCount: 0, notifications: [] }; } }
@@ -573,7 +625,7 @@
         }
         cards.forEach(card => card?.classList.remove('loading'));
 
-        // Скрываем span latestCreditChange, так как он больше не используется в основной строке
+        // Скрываем span latestCreditChange по умолчанию
         if (ui.latestCreditChange) {
             ui.latestCreditChange.innerHTML = '';
             ui.latestCreditChange.style.display = 'none';
@@ -583,7 +635,7 @@
             console.warn("[UI Update Stats] Chybí data statistik, zobrazuji placeholder.");
             if(statElements.progress) statElements.progress.textContent = '- %';
             if(ui.totalPointsValue) {
-                 ui.totalPointsValue.textContent = `- `; // Только основное значение
+                 ui.totalPointsValue.textContent = `- `;
             }
             if(statElements.streak) statElements.streak.textContent = '-';
             if(statElements.progressFooter) statElements.progressFooter.innerHTML = `<i class="fas fa-minus"></i> Načítání...`;
@@ -608,12 +660,15 @@
         statElements.progressFooter.innerHTML = progressFooterHTML;
 
         const pointsValue = stats.points ?? 0;
-        // Обновляем только текстовое содержимое элемента totalPointsValue, не трогая span (который теперь скрыт)
+        // Обновляем только текстовое содержимое элемента totalPointsValue
         if (ui.totalPointsValue.firstChild && ui.totalPointsValue.firstChild.nodeType === Node.TEXT_NODE) {
             ui.totalPointsValue.firstChild.nodeValue = `${pointsValue} `;
         } else {
-            // Если текстового узла нет или он не первый, просто устанавливаем текст
+            // Если текстового узла нет или он не первый, просто устанавливаем текст,
+            // убедившись, что span (если он был) не перезаписан
+            const existingSpan = ui.totalPointsValue.querySelector('#latest-credit-change');
             ui.totalPointsValue.textContent = `${pointsValue} `;
+            if(existingSpan) ui.totalPointsValue.appendChild(existingSpan); // Возвращаем, если был
         }
 
 
@@ -624,9 +679,7 @@
             if (weeklyPoints > 0) statElements.pointsFooter.classList.add('positive');
             else statElements.pointsFooter.classList.add('negative');
         } else {
-            // Если weeklyPoints 0, оставляем дефолтное "--", которое позже может быть заменено
-            // информацией о последней транзакции из loadDashboardData
-            statElements.pointsFooter.innerHTML = `<i class="fas fa-minus"></i> --`;
+            statElements.pointsFooter.innerHTML = `<i class="fas fa-minus"></i> --`; // Будет перезаписано в loadDashboardData если есть последняя транзакция
         }
 
 
@@ -654,10 +707,10 @@
         setLoadingState('notifications', true);
         setLoadingState('activities', true);
         setLoadingState('creditHistory', true);
-        // setLoadingState('latestCreditChange', true); // No longer needed for a visible spinner
+        // setLoadingState('latestCreditChange', true); // Span #latestCreditChange теперь скрыт
 
         try {
-            await checkAndUpdateLoginStreak();
+            await checkAndUpdateLoginStreak(); // Обновляет currentProfile, если нужно
             updateSidebarProfile(currentProfile);
             console.log("[MAIN] loadDashboardData: Paralelní načítání...");
 
@@ -666,9 +719,9 @@
             const dashboardListsResultPromise = (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderAll === 'function')
                 ? DashboardLists.loadAndRenderAll(user.id, 5)
                 : Promise.resolve({ status: 'fulfilled', value: console.warn("DashboardLists.loadAndRenderAll not found.") });
-            const latestCreditDataPromise = fetchAndDisplayLatestCreditChange(user.id); // Возвращает {amount, description} или null
+            const latestCreditDataPromise = fetchAndDisplayLatestCreditChange(user.id);
 
-            const [statsResult, notificationsResult, dashboardListsResult, latestCreditData] = await Promise.allSettled([
+            const [statsResult, notificationsResult, dashboardListsResult, latestCreditDataResult] = await Promise.allSettled([
                 statsResultPromise,
                 notificationsResultPromise,
                 dashboardListsResultPromise,
@@ -678,12 +731,12 @@
             console.log("[MAIN] loadDashboardData: Основные данные получены.");
 
             if (statsResult.status === 'fulfilled' && statsResult.value) {
-                userStatsData = statsResult.value; // userStatsData теперь доступен глобально в этой IIFE
+                userStatsData = statsResult.value;
                 updateStatsCards(userStatsData); // Обновляет карточки, включая pointsFooter по weekly_points
             } else {
                 console.error("❌ Chyba při načítání statistik:", statsResult.reason);
                 showError("Nepodařilo se načíst statistiky.", false);
-                updateStatsCards(currentProfile);
+                updateStatsCards(currentProfile); // Fallback
             }
 
             if (notificationsResult.status === 'fulfilled' && notificationsResult.value) {
@@ -698,35 +751,32 @@
                 console.error("❌ Chyba при DashboardLists.loadAndRenderAll:", dashboardListsResult.reason);
             }
 
-            // <<< ИЗМЕНЕНО: Логика обновления total-points-footer >>>
-            if (latestCreditData.status === 'fulfilled' && latestCreditData.value) {
-                const lastTx = latestCreditData.value; // { amount, description }
+            // Обновляем total-points-footer на основе последней транзакции, если weekly_points = 0
+            if (latestCreditDataResult.status === 'fulfilled' && latestCreditDataResult.value) {
+                const lastTx = latestCreditDataResult.value; // { amount, description }
+                // Убедимся, что userStatsData уже загружены и доступны
                 if (ui.totalPointsFooter && userStatsData && (userStatsData.points_weekly === 0 || userStatsData.points_weekly == null)) {
                     const amount = lastTx.amount;
-                    const description = lastTx.description || `Transakce`; // Дефолтное описание
+                    const description = lastTx.description || `Transakce`;
                     const sign = amount > 0 ? '+' : (amount < 0 ? '' : '');
                     const amountColorClass = amount > 0 ? 'positive' : (amount < 0 ? 'negative' : '');
                     
-                    // Формируем текстовое описание для title, если оно длинное
-                    let fullDescription = `${description}: ${sign}${amount}`;
                     let displayDescription = description;
-                    // Простое усечение, если необходимо (можно улучшить)
-                    if (displayDescription.length > 25) {
+                    if (displayDescription.length > 25) { // Простое усечение для отображения
                         displayDescription = displayDescription.substring(0, 22) + "...";
                     }
-
-                    ui.totalPointsFooter.innerHTML = `<i class="fas fa-history"></i> <span title="${sanitizeHTML(fullDescription)}">${sanitizeHTML(displayDescription)}: <span style="font-weight:bold;" class="${amountColorClass}">${sign}${amount}</span></span>`;
-                    ui.totalPointsFooter.classList.remove('positive', 'negative'); // Убираем классы от weekly
+                    // Используем title для полного описания
+                    ui.totalPointsFooter.innerHTML = `<i class="fas fa-history"></i> <span title="${sanitizeHTML(description)}: ${sign}${amount}">${sanitizeHTML(displayDescription)}: <span style="font-weight:bold;" class="${amountColorClass}">${sign}${amount}</span></span>`;
+                    ui.totalPointsFooter.classList.remove('positive', 'negative'); // Убираем предыдущие классы
                     if(amount > 0) ui.totalPointsFooter.classList.add('positive');
                     if(amount < 0) ui.totalPointsFooter.classList.add('negative');
                 }
-            } else if (latestCreditData.status === 'rejected') {
-                console.error("❌ Chyba при получении данных о последней транзакции для футера:", latestCreditData.reason);
-                 if (ui.totalPointsFooter && userStatsData && (userStatsData.points_weekly === 0 || userStatsData.points_weekly == null)){
-                    ui.totalPointsFooter.innerHTML = `<i class="fas fa-exclamation-circle"></i> Info o posl. trans. chybí`;
-                 }
+            } else if (latestCreditDataResult.status === 'rejected') {
+                console.error("❌ Chyba при получении данных о последней транзакции для футера:", latestCreditDataResult.reason);
+                if (ui.totalPointsFooter && userStatsData && (userStatsData.points_weekly === 0 || userStatsData.points_weekly == null)){
+                   ui.totalPointsFooter.innerHTML = `<i class="fas fa-exclamation-circle"></i> Info o posl. trans. chybí`;
+                }
             }
-            // <<< КОНЕЦ ИЗМЕНЕНИЯ >>>
 
 
             const endTime = performance.now();
@@ -740,43 +790,184 @@
                 if (typeof DashboardLists.renderActivities === 'function') DashboardLists.renderActivities(null);
                 if (typeof DashboardLists.renderCreditHistory === 'function') DashboardLists.renderCreditHistory(null);
             }
-            if (ui.latestCreditChange) ui.latestCreditChange.style.display = 'none'; // Убедимся, что скрыт
+            if (ui.latestCreditChange) ui.latestCreditChange.style.display = 'none';
             if (ui.totalPointsFooter) ui.totalPointsFooter.innerHTML = `<i class="fas fa-exclamation-circle"></i> Chyba`;
         } finally {
             setLoadingState('stats', false);
             setLoadingState('notifications', false);
             setLoadingState('activities', false);
             setLoadingState('creditHistory', false);
-            // setLoadingState('latestCreditChange', false); // Больше не управляет видимым спиннером
+            // setLoadingState('latestCreditChange', false); // Не управляет видимым спиннером
             if (typeof initTooltips === 'function') initTooltips();
             console.log("[MAIN] loadDashboardData: Blok finally dokončen.");
         }
     }
 
-    // <<< ИЗМЕНЕНЫ ЗАГЛУШКИ МОДАЛЬНЫХ ОКОН: Убраны скелетоны, сразу текст >>>
-    function renderMonthlyCalendar() {
-        console.log("[STUB] renderMonthlyCalendar called - displaying placeholder text.");
-        setLoadingState('monthlyRewards', true); // Показываем общий оверлей загрузки модалки
+    // <<< ИЗМЕНЕНО: Логика отображения и получения наград в Měsíční Odměny (Май) >>>
+    async function handleMonthlyRewardClaim(day, rewardConfig) {
+        console.log(`[Monthly Reward] Attempting to claim reward for day ${day}:`, rewardConfig);
+        if (!currentUser || !currentProfile || !supabase || !rewardConfig) {
+            showToast('Chyba', 'Nelze vyzvednout odměnu.', 'error');
+            return;
+        }
 
-        if (ui.modalCurrentMonthYearSpan) {
-            const now = new Date();
-            ui.modalCurrentMonthYearSpan.textContent = now.toLocaleString('cs-CZ', { month: 'long', year: 'numeric' });
+        const currentMonthYearKey = getCurrentMonthYearString(); // e.g., "2025-05"
+        const claimedDaysForMonth = currentProfile.monthly_claims?.[currentMonthYearKey] || [];
+
+        if (claimedDaysForMonth.includes(day)) {
+            showToast('Již vyzvednuto', 'Tato odměna již byla vyzvednuta.', 'info');
+            return;
         }
-        if (ui.modalMonthlyCalendarGrid) {
-            ui.modalMonthlyCalendarGrid.innerHTML = '<p style="padding: 1rem; text-align:center; color: var(--text-medium);">Měsíční kalendář odměn se připravuje.</p>';
-            ui.modalMonthlyCalendarGrid.style.display = 'block';
+        
+        // Блокируем кнопку на время операции
+        const dayCell = ui.modalMonthlyCalendarGrid.querySelector(`.calendar-day[data-day="${day}"]`);
+        const claimButton = dayCell?.querySelector('button');
+        if(claimButton) claimButton.disabled = true;
+
+        let success = false;
+        let awardedSomething = false;
+
+        if (rewardConfig.type === 'credits' && rewardConfig.value) {
+            await awardPoints(rewardConfig.value, `Měsíční odměna (${day}. den): ${rewardConfig.name}`, 'monthly_reward', null, true); // suppressActivityLog = true, т.к. ниже будет свой лог
+            awardedSomething = true;
+        } else if (rewardConfig.type === 'title' && rewardConfig.key) {
+            awardedSomething = await awardUserTitle(rewardConfig.key, rewardConfig.name, `Měsíční odměna (${day}. den)`);
+        } else if (rewardConfig.type === 'badge' && rewardConfig.key) {
+            // TODO: Implement awardUserBadge function similar to awardUserTitle
+            // For now, just log and show toast
+            console.log(`[Monthly Reward] Placeholder for awarding badge: ${rewardConfig.key} - ${rewardConfig.name}`);
+            showToast('Odměna (Odznak)', `Odznak "${rewardConfig.name}" bude brzy implementován.`, 'info');
+            // awardedSomething = await awardUserBadge(rewardConfig.key, rewardConfig.name, `Měsíční odměna (${day}. den)`);
+            awardedSomething = true; // Считаем успешным, чтобы обновить UI
         }
+
+        if (awardedSomething) {
+            // Обновляем monthly_claims локально и в БД
+            const newMonthlyClaims = { ...currentProfile.monthly_claims };
+            if (!newMonthlyClaims[currentMonthYearKey]) {
+                newMonthlyClaims[currentMonthYearKey] = [];
+            }
+            newMonthlyClaims[currentMonthYearKey].push(day);
+
+            const dbUpdateSuccess = await updateMonthlyClaimsInDB(newMonthlyClaims);
+            if (dbUpdateSuccess) {
+                currentProfile.monthly_claims = newMonthlyClaims; // Обновляем локальный профиль
+                await logActivity(currentUser.id, 'monthly_reward_claimed', `Vyzvednuta měsíční odměna (${day}. den)`, `${rewardConfig.name}`, { day: day, reward: rewardConfig });
+                showToast('Odměna Vyzvednuta!', `Úspěšně jste vyzvedli: ${rewardConfig.name}`, 'success');
+                success = true;
+            } else {
+                showToast('Chyba Ukládání', 'Odměna byla připsána, ale nepodařilo se uložit informaci o vyzvednutí.', 'warning');
+                // Потенциально нужно откатить награду, если сохранение критично, но это сложнее.
+                // Пока что оставляем награду, но UI не обновится как "получено навсегда".
+            }
+        } else if (rewardConfig.type !== 'credits' && rewardConfig.type !== 'title' && rewardConfig.type !== 'badge') {
+             showToast('Neznámá odměna', 'Typ odměny není podporován.', 'error');
+        }
+
+
+        // Обновляем календарь, чтобы отразить изменения
+        renderMonthlyCalendar(); // Это перерисует весь календарь с актуальными данными
+    }
+
+
+    function renderMonthlyCalendar() {
+        console.log("[Monthly Reward] Rendering calendar...");
+        setLoadingState('monthlyRewards', true); // Показываем оверлей загрузки модалки
+
+        if (!ui.modalMonthlyCalendarGrid || !ui.modalCurrentMonthYearSpan || !currentProfile) {
+            console.error("[Monthly Reward] Missing UI elements or profile for calendar.");
+            if(ui.modalMonthlyCalendarGrid) ui.modalMonthlyCalendarGrid.innerHTML = '<p class="text-danger">Chyba načítání kalendáře.</p>';
+            setLoadingState('monthlyRewards', false);
+            return;
+        }
+
+        const now = new Date();
+        const currentRealDay = now.getDate();
+        const currentRealMonth = now.getMonth(); // 0-11
+        const currentRealYear = now.getFullYear();
+
+        // Для примера используем текущий месяц, но награды пока только для Мая (month = 4)
+        // TODO: В будущем загружать награды для currentRealMonth, currentRealYear из БД
+        const displayMonth = currentRealMonth; // 0-11
+        const displayYear = currentRealYear;
+
+        ui.modalCurrentMonthYearSpan.textContent = new Date(displayYear, displayMonth).toLocaleString('cs-CZ', { month: 'long', year: 'numeric' });
+
+        const daysInMonth = new Date(displayYear, displayMonth + 1, 0).getDate();
+        const firstDayOfMonth = new Date(displayYear, displayMonth, 1).getDay(); // 0 (Sun) - 6 (Sat), adjusting for Monday start
+        const dayOffset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
+
+        const currentMonthYearKey = `${displayYear}-${String(displayMonth + 1).padStart(2, '0')}`; // e.g., "2025-05"
+        const claimedDays = currentProfile.monthly_claims?.[currentMonthYearKey] || [];
+
+        let calendarHTML = '';
+
+        // Пустые ячейки для начала месяца
+        for (let i = 0; i < dayOffset; i++) {
+            calendarHTML += `<div class="calendar-day empty"></div>`;
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const rewardConfig = (displayMonth === 4) ? mayRewardsConfig[day] : null; // Награды только для Мая (0-indexed month 4)
+            const isClaimed = claimedDays.includes(day);
+            const isPastOrToday = displayYear < currentRealYear || 
+                                 (displayYear === currentRealYear && displayMonth < currentRealMonth) ||
+                                 (displayYear === currentRealYear && displayMonth === currentRealMonth && day <= currentRealDay);
+            
+            let dayClass = 'calendar-day';
+            let content = `<div class="day-number">${day}</div>`;
+            let rewardInfoHTML = '';
+
+            if (rewardConfig) {
+                dayClass += ' has-reward';
+                rewardInfoHTML = `<div class="reward-icon" title="${sanitizeHTML(rewardConfig.description || rewardConfig.name)}"><i class="fas ${sanitizeHTML(rewardConfig.icon || 'fa-question-circle')}"></i></div>
+                                  <div class="reward-name">${sanitizeHTML(rewardConfig.name)}</div>`;
+
+                if (isClaimed) {
+                    dayClass += ' claimed';
+                    content += rewardInfoHTML;
+                    content += `<div class="reward-status"><i class="fas fa-check-circle"></i> Vyzvednuto</div>`;
+                } else if (isPastOrToday) {
+                    dayClass += ' claimable';
+                    content += rewardInfoHTML;
+                    content += `<button class="btn btn-sm btn-claim-month-reward" data-day="${day}">Vyzvednout</button>`;
+                } else { // Future reward
+                    dayClass += ' future-reward';
+                    content += rewardInfoHTML;
+                    content += `<div class="reward-status">Bude dostupné</div>`;
+                }
+            } else {
+                dayClass += ' no-reward';
+            }
+             if (displayYear === currentRealYear && displayMonth === currentRealMonth && day === currentRealDay) {
+                dayClass += ' today';
+            }
+
+            calendarHTML += `<div class="${dayClass}" data-day="${day}">${content}</div>`;
+        }
+
+        ui.modalMonthlyCalendarGrid.innerHTML = calendarHTML;
+        ui.modalMonthlyCalendarGrid.style.display = 'grid';
         if (ui.modalMonthlyCalendarEmpty) ui.modalMonthlyCalendarEmpty.style.display = 'none';
 
-        // Имитируем завершение "загрузки" заглушки
-        setTimeout(() => {
-             setLoadingState('monthlyRewards', false); // Скрываем оверлей
-        }, 500); // Короткая задержка, чтобы оверлей успел показаться, если он есть
+        // Добавляем обработчики событий для кнопок "Vyzvednout"
+        ui.modalMonthlyCalendarGrid.querySelectorAll('.btn-claim-month-reward').forEach(button => {
+            button.addEventListener('click', async (event) => {
+                const dayToClaim = parseInt(event.target.dataset.day);
+                const rewardForDay = (displayMonth === 4) ? mayRewardsConfig[dayToClaim] : null;
+                if (rewardForDay) {
+                    await handleMonthlyRewardClaim(dayToClaim, rewardForDay);
+                }
+            });
+        });
+
+        setLoadingState('monthlyRewards', false); // Скрываем оверлей загрузки
     }
+
 
     function renderStreakMilestones() {
         console.log("[STUB] renderStreakMilestones called - displaying placeholder text.");
-        setLoadingState('streakMilestones', true); // Показываем общий оверлей загрузки модалки
+        setLoadingState('streakMilestones', true);
 
         if (currentProfile) {
             if (ui.modalCurrentStreakValue) ui.modalCurrentStreakValue.textContent = currentProfile.streak_days || 0;
@@ -785,17 +976,18 @@
             if (ui.modalCurrentStreakValue) ui.modalCurrentStreakValue.textContent = '-';
             if (ui.modalLongestStreakValue) ui.modalLongestStreakValue.textContent = '-';
         }
+
         if (ui.modalMilestonesGrid) {
+            // TODO: Implement actual streak milestone rendering based on STREAK_MILESTONES_CONFIG and claimed_streak_milestones
             ui.modalMilestonesGrid.innerHTML = '<p style="padding: 1rem; text-align:center; color: var(--text-medium);">Přehled milníků studijní série se připravuje.</p>';
             ui.modalMilestonesGrid.style.display = 'block';
         }
         if (ui.modalMilestonesEmpty) ui.modalMilestonesEmpty.style.display = 'none';
 
         setTimeout(() => {
-            setLoadingState('streakMilestones', false); // Скрываем оверлей
+            setLoadingState('streakMilestones', false);
         }, 500);
     }
-    // <<< КОНЕЦ ИЗМЕНЕНИЙ ЗАГЛУШЕК МОДАЛЬНЫХ ОКОН >>>
 
 
     async function initializeApp() {
@@ -996,7 +1188,7 @@
 
     function isSameDate(date1, date2) { if (!date1 || !date2) return false; const d1 = new Date(date1); const d2 = new Date(date2); return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate(); }
     function isYesterday(date1, date2) { if (!date1 || !date2) return false; const yesterday = new Date(date2); yesterday.setDate(yesterday.getDate() - 1); return isSameDate(date1, yesterday); }
-    function getCurrentMonthYearString() { const now = new Date(); const year = now.getFullYear(); const month = String(now.getMonth() + 1).padStart(2, '0'); return `${year}-${month}`; }
+    function getCurrentMonthYearString() { const now = new Date(); const year = now.getFullYear(); const month = String(now.getMonth() + 1).padStart(2, '0'); return `${year}-${month}`; } // e.g. "2025-05"
     function showModal(modalId) { const modal = document.getElementById(modalId); if (modal) { console.log(`[Modal] Opening modal: ${modalId}`); modal.style.display = 'flex'; if (modalId === 'monthly-reward-modal' && typeof renderMonthlyCalendar === 'function') { renderMonthlyCalendar(); } else if (modalId === 'streak-milestones-modal' && typeof renderStreakMilestones === 'function') { renderStreakMilestones(); } requestAnimationFrame(() => { modal.classList.add('active'); }); } else { console.error(`Modal element not found: #${modalId}`); } }
     function hideModal(modalId) { const modal = document.getElementById(modalId); if (modal) { console.log(`[Modal] Closing modal: ${modalId}`); modal.classList.remove('active'); setTimeout(() => { modal.style.display = 'none'; }, 300); } }
     const initMouseFollower = () => { const follower = ui.mouseFollower; if (!follower || window.innerWidth <= 576) return; let hasMoved = false; const updatePosition = (event) => { if (!hasMoved) { document.body.classList.add('mouse-has-moved'); hasMoved = true; } requestAnimationFrame(() => { follower.style.left = `${event.clientX}px`; follower.style.top = `${event.clientY}px`; }); }; window.addEventListener('mousemove', updatePosition, { passive: true }); document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; }); document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; }); window.addEventListener('touchstart', () => { if(follower) follower.style.display = 'none'; }, { passive: true, once: true }); };
