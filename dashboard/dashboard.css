@@ -73,6 +73,7 @@
      --gradient-danger: linear-gradient(135deg, var(--accent-pink), #b5179e);
      --gradient-warning: linear-gradient(135deg, var(--accent-orange), #f3722c);
      --gradient-info: linear-gradient(135deg, var(--accent-cyan), #277eed);
+     --gradient-locked: linear-gradient(135deg, rgba(var(--text-muted-rgb),0.1), rgba(var(--text-muted-rgb),0.2));
 
 
     /* Шрифты */
@@ -656,15 +657,14 @@ body.scrolled .dashboard-header {
 
 .activity-item {
     display: flex;
-    /* align-items: flex-start; OLD - replaced with center */
-    align-items: center; /* <<< MODIFICATION: Align items vertically to center */
-    padding: 1.1rem 1.3rem; /* Компактнее */
+    align-items: center; 
+    padding: 1.1rem 1.3rem; 
     border-bottom: 1px solid var(--border-color-light);
     transition: background-color 0.25s ease, transform 0.2s ease;
-    gap: 1rem; /* Пространство между иконкой и контентом */
+    gap: 1rem; 
     position: relative;
     overflow: hidden;
-    min-height: 70px; /* Базовая минимальная высота для выравнивания */
+    min-height: 70px; 
 }
 .activity-item::before {
     content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
@@ -676,18 +676,16 @@ body.scrolled .dashboard-header {
 .activity-item:last-child { border-bottom: none; }
 
 .activity-icon {
-    width: 38px; height: 38px; /* Фиксированный размер иконки */
+    width: 38px; height: 38px; 
     border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem; color: var(--white); flex-shrink: 0; /* Не сжимать иконку */
+    font-size: 1.1rem; color: var(--white); flex-shrink: 0; 
     box-shadow: 0 3px 7px rgba(0,0,0,0.2);
     text-shadow: 0 1px 1px rgba(0,0,0,0.3);
     transition: transform 0.2s ease, filter 0.2s ease;
-    /* margin-top: 2px; <<< MODIFICATION: Removed to allow align-items: center to work properly */
 }
 .activity-item:hover .activity-icon { filter: brightness(1.1); transform: scale(1.02); }
 
-/* Иконки по типам (остаются как есть) */
 .activity-icon.completed, .activity-icon.exercise { background: var(--gradient-success); }
 .activity-icon.badge { background: var(--gradient-warning); }
 .activity-icon.streak { background: var(--gradient-danger); }
@@ -702,17 +700,17 @@ body.scrolled .dashboard-header {
 
 
 .activity-content {
-    flex-grow: 1; /* Занимает оставшееся пространство */
+    flex-grow: 1; 
     display: flex;
-    flex-direction: column; /* Элементы внутри идут друг под другом */
-    justify-content: center; /* <<< MODIFICATION: Center content if align-items: center on parent, or flex-start if preferred */
-    min-width: 0; /* Для корректного переноса текста */
+    flex-direction: column; 
+    justify-content: center; 
+    min-width: 0; 
 }
 .activity-title {
     font-size: 0.95rem;
     font-weight: 600; margin-bottom: 0.15rem;
     color: var(--text-light); line-height: 1.3;
-    word-break: break-word; /* Перенос длинных слов */
+    word-break: break-word; 
 }
 .activity-desc {
     font-size: 0.85rem;
@@ -720,13 +718,13 @@ body.scrolled .dashboard-header {
     margin-bottom: 0.25rem; line-height: 1.4;
     word-break: break-word;
 }
-.activity-desc p { margin-bottom: 0.1rem; } /* Если описание содержит параграфы */
+.activity-desc p { margin-bottom: 0.1rem; } 
 
-.activity-meta { /* Для "Skóre" */
+.activity-meta { 
     font-size: 0.8rem;
     color: var(--accent-secondary);
     font-weight: 500;
-    margin-bottom: 0.3rem; /* Отступ перед временем */
+    margin-bottom: 0.3rem; 
     line-height: 1.3;
 }
 .activity-time {
@@ -735,25 +733,24 @@ body.scrolled .dashboard-header {
     display: inline-flex; align-items: center; gap: 0.3em;
     font-family: var(--font-mono);
     opacity: 0.75;
-    margin-top: auto; /* Прижимает время к низу контейнера .activity-content */
-    padding-top: 0.2rem; /* Небольшой отступ, чтобы не слипалось с предыдущим элементом */
+    margin-top: auto; 
+    padding-top: 0.2rem; 
 }
 .activity-time i { font-size: 0.9em; }
 
-/* --- MODIFICATIONS for .credit-transaction-item --- */
 .credit-transaction-item {
     border-radius: 10px;
-    margin-bottom: 0.7rem; /* Slightly less margin */
-    box-shadow: none; /* <<< MODIFICATION: Removed individual shadow */
-    background: rgba(var(--card-solid-rgb), 0.6); /* <<< MODIFICATION: Lighter/different background */
+    margin-bottom: 0.7rem; 
+    box-shadow: none; 
+    background: rgba(var(--card-solid-rgb), 0.6); 
     border: 1px solid transparent;
-    padding: 0.9rem 1.2rem 0.9rem calc(1.2rem + 6px + 0.8rem); /* Increased left padding for accent line */
+    padding: 0.9rem 1.2rem 0.9rem calc(1.2rem + 6px + 0.8rem); 
     position: relative;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    min-height: auto; /* <<< MODIFICATION: Allow natural height */
+    min-height: auto; 
 }
-.credit-transaction-item::before { /* Акцентная линия слева */
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; /* <<< MODIFICATION: Wider line */
+.credit-transaction-item::before { 
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; 
     border-radius: 10px 0 0 10px; transition: background-color 0.25s ease;
 }
 .credit-transaction-item.positive::before { background-color: var(--accent-lime); }
@@ -761,8 +758,8 @@ body.scrolled .dashboard-header {
 .credit-transaction-item.neutral::before { background-color: var(--text-muted); }
 
 .credit-transaction-item:hover {
-    transform: scale(1.01) translateX(3px); /* Subtle hover */
-    background: rgba(var(--card-solid-rgb), 0.8); /* Darken slightly on hover */
+    transform: scale(1.01) translateX(3px); 
+    background: rgba(var(--card-solid-rgb), 0.8); 
     border-color: var(--border-color-light);
 }
 .credit-transaction-item .activity-icon {
@@ -770,9 +767,9 @@ body.scrolled .dashboard-header {
     box-shadow: 0 1px 4px rgba(0,0,0,0.2); filter: drop-shadow(0 0 4px currentColor);
 }
 .credit-transaction-item .activity-content {
-    flex-direction: row; /* Элементы в ряд */
-    justify-content: space-between; /* Растянуть элементы */
-    align-items: center; /* Выровнять по центру вертикально */
+    flex-direction: row; 
+    justify-content: space-between; 
+    align-items: center; 
 }
 .credit-transaction-item .activity-title {
     font-size: 0.9rem; flex-grow: 1; margin-right: 0.8rem; margin-bottom: 0; line-height: 1.3;
@@ -796,7 +793,7 @@ body.scrolled .dashboard-header {
 /* --- END: Enhanced Styles (v3) --- */
 
 
-.view-all-link { /* Уже удалено из HTML, но стиль остается на всякий случай */
+.view-all-link { 
     display: block; text-align: center; padding: 0.8rem 1rem;
     color: var(--accent-secondary); text-decoration: none;
     font-weight: 600; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.8px;
@@ -812,23 +809,22 @@ body.scrolled .dashboard-header {
 .view-all-link:hover i { transform: translateX(5px); }
 
 /* Состояния загрузки/ошибки/пустоты */
-.loading-overlay { /* Используем темный фон */
+.loading-overlay { 
     position: absolute; inset: 0; background-color: rgba(var(--card-solid-rgb, 15, 10, 45), 0.8);
     display: flex; justify-content: center; align-items: center; z-index: 10; border-radius: var(--card-radius);
     transition: opacity 0.3s ease-out; opacity: 1; backdrop-filter: blur(3px);
 }
 .loading-overlay.hidden { opacity: 0; pointer-events: none; }
-.loading-spinner { /* Используем акцентный цвет */
+.loading-spinner { 
     width: 32px; height: 32px; border: 4px solid var(--accent-primary); border-radius: 50%;
-    border-top-color: transparent; border-right-color: transparent; /* Полукруг */
-    animation: loading-spinner-anim 0.8s linear infinite; /* Переименовал анимацию, чтобы не конфликтовать с .refresh-btn.loading i */
+    border-top-color: transparent; border-right-color: transparent; 
+    animation: loading-spinner-anim 0.8s linear infinite; 
 }
-@keyframes loading-spinner-anim { to { transform: rotate(360deg); } } /* Переименовал анимацию */
+@keyframes loading-spinner-anim { to { transform: rotate(360deg); } } 
 
 .activity-list-container .empty-state, .card-error-state {
-    /* position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); */ /* Убрано для flex */
-    width: 90%; margin: auto; /* Центрирование в flex-контейнере */
-    padding: 2rem; text-align: center; color: var(--text-muted); display: none; /* Скрыто */
+    width: 90%; margin: auto; 
+    padding: 2rem; text-align: center; color: var(--text-muted); display: none; 
 }
 .activity-list-container .empty-state i, .card-error-state i { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.6; }
 .activity-list-container .empty-state p, .card-error-state p { margin-bottom: 0; font-size: 1rem;}
@@ -837,25 +833,25 @@ body.scrolled .dashboard-header {
 
 /* Скелетная загрузка */
 .skeleton { background-color: var(--skeleton-bg); border-radius: 6px; position: relative; overflow: hidden; }
-.skeleton::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); animation: skeleton-loading-anim 1.5s infinite linear; /* Переименовал анимацию */ }
-@keyframes skeleton-loading-anim { 0% { left: -150%; } 100% { left: 150%; } } /* Переименовал анимацию */
+.skeleton::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); animation: skeleton-loading-anim 1.5s infinite linear; }
+@keyframes skeleton-loading-anim { 0% { left: -150%; } 100% { left: 150%; } } 
 .skeleton.title { height: 16px; width: 55%; margin-bottom: 0.8rem; }
 .skeleton.value { height: 32px; width: 35%; margin-bottom: 0.6rem; border-radius: 8px; }
 .skeleton.text { height: 14px; width: 75%; margin-bottom: 0.4rem; }
 .skeleton.text-short { width: 45%; }
-.skeleton.icon-placeholder { width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0; } /* Для иконок статистики/активности */
+.skeleton.icon-placeholder { width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0; } 
 .skeleton.activity-line { height: 16px; width: 70%; margin-bottom: 0.5rem; }
 .skeleton.activity-line-short { width: 40%; margin-top: 0.4rem; height: 12px; }
-/* Применение скелета */
+
 .stat-card .loading-skeleton { display: none; padding: 1.5rem; align-items: flex-start; justify-content: space-between; width: 100%; }
 .stat-card .loading-skeleton .skeleton-info { flex-grow: 1; }
 .stat-card.loading .loading-skeleton { display: flex; }
-.activity-list .loading-placeholder { padding: 0.5rem 0; display: none; flex-direction: column; gap: 0.8rem; } /* Изменен на flex */
+.activity-list .loading-placeholder { padding: 0.5rem 0; display: none; flex-direction: column; gap: 0.8rem; } 
 .activity-list .skeleton-activity-item { display: flex; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color-light); align-items: flex-start; gap: 1.2rem; }
 .activity-list .skeleton-activity-item:last-child { border-bottom: none; }
 .stat-card.loading .stat-card-content, .stat-card.loading .stat-card-footer { visibility: hidden; }
-.activity-list-container.loading .activity-list { visibility: hidden; height: 0; /* Схлопываем, чтобы плейсхолдер занял место */ }
-.activity-list-container.loading .loading-placeholder { display: flex; /* Показываем плейсхолдер */ }
+.activity-list-container.loading .activity-list { visibility: hidden; height: 0; }
+.activity-list-container.loading .loading-placeholder { display: flex; }
 
 /* Сообщения об ошибках */
 .error-container { display: none; margin-bottom: 1.5rem; }
@@ -865,7 +861,7 @@ body.scrolled .dashboard-header {
     font-size: 0.95rem; display: flex; align-items: center; box-shadow: 0 3px 8px rgba(var(--accent-pink-rgb), 0.2);
 }
 .error-message i { margin-right: 0.8rem; font-size: 1.3rem; }
-.retry-button { /* Используем стиль .btn */
+.retry-button { 
     margin-left: auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;
     background: var(--accent-pink); color: var(--white); border: none;
 }
@@ -878,9 +874,9 @@ body.scrolled .dashboard-header {
 /* Toast уведомления */
 .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; display: flex; flex-direction: column; gap: 0.8rem; max-width: 380px; pointer-events: none; }
 .toast {
-    padding: 1rem 1.3rem; border-radius: 12px; background: var(--interface-bg); /* Темный фон */
+    padding: 1rem 1.3rem; border-radius: 12px; background: var(--interface-bg); 
     box-shadow: var(--shadow-card); display: flex; align-items: flex-start; color: var(--text-light);
-    animation: toast-in-anim 0.45s cubic-bezier(0.215, 0.610, 0.355, 1) forwards; /* Переименовал анимацию */
+    animation: toast-in-anim 0.45s cubic-bezier(0.215, 0.610, 0.355, 1) forwards; 
     pointer-events: auto; border: 1px solid var(--border-color-medium); border-left-width: 5px;
     opacity: 0; transform: translateX(110%); backdrop-filter: blur(4px);
 }
@@ -891,7 +887,7 @@ body.scrolled .dashboard-header {
 .toast-content { flex: 1; } .toast-title { font-weight: 600; margin-bottom: 0.3rem; font-size: 1rem; color: var(--text-heading); } .toast-message { font-size: 0.9rem; color: var(--text-medium); line-height: 1.5; }
 .toast-close { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.4rem; padding: 0.1rem 0.2rem; margin-left: 0.6rem; line-height: 1; opacity: 0.7; transition: opacity 0.2s, color 0.2s; }
 .toast-close:hover { opacity: 1; color: var(--accent-primary); }
-@keyframes toast-in-anim { from { opacity: 0; transform: translateX(110%); } to { opacity: 1; transform: translateX(0); } } /* Переименовал анимацию */
+@keyframes toast-in-anim { from { opacity: 0; transform: translateX(110%); } to { opacity: 1; transform: translateX(0); } } 
 
 /* Начальная загрузка */
 .initial-loading-overlay {
@@ -903,17 +899,16 @@ body.scrolled .dashboard-header {
 .initial-loading-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 .initial-loading-overlay .loading-spinner {
      width: 40px; height: 40px; border-width: 5px; border-color: var(--accent-primary); border-top-color: transparent; border-right-color: transparent;
-     animation: loading-spinner-anim 0.9s linear infinite; /* Переименовал анимацию */
+     animation: loading-spinner-anim 0.9s linear infinite; 
 }
 .initial-loading-overlay p { color: var(--text-medium); font-size: 1.1rem; font-weight: 500; letter-spacing: 0.5px; }
 
 /* Адаптивность для киберпанк темы */
-@media (max-width: 992px) { /* Планшет - сжатый сайдбар */
-    /* :root { --sidebar-width: 85px; } Already handled by .sidebar-collapsed */
+@media (max-width: 992px) { 
     .stat-cards, .shortcut-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 }
-@media (max-width: 768px) { /* Мобильный */
-     main { padding: 0 1rem; } /* Меньше паддинг */
+@media (max-width: 768px) { 
+     main { padding: 0 1rem; } 
      .header-content { flex-direction: column; align-items: stretch; }
      .header-content > div:first-child { justify-content: space-between;}
      .header-actions { justify-content: flex-end; margin-top: 0.5rem; gap: 0.8rem; }
@@ -927,39 +922,34 @@ body.scrolled .dashboard-header {
      .dashboard-header { padding: 0.8rem 1rem; }
      .section-title { font-size: 1.3rem; }
 }
-@media (max-width: 576px) { /* Маленький мобильный */
-    /* Mobile menu toggling is handled by JS adding .active */
-    .sidebar { transform: translateX(-110%); width: 280px; z-index: 1000; } /* Скрыт по умолчанию */
+@media (max-width: 576px) { 
+    .sidebar { transform: translateX(-110%); width: 280px; z-index: 1000; } 
     .sidebar.active { transform: translateX(0); }
-    /* Восстанавливаем вид активного сайдбара */
     .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span,
     .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; }
     .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; }
     .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; }
     .sidebar.active .user-profile { padding: 1rem; }
     .sidebar.active .user-avatar { margin-right: 0.85rem; width: 42px; height: 42px; }
-    .sidebar.active #sidebar-close-toggle { display: block; } /* Показать кнопку закрытия */
+    .sidebar.active #sidebar-close-toggle { display: block; } 
     main { margin-left: 0; width: 100%; padding: 0 0.75rem; }
     .header-actions { gap: 0.5rem; }
     .stat-card-value { font-size: 2rem; }
-    .mouse-follower-glow { display: none !important; } /* Отключить свечение мыши */
+    .mouse-follower-glow { display: none !important; } 
     .toast-container { bottom: 1rem; right: 1rem; max-width: calc(100% - 2rem); }
-    /* Hide desktop sidebar toggle on small mobile */
     .sidebar-toggle-btn { display: none; }
 }
 
- /* Оверлей для мобильного меню */
  .sidebar-overlay {
      display: none; position: fixed; inset: 0;
-     background-color: rgba(3, 2, 12, 0.7); /* Темный полупрозрачный */
+     background-color: rgba(3, 2, 12, 0.7); 
      z-index: 999; opacity: 0;
      transition: opacity var(--transition-medium) ease;
      backdrop-filter: blur(5px);
  }
  .sidebar-overlay.active { display: block; opacity: 1; }
 
-/* --- Анимации появления --- */
-.main-content-wrapper [data-animate] { /* Применяем только к контенту */
+.main-content-wrapper [data-animate] { 
      opacity: 0;
      transform: translateY(25px) scale(0.98) rotateX(-4deg);
      transform-origin: center bottom;
@@ -969,7 +959,6 @@ body.scrolled .dashboard-header {
 .main-content-wrapper [data-animate].animated { opacity: 1; transform: translateY(0) scale(1) rotateX(0); }
 .stat-cards [data-animate], .shortcut-grid [data-animate], .activity-list-container [data-animate] { transition-delay: calc(var(--animation-order, 0) * 0.1s); }
 
-/* --- Уменьшение движения --- */
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     *, *::before, *::after {
@@ -977,56 +966,45 @@ body.scrolled .dashboard-header {
         transition-duration: 0.01ms !important; animation-delay: -0.01ms !important;
         transition-delay: 0ms !important; will-change: auto !important;
     }
-    .sidebar { transition: transform 0.01ms !important, width 0.01ms !important; } /* Added width */
-    main { transition: margin-left 0.01ms !important, width 0.01ms !important; } /* Added width */
+    .sidebar { transition: transform 0.01ms !important, width 0.01ms !important; } 
+    main { transition: margin-left 0.01ms !important, width 0.01ms !important; } 
     .main-content-wrapper [data-animate] { opacity: 1 !important; transform: none !important; transition: none !important; }
     .mouse-follower-glow { display: none !important; }
     body::before, body::after { animation: none !important; }
     .refresh-btn.loading i { animation: none !important; }
-    .loading-spinner, .initial-loading-overlay .loading-spinner { animation: none !important; border: 4px solid var(--accent-primary) !important; } /* Просто рамка */
+    .loading-spinner, .initial-loading-overlay .loading-spinner { animation: none !important; border: 4px solid var(--accent-primary) !important; } 
     .card:hover, .shortcut-card:hover, .btn:hover, .btn-outline:hover, .welcome-button:hover, .refresh-btn:hover, .view-all-link:hover { transform: none !important; }
     .skeleton::after { animation: none !important; background: var(--skeleton-highlight) !important; }
-     .btn-icon-only i { transition: none !important; } /* Disable icon rotation */
-}
-/* ============================================= */
-/* === НОВЫЕ СТИЛИ ДЛЯ СИСТЕМЫ НАГРАД v22 === */
-/* ============================================= */
-
-/* --- 1. Кнопка открытия Модального окна (в Баннере) --- */
-/* Используем существующий стиль .welcome-button, ID добавлен в HTML */
-#open-monthly-modal-btn {
-    /* Можно добавить специфичные стили при необходимости, но пока наследует .welcome-button */
-    display: inline-flex; /* Убедимся, что кнопка видна */
+     .btn-icon-only i { transition: none !important; } 
 }
 
-/* --- 2. Модальное Окно (Общие стили, можно доработать существующие) --- */
 .modal {
     display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.75); /* Темнее фон */
-    z-index: 1050; /* Выше большинства элементов */
+    background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.75); 
+    z-index: 1050; 
     align-items: center; justify-content: center;
     opacity: 0; transition: opacity 0.4s ease, backdrop-filter 0.4s ease;
     backdrop-filter: blur(0px);
-    padding: 1rem; /* Отступы для мобильных */
+    padding: 1rem; 
 }
 .modal.active { display: flex; opacity: 1; backdrop-filter: blur(8px); }
 .modal-content {
     background-color: var(--interface-bg); border-radius: var(--card-radius);
     width: 90%;
-    max-width: 800px; /* Шире для календаря */
+    max-width: 800px; 
     box-shadow: var(--shadow-card);
     transform: translateY(-30px) scale(0.95); transform-origin: center;
     transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     overflow: hidden;
     border: 1px solid var(--border-color-medium);
     display: flex; flex-direction: column;
-    max-height: 90vh; /* Ограничение высоты */
+    max-height: 90vh; 
 }
 .modal.active .modal-content { transform: translateY(0) scale(1); }
 .modal-header {
     padding: 1.2rem 1.8rem; border-bottom: 1px solid var(--border-color-light);
     display: flex; justify-content: space-between; align-items: center;
-    background: rgba(var(--dark-purple-accent-rgb), 0.4); /* Немного фона */
+    background: rgba(var(--dark-purple-accent-rgb), 0.4); 
     flex-shrink: 0;
 }
 .modal-title { font-size: 1.3rem; font-weight: 600; color: var(--text-heading); text-shadow: var(--shadow-text-glow); margin: 0; display: flex; align-items: center; gap: 0.6em;}
@@ -1034,343 +1012,457 @@ body.scrolled .dashboard-header {
 .modal-close { background: none; border: none; font-size: 1.7rem; cursor: pointer; color: var(--text-muted); transition: color 0.2s ease, transform 0.2s ease; line-height: 1; padding: 0.3rem; }
 .modal-close:hover { color: var(--accent-pink); transform: rotate(90deg); }
 .modal-body { padding: 1.5rem 2rem; overflow-y: auto; flex-grow: 1; position: relative; }
- /* Скроллбар для модального окна */
 .modal-body::-webkit-scrollbar { width: 6px; }
 .modal-body::-webkit-scrollbar-track { background: transparent; }
 .modal-body::-webkit-scrollbar-thumb { background-color: var(--border-color-medium); border-radius: 3px; }
 .modal-footer { padding: 1.2rem 1.8rem; border-top: 1px solid var(--border-color-light); background-color: rgba(var(--bg-secondary-rgb), 0.4); display: flex; justify-content: flex-end; gap: 0.8rem; flex-shrink: 0;}
 
-/* Стили для оверлея загрузки ВНУТРИ модального окна */
-.modal-body .loading-overlay {
-    position: absolute; /* Позиционируется относительно modal-body */
-    inset: 0;
-    background-color: rgba(var(--card-solid-rgb), 0.9); /* Полупрозрачный фон */
-    display: none; /* Скрыт по умолчанию */
-    justify-content: center;
-    align-items: center;
-    z-index: 10;
-    border-radius: 0; /* Без скругления внутри */
-    transition: opacity 0.3s ease-out;
-    backdrop-filter: blur(3px);
-}
-.modal-body.loading .loading-overlay { display: flex; } /* Показываем при загрузке */
-.modal-body .loading-spinner { /* Стили спиннера остаются */
-    width: 36px; height: 36px; border: 4px solid var(--accent-primary); border-radius: 50%;
-    border-top-color: transparent; border-right-color: transparent;
-    animation: loading-spinner-anim 0.8s linear infinite; /* Переименовал анимацию, чтобы не конфликтовать */
+/* --- START: Dashboard Rewards Styling (Monthly & Streak) --- */
+
+/* === Monthly Rewards Calendar Modal === */
+.monthly-reward-modal-content .modal-body > p {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: var(--text-medium);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    max-width: 600px; /* Limit width of intro text */
+    margin-left: auto;
+    margin-right: auto;
 }
 
-/* --- 3. Стили Месячного Календаря (в Модальном Окне) --- */
-.calendar-grid {
+/* calendar-grid and calendar-day styles are defined above in general modal styles if shared */
+/* Ensure specific styling if needed here */
+.monthly-reward-modal-content .calendar-grid { /* Ensure this applies if needed */
     display: grid;
-    grid-template-columns: repeat(7, 1fr); /* 7 дней в неделе */
-    gap: 0.8rem; /* Пространство между днями */
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.6rem; 
+    user-select: none;
 }
 
-.calendar-day {
-    aspect-ratio: 1 / 1.1; /* Соотношение сторон, чуть выше */
+.monthly-reward-modal-content .calendar-day {
+    aspect-ratio: 1 / 1.25; 
     background-color: rgba(var(--card-solid-rgb), 0.7);
     border: 1px solid var(--border-color-light);
-    border-radius: 10px; /* Менее скругленные углы */
-    padding: 0.8rem;
+    border-radius: 8px; 
+    padding: 0.5rem; 
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between; /* Распределяем контент */
+    justify-content: space-between;
     text-align: center;
     position: relative;
     overflow: hidden;
-    transition: all 0.3s ease;
-    cursor: default; /* По умолчанию не кликабельно */
-    min-height: 100px; /* Минимальная высота */
+    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: default;
+    box-shadow: var(--shadow-hud);
 }
-
-.calendar-day::before { /* Декоративный верхний уголок */
+.monthly-reward-modal-content .calendar-day::before {
     content: '';
     position: absolute;
-    top: 0; left: 0;
+    top: -1px; left: -1px;
     width: 0; height: 0;
     border-style: solid;
     border-width: 10px 10px 0 0;
-    border-color: transparent transparent transparent transparent; /* Изначально невидимый */
-    transition: border-color 0.3s ease;
+    border-color: transparent transparent transparent transparent;
+    transition: border-color 0.25s ease, opacity 0.25s ease;
+    opacity: 0.4;
+    z-index: 1;
 }
-
-.day-number {
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--text-light);
-    align-self: flex-start; /* Номер в левом верхнем углу */
+.monthly-reward-modal-content .calendar-day .day-number {
+    font-size: 0.8rem; 
+    font-weight: 600;
+    color: var(--text-muted); 
+    align-self: flex-start;
     line-height: 1;
-    background: rgba(var(--bg-secondary-rgb), 0.5);
+    background: rgba(var(--bg-secondary-rgb), 0.4);
     padding: 0.2rem 0.4rem;
     border-radius: 4px;
+    z-index: 2;
 }
-
-.reward-icon {
-    font-size: 1.8rem; /* Крупнее иконка */
-    margin: 0.5rem 0;
-    color: var(--accent-secondary); /* Фиолетовый по умолчанию */
+.monthly-reward-modal-content .calendar-day .reward-icon {
+    font-size: 1.8rem; 
+    margin: 0.4rem 0; 
     transition: color 0.3s ease, transform 0.3s ease;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,0.2));
+    z-index: 2;
 }
-
-.reward-text {
-    font-size: 0.75rem;
+.monthly-reward-modal-content .calendar-day .reward-name {
+    font-size: 0.65rem; 
     font-weight: 500;
-    color: var(--text-muted);
-    line-height: 1.3;
-    margin-bottom: 0.5rem; /* Отступ перед статусом */
+    color: var(--text-light);
+    line-height: 1.25;
+    margin-bottom: 0.1rem;
+    word-break: break-word;
+    max-height: 2.5em; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    z-index: 2;
 }
-
-.reward-status {
+.monthly-reward-modal-content .calendar-day .reward-value {
     font-size: 0.7rem;
+    font-weight: 600; 
+    color: var(--text-medium);
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
+    z-index: 2;
+}
+.monthly-reward-modal-content .calendar-day .reward-bundle-details {
+    font-size: 0.6rem; 
+    color: var(--text-muted);
+    line-height: 1.1;
+    margin-top: 0.15rem;
+    max-height: 2.2em; 
+    overflow: hidden;
+    z-index: 2;
+}
+.monthly-reward-modal-content .calendar-day .reward-bundle-details .bundle-reward-item {
+    display: block;
+    margin-bottom: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.monthly-reward-modal-content .calendar-day .reward-bundle-details .bundle-reward-item i {
+    margin-right: 0.25em;
+    opacity: 0.9;
+    font-size: 0.9em;
+}
+.monthly-reward-modal-content .calendar-day .reward-status {
+    font-size: 0.6rem; 
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     position: absolute;
-    bottom: 0.6rem; /* Ближе к низу */
+    bottom: 0.4rem; 
     left: 0;
     right: 0;
     opacity: 0.7;
     transition: opacity 0.3s ease;
+    z-index: 2;
+    padding: 0 0.2rem;
 }
-
-.calendar-day .claim-button {
-    display: none; /* Скрыта по умолчанию */
+.monthly-reward-modal-content .calendar-day .btn-claim-month-reward {
+    display: none;
     position: absolute;
-    bottom: 0.5rem;
+    bottom: 0.3rem; 
     left: 50%;
     transform: translateX(-50%);
-    padding: 0.3rem 0.7rem !important; /* Меньше паддинг */
-    font-size: 0.75rem !important;
-    box-shadow: var(--shadow-interactive);
-    z-index: 2;
-    white-space: nowrap; /* Предотвратить перенос */
-    border-color: var(--accent-lime); /* Зеленая рамка */
-    color: var(--accent-lime); /* Зеленый текст */
+    padding: 0.3rem 0.6rem !important; 
+    font-size: 0.65rem !important;
+    z-index: 3; 
+    white-space: nowrap;
+    background: var(--gradient-success);
+    border-color: transparent;
+    color: var(--text-fixed-dark);
+    box-shadow: 0 2px 6px rgba(var(--accent-lime-rgb), 0.3);
+    line-height: 1.3; 
 }
-.calendar-day .claim-button i { font-size: 0.9em; margin-right: 0.3em; }
-.calendar-day .claim-button:hover:not(:disabled) {
-     color: var(--text-fixed-dark);
-     background: var(--gradient-success);
-     border-color: transparent;
-     box-shadow: 0 0 15px var(--accent-lime-glow);
+.monthly-reward-modal-content .calendar-day .btn-claim-month-reward:hover:not(:disabled) {
+    box-shadow: 0 3px 12px rgba(var(--accent-lime-rgb), 0.4);
+    filter: brightness(1.05);
 }
+.monthly-reward-modal-content .calendar-day .btn-claim-month-reward i { font-size: 0.9em; margin-right: 0.25em; }
 
-/* Состояния дней */
-.calendar-day.available {
-    border-color: var(--accent-primary);
-    background: linear-gradient(160deg, rgba(var(--accent-primary-rgb), 0.1), rgba(var(--card-solid-rgb), 0.9));
+.monthly-reward-modal-content .calendar-day .reward-icon.reward-type-title i { color: var(--accent-secondary); text-shadow: 0 0 6px var(--accent-secondary-glow); }
+.monthly-reward-modal-content .calendar-day .reward-icon.reward-type-xp i { color: var(--accent-lime); text-shadow: 0 0 6px var(--accent-lime-glow); }
+.monthly-reward-modal-content .calendar-day .reward-icon.reward-type-credits i { color: var(--accent-orange); text-shadow: 0 0 6px var(--accent-orange-glow); }
+.monthly-reward-modal-content .calendar-day .reward-icon.reward-type-bundle i { color: var(--accent-pink); text-shadow: 0 0 6px var(--accent-pink-glow); }
+.monthly-reward-modal-content .calendar-day .reward-bundle-details .reward-type-title i { color: var(--accent-secondary); }
+.monthly-reward-modal-content .calendar-day .reward-bundle-details .reward-type-xp i { color: var(--accent-lime); }
+.monthly-reward-modal-content .calendar-day .reward-bundle-details .reward-type-credits i { color: var(--accent-orange); }
+
+
+.monthly-reward-modal-content .calendar-day.claimable {
+    border-color: var(--accent-lime);
+    background: linear-gradient(160deg, rgba(var(--accent-lime-rgb), 0.12), rgba(var(--card-solid-rgb), 0.8));
     cursor: pointer;
-    box-shadow: 0 0 15px rgba(var(--accent-primary-rgb), 0.15);
+    box-shadow: 0 0 18px rgba(var(--accent-lime-rgb), 0.25), var(--shadow-hud);
 }
-.calendar-day.available::before { border-left-color: var(--accent-primary); }
-.calendar-day.available .reward-icon { color: var(--accent-primary); }
-.calendar-day.available .reward-status { display: none; } /* Статус не нужен, есть кнопка */
-.calendar-day.available:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 25px rgba(var(--accent-primary-rgb), 0.3);
-    border-color: var(--accent-cyan);
-    z-index: 5; /* Поверх других */
+.monthly-reward-modal-content .calendar-day.claimable::before { border-left-color: var(--accent-lime); opacity: 0.7; }
+.monthly-reward-modal-content .calendar-day.claimable .reward-icon i { color: var(--accent-lime); } 
+.monthly-reward-modal-content .calendar-day.claimable .reward-status { display: none; }
+.monthly-reward-modal-content .calendar-day.claimable .btn-claim-month-reward { display: inline-flex; }
+.monthly-reward-modal-content .calendar-day.claimable:hover {
+    transform: scale(1.06);
+    box-shadow: 0 0 28px rgba(var(--accent-lime-rgb), 0.4), var(--shadow-card);
+    border-color: var(--accent-lime);
+    z-index: 5;
 }
-.calendar-day.available:hover .reward-icon { transform: scale(1.1); }
+.monthly-reward-modal-content .calendar-day.claimable:hover .reward-icon { transform: scale(1.08); }
 
-.calendar-day.claimed {
+.monthly-reward-modal-content .calendar-day.claimed {
+    opacity: 0.8;
+    background-color: rgba(var(--accent-secondary-rgb), 0.1); 
+    border-color: rgba(var(--accent-secondary-rgb), 0.3);
+    cursor: not-allowed;
+}
+.monthly-reward-modal-content .calendar-day.claimed::before { border-left-color: var(--accent-secondary); opacity: 0.6; }
+.monthly-reward-modal-content .calendar-day.claimed .reward-icon { color: var(--accent-secondary); opacity: 0.8; }
+.monthly-reward-modal-content .calendar-day.claimed .reward-status { color: var(--accent-secondary); font-weight: bold; }
+.monthly-reward-modal-content .calendar-day.claimed .btn-claim-month-reward { display: none; }
+
+.monthly-reward-modal-content .calendar-day.missed {
+    opacity: 0.45; 
+    background-color: rgba(var(--text-muted-rgb), 0.08);
+    border-color: rgba(var(--text-muted-rgb), 0.15);
+    border-style: dashed; 
+}
+.monthly-reward-modal-content .calendar-day.missed::before { border-left-color: var(--text-muted); opacity: 0.3; }
+.monthly-reward-modal-content .calendar-day.missed .reward-icon { color: var(--text-muted); opacity: 0.5; }
+.monthly-reward-modal-content .calendar-day.missed .reward-status { color: var(--text-muted); }
+.monthly-reward-modal-content .calendar-day.missed .btn-claim-month-reward { display: none; }
+
+.monthly-reward-modal-content .calendar-day.upcoming-reward { 
     opacity: 0.7;
-    background-color: rgba(var(--accent-lime-rgb), 0.05);
-    border-color: rgba(var(--accent-lime-rgb), 0.2);
+    background-color: rgba(var(--card-solid-rgb), 0.6);
+    border-style: solid;
 }
-.calendar-day.claimed::before { border-left-color: var(--accent-lime); }
-.calendar-day.claimed .reward-icon { color: var(--accent-lime); }
-.calendar-day.claimed .reward-status { color: var(--accent-lime); }
+.monthly-reward-modal-content .calendar-day.upcoming-reward .reward-icon { opacity: 0.7; }
+.monthly-reward-modal-content .calendar-day.upcoming-reward .reward-status { color: var(--text-medium); }
+.monthly-reward-modal-content .calendar-day.upcoming-reward .btn-claim-month-reward { display: none; }
 
-.calendar-day.missed {
-    opacity: 0.4;
-    background-color: rgba(var(--text-muted-rgb), 0.05);
-    border-color: rgba(var(--text-muted-rgb), 0.2);
+.monthly-reward-modal-content .calendar-day.no-reward { 
+    opacity: 0.6;
 }
-.calendar-day.missed::before { border-left-color: var(--text-muted); }
-.calendar-day.missed .reward-icon { color: var(--text-muted); }
-.calendar-day.missed .reward-status { color: var(--text-muted); }
 
-.calendar-day.upcoming {
-    opacity: 0.5;
-    background-color: rgba(var(--card-solid-rgb), 0.5);
-    border-style: dashed;
-}
-.calendar-day.upcoming .reward-icon { color: var(--text-muted); opacity: 0.6; }
-.calendar-day.upcoming .reward-status { color: var(--text-muted); }
-
-.calendar-day.today {
+.monthly-reward-modal-content .calendar-day.today {
      border-width: 2px;
-     border-color: var(--accent-orange);
-     box-shadow: inset 0 0 10px rgba(var(--accent-orange-rgb), 0.1), 0 0 10px rgba(var(--accent-orange-rgb), 0.1);
+     border-color: var(--accent-primary) !important; 
+     box-shadow: inset 0 0 12px rgba(var(--accent-primary-rgb), 0.2), 0 0 12px rgba(var(--accent-primary-rgb), 0.2);
+     background: linear-gradient(160deg, rgba(var(--accent-primary-rgb), 0.1), rgba(var(--card-solid-rgb), 0.9));
 }
-.calendar-day.today .day-number {
-     color: var(--accent-orange);
-     box-shadow: 0 0 6px var(--accent-orange-glow);
+.monthly-reward-modal-content .calendar-day.today .day-number {
+     color: var(--accent-primary);
+     box-shadow: 0 0 8px var(--accent-glow);
+     background: rgba(var(--accent-primary-rgb),0.1);
+     border-color: var(--accent-primary);
 }
-.calendar-day.today.available { border-color: var(--accent-lime); /* Если доступно, приоритет зеленой рамке */}
+.monthly-reward-modal-content .calendar-day.today.claimable { border-color: var(--accent-lime) !important; } 
+.monthly-reward-modal-content .calendar-day.today.claimable .day-number { color: var(--accent-lime); border-color: var(--accent-lime); background: rgba(var(--accent-lime-rgb),0.1); }
 
-/* Skeleton для дней календаря */
-.calendar-day.skeleton {
-    background: var(--skeleton-bg);
-    position: relative;
-    overflow: hidden;
-    border-radius: 10px; /* Match day radius */
-}
-.calendar-day.skeleton::after {
-    content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent);
-    animation: skeleton-loading-anim 1.5s infinite linear; /* Переименовал анимацию */
-}
 
-/* --- 4. Стили Наград за Серию (Milestones) --- */
-.streak-rewards-section .loading-overlay { /* Overlay specific to this section */
-    position: absolute; inset: 0; background-color: rgba(var(--card-solid-rgb), 0.8); display: none; justify-content: center; align-items: center; z-index: 10; border-radius: var(--card-radius); transition: opacity 0.3s ease-out; backdrop-filter: blur(3px);
+#modal-monthly-calendar-empty { padding: 2rem; text-align: center; color: var(--text-muted); }
+#modal-monthly-calendar-empty i { font-size: 2.5rem; margin-bottom: 1rem; color: var(--accent-secondary); }
+
+/* === Streak Milestones Modal === */
+.streak-milestones-modal-content .modal-body > p {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: var(--text-medium);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
 }
-.streak-rewards-section.loading .loading-overlay { display: flex; }
-.streak-rewards-section.loading .milestone-list { visibility: hidden; }
+.streak-milestones-modal-content .modal-body > p strong {
+    color: var(--accent-primary);
+    font-weight: 600;
+}
 
 .milestone-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Адаптивная сетка */
-    gap: 1.5rem; /* Отступ между этапами */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
 }
 
-.milestone-card { /* Переименовано из .milestone-item для согласованности с .card */
+.milestone-card {
     display: flex;
-    flex-direction: column; /* Основное направление */
-    background-color: rgba(var(--card-solid-rgb), 0.8);
+    flex-direction: column;
+    background-color: var(--card-solid);
     padding: 1.5rem;
-    border-radius: 12px;
-    border: 1px solid var(--border-color-light);
-    transition: all 0.3s ease;
+    border-radius: var(--card-radius);
+    border: 1px solid var(--border-color-medium);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     position: relative;
     overflow: hidden;
     box-shadow: var(--shadow-hud);
 }
-.milestone-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-card);
-    border-color: var(--accent-primary);
-}
-.milestone-card::before { /* Декоративная линия */
+.milestone-card::before {
     content: '';
     position: absolute;
     top: 0; bottom: 0; left: 0;
-    width: 5px; /* Толще линия */
+    width: 6px;
     background: var(--border-color-medium);
-    border-radius: 12px 0 0 12px; /* Скругление только слева */
-    opacity: 0.6;
-    transition: background 0.3s ease, width 0.3s ease;
+    border-radius: var(--card-radius) 0 0 var(--card-radius);
+    opacity: 0.7;
+    transition: background 0.3s ease, width 0.3s ease, box-shadow 0.3s ease;
+}
+.milestone-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: var(--shadow-card-hover-enhanced);
+    border-color: var(--accent-primary);
+}
+.milestone-card:hover::before {
+    width: 8px;
+    box-shadow: 0 0 10px var(--accent-primary);
 }
 
-.milestone-card .day-number { /* Надпись "Série X" */
-    font-size: 0.9rem; font-weight: 700; color: var(--accent-primary);
-    margin-bottom: 0.8rem; text-transform: uppercase; letter-spacing: 0.8px;
-    text-shadow: 0 0 5px var(--accent-glow);
+.milestone-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
 }
-
-.milestone-card .reward-icon { /* Иконка награды */
-    width: 60px; height: 60px;
-    flex-shrink: 0;
-    border-radius: 16px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.8rem;
-    color: var(--white);
-    background: var(--gradient-cta); /* Default gradient */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    border: 1px solid rgba(var(--white-rgb), 0.08);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-    margin: 0 auto 1rem auto; /* Центрирование и отступ */
+.milestone-icon-indicator {
+    font-size: 1.5rem; 
+    color: var(--accent-primary);
+    text-shadow: 0 0 8px var(--accent-glow);
+    width: 30px;
+    text-align: center;
 }
-
-.milestone-card .reward-text { /* Название награды */
-    font-size: 1.1rem; font-weight: 600; color: var(--text-light);
-    margin: 0 0 0.5rem 0; text-align: center;
+.milestone-days {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.milestone-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-heading);
+    margin-bottom: 0.5rem;
     line-height: 1.3;
 }
-.milestone-card .milestone-desc { /* Описание - если есть, использовать его вместо reward-text */
-    font-size: 0.85rem; color: var(--text-medium);
-    margin: 0 0 1rem 0; text-align: center; line-height: 1.4;
-    flex-grow: 1; /* Занять доступное место */
+.milestone-desc {
+    font-size: 0.9rem;
+    color: var(--text-medium);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+    flex-grow: 1;
 }
 
-.milestone-card .reward-status { /* Статус: Доступно, Зískáno, Zamčeno */
-    font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
-    padding: 0.4rem 0.8rem; border-radius: 18px; display: inline-block; margin-top: 1rem;
-    align-self: center; /* Центрирование статуса */
+.milestone-rewards-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.8rem 0 1.2rem 0;
+    border-top: 1px dashed rgba(var(--border-color-light), 0.5);
+    padding-top: 0.8rem;
 }
-
-/* Состояния этапов */
-.milestone-card.locked { opacity: 0.65; filter: grayscale(40%); }
-.milestone-card.locked::before { background: var(--text-muted); }
-.milestone-card.locked .reward-icon { background: var(--gradient-locked); opacity: 0.8; }
-.milestone-card .reward-status.locked { color: var(--text-muted); background: rgba(var(--text-muted-rgb), 0.1); border: 1px solid rgba(var(--text-muted-rgb), 0.2); }
-
-.milestone-card.available { border-color: var(--accent-primary); }
-.milestone-card.available::before { background: var(--accent-primary); opacity: 0.9; box-shadow: 0 0 10px var(--accent-glow); }
-.milestone-card.available .reward-icon { background: var(--gradient-button); box-shadow: 0 6px 15px rgba(var(--accent-primary-rgb), 0.3); }
-.milestone-card .reward-status.available { color: var(--accent-primary); background: rgba(var(--accent-primary-rgb), 0.12); border: 1px solid rgba(var(--accent-primary-rgb), 0.35); }
-.milestone-card.available .claim-button { /* Наследует .btn-success */ margin-top: 1rem; align-self: center; }
-
-.milestone-card.claimed { border-color: var(--accent-lime); }
-.milestone-card.claimed::before { background: var(--accent-lime); opacity: 0.8; }
-.milestone-card.claimed .reward-icon { background: var(--gradient-success); box-shadow: 0 6px 15px rgba(var(--accent-lime-rgb), 0.3); }
-.milestone-card .reward-status.claimed { color: var(--accent-lime); background: rgba(var(--accent-lime-rgb), 0.12); border: 1px solid rgba(var(--accent-lime-rgb), 0.35); }
-
-/* Skeleton для этапов */
-.milestone-card.skeleton {
-    background: var(--skeleton-bg);
-    position: relative;
-    overflow: hidden;
-    padding: 1.5rem;
-    border-radius: 12px;
-    border: 1px solid var(--border-color-light);
+.milestone-rewards-list li {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    gap: 0.7em;
+    margin-bottom: 0.5em;
+    font-size: 0.9rem;
+    color: var(--text-medium);
 }
-.milestone-card.skeleton::before, .milestone-card.skeleton::after { display: none; } /* Hide decorative elements */
-.milestone-card.skeleton::after { /* Loading shimmer */
-    content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent);
-    animation: skeleton-loading-anim 1.5s infinite linear; /* Переименовал анимацию */
+.milestone-rewards-list li i {
+    color: var(--accent-primary);
+    width: 18px; 
+    text-align: center;
+    font-size: 1.1em; 
+    filter: drop-shadow(0 0 3px var(--accent-glow));
 }
-.milestone-card.skeleton .day-number { height: 16px; width: 70px; background: var(--skeleton-bg); border-radius: 4px; margin-bottom: 0.5rem; }
-.milestone-card.skeleton .reward-icon { background: var(--skeleton-bg); width: 60px; height: 60px; border-radius: 16px; }
-.milestone-card.skeleton .reward-text { height: 18px; width: 120px; background: var(--skeleton-bg); border-radius: 4px; margin-bottom: 0.5rem; }
-.milestone-card.skeleton .milestone-desc { height: 14px; width: 160px; background: var(--skeleton-bg); border-radius: 4px; }
-.milestone-card.skeleton .reward-status { height: 26px; width: 90px; background: var(--skeleton-bg); border-radius: 18px; margin-top: 0.8rem; }
+.milestone-rewards-list .reward-type-title i { color: var(--accent-secondary); }
+.milestone-rewards-list .reward-type-xp i { color: var(--accent-lime); }
+.milestone-rewards-list .reward-type-credits i { color: var(--accent-orange); }
+.milestone-rewards-list .reward-type-avatar_frame i { color: var(--accent-pink); }
 
-/* Empty state */
-.empty-state { /* Shared styles for empty states */
-    padding: 3rem 2rem; text-align: center; color: var(--text-muted); display: none;
-    background-color: transparent; border-radius: var(--card-radius);
-    border: 1px dashed var(--border-color-medium); margin-top: 1rem;
-}
-.empty-state i { font-size: 3rem; margin-bottom: 1.2rem; color: var(--accent-secondary); opacity: 0.6; }
-.empty-state p { margin: 0 auto; font-size: 1rem; max-width: 450px; color: var(--text-medium); }
 
-/* --- Адаптивность (Дополнения) --- */
+.milestone-actions {
+    margin-top: auto; 
+    text-align: center;
+}
+.milestone-status {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.5rem 1rem;
+    border-radius: 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+}
+.milestone-status i { font-size: 0.9em; }
+
+.milestone-card.locked { opacity: 0.7; filter: grayscale(30%); }
+.milestone-card.locked::before { background: var(--text-muted); }
+.milestone-card.locked .milestone-icon-indicator { color: var(--text-muted); text-shadow: none;}
+.milestone-card.locked .reward-status.locked { color: var(--text-muted); background: rgba(var(--text-muted-rgb), 0.1); border: 1px solid rgba(var(--text-muted-rgb), 0.2); }
+
+.milestone-card.available { border-color: var(--accent-lime); }
+.milestone-card.available::before { background: var(--accent-lime); opacity: 1; box-shadow: 0 0 12px var(--accent-lime-glow); }
+.milestone-card.available .milestone-icon-indicator { color: var(--accent-lime); text-shadow: 0 0 8px var(--accent-lime-glow); }
+.milestone-card.available .claim-milestone-btn { 
+    box-shadow: 0 3px 10px rgba(var(--accent-lime-rgb), 0.4);
+}
+.milestone-card.available .claim-milestone-btn:hover:not(:disabled) {
+    box-shadow: 0 5px 18px rgba(var(--accent-lime-rgb), 0.5);
+}
+
+
+.milestone-card.claimed { border-color: var(--accent-secondary); opacity: 0.85; }
+.milestone-card.claimed::before { background: var(--accent-secondary); opacity: 0.8; }
+.milestone-card.claimed .milestone-icon-indicator { color: var(--accent-secondary); text-shadow: 0 0 8px var(--accent-secondary-glow); }
+.milestone-card.claimed .reward-status.claimed { color: var(--accent-secondary); background: rgba(var(--accent-secondary-rgb), 0.15); border: 1px solid rgba(var(--accent-secondary-rgb), 0.4); }
+
+#modal-milestones-empty { padding: 2rem; text-align: center; color: var(--text-muted); }
+#modal-milestones-empty i { font-size: 2.5rem; margin-bottom: 1rem; color: var(--accent-secondary); }
+
+
+.modal-body .loading-overlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(var(--card-solid-rgb), 0.92); 
+    display: none; 
+    justify-content: center;
+    align-items: center;
+    z-index: 20; 
+    border-radius: 0;
+    transition: opacity 0.3s ease-out;
+    backdrop-filter: blur(4px);
+}
+.modal-body.loading .loading-overlay.hidden { 
+    display: flex !important;
+    opacity: 1 !important;
+}
+.modal-body .loading-overlay.hidden {
+    opacity: 0 !important;
+    pointer-events: none;
+}
+.modal-body .loading-spinner {
+    width: 38px; height: 38px; border: 4px solid var(--accent-primary);
+    border-radius: 50%; border-top-color: transparent; border-right-color: transparent;
+    animation: loading-spinner-anim 0.8s linear infinite;
+}
+
 @media (max-width: 768px) {
-    .modal-content { max-width: 95%; }
-    .calendar-grid { gap: 0.5rem; }
-    .calendar-day { padding: 0.6rem; min-height: 90px; }
-    .day-number { font-size: 0.8rem; padding: 0.15rem 0.3rem; }
-    .reward-icon { font-size: 1.5rem; }
-    .reward-text { font-size: 0.7rem; }
-    .reward-status { font-size: 0.65rem; bottom: 0.4rem; }
-    .calendar-day .claim-button { font-size: 0.7rem !important; padding: 0.25rem 0.6rem !important; }
-    .milestone-item { flex-direction: column; align-items: flex-start; gap: 1rem; }
-    .milestone-status-action { flex-direction: row; width: 100%; justify-content: space-between; align-items: center; margin-top: 0.5rem; }
+    .monthly-reward-modal-content .calendar-grid { gap: 0.5rem; }
+    .monthly-reward-modal-content .calendar-day { padding: 0.5rem; min-height: 85px; }
+    .monthly-reward-modal-content .calendar-day .day-number { font-size: 0.75rem; padding: 0.2rem 0.35rem; }
+    .monthly-reward-modal-content .calendar-day .reward-icon { font-size: 1.6rem; margin: 0.3rem 0; }
+    .monthly-reward-modal-content .calendar-day .reward-name { font-size: 0.6rem; max-height: 2.4em; }
+    .monthly-reward-modal-content .calendar-day .reward-value { font-size: 0.65rem; }
+    .monthly-reward-modal-content .calendar-day .reward-bundle-details { font-size: 0.55rem; max-height: 2.2em; }
+    .monthly-reward-modal-content .calendar-day .reward-status { font-size: 0.55rem; bottom: 0.3rem; }
+    .monthly-reward-modal-content .calendar-day .btn-claim-month-reward { font-size: 0.6rem !important; padding: 0.25rem 0.5rem !important; }
+
+    .milestone-grid { grid-template-columns: 1fr; } 
+    .milestone-card { padding: 1.2rem; }
+    .milestone-name { font-size: 1.1rem; }
+    .milestone-desc { font-size: 0.85rem; }
+    .milestone-rewards-list li { font-size: 0.85rem; }
 }
-@media (max-width: 576px) {
-    .calendar-grid { grid-template-columns: repeat(4, 1fr); gap: 0.4rem; } /* 4 колонки на моб */
-    .modal-body { padding: 1rem 1.2rem; }
-    .modal-header, .modal-footer { padding: 1rem 1.2rem; }
+
+@media (max-width: 480px) {
+    .monthly-reward-modal-content .calendar-grid { grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 0.3rem; }
+    .monthly-reward-modal-content .calendar-day { padding: 0.3rem; min-height: 70px; border-radius: 6px; }
+    .monthly-reward-modal-content .calendar-day::before { border-width: 8px 8px 0 0; }
+    .monthly-reward-modal-content .calendar-day .day-number { font-size: 0.7rem; }
+    .monthly-reward-modal-content .calendar-day .reward-icon { font-size: 1.3rem; margin: 0.2rem 0; }
+    .monthly-reward-modal-content .calendar-day .reward-name { font-size: 0.55rem; max-height: 2.2em;}
+    .monthly-reward-modal-content .calendar-day .reward-value { font-size: 0.6rem; }
+    .monthly-reward-modal-content .calendar-day .reward-bundle-details { font-size: 0.5rem; }
+    .monthly-reward-modal-content .calendar-day .reward-status { font-size: 0.5rem; bottom: 0.2rem; }
+    .monthly-reward-modal-content .calendar-day .btn-claim-month-reward { font-size: 0.55rem !important; padding: 0.2rem 0.4rem !important; }
 }
-/* --- Конец Новых Стилей --- */
-        /* --- END: Киберпанк CSS Тема --- */
+
+/* --- END: Dashboard Rewards Styling --- */
+/* --- END: Киберпанк CSS Тема --- */
