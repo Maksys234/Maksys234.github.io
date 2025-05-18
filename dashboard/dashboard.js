@@ -3,7 +3,7 @@
 // ПЛЮС: Исправление обновления currentProfile.monthly_claims (Этап 4)
 // ПЛЮС: Исправление ошибки 406 при обновлении XP в claimMonthlyReward
 // ПЛЮС: Улучшенная обработка ошибок и откат состояния в claimMonthlyReward
-// <<< ИЗМЕНЕНИЕ: Исправлена логика сброса состояния загрузки для activities и creditHistory >>>
+// <<< ИЗМЕНЕНИЕ: Исправлена логика setLoadingState для latestCreditChange и добавлены заглушки для модальных окон >>>
 (function() {
     'use strict';
 
@@ -167,7 +167,7 @@
             { key: 'creditHistorySkeletonContainer', id: 'credit-history-skeleton-container', critical: false },
         ];
         const notFoundCritical = [];
-        ui = {}; // Reset ui cache object
+        ui = {};
         elementDefinitions.forEach(def => {
             const element = def.id ? document.getElementById(def.id) : document.querySelector(def.query);
             if (element) { ui[def.key] = element; }
@@ -200,6 +200,7 @@
     function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
     function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Offline', 'Spojení ztraceno.', 'warning'); }
 
+    // <<< ИЗМЕНЕНО: setLoadingState для latestCreditChange >>>
     function setLoadingState(sectionKey, isLoadingFlag) {
         if (!ui || Object.keys(ui).length === 0) { console.error("[SetLoadingState] UI cache not ready."); return; }
         if (isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return;
@@ -263,12 +264,20 @@
             console.log(`[SetLoadingState] Loading state for 'titles' is now ${isLoadingFlag}.`);
         } else if (sectionKey === 'latestCreditChange') {
             if (ui.latestCreditChange) {
-                ui.latestCreditChange.innerHTML = isLoadingFlag ? '<i class="fas fa-spinner fa-spin" style="font-size: 0.8em;"></i>' : '--';
+                // Только показываем/скрываем спиннер, не меняем содержимое на '--' при isLoadingFlag = false
+                if (isLoadingFlag) {
+                    ui.latestCreditChange.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size: 0.8em;"></i>';
+                } else if (ui.latestCreditChange.innerHTML.includes('fa-spinner')) {
+                    // Если был спиннер, но данные еще не пришли (или ошибка), вернем '--'
+                    // Это условие может понадобиться доработать, если '--' нежелательно после ошибки
+                    if(ui.latestCreditChange.textContent.trim() === '') ui.latestCreditChange.textContent = '--';
+                }
             }
         } else {
             console.warn(`[SetLoadingState] Unknown section key or unhandled UI in dashboard.js: ${sectionKey}`);
         }
     }
+    // <<< КОНЕЦ ИЗМЕНЕНИЙ >>>
 
     function applyInitialSidebarState() { const startTime = performance.now(); if (!ui.sidebarToggleBtn) { console.warn("[Sidebar State] Sidebar toggle button (#sidebar-toggle-btn) not found for initial state application."); return; } try { const savedState = localStorage.getItem(SIDEBAR_STATE_KEY); const shouldBeCollapsed = savedState === 'collapsed'; console.log(`[Sidebar State] Initial read state from localStorage: '${savedState}', Applying collapsed: ${shouldBeCollapsed}`); document.body.classList.toggle('sidebar-collapsed', shouldBeCollapsed); const icon = ui.sidebarToggleBtn.querySelector('i'); if (icon) { icon.className = shouldBeCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; ui.sidebarToggleBtn.setAttribute('aria-label', shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); ui.sidebarToggleBtn.setAttribute('title', shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); const endTime = performance.now(); console.log(`[Sidebar State] Initial icon and attributes set. Icon class: ${icon.className}. Time: ${(endTime - startTime).toFixed(2)}ms`); } else { console.warn("[Sidebar State] Sidebar toggle button icon not found for initial state update."); } } catch (error) { console.error("[Sidebar State] Error applying initial state:", error); document.body.classList.remove('sidebar-collapsed'); } }
     function toggleSidebar() { try { const isCollapsed = document.body.classList.toggle('sidebar-collapsed'); localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded'); const icon = ui.sidebarToggleBtn.querySelector('i'); if (icon) { icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; ui.sidebarToggleBtn.setAttribute('aria-label', isCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); ui.sidebarToggleBtn.setAttribute('title', isCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); } console.log(`[Sidebar Toggle] Sidebar toggled. New state: ${isCollapsed ? 'collapsed' : 'expanded'}`); } catch(e){console.error("[Sidebar Toggle] Error:",e);}}
@@ -286,7 +295,7 @@
         if (!supabase || !userId || !ui.latestCreditChange) {
             console.warn("[CreditChange] Missing Supabase, userId or UI element.");
             if (ui.latestCreditChange) ui.latestCreditChange.textContent = '--';
-            setLoadingState('latestCreditChange', false); // <<< НОВОЕ: Убедимся, что состояние сброшено >>>
+            setLoadingState('latestCreditChange', false);
             return;
         }
         setLoadingState('latestCreditChange', true);
@@ -562,7 +571,7 @@
         }
 
         statElements.progress.textContent = `${stats.progress ?? 0}%`;
-        const weeklyProgress = stats.progress_weekly ?? 0; // <<< ИЗМЕНЕНО: Используем progress_weekly >>>
+        const weeklyProgress = stats.progress_weekly ?? 0;
         statElements.progressFooter.classList.remove('positive', 'negative');
 
         let progressFooterHTML = '';
@@ -572,7 +581,7 @@
         } else if (weeklyProgress < 0) {
             progressFooterHTML = `<i class="fas fa-arrow-down"></i> ${weeklyProgress}% týdně`;
             statElements.progressFooter.classList.add('negative');
-        } else { // weeklyProgress is 0 or undefined/null
+        } else {
             progressFooterHTML = `<i class="fas fa-minus"></i> ±0% týdně`;
         }
         statElements.progressFooter.innerHTML = progressFooterHTML;
@@ -667,13 +676,42 @@
         } finally {
             setLoadingState('stats', false);
             setLoadingState('notifications', false);
-            setLoadingState('activities', false); // <<< ИЗМЕНЕНО: Устанавливаем false здесь >>>
-            setLoadingState('creditHistory', false); // <<< ИЗМЕНЕНО: Устанавливаем false здесь >>>
-            setLoadingState('latestCreditChange', false); // <<< Убедимся, что это также сброшено >>>
+            // <<< ИЗМЕНЕНО: Явный сброс состояния для activities и creditHistory >>>
+            setLoadingState('activities', false);
+            setLoadingState('creditHistory', false);
+            setLoadingState('latestCreditChange', false);
             if (typeof initTooltips === 'function') initTooltips();
             console.log("[MAIN] loadDashboardData: Blok finally dokončen.");
         }
     }
+
+    // <<< НОВОЕ: Функции-заглушки для модальных окон >>>
+    function renderMonthlyCalendar() {
+        console.log("[STUB] renderMonthlyCalendar called");
+        if (ui.modalMonthlyCalendarGrid) ui.modalMonthlyCalendarGrid.innerHTML = '<p style="padding: 1rem; text-align:center;">Měsíční kalendář se připravuje...</p>';
+        if (ui.modalCurrentMonthYearSpan) {
+            const now = new Date();
+            ui.modalCurrentMonthYearSpan.textContent = now.toLocaleString('cs-CZ', { month: 'long', year: 'numeric' });
+        }
+        // Сброс состояния загрузки, если оно было установлено для этого модального окна
+        setLoadingState('monthlyRewards', false);
+    }
+
+    function renderStreakMilestones() {
+        console.log("[STUB] renderStreakMilestones called");
+        if (ui.modalMilestonesGrid) ui.modalMilestonesGrid.innerHTML = '<p style="padding: 1rem; text-align:center;">Přehled milníků série se připravuje...</p>';
+        if (currentProfile) {
+            if (ui.modalCurrentStreakValue) ui.modalCurrentStreakValue.textContent = currentProfile.streak_days || 0;
+            if (ui.modalLongestStreakValue) ui.modalLongestStreakValue.textContent = currentProfile.longest_streak_days || 0;
+        } else {
+            if (ui.modalCurrentStreakValue) ui.modalCurrentStreakValue.textContent = '-';
+            if (ui.modalLongestStreakValue) ui.modalLongestStreakValue.textContent = '-';
+        }
+        // Сброс состояния загрузки
+        setLoadingState('streakMilestones', false);
+    }
+    // <<< КОНЕЦ НОВЫХ ФУНКЦИЙ-ЗАГЛУШЕК >>>
+
 
     async function initializeApp() {
         const totalStartTime = performance.now();
@@ -874,7 +912,7 @@
     function isSameDate(date1, date2) { if (!date1 || !date2) return false; const d1 = new Date(date1); const d2 = new Date(date2); return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate(); }
     function isYesterday(date1, date2) { if (!date1 || !date2) return false; const yesterday = new Date(date2); yesterday.setDate(yesterday.getDate() - 1); return isSameDate(date1, yesterday); }
     function getCurrentMonthYearString() { const now = new Date(); const year = now.getFullYear(); const month = String(now.getMonth() + 1).padStart(2, '0'); return `${year}-${month}`; }
-    function showModal(modalId) { const modal = document.getElementById(modalId); if (modal) { console.log(`[Modal] Opening modal: ${modalId}`); modal.style.display = 'flex'; if (modalId === 'monthly-reward-modal') { renderMonthlyCalendar(); } else if (modalId === 'streak-milestones-modal') { renderStreakMilestones(); } requestAnimationFrame(() => { modal.classList.add('active'); }); } else { console.error(`Modal element not found: #${modalId}`); } }
+    function showModal(modalId) { const modal = document.getElementById(modalId); if (modal) { console.log(`[Modal] Opening modal: ${modalId}`); modal.style.display = 'flex'; if (modalId === 'monthly-reward-modal' && typeof renderMonthlyCalendar === 'function') { renderMonthlyCalendar(); } else if (modalId === 'streak-milestones-modal' && typeof renderStreakMilestones === 'function') { renderStreakMilestones(); } requestAnimationFrame(() => { modal.classList.add('active'); }); } else { console.error(`Modal element not found: #${modalId}`); } }
     function hideModal(modalId) { const modal = document.getElementById(modalId); if (modal) { console.log(`[Modal] Closing modal: ${modalId}`); modal.classList.remove('active'); setTimeout(() => { modal.style.display = 'none'; }, 300); } }
     const initMouseFollower = () => { const follower = ui.mouseFollower; if (!follower || window.innerWidth <= 576) return; let hasMoved = false; const updatePosition = (event) => { if (!hasMoved) { document.body.classList.add('mouse-has-moved'); hasMoved = true; } requestAnimationFrame(() => { follower.style.left = `${event.clientX}px`; follower.style.top = `${event.clientY}px`; }); }; window.addEventListener('mousemove', updatePosition, { passive: true }); document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; }); document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; }); window.addEventListener('touchstart', () => { if(follower) follower.style.display = 'none'; }, { passive: true, once: true }); };
     const initScrollAnimations = () => { const animatedElements = document.querySelectorAll('.main-content-wrapper [data-animate]'); if (!animatedElements.length || !('IntersectionObserver' in window)) return; const observer = new IntersectionObserver((entries, observerInstance) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('animated'); observerInstance.unobserve(entry.target); } }); }, { threshold: 0.15, rootMargin: "0px 0px -50px 0px" }); animatedElements.forEach(element => observer.observe(element)); };
