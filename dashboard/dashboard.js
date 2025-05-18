@@ -3,7 +3,7 @@
 // ПЛЮС: Исправление обновления currentProfile.monthly_claims (Этап 4)
 // ПЛЮС: Исправление ошибки 406 при обновлении XP в claimMonthlyReward
 // ПЛЮС: Улучшенная обработка ошибок и откат состояния в claimMonthlyReward
-// <<< ДОБАВЛЕНИЕ: Новая версия с изменениями для отображения недельного прогресса и последнего добавления кредитов >>>
+// <<< ИЗМЕНЕНИЕ: Исправлена логика сброса состояния загрузки для activities и creditHistory >>>
 (function() {
     'use strict';
 
@@ -33,7 +33,6 @@
         session: false,
         welcomeBanner: false,
         shortcuts: false,
-        // <<< НОВОЕ: Состояние загрузки для последнего изменения кредитов >>>
         latestCreditChange: false
     };
     const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
@@ -137,7 +136,6 @@
             { key: 'overallProgressFooter', id: 'overall-progress-footer', critical: false },
             { key: 'pointsCard', id: 'points-card', critical: false },
             { key: 'totalPointsValue', id: 'total-points-value', critical: false },
-            // <<< НОВОЕ: ID для последнего изменения кредитов >>>
             { key: 'latestCreditChange', id: 'latest-credit-change', critical: false },
             { key: 'totalPointsFooter', id: 'total-points-footer', critical: false },
             { key: 'streakCard', id: 'streak-card', critical: false },
@@ -175,14 +173,13 @@
             if (element) { ui[def.key] = element; }
             else { ui[def.key] = null; if (def.critical) notFoundCritical.push(`${def.key} (ID/Query: ${def.id || def.query})`); else console.warn(`[CACHE DOM] Non-critical element not found: ${def.key}`); }
         });
-        // Ensure list specific elements are also cached (if not covered by general IDs)
         ui.activityList = document.getElementById('activity-list');
         ui.activityListEmptyState = document.getElementById('activity-list-empty-state');
         ui.activityListErrorState = document.getElementById('activity-list-error-state');
         ui.creditHistoryList = document.getElementById('credit-history-list');
         ui.creditHistoryEmptyState = document.getElementById('credit-history-empty-state');
         ui.creditHistoryErrorState = document.getElementById('credit-history-error-state');
-        if (ui.statsCardsContainer && !ui.progressCard) { // Fallback if individual cards weren't in definitions
+        if (ui.statsCardsContainer && !ui.progressCard) {
             ui.progressCard = ui.statsCardsContainer.querySelector('#progress-card');
             ui.pointsCard = ui.statsCardsContainer.querySelector('#points-card');
             ui.streakCard = ui.statsCardsContainer.querySelector('#streak-card');
@@ -264,7 +261,7 @@
             }
         } else if (sectionKey === 'titles') {
             console.log(`[SetLoadingState] Loading state for 'titles' is now ${isLoadingFlag}.`);
-        } else if (sectionKey === 'latestCreditChange') { // <<< НОВОЕ: Обработка состояния для последнего изменения кредитов >>>
+        } else if (sectionKey === 'latestCreditChange') {
             if (ui.latestCreditChange) {
                 ui.latestCreditChange.innerHTML = isLoadingFlag ? '<i class="fas fa-spinner fa-spin" style="font-size: 0.8em;"></i>' : '--';
             }
@@ -284,12 +281,12 @@
     async function fetchTitles() { const startTime = performance.now(); if (!supabase) return []; console.log("[Titles] Fetching available titles..."); setLoadingState('titles', true); try { const { data, error } = await withTimeout(supabase.from('title_shop').select('title_key, name'), DATA_FETCH_TIMEOUT, new Error('Načítání titulů vypršelo.')); if (error) throw error; const endTime = performance.now(); console.log(`[Titles] Fetched titles. Time: ${(endTime - startTime).toFixed(2)}ms`); return data || []; } catch (error) { console.error("[Titles] Error fetching titles:", error); return []; } finally { setLoadingState('titles', false); } }
     async function fetchUserStats(userId, profileData) { const startTime = performance.now(); if (!supabase || !userId || !profileData) { console.error("[Stats] Chybí Supabase klient, ID uživatele nebo data profilu."); return null; } console.log(`[Stats] Načítání statistik pro uživatele ${userId}...`); let fetchedStats = null; let statsError = null; try { const { data, error } = await supabase.from('user_stats').select('progress, progress_weekly, points_weekly, streak_longest, completed_tests').eq('user_id', userId).maybeSingle(); fetchedStats = data; statsError = error; if (statsError) { console.warn("[Stats] Chyba Supabase při načítání user_stats:", statsError.message); } } catch (error) { console.error("[Stats] Neočekávaná chyba při načítání user_stats:", error); statsError = error; } const finalStats = { progress: fetchedStats?.progress ?? profileData.progress ?? 0, progress_weekly: fetchedStats?.progress_weekly ?? 0, points: profileData.points ?? 0, points_weekly: fetchedStats?.points_weekly ?? 0, streak_current: profileData.streak_days ?? 0, longest_streak_days: profileData.longest_streak_days ?? Math.max(fetchedStats?.streak_longest ?? 0, profileData.streak_days ?? 0), completed_exercises: profileData.completed_exercises ?? 0, completed_tests: profileData.completed_tests ?? fetchedStats?.completed_tests ?? 0 }; const endTime = performance.now(); if (statsError) { console.warn(`[Stats] Vracení statistik primárně z profilu kvůli chybě načítání. Time: ${(endTime - startTime).toFixed(2)}ms`); } else { console.log(`[Stats] Statistiky úspěšně načteny/sestaveny. Time: ${(endTime - startTime).toFixed(2)}ms`); } return finalStats; }
 
-    // <<< НОВАЯ ФУНКЦИЯ: Загрузка и отображение последнего изменения кредитов >>>
     async function fetchAndDisplayLatestCreditChange(userId) {
         console.log(`[CreditChange] Fetching latest credit change for user ${userId}...`);
         if (!supabase || !userId || !ui.latestCreditChange) {
             console.warn("[CreditChange] Missing Supabase, userId or UI element.");
             if (ui.latestCreditChange) ui.latestCreditChange.textContent = '--';
+            setLoadingState('latestCreditChange', false); // <<< НОВОЕ: Убедимся, что состояние сброшено >>>
             return;
         }
         setLoadingState('latestCreditChange', true);
@@ -298,18 +295,17 @@
                 .from('credit_transactions')
                 .select('amount, created_at')
                 .eq('user_id', userId)
-                // .gt('amount', 0) // Только добавления, если нужно. Пока оставим все.
                 .order('created_at', { ascending: false })
                 .limit(1)
                 .single();
 
-            if (error && error.code !== 'PGRST116') { // PGRST116 = 0 rows, not an error here
+            if (error && error.code !== 'PGRST116') {
                 throw error;
             }
 
             if (data && data.amount !== undefined) {
                 const amount = data.amount;
-                const sign = amount > 0 ? '+' : (amount < 0 ? '' : ''); // Show '+' for positive, nothing for negative or zero
+                const sign = amount > 0 ? '+' : (amount < 0 ? '' : '');
                 ui.latestCreditChange.innerHTML = `<span class="${amount > 0 ? 'positive' : (amount < 0 ? 'negative' : '')}" style="font-weight: bold;">${sign}${amount}</span>`;
                 console.log(`[CreditChange] Latest change: ${amount}`);
             } else {
@@ -323,7 +319,6 @@
             setLoadingState('latestCreditChange', false);
         }
     }
-    // <<< КОНЕЦ НОВОЙ ФУНКЦИИ >>>
 
 
     async function checkAndUpdateLoginStreak() {
@@ -510,7 +505,7 @@
             else if (pointsValue < 0) { showToast('Kredity Utraceny!', `${pointsValue} kreditů za: ${reason}`, 'info', 2500); }
 
             userStatsData = await fetchUserStats(currentUser.id, currentProfile);
-            updateStatsCards(userStatsData); // <<< ИЗМЕНЕНО: Передаем userStatsData сюда >>>
+            updateStatsCards(userStatsData);
 
             if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderCreditHistory === 'function') {
                 await DashboardLists.loadAndRenderCreditHistory(currentUser.id, 5);
@@ -534,7 +529,7 @@
     async function markAllNotificationsRead() { console.log("[FUNC] markAllNotificationsRead: Start pro uživatele:", currentUser?.id); if (!currentUser || !ui.markAllReadBtn || !supabase) { console.warn("Cannot mark all read: Missing user, button, or supabase."); return; } if (isLoading.notifications) return; setLoadingState('notifications', true); try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false); if (error) throw error; console.log("[FUNC] markAllNotificationsRead: Úspěch"); const { unreadCount, notifications } = await fetchNotifications(currentUser.id, 5); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Chyba:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = currentCount === 0; } finally { setLoadingState('notifications', false); } }
 
     function updateSidebarProfile(profile) { if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { cacheDOMElements(); if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { console.warn("[UI Update Sidebar] Sidebar elements not found in cache."); return; } } console.log("[UI Update] Aktualizace sidebaru..."); if (profile) { const firstName = profile.first_name ?? ''; const displayName = firstName || profile.username || currentUser?.email?.split('@')[0] || 'Pilot'; ui.sidebarName.textContent = sanitizeHTML(displayName); const initials = getInitials(profile); const avatarUrl = profile.avatar_url; ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials); const sidebarImg = ui.sidebarAvatar.querySelector('img'); if (sidebarImg) { sidebarImg.onerror = () => { ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); }; } const selectedTitleKey = profile.selected_title; let displayTitle = 'Pilot'; if (selectedTitleKey && allTitles && allTitles.length > 0) { const foundTitle = allTitles.find(t => t.title_key === selectedTitleKey); if (foundTitle && foundTitle.name) displayTitle = foundTitle.name; else console.warn(`[UI Update Sidebar] Title key "${selectedTitleKey}" not found in titles list.`); } else if (selectedTitleKey) { console.warn(`[UI Update Sidebar] Selected title key present, but titles list is empty or not loaded.`); } ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle); ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle)); if (ui.welcomeTitle) ui.welcomeTitle.textContent = `Vítej zpět, ${sanitizeHTML(displayName)}!`; console.log("[UI Update] Sidebar aktualizován."); } else { console.warn("[UI Update Sidebar] Missing profile data. Setting defaults."); ui.sidebarName.textContent = "Nepřihlášen"; ui.sidebarAvatar.textContent = '?'; if (ui.sidebarUserTitle) ui.sidebarUserTitle.textContent = 'Pilot'; if (ui.sidebarUserTitle) ui.sidebarUserTitle.removeAttribute('title'); if (ui.welcomeTitle) ui.welcomeTitle.textContent = `Vítejte!`; } }
-    // <<< ИЗМЕНЕНО: Функция updateStatsCards для отображения недельного прогресса >>>
+
     function updateStatsCards(stats) {
         console.log("[UI Update] Aktualizace karet statistik:", stats);
         const statElements = {
@@ -567,17 +562,17 @@
         }
 
         statElements.progress.textContent = `${stats.progress ?? 0}%`;
-        const weeklyProgress = stats.progress_weekly ?? 0;
+        const weeklyProgress = stats.progress_weekly ?? 0; // <<< ИЗМЕНЕНО: Используем progress_weekly >>>
         statElements.progressFooter.classList.remove('positive', 'negative');
-        // Форматируем отображение недельного прогресса
+
         let progressFooterHTML = '';
         if (weeklyProgress > 0) {
             progressFooterHTML = `<i class="fas fa-arrow-up"></i> +${weeklyProgress}% týdně`;
             statElements.progressFooter.classList.add('positive');
         } else if (weeklyProgress < 0) {
-            progressFooterHTML = `<i class="fas fa-arrow-down"></i> ${weeklyProgress}% týdně`; // Знак минус уже есть у числа
+            progressFooterHTML = `<i class="fas fa-arrow-down"></i> ${weeklyProgress}% týdně`;
             statElements.progressFooter.classList.add('negative');
-        } else {
+        } else { // weeklyProgress is 0 or undefined/null
             progressFooterHTML = `<i class="fas fa-minus"></i> ±0% týdně`;
         }
         statElements.progressFooter.innerHTML = progressFooterHTML;
@@ -597,7 +592,7 @@
         }
         console.log("[UI Update] Karty statistik aktualizovány.");
     }
-    // <<< КОНЕЦ ИЗМЕНЕНИЙ >>>
+
 
     function setupEventListeners() { const startTime = performance.now(); console.log("[SETUP] setupUIEventListeners: Start"); if (!ui || Object.keys(ui).length === 0) { console.error("[SETUP] UI cache is empty! Cannot setup listeners."); return; } const listenersAdded = new Set(); const safeAddListener = (element, eventType, handler, key) => { if (element) { element.removeEventListener(eventType, handler); element.addEventListener(eventType, handler); listenersAdded.add(key); } else { console.warn(`[SETUP] Element not found for listener: ${key}`); } }; safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle'); safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle'); safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay'); safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn'); document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); }); safeAddListener(ui.startPracticeBtn, 'click', () => { window.location.href = '/dashboard/procvicovani/main.html'; }, 'startPracticeBtn'); safeAddListener(ui.openMonthlyModalBtn, 'click', () => showModal('monthly-reward-modal'), 'openMonthlyModalBtn'); safeAddListener(ui.openStreakModalBtn, 'click', () => showModal('streak-milestones-modal'), 'openStreakModalBtn'); safeAddListener(ui.refreshDataBtn, 'click', async () => { if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné se přihlásit.", "error"); return; } if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; } const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'RELOADING...'; ui.refreshDataBtn.disabled = true; await loadDashboardData(currentUser, currentProfile); if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'RELOAD'; ui.refreshDataBtn.disabled = false; }, 'refreshDataBtn'); safeAddListener(ui.notificationBell, 'click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell'); safeAddListener(ui.markAllReadBtn, 'click', markAllNotificationsRead, 'markAllReadBtn'); safeAddListener(ui.notificationsList, 'click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount?.textContent?.replace('+', '') || '0'; const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); if(ui.notificationCount) { ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); } if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }, 'notificationsList'); document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown?.classList.remove('active'); } }); safeAddListener(ui.closeMonthlyModalBtn, 'click', () => hideModal('monthly-reward-modal'), 'closeMonthlyModalBtn'); safeAddListener(ui.monthlyRewardModal, 'click', (event) => { if (event.target === ui.monthlyRewardModal) { hideModal('monthly-reward-modal'); } }, 'monthlyRewardModal'); safeAddListener(ui.closeStreakModalBtn, 'click', () => hideModal('streak-milestones-modal'), 'closeStreakModalBtn'); safeAddListener(ui.streakMilestonesModal, 'click', (event) => { if (event.target === ui.streakMilestonesModal) { hideModal('streak-milestones-modal'); } }, 'streakMilestonesModal'); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); if (ui.mainContent) ui.mainContent.addEventListener('scroll', initHeaderScrollDetection, { passive: true }); const endTime = performance.now(); console.log(`[SETUP] Event listeners set up. Added: ${[...listenersAdded].length}. Time: ${(endTime - startTime).toFixed(2)}ms`); }
 
@@ -614,13 +609,12 @@
         setLoadingState('notifications', true);
         setLoadingState('activities', true);
         setLoadingState('creditHistory', true);
-        // <<< НОВОЕ: Запускаем загрузку последнего изменения кредитов >>>
         setLoadingState('latestCreditChange', true);
 
         try {
             await checkAndUpdateLoginStreak();
-            updateSidebarProfile(currentProfile); // Update sidebar profile with potentially updated streak data
-            console.log("[MAIN] loadDashboardData: Paralelní načítání statistik, notifikací, seznamů a последнего изменения кредитов.");
+            updateSidebarProfile(currentProfile);
+            console.log("[MAIN] loadDashboardData: Paralelní načítání statistik, notifikací, seznamů a posledního změnu kreditů.");
 
             const [statsResult, notificationsResult, dashboardListsResult, latestCreditResult] = await Promise.allSettled([
                 fetchUserStats(user.id, currentProfile),
@@ -628,7 +622,6 @@
                 (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderAll === 'function')
                     ? DashboardLists.loadAndRenderAll(user.id, 5)
                     : Promise.resolve({ status: 'fulfilled', value: console.warn("DashboardLists.loadAndRenderAll not found or module not ready for parallel load.") }),
-                // <<< НОВОЕ: Вызов функции для загрузки последнего изменения кредитов >>>
                 fetchAndDisplayLatestCreditChange(user.id)
             ]);
 
@@ -640,7 +633,7 @@
             } else {
                 console.error("❌ Chyba při načítání statistik:", statsResult.reason);
                 showError("Nepodařilo se načíst statistiky.", false);
-                updateStatsCards(currentProfile); // Fallback to profile data for stats display if fetch fails
+                updateStatsCards(currentProfile);
             }
 
             if (notificationsResult.status === 'fulfilled' && notificationsResult.value) {
@@ -648,18 +641,14 @@
                 renderNotifications(unreadCount, notifications);
             } else {
                 console.error("❌ Chyba při načítání oznámení:", notificationsResult.reason);
-                renderNotifications(0, []); // Render empty notifications on error
+                renderNotifications(0, []);
             }
 
             if (dashboardListsResult.status === 'rejected') {
                 console.error("❌ Chyba při DashboardLists.loadAndRenderAll:", dashboardListsResult.reason);
-                // UI states for activities and credit history will be set to false inside DashboardLists itself
             }
-
-             // <<< НОВОЕ: Обработка результата latestCreditResult (уже обрабатывается в самой функции) >>>
              if (latestCreditResult.status === 'rejected') {
-                console.error("❌ Chyba při načítání последнего изменения кредитов:", latestCreditResult.reason);
-                // UI state 'latestCreditChange' is set to false inside fetchAndDisplayLatestCreditChange
+                console.error("❌ Chyba při načítání posledního změnu kreditů:", latestCreditResult.reason);
             }
 
 
@@ -668,8 +657,8 @@
         } catch (error) {
             console.error('[MAIN] loadDashboardData: Zachycena hlavní chyba:', error);
             showError('Nepodařilo se kompletně načíst data nástěnky: ' + error.message);
-            updateStatsCards(currentProfile); // Fallback
-            renderNotifications(0, []); // Fallback
+            updateStatsCards(currentProfile);
+            renderNotifications(0, []);
             if (typeof DashboardLists !== 'undefined') {
                 if (typeof DashboardLists.renderActivities === 'function') DashboardLists.renderActivities(null);
                 if (typeof DashboardLists.renderCreditHistory === 'function') DashboardLists.renderCreditHistory(null);
@@ -678,8 +667,9 @@
         } finally {
             setLoadingState('stats', false);
             setLoadingState('notifications', false);
-            // activities and creditHistory loading states are managed by DashboardLists.js
-            // latestCreditChange loading state is managed by fetchAndDisplayLatestCreditChange
+            setLoadingState('activities', false); // <<< ИЗМЕНЕНО: Устанавливаем false здесь >>>
+            setLoadingState('creditHistory', false); // <<< ИЗМЕНЕНО: Устанавливаем false здесь >>>
+            setLoadingState('latestCreditChange', false); // <<< Убедимся, что это также сброшено >>>
             if (typeof initTooltips === 'function') initTooltips();
             console.log("[MAIN] loadDashboardData: Blok finally dokončen.");
         }
