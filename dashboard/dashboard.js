@@ -1,5 +1,5 @@
 // dashboard.js
-// Verze: 27.0.0 - Opravena chyba ReferenceError, implementovány nové odměny a jejich zobrazení.
+// Verze: 27.0.1 - Opravena chyba ReferenceError přesunutím definic funkcí.
 (function() {
     'use strict';
 
@@ -32,13 +32,18 @@
     };
     const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
     const MONTHLY_REWARD_DAYS = 31;
+    // --- END: Constants and Configuration ---
 
-    // <<< ОБНОВЛЕННАЯ КОНФИГУРАЦИЯ: Milníky Studijní Série >>>
+    // --- START: UI Elements Cache (to be populated by cacheDOMElements) ---
+    let ui = {};
+    // --- END: UI Elements Cache ---
+
+    // --- START: Reward Configurations ---
     const STREAK_MILESTONES_CONFIG = {
         3: {
             name: "Ohnivý Začátek",
             description: "Udržte studijní sérii po dobu 3 dnů.",
-            icon: "fas fa-fire-alt", // Общая иконка для этапа
+            icon: "fas fa-fire-alt",
             rewards: [
                 { type: 'xp', value: 25, name: '+25 ZK', icon_reward: 'fas fa-star' }
             ],
@@ -94,15 +99,12 @@
                 { type: 'title', key: 'nezlomny_duch', name: 'Titul: Nezlomný Duch', icon_reward: 'fas fa-crown' },
                 { type: 'xp', value: 500, name: '+500 ZK', icon_reward: 'fas fa-star' },
                 { type: 'credits', value: 300, name: '+300 Kreditů', icon_reward: 'fas fa-coins' }
-                // { type: 'avatar_frame', key: 'legendary_frame', name: 'Legendární Rámeček', icon_reward: 'fas fa-user-astronaut'}
             ],
             reward_key: "streak_90_days"
         }
     };
     const sortedMilestoneDays = Object.keys(STREAK_MILESTONES_CONFIG).map(Number).sort((a, b) => a - b);
 
-    // <<< ОБНОВЛЕННАЯ КОНФИГУРАЦИЯ: Měsíční Odměny (Květen) >>>
-    // Награды для Мая 2025 (displayMonth === 4 && displayYear === 2025)
     const mayRewardsConfig = {
         1: { type: 'title', key: 'majovy_poutnik', name: 'Májový Poutník', icon: 'fas fa-hiking', description: "Začněte květen s exkluzivním titulem!" },
         3: { type: 'xp', value: 20, name: 'Bonusové ZK', icon: 'fas fa-star', description: "Malý přísun zkušeností." },
@@ -119,7 +121,7 @@
         31: {
             type: 'bundle',
             name: 'Velká Májová Truhla',
-            icon: 'fas fa-archive', // Иконка для бандла
+            icon: 'fas fa-archive',
             description: "Speciální odměna na konci května!",
             rewards: [
                 { type: 'title', key: 'kvetnovy_sampion', name: 'Titul: Květnový Šampion', icon_reward: 'fas fa-trophy' },
@@ -128,8 +130,6 @@
             ]
         }
     };
-
-    let ui = {}; // Будет заполнено в cacheDOMElements
 
     const activityVisuals = {
         exercise: { name: 'Trénink', icon: 'fa-laptop-code', class: 'exercise' },
@@ -147,107 +147,14 @@
         title_awarded: { name: 'Titul Získán', icon: 'fa-crown', class: 'badge' },
         profile_updated: { name: 'Profil Aktualizován', icon: 'fa-user-edit', class: 'other' },
         custom_task_completed: { name: 'Úkol Dokončen', icon: 'fa-check-square', class: 'exercise' },
-        points_earned: { name: 'Kredity Získány', icon: 'fa-arrow-up', class: 'points_earned' }, // Icon for positive credit change
-        points_spent: { name: 'Kredity Utraceny', icon: 'fa-arrow-down', class: 'points_spent' }, // Icon for negative credit change
+        points_earned: { name: 'Kredity Získány', icon: 'fa-arrow-up', class: 'points_earned' },
+        points_spent: { name: 'Kredity Utraceny', icon: 'fa-arrow-down', class: 'points_spent' },
         other: { name: 'Systémová Zpráva', icon: 'fa-info-circle', class: 'other' },
         default: { name: 'Aktivita', icon: 'fa-check-circle', class: 'default' }
     };
-    // --- END: Initialization and Configuration ---
+    // --- END: Reward Configurations ---
 
-    // --- START: Helper Functions (Moved to top) ---
-    function cacheDOMElements() {
-        const startTime = performance.now();
-        console.log("[CACHE DOM] Caching elements...");
-        const elementDefinitions = [
-            { key: 'initialLoader', id: 'initial-loader', critical: true },
-            { key: 'sidebar', id: 'sidebar', critical: true },
-            { key: 'mainContent', id: 'main-content', critical: true },
-            { key: 'dashboardHeader', query: '.dashboard-header', critical: true },
-            { key: 'globalError', id: 'global-error', critical: true },
-            { key: 'sidebarAvatar', id: 'sidebar-avatar', critical: true },
-            { key: 'sidebarName', id: 'sidebar-name', critical: true },
-            { key: 'sidebarUserTitle', id: 'sidebar-user-title', critical: true },
-            { key: 'sidebarToggleBtn', id: 'sidebar-toggle-btn', critical: true },
-            { key: 'welcomeTitle', id: 'welcome-title', critical: true },
-            { key: 'statsCardsContainer', id: 'stats-cards-container', critical: true },
-            { key: 'activityListContainerWrapper', id: 'recent-activities-container-wrapper', critical: true },
-            { key: 'creditHistoryContainerWrapper', id: 'credit-history-container-wrapper', critical: true },
-            { key: 'mainContentAreaPlaceholder', id: 'main-content-area-placeholder', critical: true },
-            { key: 'sidebarOverlay', id: 'sidebar-overlay', critical: false },
-            { key: 'mainMobileMenuToggle', id: 'main-mobile-menu-toggle', critical: false },
-            { key: 'sidebarCloseToggle', id: 'sidebar-close-toggle', critical: false },
-            { key: 'currentYearSidebar', id: 'currentYearSidebar', critical: false },
-            { key: 'dashboardTitle', id: 'dashboard-title', critical: false },
-            { key: 'refreshDataBtn', id: 'refresh-data-btn', critical: false },
-            { key: 'notificationBell', id: 'notification-bell', critical: false },
-            { key: 'notificationCount', id: 'notification-count', critical: false },
-            { key: 'notificationsDropdown', id: 'notifications-dropdown', critical: false },
-            { key: 'notificationsList', id: 'notifications-list', critical: false },
-            { key: 'noNotificationsMsg', id: 'no-notifications-msg', critical: false },
-            { key: 'markAllReadBtn', id: 'mark-all-read', critical: false },
-            { key: 'startPracticeBtn', id: 'start-practice-btn', critical: false },
-            { key: 'openMonthlyModalBtn', id: 'open-monthly-modal-btn', critical: false },
-            { key: 'openStreakModalBtn', id: 'open-streak-modal-btn', critical: false },
-            { key: 'progressCard', id: 'progress-card', critical: false },
-            { key: 'overallProgressValue', id: 'overall-progress-value', critical: false },
-            { key: 'overallProgressFooter', id: 'overall-progress-footer', critical: false },
-            { key: 'pointsCard', id: 'points-card', critical: false },
-            { key: 'totalPointsValue', id: 'total-points-value', critical: false },
-            { key: 'latestCreditChange', id: 'latest-credit-change', critical: false },
-            { key: 'totalPointsFooter', id: 'total-points-footer', critical: false },
-            { key: 'streakCard', id: 'streak-card', critical: false },
-            { key: 'streakValue', id: 'streak-value', critical: false },
-            { key: 'streakFooter', id: 'streak-footer', critical: false },
-            { key: 'monthlyRewardModal', id: 'monthly-reward-modal', critical: false },
-            { key: 'modalMonthlyCalendarGrid', id: 'modal-monthly-calendar-grid', critical: false },
-            { key: 'modalMonthlyCalendarEmpty', id: 'modal-monthly-calendar-empty', critical: false },
-            { key: 'modalCurrentMonthYearSpan', id: 'modal-current-month-year', critical: false },
-            { key: 'closeMonthlyModalBtn', id: 'close-monthly-modal-btn', critical: false },
-            { key: 'streakMilestonesModal', id: 'streak-milestones-modal', critical: false },
-            { key: 'modalMilestonesGrid', id: 'modal-milestones-grid', critical: false },
-            { key: 'modalMilestonesEmpty', id: 'modal-milestones-empty', critical: false },
-            { key: 'modalCurrentStreakValue', id: 'modal-current-streak-value', critical: false },
-            { key: 'modalLongestStreakValue', id: 'modal-longest-streak-value', critical: false},
-            { key: 'closeStreakModalBtn', id: 'close-streak-modal-btn', critical: false },
-            { key: 'toastContainer', id: 'toast-container', critical: false },
-            { key: 'offlineBanner', id: 'offline-banner', critical: false },
-            { key: 'mouseFollower', id: 'mouse-follower', critical: false },
-            { key: 'currentYearFooter', id: 'currentYearFooter', critical: false },
-            { key: 'welcomeBannerReal', id: 'welcome-banner-real', critical: false },
-            { key: 'welcomeBannerSkeleton', id: 'welcome-banner-skeleton', critical: false },
-            { key: 'statsCardsSkeletonContainer', id: 'stats-cards-skeleton-container', critical: false },
-            { key: 'shortcutGridReal', id: 'shortcut-grid-real', critical: false },
-            { key: 'shortcutGridSkeletonContainer', id: 'shortcut-grid-skeleton-container', critical: false },
-            { key: 'activityListContainer', id: 'activity-list-container', critical: false },
-            { key: 'activityListSkeletonContainer', id: 'activity-list-skeleton-container', critical: false },
-            { key: 'creditHistoryListContainer', id: 'credit-history-list-container', critical: false },
-            { key: 'creditHistorySkeletonContainer', id: 'credit-history-skeleton-container', critical: false },
-        ];
-        const notFoundCritical = [];
-        ui = {}; // Reset ui cache
-        elementDefinitions.forEach(def => {
-            const element = def.id ? document.getElementById(def.id) : document.querySelector(def.query);
-            if (element) { ui[def.key] = element; }
-            else { ui[def.key] = null; if (def.critical) notFoundCritical.push(`${def.key} (ID/Query: ${def.id || def.query})`); else console.warn(`[CACHE DOM] Non-critical element not found: ${def.key}`); }
-        });
-        ui.activityList = document.getElementById('activity-list');
-        ui.activityListEmptyState = document.getElementById('activity-list-empty-state');
-        ui.activityListErrorState = document.getElementById('activity-list-error-state');
-        ui.creditHistoryList = document.getElementById('credit-history-list');
-        ui.creditHistoryEmptyState = document.getElementById('credit-history-empty-state');
-        ui.creditHistoryErrorState = document.getElementById('credit-history-error-state');
-        if (ui.statsCardsContainer && !ui.progressCard) {
-            ui.progressCard = ui.statsCardsContainer.querySelector('#progress-card');
-            ui.pointsCard = ui.statsCardsContainer.querySelector('#points-card');
-            ui.streakCard = ui.statsCardsContainer.querySelector('#streak-card');
-        }
-
-        if (notFoundCritical.length > 0) { console.error(`[CACHE DOM] CRITICAL elements not found: (${notFoundCritical.length})`, notFoundCritical); throw new Error(`Chyba načítání stránky: Kritické komponenty chybí (${notFoundCritical.join(', ')}).`); }
-        else { console.log("[CACHE DOM] All critical elements found."); }
-        const endTime = performance.now();
-        console.log(`[CACHE DOM] Caching complete. UI object:`, ui, `Time: ${(endTime - startTime).toFixed(2)}ms`);
-    }
-
+    // --- START: Helper Functions (defined before use) ---
     function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
     function showToast(title, message, type = 'info', duration = 4500) { if (!ui.toastContainer) { console.warn("Toast container not found."); return; } try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content">${title ? `<div class="toast-title">${sanitizeHTML(title)}</div>` : ''}<div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-triangle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Error displaying toast:", e); } }
     function showError(message, isGlobal = false, targetElement = ui.globalError) { console.error("Error:", message); const errorDisplayElement = isGlobal ? ui.globalError : targetElement; if (errorDisplayElement) { if (targetElement === ui.mainContentAreaPlaceholder && !isGlobal) { errorDisplayElement.innerHTML = `<div class="error-message card" style="margin: 2rem; padding: 2rem; text-align: center;"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" id="content-retry-btn" style="margin-top:1rem;">Zkusit znovu</button></div>`; errorDisplayElement.style.display = 'flex'; const retryBtn = errorDisplayElement.querySelector('#content-retry-btn'); if (retryBtn) { retryBtn.onclick = () => { hideError(errorDisplayElement); initializeApp(); }; } } else { errorDisplayElement.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" id="global-retry-btn">Obnovit Stránku</button></div>`; errorDisplayElement.style.display = 'block'; const retryBtn = errorDisplayElement.querySelector('#global-retry-btn'); if (retryBtn) { retryBtn.onclick = () => location.reload(); } } } else { showToast('CHYBA', message, 'error', 10000); } }
@@ -257,7 +164,20 @@
     function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { document.body.classList.remove('sidebar-collapsed'); ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
     function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
     function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Offline', 'Spojení ztraceno.', 'warning'); }
+    function isSameDate(date1, date2) { if (!date1 || !date2) return false; const d1 = new Date(date1); const d2 = new Date(date2); return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate(); }
+    function isYesterday(date1, date2) { if (!date1 || !date2) return false; const yesterday = new Date(date2); yesterday.setDate(yesterday.getDate() - 1); return isSameDate(date1, yesterday); }
+    function getCurrentMonthYearString() { const now = new Date(); const year = now.getFullYear(); const month = String(now.getMonth() + 1).padStart(2, '0'); return `${year}-${month}`; }
+    function showModal(modalId) { const modal = document.getElementById(modalId); if (modal) { console.log(`[Modal] Opening modal: ${modalId}`); modal.style.display = 'flex'; if (modalId === 'monthly-reward-modal' && typeof renderMonthlyCalendar === 'function') { renderMonthlyCalendar(); } else if (modalId === 'streak-milestones-modal' && typeof renderStreakMilestones === 'function') { renderStreakMilestones(); } requestAnimationFrame(() => { modal.classList.add('active'); }); } else { console.error(`Modal element not found: #${modalId}`); } }
+    function hideModal(modalId) { const modal = document.getElementById(modalId); if (modal) { console.log(`[Modal] Closing modal: ${modalId}`); modal.classList.remove('active'); setTimeout(() => { modal.style.display = 'none'; }, 300); } }
+    function withTimeout(promise, ms, timeoutError = new Error('Operace vypršela')) { const timeoutPromise = new Promise((_, reject) => { setTimeout(() => reject(timeoutError), ms); }); return Promise.race([promise, timeoutPromise]); }
+    function updateCopyrightYear() { const currentYearSpan = ui.currentYearFooter; const currentYearSidebar = ui.currentYearSidebar; const year = new Date().getFullYear(); if (currentYearSpan) { currentYearSpan.textContent = year; } if (currentYearSidebar) { currentYearSidebar.textContent = year; } }
+    function initTooltips() { try { if (window.jQuery && typeof window.jQuery.fn.tooltipster === 'function') { window.jQuery('.btn-tooltip.tooltipstered').each(function() { if (document.body.contains(this)) { try { window.jQuery(this).tooltipster('destroy'); } catch (destroyError) { console.warn("Tooltipster destroy error:", destroyError); } } }); window.jQuery('.btn-tooltip').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 150, distance: 6, side: 'top' }); console.log("[Tooltips] Initialized/Re-initialized."); } else { console.warn("[Tooltips] jQuery or Tooltipster library not loaded."); } } catch (e) { console.error("[Tooltips] Error initializing Tooltipster:", e); } }
+    function initMouseFollower() { const follower = ui.mouseFollower; if (!follower || window.innerWidth <= 576) return; let hasMoved = false; const updatePosition = (event) => { if (!hasMoved) { document.body.classList.add('mouse-has-moved'); hasMoved = true; } requestAnimationFrame(() => { follower.style.left = `${event.clientX}px`; follower.style.top = `${event.clientY}px`; }); }; window.addEventListener('mousemove', updatePosition, { passive: true }); document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; }); document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; }); window.addEventListener('touchstart', () => { if(follower) follower.style.display = 'none'; }, { passive: true, once: true }); };
+    function initHeaderScrollDetection() { let lastScrollY = window.scrollY; const mainEl = ui.mainContent; if (!mainEl) return; mainEl.addEventListener('scroll', () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 50); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; }, { passive: true }); if (mainEl && mainEl.scrollTop > 50) document.body.classList.add('scrolled'); };
+    function initScrollAnimations() { const animatedElements = document.querySelectorAll('.main-content-wrapper [data-animate]'); if (!animatedElements.length || !('IntersectionObserver' in window)) return; const observer = new IntersectionObserver((entries, observerInstance) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('animated'); observerInstance.unobserve(entry.target); } }); }, { threshold: 0.15, rootMargin: "0px 0px -50px 0px" }); animatedElements.forEach(element => observer.observe(element)); };
+    // --- END: Helper Functions ---
 
+    // --- START: Skeleton and Loading State Management (Moved before use) ---
     function toggleSkeletonUI(sectionKey, showSkeleton) {
         console.log(`[Skeleton Toggle] Section: ${sectionKey}, Show Skeleton: ${showSkeleton}`);
         let skeletonContainer, realContainer;
@@ -279,6 +199,7 @@
             if(!showSkeleton && sectionParent) sectionParent.classList.remove('skeleton-active');
         }
     }
+
     function setLoadingState(sectionKey, isLoadingFlag) {
         if (!ui || Object.keys(ui).length === 0) { console.error("[SetLoadingState] UI cache not ready."); return; }
         if (isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return;
@@ -342,57 +263,30 @@
         }
     }
 
-
     function applyInitialSidebarState() { const startTime = performance.now(); if (!ui.sidebarToggleBtn) { console.warn("[Sidebar State] Sidebar toggle button (#sidebar-toggle-btn) not found for initial state application."); return; } try { const savedState = localStorage.getItem(SIDEBAR_STATE_KEY); const shouldBeCollapsed = savedState === 'collapsed'; console.log(`[Sidebar State] Initial read state from localStorage: '${savedState}', Applying collapsed: ${shouldBeCollapsed}`); document.body.classList.toggle('sidebar-collapsed', shouldBeCollapsed); const icon = ui.sidebarToggleBtn.querySelector('i'); if (icon) { icon.className = shouldBeCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; ui.sidebarToggleBtn.setAttribute('aria-label', shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); ui.sidebarToggleBtn.setAttribute('title', shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); const endTime = performance.now(); console.log(`[Sidebar State] Initial icon and attributes set. Icon class: ${icon.className}. Time: ${(endTime - startTime).toFixed(2)}ms`); } else { console.warn("[Sidebar State] Sidebar toggle button icon not found for initial state update."); } } catch (error) { console.error("[Sidebar State] Error applying initial state:", error); document.body.classList.remove('sidebar-collapsed'); } }
     function toggleSidebar() { try { const isCollapsed = document.body.classList.toggle('sidebar-collapsed'); localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded'); const icon = ui.sidebarToggleBtn.querySelector('i'); if (icon) { icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; ui.sidebarToggleBtn.setAttribute('aria-label', isCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); ui.sidebarToggleBtn.setAttribute('title', isCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); } console.log(`[Sidebar Toggle] Sidebar toggled. New state: ${isCollapsed ? 'collapsed' : 'expanded'}`); } catch(e){console.error("[Sidebar Toggle] Error:",e);}}
+    // --- END: Skeleton and Loading State Management ---
 
+    // --- START: Supabase Interaction Functions (Moved earlier) ---
     function initializeSupabase() { const startTime = performance.now(); console.log("[Supabase] Attempting initialization..."); try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not loaded or createClient is not a function."); } supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); if (!supabase) { throw new Error("Supabase client creation failed (returned null/undefined)."); } window.supabaseClient = supabase; const endTime = performance.now(); console.log(`[Supabase] Klient úspěšně inicializován a globálně dostupný. Time: ${(endTime - startTime).toFixed(2)}ms`); return true; } catch (error) { console.error('[Supabase] Initialization failed:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi. Zkuste obnovit stránku.", true); return false; } }
-
-    function withTimeout(promise, ms, timeoutError = new Error('Operace vypršela')) { const timeoutPromise = new Promise((_, reject) => { setTimeout(() => reject(timeoutError), ms); }); return Promise.race([promise, timeoutPromise]); }
     async function fetchUserProfile(userId) { const startTime = performance.now(); console.log(`[Profile] Fetching profile for user ID: ${userId}`); if (!supabase || !userId) return null; try { const { data: profile, error } = await withTimeout(supabase.from('profiles').select(PROFILE_COLUMNS_TO_SELECT).eq('id', userId).single(), DATA_FETCH_TIMEOUT, new Error('Načítání profilu vypršelo.')); if (error && error.code !== 'PGRST116') { throw error; } if (!profile) { console.warn(`[Profile] Profile for ${userId} not found. Returning null.`); return null; } profile.monthly_claims = profile.monthly_claims || {}; profile.last_milestone_claimed = profile.last_milestone_claimed || 0; profile.purchased_titles = profile.purchased_titles || []; const endTime = performance.now(); console.log(`[Profile] Profile data fetched successfully. Time: ${(endTime - startTime).toFixed(2)}ms`); return profile; } catch (error) { console.error('[Profile] Exception fetching profile:', error); return null; } }
     async function createDefaultProfile(userId, userEmail) { const startTime = performance.now(); if (!supabase || !userId || !userEmail) return null; console.log(`[Profile Create] Creating default profile for user ${userId}`); try { const defaultData = { id: userId, email: userEmail, username: userEmail.split('@')[0] || `user_${userId.substring(0, 6)}`, level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0, longest_streak_days: 0, last_login: new Date().toISOString(), monthly_claims: {}, last_milestone_claimed: 0, purchased_titles: [], created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches, language: 'cs' }, notifications: { email: true, study_tips: true, content_updates: true, practice_reminders: true } }; const { data: newProfile, error } = await withTimeout(supabase.from('profiles').insert(defaultData).select(PROFILE_COLUMNS_TO_SELECT).single(), DATA_FETCH_TIMEOUT, new Error('Vytváření profilu vypršelo.')); if (error) { if (error.code === '23505') { console.warn("[Profile Create] Profile likely already exists, fetching again."); return await fetchUserProfile(userId); } throw error; } const endTime = performance.now(); console.log(`[Profile Create] Default profile created. Time: ${(endTime - startTime).toFixed(2)}ms`); return newProfile; } catch (error) { console.error("[Profile Create] Failed to create default profile:", error); return null; } }
     async function fetchTitles() { const startTime = performance.now(); if (!supabase) return []; console.log("[Titles] Fetching available titles..."); setLoadingState('titles', true); try { const { data, error } = await withTimeout(supabase.from('title_shop').select('title_key, name'), DATA_FETCH_TIMEOUT, new Error('Načítání titulů vypršelo.')); if (error) throw error; const endTime = performance.now(); console.log(`[Titles] Fetched titles. Time: ${(endTime - startTime).toFixed(2)}ms`); return data || []; } catch (error) { console.error("[Titles] Error fetching titles:", error); return []; } finally { setLoadingState('titles', false); } }
     async function fetchUserStats(userId, profileData) { const startTime = performance.now(); if (!supabase || !userId || !profileData) { console.error("[Stats] Chybí Supabase klient, ID uživatele nebo data profilu."); return null; } console.log(`[Stats] Načítání statistik pro uživatele ${userId}...`); let fetchedStats = null; let statsError = null; try { const { data, error } = await supabase.from('user_stats').select('progress, progress_weekly, points_weekly, streak_longest, completed_tests').eq('user_id', userId).maybeSingle(); fetchedStats = data; statsError = error; if (statsError) { console.warn("[Stats] Chyba Supabase při načítání user_stats:", statsError.message); } } catch (error) { console.error("[Stats] Neočekávaná chyba při načítání user_stats:", error); statsError = error; } const finalStats = { progress: fetchedStats?.progress ?? profileData.progress ?? 0, progress_weekly: fetchedStats?.progress_weekly ?? 0, points: profileData.points ?? 0, points_weekly: fetchedStats?.points_weekly ?? 0, streak_current: profileData.streak_days ?? 0, longest_streak_days: profileData.longest_streak_days ?? Math.max(fetchedStats?.streak_longest ?? 0, profileData.streak_days ?? 0), completed_exercises: profileData.completed_exercises ?? 0, completed_tests: profileData.completed_tests ?? fetchedStats?.completed_tests ?? 0 }; const endTime = performance.now(); if (statsError) { console.warn(`[Stats] Vracení statistik primárně z profilu kvůli chybě načítání. Time: ${(endTime - startTime).toFixed(2)}ms`); } else { console.log(`[Stats] Statistiky úspěšně načteny/sestaveny. Time: ${(endTime - startTime).toFixed(2)}ms`); } return finalStats; }
-
     async function fetchAndDisplayLatestCreditChange(userId) {
         console.log(`[CreditChange] Fetching latest credit change for user ${userId}...`);
         if (ui.latestCreditChange) {
             ui.latestCreditChange.innerHTML = '';
             ui.latestCreditChange.style.display = 'none';
         }
-
-        if (!supabase || !userId ) {
-            console.warn("[CreditChange] Missing Supabase or userId.");
-            return null;
-        }
-
+        if (!supabase || !userId ) { console.warn("[CreditChange] Missing Supabase or userId."); return null; }
         try {
-            const { data, error } = await supabase
-                .from('credit_transactions')
-                .select('amount, description, created_at')
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .single();
-
-            if (error && error.code !== 'PGRST116') {
-                throw error;
-            }
-
-            if (data && data.amount !== undefined) {
-                console.log(`[CreditChange] Latest change: ${data.amount}, Description: ${data.description}`);
-                return { amount: data.amount, description: data.description };
-            } else {
-                console.log('[CreditChange] No credit transactions found.');
-                return null;
-            }
-        } catch (error) {
-            console.error('[CreditChange] Error fetching latest credit change:', error);
-            return null;
-        }
+            const { data, error } = await supabase.from('credit_transactions').select('amount, description, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(1).single();
+            if (error && error.code !== 'PGRST116') { throw error; }
+            if (data && data.amount !== undefined) { console.log(`[CreditChange] Latest change: ${data.amount}, Description: ${data.description}`); return { amount: data.amount, description: data.description }; }
+            else { console.log('[CreditChange] No credit transactions found.'); return null; }
+        } catch (error) { console.error('[CreditChange] Error fetching latest credit change:', error); return null; }
     }
-
-
     async function checkAndUpdateLoginStreak() {
         const startTime = performance.now();
         if (!currentUser || !currentProfile || !supabase) { console.warn("[StreakCheck] Cannot perform check: missing user, profile, or supabase."); return false; }
@@ -521,7 +415,6 @@
         }
     }
 
-
     async function updateLastMilestoneClaimedInDB(milestoneDay, rewardKey, rewardName) {
         if (!currentUser || !supabase) return false;
         console.log(`[DB Update] Attempting to record claim for milestoneDay: ${milestoneDay}, rewardKey: ${rewardKey}`);
@@ -608,7 +501,6 @@
         }
     }
 
-    // <<< ОБНОВЛЕННАЯ ФУНКЦИЯ: Начисление титула >>>
     async function awardUserTitle(titleKey, titleName, reason = "Měsíční odměna") {
         if (!currentProfile || !currentUser || !supabase) {
             console.error("Cannot award title: Missing profile, user or supabase.");
@@ -634,24 +526,22 @@
                     updated_at: new Date().toISOString()
                 })
                 .eq('id', currentUser.id)
-                .select('purchased_titles, selected_title'); // Only select what we changed
+                .select('purchased_titles, selected_title');
 
             if (error) throw error;
 
-            // Update local profile with the returned data (or assume success)
             if (updatedData && updatedData.length > 0) {
                  currentProfile.purchased_titles = updatedData[0].purchased_titles;
                  currentProfile.selected_title = updatedData[0].selected_title;
             } else {
-                 // Fallback if no data returned (should not happen with .single() or if select is used)
                  currentProfile.purchased_titles = newTitles;
                  currentProfile.selected_title = newSelectedTitle;
             }
-            currentProfile.updated_at = new Date().toISOString(); // Reflect update time
+            currentProfile.updated_at = new Date().toISOString();
 
             await logActivity(currentUser.id, 'title_awarded', `Získán titul: ${titleName}`, `Důvod: ${reason}. Klíč: ${titleKey}`);
             showToast("Nový titul získán!", `Gratulujeme k titulu: "${titleName}"!`, 'success');
-            updateSidebarProfile(currentProfile); // Обновить сайдбар
+            updateSidebarProfile(currentProfile);
             return true;
         } catch (error) {
             console.error("Error awarding title:", error);
@@ -749,19 +639,117 @@
         }
         console.log("[UI Update] Karty statistik aktualizovány.");
     }
+    // --- END: Helper Functions ---
 
-    // --- End Helper Functions ---
+    // --- START: Event Listeners Setup (Moved to be defined before initializeApp) ---
+    function setupEventListeners() {
+        const startTime = performance.now();
+        console.log("[SETUP] setupEventListeners: Start");
+        if (!ui || Object.keys(ui).length === 0) { console.error("[SETUP] UI cache is empty! Cannot setup listeners."); return; }
+        const listenersAdded = new Set();
+        const safeAddListener = (element, eventType, handler, key) => {
+            if (element) {
+                // Remove previous listener if any (using a stored reference or by iterating if necessary)
+                // For simplicity, we assume a unique handler function or use a more robust system if needed.
+                element.removeEventListener(eventType, handler); // Attempt to remove, harmless if not there
+                element.addEventListener(eventType, handler);
+                listenersAdded.add(key);
+            } else {
+                console.warn(`[SETUP] Element not found for listener: ${key}`);
+            }
+        };
 
-    // --- START: Event Listeners Setup ---
-    function setupEventListeners() { const startTime = performance.now(); console.log("[SETUP] setupUIEventListeners: Start"); if (!ui || Object.keys(ui).length === 0) { console.error("[SETUP] UI cache is empty! Cannot setup listeners."); return; } const listenersAdded = new Set(); const safeAddListener = (element, eventType, handler, key) => { if (element) { element.removeEventListener(eventType, handler); element.addEventListener(eventType, handler); listenersAdded.add(key); } else { console.warn(`[SETUP] Element not found for listener: ${key}`); } }; safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle'); safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle'); safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay'); safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn'); document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); }); safeAddListener(ui.startPracticeBtn, 'click', () => { window.location.href = '/dashboard/procvicovani/main.html'; }, 'startPracticeBtn'); safeAddListener(ui.openMonthlyModalBtn, 'click', () => showModal('monthly-reward-modal'), 'openMonthlyModalBtn'); safeAddListener(ui.openStreakModalBtn, 'click', () => showModal('streak-milestones-modal'), 'openStreakModalBtn'); safeAddListener(ui.refreshDataBtn, 'click', async () => { if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné se přihlásit.", "error"); return; } if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; } const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'RELOADING...'; ui.refreshDataBtn.disabled = true; await loadDashboardData(currentUser, currentProfile); if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'RELOAD'; ui.refreshDataBtn.disabled = false; }, 'refreshDataBtn'); safeAddListener(ui.notificationBell, 'click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell'); safeAddListener(ui.markAllReadBtn, 'click', markAllNotificationsRead, 'markAllReadBtn'); safeAddListener(ui.notificationsList, 'click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount?.textContent?.replace('+', '') || '0'; const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); if(ui.notificationCount) { ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); } if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }, 'notificationsList'); document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown?.classList.remove('active'); } }); safeAddListener(ui.closeMonthlyModalBtn, 'click', () => hideModal('monthly-reward-modal'), 'closeMonthlyModalBtn'); safeAddListener(ui.monthlyRewardModal, 'click', (event) => { if (event.target === ui.monthlyRewardModal) { hideModal('monthly-reward-modal'); } }, 'monthlyRewardModal'); safeAddListener(ui.closeStreakModalBtn, 'click', () => hideModal('streak-milestones-modal'), 'closeStreakModalBtn'); safeAddListener(ui.streakMilestonesModal, 'click', (event) => { if (event.target === ui.streakMilestonesModal) { hideModal('streak-milestones-modal'); } }, 'streakMilestonesModal'); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); if (ui.mainContent) ui.mainContent.addEventListener('scroll', initHeaderScrollDetection, { passive: true }); const endTime = performance.now(); console.log(`[SETUP] Event listeners set up. Added: ${[...listenersAdded].length}. Time: ${(endTime - startTime).toFixed(2)}ms`); }
+        safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle');
+        safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle');
+        safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay');
+        safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn');
+
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); });
+        });
+
+        safeAddListener(ui.startPracticeBtn, 'click', () => { window.location.href = '/dashboard/procvicovani/main.html'; }, 'startPracticeBtn');
+        safeAddListener(ui.openMonthlyModalBtn, 'click', () => showModal('monthly-reward-modal'), 'openMonthlyModalBtn');
+        safeAddListener(ui.openStreakModalBtn, 'click', () => showModal('streak-milestones-modal'), 'openStreakModalBtn');
+
+        safeAddListener(ui.refreshDataBtn, 'click', async () => {
+            if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné se přihlásit.", "error"); return; }
+            if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; }
+            const icon = ui.refreshDataBtn.querySelector('i');
+            const text = ui.refreshDataBtn.querySelector('.refresh-text');
+            if (icon) icon.classList.add('fa-spin');
+            if (text) text.textContent = 'RELOADING...';
+            ui.refreshDataBtn.disabled = true;
+            await loadDashboardData(currentUser, currentProfile);
+            if (icon) icon.classList.remove('fa-spin');
+            if (text) text.textContent = 'RELOAD';
+            ui.refreshDataBtn.disabled = false;
+        }, 'refreshDataBtn');
+
+        safeAddListener(ui.notificationBell, 'click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell');
+        safeAddListener(ui.markAllReadBtn, 'click', markAllNotificationsRead, 'markAllReadBtn');
+        safeAddListener(ui.notificationsList, 'click', async (event) => {
+            const item = event.target.closest('.notification-item');
+            if (item) {
+                const notificationId = item.dataset.id;
+                const link = item.dataset.link;
+                const isRead = item.classList.contains('is-read');
+                if (!isRead && notificationId) {
+                    const success = await markNotificationRead(notificationId);
+                    if (success) {
+                        item.classList.add('is-read');
+                        item.querySelector('.unread-dot')?.remove();
+                        const currentCountText = ui.notificationCount?.textContent?.replace('+', '') || '0';
+                        const currentCount = parseInt(currentCountText) || 0;
+                        const newCount = Math.max(0, currentCount - 1);
+                        if(ui.notificationCount) {
+                            ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : '');
+                            ui.notificationCount.classList.toggle('visible', newCount > 0);
+                        }
+                        if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0;
+                    }
+                }
+                if (link) window.location.href = link;
+            }
+        }, 'notificationsList');
+
+        document.addEventListener('click', (event) => {
+            if (ui.notificationsDropdown?.classList.contains('active') &&
+                !ui.notificationsDropdown.contains(event.target) &&
+                !ui.notificationBell?.contains(event.target)) {
+                ui.notificationsDropdown?.classList.remove('active');
+            }
+        });
+
+        safeAddListener(ui.closeMonthlyModalBtn, 'click', () => hideModal('monthly-reward-modal'), 'closeMonthlyModalBtn');
+        safeAddListener(ui.monthlyRewardModal, 'click', (event) => { if (event.target === ui.monthlyRewardModal) { hideModal('monthly-reward-modal'); } }, 'monthlyRewardModal');
+        safeAddListener(ui.closeStreakModalBtn, 'click', () => hideModal('streak-milestones-modal'), 'closeStreakModalBtn');
+        safeAddListener(ui.streakMilestonesModal, 'click', (event) => { if (event.target === ui.streakMilestonesModal) { hideModal('streak-milestones-modal'); } }, 'streakMilestonesModal');
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+
+        // Moved these from initializeApp to be sure they are set up after DOM is ready and ui cache is full.
+        if (ui.mainContent) {
+             ui.mainContent.removeEventListener('scroll', initHeaderScrollDetection); // Remove if previously added
+             ui.mainContent.addEventListener('scroll', initHeaderScrollDetection, { passive: true });
+        }
+
+
+        const endTime = performance.now();
+        console.log(`[SETUP] Event listeners set up. Added: ${[...listenersAdded].length}. Time: ${(endTime - startTime).toFixed(2)}ms`);
+    }
     // --- END: Event Listeners Setup ---
 
 
-    // --- START: Core Logic Functions ---
-    // ... (isSameDate, isYesterday, getCurrentMonthYearString, showModal, hideModal, initMouseFollower, initHeaderScrollDetection, updateCopyrightYear, initTooltips)
-    // Эти функции остаются без изменений и были предоставлены ранее.
+    // --- START: Core Logic Functions (Moved earlier) ---
+    // ... (isSameDate, isYesterday, getCurrentMonthYearString, showModal, hideModal, updateCopyrightYear)
+    // ... (awardPoints, awardUserTitle, logActivity)
+    // ... (fetchNotifications, renderNotifications, renderNotificationSkeletons, markNotificationRead, markAllNotificationsRead)
+    // ... (updateSidebarProfile, updateStatsCards)
+    // --- END: Core Logic Functions ---
 
-    // <<< ОБНОВЛЕННАЯ ЛОГИКА: Měsíční Odměny (Май) >>>
+    // <<< ИЗМЕНЕННАЯ ЛОГИКА: Měsíční Odměny (Май) >>>
     async function handleMonthlyRewardClaim(day, rewardConfig) {
         console.log(`[Monthly Reward] Attempting to claim reward for day ${day}:`, rewardConfig);
         if (!currentUser || !currentProfile || !supabase || !rewardConfig) {
@@ -786,8 +774,6 @@
             } else if (rewardConfig.type === 'title' && rewardConfig.key) {
                 awardedSuccessfully = await awardUserTitle(rewardConfig.key, rewardConfig.name, `Měsíční odměna (${day}. ${new Date(currentDisplayedYear, currentDisplayedMonth).toLocaleString('cs-CZ', { month: 'long' })})`);
             } else if (rewardConfig.type === 'xp' && rewardConfig.value) {
-                // Предположим, что XP также обрабатывается awardPoints или нужна отдельная функция awardExperience
-                // Для простоты, предположим, что 1 XP = 10 очков для системы очков
                 await awardPoints(rewardConfig.value * 10, `Měsíční odměna ZK (${day}. ${new Date(currentDisplayedYear, currentDisplayedMonth).toLocaleString('cs-CZ', { month: 'long' })}): ${rewardConfig.name}`, 'monthly_reward_xp', null, true);
                 awardedSuccessfully = true;
             } else if (rewardConfig.type === 'bundle' && rewardConfig.rewards) {
@@ -810,7 +796,6 @@
                 const dbUpdateSuccess = await updateMonthlyClaimsInDB(newMonthlyClaims);
 
                 if (dbUpdateSuccess) {
-                    // currentProfile.monthly_claims обновляется внутри updateMonthlyClaimsInDB
                     await logActivity(currentUser.id, 'monthly_reward_claimed', `Vyzvednuta měsíční odměna (${day}. den)`, `${rewardConfig.name}`, { day: day, reward: rewardConfig });
                     activityLogged = true;
                     showToast('Odměna Vyzvednuta!', `Úspěšně jste vyzvedli: ${rewardConfig.name}`, 'success');
@@ -850,11 +835,10 @@
         ui.modalCurrentMonthYearSpan.textContent = new Date(currentDisplayedYear, currentDisplayedMonth).toLocaleString('cs-CZ', { month: 'long', year: 'numeric' });
         const daysInMonth = new Date(currentDisplayedYear, currentDisplayedMonth + 1, 0).getDate();
         const firstDayOfMonth = new Date(currentDisplayedYear, currentDisplayedMonth, 1).getDay();
-        const dayOffset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1; // Monday as first day
+        const dayOffset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1;
 
         const currentMonthYearKey = `${currentDisplayedYear}-${String(currentDisplayedMonth + 1).padStart(2, '0')}`;
         const claimedDays = currentProfile.monthly_claims?.[currentMonthYearKey] || [];
-
         let calendarHTML = '';
         for (let i = 0; i < dayOffset; i++) { calendarHTML += `<div class="calendar-day empty"></div>`; }
 
@@ -864,10 +848,8 @@
         const currentRealYear = today.getFullYear();
 
         for (let day = 1; day <= daysInMonth; day++) {
-            // Награды ТОЛЬКО для Мая 2025
             const rewardConfig = (currentDisplayedMonth === 4 && currentDisplayedYear === 2025) ? mayRewardsConfig[day] : null;
             const isClaimed = claimedDays.includes(day);
-            // Можно ли получить: текущий или прошлый день В ТЕКУЩЕМ МЕСЯЦЕ И ГОДУ
             const isClaimableDate = (currentDisplayedYear === currentRealYear && currentDisplayedMonth === currentRealMonth && day <= currentRealDay);
 
             let dayClass = 'calendar-day';
@@ -879,28 +861,21 @@
                 dayClass += ' has-reward';
                 let rewardIconClass = '';
                 let rewardName = rewardConfig.name;
-                let rewardValueText = ''; // Для отображения значения XP/кредитов
+                let rewardValueText = '';
 
-                if (rewardConfig.type === 'title') {
-                    rewardIconClass = rewardConfig.icon || 'fa-crown'; // Иконка по умолчанию для титула
-                    // rewardName остается rewardConfig.name
-                } else if (rewardConfig.type === 'credits') {
-                    rewardIconClass = rewardConfig.icon || 'fa-coins';
-                    rewardValueText = `+${rewardConfig.value} Kr.`;
-                } else if (rewardConfig.type === 'xp') {
-                    rewardIconClass = rewardConfig.icon || 'fa-star';
-                    rewardValueText = `+${rewardConfig.value} ZK`;
-                } else if (rewardConfig.type === 'bundle') {
-                    rewardIconClass = rewardConfig.icon || 'fa-box-open';
-                    rewardName = rewardConfig.name; // Имя бандла
-                    // Собираем детали бандла
-                    rewardValueText = rewardConfig.rewards.map(r => {
-                        let iconR = r.icon_reward || 'fa-gift';
-                        if (r.type === 'title') return `<span class="bundle-reward-item"><i class="fas ${iconR}"></i> ${sanitizeHTML(r.name)}</span>`;
-                        if (r.type === 'credits') return `<span class="bundle-reward-item"><i class="fas ${iconR}"></i> +${r.value} Kr.</span>`;
-                        if (r.type === 'xp') return `<span class="bundle-reward-item"><i class="fas ${iconR}"></i> +${r.value} ZK</span>`;
-                        return sanitizeHTML(r.name);
-                    }).join('');
+                if (rewardConfig.type === 'title') { rewardIconClass = rewardConfig.icon || 'fa-crown'; }
+                else if (rewardConfig.type === 'credits') { rewardIconClass = rewardConfig.icon || 'fa-coins'; rewardValueText = `+${rewardConfig.value} Kr.`;}
+                else if (rewardConfig.type === 'xp') { rewardIconClass = rewardConfig.icon || 'fa-star'; rewardValueText = `+${rewardConfig.value} ZK`;}
+                else if (rewardConfig.type === 'bundle') {
+                     rewardIconClass = rewardConfig.icon || 'fa-box-open';
+                     rewardName = rewardConfig.name;
+                     rewardValueText = rewardConfig.rewards.map(r => {
+                         let iconR = r.icon_reward || 'fa-gift';
+                         if (r.type === 'title') return `<span class="bundle-reward-item"><i class="fas ${iconR}"></i> ${sanitizeHTML(r.name)}</span>`;
+                         if (r.type === 'credits') return `<span class="bundle-reward-item"><i class="fas ${iconR}"></i> +${r.value} Kr.</span>`;
+                         if (r.type === 'xp') return `<span class="bundle-reward-item"><i class="fas ${iconR}"></i> +${r.value} ZK</span>`;
+                         return sanitizeHTML(r.name);
+                     }).join('');
                 }
 
                 rewardInfoHTML = `<div class="reward-icon reward-type-${rewardConfig.type}" title="${sanitizeHTML(rewardConfig.description || rewardName)}"><i class="fas ${rewardIconClass}"></i></div>
@@ -911,7 +886,6 @@
                      rewardInfoHTML += `<div class="reward-bundle-details">${rewardValueText}</div>`;
                 }
 
-
                 if (isClaimed) {
                     dayClass += ' claimed';
                     buttonOrStatusHTML = `<div class="reward-status"><i class="fas fa-check-circle"></i> Vyzvednuto</div>`;
@@ -919,37 +893,22 @@
                     dayClass += ' claimable';
                     buttonOrStatusHTML = `<button class="btn btn-sm btn-claim-month-reward" data-day="${day}"><i class="fas fa-gift"></i> Vyzvednout</button>`;
                 } else if (day > currentRealDay && currentDisplayedMonth === currentRealMonth && currentDisplayedYear === currentRealYear) {
-                    dayClass += ' upcoming-reward'; // Будущие награды в текущем месяце
+                    dayClass += ' upcoming-reward';
                     buttonOrStatusHTML = `<div class="reward-status">Bude dostupné</div>`;
-                } else { // Прошлые невостребованные или будущие (в других месяцах)
+                } else {
                     dayClass += ' missed';
                     buttonOrStatusHTML = `<div class="reward-status">Prošlo</div>`;
                 }
             } else {
                 dayClass += ' no-reward';
             }
-
-            if (currentDisplayedYear === currentRealYear && currentDisplayedMonth === currentRealMonth && day === currentRealDay) {
-                dayClass += ' today';
-            }
-
+            if (currentDisplayedYear === currentRealYear && currentDisplayedMonth === currentRealMonth && day === currentRealDay) { dayClass += ' today'; }
             calendarHTML += `<div class="${dayClass}" data-day="${day}">${content}${rewardInfoHTML}${buttonOrStatusHTML}</div>`;
         }
-
         ui.modalMonthlyCalendarGrid.innerHTML = calendarHTML;
         ui.modalMonthlyCalendarGrid.style.display = 'grid';
         if (ui.modalMonthlyCalendarEmpty) ui.modalMonthlyCalendarEmpty.style.display = 'none';
-
-        ui.modalMonthlyCalendarGrid.querySelectorAll('.btn-claim-month-reward').forEach(button => {
-            button.addEventListener('click', async (event) => {
-                const dayToClaim = parseInt(event.currentTarget.dataset.day);
-                const rewardForDay = (currentDisplayedMonth === 4 && currentDisplayedYear === 2025) ? mayRewardsConfig[dayToClaim] : null;
-                if (rewardForDay) {
-                    await handleMonthlyRewardClaim(dayToClaim, rewardForDay);
-                }
-            });
-        });
-
+        ui.modalMonthlyCalendarGrid.querySelectorAll('.btn-claim-month-reward').forEach(button => { button.addEventListener('click', async (event) => { const dayToClaim = parseInt(event.currentTarget.dataset.day); const rewardForDay = (currentDisplayedMonth === 4 && currentDisplayedYear === 2025) ? mayRewardsConfig[dayToClaim] : null; if (rewardForDay) { await handleMonthlyRewardClaim(dayToClaim, rewardForDay); } }); });
         initTooltips();
         setLoadingState('monthlyRewards', false);
     }
@@ -978,7 +937,7 @@
             ) || false;
 
             const canClaim = currentProfile.streak_days >= dayCount && !isClaimed;
-            let cardClass = 'milestone-card card'; // Добавляем класс .card для общих стилей карточек
+            let cardClass = 'milestone-card card';
             if (isClaimed) cardClass += ' claimed';
             else if (canClaim) cardClass += ' available';
             else cardClass += ' locked';
@@ -1061,7 +1020,7 @@
                     await awardPoints(reward.value, rewardReason, 'streak_milestone_credits', null, true);
                     successThisReward = true;
                 } else if (reward.type === 'xp' && reward.value) {
-                    await awardPoints(reward.value * 10, `${rewardReason} (ZK)`, 'streak_milestone_xp', null, true); // Assume 1 XP = 10 points for now
+                    await awardPoints(reward.value * 10, `${rewardReason} (ZK)`, 'streak_milestone_xp', null, true);
                     successThisReward = true;
                 } else if (reward.type === 'title' && reward.key) {
                     successThisReward = await awardUserTitle(reward.key, reward.name, rewardReason);
@@ -1106,25 +1065,26 @@
     }
     // --- END: Rewards Logic ---
 
-
+    // --- START: App Initialization (Moved setupEventListeners call) ---
     async function initializeApp() {
         const totalStartTime = performance.now();
         console.log("[INIT Dashboard] initializeApp: Start v26.0.16");
         let stepStartTime = performance.now();
 
-        const initialLoaderElement = document.getElementById('initial-loader');
-        const mainContentElement = document.getElementById('main-content');
-        const sidebarElement = document.getElementById('sidebar');
-        const headerElement = document.querySelector('.dashboard-header');
+        // Moved cacheDOMElements to the very beginning of initializeApp
+        cacheDOMElements();
+        console.log(`[INIT Dashboard] cacheDOMElements Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
+        stepStartTime = performance.now();
+
+        const initialLoaderElement = ui.initialLoader; // Use cached reference
+        const mainContentElement = ui.mainContent;
+        const sidebarElement = ui.sidebar;
+        const headerElement = ui.dashboardHeader;
 
         try {
             if (sidebarElement) sidebarElement.style.display = 'flex';
             if (headerElement) headerElement.style.display = 'flex';
             if (mainContentElement) mainContentElement.style.display = 'block';
-
-            cacheDOMElements();
-            console.log(`[INIT Dashboard] cacheDOMElements Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
-            stepStartTime = performance.now();
 
             if (ui.mainContentAreaPlaceholder) {
                 ui.mainContentAreaPlaceholder.innerHTML = '<div class="loading-spinner" style="margin:auto;"></div><p>Načítání palubní desky...</p>';
@@ -1163,7 +1123,7 @@
             console.log(`[INIT Dashboard] applyInitialSidebarState Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
             stepStartTime = performance.now();
 
-            setupEventListeners(); // Moved before session check so modal buttons have listeners
+            setupEventListeners(); // Moved here, after cache and basic UI setup
             console.log(`[INIT Dashboard] setupEventListeners Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
             stepStartTime = performance.now();
 
@@ -1245,7 +1205,7 @@
                     });
 
                     initMouseFollower();
-                    initHeaderScrollDetection();
+                    initHeaderScrollDetection(); // Moved here
                     initTooltips();
 
                     const readyEvent = new CustomEvent('dashboardReady', { detail: { user: currentUser, profile: currentProfile, client: supabase, titles: allTitles } });
@@ -1306,10 +1266,9 @@
     }
     // --- END THE APP ---
 
-    // Make some functions globally accessible if needed by other scripts (like dashboard-lists.js)
     window.DashboardApp = {
-        showToast, // Example
-        // Add other functions if DashboardLists.js or other scripts need them
+        showToast,
+        // ... (other potential global exports if needed by other scripts)
     };
 
 })(); // End of IIFE
