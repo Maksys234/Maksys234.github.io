@@ -3,7 +3,7 @@
 // ПЛЮС: Исправление обновления currentProfile.monthly_claims (Этап 4)
 // ПЛЮС: Исправление ошибки 406 при обновлении XP в claimMonthlyReward
 // ПЛЮС: Улучшенная обработка ошибок и откат состояния в claimMonthlyReward
-// <<< ИЗМЕНЕНИЕ: Упрощены заглушки для модальных окон (без скелетонов). Логика кредитов остается как в предыдущей версии. >>>
+// <<< ИЗМЕНЕНИЕ: Обновлен total-points-footer, возвращены скелетоны в модальные окна (заглушки) >>>
 (function() {
     'use strict';
 
@@ -14,7 +14,7 @@
     let currentUser = null;
     let currentProfile = null;
     let allTitles = [];
-    let userStatsData = null;
+    let userStatsData = null; // Глобальная переменная для хранения userStats
 
     const AUTH_TIMEOUT = 30000;
     const DATA_FETCH_TIMEOUT = 20000;
@@ -200,6 +200,54 @@
     function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
     function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Offline', 'Spojení ztraceno.', 'warning'); }
 
+    // <<< НОВОЕ: Функции для рендеринга скелетонов модальных окон >>>
+    function renderMonthlyCalendarSkeletons(container) {
+        if (!container) {
+            console.warn("[Skeletons] Monthly calendar grid container not found for skeletons.");
+            return;
+        }
+        console.log("[Skeletons] Rendering monthly calendar skeletons...");
+        container.innerHTML = ''; // Clear previous content
+        let skeletonHTML = '';
+        const daysToRender = 30; // Example number of day skeletons
+        for (let i = 0; i < daysToRender; i++) {
+            skeletonHTML += `
+                <div class="calendar-day skeleton" style="height: 90px; background-color: var(--skeleton-bg); border-radius: var(--button-radius); display: flex; flex-direction: column; align-items: center; justify-content: space-around; padding: 0.5rem; animation: skeleton-loading-anim 1.5s infinite linear;">
+                    <div style="width: 20px; height: 12px; background-color: var(--skeleton-highlight); border-radius: 3px; align-self: flex-start; margin-bottom: 0.3rem;"></div>
+                    <div style="width: 30px; height: 30px; background-color: var(--skeleton-highlight); border-radius: 50%; margin-bottom: 0.3rem;"></div>
+                    <div style="width: 80%; height: 10px; background-color: var(--skeleton-highlight); border-radius: 3px;"></div>
+                </div>`;
+        }
+        container.innerHTML = skeletonHTML;
+        container.style.display = 'grid'; // Ensure grid layout is applied
+        if (ui.modalMonthlyCalendarEmpty) ui.modalMonthlyCalendarEmpty.style.display = 'none';
+    }
+
+    function renderMilestoneSkeletons(container) {
+        if (!container) {
+            console.warn("[Skeletons] Milestone grid container not found for skeletons.");
+            return;
+        }
+        console.log("[Skeletons] Rendering milestone skeletons...");
+        container.innerHTML = ''; // Clear previous content
+        let skeletonHTML = '';
+        const milestonesToRender = 3; // Example number of milestone skeletons
+        for (let i = 0; i < milestonesToRender; i++) {
+            skeletonHTML += `
+                <div class="milestone-card skeleton" style="padding: 1rem; border: 1px solid var(--border-color-light); border-radius: var(--card-radius); background-color: var(--skeleton-bg); display: flex; flex-direction: column; align-items: center; gap: 0.7rem; animation: skeleton-loading-anim 1.5s infinite linear;">
+                    <div style="height: 20px; width: 70%; background-color: var(--skeleton-highlight); border-radius: 4px;"></div>
+                    <div style="height: 50px; width: 50px; background-color: var(--skeleton-highlight); border-radius: 50%;"></div>
+                    <div style="height: 16px; width: 90%; background-color: var(--skeleton-highlight); border-radius: 4px;"></div>
+                    <div style="height: 12px; width: 60%; background-color: var(--skeleton-highlight); border-radius: 4px; margin-top: 0.3rem;"></div>
+                    <div style="height: 30px; width: 100px; background-color: var(--skeleton-highlight); border-radius: var(--button-radius); margin-top: 0.7rem;"></div>
+                </div>`;
+        }
+        container.innerHTML = skeletonHTML;
+        container.style.display = 'grid'; // Ensure grid layout is applied
+        if (ui.modalMilestonesEmpty) ui.modalMilestonesEmpty.style.display = 'none';
+    }
+    // <<< КОНЕЦ НОВЫХ ФУНКЦИЙ ДЛЯ СКЕЛЕТОНОВ >>>
+
     function setLoadingState(sectionKey, isLoadingFlag) {
         if (!ui || Object.keys(ui).length === 0) { console.error("[SetLoadingState] UI cache not ready."); return; }
         if (isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return;
@@ -249,19 +297,31 @@
             } else if (!isLoadingFlag && ui.notificationsList && ui.noNotificationsMsg && ui.notificationsList.children.length === 0) {
                  if(ui.noNotificationsMsg) ui.noNotificationsMsg.style.display = 'block';
             }
-        // <<< ИЗМЕНЕНО: Убрано управление скелетонами модальных окон из setLoadingState >>>
-        // <<< Логика скелетонов для модальных окон теперь полностью внутри их render-функций >>>
+        // <<< ИЗМЕНЕНО: setLoadingState для модальных окон теперь вызывает функции рендеринга скелетонов >>>
         } else if (sectionKey === 'monthlyRewards' || sectionKey === 'streakMilestones') {
             const modal = sectionKey === 'monthlyRewards' ? ui.monthlyRewardModal : ui.streakMilestonesModal;
             const modalBody = modal?.querySelector('.modal-body');
-            const loaderOverlay = modalBody?.querySelector('.loading-overlay'); // Предполагаем, что такой оверлей есть
+            const loaderOverlay = modalBody?.querySelector('.loading-overlay');
 
             if (loaderOverlay) loaderOverlay.classList.toggle('hidden', !isLoadingFlag);
-            if (modalBody) modalBody.classList.toggle('loading', isLoadingFlag); // Общий класс загрузки для тела модалки
+            if (modalBody) modalBody.classList.toggle('loading', isLoadingFlag);
 
-            // Скелетоны больше не рендерятся здесь напрямую. Это делают renderMonthlyCalendar/renderStreakMilestones.
-            // setLoadingState(..., false) будет вызван из renderMonthlyCalendar/renderStreakMilestones после того, как они закончат.
-
+            if (isLoadingFlag) {
+                if (sectionKey === 'monthlyRewards' && typeof renderMonthlyCalendarSkeletons === 'function' && ui.modalMonthlyCalendarGrid) {
+                    renderMonthlyCalendarSkeletons(ui.modalMonthlyCalendarGrid);
+                } else if (sectionKey === 'streakMilestones' && typeof renderMilestoneSkeletons === 'function' && ui.modalMilestonesGrid) {
+                    renderMilestoneSkeletons(ui.modalMilestonesGrid);
+                }
+            } else {
+                // Очистка скелетонов при isLoadingFlag = false, если это необходимо
+                // (хотя render-функции должны заменить их контентом или сообщением "готовится")
+                if (sectionKey === 'monthlyRewards' && ui.modalMonthlyCalendarGrid && ui.modalMonthlyCalendarGrid.querySelector('.skeleton')) {
+                    // ui.modalMonthlyCalendarGrid.innerHTML = ''; // или оставить как есть, renderMonthlyCalendar заменит
+                }
+                if (sectionKey === 'streakMilestones' && ui.modalMilestonesGrid && ui.modalMilestonesGrid.querySelector('.skeleton')) {
+                    // ui.modalMilestonesGrid.innerHTML = '';
+                }
+            }
         } else if (sectionKey === 'titles') {
             console.log(`[SetLoadingState] Loading state for 'titles' is now ${isLoadingFlag}.`);
         } else if (sectionKey === 'latestCreditChange') {
@@ -269,8 +329,6 @@
                 if (isLoadingFlag) {
                     ui.latestCreditChange.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size: 0.8em;"></i>';
                 } else {
-                    // Не перезаписываем, если fetchAndDisplayLatestCreditChange уже установил значение.
-                    // Сбрасываем на '--' только если там все еще спиннер.
                     if (ui.latestCreditChange.innerHTML.includes('fa-spinner')) {
                         ui.latestCreditChange.textContent = '--';
                     }
@@ -293,13 +351,14 @@
     async function fetchTitles() { const startTime = performance.now(); if (!supabase) return []; console.log("[Titles] Fetching available titles..."); setLoadingState('titles', true); try { const { data, error } = await withTimeout(supabase.from('title_shop').select('title_key, name'), DATA_FETCH_TIMEOUT, new Error('Načítání titulů vypršelo.')); if (error) throw error; const endTime = performance.now(); console.log(`[Titles] Fetched titles. Time: ${(endTime - startTime).toFixed(2)}ms`); return data || []; } catch (error) { console.error("[Titles] Error fetching titles:", error); return []; } finally { setLoadingState('titles', false); } }
     async function fetchUserStats(userId, profileData) { const startTime = performance.now(); if (!supabase || !userId || !profileData) { console.error("[Stats] Chybí Supabase klient, ID uživatele nebo data profilu."); return null; } console.log(`[Stats] Načítání statistik pro uživatele ${userId}...`); let fetchedStats = null; let statsError = null; try { const { data, error } = await supabase.from('user_stats').select('progress, progress_weekly, points_weekly, streak_longest, completed_tests').eq('user_id', userId).maybeSingle(); fetchedStats = data; statsError = error; if (statsError) { console.warn("[Stats] Chyba Supabase při načítání user_stats:", statsError.message); } } catch (error) { console.error("[Stats] Neočekávaná chyba při načítání user_stats:", error); statsError = error; } const finalStats = { progress: fetchedStats?.progress ?? profileData.progress ?? 0, progress_weekly: fetchedStats?.progress_weekly ?? 0, points: profileData.points ?? 0, points_weekly: fetchedStats?.points_weekly ?? 0, streak_current: profileData.streak_days ?? 0, longest_streak_days: profileData.longest_streak_days ?? Math.max(fetchedStats?.streak_longest ?? 0, profileData.streak_days ?? 0), completed_exercises: profileData.completed_exercises ?? 0, completed_tests: profileData.completed_tests ?? fetchedStats?.completed_tests ?? 0 }; const endTime = performance.now(); if (statsError) { console.warn(`[Stats] Vracení statistik primárně z profilu kvůli chybě načítání. Time: ${(endTime - startTime).toFixed(2)}ms`); } else { console.log(`[Stats] Statistiky úspěšně načteny/sestaveny. Time: ${(endTime - startTime).toFixed(2)}ms`); } return finalStats; }
 
+    // <<< ИЗМЕНЕНО: fetchAndDisplayLatestCreditChange теперь возвращает сумму >>>
     async function fetchAndDisplayLatestCreditChange(userId) {
         console.log(`[CreditChange] Fetching latest credit change for user ${userId}...`);
         if (!supabase || !userId || !ui.latestCreditChange) {
             console.warn("[CreditChange] Missing Supabase, userId or UI element.");
             if (ui.latestCreditChange) ui.latestCreditChange.textContent = '--';
             setLoadingState('latestCreditChange', false);
-            return;
+            return null; // <<< ВОЗВРАТ значения
         }
         setLoadingState('latestCreditChange', true);
         try {
@@ -311,7 +370,7 @@
                 .limit(1)
                 .single();
 
-            if (error && error.code !== 'PGRST116') {
+            if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found, which is not an error here
                 throw error;
             }
 
@@ -320,13 +379,16 @@
                 const sign = amount > 0 ? '+' : (amount < 0 ? '' : '');
                 ui.latestCreditChange.innerHTML = `<span class="${amount > 0 ? 'positive' : (amount < 0 ? 'negative' : '')}" style="font-weight: bold;">${sign}${amount}</span>`;
                 console.log(`[CreditChange] Latest change: ${amount}`);
+                return amount; // <<< ВОЗВРАТ значения
             } else {
                 ui.latestCreditChange.textContent = '--';
                 console.log('[CreditChange] No credit transactions found or amount is undefined.');
+                return null; // <<< ВОЗВРАТ значения
             }
         } catch (error) {
             console.error('[CreditChange] Error fetching latest credit change:', error);
             ui.latestCreditChange.textContent = 'Chyba';
+            return null; // <<< ВОЗВРАТ значения
         } finally {
             setLoadingState('latestCreditChange', false);
         }
@@ -542,22 +604,18 @@
 
     function updateSidebarProfile(profile) { if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { cacheDOMElements(); if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { console.warn("[UI Update Sidebar] Sidebar elements not found in cache."); return; } } console.log("[UI Update] Aktualizace sidebaru..."); if (profile) { const firstName = profile.first_name ?? ''; const displayName = firstName || profile.username || currentUser?.email?.split('@')[0] || 'Pilot'; ui.sidebarName.textContent = sanitizeHTML(displayName); const initials = getInitials(profile); const avatarUrl = profile.avatar_url; ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials); const sidebarImg = ui.sidebarAvatar.querySelector('img'); if (sidebarImg) { sidebarImg.onerror = () => { ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); }; } const selectedTitleKey = profile.selected_title; let displayTitle = 'Pilot'; if (selectedTitleKey && allTitles && allTitles.length > 0) { const foundTitle = allTitles.find(t => t.title_key === selectedTitleKey); if (foundTitle && foundTitle.name) displayTitle = foundTitle.name; else console.warn(`[UI Update Sidebar] Title key "${selectedTitleKey}" not found in titles list.`); } else if (selectedTitleKey) { console.warn(`[UI Update Sidebar] Selected title key present, but titles list is empty or not loaded.`); } ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle); ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle)); if (ui.welcomeTitle) ui.welcomeTitle.textContent = `Vítej zpět, ${sanitizeHTML(displayName)}!`; console.log("[UI Update] Sidebar aktualizován."); } else { console.warn("[UI Update Sidebar] Missing profile data. Setting defaults."); ui.sidebarName.textContent = "Nepřihlášen"; ui.sidebarAvatar.textContent = '?'; if (ui.sidebarUserTitle) ui.sidebarUserTitle.textContent = 'Pilot'; if (ui.sidebarUserTitle) ui.sidebarUserTitle.removeAttribute('title'); if (ui.welcomeTitle) ui.welcomeTitle.textContent = `Vítejte!`; } }
 
-    // <<< ИЗМЕНЕНО: Логика обновления total-points-value в updateStatsCards >>>
     function updateStatsCards(stats) {
         console.log("[UI Update] Aktualizace karet statistik:", stats);
         const statElements = {
             progress: ui.overallProgressValue,
-            // points: ui.totalPointsValue, // totalPointsValue - это DIV, содержащий и число, и span
             streak: ui.streakValue,
             progressFooter: ui.overallProgressFooter,
-            pointsFooter: ui.totalPointsFooter,
+            pointsFooter: ui.totalPointsFooter, // Это элемент для футера кредитов
             streakFooter: ui.streakFooter
         };
         const cards = [ui.progressCard, ui.pointsCard, ui.streakCard];
-        // Проверяем все элементы, КРОМЕ ui.totalPointsValue, так как он составной
-        const requiredSimpleElements = Object.values(statElements).filter(el => el !== ui.totalPointsValue);
-
-        if (requiredSimpleElements.some(el => !el) || !ui.totalPointsValue) {
+        
+        if (Object.values(statElements).some(el => !el) || !ui.totalPointsValue) {
             console.error("[UI Update Stats] Chybějící elementy statistik.");
             cards.forEach(card => card?.classList.remove('loading'));
             return;
@@ -568,14 +626,14 @@
             console.warn("[UI Update Stats] Chybí data statistik, zobrazuji placeholder.");
             if(statElements.progress) statElements.progress.textContent = '- %';
             if(ui.totalPointsValue) {
-                 const textNode = Array.from(ui.totalPointsValue.childNodes).find(node => node.nodeType === Node.TEXT_NODE && node.nodeValue.trim() !== '');
-                 if (textNode) textNode.nodeValue = `- `; else ui.totalPointsValue.textContent = `- `;
-                 const latestChangeSpan = ui.totalPointsValue.querySelector('#latest-credit-change');
-                 if (latestChangeSpan) latestChangeSpan.textContent = '--'; else if (ui.latestCreditChange) ui.latestCreditChange.textContent = '--';
+                 let textNode = Array.from(ui.totalPointsValue.childNodes).find(node => node.nodeType === Node.TEXT_NODE && node.nodeValue.trim() !== '');
+                 if (textNode) textNode.nodeValue = `- `; else ui.totalPointsValue.textContent = `- `; // Fallback
+                 const latestChangeSpan = ui.latestCreditChange || ui.totalPointsValue.querySelector('#latest-credit-change');
+                 if (latestChangeSpan) latestChangeSpan.textContent = '--';
             }
             if(statElements.streak) statElements.streak.textContent = '-';
             if(statElements.progressFooter) statElements.progressFooter.innerHTML = `<i class="fas fa-minus"></i> Načítání...`;
-            if(statElements.pointsFooter) statElements.pointsFooter.innerHTML = `<i class="fas fa-minus"></i> Načítání...`;
+            if(statElements.pointsFooter) statElements.pointsFooter.innerHTML = `<i class="fas fa-minus"></i> Načítání...`; // Default для футера кредитов
             if(statElements.streakFooter) statElements.streakFooter.innerHTML = `MAX: - dní`;
             return;
         }
@@ -595,38 +653,54 @@
         }
         statElements.progressFooter.innerHTML = progressFooterHTML;
 
-        // Обновление основного значения кредитов
         const pointsValue = stats.points ?? 0;
         let textNodeForPoints = null;
         for (let node of ui.totalPointsValue.childNodes) {
-            if (node.nodeType === Node.TEXT_NODE) { // Ищем первый текстовый узел
+            if (node.nodeType === Node.TEXT_NODE) {
                 textNodeForPoints = node;
                 break;
             }
         }
-
         if (textNodeForPoints) {
             textNodeForPoints.nodeValue = `${pointsValue} `;
         } else {
-            // Если текстового узла нет (маловероятно, если HTML структура не менялась)
-            // или он пустой, создаем и вставляем перед span#latest-credit-change
             const newTextNode = document.createTextNode(`${pointsValue} `);
-            const latestChangeSpan = ui.totalPointsValue.querySelector('#latest-credit-change');
+            const latestChangeSpan = ui.latestCreditChange || ui.totalPointsValue.querySelector('#latest-credit-change');
+            // Очищаем перед вставкой, чтобы избежать дублирования, если latestChangeSpan уже есть
+            while (ui.totalPointsValue.firstChild && ui.totalPointsValue.firstChild !== latestChangeSpan) {
+                ui.totalPointsValue.removeChild(ui.totalPointsValue.firstChild);
+            }
             if (latestChangeSpan) {
                 ui.totalPointsValue.insertBefore(newTextNode, latestChangeSpan);
             } else {
-                // Если и span пропал, воссоздаем все (крайний случай)
-                ui.totalPointsValue.innerHTML = `${pointsValue} <span id="latest-credit-change" style="font-size: 0.5em; color: var(--text-medium); vertical-align: middle; margin-left: 0.5em;">--</span>`;
-                ui.latestCreditChange = ui.totalPointsValue.querySelector('#latest-credit-change'); // Re-cache
+                ui.totalPointsValue.innerHTML = ''; // Полная очистка, если span не найден
+                ui.totalPointsValue.appendChild(newTextNode);
+                // Воссоздаем span, если он был потерян
+                const newSpan = document.createElement('span');
+                newSpan.id = 'latest-credit-change';
+                newSpan.style.fontSize = '0.5em';
+                newSpan.style.color = 'var(--text-medium)';
+                newSpan.style.verticalAlign = 'middle';
+                newSpan.style.marginLeft = '0.5em';
+                newSpan.textContent = '--'; // Default
+                ui.totalPointsValue.appendChild(newSpan);
+                ui.latestCreditChange = newSpan; // Re-cache
             }
         }
 
-
         const weeklyPoints = stats.points_weekly ?? 0;
         statElements.pointsFooter.classList.remove('positive', 'negative');
-        statElements.pointsFooter.innerHTML = weeklyPoints > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyPoints} týdně` : weeklyPoints < 0 ? `<i class="fas fa-arrow-down"></i> ${weeklyPoints} týdně` : `<i class="fas fa-minus"></i> --`;
-        if (weeklyPoints > 0) statElements.pointsFooter.classList.add('positive');
-        else if (weeklyPoints < 0) statElements.pointsFooter.classList.add('negative');
+        if (weeklyPoints !== 0 && weeklyPoints != null) {
+            statElements.pointsFooter.innerHTML = weeklyPoints > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyPoints} týdně` : `<i class="fas fa-arrow-down"></i> ${weeklyPoints} týdně`;
+            if (weeklyPoints > 0) statElements.pointsFooter.classList.add('positive');
+            else statElements.pointsFooter.classList.add('negative');
+        } else {
+            // Если weeklyPoints 0, то эта часть будет обновлена из loadDashboardData,
+            // если есть последняя транзакция. Иначе останется "--" или "Načítání...".
+            // Устанавливаем дефолтное значение, которое может быть перезаписано.
+            statElements.pointsFooter.innerHTML = `<i class="fas fa-minus"></i> --`;
+        }
+
 
         statElements.streak.textContent = stats.streak_current ?? 0;
         statElements.streakFooter.innerHTML = `MAX: ${stats.longest_streak_days ?? 0} dní`;
@@ -635,11 +709,11 @@
         }
         console.log("[UI Update] Karty statistik aktualizovány.");
     }
-    // <<< КОНЕЦ ИЗМЕНЕНИЙ updateStatsCards >>>
 
 
     function setupEventListeners() { const startTime = performance.now(); console.log("[SETUP] setupUIEventListeners: Start"); if (!ui || Object.keys(ui).length === 0) { console.error("[SETUP] UI cache is empty! Cannot setup listeners."); return; } const listenersAdded = new Set(); const safeAddListener = (element, eventType, handler, key) => { if (element) { element.removeEventListener(eventType, handler); element.addEventListener(eventType, handler); listenersAdded.add(key); } else { console.warn(`[SETUP] Element not found for listener: ${key}`); } }; safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle'); safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle'); safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay'); safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn'); document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); }); safeAddListener(ui.startPracticeBtn, 'click', () => { window.location.href = '/dashboard/procvicovani/main.html'; }, 'startPracticeBtn'); safeAddListener(ui.openMonthlyModalBtn, 'click', () => showModal('monthly-reward-modal'), 'openMonthlyModalBtn'); safeAddListener(ui.openStreakModalBtn, 'click', () => showModal('streak-milestones-modal'), 'openStreakModalBtn'); safeAddListener(ui.refreshDataBtn, 'click', async () => { if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné se přihlásit.", "error"); return; } if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; } const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'RELOADING...'; ui.refreshDataBtn.disabled = true; await loadDashboardData(currentUser, currentProfile); if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'RELOAD'; ui.refreshDataBtn.disabled = false; }, 'refreshDataBtn'); safeAddListener(ui.notificationBell, 'click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell'); safeAddListener(ui.markAllReadBtn, 'click', markAllNotificationsRead, 'markAllReadBtn'); safeAddListener(ui.notificationsList, 'click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount?.textContent?.replace('+', '') || '0'; const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); if(ui.notificationCount) { ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); } if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }, 'notificationsList'); document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown?.classList.remove('active'); } }); safeAddListener(ui.closeMonthlyModalBtn, 'click', () => hideModal('monthly-reward-modal'), 'closeMonthlyModalBtn'); safeAddListener(ui.monthlyRewardModal, 'click', (event) => { if (event.target === ui.monthlyRewardModal) { hideModal('monthly-reward-modal'); } }, 'monthlyRewardModal'); safeAddListener(ui.closeStreakModalBtn, 'click', () => hideModal('streak-milestones-modal'), 'closeStreakModalBtn'); safeAddListener(ui.streakMilestonesModal, 'click', (event) => { if (event.target === ui.streakMilestonesModal) { hideModal('streak-milestones-modal'); } }, 'streakMilestonesModal'); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); if (ui.mainContent) ui.mainContent.addEventListener('scroll', initHeaderScrollDetection, { passive: true }); const endTime = performance.now(); console.log(`[SETUP] Event listeners set up. Added: ${[...listenersAdded].length}. Time: ${(endTime - startTime).toFixed(2)}ms`); }
 
+    // <<< ИЗМЕНЕНО: loadDashboardData теперь обрабатывает возврат от fetchAndDisplayLatestCreditChange для обновления total-points-footer >>>
     async function loadDashboardData(user, profile) {
         const startTime = performance.now();
         if (!user || !profile) {
@@ -649,35 +723,41 @@
         }
         console.log("[MAIN] loadDashboardData: Start pro uživatele:", user.id);
         hideError();
-        setLoadingState('stats', true);
+        setLoadingState('stats', true); // Covers all stat cards including points card
         setLoadingState('notifications', true);
         setLoadingState('activities', true);
         setLoadingState('creditHistory', true);
-        setLoadingState('latestCreditChange', true);
+        setLoadingState('latestCreditChange', true); // Specifically for the small span
 
         try {
             await checkAndUpdateLoginStreak();
             updateSidebarProfile(currentProfile);
             console.log("[MAIN] loadDashboardData: Paralelní načítání statistik, notifikací, seznamů a posledního změnu kreditů.");
 
+            // userStatsData будет установлен здесь
+            const statsResultPromise = fetchUserStats(user.id, currentProfile);
+            const notificationsResultPromise = fetchNotifications(user.id, 5);
+            const dashboardListsResultPromise = (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderAll === 'function')
+                ? DashboardLists.loadAndRenderAll(user.id, 5)
+                : Promise.resolve({ status: 'fulfilled', value: console.warn("DashboardLists.loadAndRenderAll not found.") });
+            const latestCreditResultPromise = fetchAndDisplayLatestCreditChange(user.id); // Возвращает сумму или null
+
             const [statsResult, notificationsResult, dashboardListsResult, latestCreditResult] = await Promise.allSettled([
-                fetchUserStats(user.id, currentProfile),
-                fetchNotifications(user.id, 5),
-                (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderAll === 'function')
-                    ? DashboardLists.loadAndRenderAll(user.id, 5)
-                    : Promise.resolve({ status: 'fulfilled', value: console.warn("DashboardLists.loadAndRenderAll not found or module not ready for parallel load.") }),
-                fetchAndDisplayLatestCreditChange(user.id)
+                statsResultPromise,
+                notificationsResultPromise,
+                dashboardListsResultPromise,
+                latestCreditResultPromise
             ]);
 
             console.log("[MAIN] loadDashboardData: Načítání dat завершено.");
 
             if (statsResult.status === 'fulfilled' && statsResult.value) {
-                userStatsData = statsResult.value;
-                updateStatsCards(userStatsData);
+                userStatsData = statsResult.value; // Устанавливаем userStatsData
+                updateStatsCards(userStatsData); // Отображает points_weekly в total-points-footer
             } else {
                 console.error("❌ Chyba při načítání statistik:", statsResult.reason);
                 showError("Nepodařilo se načíst statistiky.", false);
-                updateStatsCards(currentProfile);
+                updateStatsCards(currentProfile); // Fallback
             }
 
             if (notificationsResult.status === 'fulfilled' && notificationsResult.value) {
@@ -691,8 +771,27 @@
             if (dashboardListsResult.status === 'rejected') {
                 console.error("❌ Chyba při DashboardLists.loadAndRenderAll:", dashboardListsResult.reason);
             }
-             if (latestCreditResult.status === 'rejected') {
-                console.error("❌ Chyba při načítání posledního změnu kreditů:", latestCreditResult.reason);
+
+            // Обновляем total-points-footer на основе последнего кредита, если weekly_points = 0
+            if (latestCreditResult.status === 'fulfilled') {
+                const latestAmount = latestCreditResult.value; // Это сумма, возвращенная из fetchAndDisplayLatestCreditChange
+                if (ui.totalPointsFooter && userStatsData && (userStatsData.points_weekly === 0 || userStatsData.points_weekly == null)) {
+                    if (latestAmount !== null && typeof latestAmount === 'number') { // Убедимся, что latestAmount - это число
+                        const sign = latestAmount > 0 ? '+' : (latestAmount < 0 ? '' : '');
+                        const amountColorClass = latestAmount > 0 ? 'positive' : (latestAmount < 0 ? 'negative' : '');
+                        ui.totalPointsFooter.innerHTML = `<i class="fas fa-history"></i> Poslední: <span style="font-weight:bold;" class="${amountColorClass}">${sign}${latestAmount}</span>`;
+                        // Удаляем классы positive/negative, если они были от weeklyPoints
+                        ui.totalPointsFooter.classList.remove('positive', 'negative');
+                        if (latestAmount > 0) ui.totalPointsFooter.classList.add('positive');
+                        if (latestAmount < 0) ui.totalPointsFooter.classList.add('negative');
+
+                    } else {
+                        // Если points_weekly = 0 и нет последней транзакции, то updateStatsCards уже установил "--"
+                        // ui.totalPointsFooter.innerHTML = `<i class="fas fa-minus"></i> --`; // Можно оставить как есть
+                    }
+                }
+            } else if (latestCreditResult.status === 'rejected') {
+                 console.error("❌ Chyba при последней транзакции для футера:", latestCreditResult.reason);
             }
 
 
@@ -708,38 +807,43 @@
                 if (typeof DashboardLists.renderCreditHistory === 'function') DashboardLists.renderCreditHistory(null);
             }
             if (ui.latestCreditChange) ui.latestCreditChange.textContent = 'Chyba';
+            if (ui.totalPointsFooter) ui.totalPointsFooter.innerHTML = `<i class="fas fa-exclamation-circle"></i> Chyba`;
         } finally {
             setLoadingState('stats', false);
             setLoadingState('notifications', false);
             setLoadingState('activities', false);
             setLoadingState('creditHistory', false);
-            setLoadingState('latestCreditChange', false);
+            setLoadingState('latestCreditChange', false); // Убедимся, что это тоже сбрасывается
             if (typeof initTooltips === 'function') initTooltips();
             console.log("[MAIN] loadDashboardData: Blok finally dokončen.");
         }
     }
 
-    // <<< ИЗМЕНЕНЫ ЗАГЛУШКИ МОДАЛЬНЫХ ОКОН: Теперь просто показывают сообщение >>>
+    // <<< ИЗМЕНЕНЫ ЗАГЛУШКИ МОДАЛЬНЫХ ОКОН: Теперь используют setLoadingState для показа скелетонов >>>
     function renderMonthlyCalendar() {
-        console.log("[STUB] renderMonthlyCalendar called - displaying placeholder text.");
-        if (ui.modalMonthlyCalendarGrid) {
-            ui.modalMonthlyCalendarGrid.innerHTML = '<p style="padding: 1rem; text-align:center; color: var(--text-medium);">Měsíční kalendář odměn se připravuje.</p>';
-            ui.modalMonthlyCalendarGrid.style.display = 'block'; // Ensure it's visible
-        }
+        console.log("[STUB] renderMonthlyCalendar called");
+        setLoadingState('monthlyRewards', true); // Это вызовет renderMonthlyCalendarSkeletons
+
         if (ui.modalCurrentMonthYearSpan) {
             const now = new Date();
             ui.modalCurrentMonthYearSpan.textContent = now.toLocaleString('cs-CZ', { month: 'long', year: 'numeric' });
         }
-        if (ui.modalMonthlyCalendarEmpty) ui.modalMonthlyCalendarEmpty.style.display = 'none';
-        setLoadingState('monthlyRewards', false); // Set loading to false as this is just a stub
+
+        // Имитация загрузки данных
+        setTimeout(() => {
+            if (ui.modalMonthlyCalendarGrid) {
+                ui.modalMonthlyCalendarGrid.innerHTML = '<p style="padding: 1rem; text-align:center; color: var(--text-medium);">Měsíční kalendář odměn se připravuje.</p>';
+                ui.modalMonthlyCalendarGrid.style.display = 'block'; // Убедимся, что отображается
+            }
+            if (ui.modalMonthlyCalendarEmpty) ui.modalMonthlyCalendarEmpty.style.display = 'none';
+            setLoadingState('monthlyRewards', false); // Скрываем оверлей загрузки и скелетоны
+        }, 1500); // Задержка для демонстрации скелетонов
     }
 
     function renderStreakMilestones() {
-        console.log("[STUB] renderStreakMilestones called - displaying placeholder text.");
-        if (ui.modalMilestonesGrid) {
-            ui.modalMilestonesGrid.innerHTML = '<p style="padding: 1rem; text-align:center; color: var(--text-medium);">Přehled milníků studijní série se připravuje.</p>';
-            ui.modalMilestonesGrid.style.display = 'block'; // Ensure it's visible
-        }
+        console.log("[STUB] renderStreakMilestones called");
+        setLoadingState('streakMilestones', true); // Это вызовет renderMilestoneSkeletons
+
         if (currentProfile) {
             if (ui.modalCurrentStreakValue) ui.modalCurrentStreakValue.textContent = currentProfile.streak_days || 0;
             if (ui.modalLongestStreakValue) ui.modalLongestStreakValue.textContent = currentProfile.longest_streak_days || 0;
@@ -747,8 +851,16 @@
             if (ui.modalCurrentStreakValue) ui.modalCurrentStreakValue.textContent = '-';
             if (ui.modalLongestStreakValue) ui.modalLongestStreakValue.textContent = '-';
         }
-        if (ui.modalMilestonesEmpty) ui.modalMilestonesEmpty.style.display = 'none';
-        setLoadingState('streakMilestones', false); // Set loading to false
+
+        // Имитация загрузки данных
+        setTimeout(() => {
+            if (ui.modalMilestonesGrid) {
+                ui.modalMilestonesGrid.innerHTML = '<p style="padding: 1rem; text-align:center; color: var(--text-medium);">Přehled milníků studijní série se připravuje.</p>';
+                 ui.modalMilestonesGrid.style.display = 'block'; // Убедимся, что отображается
+            }
+            if (ui.modalMilestonesEmpty) ui.modalMilestonesEmpty.style.display = 'none';
+            setLoadingState('streakMilestones', false); // Скрываем оверлей загрузки и скелетоны
+        }, 1500); // Задержка для демонстрации скелетонов
     }
     // <<< КОНЕЦ ИЗМЕНЕНИЙ ЗАГЛУШЕК МОДАЛЬНЫХ ОКОН >>>
 
