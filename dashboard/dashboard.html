@@ -16,6 +16,42 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <link rel="stylesheet" href="dashboard.css">
+    <style>
+        /* START: Footer Styles */
+        .main-footer {
+            background-color: var(--bg-secondary);
+            padding: 2rem var(--container-padding-x);
+            margin-top: auto; /* Pushes footer to the bottom if main content is short */
+            border-top: 1px solid var(--border-color-light);
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .main-footer .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem 2rem; /* Vertical and horizontal gap */
+            margin-bottom: 1rem;
+        }
+        .main-footer .footer-links a {
+            color: var(--text-link);
+            text-decoration: none;
+            transition: color var(--transition-fast), text-shadow 0.3s ease;
+        }
+        .main-footer .footer-links a:hover {
+            color: var(--text-link-hover);
+            text-shadow: var(--shadow-text-glow);
+        }
+        .main-footer .footer-links a i {
+            margin-right: 0.5em;
+        }
+        .main-footer .footer-copyright {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+        /* END: Footer Styles */
+    </style>
 </head>
 <body class="dark">
     <div class="initial-loading-overlay" id="initial-loader">
@@ -153,7 +189,7 @@
                             <div class="stat-card-content">
                                 <div class="stat-card-info">
                                     <div class="stat-card-title"><i class="fas fa-coins"></i>Kredity</div>
-                                    <div class="stat-card-value" id="total-points-value">-</div>
+                                    <div class="stat-card-value" id="total-points-value">40614 <span id="latest-credit-change" style="font-size: 0.5em; color: var(--text-medium); vertical-align: middle; margin-left: 0.5em;">--</span></div>
                                 </div>
                             </div>
                             <div class="stat-card-footer" id="total-points-footer"><i class="fas fa-minus"></i> Načítání...</div>
@@ -250,10 +286,18 @@
             </div>
         </div>
 
-        <footer class="dashboard-footer">
-             <p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p>
+        <footer class="main-footer">
+            <div class="footer-links">
+                <a href="/privacy-policy.html" title="Zásady ochrany osobních údajů"><i class="fas fa-shield-alt"></i> Soukromí</a>
+                <a href="/terms.html" title="Podmínky použití"><i class="fas fa-file-contract"></i> Podmínky</a>
+                <a href="https://www.instagram.com/learnwithjustax/#" target="_blank" rel="noopener noreferrer" title="Justax na Instagramu"><i class="fab fa-instagram"></i> Instagram</a>
+                <a href="https://t.me/justaxspace" target="_blank" rel="noopener noreferrer" title="Justax na Telegramu"><i class="fab fa-telegram-plane"></i> Telegram</a>
+            </div>
+            <div class="footer-copyright">
+                &copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel
+            </div>
         </footer>
-    </main>
+        </main>
 
     <div class="toast-container" id="toast-container"></div>
 
