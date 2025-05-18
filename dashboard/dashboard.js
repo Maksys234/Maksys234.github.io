@@ -3,7 +3,7 @@
 // ПЛЮС: Исправление обновления currentProfile.monthly_claims (Этап 4)
 // ПЛЮС: Исправление ошибки 406 при обновлении XP в claimMonthlyReward
 // ПЛЮС: Улучшенная обработка ошибок и откат состояния в claimMonthlyReward
-// <<< ИЗМЕНЕНИЕ: Скорректирована логика setLoadingState для latestCreditChange. Добавлены заглушки для модальных окон. >>>
+// <<< ИЗМЕНЕНИЕ: Исправлено обновление latestCreditChange, добавлены скелетоны в модальные окна >>>
 (function() {
     'use strict';
 
@@ -200,7 +200,7 @@
     function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
     function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Offline', 'Spojení ztraceno.', 'warning'); }
 
-    // <<< ИЗМЕНЕНО: Логика для latestCreditChange в setLoadingState >>>
+    // <<< ИЗМЕНЕНО: setLoadingState для latestCreditChange, monthlyRewards, streakMilestones >>>
     function setLoadingState(sectionKey, isLoadingFlag) {
         if (!ui || Object.keys(ui).length === 0) { console.error("[SetLoadingState] UI cache not ready."); return; }
         if (isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return;
@@ -253,12 +253,27 @@
         } else if (sectionKey === 'monthlyRewards' || sectionKey === 'streakMilestones') {
             const modal = sectionKey === 'monthlyRewards' ? ui.monthlyRewardModal : ui.streakMilestonesModal;
             const modalBody = modal?.querySelector('.modal-body');
-            const loaderOverlay = modalBody?.querySelector('.loading-overlay');
+            const loaderOverlay = modalBody?.querySelector('.loading-overlay'); // Assuming .loading-overlay exists inside modal-body for these
+            
             if (loaderOverlay) loaderOverlay.classList.toggle('hidden', !isLoadingFlag);
-            if (modalBody) modalBody.classList.toggle('loading', isLoadingFlag);
+            if (modalBody) modalBody.classList.toggle('loading', isLoadingFlag); // General loading class for modal body
+
             if (isLoadingFlag) {
-                if (sectionKey === 'monthlyRewards' && typeof renderMonthlyCalendarSkeletons === 'function') renderMonthlyCalendarSkeletons();
-                if (sectionKey === 'streakMilestones' && typeof renderMilestoneSkeletons === 'function') renderMilestoneSkeletons();
+                if (sectionKey === 'monthlyRewards' && typeof renderMonthlyCalendarSkeletons === 'function') {
+                    renderMonthlyCalendarSkeletons(ui.modalMonthlyCalendarGrid);
+                } else if (sectionKey === 'streakMilestones' && typeof renderMilestoneSkeletons === 'function') {
+                    renderMilestoneSkeletons(ui.modalMilestonesGrid);
+                }
+            } else {
+                // Skeletons should be cleared by the respective render functions when actual content is ready
+                // or if they display an "empty" or "error" state.
+                // If renderMonthlyCalendar/renderStreakMilestones don't clear skeletons, do it here:
+                if (sectionKey === 'monthlyRewards' && ui.modalMonthlyCalendarGrid && !ui.modalMonthlyCalendarGrid.querySelector(':not(.skeleton)')) {
+                   // Potentially clear or show empty message if not handled by renderMonthlyCalendar
+                }
+                if (sectionKey === 'streakMilestones' && ui.modalMilestonesGrid && !ui.modalMilestonesGrid.querySelector(':not(.skeleton)')) {
+                  // Potentially clear or show empty message if not handled by renderStreakMilestones
+                }
             }
         } else if (sectionKey === 'titles') {
             console.log(`[SetLoadingState] Loading state for 'titles' is now ${isLoadingFlag}.`);
@@ -267,18 +282,10 @@
                 if (isLoadingFlag) {
                     ui.latestCreditChange.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size: 0.8em;"></i>';
                 } else {
-                    // Только убираем спиннер, если он там был.
-                    // Содержимое (число или '--') устанавливается функцией fetchAndDisplayLatestCreditChange.
+                    // Не перезаписываем, если fetchAndDisplayLatestCreditChange уже установил значение.
+                    // Сбрасываем на '--' только если там все еще спиннер (т.е. fetch провалился или не успел).
                     if (ui.latestCreditChange.innerHTML.includes('fa-spinner')) {
-                        // Если после загрузки fetchAndDisplayLatestCreditChange не успел обновить,
-                        // или если он завершился ошибкой и не установил '--' или 'Chyba',
-                        // тогда можно вернуть '--'. Но в идеале fetchAndDisplayLatestCreditChange
-                        // сам должен позаботиться об отображении ошибки или '--'.
-                        // Оставляем как есть, если там уже число или "Chyba".
-                        // Можно добавить проверку, если там вообще пусто, тогда '--'.
-                        if (ui.latestCreditChange.textContent.trim() === '' || ui.latestCreditChange.innerHTML.includes('fa-spinner')) {
-                             ui.latestCreditChange.textContent = '--';
-                        }
+                        ui.latestCreditChange.textContent = '--';
                     }
                 }
             }
@@ -287,6 +294,55 @@
         }
     }
     // <<< КОНЕЦ ИЗМЕНЕНИЙ setLoadingState >>>
+
+    // <<< НОВЫЕ ФУНКЦИИ ДЛЯ РЕНДЕРИНГА СКЕЛЕТОНОВ В МОДАЛЬНЫХ ОКНАХ >>>
+    function renderMonthlyCalendarSkeletons(container = ui.modalMonthlyCalendarGrid) {
+        if (!container) {
+            console.warn("[Skeletons] Monthly calendar grid container not found for skeletons.");
+            return;
+        }
+        console.log("[Skeletons] Rendering monthly calendar skeletons...");
+        container.innerHTML = ''; // Clear previous
+        let skeletonHTML = '';
+        const daysToRender = 30; // Примерное количество дней
+        for (let i = 0; i < daysToRender; i++) {
+            skeletonHTML += `
+                <div class="calendar-day skeleton" style="height: 90px; background-color: var(--skeleton-bg); border-radius: var(--button-radius); display: flex; flex-direction: column; align-items: center; justify-content: space-around; padding: 0.5rem;">
+                    <div style="width: 20px; height: 12px; background-color: var(--skeleton-highlight); border-radius: 3px; align-self: flex-start;"></div>
+                    <div style="width: 30px; height: 30px; background-color: var(--skeleton-highlight); border-radius: 50%;"></div>
+                    <div style="width: 80%; height: 10px; background-color: var(--skeleton-highlight); border-radius: 3px;"></div>
+                </div>`;
+        }
+        container.innerHTML = skeletonHTML;
+        container.style.display = 'grid';
+        if(ui.modalMonthlyCalendarEmpty) ui.modalMonthlyCalendarEmpty.style.display = 'none';
+    }
+
+    function renderMilestoneSkeletons(container = ui.modalMilestonesGrid) {
+        if (!container) {
+            console.warn("[Skeletons] Milestone grid container not found for skeletons.");
+            return;
+        }
+        console.log("[Skeletons] Rendering milestone skeletons...");
+        container.innerHTML = '';
+        let skeletonHTML = '';
+        const milestonesToRender = 4;
+        for (let i = 0; i < milestonesToRender; i++) {
+            skeletonHTML += `
+                <div class="milestone-card skeleton" style="padding: 1rem; border: 1px solid var(--border-color-light); border-radius: var(--card-radius); background-color: var(--skeleton-bg); display: flex; flex-direction: column; align-items: center; gap: 0.7rem;">
+                    <div style="height: 18px; width: 80px; background-color: var(--skeleton-highlight); border-radius: 4px;"></div>
+                    <div style="height: 50px; width: 50px; background-color: var(--skeleton-highlight); border-radius: 50%;"></div>
+                    <div style="height: 16px; width: 120px; background-color: var(--skeleton-highlight); border-radius: 4px;"></div>
+                    <div style="height: 12px; width: 150px; background-color: var(--skeleton-highlight); border-radius: 4px; margin-top: 0.3rem;"></div>
+                    <div style="height: 28px; width: 100px; background-color: var(--skeleton-highlight); border-radius: var(--button-radius); margin-top: 0.7rem;"></div>
+                </div>`;
+        }
+        container.innerHTML = skeletonHTML;
+        container.style.display = 'grid';
+        if(ui.modalMilestonesEmpty) ui.modalMilestonesEmpty.style.display = 'none';
+    }
+    // <<< КОНЕЦ НОВЫХ ФУНКЦИЙ ДЛЯ СКЕЛЕТОНОВ >>>
+
 
     function applyInitialSidebarState() { const startTime = performance.now(); if (!ui.sidebarToggleBtn) { console.warn("[Sidebar State] Sidebar toggle button (#sidebar-toggle-btn) not found for initial state application."); return; } try { const savedState = localStorage.getItem(SIDEBAR_STATE_KEY); const shouldBeCollapsed = savedState === 'collapsed'; console.log(`[Sidebar State] Initial read state from localStorage: '${savedState}', Applying collapsed: ${shouldBeCollapsed}`); document.body.classList.toggle('sidebar-collapsed', shouldBeCollapsed); const icon = ui.sidebarToggleBtn.querySelector('i'); if (icon) { icon.className = shouldBeCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; ui.sidebarToggleBtn.setAttribute('aria-label', shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); ui.sidebarToggleBtn.setAttribute('title', shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); const endTime = performance.now(); console.log(`[Sidebar State] Initial icon and attributes set. Icon class: ${icon.className}. Time: ${(endTime - startTime).toFixed(2)}ms`); } else { console.warn("[Sidebar State] Sidebar toggle button icon not found for initial state update."); } } catch (error) { console.error("[Sidebar State] Error applying initial state:", error); document.body.classList.remove('sidebar-collapsed'); } }
     function toggleSidebar() { try { const isCollapsed = document.body.classList.toggle('sidebar-collapsed'); localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded'); const icon = ui.sidebarToggleBtn.querySelector('i'); if (icon) { icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; ui.sidebarToggleBtn.setAttribute('aria-label', isCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); ui.sidebarToggleBtn.setAttribute('title', isCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); } console.log(`[Sidebar Toggle] Sidebar toggled. New state: ${isCollapsed ? 'collapsed' : 'expanded'}`); } catch(e){console.error("[Sidebar Toggle] Error:",e);}}
@@ -552,16 +608,16 @@
         console.log("[UI Update] Aktualizace karet statistik:", stats);
         const statElements = {
             progress: ui.overallProgressValue,
-            points: ui.totalPointsValue,
+            points: ui.totalPointsValue, // This is the DIV element
             streak: ui.streakValue,
             progressFooter: ui.overallProgressFooter,
             pointsFooter: ui.totalPointsFooter,
             streakFooter: ui.streakFooter
         };
         const cards = [ui.progressCard, ui.pointsCard, ui.streakCard];
-        const requiredElements = Object.values(statElements);
+        const requiredElements = Object.values(statElements).filter(el => el !== ui.totalPointsValue); // Exclude the DIV
 
-        if (requiredElements.some(el => !el)) {
+        if (requiredElements.some(el => !el) || !ui.totalPointsValue) { // Check ui.totalPointsValue separately
             console.error("[UI Update Stats] Chybějící elementy statistik.");
             cards.forEach(card => card?.classList.remove('loading'));
             return;
@@ -570,19 +626,24 @@
 
         if (!stats) {
             console.warn("[UI Update Stats] Chybí data statistik, zobrazuji placeholder.");
-            Object.entries(statElements).forEach(([key, el]) => {
-                if (el) {
-                    if (key.includes('Value')) el.textContent = '-';
-                    else if (key.includes('Footer')) el.innerHTML = `<i class="fas fa-minus"></i> Načítání...`;
-                }
-            });
+            if(statElements.progress) statElements.progress.textContent = '- %';
+            if(ui.totalPointsValue) { // Special handling for points
+                 const textNode = Array.from(ui.totalPointsValue.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
+                 if (textNode) textNode.nodeValue = `- `;
+                 else ui.totalPointsValue.textContent = `- `; // Fallback
+                 const latestChangeSpan = ui.totalPointsValue.querySelector('#latest-credit-change');
+                 if (latestChangeSpan) latestChangeSpan.textContent = '--';
+            }
+            if(statElements.streak) statElements.streak.textContent = '-';
+            if(statElements.progressFooter) statElements.progressFooter.innerHTML = `<i class="fas fa-minus"></i> Načítání...`;
+            if(statElements.pointsFooter) statElements.pointsFooter.innerHTML = `<i class="fas fa-minus"></i> Načítání...`;
+            if(statElements.streakFooter) statElements.streakFooter.innerHTML = `MAX: - dní`;
             return;
         }
 
         statElements.progress.textContent = `${stats.progress ?? 0}%`;
         const weeklyProgress = stats.progress_weekly ?? 0;
         statElements.progressFooter.classList.remove('positive', 'negative');
-
         let progressFooterHTML = '';
         if (weeklyProgress > 0) {
             progressFooterHTML = `<i class="fas fa-arrow-up"></i> +${weeklyProgress}% týdně`;
@@ -595,8 +656,34 @@
         }
         statElements.progressFooter.innerHTML = progressFooterHTML;
 
+        // <<< ИЗМЕНЕНО: Обновление только текстового узла для общего количества очков >>>
+        const pointsValue = stats.points ?? 0;
+        // Находим текстовый узел, который содержит текущее количество очков.
+        // Он должен быть первым дочерним элементом, если span#latest-credit-change идет после.
+        let textNodeForPoints = null;
+        for (let node of ui.totalPointsValue.childNodes) {
+            if (node.nodeType === Node.TEXT_NODE && node.nodeValue.trim() !== '') {
+                textNodeForPoints = node;
+                break;
+            }
+        }
+        if (textNodeForPoints) {
+            textNodeForPoints.nodeValue = `${pointsValue} `; // Обновляем, добавляем пробел
+        } else {
+            // Если текстовый узел не найден (например, был полностью очищен),
+            // создаем его и вставляем ПЕРЕД span#latest-credit-change
+            const newTextNode = document.createTextNode(`${pointsValue} `);
+            const latestChangeSpan = ui.totalPointsValue.querySelector('#latest-credit-change');
+            if (latestChangeSpan) {
+                ui.totalPointsValue.insertBefore(newTextNode, latestChangeSpan);
+            } else { // Если и span пропал, воссоздаем все
+                ui.totalPointsValue.innerHTML = `${pointsValue} <span id="latest-credit-change" style="font-size: 0.5em; color: var(--text-medium); vertical-align: middle; margin-left: 0.5em;">--</span>`;
+                ui.latestCreditChange = ui.totalPointsValue.querySelector('#latest-credit-change'); // Re-cache
+            }
+        }
+        // <<< КОНЕЦ ИЗМЕНЕНИЯ >>>
 
-        statElements.points.textContent = stats.points ?? 0;
+
         const weeklyPoints = stats.points_weekly ?? 0;
         statElements.pointsFooter.classList.remove('positive', 'negative');
         statElements.pointsFooter.innerHTML = weeklyPoints > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyPoints} týdně` : weeklyPoints < 0 ? `<i class="fas fa-arrow-down"></i> ${weeklyPoints} týdně` : `<i class="fas fa-minus"></i> --`;
@@ -693,28 +780,48 @@
         }
     }
 
+    // <<< ИЗМЕНЕНЫ ЗАГЛУШКИ МОДАЛЬНЫХ ОКОН ДЛЯ ОТОБРАЖЕНИЯ СКЕЛЕТОНОВ >>>
     function renderMonthlyCalendar() {
         console.log("[STUB] renderMonthlyCalendar called");
-        if (ui.modalMonthlyCalendarGrid) ui.modalMonthlyCalendarGrid.innerHTML = '<p style="padding: 1rem; text-align:center;">Měsíční kalendář se připravuje...</p>';
-        if (ui.modalCurrentMonthYearSpan) {
-            const now = new Date();
-            ui.modalCurrentMonthYearSpan.textContent = now.toLocaleString('cs-CZ', { month: 'long', year: 'numeric' });
-        }
-        setLoadingState('monthlyRewards', false);
+        setLoadingState('monthlyRewards', true); // Start loading state to show skeletons
+
+        // Simulate data loading for a bit to show skeletons
+        setTimeout(() => {
+            if (ui.modalMonthlyCalendarGrid) {
+                ui.modalMonthlyCalendarGrid.innerHTML = '<p style="padding: 1rem; text-align:center;">Měsíční kalendář se připravuje...</p>';
+                ui.modalMonthlyCalendarGrid.style.display = 'block';
+            }
+            if (ui.modalCurrentMonthYearSpan) {
+                const now = new Date();
+                ui.modalCurrentMonthYearSpan.textContent = now.toLocaleString('cs-CZ', { month: 'long', year: 'numeric' });
+            }
+            if (ui.modalMonthlyCalendarEmpty) ui.modalMonthlyCalendarEmpty.style.display = 'none';
+            setLoadingState('monthlyRewards', false); // Stop loading state, skeletons will be hidden
+        }, 1500); // Simulate a 1.5 second load time
     }
 
     function renderStreakMilestones() {
         console.log("[STUB] renderStreakMilestones called");
-        if (ui.modalMilestonesGrid) ui.modalMilestonesGrid.innerHTML = '<p style="padding: 1rem; text-align:center;">Přehled milníků série se připravuje...</p>';
-        if (currentProfile) {
-            if (ui.modalCurrentStreakValue) ui.modalCurrentStreakValue.textContent = currentProfile.streak_days || 0;
-            if (ui.modalLongestStreakValue) ui.modalLongestStreakValue.textContent = currentProfile.longest_streak_days || 0;
-        } else {
-            if (ui.modalCurrentStreakValue) ui.modalCurrentStreakValue.textContent = '-';
-            if (ui.modalLongestStreakValue) ui.modalLongestStreakValue.textContent = '-';
-        }
-        setLoadingState('streakMilestones', false);
+        setLoadingState('streakMilestones', true); // Start loading state to show skeletons
+
+        // Simulate data loading
+        setTimeout(() => {
+            if (ui.modalMilestonesGrid) {
+                ui.modalMilestonesGrid.innerHTML = '<p style="padding: 1rem; text-align:center;">Přehled milníků série se připravuje...</p>';
+                ui.modalMilestonesGrid.style.display = 'block';
+            }
+            if (currentProfile) {
+                if (ui.modalCurrentStreakValue) ui.modalCurrentStreakValue.textContent = currentProfile.streak_days || 0;
+                if (ui.modalLongestStreakValue) ui.modalLongestStreakValue.textContent = currentProfile.longest_streak_days || 0;
+            } else {
+                if (ui.modalCurrentStreakValue) ui.modalCurrentStreakValue.textContent = '-';
+                if (ui.modalLongestStreakValue) ui.modalLongestStreakValue.textContent = '-';
+            }
+             if (ui.modalMilestonesEmpty) ui.modalMilestonesEmpty.style.display = 'none';
+            setLoadingState('streakMilestones', false); // Stop loading state
+        }, 1500); // Simulate a 1.5 second load time
     }
+    // <<< КОНЕЦ ИЗМЕНЕНИЙ ЗАГЛУШЕК >>>
 
 
     async function initializeApp() {
