@@ -572,7 +572,53 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 /* Используем те же классы для кнопок/статусов, что и в магазине титулов */
 .buy-decor-btn, .equip-decor-btn { /* Могут быть те же классы .buy-title-btn, .equip-title-btn */ }
 .decoration-status { /* Могут быть те же классы .title-status */ }
+/* --- START: User Titles Inventory Styles --- */
+.user-titles-inventory-section .section-title {
+    padding: 1.2rem 1.5rem 0.5rem;
+    margin-bottom: 1.5rem; /* More space before grid */
+    border-bottom: 1px solid var(--border-color-light);
+    background: rgba(var(--dark-purple-accent-rgb), 0.2);
+}
+.user-titles-inventory-section .section-title::after {
+    display: none; /* No underline for this section title */
+}
 
+#user-titles-inventory-grid {
+    /* Uses .title-shop-grid styles for consistency in card layout */
+    padding: 0 1.5rem 1.5rem; /* Match shop padding if content exists */
+}
+
+/* Styles for individual items in inventory - reusing .title-item */
+.inventory-item .title-item-cost {
+    visibility: hidden; /* Optionally hide cost for owned items, or show original cost */
+    /* If you want to show original cost:
+    color: var(--text-muted);
+    font-style: italic;
+    text-decoration: line-through;
+    */
+}
+
+.inventory-item .title-item-actions .btn-secondary {
+    /* Specific style for "Použít" button if needed, e.g., different color */
+    border-color: var(--accent-secondary);
+    color: var(--accent-secondary);
+}
+.inventory-item .title-item-actions .btn-secondary:hover:not(:disabled) {
+    background-color: rgba(var(--accent-secondary-rgb), 0.15);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+#user-titles-inventory-empty {
+    border-style: solid;
+    border-color: var(--border-color-light);
+    background-color: rgba(var(--card-solid-rgb), 0.5);
+    margin: 1.5rem; /* Match shop empty state margin */
+}
+#user-titles-inventory-empty .empty-state-icon {
+    color: var(--accent-secondary); /* Different icon color for distinction */
+}
+/* --- END: User Titles Inventory Styles --- */
 /* Скелет для магазина украшений */
 .decoration-item.loading .loading-skeleton {
     display: flex !important; /* Override display: none */
