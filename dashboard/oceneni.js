@@ -1,5 +1,5 @@
 // dashboard/oceneni.js
-// Version: 23.23 - Shop shows 6 titles; purchased titles shown in shop but marked; collapsible sections.
+// Version: 23.23.1 - Fixed TypeError in setupEventListeners for section toggles.
 (function() { // IIFE for scope isolation
     'use strict';
 
@@ -9,7 +9,7 @@
     const NOTIFICATION_FETCH_LIMIT = 5;
     const LEADERBOARD_LIMIT = 10;
     const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
-    const DAILY_TITLE_SHOP_COUNT = 6; // <<< MODIFIED: Back to 6
+    const DAILY_TITLE_SHOP_COUNT = 6;
     // --- END: Configuration ---
 
     // --- START: State Variables ---
@@ -60,7 +60,6 @@
             'leaderboard-skeleton', 'leaderboard-header', 'leaderboard-table-container',
             'user-titles-inventory-container', 'user-titles-inventory-grid', 
             'user-titles-inventory-empty', 'user-titles-inventory-loading',
-            // <<< NEW: IDs for section toggle buttons (assuming they will be added to HTML) >>>
             'toggle-user-badges-section', 'toggle-available-badges-section',
             'toggle-user-titles-section', 'toggle-title-shop-section',
             'toggle-avatar-decorations-section', 'toggle-leaderboard-section'
@@ -76,13 +75,15 @@
                 ui[key] = null; 
             }
         });
-        // Cache section content areas for toggling
-        ui.userBadgesContent = ui.userBadgesContainer?.querySelector('.badge-grid'); // Or a more general content wrapper
-        ui.availableBadgesContent = ui.availableBadgesContainer?.querySelector('.achievement-grid');
-        ui.userTitlesInventoryContent = ui.userTitlesInventoryContainer?.querySelector('#user-titles-inventory-grid');
-        ui.titleShopContent = ui.titleShopContainer?.querySelector('#title-shop-grid'); // And credits, empty state etc.
-        ui.avatarDecorationsContent = ui.avatarDecorationsShop?.querySelector('#avatar-decorations-grid');
-        ui.leaderboardContent = ui.leaderboardContainer?.querySelector('#leaderboard-table-container'); // And header, empty state
+        
+        // Define content areas for toggling - these should be general content wrappers WITHIN the section cards
+        ui.userBadgesContent = ui.userBadgesContainer?.querySelector('.section-collapsible-content');
+        ui.availableBadgesContent = ui.availableBadgesContainer?.querySelector('.section-collapsible-content');
+        ui.userTitlesInventoryContent = ui.userTitlesInventoryContainer?.querySelector('.section-collapsible-content');
+        ui.titleShopContent = ui.titleShopContainer?.querySelector('.section-collapsible-content');
+        ui.avatarDecorationsContent = ui.avatarDecorationsShop?.querySelector('.section-collapsible-content');
+        ui.leaderboardContent = ui.leaderboardContainer?.querySelector('.section-collapsible-content');
+
 
         if (!ui.sidebarUserTitle) {
             const roleEl = document.getElementById('sidebar-user-role');
@@ -275,31 +276,21 @@
             return [];
         }
 
-        // <<< MODIFICATION START: Do NOT filter out purchased titles here >>>
-        // The shop will now display all daily random titles, and mark purchased ones.
-        // const userPurchasedSet = new Set(purchasedKeys || []);
-        // console.log(`[Titles Shop] User ID: ${userId} has purchased ${userPurchasedSet.size} titles.`);
-        // console.log("[Titles Shop] Purchased keys by user:", Array.from(userPurchasedSet));
-
-        // const availableForUser = purchasableArray.filter(title => !userPurchasedSet.has(title.title_key));
-        const availableForUser = [...purchasableArray]; // Use all purchasable titles as candidates
-        console.log(`[Titles Shop] ${availableForUser.length} titles are candidates for the shop (not filtering purchased yet).`);
-        console.log("[Titles Shop] Candidate titles (keys):", availableForUser.map(t => t.title_key));
-        // <<< MODIFICATION END >>>
-
-
-        if (availableForUser.length === 0) { // This condition is now less likely unless allTitlesFromDB is empty
+        const candidateTitles = [...purchasableArray]; 
+        console.log(`[Titles Shop] ${candidateTitles.length} titles are candidates for the shop (not filtering purchased).`);
+        
+        if (candidateTitles.length === 0) { 
             console.log("[Titles Shop] No titles available to select from for the shop.");
             return [];
         }
-        if (availableForUser.length <= DAILY_TITLE_SHOP_COUNT) {
-            console.log(`[Titles Shop] Fewer than ${DAILY_TITLE_SHOP_COUNT} titles available, showing all ${availableForUser.length}.`);
-            return availableForUser;
+        if (candidateTitles.length <= DAILY_TITLE_SHOP_COUNT) {
+            console.log(`[Titles Shop] Fewer than ${DAILY_TITLE_SHOP_COUNT} titles available, showing all ${candidateTitles.length}.`);
+            return candidateTitles; // Return all candidates if fewer than or equal to the shop count
         }
 
         const today = new Date().toISOString().slice(0, 10); 
         
-        const seededSortedTitles = availableForUser
+        const seededSortedTitles = candidateTitles
             .map(title => {
                 const seedString = `${userId}-${today}-${title.title_key}`;
                 return { ...title, sortValue: getSeededSortValue(seedString) };
@@ -340,8 +331,10 @@
 
             const selectedTitleKey = profile.selected_title;
             let displayTitle = 'Pilot';
-            if (selectedTitleKey && titlesData && titlesData.length > 0) {
-                const foundTitle = titlesData.find(t => t.title_key === selectedTitleKey);
+            // Use allTitlesFromDB to find the title details for the sidebar
+            const allTitlesForLookup = allTitlesFromDB || [];
+            if (selectedTitleKey && allTitlesForLookup.length > 0) {
+                const foundTitle = allTitlesForLookup.find(t => t.title_key === selectedTitleKey);
                 if (foundTitle && foundTitle.name) displayTitle = foundTitle.name;
             }
             ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle);
@@ -375,25 +368,22 @@
         if (!titlesToDisplay || titlesToDisplay.length === 0) {
             ui.titleShopEmpty.style.display = 'block';
             ui.titleShopGrid.style.display = 'none';
-            // <<< MODIFIED: More informative message if the user bought everything that was available today >>>
-            const allPurchasableTitlesInDB = allTitlesFromDB.filter(t => t.is_purchasable && t.is_available);
-            const purchasedKeys = new Set(profile.purchased_titles || []);
-            const allPurchasableAndNotOwned = allPurchasableTitlesInDB.filter(t => !purchasedKeys.has(t.title_key));
+            
+            const allPurchasableTitlesInDB = (allTitlesFromDB || []).filter(t => t.is_purchasable && t.is_available);
+            const purchasedKeysSet = new Set(profile.purchased_titles || []);
+            const allPurchasableAndNotOwned = allPurchasableTitlesInDB.filter(t => !purchasedKeysSet.has(t.title_key));
 
-            if (allPurchasableAndNotOwned.length === 0 && allPurchasableTitlesInDB.length > 0) {
-                 if (ui.titleShopEmpty.querySelector('p')) {
-                    ui.titleShopEmpty.querySelector('p').textContent = 'Všechny aktuálně dostupné tituly v obchodě již vlastníte! Zkuste to znovu zítra.';
-                 }
-            } else if (allPurchasableTitlesInDB.length === 0) {
-                if (ui.titleShopEmpty.querySelector('p')) {
-                    ui.titleShopEmpty.querySelector('p').textContent = 'Momentálně nejsou v obchodě žádné tituly. Zkuste to prosím později.';
+            const emptyMsgP = ui.titleShopEmpty.querySelector('p');
+            if (emptyMsgP) {
+                if (allPurchasableAndNotOwned.length === 0 && allPurchasableTitlesInDB.length > 0) {
+                     emptyMsgP.textContent = 'Všechny aktuálně dostupné tituly v obchodě již vlastníte! Zkuste to znovu zítra.';
+                } else if (allPurchasableTitlesInDB.length === 0) {
+                     emptyMsgP.textContent = 'Momentálně nejsou v obchodě žádné tituly. Zkuste to prosím později.';
+                } else { // This case means titlesToDisplay was empty but there *are* unowned titles, which shouldn't happen with current logic
+                     emptyMsgP.textContent = 'Dnešní nabídka je prázdná. Nové tituly se objeví zítra!';
                 }
-            } else {
-                 if (ui.titleShopEmpty.querySelector('p')) {
-                    ui.titleShopEmpty.querySelector('p').textContent = 'Dnešní nabídka je prázdná nebo jste již vše koupili. Nové tituly se objeví zítra!';
-                 }
             }
-            console.log("[RenderShop] No titles to display for this user today. Showing empty state.");
+            console.log("[RenderShop] No titles to display. Showing empty state.");
             return;
         }
         ui.titleShopEmpty.style.display = 'none';
@@ -403,7 +393,7 @@
         const selectedKey = profile.selected_title;
 
         titlesToDisplay.forEach((title, index) => {
-            const isPurchased = purchasedKeys.has(title.title_key); // Check if this specific title is purchased
+            const isPurchased = purchasedKeys.has(title.title_key); 
             const isEquipped = isPurchased && title.title_key === selectedKey;
             const canAfford = profile.points >= title.cost;
 
@@ -511,7 +501,7 @@
     // --- START: Shop Interaction Logic ---
     async function handleShopInteraction(event) { const buyTitleButton = event.target.closest('.buy-title-btn'); const equipTitleButton = event.target.closest('.equip-title-btn'); const buyDecorButton = event.target.closest('.buy-decor-btn'); const equipDecorButton = event.target.closest('.equip-decor-btn'); if (buyTitleButton) { const itemEl = buyTitleButton.closest('.title-item'); const key = itemEl?.dataset.titleKey; const cost = parseInt(itemEl?.dataset.titleCost, 10); if (key && !isNaN(cost)) handleBuyItem('title', key, cost, buyTitleButton); else showToast('Chyba: Nelze identifikovat titul.', 'error'); } else if (equipTitleButton) { const itemEl = equipTitleButton.closest('.title-item'); const key = itemEl?.dataset.titleKey; if (key) handleEquipItem('title', key, equipTitleButton); else showToast('Chyba: Nelze identifikovat titul.', 'error'); } else if (buyDecorButton) { showToast('Info', 'Nákup vylepšení avatarů není momentálně dostupný.', 'info'); } else if (equipDecorButton) { showToast('Info', 'Nastavení vylepšení avatarů není momentálně dostupný.', 'info'); } }
     async function handleBuyItem(itemType, itemKey, cost, buttonElement) { if (!currentProfile || !supabase || !currentUser || isLoading.buyEquip) return; if(itemType === 'decoration') { showToast('Info', 'Nákup vylepšení avatarů není momentálně dostupný.', 'info'); return; } const currentCredits = currentProfile.points ?? 0; if (currentCredits < cost) { showToast('Nedostatek Kreditů', `Potřebujete ${cost} kreditů.`, 'warning'); return; } const itemData = (itemType === 'title' ? allTitlesFromDB : allDecorations).find(it => it[itemType === 'title' ? 'title_key' : 'decoration_key'] === itemKey); const itemName = itemData?.name || itemKey; const itemTypeName = itemType === 'title' ? 'titul' : 'vylepšení'; if (!confirm(`Opravdu koupit ${itemTypeName} "${itemName}" za ${cost} kreditů?`)) return; setLoadingState('buyEquip', true); buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; const purchaseField = itemType === 'title' ? 'purchased_titles' : 'purchased_decorations'; try { const currentPurchased = Array.isArray(currentProfile[purchaseField]) ? currentProfile[purchaseField] : []; if (currentPurchased.includes(itemKey)) { showToast('Již Vlastněno', `Tento ${itemTypeName} již máte.`, 'info'); return; } const newCredits = currentCredits - cost; const newPurchasedItems = [...currentPurchased, itemKey]; const updatePayload = { points: newCredits, [purchaseField]: newPurchasedItems }; const { data: updatedProfile, error: updateError } = await supabase.from('profiles').update(updatePayload).eq('id', currentUser.id).select('*, selected_title, purchased_titles, selected_decoration, purchased_decorations').single(); if (updateError) throw updateError; currentProfile = updatedProfile; if(itemType === 'title') { titleShopTitles = selectDailyUserSpecificTitles(allTitlesFromDB, currentProfile.purchased_titles || [], currentUser.id); renderTitleShop(titleShopTitles, currentProfile); renderUserTitlesInventory(currentProfile, allTitlesFromDB); } else { renderAvatarDecorationsShop(allDecorations, currentProfile); } updateSidebarProfile(currentProfile, allTitlesFromDB); if (ui.shopUserCredits) ui.shopUserCredits.textContent = currentProfile.points; if (ui.shopDecorCredits) ui.shopDecorCredits.textContent = currentProfile.points; if (ui.pointsCount) ui.pointsCount.textContent = currentProfile.points; showToast('Nákup Úspěšný', `${itemTypeName} "${itemName}" zakoupen!`, 'success'); } catch (error) { console.error(`Error buying ${itemType}:`, error); showToast('Chyba Nákupu', error.message, 'error'); if(buttonElement) {buttonElement.disabled = false; buttonElement.innerHTML = '<i class="fas fa-shopping-cart"></i> Koupit';} } finally { setLoadingState('buyEquip', false); const stillOwned = (currentProfile[purchaseField] || []).includes(itemKey); if (buttonElement) { if (stillOwned) buttonElement.style.display = 'none'; else if (currentProfile.points < cost) buttonElement.disabled = true; } } }
-    async function handleEquipItem(itemType, itemKey, buttonElement) { if (!currentProfile || !supabase || !currentUser || isLoading.buyEquip) return; if(itemType === 'decoration') { showToast('Info', 'Nastavení vylepšení avatarů není momentálně dostupný.', 'info'); return; } const purchaseField = itemType === 'title' ? 'purchased_titles' : 'purchased_decorations'; const selectField = itemType === 'title' ? 'selected_title' : 'selected_decoration'; const purchasedKeys = Array.isArray(currentProfile[purchaseField]) ? currentProfile[purchaseField] : []; const itemTypeName = itemType === 'title' ? 'titul' : 'vylepšení'; if (!purchasedKeys.includes(itemKey)) { showToast('Chyba', `Tento ${itemTypeName} nemáte zakoupený.`, 'error'); return; } if (currentProfile[selectField] === itemKey) { showToast('Již Používáte', `Tento ${itemTypeName} již máte nastavený.`, 'info'); return; } setLoadingState('buyEquip', true); if (buttonElement) { buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; } try { const { data: updatedProfile, error: updateError } = await supabase.from('profiles').update({ [selectField]: itemKey }).eq('id', currentUser.id).select('*, selected_title, purchased_titles, selected_decoration, purchased_decorations').single(); if (updateError) throw updateError; currentProfile = updatedProfile; if(itemType === 'title') { renderTitleShop(titleShopTitles, currentProfile); renderUserTitlesInventory(currentProfile, allTitlesFromDB); } else { renderAvatarDecorationsShop(allDecorations, currentProfile); } updateSidebarProfile(currentProfile, allTitlesFromDB); const itemData = (itemType === 'title' ? allTitlesFromDB : allDecorations).find(it => it[itemType === 'title' ? 'title_key' : 'decoration_key'] === itemKey); const itemName = itemData?.name || itemKey; showToast('Položka Nastavena', `Nyní používáte ${itemTypeName} "${itemName}".`, 'success'); } catch (error) { console.error(`Error equipping ${itemType}:`, error); showToast('Chyba Nastavení', error.message, 'error'); } finally { setLoadingState('buyEquip', false); if (buttonElement) { buttonElement.disabled = false; buttonElement.innerHTML = '<i class="fas fa-check-square"></i> Použít'; const stillSelected = currentProfile[selectField] === itemKey; const stillOwned = (currentProfile[purchaseField] || []).includes(itemKey); if (stillSelected || !stillOwned) buttonElement.style.display = 'none'; } } }
+    async function handleEquipItem(itemType, itemKey, buttonElement) { if (!currentProfile || !supabase || !currentUser || isLoading.buyEquip) return; if(itemType === 'decoration') { showToast('Info', 'Nastavení vylepšení avatarů není momentálně dostupný.', 'info'); return; } const purchaseField = itemType === 'title' ? 'purchased_titles' : 'purchased_decorations'; const selectField = itemType === 'title' ? 'selected_title' : 'selected_decoration'; const purchasedKeys = Array.isArray(currentProfile[purchaseField]) ? currentProfile[purchaseField] : []; const itemTypeName = itemType === 'title' ? 'titul' : 'vylepšení'; if (!purchasedKeys.includes(itemKey)) { showToast('Chyba', `Tento ${itemTypeName} nemáte zakoupený.`, 'error'); return; } if (currentProfile[selectField] === itemKey) { showToast('Již Používáte', `Tento ${itemTypeName} již máte nastavený.`, 'info'); return; } setLoadingState('buyEquip', true); if (buttonElement) { buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; } try { const { data: updatedProfile, error: updateError } = await supabase.from('profiles').update({ [selectField]: itemKey }).eq('id', currentUser.id).select('*, selected_title, purchased_titles, selected_decoration, purchased_decorations').single(); if (updateError) throw updateError; currentProfile = updatedProfile; if(itemType === 'title') { renderTitleShop(titleShopTitles, currentProfile); renderUserTitlesInventory(currentProfile, allTitlesFromDB); } else { renderAvatarDecorationsShop(allDecorations, currentProfile); } updateSidebarProfile(currentProfile, allTitlesFromDB); const itemData = (allTitlesFromDB || []).find(it => it[itemType === 'title' ? 'title_key' : 'decoration_key'] === itemKey); const itemName = itemData?.name || itemKey; showToast('Položka Nastavena', `Nyní používáte ${itemTypeName} "${itemName}".`, 'success'); } catch (error) { console.error(`Error equipping ${itemType}:`, error); showToast('Chyba Nastavení', error.message, 'error'); } finally { setLoadingState('buyEquip', false); if (buttonElement) { buttonElement.disabled = false; buttonElement.innerHTML = '<i class="fas fa-check-square"></i> Použít'; const stillSelected = currentProfile[selectField] === itemKey; const stillOwned = (currentProfile[purchaseField] || []).includes(itemKey); if (stillSelected || !stillOwned) buttonElement.style.display = 'none'; } } }
     // --- END: Shop Interaction Logic ---
 
     // --- START: Notification Logic ---
@@ -586,13 +576,12 @@
         console.log("[Oceneni SETUP] Setting up event listeners..."); 
         const safeAddListener = (el, ev, fn, key) => { 
             if (el) {
-                // Remove old listener if it exists to prevent duplicates
                 if (el._eventHandlers && el._eventHandlers[key]) {
                     el.removeEventListener(ev, el._eventHandlers[key]);
                 }
                 el.addEventListener(ev, fn);
                 if (!el._eventHandlers) el._eventHandlers = {};
-                el._eventHandlers[key] = fn; // Store the handler for potential removal
+                el._eventHandlers[key] = fn; 
             } else {
                 console.warn(`[SETUP] Element not found for listener: ${key}`);
             }
@@ -613,22 +602,25 @@
         window.addEventListener('offline', updateOnlineStatus); 
         document.addEventListener('click', (e) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(e.target) && !ui.notificationBell?.contains(e.target)) { ui.notificationsDropdown.classList.remove('active'); } }); 
         
-        // <<< NEW: Event listeners for section toggles >>>
         const sectionToggleMap = {
             'toggle-user-badges-section': ui.userBadgesContent,
             'toggle-available-badges-section': ui.availableBadgesContent,
-            'toggle-user-titles-section': ui.userTitlesInventoryContent, // Content for user titles
-            'toggle-title-shop-section': ui.titleShopContainer, // Using container for shop as it has multiple parts
-            'toggle-avatar-decorations-section': ui.avatarDecorationsShop, // Using container for avatar shop
-            'toggle-leaderboard-section': ui.leaderboardContainer // Using container for leaderboard
+            'toggle-user-titles-section': ui.userTitlesInventoryContent,
+            'toggle-title-shop-section': ui.titleShopContent, 
+            'toggle-avatar-decorations-section': ui.avatarDecorationsContent,
+            'toggle-leaderboard-section': ui.leaderboardContent 
         };
 
-        Object.keys(sectionToggleMap).forEach(buttonId => {
-            const button = ui[buttonId.replace(/-/g, (g, i) => i === 0 ? g : g[1].toUpperCase())]; // Convert kebab-case to camelCase for ui object
-            const contentElement = sectionToggleMap[buttonId];
-            if (button && contentElement) {
+        Object.keys(sectionToggleMap).forEach(buttonIdString => {
+            const camelCaseButtonKey = buttonIdString.replace(/-([a-z])/g, g => g[1].toUpperCase()); // Convert kebab-case ID to camelCase for ui object key
+            const button = ui[camelCaseButtonKey];
+            // The contentElement is now defined directly in cacheDOMElements and stored in ui with a 'Content' suffix.
+            // We can derive its key or ensure cacheDOMElements populates it correctly based on the section container.
+            // For simplicity, we'll assume the parent .card is what we want to toggle 'collapsed-section' on.
+            
+            if (button) { // Check if button element was found
                 safeAddListener(button, 'click', () => {
-                    const sectionCard = button.closest('.card'); // Find the parent card/section
+                    const sectionCard = button.closest('.card.section, .card.badges-section, .card.available-achievements, .card.user-titles-inventory-section, .card.title-shop-section, .card.avatar-decorations-shop, .card.leaderboard-section'); 
                     if (sectionCard) {
                         sectionCard.classList.toggle('collapsed-section');
                         const icon = button.querySelector('i');
@@ -636,15 +628,13 @@
                             icon.classList.toggle('fa-chevron-down');
                             icon.classList.toggle('fa-chevron-up');
                         }
-                        // The actual content (grid/table) visibility is handled by CSS based on .collapsed-section
-                        console.log(`Toggled section for button ${buttonId}`);
+                        console.log(`Toggled section for button ${buttonIdString}`);
                     } else {
-                        console.warn(`Parent .card not found for toggle button ${buttonId}`);
+                        console.warn(`Parent .card or specific section class not found for toggle button ${buttonIdString}`);
                     }
-                }, buttonId);
+                }, buttonIdString); // Use buttonIdString as unique key for the listener
             } else {
-                if(!button) console.warn(`[SETUP] Toggle button #${buttonId} not found.`);
-                if(!contentElement) console.warn(`[SETUP] Content element for toggle #${buttonId} not found.`);
+                console.warn(`[SETUP] Toggle button with ID string '${buttonIdString}' (camelCase: '${camelCaseButtonKey}') not found in ui cache.`);
             }
         });
         console.log("[Oceneni SETUP] Event listeners setup complete."); 
@@ -653,7 +643,7 @@
 
     // --- START: Initialization ---
     async function initializeApp() {
-        console.log("🚀 [Init Oceneni v23.23] Starting...");
+        console.log("🚀 [Init Oceneni v23.23.1] Starting...");
         cacheDOMElements();
         if (!initializeSupabase()) return;
         applyInitialSidebarState();
