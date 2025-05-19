@@ -1,5 +1,5 @@
 // dashboard/oceneni.js
-// Version: 23.21 - Enhanced debugging for empty title shop.
+// Version: 23.22 - Enhanced debugging for empty title shop.
 (function() { // IIFE for scope isolation
     'use strict';
 
@@ -20,7 +20,7 @@
     let userBadges = [];
     let allBadges = [];
     let allTitlesFromDB = []; 
-    let titleShopTitles = []; 
+    let titleShopTitles = [];   
     let allDecorations = [];
     let leaderboardData = [];
     let currentLeaderboardPeriod = 'overall';
@@ -104,7 +104,7 @@
         for (let i = 0; i < seedString.length; i++) {
             const char = seedString.charCodeAt(i);
             hash = ((hash << 5) - hash) + char;
-            hash |= 0; // Convert to 32bit integer
+            hash |= 0; 
         }
         return Math.abs(hash); 
     }
@@ -162,7 +162,7 @@
             }
              if (key === 'notifications' && ui.notificationBell) {
                  ui.notificationBell.style.opacity = loading ? 0.5 : 1;
-                 if (ui.markAllRead) { // Corrected from markAllReadBtn
+                 if (ui.markAllRead) { 
                      const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
                      ui.markAllRead.disabled = loading || currentUnreadCount === 0;
                  }
@@ -207,8 +207,9 @@
                 .eq('is_available', true)
                 .eq('is_purchasable', true);
             if (error) throw error;
-            console.log("[Titles] Fetched all purchasable titles from DB:", data ? data.length : 0);
-            allTitlesFromDB = data || []; // Store all for potential full list view later
+            const count = data ? data.length : 0;
+            console.log(`[Titles] Fetched all purchasable titles from DB: ${count}. Titles:`, data?.map(t => t.title_key));
+            allTitlesFromDB = data || []; 
             return allTitlesFromDB;
         } catch (error) {
             console.error("[Titles] Error fetching all purchasable titles:", error);
@@ -225,27 +226,30 @@
             console.warn("[Titles Shop] Cannot select user-specific titles without userId. Returning empty.");
             return [];
         }
-        if (!allPurchasable || allPurchasable.length === 0) {
-            console.log("[Titles Shop] No purchasable titles available to select from.");
+        // Ensure allPurchasable is an array, even if it's empty.
+        const purchasableArray = Array.isArray(allPurchasable) ? allPurchasable : [];
+        console.log(`[Titles Shop] Input - All Purchasable Titles (count: ${purchasableArray.length}):`, purchasableArray.map(t => t.title_key));
+
+
+        if (purchasableArray.length === 0) {
+            console.log("[Titles Shop] No purchasable titles available in the master list to select from.");
             return [];
         }
 
         const userPurchasedSet = new Set(purchasedKeys || []);
-        console.log(`[Titles Shop] User has purchased ${userPurchasedSet.size} titles.`);
-        console.log("[Titles Shop] Purchased keys:", Array.from(userPurchasedSet));
+        console.log(`[Titles Shop] User ID: ${userId} has purchased ${userPurchasedSet.size} titles.`);
+        console.log("[Titles Shop] Purchased keys by user:", Array.from(userPurchasedSet));
 
-
-        const availableForUser = allPurchasable.filter(title => {
+        const availableForUser = purchasableArray.filter(title => {
             const notPurchased = !userPurchasedSet.has(title.title_key);
-            // console.log(`[Titles Shop Filter] Title: ${title.title_key}, Purchased: ${!notPurchased}`); // Log each title check
             return notPurchased;
         });
-        console.log(`[Titles Shop] ${availableForUser.length} titles available for this user (not yet purchased).`);
-        // console.log("[Titles Shop] Available for user:", availableForUser.map(t => t.title_key));
+        console.log(`[Titles Shop] ${availableForUser.length} titles are available for this user (total purchasable MINUS user's purchased).`);
+        console.log("[Titles Shop] Filtered available for user (keys):", availableForUser.map(t => t.title_key));
 
 
         if (availableForUser.length === 0) {
-            console.log("[Titles Shop] User has purchased all available titles or no new titles available for purchase.");
+            console.log("[Titles Shop] User has purchased all available titles, or no new titles are available for purchase by this user.");
             return [];
         }
         if (availableForUser.length <= DAILY_TITLE_SHOP_COUNT) {
@@ -253,7 +257,7 @@
             return availableForUser;
         }
 
-        const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        const today = new Date().toISOString().slice(0, 10); 
         
         const seededSortedTitles = availableForUser
             .map(title => {
@@ -331,7 +335,7 @@
         if (!titlesToDisplay || titlesToDisplay.length === 0) {
             ui.titleShopEmpty.style.display = 'block';
             ui.titleShopGrid.style.display = 'none';
-            console.log("[RenderShop] No titles to display. Showing empty state.");
+            console.log("[RenderShop] No titles to display for this user today. Showing empty state.");
             return;
         }
         ui.titleShopEmpty.style.display = 'none';
@@ -342,12 +346,7 @@
 
         titlesToDisplay.forEach((title, index) => {
             const isPurchased = purchasedKeys.has(title.title_key);
-            // This check is now redundant due to pre-filtering in selectDailyUserSpecificTitles
-            // if (isPurchased && title.is_purchasable) {
-            //     console.log(`[RenderShop] Title ${title.title_key} is already purchased by user, skipping from shop display.`);
-            //     return; // Skip rendering if already purchased
-            // }
-            const isEquipped = isPurchased && title.title_key === selectedKey; // This can still happen if it was purchased and is now selected
+            const isEquipped = isPurchased && title.title_key === selectedKey;
             const canAfford = profile.points >= title.cost;
 
             const itemElement = document.createElement('div');
@@ -407,8 +406,11 @@
         hideError();
         setLoadingState('all', true);
         try {
-            const allPurchasableTitles = await fetchAllPurchasableTitles(); // Fetches all, stores in allTitlesFromDB
-            titleShopTitles = selectDailyUserSpecificTitles(allPurchasableTitles, currentProfile.purchased_titles || [], currentUser.id);
+            // Fetch all titles from DB and then select daily user-specific ones
+            const allPurchasableTitlesFromDB = await fetchAllPurchasableTitles();
+            titleShopTitles = selectDailyUserSpecificTitles(allPurchasableTitlesFromDB, currentProfile.purchased_titles || [], currentUser.id);
+            console.log("[LoadAwards] Daily shop titles selected:", titleShopTitles.map(t => t.title_key));
+
 
             const results = await Promise.allSettled([
                 fetchUserStats(currentUser.id, currentProfile),
@@ -446,7 +448,7 @@
             renderUserBadges(userBadges || []);
             renderAvailableBadges(allBadges || [], userBadges || []);
             renderLeaderboard(leaderboardData || []);
-            renderTitleShop(titleShopTitles || [], currentProfile || {});
+            renderTitleShop(titleShopTitles || [], currentProfile || {}); 
             renderAvatarDecorationsShop(allDecorations || [], currentProfile || {});
             renderNotifications(0, []);
         } finally {
@@ -462,7 +464,7 @@
 
     // --- START: Initialization ---
     async function initializeApp() {
-        console.log("🚀 [Init Oceneni v23.20] Starting...");
+        console.log("🚀 [Init Oceneni v23.21] Starting...");
         cacheDOMElements();
         if (!initializeSupabase()) return;
         applyInitialSidebarState();
@@ -479,13 +481,13 @@
             currentProfile = await fetchUserProfile(currentUser.id);
             if (!currentProfile) throw new Error("Nepodařilo se načíst profil uživatele.");
 
-            updateSidebarProfile(currentProfile, []); // Pass empty titles initially
+            updateSidebarProfile(currentProfile, []); 
             setupEventListeners();
             initMouseFollower();
             initHeaderScrollDetection();
             updateCopyrightYear();
             updateOnlineStatus();
-            await loadAllAwardData(); // This will fetch allTitlesFromDB and then filter for titleShopTitles
+            await loadAllAwardData(); 
 
             if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); }
             if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }
