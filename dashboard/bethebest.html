@@ -83,6 +83,7 @@
             transition: all var(--transition-medium); position: relative; overflow: hidden; z-index: 1;
             box-shadow: 0 0 8px -2px var(--accent-glow), inset 0 0 6px -4px var(--accent-glow);
         }
+        button i.fa-spinner, .btn i.fa-spinner { animation: loading-spinner 0.7s linear infinite; } /* For button loading spinners */
         button::before, .btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--gradient-button); transition: left 0.35s ease-in-out; z-index: -1; }
         button:hover:not(:disabled), .btn:hover:not(:disabled) { color: var(--text-fixed-dark); border-color: var(--accent-secondary); box-shadow: 0 0 18px var(--accent-secondary-glow); transform: translateY(-2px); }
         button:hover:not(:disabled)::before, .btn:hover:not(:disabled)::before { left: 0; background: var(--gradient-button-hover); }
@@ -141,13 +142,14 @@
         .task-item h3 { font-size: 1.05rem; color: var(--accent-secondary); margin-top: 0; margin-bottom: 6px; }
         .task-item p { font-size: 0.9rem; color: var(--text-light); margin-bottom: 8px; line-height: 1.5; }
         .task-item small.task-topic { font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono); display: block; margin-top: 4px; }
-        #loadMoreTasksButton { display: block; margin: 15px auto; }
+        #loadMoreTasksButton { display: block; margin: 20px auto 10px; } /* Adjusted margin */
 
         .loader { text-align: center; padding: 20px; font-size: 1rem; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 0.8rem; }
         .loader.visible-loader { display: flex; }
         .loader:not(.visible-loader) { display: none; }
         .loader::before { content: ''; display: block; width: 28px; height: 28px; border: 3px solid var(--accent-primary); border-radius: 50%; border-top-color: transparent; border-right-color: transparent; animation: loading-spinner 0.7s linear infinite; }
         @keyframes loading-spinner { to { transform: rotate(360deg); } }
+        #tasksFeed .loader { margin-bottom: 15px; } /* Loader specifically within tasksFeed */
 
         .toast-container { position: fixed; bottom: 1rem; right: 1rem; z-index: 1050; width: auto; max-width: 350px;}
         .notification { padding: 0.8rem 1rem; border-radius: 8px; background: var(--interface-bg); box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: flex; align-items: flex-start; color: var(--text-light); margin-bottom: 0.5rem; border-left: 4px solid var(--accent-primary); opacity: 0; transform: translateX(110%); transition: opacity 0.4s ease, transform 0.4s ease; }
@@ -266,9 +268,11 @@
             <div id="taskFeedContainer" style="margin-top: 30px;">
                 <h2><i class="fas fa-tasks"></i> Doporučené Úkoly od AI</h2>
                 <div id="tasksFeed">
-                    <div class="loader visible-loader">Načítám úkoly...</div>
-                </div>
-                <button id="loadMoreTasksButton" class="btn btn-secondary hidden" style="display: block; margin: 15px auto;">Načíst další úkoly (Momentálně neaktivní)</button>
+                    </div>
+                <button id="loadMoreTasksButton" class="btn btn-secondary" style="display: block; margin: 20px auto 10px;">
+                    <i class="fas fa-plus"></i> Načíst další úkoly
+                </button>
+                 <div id="loadMoreLoader" class="loader" style="display: none; margin-top:0; padding-top:0;">Načítám další...</div>
             </div>
         </div>
     </div>
