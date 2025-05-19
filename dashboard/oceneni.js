@@ -1,5 +1,5 @@
 // dashboard/oceneni.js
-// Version: 23.23 - Added User Titles Inventory, sorted by cost; Shop titles reduced to 3.
+// Version: 23.22.1 - Syntax check and existing logic for user-specific daily titles.
 (function() { // IIFE for scope isolation
     'use strict';
 
@@ -9,7 +9,7 @@
     const NOTIFICATION_FETCH_LIMIT = 5;
     const LEADERBOARD_LIMIT = 10;
     const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
-    const DAILY_TITLE_SHOP_COUNT = 3; // <<< MODIFIED: Reduced to 3
+    const DAILY_TITLE_SHOP_COUNT = 3; // Was 6, changed to 3 as per user request
     // --- END: Configuration ---
 
     // --- START: State Variables ---
@@ -28,7 +28,7 @@
         stats: false, userBadges: false, availableBadges: false,
         leaderboard: false, titleShop: false, avatarDecorations: false,
         notifications: false, buyEquip: false, all: false, titles: false,
-        userTitlesInventory: false // <<< NEW: Loading state for user titles inventory
+        userTitlesInventory: false 
     };
     // --- END: State Variables ---
 
@@ -58,7 +58,6 @@
             'sidebar-toggle-btn',
             'badges-card', 'points-card', 'streak-card', 'rank-card',
             'leaderboard-skeleton', 'leaderboard-header', 'leaderboard-table-container',
-            // <<< NEW: UI Elements for User Titles Inventory >>>
             'user-titles-inventory-container', 'user-titles-inventory-grid', 
             'user-titles-inventory-empty', 'user-titles-inventory-loading'
         ];
@@ -136,7 +135,7 @@
                 titleShop: { container: ui.titleShopContainer, emptyEl: ui.titleShopEmpty, contentEl: ui.titleShopGrid, loadingEl: ui.titleShopLoading, skeletonFn: renderTitleShopSkeleton, skeletonCount: DAILY_TITLE_SHOP_COUNT },
                 avatarDecorations: { container: ui.avatarDecorationsShop, emptyEl: ui.avatarDecorationsEmpty, contentEl: ui.avatarDecorationsGrid, loadingEl: ui.avatarDecorationsLoading, skeletonFn: renderAvatarDecorationsSkeleton, skeletonCount: 4 },
                 notifications: { container: ui.notificationsList, emptyEl: ui.noNotificationsMsg, skeletonFn: renderNotificationSkeletons, skeletonCount: 2 },
-                userTitlesInventory: { container: ui.userTitlesInventoryContainer, emptyEl: ui.userTitlesInventoryEmpty, contentEl: ui.userTitlesInventoryGrid, loadingEl: ui.userTitlesInventoryLoading, skeletonFn: renderUserTitlesInventorySkeletons, skeletonCount: 4 }, // <<< NEW
+                userTitlesInventory: { container: ui.userTitlesInventoryContainer, emptyEl: ui.userTitlesInventoryEmpty, contentEl: ui.userTitlesInventoryGrid, loadingEl: ui.userTitlesInventoryLoading, skeletonFn: renderUserTitlesInventorySkeletons, skeletonCount: 4 },
                 buyEquip: {}, 
                 titles: {}    
             };
@@ -193,14 +192,13 @@
     function renderTitleShopSkeleton(container = ui.titleShopGrid, count = DAILY_TITLE_SHOP_COUNT) { if (!container) return; container.innerHTML = ''; container.style.display = 'grid'; let s = ''; for(let i = 0; i < count; i++) s += `<div class="title-item card loading"><div class="loading-skeleton" style="display: flex !important;"><div style="display: flex; gap: 1.2rem; align-items: flex-start; width: 100%;"><div class="skeleton" style="width: 60px; height: 60px; border-radius: 14px; flex-shrink: 0;"></div><div style="flex-grow: 1;"><div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 0.7rem;"></div><div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.5rem;"></div><div class="skeleton" style="height: 14px; width: 75%;"></div></div></div></div></div>`; container.innerHTML = s; }
     function renderAvatarDecorationsSkeleton(container = ui.avatarDecorationsGrid, count = 4) { if (!container) return; container.innerHTML = ''; container.style.display = 'grid'; let s = ''; for(let i = 0; i < count; i++) s += `<div class="decoration-item card loading"><div class="loading-skeleton" style="display: flex !important; flex-direction: column; align-items: center; padding:1rem;"><div class="skeleton" style="width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1rem auto;"></div><div class="skeleton" style="height: 18px; width: 70%; margin: 0 auto 0.7rem auto;"></div><div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.5rem;"></div><div class="skeleton" style="height: 14px; width: 80%;"></div><div style="margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid transparent; display: flex; justify-content: space-between; align-items: center; width:100%;"><div class="skeleton" style="height: 16px; width: 70px;"></div><div class="skeleton" style="height: 30px; width: 90px; border-radius: var(--button-radius);"></div></div></div></div>`; container.innerHTML = s; }
     function renderNotificationSkeletons(container = ui.notificationsList, count = 2) { if (!container) return; container.innerHTML = ''; container.style.display = 'block'; let s = ''; for (let i = 0; i < count; i++) s += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height:16px;width:70%;margin-bottom:6px;"></div><div class="skeleton" style="height:12px;width:90%;"></div><div class="skeleton" style="height:10px;width:40%;margin-top:6px;"></div></div></div>`; container.innerHTML = s; }
-    // <<< NEW: Skeleton for User Titles Inventory >>>
     function renderUserTitlesInventorySkeletons(container = ui.userTitlesInventoryGrid, count = 4) {
         if (!container) {
             console.warn("[Skeletons] User Titles Inventory container not found.");
             return;
         }
         container.innerHTML = '';
-        container.style.display = 'grid'; // Ensure grid display for skeletons
+        container.style.display = 'grid'; 
         let skeletonHTML = '';
         for (let i = 0; i < count; i++) {
             skeletonHTML += `
@@ -234,7 +232,7 @@
         try {
             const { data, error } = await supabase
                 .from('title_shop')
-                .select('*') // Fetch all columns to have cost for sorting inventory
+                .select('*') 
                 .eq('is_available', true)
                 .eq('is_purchasable', true);
             if (error) throw error;
@@ -409,7 +407,6 @@
     function renderAvatarDecorationsShop(decorations, profile) { setLoadingState('avatarDecorations', false); if (!ui.avatarDecorationsGrid || !ui.avatarDecorationsEmpty || !ui.shopDecorCredits || !profile) return; ui.shopDecorCredits.textContent = profile.points ?? 0; ui.avatarDecorationsGrid.innerHTML = ''; ui.avatarDecorationsEmpty.style.display = 'block'; ui.avatarDecorationsGrid.style.display = 'none'; }
     function renderNotifications(count, notifications) { setLoadingState('notifications', false); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllRead) return; ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>${!n.is_read ? '<span class="unread-dot"></span>' : ''}<div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="notification-content"><div class="notification-title">${sanitizeHTML(n.title)}</div><div class="notification-message">${sanitizeHTML(n.message)}</div><div class="notification-time">${formatRelativeTime(n.created_at)}</div></div></div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllRead.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllRead.disabled = true; } }
     
-    // <<< NEW: Function to render user's purchased titles (inventory) >>>
     function renderUserTitlesInventory(profile, allTitlesData) {
         setLoadingState('userTitlesInventory', false);
         if (!ui.userTitlesInventoryGrid || !ui.userTitlesInventoryEmpty || !profile) {
@@ -420,21 +417,23 @@
         const purchasedTitleKeys = profile.purchased_titles || [];
 
         if (purchasedTitleKeys.length === 0) {
-            ui.userTitlesInventoryEmpty.style.display = 'block';
-            ui.userTitlesInventoryGrid.style.display = 'none';
+            if (ui.userTitlesInventoryEmpty) { // Check if element exists
+                ui.userTitlesInventoryEmpty.style.display = 'block';
+            }
+            if (ui.userTitlesInventoryGrid) { // Check if element exists
+                ui.userTitlesInventoryGrid.style.display = 'none';
+            }
             console.log("[RenderInventory] No titles purchased by user.");
             return;
         }
 
-        ui.userTitlesInventoryEmpty.style.display = 'none';
-        ui.userTitlesInventoryGrid.style.display = 'grid';
+        if (ui.userTitlesInventoryEmpty) ui.userTitlesInventoryEmpty.style.display = 'none';
+        if (ui.userTitlesInventoryGrid) ui.userTitlesInventoryGrid.style.display = 'grid';
 
-        // Filter allTitlesData to get only purchased titles and retain their original data (like cost for sorting)
         const purchasedTitlesDetailed = purchasedTitleKeys.map(key => {
-            return allTitlesData.find(title => title.title_key === key);
-        }).filter(Boolean); // Filter out any undefined if a key in purchased_titles doesn't exist in allTitlesData
+            return (allTitlesData || []).find(title => title.title_key === key); // Ensure allTitlesData is an array
+        }).filter(Boolean);
 
-        // Sort purchased titles by cost (ascending)
         purchasedTitlesDetailed.sort((a, b) => (a.cost || 0) - (b.cost || 0));
 
         console.log(`[RenderInventory] Rendering ${purchasedTitlesDetailed.length} purchased titles, sorted by cost.`);
@@ -445,9 +444,9 @@
         purchasedTitlesDetailed.forEach((title, index) => {
             const isEquipped = title.title_key === selectedKey;
             const itemElement = document.createElement('div');
-            itemElement.className = 'title-item card inventory-item'; // Add 'inventory-item' class for specific styling if needed
+            itemElement.className = 'title-item card inventory-item'; 
             itemElement.setAttribute('data-title-key', title.title_key);
-            itemElement.setAttribute('data-animate', ''); // For animation
+            itemElement.setAttribute('data-animate', ''); 
             itemElement.style.setProperty('--animation-order', index);
 
             itemElement.innerHTML = `
@@ -456,7 +455,8 @@
                     <h4 class="title-item-name">${sanitizeHTML(title.name)}</h4>
                     ${title.description ? `<p class="title-item-desc">${sanitizeHTML(title.description)}</p>` : ''}
                     <div class="title-item-footer">
-                        <span class="title-item-cost" style="visibility:hidden;">Cena: ${title.cost} <i class="fas fa-coins"></i></span> <div class="title-item-actions">
+                        <span class="title-item-cost" style="visibility:hidden;">Cena: ${title.cost} <i class="fas fa-coins"></i></span>
+                        <div class="title-item-actions">
                             ${isEquipped ? 
                                 `<span class="title-status equipped"><i class="fas fa-user-check"></i> Používá se</span>` :
                                 `<button class="btn btn-sm btn-secondary equip-title-btn">
@@ -468,15 +468,15 @@
                 </div>`;
             fragment.appendChild(itemElement);
         });
-        ui.userTitlesInventoryGrid.appendChild(fragment);
+        if (ui.userTitlesInventoryGrid) ui.userTitlesInventoryGrid.appendChild(fragment); // Check if element exists
         requestAnimationFrame(initScrollAnimations);
     }
     // --- END: Data Rendering Functions ---
 
     // --- START: Shop Interaction Logic ---
     async function handleShopInteraction(event) { const buyTitleButton = event.target.closest('.buy-title-btn'); const equipTitleButton = event.target.closest('.equip-title-btn'); const buyDecorButton = event.target.closest('.buy-decor-btn'); const equipDecorButton = event.target.closest('.equip-decor-btn'); if (buyTitleButton) { const itemEl = buyTitleButton.closest('.title-item'); const key = itemEl?.dataset.titleKey; const cost = parseInt(itemEl?.dataset.titleCost, 10); if (key && !isNaN(cost)) handleBuyItem('title', key, cost, buyTitleButton); else showToast('Chyba: Nelze identifikovat titul.', 'error'); } else if (equipTitleButton) { const itemEl = equipTitleButton.closest('.title-item'); const key = itemEl?.dataset.titleKey; if (key) handleEquipItem('title', key, equipTitleButton); else showToast('Chyba: Nelze identifikovat titul.', 'error'); } else if (buyDecorButton) { showToast('Info', 'Nákup vylepšení avatarů není momentálně dostupný.', 'info'); } else if (equipDecorButton) { showToast('Info', 'Nastavení vylepšení avatarů není momentálně dostupný.', 'info'); } }
-    async function handleBuyItem(itemType, itemKey, cost, buttonElement) { if (!currentProfile || !supabase || !currentUser || isLoading.buyEquip) return; if(itemType === 'decoration') { showToast('Info', 'Nákup vylepšení avatarů není momentálně dostupný.', 'info'); return; } const currentCredits = currentProfile.points ?? 0; if (currentCredits < cost) { showToast('Nedostatek Kreditů', `Potřebujete ${cost} kreditů.`, 'warning'); return; } const itemData = (itemType === 'title' ? allTitlesFromDB : allDecorations).find(it => it[itemType === 'title' ? 'title_key' : 'decoration_key'] === itemKey); const itemName = itemData?.name || itemKey; const itemTypeName = itemType === 'title' ? 'titul' : 'vylepšení'; if (!confirm(`Opravdu koupit ${itemTypeName} "${itemName}" za ${cost} kreditů?`)) return; setLoadingState('buyEquip', true); buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; const purchaseField = itemType === 'title' ? 'purchased_titles' : 'purchased_decorations'; try { const currentPurchased = Array.isArray(currentProfile[purchaseField]) ? currentProfile[purchaseField] : []; if (currentPurchased.includes(itemKey)) { showToast('Již Vlastněno', `Tento ${itemTypeName} již máte.`, 'info'); return; } const newCredits = currentCredits - cost; const newPurchasedItems = [...currentPurchased, itemKey]; const updatePayload = { points: newCredits, [purchaseField]: newPurchasedItems }; const { data: updatedProfile, error: updateError } = await supabase.from('profiles').update(updatePayload).eq('id', currentUser.id).select('*, selected_title, purchased_titles, selected_decoration, purchased_decorations').single(); if (updateError) throw updateError; currentProfile = updatedProfile; if(itemType === 'title') { titleShopTitles = selectDailyUserSpecificTitles(allTitlesFromDB, currentProfile.purchased_titles || [], currentUser.id); renderTitleShop(titleShopTitles, currentProfile); renderUserTitlesInventory(currentProfile, allTitlesFromDB); /* Re-render inventory */ } else { renderAvatarDecorationsShop(allDecorations, currentProfile); } updateSidebarProfile(currentProfile, allTitlesFromDB); if (ui.shopUserCredits) ui.shopUserCredits.textContent = currentProfile.points; if (ui.shopDecorCredits) ui.shopDecorCredits.textContent = currentProfile.points; if (ui.pointsCount) ui.pointsCount.textContent = currentProfile.points; showToast('Nákup Úspěšný', `${itemTypeName} "${itemName}" zakoupen!`, 'success'); } catch (error) { console.error(`Error buying ${itemType}:`, error); showToast('Chyba Nákupu', error.message, 'error'); buttonElement.disabled = false; buttonElement.innerHTML = '<i class="fas fa-shopping-cart"></i> Koupit'; } finally { setLoadingState('buyEquip', false); const stillOwned = (currentProfile[purchaseField] || []).includes(itemKey); if (stillOwned && buttonElement) buttonElement.style.display = 'none'; // Check if buttonElement exists else if (buttonElement && currentProfile.points < cost) buttonElement.disabled = true; } }
-    async function handleEquipItem(itemType, itemKey, buttonElement) { if (!currentProfile || !supabase || !currentUser || isLoading.buyEquip) return; if(itemType === 'decoration') { showToast('Info', 'Nastavení vylepšení avatarů není momentálně dostupný.', 'info'); return; } const purchaseField = itemType === 'title' ? 'purchased_titles' : 'purchased_decorations'; const selectField = itemType === 'title' ? 'selected_title' : 'selected_decoration'; const purchasedKeys = Array.isArray(currentProfile[purchaseField]) ? currentProfile[purchaseField] : []; const itemTypeName = itemType === 'title' ? 'titul' : 'vylepšení'; if (!purchasedKeys.includes(itemKey)) { showToast('Chyba', `Tento ${itemTypeName} nemáte zakoupený.`, 'error'); return; } if (currentProfile[selectField] === itemKey) { showToast('Již Používáte', `Tento ${itemTypeName} již máte nastavený.`, 'info'); return; } setLoadingState('buyEquip', true); buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; try { const { data: updatedProfile, error: updateError } = await supabase.from('profiles').update({ [selectField]: itemKey }).eq('id', currentUser.id).select('*, selected_title, purchased_titles, selected_decoration, purchased_decorations').single(); if (updateError) throw updateError; currentProfile = updatedProfile; if(itemType === 'title') { renderTitleShop(titleShopTitles, currentProfile); renderUserTitlesInventory(currentProfile, allTitlesFromDB); /* Re-render inventory */ } else { renderAvatarDecorationsShop(allDecorations, currentProfile); } updateSidebarProfile(currentProfile, allTitlesFromDB); const itemData = (itemType === 'title' ? allTitlesFromDB : allDecorations).find(it => it[itemType === 'title' ? 'title_key' : 'decoration_key'] === itemKey); const itemName = itemData?.name || itemKey; showToast('Položka Nastavena', `Nyní používáte ${itemTypeName} "${itemName}".`, 'success'); } catch (error) { console.error(`Error equipping ${itemType}:`, error); showToast('Chyba Nastavení', error.message, 'error'); } finally { setLoadingState('buyEquip', false); if (buttonElement) { buttonElement.disabled = false; buttonElement.innerHTML = '<i class="fas fa-check-square"></i> Použít'; const stillSelected = currentProfile[selectField] === itemKey; const stillOwned = (currentProfile[purchaseField] || []).includes(itemKey); if (stillSelected || !stillOwned) buttonElement.style.display = 'none'; } } }
+    async function handleBuyItem(itemType, itemKey, cost, buttonElement) { if (!currentProfile || !supabase || !currentUser || isLoading.buyEquip) return; if(itemType === 'decoration') { showToast('Info', 'Nákup vylepšení avatarů není momentálně dostupný.', 'info'); return; } const currentCredits = currentProfile.points ?? 0; if (currentCredits < cost) { showToast('Nedostatek Kreditů', `Potřebujete ${cost} kreditů.`, 'warning'); return; } const itemData = (itemType === 'title' ? allTitlesFromDB : allDecorations).find(it => it[itemType === 'title' ? 'title_key' : 'decoration_key'] === itemKey); const itemName = itemData?.name || itemKey; const itemTypeName = itemType === 'title' ? 'titul' : 'vylepšení'; if (!confirm(`Opravdu koupit ${itemTypeName} "${itemName}" za ${cost} kreditů?`)) return; setLoadingState('buyEquip', true); buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; const purchaseField = itemType === 'title' ? 'purchased_titles' : 'purchased_decorations'; try { const currentPurchased = Array.isArray(currentProfile[purchaseField]) ? currentProfile[purchaseField] : []; if (currentPurchased.includes(itemKey)) { showToast('Již Vlastněno', `Tento ${itemTypeName} již máte.`, 'info'); return; } const newCredits = currentCredits - cost; const newPurchasedItems = [...currentPurchased, itemKey]; const updatePayload = { points: newCredits, [purchaseField]: newPurchasedItems }; const { data: updatedProfile, error: updateError } = await supabase.from('profiles').update(updatePayload).eq('id', currentUser.id).select('*, selected_title, purchased_titles, selected_decoration, purchased_decorations').single(); if (updateError) throw updateError; currentProfile = updatedProfile; if(itemType === 'title') { titleShopTitles = selectDailyUserSpecificTitles(allTitlesFromDB, currentProfile.purchased_titles || [], currentUser.id); renderTitleShop(titleShopTitles, currentProfile); renderUserTitlesInventory(currentProfile, allTitlesFromDB); } else { renderAvatarDecorationsShop(allDecorations, currentProfile); } updateSidebarProfile(currentProfile, allTitlesFromDB); if (ui.shopUserCredits) ui.shopUserCredits.textContent = currentProfile.points; if (ui.shopDecorCredits) ui.shopDecorCredits.textContent = currentProfile.points; if (ui.pointsCount) ui.pointsCount.textContent = currentProfile.points; showToast('Nákup Úspěšný', `${itemTypeName} "${itemName}" zakoupen!`, 'success'); } catch (error) { console.error(`Error buying ${itemType}:`, error); showToast('Chyba Nákupu', error.message, 'error'); if(buttonElement) {buttonElement.disabled = false; buttonElement.innerHTML = '<i class="fas fa-shopping-cart"></i> Koupit';} } finally { setLoadingState('buyEquip', false); const stillOwned = (currentProfile[purchaseField] || []).includes(itemKey); if (buttonElement) { if (stillOwned) buttonElement.style.display = 'none'; else if (currentProfile.points < cost) buttonElement.disabled = true; } } }
+    async function handleEquipItem(itemType, itemKey, buttonElement) { if (!currentProfile || !supabase || !currentUser || isLoading.buyEquip) return; if(itemType === 'decoration') { showToast('Info', 'Nastavení vylepšení avatarů není momentálně dostupný.', 'info'); return; } const purchaseField = itemType === 'title' ? 'purchased_titles' : 'purchased_decorations'; const selectField = itemType === 'title' ? 'selected_title' : 'selected_decoration'; const purchasedKeys = Array.isArray(currentProfile[purchaseField]) ? currentProfile[purchaseField] : []; const itemTypeName = itemType === 'title' ? 'titul' : 'vylepšení'; if (!purchasedKeys.includes(itemKey)) { showToast('Chyba', `Tento ${itemTypeName} nemáte zakoupený.`, 'error'); return; } if (currentProfile[selectField] === itemKey) { showToast('Již Používáte', `Tento ${itemTypeName} již máte nastavený.`, 'info'); return; } setLoadingState('buyEquip', true); if (buttonElement) { buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; } try { const { data: updatedProfile, error: updateError } = await supabase.from('profiles').update({ [selectField]: itemKey }).eq('id', currentUser.id).select('*, selected_title, purchased_titles, selected_decoration, purchased_decorations').single(); if (updateError) throw updateError; currentProfile = updatedProfile; if(itemType === 'title') { renderTitleShop(titleShopTitles, currentProfile); renderUserTitlesInventory(currentProfile, allTitlesFromDB); } else { renderAvatarDecorationsShop(allDecorations, currentProfile); } updateSidebarProfile(currentProfile, allTitlesFromDB); const itemData = (itemType === 'title' ? allTitlesFromDB : allDecorations).find(it => it[itemType === 'title' ? 'title_key' : 'decoration_key'] === itemKey); const itemName = itemData?.name || itemKey; showToast('Položka Nastavena', `Nyní používáte ${itemTypeName} "${itemName}".`, 'success'); } catch (error) { console.error(`Error equipping ${itemType}:`, error); showToast('Chyba Nastavení', error.message, 'error'); } finally { setLoadingState('buyEquip', false); if (buttonElement) { buttonElement.disabled = false; buttonElement.innerHTML = '<i class="fas fa-check-square"></i> Použít'; const stillSelected = currentProfile[selectField] === itemKey; const stillOwned = (currentProfile[purchaseField] || []).includes(itemKey); if (stillSelected || !stillOwned) buttonElement.style.display = 'none'; } } }
     // --- END: Shop Interaction Logic ---
 
     // --- START: Notification Logic ---
@@ -522,7 +522,7 @@
             renderAvailableBadges(allBadges, userBadges);
             renderLeaderboard(leaderboardData);
             renderTitleShop(titleShopTitles, currentProfile); 
-            renderUserTitlesInventory(currentProfile, allTitlesFromDB); // <<< NEW: Render inventory
+            renderUserTitlesInventory(currentProfile, allTitlesFromDB); 
             renderAvatarDecorationsShop(allDecorations, currentProfile);
             renderNotifications(unreadCount, notifications);
             updateSidebarProfile(currentProfile, allTitlesFromDB); 
@@ -536,7 +536,7 @@
             renderAvailableBadges(allBadges || [], userBadges || []);
             renderLeaderboard(leaderboardData || []);
             renderTitleShop(titleShopTitles || [], currentProfile || {}); 
-            renderUserTitlesInventory(currentProfile || {}, allTitlesFromDB || []); // <<< NEW: Render inventory on error too
+            renderUserTitlesInventory(currentProfile || {}, allTitlesFromDB || []); 
             renderAvatarDecorationsShop(allDecorations || [], currentProfile || {});
             renderNotifications(0, []);
         } finally {
@@ -547,12 +547,12 @@
     // --- END: Load All Data ---
 
     // --- START: Event Listeners Setup ---
-    function setupEventListeners() { console.log("[Oceneni SETUP] Setting up event listeners..."); const safeAddListener = (el, ev, fn, key) => { if (el) el.addEventListener(ev, fn); else console.warn(`[SETUP] Element not found for listener: ${key}`); }; safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle'); safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle'); safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay'); safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn'); safeAddListener(ui.refreshDataBtn, 'click', loadAllAwardData, 'refreshDataBtn'); safeAddListener(ui.notificationBell, 'click', (e) => { e.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell'); safeAddListener(ui.markAllRead, 'click', handleMarkAllReadClick, 'markAllRead'); safeAddListener(ui.notificationsList, 'click', handleNotificationClick, 'notificationsList'); safeAddListener(ui.titleShopGrid, 'click', handleShopInteraction, 'titleShopGrid'); safeAddListener(ui.avatarDecorationsGrid, 'click', handleShopInteraction, 'avatarDecorationsGrid'); if(ui.userTitlesInventoryGrid) safeAddListener(ui.userTitlesInventoryGrid, 'click', handleShopInteraction, 'userTitlesInventoryGrid'); /* Equip from inventory */ document.querySelectorAll('.sidebar-link').forEach(l => l.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); })); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); document.addEventListener('click', (e) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(e.target) && !ui.notificationBell?.contains(e.target)) { ui.notificationsDropdown.classList.remove('active'); } }); console.log("[Oceneni SETUP] Event listeners setup complete."); }
+    function setupEventListeners() { console.log("[Oceneni SETUP] Setting up event listeners..."); const safeAddListener = (el, ev, fn, key) => { if (el) el.addEventListener(ev, fn); else console.warn(`[SETUP] Element not found for listener: ${key}`); }; safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle'); safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle'); safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay'); safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn'); safeAddListener(ui.refreshDataBtn, 'click', loadAllAwardData, 'refreshDataBtn'); safeAddListener(ui.notificationBell, 'click', (e) => { e.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell'); safeAddListener(ui.markAllRead, 'click', handleMarkAllReadClick, 'markAllRead'); safeAddListener(ui.notificationsList, 'click', handleNotificationClick, 'notificationsList'); safeAddListener(ui.titleShopGrid, 'click', handleShopInteraction, 'titleShopGrid'); safeAddListener(ui.avatarDecorationsGrid, 'click', handleShopInteraction, 'avatarDecorationsGrid'); if(ui.userTitlesInventoryGrid) safeAddListener(ui.userTitlesInventoryGrid, 'click', handleShopInteraction, 'userTitlesInventoryGrid'); document.querySelectorAll('.sidebar-link').forEach(l => l.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); })); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); document.addEventListener('click', (e) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(e.target) && !ui.notificationBell?.contains(e.target)) { ui.notificationsDropdown.classList.remove('active'); } }); console.log("[Oceneni SETUP] Event listeners setup complete."); }
     // --- END: Event Listeners Setup ---
 
     // --- START: Initialization ---
     async function initializeApp() {
-        console.log("🚀 [Init Oceneni v23.22] Starting...");
+        console.log("🚀 [Init Oceneni v23.22.1] Starting..."); // Updated version
         cacheDOMElements();
         if (!initializeSupabase()) return;
         applyInitialSidebarState();
