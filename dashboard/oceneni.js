@@ -1,5 +1,5 @@
 // dashboard/oceneni.js
-// Version: 23.22.1 - Syntax check and existing logic for user-specific daily titles.
+// Version: 23.23 - Shop shows 6 titles; purchased titles shown in shop but marked; collapsible sections.
 (function() { // IIFE for scope isolation
     'use strict';
 
@@ -9,7 +9,7 @@
     const NOTIFICATION_FETCH_LIMIT = 5;
     const LEADERBOARD_LIMIT = 10;
     const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
-    const DAILY_TITLE_SHOP_COUNT = 3; // Was 6, changed to 3 as per user request
+    const DAILY_TITLE_SHOP_COUNT = 6; // <<< MODIFIED: Back to 6
     // --- END: Configuration ---
 
     // --- START: State Variables ---
@@ -59,7 +59,11 @@
             'badges-card', 'points-card', 'streak-card', 'rank-card',
             'leaderboard-skeleton', 'leaderboard-header', 'leaderboard-table-container',
             'user-titles-inventory-container', 'user-titles-inventory-grid', 
-            'user-titles-inventory-empty', 'user-titles-inventory-loading'
+            'user-titles-inventory-empty', 'user-titles-inventory-loading',
+            // <<< NEW: IDs for section toggle buttons (assuming they will be added to HTML) >>>
+            'toggle-user-badges-section', 'toggle-available-badges-section',
+            'toggle-user-titles-section', 'toggle-title-shop-section',
+            'toggle-avatar-decorations-section', 'toggle-leaderboard-section'
         ];
         const notFound = [];
         ids.forEach(id => {
@@ -72,6 +76,14 @@
                 ui[key] = null; 
             }
         });
+        // Cache section content areas for toggling
+        ui.userBadgesContent = ui.userBadgesContainer?.querySelector('.badge-grid'); // Or a more general content wrapper
+        ui.availableBadgesContent = ui.availableBadgesContainer?.querySelector('.achievement-grid');
+        ui.userTitlesInventoryContent = ui.userTitlesInventoryContainer?.querySelector('#user-titles-inventory-grid');
+        ui.titleShopContent = ui.titleShopContainer?.querySelector('#title-shop-grid'); // And credits, empty state etc.
+        ui.avatarDecorationsContent = ui.avatarDecorationsShop?.querySelector('#avatar-decorations-grid');
+        ui.leaderboardContent = ui.leaderboardContainer?.querySelector('#leaderboard-table-container'); // And header, empty state
+
         if (!ui.sidebarUserTitle) {
             const roleEl = document.getElementById('sidebar-user-role');
             if(roleEl) ui.sidebarUserTitle = roleEl;
@@ -263,20 +275,25 @@
             return [];
         }
 
-        const userPurchasedSet = new Set(purchasedKeys || []);
-        console.log(`[Titles Shop] User ID: ${userId} has purchased ${userPurchasedSet.size} titles.`);
-        console.log("[Titles Shop] Purchased keys by user:", Array.from(userPurchasedSet));
+        // <<< MODIFICATION START: Do NOT filter out purchased titles here >>>
+        // The shop will now display all daily random titles, and mark purchased ones.
+        // const userPurchasedSet = new Set(purchasedKeys || []);
+        // console.log(`[Titles Shop] User ID: ${userId} has purchased ${userPurchasedSet.size} titles.`);
+        // console.log("[Titles Shop] Purchased keys by user:", Array.from(userPurchasedSet));
 
-        const availableForUser = purchasableArray.filter(title => !userPurchasedSet.has(title.title_key));
-        console.log(`[Titles Shop] ${availableForUser.length} titles are available for this user (total purchasable MINUS user's purchased).`);
-        console.log("[Titles Shop] Filtered available for user (keys):", availableForUser.map(t => t.title_key));
+        // const availableForUser = purchasableArray.filter(title => !userPurchasedSet.has(title.title_key));
+        const availableForUser = [...purchasableArray]; // Use all purchasable titles as candidates
+        console.log(`[Titles Shop] ${availableForUser.length} titles are candidates for the shop (not filtering purchased yet).`);
+        console.log("[Titles Shop] Candidate titles (keys):", availableForUser.map(t => t.title_key));
+        // <<< MODIFICATION END >>>
 
-        if (availableForUser.length === 0) {
-            console.log("[Titles Shop] User has purchased all available titles, or no new titles are available for purchase by this user.");
+
+        if (availableForUser.length === 0) { // This condition is now less likely unless allTitlesFromDB is empty
+            console.log("[Titles Shop] No titles available to select from for the shop.");
             return [];
         }
         if (availableForUser.length <= DAILY_TITLE_SHOP_COUNT) {
-            console.log(`[Titles Shop] Fewer than ${DAILY_TITLE_SHOP_COUNT} titles available for user, showing all ${availableForUser.length}.`);
+            console.log(`[Titles Shop] Fewer than ${DAILY_TITLE_SHOP_COUNT} titles available, showing all ${availableForUser.length}.`);
             return availableForUser;
         }
 
@@ -358,6 +375,24 @@
         if (!titlesToDisplay || titlesToDisplay.length === 0) {
             ui.titleShopEmpty.style.display = 'block';
             ui.titleShopGrid.style.display = 'none';
+            // <<< MODIFIED: More informative message if the user bought everything that was available today >>>
+            const allPurchasableTitlesInDB = allTitlesFromDB.filter(t => t.is_purchasable && t.is_available);
+            const purchasedKeys = new Set(profile.purchased_titles || []);
+            const allPurchasableAndNotOwned = allPurchasableTitlesInDB.filter(t => !purchasedKeys.has(t.title_key));
+
+            if (allPurchasableAndNotOwned.length === 0 && allPurchasableTitlesInDB.length > 0) {
+                 if (ui.titleShopEmpty.querySelector('p')) {
+                    ui.titleShopEmpty.querySelector('p').textContent = 'Všechny aktuálně dostupné tituly v obchodě již vlastníte! Zkuste to znovu zítra.';
+                 }
+            } else if (allPurchasableTitlesInDB.length === 0) {
+                if (ui.titleShopEmpty.querySelector('p')) {
+                    ui.titleShopEmpty.querySelector('p').textContent = 'Momentálně nejsou v obchodě žádné tituly. Zkuste to prosím později.';
+                }
+            } else {
+                 if (ui.titleShopEmpty.querySelector('p')) {
+                    ui.titleShopEmpty.querySelector('p').textContent = 'Dnešní nabídka je prázdná nebo jste již vše koupili. Nové tituly se objeví zítra!';
+                 }
+            }
             console.log("[RenderShop] No titles to display for this user today. Showing empty state.");
             return;
         }
@@ -368,7 +403,7 @@
         const selectedKey = profile.selected_title;
 
         titlesToDisplay.forEach((title, index) => {
-            const isPurchased = purchasedKeys.has(title.title_key);
+            const isPurchased = purchasedKeys.has(title.title_key); // Check if this specific title is purchased
             const isEquipped = isPurchased && title.title_key === selectedKey;
             const canAfford = profile.points >= title.cost;
 
@@ -417,10 +452,10 @@
         const purchasedTitleKeys = profile.purchased_titles || [];
 
         if (purchasedTitleKeys.length === 0) {
-            if (ui.userTitlesInventoryEmpty) { // Check if element exists
+            if (ui.userTitlesInventoryEmpty) { 
                 ui.userTitlesInventoryEmpty.style.display = 'block';
             }
-            if (ui.userTitlesInventoryGrid) { // Check if element exists
+            if (ui.userTitlesInventoryGrid) { 
                 ui.userTitlesInventoryGrid.style.display = 'none';
             }
             console.log("[RenderInventory] No titles purchased by user.");
@@ -431,7 +466,7 @@
         if (ui.userTitlesInventoryGrid) ui.userTitlesInventoryGrid.style.display = 'grid';
 
         const purchasedTitlesDetailed = purchasedTitleKeys.map(key => {
-            return (allTitlesData || []).find(title => title.title_key === key); // Ensure allTitlesData is an array
+            return (allTitlesData || []).find(title => title.title_key === key); 
         }).filter(Boolean);
 
         purchasedTitlesDetailed.sort((a, b) => (a.cost || 0) - (b.cost || 0));
@@ -468,7 +503,7 @@
                 </div>`;
             fragment.appendChild(itemElement);
         });
-        if (ui.userTitlesInventoryGrid) ui.userTitlesInventoryGrid.appendChild(fragment); // Check if element exists
+        if (ui.userTitlesInventoryGrid) ui.userTitlesInventoryGrid.appendChild(fragment); 
         requestAnimationFrame(initScrollAnimations);
     }
     // --- END: Data Rendering Functions ---
@@ -494,8 +529,8 @@
         hideError();
         setLoadingState('all', true);
         try {
-            const allPurchasableTitles = await fetchAllPurchasableTitles();
-            titleShopTitles = selectDailyUserSpecificTitles(allPurchasableTitles, currentProfile.purchased_titles || [], currentUser.id);
+            const allPurchasableTitlesFromDB = await fetchAllPurchasableTitles(); 
+            titleShopTitles = selectDailyUserSpecificTitles(allPurchasableTitlesFromDB, currentProfile.purchased_titles || [], currentUser.id);
             console.log("[LoadAwards] Daily shop titles selected:", titleShopTitles.map(t => t.title_key));
 
             const results = await Promise.allSettled([
@@ -547,12 +582,78 @@
     // --- END: Load All Data ---
 
     // --- START: Event Listeners Setup ---
-    function setupEventListeners() { console.log("[Oceneni SETUP] Setting up event listeners..."); const safeAddListener = (el, ev, fn, key) => { if (el) el.addEventListener(ev, fn); else console.warn(`[SETUP] Element not found for listener: ${key}`); }; safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle'); safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle'); safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay'); safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn'); safeAddListener(ui.refreshDataBtn, 'click', loadAllAwardData, 'refreshDataBtn'); safeAddListener(ui.notificationBell, 'click', (e) => { e.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell'); safeAddListener(ui.markAllRead, 'click', handleMarkAllReadClick, 'markAllRead'); safeAddListener(ui.notificationsList, 'click', handleNotificationClick, 'notificationsList'); safeAddListener(ui.titleShopGrid, 'click', handleShopInteraction, 'titleShopGrid'); safeAddListener(ui.avatarDecorationsGrid, 'click', handleShopInteraction, 'avatarDecorationsGrid'); if(ui.userTitlesInventoryGrid) safeAddListener(ui.userTitlesInventoryGrid, 'click', handleShopInteraction, 'userTitlesInventoryGrid'); document.querySelectorAll('.sidebar-link').forEach(l => l.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); })); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); document.addEventListener('click', (e) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(e.target) && !ui.notificationBell?.contains(e.target)) { ui.notificationsDropdown.classList.remove('active'); } }); console.log("[Oceneni SETUP] Event listeners setup complete."); }
+    function setupEventListeners() { 
+        console.log("[Oceneni SETUP] Setting up event listeners..."); 
+        const safeAddListener = (el, ev, fn, key) => { 
+            if (el) {
+                // Remove old listener if it exists to prevent duplicates
+                if (el._eventHandlers && el._eventHandlers[key]) {
+                    el.removeEventListener(ev, el._eventHandlers[key]);
+                }
+                el.addEventListener(ev, fn);
+                if (!el._eventHandlers) el._eventHandlers = {};
+                el._eventHandlers[key] = fn; // Store the handler for potential removal
+            } else {
+                console.warn(`[SETUP] Element not found for listener: ${key}`);
+            }
+        }; 
+        safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle'); 
+        safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle'); 
+        safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay'); 
+        safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn'); 
+        safeAddListener(ui.refreshDataBtn, 'click', loadAllAwardData, 'refreshDataBtn'); 
+        safeAddListener(ui.notificationBell, 'click', (e) => { e.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell'); 
+        safeAddListener(ui.markAllRead, 'click', handleMarkAllReadClick, 'markAllRead'); 
+        safeAddListener(ui.notificationsList, 'click', handleNotificationClick, 'notificationsList'); 
+        safeAddListener(ui.titleShopGrid, 'click', handleShopInteraction, 'titleShopGrid'); 
+        safeAddListener(ui.avatarDecorationsGrid, 'click', handleShopInteraction, 'avatarDecorationsGrid'); 
+        if(ui.userTitlesInventoryGrid) safeAddListener(ui.userTitlesInventoryGrid, 'click', handleShopInteraction, 'userTitlesInventoryGrid'); 
+        document.querySelectorAll('.sidebar-link').forEach(l => l.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); })); 
+        window.addEventListener('online', updateOnlineStatus); 
+        window.addEventListener('offline', updateOnlineStatus); 
+        document.addEventListener('click', (e) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(e.target) && !ui.notificationBell?.contains(e.target)) { ui.notificationsDropdown.classList.remove('active'); } }); 
+        
+        // <<< NEW: Event listeners for section toggles >>>
+        const sectionToggleMap = {
+            'toggle-user-badges-section': ui.userBadgesContent,
+            'toggle-available-badges-section': ui.availableBadgesContent,
+            'toggle-user-titles-section': ui.userTitlesInventoryContent, // Content for user titles
+            'toggle-title-shop-section': ui.titleShopContainer, // Using container for shop as it has multiple parts
+            'toggle-avatar-decorations-section': ui.avatarDecorationsShop, // Using container for avatar shop
+            'toggle-leaderboard-section': ui.leaderboardContainer // Using container for leaderboard
+        };
+
+        Object.keys(sectionToggleMap).forEach(buttonId => {
+            const button = ui[buttonId.replace(/-/g, (g, i) => i === 0 ? g : g[1].toUpperCase())]; // Convert kebab-case to camelCase for ui object
+            const contentElement = sectionToggleMap[buttonId];
+            if (button && contentElement) {
+                safeAddListener(button, 'click', () => {
+                    const sectionCard = button.closest('.card'); // Find the parent card/section
+                    if (sectionCard) {
+                        sectionCard.classList.toggle('collapsed-section');
+                        const icon = button.querySelector('i');
+                        if (icon) {
+                            icon.classList.toggle('fa-chevron-down');
+                            icon.classList.toggle('fa-chevron-up');
+                        }
+                        // The actual content (grid/table) visibility is handled by CSS based on .collapsed-section
+                        console.log(`Toggled section for button ${buttonId}`);
+                    } else {
+                        console.warn(`Parent .card not found for toggle button ${buttonId}`);
+                    }
+                }, buttonId);
+            } else {
+                if(!button) console.warn(`[SETUP] Toggle button #${buttonId} not found.`);
+                if(!contentElement) console.warn(`[SETUP] Content element for toggle #${buttonId} not found.`);
+            }
+        });
+        console.log("[Oceneni SETUP] Event listeners setup complete."); 
+    }
     // --- END: Event Listeners Setup ---
 
     // --- START: Initialization ---
     async function initializeApp() {
-        console.log("🚀 [Init Oceneni v23.22.1] Starting..."); // Updated version
+        console.log("🚀 [Init Oceneni v23.23] Starting...");
         cacheDOMElements();
         if (!initializeSupabase()) return;
         applyInitialSidebarState();
