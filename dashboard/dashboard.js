@@ -1,5 +1,8 @@
 // dashboard.js
 // Verze: 27.0.2 - Opravena chyba ReferenceError pro cacheDOMElements přesunutím definice.
+// --- START: USER STORY MODIFICATION ---
+// Přidána funkce pro načtení a zobrazení poslední kreditní transakce v patičce karty kreditů
+// --- END: USER STORY MODIFICATION ---
 (function() {
     'use strict';
 
@@ -29,6 +32,9 @@
         session: false,
         welcomeBanner: false,
         shortcuts: false,
+        // --- START: USER STORY MODIFICATION ---
+        latestCreditTransaction: false // Přidán nový stav načítání
+        // --- END: USER STORY MODIFICATION ---
     };
     const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
     const MONTHLY_REWARD_DAYS = 31;
@@ -155,7 +161,6 @@
     // --- END: Reward Configurations ---
 
     // --- START: Helper Functions (defined before use) ---
-    // <<< ПЕРЕМЕЩЕНА ВЫШЕ: cacheDOMElements >>>
     function cacheDOMElements() {
         const startTime = performance.now();
         console.log("[CACHE DOM] Caching elements...");
@@ -195,7 +200,7 @@
             { key: 'pointsCard', id: 'points-card', critical: false },
             { key: 'totalPointsValue', id: 'total-points-value', critical: false },
             { key: 'latestCreditChange', id: 'latest-credit-change', critical: false },
-            { key: 'totalPointsFooter', id: 'total-points-footer', critical: false },
+            { key: 'totalPointsFooter', id: 'total-points-footer', critical: false }, // Kritické pro novou funkci
             { key: 'streakCard', id: 'streak-card', critical: false },
             { key: 'streakValue', id: 'streak-value', critical: false },
             { key: 'streakFooter', id: 'streak-footer', critical: false },
@@ -351,6 +356,15 @@
             if (modalBody) modalBody.classList.toggle('loading', isLoadingFlag);
         } else if (sectionKey === 'titles') {
             console.log(`[SetLoadingState] Loading state for 'titles' is now ${isLoadingFlag}.`);
+        // --- START: USER STORY MODIFICATION ---
+        } else if (sectionKey === 'latestCreditTransaction') {
+            if (ui.totalPointsFooter) {
+                if (isLoadingFlag) {
+                    ui.totalPointsFooter.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Načítání poslední transakce...`;
+                }
+                // Skutečný text se nastaví po načtení dat nebo chybě
+            }
+        // --- END: USER STORY MODIFICATION ---
         } else {
             console.warn(`[SetLoadingState] Unknown section key or unhandled UI in dashboard.js: ${sectionKey}`);
         }
@@ -367,11 +381,71 @@
     async function createDefaultProfile(userId, userEmail) { const startTime = performance.now(); if (!supabase || !userId || !userEmail) return null; console.log(`[Profile Create] Creating default profile for user ${userId}`); try { const defaultData = { id: userId, email: userEmail, username: userEmail.split('@')[0] || `user_${userId.substring(0, 6)}`, level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0, longest_streak_days: 0, last_login: new Date().toISOString(), monthly_claims: {}, last_milestone_claimed: 0, purchased_titles: [], created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches, language: 'cs' }, notifications: { email: true, study_tips: true, content_updates: true, practice_reminders: true } }; const { data: newProfile, error } = await withTimeout(supabase.from('profiles').insert(defaultData).select(PROFILE_COLUMNS_TO_SELECT).single(), DATA_FETCH_TIMEOUT, new Error('Vytváření profilu vypršelo.')); if (error) { if (error.code === '23505') { console.warn("[Profile Create] Profile likely already exists, fetching again."); return await fetchUserProfile(userId); } throw error; } const endTime = performance.now(); console.log(`[Profile Create] Default profile created. Time: ${(endTime - startTime).toFixed(2)}ms`); return newProfile; } catch (error) { console.error("[Profile Create] Failed to create default profile:", error); return null; } }
     async function fetchTitles() { const startTime = performance.now(); if (!supabase) return []; console.log("[Titles] Fetching available titles..."); setLoadingState('titles', true); try { const { data, error } = await withTimeout(supabase.from('title_shop').select('title_key, name'), DATA_FETCH_TIMEOUT, new Error('Načítání titulů vypršelo.')); if (error) throw error; const endTime = performance.now(); console.log(`[Titles] Fetched titles. Time: ${(endTime - startTime).toFixed(2)}ms`); return data || []; } catch (error) { console.error("[Titles] Error fetching titles:", error); return []; } finally { setLoadingState('titles', false); } }
     async function fetchUserStats(userId, profileData) { const startTime = performance.now(); if (!supabase || !userId || !profileData) { console.error("[Stats] Chybí Supabase klient, ID uživatele nebo data profilu."); return null; } console.log(`[Stats] Načítání statistik pro uživatele ${userId}...`); let fetchedStats = null; let statsError = null; try { const { data, error } = await supabase.from('user_stats').select('progress, progress_weekly, points_weekly, streak_longest, completed_tests').eq('user_id', userId).maybeSingle(); fetchedStats = data; statsError = error; if (statsError) { console.warn("[Stats] Chyba Supabase při načítání user_stats:", statsError.message); } } catch (error) { console.error("[Stats] Neočekávaná chyba při načítání user_stats:", error); statsError = error; } const finalStats = { progress: fetchedStats?.progress ?? profileData.progress ?? 0, progress_weekly: fetchedStats?.progress_weekly ?? 0, points: profileData.points ?? 0, points_weekly: fetchedStats?.points_weekly ?? 0, streak_current: profileData.streak_days ?? 0, longest_streak_days: profileData.longest_streak_days ?? Math.max(fetchedStats?.streak_longest ?? 0, profileData.streak_days ?? 0), completed_exercises: profileData.completed_exercises ?? 0, completed_tests: profileData.completed_tests ?? fetchedStats?.completed_tests ?? 0 }; const endTime = performance.now(); if (statsError) { console.warn(`[Stats] Vracení statistik primárně z profilu kvůli chybě načítání. Time: ${(endTime - startTime).toFixed(2)}ms`); } else { console.log(`[Stats] Statistiky úspěšně načteny/sestaveny. Time: ${(endTime - startTime).toFixed(2)}ms`); } return finalStats; }
-    async function fetchAndDisplayLatestCreditChange(userId) { console.log(`[CreditChange] Fetching latest credit change for user ${userId}...`); if (ui.latestCreditChange) { ui.latestCreditChange.innerHTML = ''; ui.latestCreditChange.style.display = 'none'; } if (!supabase || !userId ) { console.warn("[CreditChange] Missing Supabase or userId."); return null; } try { const { data, error } = await supabase.from('credit_transactions').select('amount, description, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(1).single(); if (error && error.code !== 'PGRST116') { throw error; } if (data && data.amount !== undefined) { console.log(`[CreditChange] Latest change: ${data.amount}, Description: ${data.description}`); return { amount: data.amount, description: data.description }; } else { console.log('[CreditChange] No credit transactions found.'); return null; } } catch (error) { console.error('[CreditChange] Error fetching latest credit change:', error); return null; } }
+
+    // --- START: USER STORY MODIFICATION ---
+    async function fetchAndDisplayLatestCreditTransaction(userId) {
+        console.log(`[CreditChange] Fetching latest credit transaction for user ${userId}...`);
+        setLoadingState('latestCreditTransaction', true);
+
+        if (!supabase || !userId) {
+            console.warn("[CreditChange] Missing Supabase or userId.");
+            if (ui.totalPointsFooter) ui.totalPointsFooter.innerHTML = `<i class="fas fa-exclamation-circle"></i> Chyba načítání`;
+            setLoadingState('latestCreditTransaction', false);
+            return;
+        }
+
+        try {
+            const { data, error } = await supabase
+                .from('credit_transactions')
+                .select('amount, description, created_at')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
+
+            if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found, which is not an error here
+                throw error;
+            }
+
+            if (ui.totalPointsFooter) {
+                if (data && data.amount !== undefined) {
+                    console.log(`[CreditChange] Latest transaction: ${data.amount}, Description: ${data.description}`);
+                    const sign = data.amount > 0 ? '+' : (data.amount < 0 ? '' : '');
+                    const descText = data.description || `Transakce`;
+                    let displayDesc = descText;
+                    if (displayDesc.length > 25) { // Zkrátit popis, pokud je příliš dlouhý
+                        displayDesc = displayDesc.substring(0, 22) + "...";
+                    }
+                    const amountColorClass = data.amount > 0 ? 'positive' : (data.amount < 0 ? 'negative' : '');
+
+                    ui.totalPointsFooter.innerHTML = `<i class="fas fa-history"></i> <span title="${sanitizeHTML(descText)} (${formatRelativeTime(data.created_at)}): ${sign}${data.amount}">${sanitizeHTML(displayDesc)}: <strong class="${amountColorClass}">${sign}${data.amount}</strong></span>`;
+                    ui.totalPointsFooter.classList.remove('positive', 'negative'); // Odstranit staré třídy
+                    if (data.amount > 0) ui.totalPointsFooter.classList.add('positive');
+                    if (data.amount < 0) ui.totalPointsFooter.classList.add('negative');
+                } else {
+                    console.log('[CreditChange] No credit transactions found for user.');
+                    ui.totalPointsFooter.innerHTML = `<i class="fas fa-info-circle"></i> Žádné nedávné transakce`;
+                    ui.totalPointsFooter.classList.remove('positive', 'negative');
+                }
+            }
+        } catch (error) {
+            console.error('[CreditChange] Error fetching latest credit transaction:', error);
+            if (ui.totalPointsFooter) ui.totalPointsFooter.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Info o transakci chybí`;
+            ui.totalPointsFooter.classList.remove('positive', 'negative');
+        } finally {
+            setLoadingState('latestCreditTransaction', false);
+        }
+    }
+    // --- END: USER STORY MODIFICATION ---
+
+    // --- PŮVODNÍ fetchAndDisplayLatestCreditChange - ponecháno pro referenci, ale již se nepoužívá ---
+    async function fetchAndDisplayLatestCreditChange_OLD(userId) { console.log(`[CreditChange OLD] Fetching latest credit change for user ${userId}...`); if (ui.latestCreditChange) { ui.latestCreditChange.innerHTML = ''; ui.latestCreditChange.style.display = 'none'; } if (!supabase || !userId ) { console.warn("[CreditChange OLD] Missing Supabase or userId."); return null; } try { const { data, error } = await supabase.from('credit_transactions').select('amount, description, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(1).single(); if (error && error.code !== 'PGRST116') { throw error; } if (data && data.amount !== undefined) { console.log(`[CreditChange OLD] Latest change: ${data.amount}, Description: ${data.description}`); return { amount: data.amount, description: data.description }; } else { console.log('[CreditChange OLD] No credit transactions found.'); return null; } } catch (error) { console.error('[CreditChange OLD] Error fetching latest credit change:', error); return null; } }
+    // --- KONEC PŮVODNÍ ---
+
     async function checkAndUpdateLoginStreak() { const startTime = performance.now(); if (!currentUser || !currentProfile || !supabase) { console.warn("[StreakCheck] Cannot perform check: missing user, profile, or supabase."); return false; } console.log("[StreakCheck] Performing daily login check/update..."); const today = new Date(); const lastLogin = currentProfile.last_login ? new Date(currentProfile.last_login) : null; let currentStreak = currentProfile.streak_days || 0; let longestStreak = currentProfile.longest_streak_days || 0; let needsDbUpdate = false; let updateData = { updated_at: today.toISOString() }; const currentMonthYear = getCurrentMonthYearString(); if (!lastLogin || !isSameDate(today, lastLogin)) { needsDbUpdate = true; console.log("[StreakCheck] First login of the day detected."); if (lastLogin && isYesterday(lastLogin, today)) { currentStreak++; console.log(`[StreakCheck] Streak continued! New current streak: ${currentStreak}`); } else if (lastLogin) { currentStreak = 1; console.log("[StreakCheck] Streak broken. Resetting to 1."); } else { currentStreak = 1; console.log("[StreakCheck] First login ever. Setting streak to 1."); } updateData.streak_days = currentStreak; updateData.last_login = today.toISOString(); if (currentStreak > longestStreak) { longestStreak = currentStreak; updateData.longest_streak_days = longestStreak; console.log(`[StreakCheck] New longest streak: ${longestStreak}!`); } } else { console.log("[StreakCheck] Already logged in today."); if (currentProfile.streak_days > (currentProfile.longest_streak_days || 0) ) { updateData.longest_streak_days = currentProfile.streak_days; longestStreak = currentProfile.streak_days; needsDbUpdate = true; } } currentProfile.streak_days = currentStreak; currentProfile.longest_streak_days = longestStreak; if (ui.modalCurrentStreakValue) ui.modalCurrentStreakValue.textContent = currentStreak; if (ui.modalLongestStreakValue) ui.modalLongestStreakValue.textContent = longestStreak; currentProfile.monthly_claims = currentProfile.monthly_claims || {}; if (!currentProfile.monthly_claims[currentMonthYear]) { console.log(`[StreakCheck] Initializing claims for new month: ${currentMonthYear}`); updateData.monthly_claims = { ...currentProfile.monthly_claims, [currentMonthYear]: [] }; needsDbUpdate = true; } else { console.log(`[StreakCheck] Monthly claims for ${currentMonthYear} already exist:`, currentProfile.monthly_claims[currentMonthYear]); } if (needsDbUpdate) { console.log("[StreakCheck] Updating profile in DB with:", JSON.stringify(updateData)); try { const { error: updateError } = await supabase.from('profiles').update(updateData).eq('id', currentUser.id); if (updateError) throw updateError; const refreshedProfile = await fetchUserProfile(currentUser.id); if (refreshedProfile) { currentProfile = refreshedProfile; } else { console.warn("[StreakCheck] Could not re-fetch profile after update, local currentProfile might be partially stale for non-updated fields."); if (updateData.last_login) currentProfile.last_login = updateData.last_login; if (updateData.monthly_claims) currentProfile.monthly_claims = updateData.monthly_claims; if (updateData.streak_days !== undefined) currentProfile.streak_days = updateData.streak_days; if (updateData.longest_streak_days !== undefined) currentProfile.longest_streak_days = updateData.longest_streak_days; } const endTime = performance.now(); console.log(`[StreakCheck] Profile updated successfully in DB. Time: ${(endTime - startTime).toFixed(2)}ms`); return true; } catch (error) { console.error("[StreakCheck] Error updating profile:", error); showToast('Chyba', `Nepodařilo se aktualizovat data přihlášení: ${error.message}`, 'error'); return false; } } const endTimeUnchanged = performance.now(); console.log(`[StreakCheck] No DB update needed. Time: ${(endTimeUnchanged - startTime).toFixed(2)}ms`); return false; }
     async function updateMonthlyClaimsInDB(newClaimsData) { if (!currentUser || !supabase) { console.error("[DB Update] Pre-condition failed: No user or supabase client."); return false; } const functionStartTime = performance.now(); console.log(`[DB Update] Attempting to update monthly_claims in DB for user ${currentUser.id} with:`, JSON.parse(JSON.stringify(newClaimsData))); try { const { data: updateResult, error: dbUpdateError } = await supabase.from('profiles').update({ monthly_claims: newClaimsData, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select('monthly_claims'); if (dbUpdateError) { console.error("[DB Update] Supabase UPDATE error:", dbUpdateError); throw dbUpdateError; } if (!updateResult || updateResult.length === 0) { console.warn("[DB Update] Supabase update operation returned 0 rows or no data. Monthly claims might not have been saved to DB."); currentProfile.monthly_claims = newClaimsData; } else { currentProfile.monthly_claims = updateResult[0].monthly_claims; } console.log(`[DB Update] Database update successful. Local currentProfile.monthly_claims updated:`, JSON.parse(JSON.stringify(currentProfile.monthly_claims))); const functionEndTime = performance.now(); console.log(`[DB Update] updateMonthlyClaimsInDB finished successfully. Total time: ${(functionEndTime - functionStartTime).toFixed(2)}ms`); return true; } catch (error) { console.error("[DB Update] Catch block: Error updating monthly_claims in DB or locally:", error); showToast('Chyba databáze', `Nepodařilo se uložit vyzvednutí měsíční odměny: ${error.message}`, 'error'); return false; } }
     async function updateLastMilestoneClaimedInDB(milestoneDay, rewardKey, rewardName) { if (!currentUser || !supabase) return false; console.log(`[DB Update] Attempting to record claim for milestoneDay: ${milestoneDay}, rewardKey: ${rewardKey}`); try { const { error: insertError } = await supabase.from('claimed_streak_milestones').insert({ user_id: currentUser.id, milestone_day: milestoneDay, reward_key: rewardKey, reward_name: rewardName }); if (insertError && insertError.code !== '23505') { throw insertError; } else if (insertError && insertError.code === '23505') { console.warn(`[DB Update] Milestone ${milestoneDay} (key: ${rewardKey}) already claimed. No new record inserted.`); return true; } console.log(`[DB Update] Milestone ${milestoneDay} (key: ${rewardKey}) successfully recorded.`); if (currentProfile && milestoneDay > (currentProfile.last_milestone_claimed || 0)) { const { error: profileUpdateError } = await supabase.from('profiles').update({ last_milestone_claimed: milestoneDay, updated_at: new Date().toISOString() }).eq('id', currentUser.id); if (profileUpdateError) { console.error(`[DB Update] Error updating profiles.last_milestone_claimed for ${milestoneDay}:`, profileUpdateError); } else { const refreshedProfile = await fetchUserProfile(currentUser.id); if (refreshedProfile) currentProfile = refreshedProfile; else currentProfile.last_milestone_claimed = milestoneDay; console.log(`[DB Update] profiles.last_milestone_claimed updated to ${milestoneDay}.`); } } return true; } catch (error) { console.error(`[DB Update] General error in updateLastMilestoneClaimedInDB for ${milestoneDay} (key: ${rewardKey}):`, error); showToast('Chyba', 'Nepodařilo se uložit vyzvednutí milníkové odměny.', 'error'); return false; } }
-    async function awardPoints(pointsValue, reason = "Nespecifikováno", transactionType = 'points_earned', referenceActivityId = null, suppressActivityLog = false) { if (!currentUser || !currentProfile || !supabase) { console.warn("Cannot award points: User, profile, or Supabase missing."); return; } if (pointsValue === 0) { console.log("No points to award (value is 0)."); return; } console.log(`[Points] Awarding/deducting ${pointsValue} points for: ${reason}. Type: ${transactionType}, SuppressLog: ${suppressActivityLog}`); setLoadingState('stats', true); const currentPoints = currentProfile.points || 0; const newPoints = currentPoints + pointsValue; try { const { error: profileUpdateError } = await supabase.from('profiles').update({ points: newPoints, updated_at: new Date().toISOString() }).eq('id', currentUser.id); if (profileUpdateError) throw profileUpdateError; console.log("[Points] Points successfully updated in DB."); currentProfile.points = newPoints; currentProfile.updated_at = new Date().toISOString(); console.log("[Points] Local currentProfile.points updated:", currentProfile.points); const { error: transactionError } = await supabase.from('credit_transactions').insert({ user_id: currentUser.id, transaction_type: transactionType, amount: pointsValue, description: reason, balance_after_transaction: newPoints, reference_activity_id: referenceActivityId }); if (transactionError) { console.error("[Points] Error logging credit transaction:", transactionError); showToast('Varování', 'Kredity připsány, ale záznam transakce selhal.', 'warning'); } else { console.log(`[Points] Credit transaction logged: ${pointsValue} for ${reason}`); } if (pointsValue > 0) { showToast('Kredity Získány!', `+${pointsValue} kreditů za: ${reason}`, 'success', 2500); } else if (pointsValue < 0) { showToast('Kredity Utraceny!', `${pointsValue} kreditů za: ${reason}`, 'info', 2500); } userStatsData = await fetchUserStats(currentUser.id, currentProfile); const latestTxData = await fetchAndDisplayLatestCreditChange(currentUser.id); updateStatsCards(userStatsData); if (ui.totalPointsFooter && userStatsData && (userStatsData.points_weekly === 0 || userStatsData.points_weekly == null) && latestTxData) { const sign = latestTxData.amount > 0 ? '+' : (latestTxData.amount < 0 ? '' : ''); const descText = latestTxData.description || `Transakce`; let displayDesc = descText; if (displayDesc.length > 25) displayDesc = displayDesc.substring(0, 22) + "..."; const amountColorClass = latestTxData.amount > 0 ? 'positive' : (latestTxData.amount < 0 ? 'negative' : ''); ui.totalPointsFooter.innerHTML = `<i class="fas fa-history"></i> <span title="${sanitizeHTML(descText)}: ${sign}${latestTxData.amount}">${sanitizeHTML(displayDesc)}: <span style="font-weight:bold;" class="${amountColorClass}">${sign}${latestTxData.amount}</span></span>`; ui.totalPointsFooter.classList.remove('positive', 'negative'); if(latestTxData.amount > 0) ui.totalPointsFooter.classList.add('positive'); if(latestTxData.amount < 0) ui.totalPointsFooter.classList.add('negative'); } if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderCreditHistory === 'function') { await DashboardLists.loadAndRenderCreditHistory(currentUser.id, 5); } if (pointsValue > 0 && !suppressActivityLog) { await logActivity( currentUser.id, 'points_earned', `Získáno ${pointsValue} kreditů`, `Důvod: ${reason}`, { points_change: pointsValue, new_total_points: newPoints, source: transactionType }, null, referenceActivityId, 'fa-coins' ); } } catch (error) { console.error(`[Points] Error awarding/deducting points:`, error); showToast('Chyba', 'Nepodařilo se upravit kredity.', 'error'); } finally { setLoadingState('stats', false); } }
+    async function awardPoints(pointsValue, reason = "Nespecifikováno", transactionType = 'points_earned', referenceActivityId = null, suppressActivityLog = false) { if (!currentUser || !currentProfile || !supabase) { console.warn("Cannot award points: User, profile, or Supabase missing."); return; } if (pointsValue === 0) { console.log("No points to award (value is 0)."); return; } console.log(`[Points] Awarding/deducting ${pointsValue} points for: ${reason}. Type: ${transactionType}, SuppressLog: ${suppressActivityLog}`); setLoadingState('stats', true); const currentPoints = currentProfile.points || 0; const newPoints = currentPoints + pointsValue; try { const { error: profileUpdateError } = await supabase.from('profiles').update({ points: newPoints, updated_at: new Date().toISOString() }).eq('id', currentUser.id); if (profileUpdateError) throw profileUpdateError; console.log("[Points] Points successfully updated in DB."); currentProfile.points = newPoints; currentProfile.updated_at = new Date().toISOString(); console.log("[Points] Local currentProfile.points updated:", currentProfile.points); const { error: transactionError } = await supabase.from('credit_transactions').insert({ user_id: currentUser.id, transaction_type: transactionType, amount: pointsValue, description: reason, balance_after_transaction: newPoints, reference_activity_id: referenceActivityId }); if (transactionError) { console.error("[Points] Error logging credit transaction:", transactionError); showToast('Varování', 'Kredity připsány, ale záznam transakce selhal.', 'warning'); } else { console.log(`[Points] Credit transaction logged: ${pointsValue} for ${reason}`); } if (pointsValue > 0) { showToast('Kredity Získány!', `+${pointsValue} kreditů za: ${reason}`, 'success', 2500); } else if (pointsValue < 0) { showToast('Kredity Utraceny!', `${pointsValue} kreditů za: ${reason}`, 'info', 2500); } userStatsData = await fetchUserStats(currentUser.id, currentProfile); updateStatsCards(userStatsData); // Aktualizace patičky se přesunula do loadDashboardData po načtení poslední transakce if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderCreditHistory === 'function') { await DashboardLists.loadAndRenderCreditHistory(currentUser.id, 5); } if (pointsValue > 0 && !suppressActivityLog) { await logActivity( currentUser.id, 'points_earned', `Získáno ${pointsValue} kreditů`, `Důvod: ${reason}`, { points_change: pointsValue, new_total_points: newPoints, source: transactionType }, null, referenceActivityId, 'fa-coins' ); } } catch (error) { console.error(`[Points] Error awarding/deducting points:`, error); showToast('Chyba', 'Nepodařilo se upravit kredity.', 'error'); } finally { setLoadingState('stats', false); } }
     async function awardUserTitle(titleKey, titleName, reason = "Měsíční odměna") { if (!currentProfile || !currentUser || !supabase) { console.error("Cannot award title: Missing profile, user or supabase."); return false; } if (currentProfile.purchased_titles && currentProfile.purchased_titles.includes(titleKey)) { showToast("Titul již vlastněn", `Titul "${titleName}" již máte.`, "info"); return true; } const newTitles = [...(currentProfile.purchased_titles || []), titleKey]; let newSelectedTitle = currentProfile.selected_title; if (!newSelectedTitle) { newSelectedTitle = titleKey; } try { const { data: updatedData, error } = await supabase.from('profiles').update({ purchased_titles: newTitles, selected_title: newSelectedTitle, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select('purchased_titles, selected_title'); if (error) throw error; if (updatedData && updatedData.length > 0) { currentProfile.purchased_titles = updatedData[0].purchased_titles; currentProfile.selected_title = updatedData[0].selected_title; } else { currentProfile.purchased_titles = newTitles; currentProfile.selected_title = newSelectedTitle; } currentProfile.updated_at = new Date().toISOString(); await logActivity(currentUser.id, 'title_awarded', `Získán titul: ${titleName}`, `Důvod: ${reason}. Klíč: ${titleKey}`); showToast("Nový titul získán!", `Gratulujeme k titulu: "${titleName}"!`, 'success'); updateSidebarProfile(currentProfile); return true; } catch (error) { console.error("Error awarding title:", error); showToast("Chyba", "Nepodařilo se udělit titul.", "error"); return false; } }
     async function logActivity(userId, type, title, description = null, details = null, link_url = null, reference_id = null, icon = null) { if (!supabase || !userId) { console.error("Cannot log activity: Supabase client or user ID is missing."); return; } console.log(`[Log Activity] Logging: User ${userId}, Type: ${type}, Title: ${title}`); try { const { error } = await supabase.from('activities').insert({ user_id: userId, type: type, title: title, description: description, details: details, link_url: link_url, reference_id: reference_id, icon: icon || activityVisuals[type]?.icon || activityVisuals.default.icon }); if (error) { console.error("Error logging activity:", error); } else { console.log("Activity logged successfully."); if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderRecentActivities === 'function' && window.location.pathname.includes('dashboard.html')) { await DashboardLists.loadAndRenderRecentActivities(userId, 5); } } } catch (err) { console.error("Exception during activity logging:", err); } }
     async function fetchNotifications(userId, limit = 5) { const startTime = performance.now(); if (!supabase || !userId) { console.error("[Notifications] Chybí Supabase nebo ID uživatele."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications] Načítání nepřečtených oznámení pro uživatele ${userId}`); try { const { data, error, count } = await withTimeout(supabase.from('user_notifications').select('*', { count: 'exact' }).eq('user_id', userId).eq('is_read', false).order('created_at', { ascending: false }).limit(limit), DATA_FETCH_TIMEOUT, new Error('Načítání notifikací vypršelo.')); if (error) throw error; const endTime = performance.now(); console.log(`[Notifications] Načteno ${data?.length || 0} oznámení. Celkem nepřečtených: ${count}. Time: ${(endTime - startTime).toFixed(2)}ms`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications] Výjimka při načítání oznámení:", error); return { unreadCount: 0, notifications: [] }; } }
@@ -380,8 +454,94 @@
     async function markNotificationRead(notificationId) { console.log("[FUNC] markNotificationRead: Označení ID:", notificationId); if (!currentUser || !notificationId || !supabase) return false; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[FUNC] markNotificationRead: Úspěch pro ID:", notificationId); return true; } catch (error) { console.error("[FUNC] markNotificationRead: Chyba:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
     async function markAllNotificationsRead() { console.log("[FUNC] markAllNotificationsRead: Start pro uživatele:", currentUser?.id); if (!currentUser || !ui.markAllReadBtn || !supabase) { console.warn("Cannot mark all read: Missing user, button, or supabase."); return; } if (isLoading.notifications) return; setLoadingState('notifications', true); try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false); if (error) throw error; console.log("[FUNC] markAllNotificationsRead: Úspěch"); const { unreadCount, notifications } = await fetchNotifications(currentUser.id, 5); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Chyba:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = currentCount === 0; } finally { setLoadingState('notifications', false); } }
     function updateSidebarProfile(profile) { if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { cacheDOMElements(); if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { console.warn("[UI Update Sidebar] Sidebar elements not found in cache."); return; } } console.log("[UI Update] Aktualizace sidebaru..."); if (profile) { const firstName = profile.first_name ?? ''; const displayName = firstName || profile.username || currentUser?.email?.split('@')[0] || 'Pilot'; ui.sidebarName.textContent = sanitizeHTML(displayName); const initials = getInitials(profile); const avatarUrl = profile.avatar_url; ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials); const sidebarImg = ui.sidebarAvatar.querySelector('img'); if (sidebarImg) { sidebarImg.onerror = () => { ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); }; } const selectedTitleKey = profile.selected_title; let displayTitle = 'Pilot'; if (selectedTitleKey && allTitles && allTitles.length > 0) { const foundTitle = allTitles.find(t => t.title_key === selectedTitleKey); if (foundTitle && foundTitle.name) displayTitle = foundTitle.name; else console.warn(`[UI Update Sidebar] Title key "${selectedTitleKey}" not found in titles list.`); } else if (selectedTitleKey) { console.warn(`[UI Update Sidebar] Selected title key present, but titles list is empty or not loaded.`); } ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle); ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle)); if (ui.welcomeTitle) ui.welcomeTitle.textContent = `Vítej zpět, ${sanitizeHTML(displayName)}!`; console.log("[UI Update] Sidebar aktualizován."); } else { console.warn("[UI Update Sidebar] Missing profile data. Setting defaults."); ui.sidebarName.textContent = "Nepřihlášen"; ui.sidebarAvatar.textContent = '?'; if (ui.sidebarUserTitle) ui.sidebarUserTitle.textContent = 'Pilot'; if (ui.sidebarUserTitle) ui.sidebarUserTitle.removeAttribute('title'); if (ui.welcomeTitle) ui.welcomeTitle.textContent = `Vítejte!`; } }
-    function updateStatsCards(stats) { console.log("[UI Update] Aktualizace karet statistik:", stats); const statElements = { progress: ui.overallProgressValue, streak: ui.streakValue, progressFooter: ui.overallProgressFooter, pointsFooter: ui.totalPointsFooter, streakFooter: ui.streakFooter }; const cards = [ui.progressCard, ui.pointsCard, ui.streakCard]; if (Object.values(statElements).some(el => !el) || !ui.totalPointsValue) { console.error("[UI Update Stats] Chybějící elementy statistik."); cards.forEach(card => card?.classList.remove('loading')); return; } cards.forEach(card => card?.classList.remove('loading')); if (ui.latestCreditChange) { ui.latestCreditChange.innerHTML = ''; ui.latestCreditChange.style.display = 'none'; } if (!stats) { console.warn("[UI Update Stats] Chybí data statistik, zobrazuji placeholder."); if(statElements.progress) statElements.progress.textContent = '- %'; if(ui.totalPointsValue) { ui.totalPointsValue.textContent = `- `; } if(statElements.streak) statElements.streak.textContent = '-'; if(statElements.progressFooter) statElements.progressFooter.innerHTML = `<i class="fas fa-minus"></i> Načítání...`; if(statElements.pointsFooter) statElements.pointsFooter.innerHTML = `<i class="fas fa-minus"></i> Načítání...`; if(statElements.streakFooter) statElements.streakFooter.innerHTML = `MAX: - dní`; return; } statElements.progress.textContent = `${stats.progress ?? 0}%`; const weeklyProgress = stats.progress_weekly ?? 0; statElements.progressFooter.classList.remove('positive', 'negative'); let progressFooterHTML = ''; if (weeklyProgress > 0) { progressFooterHTML = `<i class="fas fa-arrow-up"></i> +${weeklyProgress}% týdně`; statElements.progressFooter.classList.add('positive'); } else if (weeklyProgress < 0) { progressFooterHTML = `<i class="fas fa-arrow-down"></i> ${weeklyProgress}% týdně`; statElements.progressFooter.classList.add('negative'); } else { progressFooterHTML = `<i class="fas fa-minus"></i> ±0% týdně`; } statElements.progressFooter.innerHTML = progressFooterHTML; const pointsValue = stats.points ?? 0; if (ui.totalPointsValue.firstChild && ui.totalPointsValue.firstChild.nodeType === Node.TEXT_NODE) { ui.totalPointsValue.firstChild.nodeValue = `${pointsValue} `; } else { const existingSpan = ui.totalPointsValue.querySelector('#latest-credit-change'); ui.totalPointsValue.textContent = `${pointsValue} `; if(existingSpan) ui.totalPointsValue.appendChild(existingSpan); } const weeklyPoints = stats.points_weekly ?? 0; statElements.pointsFooter.classList.remove('positive', 'negative'); if (weeklyPoints !== 0 && weeklyPoints != null) { statElements.pointsFooter.innerHTML = weeklyPoints > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyPoints} týdně` : `<i class="fas fa-arrow-down"></i> ${weeklyPoints} týdně`; if (weeklyPoints > 0) statElements.pointsFooter.classList.add('positive'); else statElements.pointsFooter.classList.add('negative'); } else { statElements.pointsFooter.innerHTML = `<i class="fas fa-minus"></i> --`; } statElements.streak.textContent = stats.streak_current ?? 0; statElements.streakFooter.innerHTML = `MAX: ${stats.longest_streak_days ?? 0} dní`; if ((stats.streak_current ?? 0) > 0 && (stats.streak_current !== stats.longest_streak_days)) { statElements.streakFooter.innerHTML += ` <span style="color:var(--text-muted); font-size:0.9em;">(Aktuální: ${stats.streak_current ?? 0})</span>`; } console.log("[UI Update] Karty statistik aktualizovány."); }
-    // --- END: Helper Functions ---
+    function updateStatsCards(stats) {
+        console.log("[UI Update] Aktualizace karet statistik:", stats);
+        const statElements = {
+            progress: ui.overallProgressValue,
+            streak: ui.streakValue,
+            progressFooter: ui.overallProgressFooter,
+            // --- START: USER STORY MODIFICATION ---
+            // totalPointsFooter se nyní aktualizuje samostatně funkcí fetchAndDisplayLatestCreditTransaction
+            // --- END: USER STORY MODIFICATION ---
+            streakFooter: ui.streakFooter
+        };
+        const cards = [ui.progressCard, ui.pointsCard, ui.streakCard];
+
+        if (Object.values(statElements).some(el => !el) || !ui.totalPointsValue) {
+            console.error("[UI Update Stats] Chybějící elementy statistik.");
+            cards.forEach(card => card?.classList.remove('loading'));
+            return;
+        }
+        cards.forEach(card => card?.classList.remove('loading'));
+
+        // --- START: USER STORY MODIFICATION ---
+        // Odstraněno explicitní mazání ui.latestCreditChange, protože se již nepoužívá
+        // --- END: USER STORY MODIFICATION ---
+
+        if (!stats) {
+            console.warn("[UI Update Stats] Chybí data statistik, zobrazuji placeholder.");
+            if (statElements.progress) statElements.progress.textContent = '- %';
+            if (ui.totalPointsValue) {
+                ui.totalPointsValue.innerHTML = `- <span id="latest-credit-change" style="font-size: 0.5em; color: var(--text-medium); vertical-align: middle; margin-left: 0.5em;">--</span>`;
+            }
+            if (statElements.streak) statElements.streak.textContent = '-';
+            if (statElements.progressFooter) statElements.progressFooter.innerHTML = `<i class="fas fa-minus"></i> Načítání...`;
+            // --- START: USER STORY MODIFICATION ---
+            if (ui.totalPointsFooter) ui.totalPointsFooter.innerHTML = `<i class="fas fa-minus"></i> Načítání...`; // Výchozí stav pro patičku kreditů
+            // --- END: USER STORY MODIFICATION ---
+            if (statElements.streakFooter) statElements.streakFooter.innerHTML = `MAX: - dní`;
+            return;
+        }
+
+        statElements.progress.textContent = `${stats.progress ?? 0}%`;
+        const weeklyProgress = stats.progress_weekly ?? 0;
+        statElements.progressFooter.classList.remove('positive', 'negative');
+        let progressFooterHTML = '';
+        if (weeklyProgress > 0) {
+            progressFooterHTML = `<i class="fas fa-arrow-up"></i> +${weeklyProgress}% týdně`;
+            statElements.progressFooter.classList.add('positive');
+        } else if (weeklyProgress < 0) {
+            progressFooterHTML = `<i class="fas fa-arrow-down"></i> ${weeklyProgress}% týdně`;
+            statElements.progressFooter.classList.add('negative');
+        } else {
+            progressFooterHTML = `<i class="fas fa-minus"></i> ±0% týdně`;
+        }
+        statElements.progressFooter.innerHTML = progressFooterHTML;
+
+        const pointsValue = stats.points ?? 0;
+        // Aktualizujeme pouze číselnou hodnotu bodů, span pro změnu se neřeší zde
+        if (ui.totalPointsValue.firstChild && ui.totalPointsValue.firstChild.nodeType === Node.TEXT_NODE) {
+            ui.totalPointsValue.firstChild.nodeValue = `${pointsValue} `;
+        } else {
+            const existingSpan = ui.totalPointsValue.querySelector('#latest-credit-change');
+            ui.totalPointsValue.textContent = `${pointsValue} `;
+            if (existingSpan) ui.totalPointsValue.appendChild(existingSpan);
+        }
+
+        // --- START: USER STORY MODIFICATION ---
+        // Logika pro totalPointsFooter je nyní v fetchAndDisplayLatestCreditTransaction,
+        // ale pro jistotu zde nastavíme výchozí stav, pokud týdenní body nejsou 0.
+        // Pokud jsou týdenní body 0, patička se aktualizuje poslední transakcí.
+        const weeklyPoints = stats.points_weekly ?? 0;
+        if (ui.totalPointsFooter) {
+            if (weeklyPoints !== 0 && weeklyPoints != null) {
+                ui.totalPointsFooter.classList.remove('positive', 'negative');
+                ui.totalPointsFooter.innerHTML = weeklyPoints > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyPoints} týdně` : `<i class="fas fa-arrow-down"></i> ${weeklyPoints} týdně`;
+                if (weeklyPoints > 0) ui.totalPointsFooter.classList.add('positive');
+                else ui.totalPointsFooter.classList.add('negative');
+            }
+            // Pokud jsou weeklyPoints 0 nebo null, patička se aktualizuje později funkcí fetchAndDisplayLatestCreditTransaction
+        }
+        // --- END: USER STORY MODIFICATION ---
+
+        statElements.streak.textContent = stats.streak_current ?? 0;
+        statElements.streakFooter.innerHTML = `MAX: ${stats.longest_streak_days ?? 0} dní`;
+        if ((stats.streak_current ?? 0) > 0 && (stats.streak_current !== stats.longest_streak_days)) {
+            statElements.streakFooter.innerHTML += ` <span style="color:var(--text-muted); font-size:0.9em;">(Aktuální: ${stats.streak_current ?? 0})</span>`;
+        }
+        console.log("[UI Update] Karty statistik aktualizovány.");
+    }
+    // --- END: Supabase Interaction Functions ---
 
     // --- START: Event Listeners Setup (Moved to top) ---
     function setupEventListeners() { const startTime = performance.now(); console.log("[SETUP] setupEventListeners: Start"); if (!ui || Object.keys(ui).length === 0) { console.error("[SETUP] UI cache is empty! Cannot setup listeners."); return; } const listenersAdded = new Set(); const safeAddListener = (element, eventType, handler, key) => { if (element) { element.removeEventListener(eventType, handler); element.addEventListener(eventType, handler); listenersAdded.add(key); } else { console.warn(`[SETUP] Element not found for listener: ${key}`); } }; safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle'); safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle'); safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay'); safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn'); document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); }); safeAddListener(ui.startPracticeBtn, 'click', () => { window.location.href = '/dashboard/procvicovani/main.html'; }, 'startPracticeBtn'); safeAddListener(ui.openMonthlyModalBtn, 'click', () => showModal('monthly-reward-modal'), 'openMonthlyModalBtn'); safeAddListener(ui.openStreakModalBtn, 'click', () => showModal('streak-milestones-modal'), 'openStreakModalBtn'); safeAddListener(ui.refreshDataBtn, 'click', async () => { if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné se přihlásit.", "error"); return; } if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; } const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'RELOADING...'; ui.refreshDataBtn.disabled = true; await loadDashboardData(currentUser, currentProfile); if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'RELOAD'; ui.refreshDataBtn.disabled = false; }, 'refreshDataBtn'); safeAddListener(ui.notificationBell, 'click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell'); safeAddListener(ui.markAllReadBtn, 'click', markAllNotificationsRead, 'markAllReadBtn'); safeAddListener(ui.notificationsList, 'click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount?.textContent?.replace('+', '') || '0'; const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); if(ui.notificationCount) { ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); } if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }, 'notificationsList'); document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown?.classList.remove('active'); } }); safeAddListener(ui.closeMonthlyModalBtn, 'click', () => hideModal('monthly-reward-modal'), 'closeMonthlyModalBtn'); safeAddListener(ui.monthlyRewardModal, 'click', (event) => { if (event.target === ui.monthlyRewardModal) { hideModal('monthly-reward-modal'); } }, 'monthlyRewardModal'); safeAddListener(ui.closeStreakModalBtn, 'click', () => hideModal('streak-milestones-modal'), 'closeStreakModalBtn'); safeAddListener(ui.streakMilestonesModal, 'click', (event) => { if (event.target === ui.streakMilestonesModal) { hideModal('streak-milestones-modal'); } }, 'streakMilestonesModal'); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); if (ui.mainContent) ui.mainContent.addEventListener('scroll', initHeaderScrollDetection, { passive: true }); const endTime = performance.now(); console.log(`[SETUP] Event listeners set up. Added: ${[...listenersAdded].length}. Time: ${(endTime - startTime).toFixed(2)}ms`); }
@@ -410,6 +570,9 @@
         setLoadingState('notifications', true);
         setLoadingState('activities', true);
         setLoadingState('creditHistory', true);
+        // --- START: USER STORY MODIFICATION ---
+        setLoadingState('latestCreditTransaction', true); // Přidáno pro novou patičku
+        // --- END: USER STORY MODIFICATION ---
 
         try {
             await checkAndUpdateLoginStreak();
@@ -421,13 +584,15 @@
             const dashboardListsResultPromise = (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderAll === 'function')
                 ? DashboardLists.loadAndRenderAll(user.id, 5)
                 : Promise.resolve({ status: 'fulfilled', value: console.warn("DashboardLists.loadAndRenderAll not found.") });
-            const latestCreditDataPromise = fetchAndDisplayLatestCreditChange(user.id);
+            // --- START: USER STORY MODIFICATION ---
+            const latestCreditTransactionPromise = fetchAndDisplayLatestCreditTransaction(user.id);
+            // --- END: USER STORY MODIFICATION ---
 
-            const [statsResult, notificationsResult, dashboardListsResult, latestCreditDataResult] = await Promise.allSettled([
+            const [statsResult, notificationsResult, dashboardListsResult, /* Ostatní promises */] = await Promise.allSettled([
                 statsResultPromise,
                 notificationsResultPromise,
                 dashboardListsResultPromise,
-                latestCreditDataPromise
+                latestCreditTransactionPromise // Přidáno promise
             ]);
 
             console.log("[MAIN] loadDashboardData: Основные данные получены.");
@@ -438,7 +603,7 @@
             } else {
                 console.error("❌ Chyba při načítání statistik:", statsResult.reason);
                 showError("Nepodařilo se načíst statistiky.", false);
-                updateStatsCards(currentProfile);
+                updateStatsCards(currentProfile); // Zobrazit alespoň data z profilu
             }
 
             if (notificationsResult.status === 'fulfilled' && notificationsResult.value) {
@@ -446,52 +611,49 @@
                 renderNotifications(unreadCount, notifications);
             } else {
                 console.error("❌ Chyba při načítání oznámení:", notificationsResult.reason);
-                renderNotifications(0, []);
+                renderNotifications(0, []); // Zobrazit prázdné notifikace
             }
 
             if (dashboardListsResult.status === 'rejected') {
                 console.error("❌ Chyba при DashboardLists.loadAndRenderAll:", dashboardListsResult.reason);
+                // Zde by se mělo ošetřit zobrazení chybového stavu pro seznamy aktivit/kreditů
+                // To se řeší uvnitř DashboardLists modulu, takže zde není potřeba další akce
             }
-
-            if (latestCreditDataResult.status === 'fulfilled' && latestCreditDataResult.value) {
-                const lastTx = latestCreditDataResult.value;
-                if (ui.totalPointsFooter && userStatsData && (userStatsData.points_weekly === 0 || userStatsData.points_weekly == null)) {
-                    const amount = lastTx.amount;
-                    const description = lastTx.description || `Transakce`;
-                    const sign = amount > 0 ? '+' : (amount < 0 ? '' : '');
-                    const amountColorClass = amount > 0 ? 'positive' : (amount < 0 ? 'negative' : '');
-                    let displayDescription = description;
-                    if (displayDescription.length > 25) { displayDescription = displayDescription.substring(0, 22) + "..."; }
-                    ui.totalPointsFooter.innerHTML = `<i class="fas fa-history"></i> <span title="${sanitizeHTML(description)}: ${sign}${amount}">${sanitizeHTML(displayDescription)}: <span style="font-weight:bold;" class="${amountColorClass}">${sign}${amount}</span></span>`;
-                    ui.totalPointsFooter.classList.remove('positive', 'negative');
-                    if(amount > 0) ui.totalPointsFooter.classList.add('positive');
-                    if(amount < 0) ui.totalPointsFooter.classList.add('negative');
-                }
-            } else if (latestCreditDataResult.status === 'rejected') {
-                console.error("❌ Chyba při získávání poslední kreditní transakce:", latestCreditDataResult.reason);
-                if (ui.totalPointsFooter && userStatsData && (userStatsData.points_weekly === 0 || userStatsData.points_weekly == null)){
-                   ui.totalPointsFooter.innerHTML = `<i class="fas fa-exclamation-circle"></i> Info o posl. trans. chybí`;
-                }
+            // --- START: USER STORY MODIFICATION ---
+            // Zpracování výsledku fetchAndDisplayLatestCreditTransaction již probíhá uvnitř té funkce
+            // (aktualizuje patičku nebo zobrazí chybu).
+            // Pokud by bylo potřeba zde reagovat na chybu, přidalo by se:
+            const latestCreditPromiseResult = results[3]; // Index podle pořadí v Promise.allSettled
+            if (latestCreditPromiseResult.status === 'rejected') {
+                console.error("❌ Chyba při načítání poslední kreditní transakce pro patičku:", latestCreditPromiseResult.reason);
+                // Chyba se již zobrazuje v `WorkspaceAndDisplayLatestCreditTransaction`
             }
+            // --- END: USER STORY MODIFICATION ---
 
             const endTime = performance.now();
             console.log(`[MAIN] loadDashboardData: Data načtena a zobrazena. Time: ${(endTime - startTime).toFixed(2)}ms`);
         } catch (error) {
             console.error('[MAIN] loadDashboardData: Zachycena hlavní chyba:', error);
             showError('Nepodařilo se kompletně načíst data nástěnky: ' + error.message);
+            // Fallback UI updates
             updateStatsCards(currentProfile);
             renderNotifications(0, []);
             if (typeof DashboardLists !== 'undefined') {
                 if (typeof DashboardLists.renderActivities === 'function') DashboardLists.renderActivities(null);
                 if (typeof DashboardLists.renderCreditHistory === 'function') DashboardLists.renderCreditHistory(null);
             }
-            if (ui.latestCreditChange) ui.latestCreditChange.style.display = 'none';
-            if (ui.totalPointsFooter) ui.totalPointsFooter.innerHTML = `<i class="fas fa-exclamation-circle"></i> Chyba`;
+            // --- START: USER STORY MODIFICATION ---
+            if (ui.totalPointsFooter) ui.totalPointsFooter.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Info o transakci chybí`;
+            // --- END: USER STORY MODIFICATION ---
+            if (ui.latestCreditChange) ui.latestCreditChange.style.display = 'none'; // Starý element, pokud ještě existuje
         } finally {
             setLoadingState('stats', false);
             setLoadingState('notifications', false);
             setLoadingState('activities', false);
             setLoadingState('creditHistory', false);
+            // --- START: USER STORY MODIFICATION ---
+            setLoadingState('latestCreditTransaction', false);
+            // --- END: USER STORY MODIFICATION ---
             if (typeof initTooltips === 'function') initTooltips();
             console.log("[MAIN] loadDashboardData: Blok finally dokončen.");
         }
