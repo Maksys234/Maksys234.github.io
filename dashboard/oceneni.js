@@ -1,5 +1,5 @@
 // dashboard/oceneni.js
-// Version: 23.23.1 - Fixed TypeError in setupEventListeners for section toggles.
+// Version: 23.23.2 - Opravena drobná chyba v fetchLeaderboardData (supabaseClient -> supabase).
 (function() { // IIFE for scope isolation
     'use strict';
 
@@ -19,8 +19,8 @@
     let userStatsData = null;
     let userBadges = [];
     let allBadges = [];
-    let allTitlesFromDB = []; 
-    let titleShopTitles = [];   
+    let allTitlesFromDB = [];
+    let titleShopTitles = [];
     let allDecorations = [];
     let leaderboardData = [];
     let currentLeaderboardPeriod = 'overall';
@@ -28,7 +28,7 @@
         stats: false, userBadges: false, availableBadges: false,
         leaderboard: false, titleShop: false, avatarDecorations: false,
         notifications: false, buyEquip: false, all: false, titles: false,
-        userTitlesInventory: false 
+        userTitlesInventory: false
     };
     // --- END: State Variables ---
 
@@ -42,7 +42,7 @@
             'sidebar-close-toggle', 'sidebar-avatar', 'sidebar-name', 'sidebar-user-title',
             'currentYearSidebar', 'page-title', 'refresh-data-btn', 'notification-bell',
             'notification-count', 'notifications-dropdown', 'notifications-list', 'no-notifications-msg',
-            'mark-all-read', 
+            'mark-all-read',
             'global-error', 'offline-banner', 'toast-container',
             'achievements-content', 'achievement-stats-container',
             'badges-count', 'badges-change', 'points-count', 'points-change',
@@ -58,8 +58,9 @@
             'sidebar-toggle-btn',
             'badges-card', 'points-card', 'streak-card', 'rank-card',
             'leaderboard-skeleton', 'leaderboard-header', 'leaderboard-table-container',
-            'user-titles-inventory-container', 'user-titles-inventory-grid', 
+            'user-titles-inventory-container', 'user-titles-inventory-grid',
             'user-titles-inventory-empty', 'user-titles-inventory-loading',
+            // NOVÉ: ID pro tlačítka rozbalování sekcí
             'toggle-user-badges-section', 'toggle-available-badges-section',
             'toggle-user-titles-section', 'toggle-title-shop-section',
             'toggle-avatar-decorations-section', 'toggle-leaderboard-section'
@@ -72,11 +73,11 @@
                 ui[key] = element;
             } else {
                 notFound.push(id);
-                ui[key] = null; 
+                ui[key] = null;
             }
         });
-        
-        // Define content areas for toggling - these should be general content wrappers WITHIN the section cards
+
+        // Добавление контейнеров для скрываемого контента
         ui.userBadgesContent = ui.userBadgesContainer?.querySelector('.section-collapsible-content');
         ui.availableBadgesContent = ui.availableBadgesContainer?.querySelector('.section-collapsible-content');
         ui.userTitlesInventoryContent = ui.userTitlesInventoryContainer?.querySelector('.section-collapsible-content');
@@ -113,16 +114,16 @@
     const initScrollAnimations = () => { const els = document.querySelectorAll('.main-content-wrapper [data-animate]'); if (!els.length || !('IntersectionObserver' in window)) return; const obs = new IntersectionObserver((e, o) => { e.forEach(en => { if (en.isIntersecting) { en.target.classList.add('animated'); o.unobserve(en.target); } }); }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" }); els.forEach(el => obs.observe(el)); };
     const initHeaderScrollDetection = () => { let lSY = window.scrollY; const mE = ui.mainContent; if (!mE) return; mE.addEventListener('scroll', () => { const cSY = mE.scrollTop; document.body.classList.toggle('scrolled', cSY > 10); lSY = cSY <= 0 ? 0 : cSY; }, { passive: true }); if (mE.scrollTop > 10) document.body.classList.add('scrolled'); };
     const updateCopyrightYear = () => { const y = new Date().getFullYear(); if (ui.currentYearSidebar) ui.currentYearSidebar.textContent = y; if (ui.currentYearFooter) ui.currentYearFooter.textContent = y; };
-    
+
     function getSeededSortValue(seedString) {
         let hash = 0;
         if (!seedString || seedString.length === 0) return hash;
         for (let i = 0; i < seedString.length; i++) {
             const char = seedString.charCodeAt(i);
             hash = ((hash << 5) - hash) + char;
-            hash |= 0; 
+            hash |= 0;
         }
-        return Math.abs(hash); 
+        return Math.abs(hash);
     }
     // --- END: Helper Functions ---
 
@@ -149,8 +150,8 @@
                 avatarDecorations: { container: ui.avatarDecorationsShop, emptyEl: ui.avatarDecorationsEmpty, contentEl: ui.avatarDecorationsGrid, loadingEl: ui.avatarDecorationsLoading, skeletonFn: renderAvatarDecorationsSkeleton, skeletonCount: 4 },
                 notifications: { container: ui.notificationsList, emptyEl: ui.noNotificationsMsg, skeletonFn: renderNotificationSkeletons, skeletonCount: 2 },
                 userTitlesInventory: { container: ui.userTitlesInventoryContainer, emptyEl: ui.userTitlesInventoryEmpty, contentEl: ui.userTitlesInventoryGrid, loadingEl: ui.userTitlesInventoryLoading, skeletonFn: renderUserTitlesInventorySkeletons, skeletonCount: 4 },
-                buyEquip: {}, 
-                titles: {}    
+                buyEquip: {},
+                titles: {}
             };
 
             const config = sectionMap[key];
@@ -171,7 +172,7 @@
                 if (contentEl) contentEl.style.display = 'none';
                 if (emptyEl) emptyEl.style.display = 'none';
                 if (config.skeletonFn) {
-                    const targetContainer = contentEl || (key === 'leaderboard' ? null : config.container); 
+                    const targetContainer = contentEl || (key === 'leaderboard' ? null : config.container);
                     if (targetContainer || key === 'leaderboard') {
                          config.skeletonFn(targetContainer, config.skeletonCount);
                     }
@@ -179,7 +180,7 @@
             }
              if (key === 'notifications' && ui.notificationBell) {
                  ui.notificationBell.style.opacity = loading ? 0.5 : 1;
-                 if (ui.markAllRead) { 
+                 if (ui.markAllRead) {
                      const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
                      ui.markAllRead.disabled = loading || currentUnreadCount === 0;
                  }
@@ -204,18 +205,18 @@
     function renderLeaderboardSkeleton() { if (ui.leaderboardSkeleton) ui.leaderboardSkeleton.style.display = 'block'; }
     function renderTitleShopSkeleton(container = ui.titleShopGrid, count = DAILY_TITLE_SHOP_COUNT) { if (!container) return; container.innerHTML = ''; container.style.display = 'grid'; let s = ''; for(let i = 0; i < count; i++) s += `<div class="title-item card loading"><div class="loading-skeleton" style="display: flex !important;"><div style="display: flex; gap: 1.2rem; align-items: flex-start; width: 100%;"><div class="skeleton" style="width: 60px; height: 60px; border-radius: 14px; flex-shrink: 0;"></div><div style="flex-grow: 1;"><div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 0.7rem;"></div><div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.5rem;"></div><div class="skeleton" style="height: 14px; width: 75%;"></div></div></div></div></div>`; container.innerHTML = s; }
     function renderAvatarDecorationsSkeleton(container = ui.avatarDecorationsGrid, count = 4) { if (!container) return; container.innerHTML = ''; container.style.display = 'grid'; let s = ''; for(let i = 0; i < count; i++) s += `<div class="decoration-item card loading"><div class="loading-skeleton" style="display: flex !important; flex-direction: column; align-items: center; padding:1rem;"><div class="skeleton" style="width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1rem auto;"></div><div class="skeleton" style="height: 18px; width: 70%; margin: 0 auto 0.7rem auto;"></div><div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.5rem;"></div><div class="skeleton" style="height: 14px; width: 80%;"></div><div style="margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid transparent; display: flex; justify-content: space-between; align-items: center; width:100%;"><div class="skeleton" style="height: 16px; width: 70px;"></div><div class="skeleton" style="height: 30px; width: 90px; border-radius: var(--button-radius);"></div></div></div></div>`; container.innerHTML = s; }
-    function renderNotificationSkeletons(container = ui.notificationsList, count = 2) { if (!container) return; container.innerHTML = ''; container.style.display = 'block'; let s = ''; for (let i = 0; i < count; i++) s += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height:16px;width:70%;margin-bottom:6px;"></div><div class="skeleton" style="height:12px;width:90%;"></div><div class="skeleton" style="height:10px;width:40%;margin-top:6px;"></div></div></div>`; container.innerHTML = s; }
+    function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) {console.warn("[Skeletons] Notifications list or no-message element not found."); return;} let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height:16px;width:70%;margin-bottom:6px;"></div><div class="skeleton" style="height:12px;width:90%;"></div><div class="skeleton" style="height:10px;width:40%;margin-top:6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
     function renderUserTitlesInventorySkeletons(container = ui.userTitlesInventoryGrid, count = 4) {
         if (!container) {
             console.warn("[Skeletons] User Titles Inventory container not found.");
             return;
         }
         container.innerHTML = '';
-        container.style.display = 'grid'; 
+        container.style.display = 'grid';
         let skeletonHTML = '';
         for (let i = 0; i < count; i++) {
             skeletonHTML += `
-                <div class="title-item card loading"> 
+                <div class="title-item card loading">
                     <div class="loading-skeleton" style="display: flex !important;">
                         <div style="display: flex; gap: 1.2rem; align-items: flex-start; width: 100%;">
                             <div class="skeleton" style="width: 60px; height: 60px; border-radius: 14px; flex-shrink: 0;"></div>
@@ -233,25 +234,25 @@
     // --- END: Skeleton Rendering Functions ---
 
     // --- START: Data Fetching Functions ---
-    async function fetchUserProfile(userId) { if (!supabase || !userId) return null; console.log(`[Profile] Fetching profile for user ID: ${userId}`); try { const { data: profile, error } = await supabase.from('profiles').select('*, selected_title, purchased_titles, selected_decoration, purchased_decorations').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; if (!profile) { console.warn(`[Profile] Profile for user ${userId} not found. Returning null.`); return null; } console.log("[Profile] Profile data fetched successfully."); return profile; } catch (error) { console.error('[Profile] Caught exception fetching profile:', error); return null; } }
+    async function fetchUserProfile(userId) { if (!supabase || !userId) return null; console.log(`[Profile] Fetching profile for user ID: ${userId}`); try { const { data: profile, error } = await supabase.from('profiles').select('*, selected_title, purchased_titles, selected_decoration, purchased_decorations').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; if (!profile) { console.warn(`[Profile] Profile not found for user ${userId}. Returning null.`); return null; } console.log("[Profile] Profile data fetched successfully."); return profile; } catch (error) { console.error('[Profile] Caught exception fetching profile:', error); return null; } }
     async function fetchUserStats(userId, profileData) { if (!supabase || !userId || !profileData) return null; try { const { data: statsData, error } = await supabase.from('user_stats').select('progress, progress_weekly, points_weekly, streak_longest, completed_tests').eq('user_id', userId).maybeSingle(); if (error) { console.warn("Error fetching user_stats:", error.message); return {}; } const { data: rankData, error: rankError } = await supabase.from('leaderboard').select('rank').eq('user_id', userId).eq('period', 'overall').limit(1); if (rankError) console.warn("Error fetching rank:", rankError.message); const { count: totalUsersCount, error: countError } = await supabase.from('profiles').select('id', { count: 'exact', head: true }); if (countError) console.warn("Error fetching total users count:", countError.message); return { progress: statsData?.progress ?? profileData.progress ?? 0, progress_weekly: statsData?.progress_weekly ?? 0, points: profileData.points ?? 0, points_weekly: statsData?.points_weekly ?? 0, streak_current: profileData.streak_days ?? 0, streak_longest: Math.max(statsData?.streak_longest ?? 0, profileData.streak_days ?? 0), badges: profileData.badges_count ?? 0, rank: rankData?.[0]?.rank ?? null, totalUsers: totalUsersCount ?? null, }; } catch (e) { console.error("Exception fetching stats:", e); return null; } }
     async function fetchAllBadgesDefinition() { if (!supabase) return []; try { const { data, error } = await supabase.from('badges').select('*').order('id'); if (error) throw error; return data || []; } catch (e) { console.error("Error fetching badge definitions:", e); return []; } }
     async function fetchUserEarnedBadges(userId) { if (!supabase || !userId) return []; try { const { data, error } = await supabase.from('user_badges').select(`badge_id, earned_at, badge:badges!inner (id, title, description, type, icon, requirements, points)`).eq('user_id', userId).order('earned_at', { ascending: false }); if (error) throw error; return data || []; } catch (e) { console.error("Error fetching earned badges:", e); return []; } }
-    
-    async function fetchAllPurchasableTitles() { 
+
+    async function fetchAllPurchasableTitles() {
         if (!supabase) return [];
         console.log("[Titles] Fetching ALL available & purchasable titles from DB...");
-        setLoadingState('titles', true); 
+        setLoadingState('titles', true);
         try {
             const { data, error } = await supabase
                 .from('title_shop')
-                .select('*') 
+                .select('*')
                 .eq('is_available', true)
                 .eq('is_purchasable', true);
             if (error) throw error;
             const count = data ? data.length : 0;
             console.log(`[Titles] Fetched all purchasable titles from DB: ${count}. Titles:`, data?.map(t => t.title_key));
-            allTitlesFromDB = data || []; 
+            allTitlesFromDB = data || [];
             return allTitlesFromDB;
         } catch (error) {
             console.error("[Titles] Error fetching all purchasable titles:", error);
@@ -276,41 +277,61 @@
             return [];
         }
 
-        const candidateTitles = [...purchasableArray]; 
+        const candidateTitles = [...purchasableArray];
         console.log(`[Titles Shop] ${candidateTitles.length} titles are candidates for the shop (not filtering purchased).`);
-        
-        if (candidateTitles.length === 0) { 
+
+        if (candidateTitles.length === 0) {
             console.log("[Titles Shop] No titles available to select from for the shop.");
             return [];
         }
         if (candidateTitles.length <= DAILY_TITLE_SHOP_COUNT) {
             console.log(`[Titles Shop] Fewer than ${DAILY_TITLE_SHOP_COUNT} titles available, showing all ${candidateTitles.length}.`);
-            return candidateTitles; // Return all candidates if fewer than or equal to the shop count
+            return candidateTitles;
         }
 
-        const today = new Date().toISOString().slice(0, 10); 
-        
+        const today = new Date().toISOString().slice(0, 10);
+
         const seededSortedTitles = candidateTitles
             .map(title => {
                 const seedString = `${userId}-${today}-${title.title_key}`;
                 return { ...title, sortValue: getSeededSortValue(seedString) };
             })
             .sort((a, b) => a.sortValue - b.sortValue);
-        
+
         const selected = seededSortedTitles.slice(0, DAILY_TITLE_SHOP_COUNT);
         console.log(`[Titles Shop] Selected ${selected.length} daily random titles for user ${userId}. Titles:`, selected.map(t => t.title_key));
         return selected;
     }
 
     async function fetchAvatarDecorationsData() { console.warn("Avatar decorations fetching skipped: Table 'avatar_decorations_shop' does not exist or feature is disabled."); return []; }
-    async function fetchLeaderboardData() { if (!supabase) return []; try { const { data, error } = await supabase.from('leaderboard').select(`rank, user_id, points, badges_count, profile:profiles!inner(id, first_name, last_name, username, avatar_url, level, streak_days, selected_title, selected_decoration)`).eq('period', 'overall').order('rank', { ascending: true }).limit(LEADERBOARD_LIMIT); if (error) throw error; const rankedData = (data || []).map((entry, index) => ({ ...entry, calculated_rank: entry.rank ?? (index + 1) })); return rankedData; } catch (e) { console.error("Error fetching leaderboard:", e); return []; } }
+    async function fetchLeaderboardData() {
+        if (!supabase) return [];
+        try {
+            // *** MODIFICATION: Use supabase directly instead of undefined supabaseClient ***
+            const { data, error } = await supabase
+                .from('leaderboard')
+                .select(`rank, user_id, points, badges_count, profile:profiles!inner(id, first_name, last_name, username, avatar_url, level, streak_days, selected_title, selected_decoration)`)
+                .eq('period', 'overall')
+                .order('rank', { ascending: true })
+                .limit(LEADERBOARD_LIMIT);
+            if (error) throw error;
+            const rankedData = (data || []).map((entry, index) => ({
+                ...entry,
+                calculated_rank: entry.rank ?? (index + 1)
+            }));
+            return rankedData;
+        } catch (e) {
+            console.error("Error fetching leaderboard:", e);
+            return [];
+        }
+    }
     async function fetchNotifications(userId, limit = NOTIFICATION_FETCH_LIMIT) { if (!supabase || !userId) return { unreadCount: 0, notifications: [] }; try { const { data, error, count } = await supabase.from('user_notifications').select('*', { count: 'exact' }).eq('user_id', userId).eq('is_read', false).order('created_at', { ascending: false }).limit(limit); if (error) throw error; return { unreadCount: count ?? 0, notifications: data || [] }; } catch (e) { console.error("Error fetching notifications:", e); return { unreadCount: 0, notifications: [] }; } }
     // --- END: Data Fetching Functions ---
 
     // --- START: Data Rendering Functions ---
     const badgeVisuals = { math: { icon: 'fa-square-root-alt', gradient: 'var(--gradient-math)' }, language: { icon: 'fa-language', gradient: 'var(--gradient-lang)' }, streak: { icon: 'fa-fire', gradient: 'var(--gradient-streak)' }, special: { icon: 'fa-star', gradient: 'var(--gradient-special)' }, points: { icon: 'fa-coins', gradient: 'var(--gradient-warning)' }, exercises: { icon: 'fa-pencil-alt', gradient: 'var(--gradient-success)' }, test: { icon: 'fa-vial', gradient: 'var(--gradient-info)' }, default: { icon: 'fa-medal', gradient: 'var(--gradient-locked)' } };
     const activityVisuals = { test: { icon: 'fa-vial', class: 'test' }, exercise: { icon: 'fa-pencil-alt', class: 'exercise' }, badge: { icon: 'fa-medal', class: 'badge' }, diagnostic: { icon: 'fa-clipboard-check', class: 'diagnostic' }, lesson: { icon: 'fa-book-open', class: 'lesson' }, plan_generated: { icon: 'fa-calendar-alt', class: 'plan_generated' }, level_up: { icon: 'fa-level-up-alt', class: 'level_up' }, other: { icon: 'fa-info-circle', class: 'other' }, default: { icon: 'fa-check-circle', class: 'default' } };
-    function updateSidebarProfile(profile, titlesData = allTitlesFromDB) { 
+    function updateSidebarProfile(profile, titlesData = allTitlesFromDB) {
         if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) return;
         if (profile) {
             const displayName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username || currentUser?.email?.split('@')[0] || 'Pilot';
@@ -331,8 +352,7 @@
 
             const selectedTitleKey = profile.selected_title;
             let displayTitle = 'Pilot';
-            // Use allTitlesFromDB to find the title details for the sidebar
-            const allTitlesForLookup = allTitlesFromDB || [];
+            const allTitlesForLookup = titlesData || [];
             if (selectedTitleKey && allTitlesForLookup.length > 0) {
                 const foundTitle = allTitlesForLookup.find(t => t.title_key === selectedTitleKey);
                 if (foundTitle && foundTitle.name) displayTitle = foundTitle.name;
@@ -353,8 +373,54 @@
     function updateStatsCards(stats) { if (!stats) { console.warn("No stats data to update cards."); return; } const getVal = (v) => (v !== null && v !== undefined) ? v : '-'; if (ui.badgesCount) ui.badgesCount.textContent = getVal(stats.badges); if (ui.pointsCount) ui.pointsCount.textContent = getVal(stats.points); if (ui.streakDays) ui.streakDays.textContent = getVal(stats.streak_current); if (ui.streakChange) ui.streakChange.textContent = `MAX: ${getVal(stats.streak_longest)} dní`; if (ui.rankValue) ui.rankValue.textContent = getVal(stats.rank); if (ui.rankChange && ui.totalUsers) ui.rankChange.innerHTML = `<i class="fas fa-users"></i> z ${getVal(stats.totalUsers)} pilotů`; if (ui.badgesCard) ui.badgesCard.classList.remove('loading'); if (ui.pointsCard) ui.pointsCard.classList.remove('loading'); if (ui.streakCard) ui.streakCard.classList.remove('loading'); if (ui.rankCard) ui.rankCard.classList.remove('loading'); }
     function renderUserBadges(earnedBadges) { setLoadingState('userBadges', false); if (!ui.badgeGrid || !ui.emptyBadges) return; ui.badgeGrid.innerHTML = ''; if (!earnedBadges || earnedBadges.length === 0) { ui.emptyBadges.style.display = 'block'; ui.badgeGrid.style.display = 'none'; return; } ui.emptyBadges.style.display = 'none'; ui.badgeGrid.style.display = 'grid'; const fragment = document.createDocumentFragment(); earnedBadges.forEach((ub, index) => { const badge = ub.badge; if (!badge) return; const badgeType = badge.type?.toLowerCase() || 'default'; const visual = badgeVisuals[badgeType] || badgeVisuals.default; const badgeElement = document.createElement('div'); badgeElement.className = 'badge-card card'; badgeElement.setAttribute('data-animate', ''); badgeElement.style.setProperty('--animation-order', index); badgeElement.innerHTML = `<div class="badge-icon ${badgeType}" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><h3 class="badge-title">${sanitizeHTML(badge.title)}</h3><p class="badge-desc">${sanitizeHTML(badge.description || '')}</p><div class="badge-date"><i class="far fa-calendar-alt"></i> ${formatDate(ub.earned_at)}</div>`; fragment.appendChild(badgeElement); }); ui.badgeGrid.appendChild(fragment); requestAnimationFrame(initScrollAnimations); }
     function renderAvailableBadges(allBadgesDef, userBadges) { setLoadingState('availableBadges', false); if (!ui.availableBadgesGrid || !ui.emptyAvailableBadges) return; const earnedIds = new Set((userBadges || []).map(ub => ub.badge_id)); const available = (allBadgesDef || []).filter(b => !earnedIds.has(b.id)); ui.availableBadgesGrid.innerHTML = ''; if (available.length === 0) { ui.emptyAvailableBadges.style.display = 'block'; ui.availableBadgesGrid.style.display = 'none'; return; } ui.emptyAvailableBadges.style.display = 'none'; ui.availableBadgesGrid.style.display = 'grid'; const fragment = document.createDocumentFragment(); available.forEach((badge, index) => { const badgeType = badge.type?.toLowerCase() || 'default'; const visual = badgeVisuals[badgeType] || badgeVisuals.default; let progress = 0; let progressText = '???'; const req = badge.requirements; if (req && typeof req === 'object' && currentProfile) { const target = parseInt(req.target, 10) || 1; let current = 0; try { switch (req.type) { case 'points_earned': current = currentProfile.points ?? 0; progressText = `${current}/${target} KR`; break; case 'streak_days': current = currentProfile.streak_days ?? 0; progressText = `${current}/${target} dní`; break; case 'exercises_completed': current = currentProfile.completed_exercises ?? 0; progressText = `${current}/${target} cv.`; break; case 'level_reached': current = currentProfile.level ?? 1; progressText = `${current}/${target} úr.`; break; default: progressText = '?/?'; } if (target > 0) progress = Math.min(100, Math.max(0, Math.round((current / target) * 100))); } catch(e) { progressText = 'Chyba'; } } else { progressText = 'Nespec.'; } const badgeElement = document.createElement('div'); badgeElement.className = 'achievement-card card'; badgeElement.setAttribute('data-animate', ''); badgeElement.style.setProperty('--animation-order', index); badgeElement.innerHTML = `<div class="achievement-icon ${badgeType}" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><div class="achievement-content"><h3 class="achievement-title">${sanitizeHTML(badge.title)}</h3><p class="achievement-desc">${sanitizeHTML(badge.description || '')}</p><div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: ${progress}%; background: ${visual.gradient};"></div></div><div class="progress-stats">${progress}% (${progressText})</div></div></div>`; fragment.appendChild(badgeElement); }); ui.availableBadgesGrid.appendChild(fragment); requestAnimationFrame(initScrollAnimations); }
-    function renderLeaderboard(data) { setLoadingState('leaderboard', false); if (!ui.leaderboardBody || !ui.leaderboardEmpty || !ui.leaderboardTableContainer) return; ui.leaderboardBody.innerHTML = ''; if (!data || data.length === 0) { ui.leaderboardEmpty.style.display = 'block'; ui.leaderboardTableContainer.style.display = 'none'; } else { ui.leaderboardEmpty.style.display = 'none'; ui.leaderboardTableContainer.style.display = 'block'; const fragment = document.createDocumentFragment(); data.forEach((entry) => { const userProf = entry.profile; if (!userProf) return; const rank = entry.calculated_rank || '?'; const isCurrent = entry.user_id === currentUser?.id; const displayName = `${userProf.first_name || ''} ${userProf.last_name || ''}`.trim() || userProf.username || `Pilot #${entry.user_id.substring(0, 4)}`; const initials = getInitials(userProf); const avatarUrl = userProf.avatar_url; const pointsVal = entry.points ?? 0; const badgesCnt = entry.badges_count ?? 0; const streakVal = userProf.streak_days ?? 0; const selectedDecoration = userProf.selected_decoration || ''; const rowEl = document.createElement('tr'); if (isCurrent) rowEl.classList.add('highlight-row'); rowEl.innerHTML = `<td class="rank-cell">${rank}</td><td class="user-cell"><div class="avatar-wrapper ${sanitizeHTML(selectedDecoration)}" data-decoration-key="${sanitizeHTML(selectedDecoration)}"><div class="user-avatar-sm">${avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(displayName)}">` : sanitizeHTML(initials)}</div></div><div class="user-info-sm"><div class="user-name-sm">${sanitizeHTML(displayName)}</div><div class="user-level">Úroveň ${userProf.level || 1}</div></div></td><td class="score-cell">${pointsVal}</td><td class="badge-count-cell">${badgesCnt}</td><td class="streak-cell">${streakVal}</td>`; fragment.appendChild(rowEl); }); ui.leaderboardBody.appendChild(fragment); } }
-    
+    function renderLeaderboard(data) {
+        setLoadingState('leaderboard', false);
+        if (!ui.leaderboardBody || !ui.leaderboardEmpty || !ui.leaderboardTableContainer) return;
+        ui.leaderboardBody.innerHTML = '';
+
+        if (!data || data.length === 0) {
+            ui.leaderboardEmpty.style.display = 'block';
+            ui.leaderboardTableContainer.style.display = 'none';
+        } else {
+            ui.leaderboardEmpty.style.display = 'none';
+            ui.leaderboardTableContainer.style.display = 'block';
+            const fragment = document.createDocumentFragment();
+            data.forEach((entry) => {
+                const userProf = entry.profile;
+                if (!userProf) return; // Skip if no profile data, crucial for robust rendering
+
+                const rank = entry.calculated_rank || '?';
+                const isCurrent = entry.user_id === currentUser?.id;
+                const displayName = `${userProf.first_name || ''} ${userProf.last_name || ''}`.trim() || userProf.username || `Pilot #${entry.user_id.substring(0, 4)}`;
+                const initials = getInitials(userProf);
+                const avatarUrl = userProf.avatar_url;
+                const pointsVal = entry.points ?? 0;
+                const badgesCnt = entry.badges_count ?? 0;
+                const streakVal = userProf.streak_days ?? 0;
+                const selectedDecoration = userProf.selected_decoration || '';
+
+                const rowEl = document.createElement('tr');
+                if (isCurrent) rowEl.classList.add('highlight-row');
+                rowEl.innerHTML = `
+                    <td class="rank-cell">${rank}</td>
+                    <td class="user-cell">
+                        <div class="avatar-wrapper ${sanitizeHTML(selectedDecoration)}" data-decoration-key="${sanitizeHTML(selectedDecoration)}">
+                            <div class="user-avatar-sm">${avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(displayName)}">` : sanitizeHTML(initials)}</div>
+                        </div>
+                        <div class="user-info-sm">
+                            <div class="user-name-sm">${sanitizeHTML(displayName)}</div>
+                            <div class="user-level">Úroveň ${userProf.level || 1}</div>
+                        </div>
+                    </td>
+                    <td class="score-cell">${pointsVal}</td>
+                    <td class="badge-count-cell">${badgesCnt}</td>
+                    <td class="streak-cell">${streakVal}</td>`;
+                fragment.appendChild(rowEl);
+            });
+            ui.leaderboardBody.appendChild(fragment);
+        }
+    }
+
     function renderTitleShop(titlesToDisplay, profile) {
         setLoadingState('titleShop', false);
         if (!ui.titleShopGrid || !ui.titleShopEmpty || !ui.shopUserCredits || !profile) {
@@ -368,7 +434,7 @@
         if (!titlesToDisplay || titlesToDisplay.length === 0) {
             ui.titleShopEmpty.style.display = 'block';
             ui.titleShopGrid.style.display = 'none';
-            
+
             const allPurchasableTitlesInDB = (allTitlesFromDB || []).filter(t => t.is_purchasable && t.is_available);
             const purchasedKeysSet = new Set(profile.purchased_titles || []);
             const allPurchasableAndNotOwned = allPurchasableTitlesInDB.filter(t => !purchasedKeysSet.has(t.title_key));
@@ -379,7 +445,7 @@
                      emptyMsgP.textContent = 'Všechny aktuálně dostupné tituly v obchodě již vlastníte! Zkuste to znovu zítra.';
                 } else if (allPurchasableTitlesInDB.length === 0) {
                      emptyMsgP.textContent = 'Momentálně nejsou v obchodě žádné tituly. Zkuste to prosím později.';
-                } else { // This case means titlesToDisplay was empty but there *are* unowned titles, which shouldn't happen with current logic
+                } else {
                      emptyMsgP.textContent = 'Dnešní nabídka je prázdná. Nové tituly se objeví zítra!';
                 }
             }
@@ -393,7 +459,7 @@
         const selectedKey = profile.selected_title;
 
         titlesToDisplay.forEach((title, index) => {
-            const isPurchased = purchasedKeys.has(title.title_key); 
+            const isPurchased = purchasedKeys.has(title.title_key);
             const isEquipped = isPurchased && title.title_key === selectedKey;
             const canAfford = profile.points >= title.cost;
 
@@ -431,7 +497,7 @@
     }
     function renderAvatarDecorationsShop(decorations, profile) { setLoadingState('avatarDecorations', false); if (!ui.avatarDecorationsGrid || !ui.avatarDecorationsEmpty || !ui.shopDecorCredits || !profile) return; ui.shopDecorCredits.textContent = profile.points ?? 0; ui.avatarDecorationsGrid.innerHTML = ''; ui.avatarDecorationsEmpty.style.display = 'block'; ui.avatarDecorationsGrid.style.display = 'none'; }
     function renderNotifications(count, notifications) { setLoadingState('notifications', false); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllRead) return; ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>${!n.is_read ? '<span class="unread-dot"></span>' : ''}<div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="notification-content"><div class="notification-title">${sanitizeHTML(n.title)}</div><div class="notification-message">${sanitizeHTML(n.message)}</div><div class="notification-time">${formatRelativeTime(n.created_at)}</div></div></div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllRead.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllRead.disabled = true; } }
-    
+
     function renderUserTitlesInventory(profile, allTitlesData) {
         setLoadingState('userTitlesInventory', false);
         if (!ui.userTitlesInventoryGrid || !ui.userTitlesInventoryEmpty || !profile) {
@@ -442,10 +508,10 @@
         const purchasedTitleKeys = profile.purchased_titles || [];
 
         if (purchasedTitleKeys.length === 0) {
-            if (ui.userTitlesInventoryEmpty) { 
+            if (ui.userTitlesInventoryEmpty) {
                 ui.userTitlesInventoryEmpty.style.display = 'block';
             }
-            if (ui.userTitlesInventoryGrid) { 
+            if (ui.userTitlesInventoryGrid) {
                 ui.userTitlesInventoryGrid.style.display = 'none';
             }
             console.log("[RenderInventory] No titles purchased by user.");
@@ -456,7 +522,7 @@
         if (ui.userTitlesInventoryGrid) ui.userTitlesInventoryGrid.style.display = 'grid';
 
         const purchasedTitlesDetailed = purchasedTitleKeys.map(key => {
-            return (allTitlesData || []).find(title => title.title_key === key); 
+            return (allTitlesData || []).find(title => title.title_key === key);
         }).filter(Boolean);
 
         purchasedTitlesDetailed.sort((a, b) => (a.cost || 0) - (b.cost || 0));
@@ -469,9 +535,9 @@
         purchasedTitlesDetailed.forEach((title, index) => {
             const isEquipped = title.title_key === selectedKey;
             const itemElement = document.createElement('div');
-            itemElement.className = 'title-item card inventory-item'; 
+            itemElement.className = 'title-item card inventory-item';
             itemElement.setAttribute('data-title-key', title.title_key);
-            itemElement.setAttribute('data-animate', ''); 
+            itemElement.setAttribute('data-animate', '');
             itemElement.style.setProperty('--animation-order', index);
 
             itemElement.innerHTML = `
@@ -482,7 +548,7 @@
                     <div class="title-item-footer">
                         <span class="title-item-cost" style="visibility:hidden;">Cena: ${title.cost} <i class="fas fa-coins"></i></span>
                         <div class="title-item-actions">
-                            ${isEquipped ? 
+                            ${isEquipped ?
                                 `<span class="title-status equipped"><i class="fas fa-user-check"></i> Používá se</span>` :
                                 `<button class="btn btn-sm btn-secondary equip-title-btn">
                                     <i class="fas fa-check-square"></i> Použít
@@ -493,7 +559,7 @@
                 </div>`;
             fragment.appendChild(itemElement);
         });
-        if (ui.userTitlesInventoryGrid) ui.userTitlesInventoryGrid.appendChild(fragment); 
+        if (ui.userTitlesInventoryGrid) ui.userTitlesInventoryGrid.appendChild(fragment);
         requestAnimationFrame(initScrollAnimations);
     }
     // --- END: Data Rendering Functions ---
@@ -519,7 +585,7 @@
         hideError();
         setLoadingState('all', true);
         try {
-            const allPurchasableTitlesFromDB = await fetchAllPurchasableTitles(); 
+            const allPurchasableTitlesFromDB = await fetchAllPurchasableTitles();
             titleShopTitles = selectDailyUserSpecificTitles(allPurchasableTitlesFromDB, currentProfile.purchased_titles || [], currentUser.id);
             console.log("[LoadAwards] Daily shop titles selected:", titleShopTitles.map(t => t.title_key));
 
@@ -546,11 +612,11 @@
             renderUserBadges(userBadges);
             renderAvailableBadges(allBadges, userBadges);
             renderLeaderboard(leaderboardData);
-            renderTitleShop(titleShopTitles, currentProfile); 
-            renderUserTitlesInventory(currentProfile, allTitlesFromDB); 
+            renderTitleShop(titleShopTitles, currentProfile);
+            renderUserTitlesInventory(currentProfile, allTitlesFromDB);
             renderAvatarDecorationsShop(allDecorations, currentProfile);
             renderNotifications(unreadCount, notifications);
-            updateSidebarProfile(currentProfile, allTitlesFromDB); 
+            updateSidebarProfile(currentProfile, allTitlesFromDB);
 
             console.log("✅ [LoadAwards] All award page data loaded and rendered.");
         } catch (error) {
@@ -560,8 +626,8 @@
             renderUserBadges(userBadges || []);
             renderAvailableBadges(allBadges || [], userBadges || []);
             renderLeaderboard(leaderboardData || []);
-            renderTitleShop(titleShopTitles || [], currentProfile || {}); 
-            renderUserTitlesInventory(currentProfile || {}, allTitlesFromDB || []); 
+            renderTitleShop(titleShopTitles || [], currentProfile || {});
+            renderUserTitlesInventory(currentProfile || {}, allTitlesFromDB || []);
             renderAvatarDecorationsShop(allDecorations || [], currentProfile || {});
             renderNotifications(0, []);
         } finally {
@@ -572,78 +638,86 @@
     // --- END: Load All Data ---
 
     // --- START: Event Listeners Setup ---
-    function setupEventListeners() { 
-        console.log("[Oceneni SETUP] Setting up event listeners..."); 
-        const safeAddListener = (el, ev, fn, key) => { 
+    function setupEventListeners() {
+        console.log("[Oceneni SETUP] Setting up event listeners...");
+        const safeAddListener = (el, ev, fn, key) => {
             if (el) {
                 if (el._eventHandlers && el._eventHandlers[key]) {
                     el.removeEventListener(ev, el._eventHandlers[key]);
                 }
                 el.addEventListener(ev, fn);
                 if (!el._eventHandlers) el._eventHandlers = {};
-                el._eventHandlers[key] = fn; 
+                el._eventHandlers[key] = fn;
             } else {
-                console.warn(`[SETUP] Element not found for listener: ${key}`);
+                // Non-critical elements (like toggle buttons if missing) won't stop the app
+                if(key.startsWith('toggle')) console.warn(`[SETUP] Non-critical toggle button element not found: ${key}`);
+                else console.warn(`[SETUP] Element not found for listener: ${key}`);
             }
-        }; 
-        safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle'); 
-        safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle'); 
-        safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay'); 
-        safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn'); 
-        safeAddListener(ui.refreshDataBtn, 'click', loadAllAwardData, 'refreshDataBtn'); 
-        safeAddListener(ui.notificationBell, 'click', (e) => { e.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell'); 
-        safeAddListener(ui.markAllRead, 'click', handleMarkAllReadClick, 'markAllRead'); 
-        safeAddListener(ui.notificationsList, 'click', handleNotificationClick, 'notificationsList'); 
-        safeAddListener(ui.titleShopGrid, 'click', handleShopInteraction, 'titleShopGrid'); 
-        safeAddListener(ui.avatarDecorationsGrid, 'click', handleShopInteraction, 'avatarDecorationsGrid'); 
-        if(ui.userTitlesInventoryGrid) safeAddListener(ui.userTitlesInventoryGrid, 'click', handleShopInteraction, 'userTitlesInventoryGrid'); 
-        document.querySelectorAll('.sidebar-link').forEach(l => l.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); })); 
-        window.addEventListener('online', updateOnlineStatus); 
-        window.addEventListener('offline', updateOnlineStatus); 
-        document.addEventListener('click', (e) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(e.target) && !ui.notificationBell?.contains(e.target)) { ui.notificationsDropdown.classList.remove('active'); } }); 
-        
+        };
+        safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle');
+        safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle');
+        safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay');
+        safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn');
+        safeAddListener(ui.refreshDataBtn, 'click', loadAllAwardData, 'refreshDataBtn');
+        safeAddListener(ui.notificationBell, 'click', (e) => { e.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell');
+        safeAddListener(ui.markAllRead, 'click', handleMarkAllReadClick, 'markAllRead');
+        safeAddListener(ui.notificationsList, 'click', handleNotificationClick, 'notificationsList');
+        safeAddListener(ui.titleShopGrid, 'click', handleShopInteraction, 'titleShopGrid');
+        safeAddListener(ui.avatarDecorationsGrid, 'click', handleShopInteraction, 'avatarDecorationsGrid');
+        if(ui.userTitlesInventoryGrid) safeAddListener(ui.userTitlesInventoryGrid, 'click', handleShopInteraction, 'userTitlesInventoryGrid');
+        document.querySelectorAll('.sidebar-link').forEach(l => l.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }));
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        document.addEventListener('click', (e) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(e.target) && !ui.notificationBell?.contains(e.target)) { ui.notificationsDropdown.classList.remove('active'); } });
+
+        // Listeners for section toggles
         const sectionToggleMap = {
-            'toggle-user-badges-section': ui.userBadgesContent,
-            'toggle-available-badges-section': ui.availableBadgesContent,
-            'toggle-user-titles-section': ui.userTitlesInventoryContent,
-            'toggle-title-shop-section': ui.titleShopContent, 
-            'toggle-avatar-decorations-section': ui.avatarDecorationsContent,
-            'toggle-leaderboard-section': ui.leaderboardContent 
+            'toggleUserBadgesSection': ui.userBadgesContent,
+            'toggleAvailableBadgesSection': ui.availableBadgesContent,
+            'toggleUserTitlesSection': ui.userTitlesInventoryContent,
+            'toggleTitleShopSection': ui.titleShopContent,
+            'toggleAvatarDecorationsSection': ui.avatarDecorationsContent,
+            'toggleLeaderboardSection': ui.leaderboardContent
         };
 
-        Object.keys(sectionToggleMap).forEach(buttonIdString => {
-            const camelCaseButtonKey = buttonIdString.replace(/-([a-z])/g, g => g[1].toUpperCase()); // Convert kebab-case ID to camelCase for ui object key
-            const button = ui[camelCaseButtonKey];
-            // The contentElement is now defined directly in cacheDOMElements and stored in ui with a 'Content' suffix.
-            // We can derive its key or ensure cacheDOMElements populates it correctly based on the section container.
-            // For simplicity, we'll assume the parent .card is what we want to toggle 'collapsed-section' on.
-            
-            if (button) { // Check if button element was found
+        Object.keys(sectionToggleMap).forEach(buttonKey => {
+            const button = ui[buttonKey]; // buttonKey is already camelCase from cacheDOMElements
+            const contentElement = sectionToggleMap[buttonKey]; // Get the content element directly
+
+            if (button && contentElement) {
                 safeAddListener(button, 'click', () => {
-                    const sectionCard = button.closest('.card.section, .card.badges-section, .card.available-achievements, .card.user-titles-inventory-section, .card.title-shop-section, .card.avatar-decorations-shop, .card.leaderboard-section'); 
+                    const sectionCard = button.closest('.card'); // Parent card holds the state
                     if (sectionCard) {
-                        sectionCard.classList.toggle('collapsed-section');
+                        const isCollapsing = !contentElement.style.maxHeight || contentElement.style.maxHeight === '0px';
+                        if(isCollapsing) {
+                            contentElement.style.maxHeight = contentElement.scrollHeight + "px";
+                            sectionCard.classList.remove('collapsed-section');
+                        } else {
+                            contentElement.style.maxHeight = '0px';
+                            sectionCard.classList.add('collapsed-section');
+                        }
                         const icon = button.querySelector('i');
                         if (icon) {
-                            icon.classList.toggle('fa-chevron-down');
-                            icon.classList.toggle('fa-chevron-up');
+                            icon.classList.toggle('fa-chevron-down', !isCollapsing);
+                            icon.classList.toggle('fa-chevron-up', isCollapsing);
                         }
-                        console.log(`Toggled section for button ${buttonIdString}`);
+                        console.log(`Toggled section for button ${buttonKey}`);
                     } else {
-                        console.warn(`Parent .card or specific section class not found for toggle button ${buttonIdString}`);
+                        console.warn(`Parent .card not found for toggle button ${buttonKey}`);
                     }
-                }, buttonIdString); // Use buttonIdString as unique key for the listener
+                }, buttonKey);
             } else {
-                console.warn(`[SETUP] Toggle button with ID string '${buttonIdString}' (camelCase: '${camelCaseButtonKey}') not found in ui cache.`);
+                 if(!button) console.warn(`[SETUP] Toggle button with key '${buttonKey}' not found in ui cache.`);
+                 if(!contentElement && button) console.warn(`[SETUP] Content element for toggle button '${buttonKey}' not found.`);
             }
         });
-        console.log("[Oceneni SETUP] Event listeners setup complete."); 
+        console.log("[Oceneni SETUP] Event listeners setup complete.");
     }
     // --- END: Event Listeners Setup ---
 
     // --- START: Initialization ---
     async function initializeApp() {
-        console.log("🚀 [Init Oceneni v23.23.1] Starting...");
+        console.log("🚀 [Init Oceneni v23.23.2] Starting...");
         cacheDOMElements();
         if (!initializeSupabase()) return;
         applyInitialSidebarState();
@@ -660,13 +734,13 @@
             currentProfile = await fetchUserProfile(currentUser.id);
             if (!currentProfile) throw new Error("Nepodařilo se načíst profil uživatele.");
 
-            updateSidebarProfile(currentProfile, []); 
+            updateSidebarProfile(currentProfile, []);
             setupEventListeners();
             initMouseFollower();
             initHeaderScrollDetection();
             updateCopyrightYear();
             updateOnlineStatus();
-            await loadAllAwardData(); 
+            await loadAllAwardData();
 
             if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); }
             if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }

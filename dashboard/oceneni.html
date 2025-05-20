@@ -146,8 +146,13 @@
                 </section>
 
                 <section class="badges-section card loading" id="user-badges-container" data-animate style="--animation-order: 5;">
-                    <h2 class="section-title" style="padding: 1.5rem 1.5rem 0; margin-bottom: 0;"><i class="fas fa-award"></i>Vaše Odznaky</h2>
-                    <div style="padding: 1.5rem;">
+                    <h2 class="section-title" style="padding: 1.5rem 1.5rem 0; margin-bottom: 0;">
+                        <i class="fas fa-award"></i>Vaše Odznaky
+                        <button class="btn btn-icon-only btn-sm btn-tooltip" id="toggle-user-badges-section" title="Přepnout viditelnost sekce" style="margin-left: auto;">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                    </h2>
+                    <div class="section-collapsible-content" style="padding: 1.5rem;">
                         <div class="badge-grid" id="badge-grid">
                              </div>
                         <div class="empty-state" id="empty-badges" style="display: none;">
@@ -160,8 +165,13 @@
                 </section>
 
                  <section class="available-achievements card loading" id="available-badges-container" data-animate style="--animation-order: 6;">
-                     <h2 class="section-title" style="padding: 1.5rem 1.5rem 0; margin-bottom: 0;"><i class="fas fa-tasks"></i>Dostupné Výzvy</h2>
-                     <div style="padding: 1.5rem;">
+                     <h2 class="section-title" style="padding: 1.5rem 1.5rem 0; margin-bottom: 0;">
+                        <i class="fas fa-tasks"></i>Dostupné Výzvy
+                        <button class="btn btn-icon-only btn-sm btn-tooltip" id="toggle-available-badges-section" title="Přepnout viditelnost sekce" style="margin-left: auto;">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                    </h2>
+                     <div class="section-collapsible-content" style="padding: 1.5rem;">
                          <div class="achievement-grid" id="available-badges-grid">
                             </div>
                          <div class="empty-state" id="empty-available-badges" style="display: none;">
@@ -171,81 +181,108 @@
                          </div>
                      </div>
                 </section>
-                
+
                 <section class="section user-titles-inventory-section card loading" id="user-titles-inventory-container" data-animate style="--animation-order: 7;">
-                    <h2 class="section-title"><i class="fas fa-archive"></i> Moje Získané Tituly</h2>
-                    <div id="user-titles-inventory-loading" class="loader-container visible-loader" style="display: none;"> 
-                        <div class="loading-spinner"></div> <p>Načítání tvých titulů...</p> 
-                    </div>
-                    <div id="user-titles-inventory-grid" class="title-shop-grid" style="display: none; padding: 0 1.5rem 1.5rem;">
+                    <h2 class="section-title">
+                        <i class="fas fa-archive"></i> Moje Získané Tituly
+                        <button class="btn btn-icon-only btn-sm btn-tooltip" id="toggle-user-titles-section" title="Přepnout viditelnost sekce" style="margin-left: auto;">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                    </h2>
+                    <div class="section-collapsible-content">
+                        <div id="user-titles-inventory-loading" class="loader-container visible-loader" style="display: none;">
+                            <div class="loading-spinner"></div> <p>Načítání tvých titulů...</p>
                         </div>
-                    <div class="empty-state" id="user-titles-inventory-empty" style="display: none; margin: 1.5rem;"> 
-                        <i class="fas fa-box-open empty-state-icon"></i> 
-                        <h3 class="empty-state-title">Žádné Získané Tituly</h3> 
-                        <p class="empty-state-desc">Zatím jsi nezískal/a žádné tituly. Můžeš si nějaké koupit v obchodě níže!</p> 
+                        <div id="user-titles-inventory-grid" class="title-shop-grid" style="display: none; padding: 0 1.5rem 1.5rem;">
+                            </div>
+                        <div class="empty-state" id="user-titles-inventory-empty" style="display: none; margin: 1.5rem;">
+                            <i class="fas fa-box-open empty-state-icon"></i>
+                            <h3 class="empty-state-title">Žádné Získané Tituly</h3>
+                            <p class="empty-state-desc">Zatím jsi nezískal/a žádné tituly. Můžeš si nějaké koupit v obchodě níže!</p>
+                        </div>
                     </div>
                 </section>
                 <section class="section title-shop-section card loading" id="title-shop-container" data-animate style="--animation-order: 8;">
-                    <h2 class="section-title"><i class="fas fa-store"></i> Obchod s Tituly</h2>
-                    <div class="current-credits" style="text-align: right; margin-bottom: 1.5rem; font-size: 1rem; color: var(--text-medium); padding: 0 1.5rem;">
-                        Vaše kredity: <strong id="shop-user-credits" style="color: var(--accent-orange); font-size: 1.2em;">Načítání...</strong> <i class="fas fa-coins"></i>
+                    <h2 class="section-title">
+                        <i class="fas fa-store"></i> Obchod s Tituly
+                        <button class="btn btn-icon-only btn-sm btn-tooltip" id="toggle-title-shop-section" title="Přepnout viditelnost sekce" style="margin-left: auto;">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
+                    </h2>
+                    <div class="section-collapsible-content">
+                        <div class="current-credits" style="text-align: right; margin-bottom: 1.5rem; font-size: 1rem; color: var(--text-medium); padding: 0 1.5rem;">
+                            Vaše kredity: <strong id="shop-user-credits" style="color: var(--accent-orange); font-size: 1.2em;">Načítání...</strong> <i class="fas fa-coins"></i>
+                        </div>
+                        <div id="title-shop-loading" class="loader-container visible-loader" style="display: none;"> <div class="loading-spinner"></div> <p>Načítání nabídky titulů...</p> </div>
+                        <div id="title-shop-grid" class="title-shop-grid" style="display: none; padding: 0 1.5rem 1.5rem;">
+                             </div>
+                        <div class="empty-state" id="title-shop-empty" style="display: none; margin: 1.5rem;"> <i class="fas fa-store-slash empty-state-icon"></i> <h3 class="empty-state-title">Obchod je prázdný</h3> <p class="empty-state-desc">Momentálně nejsou k dispozici žádné tituly k zakoupení.</p> </div>
                     </div>
-                    <div id="title-shop-loading" class="loader-container visible-loader" style="display: none;"> <div class="loading-spinner"></div> <p>Načítání nabídky titulů...</p> </div>
-                    <div id="title-shop-grid" class="title-shop-grid" style="display: none; padding: 0 1.5rem 1.5rem;">
-                         </div>
-                    <div class="empty-state" id="title-shop-empty" style="display: none; margin: 1.5rem;"> <i class="fas fa-store-slash empty-state-icon"></i> <h3 class="empty-state-title">Obchod je prázdný</h3> <p class="empty-state-desc">Momentálně nejsou k dispozici žádné tituly k zakoupení.</p> </div>
                 </section>
 
                 <section class="section avatar-decorations-shop card loading" id="avatar-decorations-shop" data-animate style="--animation-order: 9;">
                     <h2 class="section-title">
                         <i class="fas fa-gem"></i> Vylepšení Avatara
+                        <button class="btn btn-icon-only btn-sm btn-tooltip" id="toggle-avatar-decorations-section" title="Přepnout viditelnost sekce" style="margin-left: auto;">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
                     </h2>
-                    <div class="current-credits" style="text-align: right; margin-bottom: 1.5rem; font-size: 1rem; color: var(--text-medium); padding: 0 1.5rem;">
-                        Vaše kredity: <strong id="shop-decor-credits" style="color: var(--accent-orange); font-size: 1.2em;">Načítání...</strong> <i class="fas fa-coins"></i>
-                    </div>
-
-                    <div id="avatar-decorations-loading" class="loader-container visible-loader" style="display: none;">
-                        <div class="loading-spinner"></div>
-                        <p>Načítání vylepšení...</p>
-                    </div>
-
-                    <div id="avatar-decorations-grid" class="avatar-shop-grid" style="display: none; padding: 0 1.5rem 1.5rem;">
+                    <div class="section-collapsible-content">
+                        <div class="current-credits" style="text-align: right; margin-bottom: 1.5rem; font-size: 1rem; color: var(--text-medium); padding: 0 1.5rem;">
+                            Vaše kredity: <strong id="shop-decor-credits" style="color: var(--accent-orange); font-size: 1.2em;">Načítání...</strong> <i class="fas fa-coins"></i>
                         </div>
-                    <div class="empty-state" id="avatar-decorations-empty" style="display: none; margin: 1.5rem;">
-                        <i class="fas fa-box-open empty-state-icon"></i>
-                        <h3 class="empty-state-title">Žádná vylepšení</h3>
-                        <p class="empty-state-desc">Momentálně nejsou k dispozici žádná vylepšení pro avatary.</p>
+
+                        <div id="avatar-decorations-loading" class="loader-container visible-loader" style="display: none;">
+                            <div class="loading-spinner"></div>
+                            <p>Načítání vylepšení...</p>
+                        </div>
+
+                        <div id="avatar-decorations-grid" class="avatar-shop-grid" style="display: none; padding: 0 1.5rem 1.5rem;">
+                            </div>
+                        <div class="empty-state" id="avatar-decorations-empty" style="display: none; margin: 1.5rem;">
+                            <i class="fas fa-box-open empty-state-icon"></i>
+                            <h3 class="empty-state-title">Žádná vylepšení</h3>
+                            <p class="empty-state-desc">Momentálně nejsou k dispozici žádná vylepšení pro avatary.</p>
+                        </div>
                     </div>
                 </section>
-                <section class="leaderboard-section card loading" id="leaderboard-container" data-animate style="--animation-order: 10;"> <div class="leaderboard-skeleton" id="leaderboard-skeleton" style="display: none;">
-                         <div class="leaderboard-header-skeleton"> <div class="skeleton" style="height: 24px; width: 150px;"></div> <div class="skeleton" style="height: 30px; width: 200px; border-radius: 8px;"></div> </div>
-                         <div class="leaderboard-table-skeleton"> 
-                            <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> <div class="skeleton badges-placeholder"></div> <div class="skeleton streak-placeholder"></div> </div>
-                            <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> <div class="skeleton badges-placeholder"></div> <div class="skeleton streak-placeholder"></div> </div>
-                            <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> <div class="skeleton badges-placeholder"></div> <div class="skeleton streak-placeholder"></div> </div>
-                         </div>
-                     </div>
+                <section class="leaderboard-section card loading" id="leaderboard-container" data-animate style="--animation-order: 10;">
                     <div class="leaderboard-header" id="leaderboard-header" style="visibility: hidden;">
-                        <h2 class="section-title leaderboard-title"><i class="fas fa-trophy"></i>Síň Slávy</h2>
-                        </div>
-                    <div class="leaderboard-table-container" id="leaderboard-table-container" style="display:none;">
-                        <table class="leaderboard-table">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Pilot</th>
-                                    <th>Kredity</th>
-                                    <th>Odznaky</th>
-                                    <th>Série</th>
-                                </tr>
-                            </thead>
-                            <tbody id="leaderboard-body">
-                                </tbody>
-                        </table>
+                        <h2 class="section-title leaderboard-title">
+                            <i class="fas fa-trophy"></i>Síň Slávy
+                        </h2>
+                        <button class="btn btn-icon-only btn-sm btn-tooltip" id="toggle-leaderboard-section" title="Přepnout viditelnost sekce" style="margin-left: auto;">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
                     </div>
-                    <div class="empty-state" id="leaderboard-empty" style="display: none; padding: 2rem; border: none;">
-                         <i class="fas fa-satellite-dish empty-state-icon"></i>
-                        <p>ŽÁDNÁ DATA V SÍNI SLÁVY.</p>
+                    <div class="section-collapsible-content">
+                        <div class="leaderboard-skeleton" id="leaderboard-skeleton" style="display: none;">
+                             <div class="leaderboard-header-skeleton"> <div class="skeleton" style="height: 24px; width: 150px;"></div> <div class="skeleton" style="height: 30px; width: 200px; border-radius: 8px;"></div> </div>
+                             <div class="leaderboard-table-skeleton">
+                                <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> <div class="skeleton badges-placeholder"></div> <div class="skeleton streak-placeholder"></div> </div>
+                                <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> <div class="skeleton badges-placeholder"></div> <div class="skeleton streak-placeholder"></div> </div>
+                                <div class="skeleton-row"> <div class="skeleton rank-placeholder"></div> <div class="skeleton avatar-placeholder"></div> <div class="skeleton name-placeholder"></div> <div class="skeleton score-placeholder"></div> <div class="skeleton badges-placeholder"></div> <div class="skeleton streak-placeholder"></div> </div>
+                             </div>
+                         </div>
+                        <div class="leaderboard-table-container" id="leaderboard-table-container" style="display:none;">
+                            <table class="leaderboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Pilot</th>
+                                        <th>Kredity</th>
+                                        <th>Odznaky</th>
+                                        <th>Série</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leaderboard-body">
+                                    </tbody>
+                            </table>
+                        </div>
+                        <div class="empty-state" id="leaderboard-empty" style="display: none; padding: 2rem; border: none;">
+                             <i class="fas fa-satellite-dish empty-state-icon"></i>
+                            <p>ŽÁDNÁ DATA V SÍNI SLÁVY.</p>
+                        </div>
                     </div>
                 </section>
 
