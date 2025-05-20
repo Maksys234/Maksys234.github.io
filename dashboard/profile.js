@@ -1,3 +1,5 @@
+// dashboard/profile.js
+// Version: UPDATED with Level Up Logic
 (function() {
     // --- START: Initialization and Configuration ---
     const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
@@ -5,19 +7,17 @@
     let supabase = null;
     let currentUser = null;
     let currentProfile = null;
-    let allTitles = []; // <<< NEW: To store fetched titles
-    let selectedBuiltInAvatarPath = null; // To store the path of the selected built-in avatar
+    let allTitles = [];
+    let selectedBuiltInAvatarPath = null;
     let isLoading = {
         profile: false, password: false, preferences: false,
         avatar: false, delete: false, notifications: false,
-        titles: false // <<< NEW: Loading state for titles
+        titles: false
     };
-    // Leveling Formula Constants
     const BASE_XP = 100;
     const INCREMENT_XP = 25;
-    const SIDEBAR_STATE_KEY = 'sidebarCollapsedState'; // Key for localStorage
+    const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
 
-    // DOM Elements Cache (Updated with new XP elements and sidebar toggle)
     const ui = {
         initialLoader: document.getElementById('initial-loader'),
         sidebarOverlay: document.getElementById('sidebar-overlay'),
@@ -25,26 +25,23 @@
         sidebar: document.getElementById('sidebar'),
         mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
         sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
-        sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'), // <<< NEW: Sidebar toggle button
+        sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'),
         sidebarAvatar: document.getElementById('sidebar-avatar'),
         sidebarName: document.getElementById('sidebar-name'),
-        sidebarUserTitle: document.getElementById('sidebar-user-title'), // <<< NEW: Sidebar user title element
+        sidebarUserTitle: document.getElementById('sidebar-user-title'),
         logoutBtn: document.getElementById('logout-btn'),
         profileContent: document.getElementById('profile-content'),
         profileName: document.getElementById('profile-name'),
         profileEmail: document.getElementById('profile-email'),
         profileAvatar: document.getElementById('profile-avatar'),
-        // Profile Header Stats
         profilePoints: document.getElementById('profile-points'),
         profileBadges: document.getElementById('profile-badges'),
         profileStreak: document.getElementById('profile-streak'),
-        // --- Level/EXP Elements ---
         profileLevelMain: document.getElementById('profile-level-main'),
         expProgressBarFill: document.getElementById('exp-progress-bar-fill'),
         expCurrentValue: document.getElementById('exp-current-value'),
         expRequiredValue: document.getElementById('exp-required-value'),
         expPercentage: document.getElementById('exp-percentage'),
-        // --- End Level/EXP ---
         profileForm: document.getElementById('profile-form'),
         passwordForm: document.getElementById('password-form'),
         firstNameField: document.getElementById('first_name'),
@@ -92,7 +89,6 @@
         markAllReadBtn: document.getElementById('mark-all-read'),
     };
 
-    // Check for critical UI elements
     if (!ui.builtinAvatarGrid) {
         console.error("CRITICAL: Avatar grid container (#builtin-avatar-grid) not found in HTML!");
     } else {
@@ -102,13 +98,11 @@
         console.warn("Sidebar toggle button (#sidebar-toggle-btn) not found.");
     }
     if (!ui.sidebarUserTitle) {
-        console.warn("Sidebar user title element (#sidebar-user-title) not found."); // <<< NEW: Check for title element
+        console.warn("Sidebar user title element (#sidebar-user-title) not found.");
     }
     // --- END: Initialization and Configuration ---
 
     // --- START: Helper Functions ---
-    // (showToast, showError, hideError, showFieldError, clearFieldError, clearAllErrors, showModal, hideModal, updateOnlineStatus, getInitials, sanitizeHTML, openMenu, closeMenu, initMouseFollower, initHeaderScrollDetection, updateCopyrightYear, validators, setLoadingState)
-    // ... (Все вспомогательные функции из предыдущего шага остаются здесь) ...
     function showToast(title, message, type = 'info', duration = 4500) {
         if (!ui.toastContainer) return;
         try {
@@ -174,16 +168,16 @@
      function showModal(modalId) {
          const m = document.getElementById(modalId);
          if (m) {
-             console.log(`[Modal] Opening modal: ${modalId}`); // Log opening
+             console.log(`[Modal] Opening modal: ${modalId}`);
              m.style.display = 'flex';
              requestAnimationFrame(() => m.classList.add('active'));
              if (modalId === 'avatar-modal') {
-                 console.log("[Modal] Populating built-in avatars..."); // Log population start
+                 console.log("[Modal] Populating built-in avatars...");
                  populateBuiltInAvatars();
                  selectedBuiltInAvatarPath = null;
-                 if (ui.avatarUploadInput) ui.avatarUploadInput.value = ''; // Clear file input
-                 if (ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = true; // Disable save initially
-                 updateAvatarPreviewFromProfile(); // Reset preview to current
+                 if (ui.avatarUploadInput) ui.avatarUploadInput.value = '';
+                 if (ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = true;
+                 updateAvatarPreviewFromProfile();
              }
          } else {
               console.error(`[Modal] Modal element not found: ${modalId}`);
@@ -200,8 +194,8 @@
                  if (modalId === 'avatar-modal') {
                       selectedBuiltInAvatarPath = null;
                      if (ui.avatarUploadInput) ui.avatarUploadInput.value = '';
-                     if(ui.avatarPreview) updateAvatarPreviewFromProfile(); // Reset preview
-                     if(ui.builtinAvatarGrid) ui.builtinAvatarGrid.querySelectorAll('.selected').forEach(el => el.classList.remove('selected')); // Clear grid selection
+                     if(ui.avatarPreview) updateAvatarPreviewFromProfile();
+                     if(ui.builtinAvatarGrid) ui.builtinAvatarGrid.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
                      if (ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = true;
                  }
              }, 400);
@@ -212,17 +206,16 @@
     function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Offline', 'Spojení ztraceno.', 'warning'); }
     function getInitials(userData) { if (!userData) return '?'; const f = userData.first_name?.[0] || ''; const l = userData.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?'; }
     function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
-    function openMenu() { // Mobile menu open
+    function openMenu() {
         if (ui.sidebar && ui.sidebarOverlay) {
-             // Ensure sidebar is not in collapsed desktop state when opening mobile menu
              document.body.classList.remove('sidebar-collapsed');
-             ui.sidebar.classList.add('active'); // Mobile active class
+             ui.sidebar.classList.add('active');
              ui.sidebarOverlay.classList.add('active');
         }
     }
-    function closeMenu() { // Mobile menu close
+    function closeMenu() {
         if (ui.sidebar && ui.sidebarOverlay) {
-            ui.sidebar.classList.remove('active'); // Mobile active class
+            ui.sidebar.classList.remove('active');
             ui.sidebarOverlay.classList.remove('active');
         }
     }
@@ -263,7 +256,7 @@
                 else if (section === 'preferences') button.innerHTML = `${spinnerIcon} Ukládám...`;
                 else if (section === 'avatar') button.innerHTML = `${spinnerIcon} Ukládám...`;
                 else if (section === 'delete') button.innerHTML = `${spinnerIcon} Mažu...`;
-                else if (section === 'notifications') button.textContent = 'MAŽU...'; // Example for no icon button
+                else if (section === 'notifications') button.textContent = 'MAŽU...';
                 else { button.innerHTML = `${spinnerIcon} Načítám...`; }
             } else {
                  if (button.dataset.originalContent) {
@@ -284,9 +277,6 @@
     // --- END: Helper Functions ---
 
     // --- START: Leveling Logic ---
-    /**
-     * Calculates the total XP threshold required to reach the beginning of a target level.
-     */
     function getTotalExpThreshold(targetLevel) {
         if (targetLevel <= 1) {
             return 0;
@@ -298,7 +288,85 @@
         }
         return totalExp;
     }
+
+    // <<< NEW FUNCTION: checkAndProcessLevelUps >>>
+    async function checkAndProcessLevelUps(profileData) {
+        if (!profileData) return false; // No profile data to process
+
+        let initialLevel = profileData.level;
+        let levelIncreased = false;
+        let levelsGained = 0;
+
+        console.log(`[LevelUpCheck] Start. Current Lvl: ${profileData.level}, Current XP: ${profileData.experience}`);
+
+        // Loop to handle multiple level-ups if enough XP is gained at once
+        while (profileData.experience >= getTotalExpThreshold(profileData.level + 1)) {
+            profileData.level += 1;
+            levelsGained++;
+            levelIncreased = true;
+            console.log(`[LevelUpCheck] Leveled up to: ${profileData.level}! XP needed for next: ${getTotalExpThreshold(profileData.level + 1)}`);
+            showToast('POSTUP NA NOVOU ÚROVEŇ!', `Gratulujeme, dosáhli jste úrovně ${profileData.level}!`, 'success', 5000);
+            // TODO: Consider adding logActivity here if you have a generic one
+            // await logActivity(currentUser.id, 'level_up', `Dosažena úroveň ${profileData.level}`, null, { new_level: profileData.level });
+        }
+
+        if (levelIncreased) {
+            console.log(`[LevelUpCheck] Total levels gained: ${levelsGained}. New level: ${profileData.level}. Saving to DB...`);
+            const success = await updateProfileLevelInDB(currentUser.id, profileData.level, profileData.experience);
+            if (success) {
+                console.log(`[LevelUpCheck] New level ${profileData.level} saved to DB.`);
+                 // Optionally, re-fetch the entire profile to ensure all server-side triggers (if any) are processed
+                 // currentProfile = await fetchUserProfile(currentUser.id); // This would ensure data consistency
+            } else {
+                console.error(`[LevelUpCheck] Failed to save new level ${profileData.level} to DB. Reverting local change for safety.`);
+                profileData.level = initialLevel; // Revert if DB update failed
+                return false; // Indicate that changes were not persisted
+            }
+        } else {
+            console.log(`[LevelUpCheck] No level up. XP (${profileData.experience}) < Threshold for Lvl ${profileData.level + 1} (${getTotalExpThreshold(profileData.level + 1)})`);
+        }
+        return levelIncreased; // Return true if level changed and was saved
+    }
+
+    // <<< NEW FUNCTION: updateProfileLevelInDB >>>
+    async function updateProfileLevelInDB(userId, newLevel, currentTotalExperience) {
+        if (!supabase || !userId) return false;
+        console.log(`[DB Update] Saving new level ${newLevel} for user ${userId}. Total XP remains ${currentTotalExperience}.`);
+        try {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ level: newLevel, updated_at: new Date().toISOString() }) // Only update level and timestamp
+                .eq('id', userId);
+            if (error) throw error;
+            console.log("[DB Update] Level successfully updated in database.");
+            return true;
+        } catch (error) {
+            console.error('[DB Update] Error updating level in database:', error);
+            showToast('Chyba', 'Nepodařilo se uložit novou úroveň.', 'error');
+            return false;
+        }
+    }
+
+    // <<< NEW FUNCTION (Placeholder): logActivity >>>
+    async function logActivity(userId, type, title, description = null, details = null) {
+        // This is a placeholder. In a real app, this would make a Supabase insert call.
+        console.log(`[Activity Log] User: ${userId}, Type: ${type}, Title: "${title}", Desc: "${description}", Details:`, details);
+        // Example Supabase call (uncomment and adapt if you have an 'activities' table)
+        /*
+        if (!supabase || !userId) return;
+        try {
+            const { error } = await supabase.from('activities').insert([
+                { user_id: userId, type: type, title: title, description: description, details: details }
+            ]);
+            if (error) console.error('Error logging activity:', error);
+        } catch (e) {
+            console.error('Exception logging activity:', e);
+        }
+        */
+    }
+
     // --- END: Leveling Logic ---
+
 
     // --- START: Supabase Interaction Functions ---
     function initializeSupabase() { try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Knihovna Supabase nebyla správně načtena."); } supabase = window.supabase.createClient(supabaseUrl, supabaseKey); if (!supabase) throw new Error("Vytvoření klienta Supabase selhalo."); console.log('[Supabase] Klient úspěšně inicializován.'); return true; } catch (error) { console.error('[Supabase] Inicializace selhala:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi.", true); return false; } }
@@ -307,10 +375,9 @@
         if (!supabase || !userId) return null;
         console.log(`[Profile] Načítání profilu pro ID: ${userId}`);
         try {
-            // <<< UPDATED: Ensure selected_title is fetched >>>
             const { data: profile, error } = await supabase
                 .from('profiles')
-                .select('*, selected_title') // Fetch all including selected_title
+                .select('*, selected_title')
                 .eq('id', userId)
                 .single();
             if (error && error.code !== 'PGRST116') throw error;
@@ -322,7 +389,7 @@
                     preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches, language: 'cs' },
                     notifications: { email: true, study_tips: true, content_updates: true, practice_reminders: true }
                 };
-                const { data: newProfile, error: createError } = await supabase.from('profiles').insert([defaultProfileData]).select('*, selected_title').single(); // Fetch selected_title here too
+                const { data: newProfile, error: createError } = await supabase.from('profiles').insert([defaultProfileData]).select('*, selected_title').single();
                 if (createError) throw createError;
                 console.log("[Profile] Výchozí profil úspěšně vytvořen.");
                 return newProfile;
@@ -336,15 +403,14 @@
         }
     }
 
-    // <<< NEW: Function to fetch titles (copied from oceneni.js/dashboard.js) >>>
     async function fetchTitles() {
         if (!supabase) return [];
         console.log("[Titles] Fetching available titles...");
         setLoadingState('titles', true);
         try {
             const { data, error } = await supabase
-                .from('title_shop') // Assuming table name is 'title_shop'
-                .select('title_key, name'); // Select key and display name
+                .from('title_shop')
+                .select('title_key, name');
             if (error) throw error;
             console.log("[Titles] Fetched titles:", data);
             return data || [];
@@ -364,22 +430,20 @@
     async function deleteUserAccount(password) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } if (!password) { showFieldError('confirm-delete-password', 'Zadejte heslo pro potvrzení.'); return false; } console.warn("[Account Deletion] Zahájení procesu smazání účtu pro:", currentUser.id); setLoadingState('delete', true); clearFieldError('confirm-delete-password'); try { console.log("[Account Deletion] Volání funkce 'delete-user-account'..."); const { data, error } = await supabase.functions.invoke('delete-user-account', { body: JSON.stringify({ password: password }) }); if (error) { let message = error.message || 'Neznámá chyba serverové funkce.'; if (message.includes('Invalid user credentials') || message.includes('Incorrect password')) { showFieldError('confirm-delete-password', 'Nesprávné heslo.'); message = 'Nesprávné heslo.'; } else if (message.includes('requires recent login')) { showFieldError('confirm-delete-password', 'Vyžadováno nedávné přihlášení.'); message = 'Pro smazání účtu se prosím znovu přihlaste.'; showToast('Chyba', message, 'warning'); } else { showToast('CHYBA SMAZÁNÍ', message, 'error'); } console.error('[Account Deletion] Chyba funkce:', error); return false; } console.log("[Account Deletion] Funkce úspěšně provedena:", data); showToast('ÚČET SMAZÁN', 'Váš účet byl úspěšně smazán.', 'success', 5000); setTimeout(() => { window.location.href = '/auth/index.html'; }, 3000); return true; } catch (error) { console.error('[Account Deletion] Chyba:', error); if (!document.getElementById('confirm-delete-password-error')?.textContent) { showToast('CHYBA SMAZÁNÍ', `Smazání účtu selhalo: ${error.message}`, 'error'); } return false; } finally { setLoadingState('delete', false); } }
     // --- END: Supabase Interaction Functions ---
 
-        // --- START: Notification Functions ---
-        async function fetchNotifications(userId, limit = 5) { if (!supabase || !userId) { console.error("[Notifications] Chybí Supabase nebo ID uživatele."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications] Načítání nepřečtených oznámení pro uživatele ${userId}`); setLoadingState('notifications', true); try { const { data, error, count } = await supabase .from('user_notifications') .select('*', { count: 'exact' }) .eq('user_id', userId) .eq('is_read', false) .order('created_at', { ascending: false }) .limit(limit); if (error) throw error; console.log(`[Notifications] Načteno ${data?.length || 0} oznámení. Celkem nepřečtených: ${count}`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications] Výjimka při načítání oznámení:", error); showToast('Chyba', 'Nepodařilo se načíst oznámení.', 'error'); return { unreadCount: 0, notifications: [] }; } finally { setLoadingState('notifications', false); } }
-        function renderNotifications(count, notifications) { console.log("[Render Notifications] Start, Počet:", count, "Oznámení:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications] Chybí UI elementy."); return; } ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const iconMap = { info: 'fa-info-circle', success: 'fa-check-circle', warning: 'fa-exclamation-triangle', danger: 'fa-exclamation-circle', badge: 'fa-medal', level_up: 'fa-angle-double-up' }; const iconClass = iconMap[n.type] || 'fa-info-circle'; const typeClass = n.type || 'info'; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${typeClass}"><i class="fas ${iconClass}"></i></div> <div class="notification-content"> <div class="notification-title">${sanitizeHTML(n.title)}</div> <div class="notification-message">${sanitizeHTML(n.message)}</div> <div class="notification-time">${formatRelativeTime(n.created_at)}</div> </div> </div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } console.log("[Render Notifications] Hotovo"); }
-        async function markNotificationRead(notificationId) { console.log("[FUNC] markNotificationRead: Označení ID:", notificationId); if (!currentUser || !notificationId) return false; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[FUNC] markNotificationRead: Úspěch pro ID:", notificationId); return true; } catch (error) { console.error("[FUNC] markNotificationRead: Chyba:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
-        async function markAllNotificationsRead() { console.log("[FUNC] markAllNotificationsRead: Start pro uživatele:", currentUser?.id); if (!currentUser || !ui.markAllReadBtn) return; setLoadingState('notifications', true); try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false); if (error) throw error; console.log("[FUNC] markAllNotificationsRead: Úspěch"); const { unreadCount, notifications } = await fetchNotifications(currentUser.id, 5); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Chyba:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { setLoadingState('notifications', false); } }
-        function formatRelativeTime(timestamp) { if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); if (isNaN(date.getTime())) return '-'; const diffMs = now - date; const diffSec = Math.round(diffMs / 1000); const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60); const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7); if (diffSec < 60) return 'Nyní'; if (diffMin < 60) return `Před ${diffMin} min`; if (diffHour < 24) return `Před ${diffHour} hod`; if (diffDay === 1) return `Včera`; if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`; return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { console.error("Chyba formátování času:", e, "Timestamp:", timestamp); return '-'; } }
-        // --- END: Notification Functions ---
+    // --- START: Notification Functions ---
+    async function fetchNotifications(userId, limit = 5) { if (!supabase || !userId) { console.error("[Notifications] Chybí Supabase nebo ID uživatele."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications] Načítání nepřečtených oznámení pro uživatele ${userId}`); setLoadingState('notifications', true); try { const { data, error, count } = await supabase .from('user_notifications') .select('*', { count: 'exact' }) .eq('user_id', userId) .eq('is_read', false) .order('created_at', { ascending: false }) .limit(limit); if (error) throw error; console.log(`[Notifications] Načteno ${data?.length || 0} oznámení. Celkem nepřečtených: ${count}`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications] Výjimka při načítání oznámení:", error); showToast('Chyba', 'Nepodařilo se načíst oznámení.', 'error'); return { unreadCount: 0, notifications: [] }; } finally { setLoadingState('notifications', false); } }
+    function renderNotifications(count, notifications) { console.log("[Render Notifications] Start, Počet:", count, "Oznámení:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications] Chybí UI elementy."); return; } ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const iconMap = { info: 'fa-info-circle', success: 'fa-check-circle', warning: 'fa-exclamation-triangle', danger: 'fa-exclamation-circle', badge: 'fa-medal', level_up: 'fa-angle-double-up' }; const iconClass = iconMap[n.type] || 'fa-info-circle'; const typeClass = n.type || 'info'; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${typeClass}"><i class="fas ${iconClass}"></i></div> <div class="notification-content"> <div class="notification-title">${sanitizeHTML(n.title)}</div> <div class="notification-message">${sanitizeHTML(n.message)}</div> <div class="notification-time">${formatRelativeTime(n.created_at)}</div> </div> </div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } console.log("[Render Notifications] Hotovo"); }
+    async function markNotificationRead(notificationId) { console.log("[FUNC] markNotificationRead: Označení ID:", notificationId); if (!currentUser || !notificationId) return false; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[FUNC] markNotificationRead: Úspěch pro ID:", notificationId); return true; } catch (error) { console.error("[FUNC] markNotificationRead: Chyba:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
+    async function markAllNotificationsRead() { console.log("[FUNC] markAllNotificationsRead: Start pro uživatele:", currentUser?.id); if (!currentUser || !ui.markAllReadBtn) return; setLoadingState('notifications', true); try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false); if (error) throw error; console.log("[FUNC] markAllNotificationsRead: Úspěch"); const { unreadCount, notifications } = await fetchNotifications(currentUser.id, 5); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Chyba:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { setLoadingState('notifications', false); } }
+    function formatRelativeTime(timestamp) { if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); if (isNaN(date.getTime())) return '-'; const diffMs = now - date; const diffSec = Math.round(diffMs / 1000); const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60); const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7); if (diffSec < 60) return 'Nyní'; if (diffMin < 60) return `Před ${diffMin} min`; if (diffHour < 24) return `Před ${diffHour} hod`; if (diffDay === 1) return `Včera`; if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`; return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { console.error("Chyba formátování času:", e, "Timestamp:", timestamp); return '-'; } }
+    // --- END: Notification Functions ---
 
 
     // --- START: UI Update Functions ---
-    // <<< UPDATED: updateProfileDisplay now accepts titlesData >>>
     function updateProfileDisplay(profileData, titlesData = []) {
         if (!profileData) { console.warn("updateProfileDisplay: Missing profile data."); return; }
         console.log("[UI Update] Updating profile display...");
 
-        // --- Sidebar Update (including title) ---
         const sidebarDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || currentUser?.email?.split('@')[0] || 'Pilot';
         if (ui.sidebarName) ui.sidebarName.textContent = sanitizeHTML(sidebarDisplayName);
         if (ui.sidebarAvatar) {
@@ -395,10 +459,9 @@
              const sidebarImg = ui.sidebarAvatar.querySelector('img');
              if (sidebarImg) { sidebarImg.onerror = function() { console.error(`[UI Update] Failed to load sidebar avatar: ${this.src}`); ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); }; }
         }
-        // <<< NEW: Update Sidebar Title >>>
         if(ui.sidebarUserTitle) {
             const selectedTitleKey = profileData.selected_title;
-            let displayTitle = 'Pilot'; // Default
+            let displayTitle = 'Pilot';
             if (selectedTitleKey && titlesData && titlesData.length > 0) {
                 const foundTitle = titlesData.find(t => t.title_key === selectedTitleKey);
                 if (foundTitle && foundTitle.name) {
@@ -410,11 +473,9 @@
                  console.warn(`[UI Update] Selected title key "${selectedTitleKey}" exists but title list is empty or not fetched yet.`);
             }
             ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle);
-            ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle)); // Update tooltip
+            ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle));
         }
-        // <<< END NEW >>>
 
-        // --- Main Profile Section Update ---
         const profileDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || 'Uživatel';
         if (ui.profileName) ui.profileName.textContent = sanitizeHTML(profileDisplayName);
         if (ui.profileEmail) ui.profileEmail.textContent = sanitizeHTML(profileData.email);
@@ -446,52 +507,33 @@
 
         updateAvatarPreviewFromProfile();
 
-        // Update basic stats (Points, Badges, Streak)
         if (ui.profilePoints) ui.profilePoints.textContent = profileData.points ?? 0;
         if (ui.profileBadges) ui.profileBadges.textContent = profileData.badges_count ?? 0;
         if (ui.profileStreak) ui.profileStreak.textContent = profileData.streak_days ?? 0;
 
-        // --- Level and Experience Update ---
-        const currentLevel = profileData.level ?? 1; // Read LEVEL from profile
-        const currentExperience = profileData.experience ?? 0; // Use experience column now
-
+        const currentLevel = profileData.level ?? 1;
+        const currentExperience = profileData.experience ?? 0;
         const currentLevelExpThreshold = getTotalExpThreshold(currentLevel);
         const nextLevelExpThreshold = getTotalExpThreshold(currentLevel + 1);
         const expNeededForLevelSpan = nextLevelExpThreshold - currentLevelExpThreshold;
         const currentExpInLevel = Math.max(0, currentExperience - currentLevelExpThreshold);
-
         let percentage = 0;
         if (expNeededForLevelSpan > 0) {
             percentage = Math.min(100, Math.max(0, Math.round((currentExpInLevel / expNeededForLevelSpan) * 100)));
         } else {
             percentage = (currentExperience >= currentLevelExpThreshold && currentLevel > 0) ? 100 : 0;
-             if (currentLevel > 0) {
-                 console.warn(`Experience span for level ${currentLevel} is zero or negative. Exp needed: ${expNeededForLevelSpan}. Next Threshold: ${nextLevelExpThreshold}, Current Threshold: ${currentLevelExpThreshold}`);
-             }
         }
 
         console.log(`[EXP Update] Level: ${currentLevel}, Experience: ${currentExperience}`);
         console.log(`[EXP Update] Thresholds: Current=${currentLevelExpThreshold}, Next=${nextLevelExpThreshold}`);
         console.log(`[EXP Update] Progress in Level: ${currentExpInLevel} / ${expNeededForLevelSpan > 0 ? expNeededForLevelSpan : 'N/A'} (${percentage}%)`);
 
-        // Update UI elements
         if (ui.profileLevelMain) { ui.profileLevelMain.textContent = currentLevel; }
-        else { console.warn("Element profile-level-main not found"); }
-
         if (ui.expProgressBarFill) { ui.expProgressBarFill.style.width = `${percentage}%`; }
-        else { console.warn("Element exp-progress-bar-fill not found"); }
-
         if (ui.expCurrentValue) { ui.expCurrentValue.textContent = currentExpInLevel; }
-        else { console.warn("Element exp-current-value not found"); }
-
-        if (ui.expRequiredValue) { ui.expRequiredValue.textContent = expNeededForLevelSpan > 0 ? expNeededForLevelSpan : '∞'; }
-        else { console.warn("Element exp-required-value not found"); }
-
+        if (ui.expRequiredValue) { ui.expRequiredValue.textContent = expNeededForLevelSpan > 0 ? expNeededForLevelSpan : 'MAX'; } // Changed to MAX
         if (ui.expPercentage) { ui.expPercentage.textContent = percentage; }
-        else { console.warn("Element exp-percentage not found"); }
-        // --- End Level and Experience Update ---
 
-        // Update form fields
         if (ui.firstNameField) ui.firstNameField.value = profileData.first_name || '';
         if (ui.lastNameField) ui.lastNameField.value = profileData.last_name || '';
         if (ui.usernameField) ui.usernameField.value = profileData.username || '';
@@ -597,26 +639,32 @@
 
 
     // --- START: Main Logic ---
-    // <<< UPDATED: loadAndDisplayProfile now passes titlesData >>>
     async function loadAndDisplayProfile() {
         console.log("[MAIN] Loading and displaying profile...");
         if (!currentUser) { console.error("[MAIN] No logged-in user."); showError("Pro přístup k profilu se musíte přihlásit.", true); return; }
         if(ui.profileContent) ui.profileContent.style.display = 'none';
         hideError();
-        // Set loading state for profile section
-         setLoadingState('profile', true); // Indicate profile data loading
+        setLoadingState('profile', true);
 
         try {
-            // Fetch profile and titles concurrently
              const [profileResult, titlesResult, notificationsResult] = await Promise.allSettled([
                  fetchUserProfile(currentUser.id),
                  fetchTitles(),
-                 fetchNotifications(currentUser.id, 5) // Fetch notifications here too
+                 fetchNotifications(currentUser.id, 5)
              ]);
 
              if (profileResult.status === 'fulfilled' && profileResult.value) {
                  currentProfile = profileResult.value;
                  console.log("[MAIN] Profile loaded successfully.");
+                 // <<< NEW: Call level up check after profile is loaded >>>
+                 const leveledUp = await checkAndProcessLevelUps(currentProfile);
+                 if (leveledUp) {
+                     // If level up happened and DB was updated, currentProfile is already modified.
+                     // If we wanted to be super sure, we could re-fetch:
+                     // currentProfile = await fetchUserProfile(currentUser.id);
+                     console.log("[MAIN] Profile updated after level up check.");
+                 }
+
              } else {
                  throw new Error(`Nepodařilo se načíst profil: ${profileResult.reason || 'Nenalezen'}`);
              }
@@ -626,18 +674,17 @@
                  console.log("[MAIN] Titles loaded successfully.");
              } else {
                  console.warn("[MAIN] Failed to load titles:", titlesResult.reason);
-                 allTitles = []; // Default to empty
+                 allTitles = [];
              }
 
-             updateProfileDisplay(currentProfile, allTitles); // Pass both profile and titles
+             updateProfileDisplay(currentProfile, allTitles);
 
-             // Process notifications
              if (notificationsResult.status === 'fulfilled') {
                  const { unreadCount, notifications } = notificationsResult.value || { unreadCount: 0, notifications: [] };
                  renderNotifications(unreadCount, notifications);
              } else {
                  console.error("Error fetching notifications:", notificationsResult.reason);
-                 renderNotifications(0, []); // Show empty state
+                 renderNotifications(0, []);
              }
 
             if(ui.profileContent) ui.profileContent.style.display = 'block';
@@ -646,54 +693,40 @@
         } catch (error) {
             console.error('[MAIN] Chyba při načítání profilu nebo titulů:', error);
             showError('Nepodařilo se načíst profil: ' + error.message, true);
-             renderNotifications(0, []); // Ensure notifications are cleared on error
+             renderNotifications(0, []);
         } finally {
-             setLoadingState('profile', false); // Stop profile loading indicator
-             setLoadingState('notifications', false); // Stop notification loading indicator
-             setLoadingState('titles', false); // Stop title loading indicator
+             setLoadingState('profile', false);
+             setLoadingState('notifications', false);
+             setLoadingState('titles', false);
         }
     }
 
     function setupEventListeners() {
         console.log("[SETUP] Setting up event listeners...");
-        // --- Sidebar/Menu ---
         if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
         if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
         if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
-        if (ui.sidebarToggleBtn) ui.sidebarToggleBtn.addEventListener('click', toggleSidebar); // <<< NEW Listener
+        if (ui.sidebarToggleBtn) ui.sidebarToggleBtn.addEventListener('click', toggleSidebar);
         document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); });
-        // --- Forms ---
         if (ui.profileForm) { ui.profileForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!validateProfileForm() || isLoading.profile) return; await updateProfileData({ first_name: ui.firstNameField.value, last_name: ui.lastNameField.value, username: ui.usernameField.value, school: ui.schoolField.value, grade: ui.gradeField.value, bio: ui.bioField.value }); }); }
         if (ui.passwordForm) { ui.passwordForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!validatePasswordForm() || isLoading.password) return; const success = await updateUserPassword(ui.currentPasswordField.value, ui.newPasswordField.value); if (success) ui.passwordForm.reset(); }); }
         if (ui.savePreferencesBtn) { ui.savePreferencesBtn.addEventListener('click', async () => { if(isLoading.preferences) return; await updatePreferencesData(); }); }
-
-            // --- Avatar ---
-            if (ui.profileAvatar) { ui.profileAvatar.addEventListener('click', (event) => { if (event.target.closest('#edit-avatar-btn') || event.target.closest('.edit-avatar-overlay')) { console.log("[Event] Edit avatar clicked, opening modal."); showModal('avatar-modal'); } }); }
-            if (ui.selectAvatarFileBtn && ui.avatarUploadInput) { ui.selectAvatarFileBtn.addEventListener('click', () => { console.log("[Event] Upload button clicked, triggering file input."); ui.avatarUploadInput.click(); }); } else { console.warn("Could not find avatar select button or file input for listener setup."); }
-            if (ui.avatarUploadInput) { ui.avatarUploadInput.addEventListener('change', function() { if (this.files && this.files[0]) { console.log("[Event] File selected:", this.files[0].name); selectedBuiltInAvatarPath = null; if(ui.builtinAvatarGrid) ui.builtinAvatarGrid.querySelectorAll('.selected').forEach(el => el.classList.remove('selected')); const reader = new FileReader(); reader.onload = (e) => { if (ui.avatarPreview) ui.avatarPreview.innerHTML = `<img src="${e.target.result}" alt="Náhled"/>`; if (ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = false; }; reader.readAsDataURL(this.files[0]); } else { console.log("[Event] File selection cancelled."); if (!selectedBuiltInAvatarPath && ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = true; } }); }
-            if(ui.builtinAvatarGrid) { ui.builtinAvatarGrid.addEventListener('click', (event) => { const clickedItem = event.target.closest('.builtin-avatar-item'); if (clickedItem) { if (ui.avatarUploadInput) ui.avatarUploadInput.value = ''; const path = clickedItem.dataset.path; if(!path) { console.error("Missing data-path on clicked avatar item:", clickedItem); return; } selectedBuiltInAvatarPath = path; ui.builtinAvatarGrid.querySelectorAll('.selected').forEach(el => el.classList.remove('selected')); clickedItem.classList.add('selected'); if (ui.avatarPreview) ui.avatarPreview.innerHTML = `<img src="${path}" alt="Náhled">`; if (ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = false; console.log("[Event] Selected built-in avatar:", path); } }); } else { console.error("CRITICAL: Built-in avatar grid container not found for event listener setup!"); }
+        if (ui.profileAvatar) { ui.profileAvatar.addEventListener('click', (event) => { if (event.target.closest('#edit-avatar-btn') || event.target.closest('.edit-avatar-overlay')) { console.log("[Event] Edit avatar clicked, opening modal."); showModal('avatar-modal'); } }); }
+        if (ui.selectAvatarFileBtn && ui.avatarUploadInput) { ui.selectAvatarFileBtn.addEventListener('click', () => { console.log("[Event] Upload button clicked, triggering file input."); ui.avatarUploadInput.click(); }); } else { console.warn("Could not find avatar select button or file input for listener setup."); }
+        if (ui.avatarUploadInput) { ui.avatarUploadInput.addEventListener('change', function() { if (this.files && this.files[0]) { console.log("[Event] File selected:", this.files[0].name); selectedBuiltInAvatarPath = null; if(ui.builtinAvatarGrid) ui.builtinAvatarGrid.querySelectorAll('.selected').forEach(el => el.classList.remove('selected')); const reader = new FileReader(); reader.onload = (e) => { if (ui.avatarPreview) ui.avatarPreview.innerHTML = `<img src="${e.target.result}" alt="Náhled"/>`; if (ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = false; }; reader.readAsDataURL(this.files[0]); } else { console.log("[Event] File selection cancelled."); if (!selectedBuiltInAvatarPath && ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = true; } }); }
+        if(ui.builtinAvatarGrid) { ui.builtinAvatarGrid.addEventListener('click', (event) => { const clickedItem = event.target.closest('.builtin-avatar-item'); if (clickedItem) { if (ui.avatarUploadInput) ui.avatarUploadInput.value = ''; const path = clickedItem.dataset.path; if(!path) { console.error("Missing data-path on clicked avatar item:", clickedItem); return; } selectedBuiltInAvatarPath = path; ui.builtinAvatarGrid.querySelectorAll('.selected').forEach(el => el.classList.remove('selected')); clickedItem.classList.add('selected'); if (ui.avatarPreview) ui.avatarPreview.innerHTML = `<img src="${path}" alt="Náhled">`; if (ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = false; console.log("[Event] Selected built-in avatar:", path); } }); } else { console.error("CRITICAL: Built-in avatar grid container not found for event listener setup!"); }
         if (ui.saveAvatarBtn) { ui.saveAvatarBtn.addEventListener('click', async () => { if(isLoading.avatar) return; console.log("[Event] Save avatar button clicked."); await saveSelectedAvatar(); }); }
-
-        // --- Delete Account ---
         if (ui.deleteAccountBtn) { ui.deleteAccountBtn.addEventListener('click', () => showModal('delete-account-modal')); }
         if (ui.confirmDeleteAccountBtn) { ui.confirmDeleteAccountBtn.addEventListener('click', async () => { if(isLoading.delete) return; await deleteUserAccount(ui.confirmDeletePasswordField?.value); }); }
-        // --- Modals ---
         document.querySelectorAll('.modal-close, [data-dismiss="modal"]').forEach(btn => { btn.addEventListener('click', function() { hideModal(this.closest('.modal').id); }); });
         document.querySelectorAll('.modal').forEach(modal => { modal.addEventListener('click', function(event) { if (event.target === this) { hideModal(this.id); } }); });
-        // --- Tabs ---
         ui.profileTabs.forEach(tab => { tab.addEventListener('click', () => { ui.profileTabs.forEach(t => t.classList.remove('active')); tab.classList.add('active'); const tabId = tab.dataset.tab; ui.tabContents.forEach(c => c.classList.remove('active')); const activeContent = document.getElementById(tabId); if (activeContent) activeContent.classList.add('active'); }); });
-        // --- Logout ---
         if (ui.logoutBtn) { ui.logoutBtn.addEventListener('click', async () => { try { console.log("Odhlášení..."); ui.logoutBtn.disabled = true; const { error } = await supabase.auth.signOut(); if (error) throw error; console.log("Odhlášeno, přesměrovávám..."); window.location.href = '/auth/index.html'; } catch (error) { console.error('Chyba při odhlášení:', error); showToast('Chyba', `Chyba při odhlášení: ${error.message}`, 'error'); ui.logoutBtn.disabled = false; } }); }
-        // --- Clear errors on input ---
         document.querySelectorAll('.form-control').forEach(input => { input.addEventListener('input', () => clearFieldError(input.id)); input.addEventListener('change', () => clearFieldError(input.id)); });
-        // --- Online/Offline ---
         window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus);
-        // --- Init UI Enhancements ---
         initMouseFollower();
         initHeaderScrollDetection();
         updateCopyrightYear();
-
-        // --- Notification Listeners ---
         if (ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); }
         if (ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead); }
         if (ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); const dot = item.querySelector('.unread-dot'); if(dot) dot.remove(); const currentCountText = ui.notificationCount.textContent.replace('+', ''); const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }); }
@@ -702,14 +735,11 @@
         console.log("[SETUP] Posluchači událostí nastaveni.");
     }
 
-    // <<< UPDATED: initializeApp fetches titles and passes them to loadAndDisplayProfile >>>
     async function initializeApp() {
         console.log("[INIT] Spouštění inicializace aplikace profilu...");
         if (!initializeSupabase()) { return; }
 
-        // Set up basic listeners first
         setupEventListeners();
-        // Apply saved sidebar state AFTER listeners are set but before potentially affecting elements
         applyInitialSidebarState();
 
         if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; }
@@ -729,8 +759,7 @@
             currentUser = session.user;
             console.log(`[INIT] Uživatel ověřen (ID: ${currentUser.id}). Načítání profilu a titulů...`);
 
-            // Load profile and titles (data loading part moved to loadAndDisplayProfile)
-            await loadAndDisplayProfile();
+            await loadAndDisplayProfile(); // This now handles level up checks internally
 
             if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 600); }
             if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); }); }
