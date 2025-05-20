@@ -1,5 +1,5 @@
 // dashboard/oceneni.js
-// Version: 23.23.2 - Opravena drobná chyba v fetchLeaderboardData (supabaseClient -> supabase).
+// Version: 23.23.3 - Исправлен supabaseClient на supabase в fetchLeaderboardData. Улучшена логика сворачивания/разворачивания.
 (function() { // IIFE for scope isolation
     'use strict';
 
@@ -60,7 +60,6 @@
             'leaderboard-skeleton', 'leaderboard-header', 'leaderboard-table-container',
             'user-titles-inventory-container', 'user-titles-inventory-grid',
             'user-titles-inventory-empty', 'user-titles-inventory-loading',
-            // NOVÉ: ID pro tlačítka rozbalování sekcí
             'toggle-user-badges-section', 'toggle-available-badges-section',
             'toggle-user-titles-section', 'toggle-title-shop-section',
             'toggle-avatar-decorations-section', 'toggle-leaderboard-section'
@@ -77,7 +76,6 @@
             }
         });
 
-        // Добавление контейнеров для скрываемого контента
         ui.userBadgesContent = ui.userBadgesContainer?.querySelector('.section-collapsible-content');
         ui.availableBadgesContent = ui.availableBadgesContainer?.querySelector('.section-collapsible-content');
         ui.userTitlesInventoryContent = ui.userTitlesInventoryContainer?.querySelector('.section-collapsible-content');
@@ -234,7 +232,7 @@
     // --- END: Skeleton Rendering Functions ---
 
     // --- START: Data Fetching Functions ---
-    async function fetchUserProfile(userId) { if (!supabase || !userId) return null; console.log(`[Profile] Fetching profile for user ID: ${userId}`); try { const { data: profile, error } = await supabase.from('profiles').select('*, selected_title, purchased_titles, selected_decoration, purchased_decorations').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; if (!profile) { console.warn(`[Profile] Profile not found for user ${userId}. Returning null.`); return null; } console.log("[Profile] Profile data fetched successfully."); return profile; } catch (error) { console.error('[Profile] Caught exception fetching profile:', error); return null; } }
+    async function fetchUserProfile(userId) { if (!supabase || !userId) return null; console.log(`[Profile] Fetching profile for user ID: ${userId}`); try { const { data: profile, error } = await supabase.from('profiles').select('*, selected_title, purchased_titles, selected_decoration, purchased_decorations').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; if (!profile) { console.warn(`[Profile] Profile for user ${userId} not found. Returning null.`); return null; } console.log("[Profile] Profile data fetched successfully."); return profile; } catch (error) { console.error('[Profile] Caught exception fetching profile:', error); return null; } }
     async function fetchUserStats(userId, profileData) { if (!supabase || !userId || !profileData) return null; try { const { data: statsData, error } = await supabase.from('user_stats').select('progress, progress_weekly, points_weekly, streak_longest, completed_tests').eq('user_id', userId).maybeSingle(); if (error) { console.warn("Error fetching user_stats:", error.message); return {}; } const { data: rankData, error: rankError } = await supabase.from('leaderboard').select('rank').eq('user_id', userId).eq('period', 'overall').limit(1); if (rankError) console.warn("Error fetching rank:", rankError.message); const { count: totalUsersCount, error: countError } = await supabase.from('profiles').select('id', { count: 'exact', head: true }); if (countError) console.warn("Error fetching total users count:", countError.message); return { progress: statsData?.progress ?? profileData.progress ?? 0, progress_weekly: statsData?.progress_weekly ?? 0, points: profileData.points ?? 0, points_weekly: statsData?.points_weekly ?? 0, streak_current: profileData.streak_days ?? 0, streak_longest: Math.max(statsData?.streak_longest ?? 0, profileData.streak_days ?? 0), badges: profileData.badges_count ?? 0, rank: rankData?.[0]?.rank ?? null, totalUsers: totalUsersCount ?? null, }; } catch (e) { console.error("Exception fetching stats:", e); return null; } }
     async function fetchAllBadgesDefinition() { if (!supabase) return []; try { const { data, error } = await supabase.from('badges').select('*').order('id'); if (error) throw error; return data || []; } catch (e) { console.error("Error fetching badge definitions:", e); return []; } }
     async function fetchUserEarnedBadges(userId) { if (!supabase || !userId) return []; try { const { data, error } = await supabase.from('user_badges').select(`badge_id, earned_at, badge:badges!inner (id, title, description, type, icon, requirements, points)`).eq('user_id', userId).order('earned_at', { ascending: false }); if (error) throw error; return data || []; } catch (e) { console.error("Error fetching earned badges:", e); return []; } }
@@ -307,8 +305,7 @@
     async function fetchLeaderboardData() {
         if (!supabase) return [];
         try {
-            // *** MODIFICATION: Use supabase directly instead of undefined supabaseClient ***
-            const { data, error } = await supabase
+            const { data, error } = await supabase // MODIFIED: supabaseClient -> supabase
                 .from('leaderboard')
                 .select(`rank, user_id, points, badges_count, profile:profiles!inner(id, first_name, last_name, username, avatar_url, level, streak_days, selected_title, selected_decoration)`)
                 .eq('period', 'overall')
@@ -387,7 +384,7 @@
             const fragment = document.createDocumentFragment();
             data.forEach((entry) => {
                 const userProf = entry.profile;
-                if (!userProf) return; // Skip if no profile data, crucial for robust rendering
+                if (!userProf) return;
 
                 const rank = entry.calculated_rank || '?';
                 const isCurrent = entry.user_id === currentUser?.id;
@@ -649,7 +646,6 @@
                 if (!el._eventHandlers) el._eventHandlers = {};
                 el._eventHandlers[key] = fn;
             } else {
-                // Non-critical elements (like toggle buttons if missing) won't stop the app
                 if(key.startsWith('toggle')) console.warn(`[SETUP] Non-critical toggle button element not found: ${key}`);
                 else console.warn(`[SETUP] Element not found for listener: ${key}`);
             }
@@ -670,7 +666,6 @@
         window.addEventListener('offline', updateOnlineStatus);
         document.addEventListener('click', (e) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(e.target) && !ui.notificationBell?.contains(e.target)) { ui.notificationsDropdown.classList.remove('active'); } });
 
-        // Listeners for section toggles
         const sectionToggleMap = {
             'toggleUserBadgesSection': ui.userBadgesContent,
             'toggleAvailableBadgesSection': ui.availableBadgesContent,
@@ -680,31 +675,74 @@
             'toggleLeaderboardSection': ui.leaderboardContent
         };
 
-        Object.keys(sectionToggleMap).forEach(buttonKey => {
-            const button = ui[buttonKey]; // buttonKey is already camelCase from cacheDOMElements
-            const contentElement = sectionToggleMap[buttonKey]; // Get the content element directly
+        Object.keys(sectionToggleMap).forEach(buttonKey => { // buttonKey je zde již camelCase
+            const button = ui[buttonKey];
+            const contentElement = sectionToggleMap[buttonKey];
 
             if (button && contentElement) {
-                safeAddListener(button, 'click', () => {
-                    const sectionCard = button.closest('.card'); // Parent card holds the state
-                    if (sectionCard) {
-                        const isCollapsing = !contentElement.style.maxHeight || contentElement.style.maxHeight === '0px';
-                        if(isCollapsing) {
-                            contentElement.style.maxHeight = contentElement.scrollHeight + "px";
-                            sectionCard.classList.remove('collapsed-section');
-                        } else {
-                            contentElement.style.maxHeight = '0px';
-                            sectionCard.classList.add('collapsed-section');
-                        }
-                        const icon = button.querySelector('i');
-                        if (icon) {
-                            icon.classList.toggle('fa-chevron-down', !isCollapsing);
-                            icon.classList.toggle('fa-chevron-up', isCollapsing);
-                        }
-                        console.log(`Toggled section for button ${buttonKey}`);
+                // Инициализация состояния из localStorage или CSS
+                const sectionCard = button.closest('.card');
+                const storedState = localStorage.getItem(`section-${buttonKey}-collapsed`);
+                let isInitiallyCollapsed;
+
+                if (storedState !== null) {
+                    isInitiallyCollapsed = storedState === 'true';
+                } else {
+                    // Pokud není uloženo, použijeme výchozí stav z CSS (předpokládáme, že skryté sekce mají 'collapsed-section')
+                    isInitiallyCollapsed = sectionCard ? sectionCard.classList.contains('collapsed-section') : false;
+                     // Aplikujeme `max-height: 0px` pokud je výchozí stav "collapsed"
+                    if (isInitiallyCollapsed) {
+                        contentElement.style.maxHeight = '0px';
                     } else {
-                        console.warn(`Parent .card not found for toggle button ${buttonKey}`);
+                        // Jinak, pokud je sekce rozbalená, nastavíme maxHeight na scrollHeight pro animaci při prvním kliku
+                        // ale jen pokud není explicitně nastavena na 'none' nebo jinou hodnotu
+                        if (!contentElement.style.maxHeight || contentElement.style.maxHeight === '0px') {
+                            // Dočasně zobrazíme, abychom získali scrollHeight
+                            const prevDisplay = contentElement.style.display;
+                            contentElement.style.display = 'block'; // Musí být blok pro scrollHeight
+                            contentElement.style.maxHeight = contentElement.scrollHeight + "px";
+                            if (!isInitiallyCollapsed && prevDisplay === 'none') { // Pokud byla původně display:none
+                                // contentElement.style.display = 'none'; // Vrátíme, pokud nechceme ihned zobrazit
+                            } else if (isInitiallyCollapsed) {
+                                contentElement.style.maxHeight = '0px'; // Pokud je collapsed, zpět na 0
+                            }
+                        }
                     }
+                }
+                
+                const icon = button.querySelector('i');
+                if (icon) {
+                    icon.classList.toggle('fa-chevron-down', isInitiallyCollapsed);
+                    icon.classList.toggle('fa-chevron-up', !isInitiallyCollapsed);
+                }
+                if (sectionCard) {
+                     sectionCard.classList.toggle('collapsed-section', isInitiallyCollapsed);
+                }
+
+
+                safeAddListener(button, 'click', () => {
+                    const isCollapsing = contentElement.style.maxHeight && contentElement.style.maxHeight !== '0px';
+                    if(isCollapsing) {
+                        contentElement.style.maxHeight = '0px';
+                        sectionCard?.classList.add('collapsed-section');
+                        localStorage.setItem(`section-${buttonKey}-collapsed`, 'true');
+                    } else {
+                        // Před nastavením scrollHeight se ujistíme, že element je "viditelný" pro výpočet
+                        const prevDisplay = contentElement.style.display;
+                        contentElement.style.display = 'block'; // Může být nutné pro správný scrollHeight
+                        contentElement.style.maxHeight = contentElement.scrollHeight + "px";
+                        if (prevDisplay === 'none' && !contentElement.style.maxHeight) { // Pokud byl původně display:none a maxHeight nebyl nastaven
+                           // contentElement.style.display = 'none'; // Optional: return to original display if not meant to be shown yet
+                        }
+                        sectionCard?.classList.remove('collapsed-section');
+                        localStorage.setItem(`section-${buttonKey}-collapsed`, 'false');
+                    }
+                    const icon = button.querySelector('i');
+                    if (icon) {
+                        icon.classList.toggle('fa-chevron-down', !isCollapsing);
+                        icon.classList.toggle('fa-chevron-up', isCollapsing);
+                    }
+                    console.log(`Toggled section for button ${buttonKey}. Collapsed: ${!isCollapsing}`);
                 }, buttonKey);
             } else {
                  if(!button) console.warn(`[SETUP] Toggle button with key '${buttonKey}' not found in ui cache.`);
@@ -717,7 +755,7 @@
 
     // --- START: Initialization ---
     async function initializeApp() {
-        console.log("🚀 [Init Oceneni v23.23.2] Starting...");
+        console.log("🚀 [Init Oceneni v23.23.3] Starting...");
         cacheDOMElements();
         if (!initializeSupabase()) return;
         applyInitialSidebarState();

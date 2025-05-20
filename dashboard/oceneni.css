@@ -1,4 +1,4 @@
-/* --- START: Киберпанк CSS Тема (Адаптировано для oceneni.html v5 - Исправлены сетки значков) --- */
+/* --- START: Киберпанк CSS Тема (Адаптировано для oceneni.html v6 - CSS pro collapsed-section) --- */
 /* --- Глобальные Настройки и Переменные (Синхронизировано с dashboard.html v19 / test1.css) --- */
 :root {
      /* Основа */
@@ -111,9 +111,8 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; font-size: 16px; -webkit-text-size-adjust: 100%; }
 body { background-color: var(--bg-color); color: var(--text-medium); font-family: var(--font-primary); line-height: 1.7; min-height: 100vh; display: flex; overflow: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; position: relative; }
-body::before { content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -3; background-image: linear-gradient(rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px); background-size: 40px 40px; opacity: 0.6; animation: bg-grid-pan 100s linear infinite; pointer-events: none; }
-body::after { content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -2; background: linear-gradient( to bottom, rgba(10, 7, 31, 0) 50%, rgba(0, 0, 0, 0.08) 50% ); background-size: 100% 3px; opacity: 0.15; animation: scanlines 25s linear infinite; pointer-events: none; }
-@keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 800px 400px; } }
+body::before { content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -3; background-image: linear-gradient(rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--accent-secondary-rgb), 0.04) 1px, transparent 1px); background-size: 40px 40px; opacity: 0.6; pointer-events: none; }
+body::after { content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -2; background: linear-gradient(to bottom, rgba(10, 7, 31, 0) 50%, rgba(0, 0, 0, 0.08) 50%); background-size: 100% 3px; opacity: 0.15; animation: scanlines 25s linear infinite; pointer-events: none; }
 @keyframes scanlines { from { background-position: 0 0; } to { background-position: 0 75px; } }
 .mouse-follower-glow { position: fixed; width: 200px; height: 200px; background: radial-gradient(circle, rgba(var(--accent-primary-rgb), 0.05) 0%, transparent 70%); border-radius: 50%; pointer-events: none; z-index: -1; transform: translate(-50%, -50%); filter: blur(35px); transition: top 0.1s ease-out, left 0.1s ease-out, background 0.3s ease, opacity 0.3s ease; opacity: 0; will-change: top, left, opacity; }
 body.mouse-has-moved .mouse-follower-glow { opacity: 1; }
@@ -179,7 +178,8 @@ body { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0
 .sidebar-link.active { background-color: rgba(var(--accent-primary-rgb), 0.15); color: var(--white); font-weight: 600; border-left-color: var(--accent-primary); box-shadow: inset 4px 0 10px -3px rgba(var(--accent-primary-rgb), 0.4); }
 .sidebar-link.active i { color: var(--accent-primary); }
 .user-profile { display: flex; align-items: center; padding: 1rem; margin-top: 1.5rem; background-color: rgba(var(--accent-secondary-rgb), 0.1); border-radius: 12px; border: 1px solid var(--border-color-light); flex-shrink: 0; transition: padding var(--transition-medium) ease; overflow: hidden; white-space: nowrap; }
-.user-avatar { width: 42px; height: 42px; border-radius: 50%; background-color: var(--accent-secondary); display: flex; align-items: center; justify-content: center; margin-right: 0.85rem; font-weight: 600; font-size: 1.1rem; overflow: hidden; color: var(--white); border: 2px solid rgba(var(--accent-primary-rgb), 0.3); flex-shrink: 0; box-shadow: 0 0 8px rgba(var(--accent-secondary-rgb), 0.4); transition: all var(--transition-medium) ease; }
+.user-profile .avatar-wrapper { position: relative; display: inline-block; line-height: 0; margin-right: 0.85rem; transition: margin-right var(--transition-medium) ease; flex-shrink: 0; width: 42px; height: 42px; background: none; padding: 0; border-radius: 50%; }
+.user-avatar { width: 100%; height: 100%; border-radius: 50%; background-color: var(--accent-secondary); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1.1rem; overflow: hidden; color: var(--white); border: 2px solid rgba(var(--accent-primary-rgb), 0.3); transition: all var(--transition-medium) ease; position: relative; }
 .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .user-info { flex-grow: 1; overflow: hidden; transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; opacity: 1; max-width: 150px; }
 .user-name { font-weight: 600; font-size: 1rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -199,7 +199,8 @@ body.sidebar-collapsed .sidebar-logo { gap: 0; justify-content: center; }
 body.sidebar-collapsed .sidebar-link { justify-content: center; padding: 0.85rem 0.5rem; }
 body.sidebar-collapsed .sidebar-link i { margin-right: 0; font-size: 1.4rem; }
 body.sidebar-collapsed .user-profile { padding: 0.8rem 0; justify-content: center; border-left: none; border-right: none; }
-body.sidebar-collapsed .user-avatar { margin-right: 0; width: 40px; height: 40px; font-size: 1rem; }
+body.sidebar-collapsed .user-profile .avatar-wrapper { margin-right: 0; width: 40px; height: 40px; padding: 0; background: none; }
+body.sidebar-collapsed .user-avatar { font-size: 1rem; width: 100%; height: 100%; }
 body.sidebar-collapsed main#main-content { margin-left: var(--sidebar-collapsed-width); width: calc(100% - var(--sidebar-collapsed-width)); }
 body.sidebar-collapsed .sidebar-toggle-btn i { transform: rotate(180deg); }
 body.sidebar-collapsed #sidebar-close-toggle { display: none; }
@@ -218,13 +219,6 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .header-content h1 { font-size: 1.7rem; font-weight: 700; color: var(--text-heading); margin: 0; text-shadow: 0 0 10px var(--accent-glow); display: flex; align-items: center; gap: 0.7rem;}
 .header-content h1 i { font-size: 1em; color: var(--accent-secondary); }
 .header-actions { display: flex; align-items: center; gap: 1rem; }
-.refresh-btn { background: rgba(var(--accent-primary-rgb), 0.1); border: 1px solid rgba(var(--accent-primary-rgb), 0.3); color: var(--accent-primary); font-size: 0.9rem; cursor: pointer; padding: 0.5rem 1rem; border-radius: var(--button-radius); transition: all 0.25s ease; display: flex; align-items: center; gap: 0.5em; }
-.refresh-btn:hover:not(:disabled) { background-color: rgba(var(--accent-primary-rgb), 0.2); color: var(--white); border-color: var(--accent-primary); box-shadow: 0 0 12px rgba(var(--accent-primary-rgb), 0.4); transform: translateY(-2px); }
-.refresh-btn:active:not(:disabled) { transform: translateY(0px) scale(0.98); background-color: rgba(var(--accent-primary-rgb), 0.15); box-shadow: 0 0 5px rgba(var(--accent-primary-rgb), 0.3); }
-.refresh-btn .refresh-text { display: none; font-weight: 600; }
-@media (min-width: 768px) { .refresh-btn .refresh-text { display: inline; } }
-.refresh-btn.loading i { animation: spin 1s linear infinite; }
-.refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; }
 
 /* --- Стили уведомлений --- */
 .notifications { position: relative; }
@@ -262,6 +256,16 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .view-all-notifications-link:hover { color: var(--white); text-decoration: underline; }
 #no-notifications-msg { padding: 2rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem; display: none; }
 
+/* Кнопка Refresh */
+.refresh-btn { background: rgba(var(--accent-primary-rgb), 0.1); border: 1px solid rgba(var(--accent-primary-rgb), 0.3); color: var(--accent-primary); font-size: 0.9rem; cursor: pointer; padding: 0.5rem 1rem; border-radius: var(--button-radius); transition: all 0.25s ease; display: flex; align-items: center; gap: 0.5em; }
+.refresh-btn:hover:not(:disabled) { background-color: rgba(var(--accent-primary-rgb), 0.2); color: var(--white); border-color: var(--accent-primary); box-shadow: 0 0 12px rgba(var(--accent-primary-rgb), 0.4); transform: translateY(-2px); }
+.refresh-btn:active:not(:disabled) { transform: translateY(0px) scale(0.98); background-color: rgba(var(--accent-primary-rgb), 0.15); box-shadow: 0 0 5px rgba(var(--accent-primary-rgb), 0.3); }
+.refresh-btn .refresh-text { display: none; font-weight: 600; }
+@media (min-width: 768px) { .refresh-btn .refresh-text { display: inline; } }
+.refresh-btn.loading i { animation: spin 1s linear infinite; }
+.refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
 /* --- Основной контент дашборда --- */
 .main-content-wrapper { padding: var(--section-padding-y) 0; }
 #achievements-content { /* Container for all sections */ }
@@ -270,9 +274,45 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .section-title i { font-size: 1.1em; color: var(--accent-secondary); text-shadow: 0 0 8px var(--accent-secondary-glow); }
 .section-title::after { content: ''; position: absolute; bottom: 0; left: 0; width: 60px; height: 3px; background: var(--gradient-border-anim); background-size: 300% 100%; animation: gradient-move 4s linear infinite; border-radius: 1.5px; filter: drop-shadow(0 0 5px var(--accent-primary)); }
 @keyframes gradient-move { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+/* NOVÉ: Styly pro rozbalovací tlačítko */
+.section-title .btn-icon-only {
+    width: 30px; height: 30px; font-size: 0.8rem;
+    background-color: rgba(var(--accent-primary-rgb), 0.1);
+    border-color: rgba(var(--accent-primary-rgb), 0.2);
+    color: var(--accent-primary);
+    box-shadow: none;
+}
+.section-title .btn-icon-only:hover:not(:disabled) {
+    background-color: rgba(var(--accent-primary-rgb), 0.2);
+    box-shadow: 0 0 8px rgba(var(--accent-primary-rgb), 0.3);
+    transform: translateY(-1px);
+}
+.section-title .btn-icon-only i { transition: transform 0.3s ease-out; }
+.card.collapsed-section .section-collapsible-content {
+    max-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    overflow: hidden;
+    border-top: none !important; /* Prevents double border when collapsed */
+}
+.section-collapsible-content {
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s ease, margin 0.4s ease;
+    overflow: hidden;
+    /* Initial state will be set by JS or if .collapsed-section is present on parent */
+}
+/* Если изначально свернуто через класс на .card */
+.card.collapsed-section .section-collapsible-content {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
 
 /* --- Стили Oceneni (перенесены и адаптированы) --- */
-/* Achievement Stats */
 .achievement-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.8rem; margin-bottom: 2.5rem; }
 .stat-card { min-height: 170px; position: relative; display: flex; flex-direction: column; padding: 1.5rem; }
 .stat-card .loading-skeleton { display: none; padding: 1.5rem; align-items: flex-start; justify-content: space-between; width: 100%; position: absolute; inset: 0; background: var(--card-bg); z-index: 5; backdrop-filter: blur(2px); }
@@ -295,20 +335,18 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .stat-card-icon-bg { position: absolute; right: 1rem; bottom: 1rem; font-size: 4rem; opacity: 0.08; color: var(--accent-primary); z-index: 0; transition: opacity 0.3s ease, color 0.3s ease; pointer-events: none; }
 .stat-card:hover .stat-card-icon-bg { opacity: 0.15; color: var(--accent-cyan); }
 .badges-icon i::before { content: "\f559"; } .points-icon i::before { content: "\f005"; } .streak-icon i::before { content: "\f7e4"; } .rank-icon i::before { content: "\f091"; }
-
-/* Badges Section */
-.badges-section, .available-achievements, .title-shop-section, .avatar-decorations-shop { margin-bottom: 2.5rem; background: var(--card-bg); border-radius: var(--card-radius); border: 1px solid var(--border-color-light); box-shadow: var(--shadow-hud); padding: 0; position: relative; overflow: hidden; }
-.badges-section > div, .available-achievements > div, .title-shop-section > :not(.section-title):not(.current-credits), .avatar-decorations-shop > :not(.section-title):not(.current-credits) { padding: 1.5rem; }
-.badges-section .section-title, .available-achievements .section-title, .title-shop-section .section-title, .avatar-decorations-shop .section-title { padding: 1.2rem 1.5rem 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color-light); background: rgba(var(--dark-purple-accent-rgb), 0.2); }
-.badges-section .section-title::after, .available-achievements .section-title::after, .title-shop-section .section-title::after, .avatar-decorations-shop .section-title::after { display: none; } /* Hide underline for these sections */
+.badges-section, .available-achievements, .title-shop-section, .avatar-decorations-shop, .user-titles-inventory-section { margin-bottom: 2.5rem; background: var(--card-bg); border-radius: var(--card-radius); border: 1px solid var(--border-color-light); box-shadow: var(--shadow-hud); padding: 0; position: relative; overflow: hidden; }
+.badges-section > div, .available-achievements > div, .title-shop-section > :not(.section-title):not(.current-credits), .avatar-decorations-shop > :not(.section-title):not(.current-credits), .user-titles-inventory-section > :not(.section-title) { padding: 1.5rem; }
+.badges-section .section-title, .available-achievements .section-title, .title-shop-section .section-title, .avatar-decorations-shop .section-title, .user-titles-inventory-section .section-title { padding: 1.2rem 1.5rem 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color-light); background: rgba(var(--dark-purple-accent-rgb), 0.2); }
+.badges-section .section-title::after, .available-achievements .section-title::after, .title-shop-section .section-title::after, .avatar-decorations-shop .section-title::after, .user-titles-inventory-section .section-title::after { display: none; }
 .badge-grid, .achievement-grid, .title-shop-grid, .avatar-shop-grid { display: grid; gap: 1.8rem; }
 .badge-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
 .achievement-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
 .title-shop-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
 .avatar-shop-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
-.badge-card, .achievement-card, .title-item, .decoration-item { display: flex; background-color: var(--card-solid); border-radius: var(--card-radius); border: 1px solid var(--border-color-medium); box-shadow: var(--shadow-hud); transition: all 0.2s ease; opacity: 1; /* Start visible */}
+.badge-card, .achievement-card, .title-item, .decoration-item { display: flex; background-color: var(--card-solid); border-radius: var(--card-radius); border: 1px solid var(--border-color-medium); box-shadow: var(--shadow-hud); transition: all 0.2s ease; opacity: 1; }
 .badge-card.loading, .achievement-card.loading, .title-item.loading, .decoration-item.loading { opacity: 0.7; pointer-events: none; }
-.badge-card.loading .loading-skeleton, .achievement-card.loading .loading-skeleton, .title-item.loading .loading-skeleton, .decoration-item.loading .loading-skeleton { display: block !important; /* Override hidden skeleton */ }
+.badge-card.loading .loading-skeleton, .achievement-card.loading .loading-skeleton, .title-item.loading .loading-skeleton, .decoration-item.loading .loading-skeleton { display: block !important; }
 .badge-card.loading > *:not(.loading-skeleton), .achievement-card.loading > *:not(.loading-skeleton), .title-item.loading > *:not(.loading-skeleton), .decoration-item.loading > *:not(.loading-skeleton) { visibility: hidden; }
 .badge-card:hover, .achievement-card:hover, .title-item:hover, .decoration-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-card); border-color: var(--accent-primary); }
 .badge-card { flex-direction: column; align-items: center; text-align: center; padding: 1.8rem 1.2rem; }
@@ -343,7 +381,8 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .title-status.equipped { color: var(--accent-primary); background-color: rgba(var(--accent-primary-rgb), 0.15); border: 1px solid rgba(var(--accent-primary-rgb), 0.4); box-shadow: 0 0 8px rgba(var(--accent-primary-rgb), 0.3); }
 .title-status i { font-size: 0.9em; }
 .buy-title-btn i, .equip-title-btn i { font-size: 0.9em; }
-.buy-title-btn:disabled { background-color: var(--text-muted) !important; border-color: transparent !important; color: var(--card-solid) !important; }
+.buy-title-btn:disabled { background-color: var(--text-muted) !important; border-color: transparent !important; color: var(--card-solid) !important; opacity: 0.6; cursor: not-allowed; }
+.buy-title-btn:disabled::before { display: none; }
 .current-credits { text-align: right; margin: -0.5rem 0 1.5rem 0; font-size: 0.95rem; color: var(--text-muted); font-weight: 500; padding: 0 1.5rem; }
 .current-credits strong { color: var(--accent-orange); font-size: 1.2em; font-weight: 700; text-shadow: 0 0 6px var(--accent-orange-glow); margin: 0 0.2em; }
 .current-credits i.fa-coins { color: var(--accent-orange); margin-left: 0.3em; }
@@ -448,193 +487,20 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 @media (max-width: 576px) { :root { --sidebar-width: 0; } main { margin-left: 0; width: 100%; padding: 0 0.75rem; } .sidebar { transform: translateX(-110%); width: 280px; z-index: 1100; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.85rem; width: 42px; height: 42px; } .sidebar.active #sidebar-close-toggle { display: block; } .header-actions { gap: 0.5rem; } .stat-card-value { font-size: 2rem; } .badge-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); } .badge-card { padding: 1.5rem 1rem; } .badge-icon { width: 60px; height: 60px; font-size: 1.8rem; margin-bottom: 1rem; } .user-cell { flex-direction: column; align-items: center; text-align: center; gap: 0.5rem; } .user-avatar-sm { margin-bottom: 0.25rem;} .toast-container { bottom: 1rem; right: 1rem; max-width: calc(100% - 2rem); } .mouse-follower-glow { display: none !important; } .leaderboard-table th:nth-child(5), .leaderboard-table td:nth-child(5) { display: none; } .leaderboard-table th:nth-child(4), .leaderboard-table td:nth-child(4) { display: none; } .title-item-footer { flex-direction: column; align-items: center; gap: 0.8rem; } .title-item-actions { justify-content: center; } .avatar-shop-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } }
 .sidebar-overlay { display: none; position: fixed; inset: 0; background-color: rgba(3, 2, 12, 0.7); z-index: 1000; opacity: 0; transition: opacity var(--transition-medium) ease; backdrop-filter: blur(5px); }
 .sidebar-overlay.active { display: block; opacity: 1; }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; animation-delay: -0.01ms !important; transition-delay: 0ms !important; will-change: auto !important; } .sidebar { transition: transform 0.01ms !important, width 0.01ms !important; } main { transition: margin-left 0.01ms !important, width 0.01ms !important; } .main-content-wrapper [data-animate] { opacity: 1 !important; transform: none !important; transition: none !important; } .mouse-follower-glow { display: none !important; } body::before, body::after { animation: none !important; } .refresh-btn.loading i { animation: none !important; } .loading-spinner, .initial-loading-overlay .loading-spinner { animation: none !important; border: 4px solid var(--accent-primary) !important; } .card:hover, .badge-card:hover, .achievement-card:hover, .title-item:hover, .btn:hover, .btn-outline:hover, .refresh-btn:hover { transform: none !important; } .skeleton::after { animation: none !important; background: var(--skeleton-highlight) !important; } .section-title::after { animation: none !important; background: var(--accent-primary) !important; } .btn-icon-only i { transition: none !important; } }
-
-/* Tooltipster Cyberpunk Theme */
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; animation-delay: -0.01ms !important; transition-delay: 0ms !important; will-change: auto !important; } .sidebar { transition: transform 0.01ms !important, width 0.01ms !important; } main { transition: margin-left 0.01ms !important, width 0.01ms !important; } .main-content-wrapper [data-animate] { opacity: 1 !important; transform: none !important; transition: none !important; } .mouse-follower-glow { display: none !important; } body::before, body::after { animation: none !important; } .refresh-btn.loading i { animation: none !important; } .loading-spinner, .initial-loading-overlay .loading-spinner { animation: none !important; border: 4px solid var(--accent-primary) !important; } .card:hover, .badge-card:hover, .achievement-card:hover, .title-item:hover, .btn:hover, .btn-outline:hover, .refresh-btn:hover { transform: none !important; } .skeleton::after { animation: none !important; background: var(--skeleton-highlight) !important; } .section-title::after { animation: none !important; background: var(--accent-primary) !important; } .btn-icon-only i { transition: none !important; } .avatar-wrapper.decoration-neon-border { animation: none; } }
 .tooltipster-shadow { border-radius: 8px; background: var(--interface-bg); color: var(--text-light); box-shadow: var(--shadow-card); border: 1px solid var(--border-color-medium); }
 .tooltipster-shadow .tooltipster-content { padding: 8px 14px; font-size: 0.88rem; font-family: var(--font-primary); }
 
-/* === Title Shop Styles === */
-.title-shop-section .section-title { }
-.current-credits { text-align: right; margin: -0.5rem 0 1.5rem 0; font-size: 0.95rem; color: var(--text-muted); font-weight: 500; padding: 0 1.5rem; }
-.current-credits strong { color: var(--accent-orange); font-size: 1.2em; font-weight: 700; text-shadow: 0 0 6px var(--accent-orange-glow); margin: 0 0.2em; }
-.current-credits i.fa-coins { color: var(--accent-orange); margin-left: 0.3em; }
-#title-shop-loading { min-height: 200px; }
-.title-shop-grid { padding: 0 1.5rem 1.5rem; }
-.title-item { padding: 1.5rem; display: flex; gap: 1.2rem; align-items: flex-start; opacity: 1; }
-.title-item-icon { width: 60px; height: 60px; flex-shrink: 0; border-radius: 14px; background: linear-gradient(135deg, var(--dark-purple-accent), var(--accent-secondary)); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: var(--accent-primary); text-shadow: 0 0 8px var(--accent-glow); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); border: 1px solid rgba(var(--accent-primary-rgb), 0.2); }
-.title-item-content { flex-grow: 1; display: flex; flex-direction: column; min-width: 0; }
-.title-item-name { font-size: 1.15rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.5rem; }
-.title-item-desc { font-size: 0.88rem; color: var(--text-medium); line-height: 1.5; margin-bottom: 1rem; flex-grow: 1; }
-.title-item-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-top: auto; padding-top: 0.8rem; border-top: 1px solid var(--border-color-light); }
-.title-item-cost { font-size: 0.9rem; font-weight: 500; color: var(--accent-orange); display: inline-flex; align-items: center; gap: 0.3em; }
-.title-item-cost i { font-size: 0.9em; }
-.title-item-actions { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
-.title-status { font-size: 0.8rem; font-weight: 600; padding: 0.3rem 0.6rem; border-radius: calc(var(--button-radius) - 4px); display: inline-flex; align-items: center; gap: 0.4em; text-transform: uppercase; letter-spacing: 0.5px; }
-.title-status.purchased { color: var(--accent-lime); background-color: rgba(var(--accent-lime-rgb), 0.1); border: 1px solid rgba(var(--accent-lime-rgb), 0.3); }
-.title-status.equipped { color: var(--accent-primary); background-color: rgba(var(--accent-primary-rgb), 0.15); border: 1px solid rgba(var(--accent-primary-rgb), 0.4); box-shadow: 0 0 8px rgba(var(--accent-primary-rgb), 0.3); }
-.title-status i { font-size: 0.9em; }
-.buy-title-btn i, .equip-title-btn i { font-size: 0.9em; }
-.buy-title-btn:disabled { background-color: var(--text-muted) !important; border-color: transparent !important; color: var(--card-solid) !important; opacity: 0.6; cursor: not-allowed; }
-.buy-title-btn:disabled::before { display: none; }
-#title-shop-empty { border-style: solid; border-color: var(--border-color-light); background-color: rgba(var(--card-solid-rgb), 0.5); margin: 1.5rem; }
-#title-shop-empty .empty-state-icon { color: var(--accent-secondary); }
-
-/* <<< --- START: НОВЫЕ СТИЛИ ДЛЯ УКРАШЕНИЙ АВАТАРА --- >>> */
-
-/* Контейнер-обертка для аватара */
-.avatar-wrapper {
-    position: relative; /* Нужно для позиционирования украшений */
-    display: inline-block; /* Чтобы занимал место по размеру аватара */
-    line-height: 0; /* Убираем лишние отступы */
+.user-titles-inventory-section .section-title,
+.avatar-decorations-shop .section-title { /* Ensure these match the other sections */
+    padding: 1.2rem 1.5rem 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color-light); background: rgba(var(--dark-purple-accent-rgb), 0.2);
 }
-
-/* Стилизация самой обертки (если нужна рамка или фон) */
-.avatar-wrapper {
-    /* Пример: добавляем тонкий внутренний отступ, если рамка рисуется на самой обертке */
-    /* padding: 2px; */
-    border-radius: 50%; /* Повторяем скругление аватара */
-}
-
-/* Базовые стили для псевдоэлементов (если используем их для украшений) */
-.avatar-wrapper::before,
-.avatar-wrapper::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none; /* Не мешает кликам */
-    z-index: 1; /* Отображать над аватаром, если нужно */
-}
-
-/* ПРИМЕР 1: Неоновая рамка */
-.avatar-wrapper.decoration-neon-border {
-    border: 2px solid var(--accent-primary);
-    padding: 2px; /* Отступ, чтобы рамка не перекрывала аватар */
-    box-shadow: 0 0 8px var(--accent-glow), inset 0 0 5px rgba(var(--accent-primary-rgb), 0.3);
-}
-/* Можно добавить анимацию пульсации */
-@keyframes neonPulse {
-    0%, 100% { box-shadow: 0 0 6px var(--accent-glow), inset 0 0 4px rgba(var(--accent-primary-rgb), 0.2); border-color: var(--accent-primary); }
-    50% { box-shadow: 0 0 12px var(--accent-glow), inset 0 0 8px rgba(var(--accent-primary-rgb), 0.4); border-color: var(--white); }
-}
-.avatar-wrapper.decoration-neon-border {
-    animation: neonPulse 2s infinite ease-in-out;
-}
-
-/* ПРИМЕР 2: Корона над аватаром */
-.avatar-wrapper.decoration-crown::after {
-    content: '👑'; /* Emoji короны */
-    /* Или используйте Font Awesome: content: '\f521'; font-family: 'Font Awesome 6 Free'; font-weight: 900; */
-    /* Или фоновое изображение: content: ''; background-image: url(...); width: Wpx; height: Hpx; */
-    font-size: 1.3em; /* Размер короны */
-    top: -10px; /* Позиция над аватаром */
-    left: 50%;
-    transform: translateX(-50%);
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-}
-
-/* Стили для магазина украшений */
-#avatar-decorations-shop .section-title i { color: var(--accent-secondary); }
-#avatar-decorations-loading { min-height: 200px; }
-.avatar-shop-grid { padding: 0 1.5rem 1.5rem; /* Убираем верхний padding */ }
-.decoration-item { flex-direction: column; align-items: center; text-align: center; padding: 1.5rem; }
-.decoration-preview {
-    width: 90px; /* Размер превью */
-    height: 90px;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* Может понадобиться фон, если аватар прозрачный */
-     background-color: var(--dark-purple-accent);
-     border-radius: 50%;
-}
-.decoration-preview .avatar-wrapper {
-    width: 75%; /* Аватар внутри превью чуть меньше */
-    height: 75%;
-}
-.decoration-preview .user-avatar-sm { /* Стилизуем внутренний аватар для превью */
-    width: 100%;
-    height: 100%;
-    font-size: 1.5rem; /* Размер инициалов в превью */
-    border-width: 1px;
-    box-shadow: none;
-}
-.decoration-info { flex-grow: 1; width: 100%; }
-.decoration-name { font-size: 1rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.4rem; }
-.decoration-desc { font-size: 0.8rem; color: var(--text-medium); margin-bottom: 1rem; line-height: 1.4; }
-.decoration-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; margin-top: auto; padding-top: 0.8rem; border-top: 1px solid var(--border-color-light); width: 100%; }
-.decoration-cost { font-size: 0.9rem; font-weight: 500; color: var(--accent-orange); display: inline-flex; align-items: center; gap: 0.3em; }
-.decoration-cost i { font-size: 0.9em; }
-.decoration-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; }
-/* Используем те же классы для кнопок/статусов, что и в магазине титулов */
-.buy-decor-btn, .equip-decor-btn { /* Могут быть те же классы .buy-title-btn, .equip-title-btn */ }
-.decoration-status { /* Могут быть те же классы .title-status */ }
-/* --- START: User Titles Inventory Styles --- */
-.user-titles-inventory-section .section-title {
-    padding: 1.2rem 1.5rem 0.5rem;
-    margin-bottom: 1.5rem; /* More space before grid */
-    border-bottom: 1px solid var(--border-color-light);
-    background: rgba(var(--dark-purple-accent-rgb), 0.2);
-}
-.user-titles-inventory-section .section-title::after {
-    display: none; /* No underline for this section title */
-}
-
-#user-titles-inventory-grid {
-    /* Uses .title-shop-grid styles for consistency in card layout */
-    padding: 0 1.5rem 1.5rem; /* Match shop padding if content exists */
-}
-
-/* Styles for individual items in inventory - reusing .title-item */
-.inventory-item .title-item-cost {
-    visibility: hidden; /* Optionally hide cost for owned items, or show original cost */
-    /* If you want to show original cost:
-    color: var(--text-muted);
-    font-style: italic;
-    text-decoration: line-through;
-    */
-}
-
-.inventory-item .title-item-actions .btn-secondary {
-    /* Specific style for "Použít" button if needed, e.g., different color */
-    border-color: var(--accent-secondary);
-    color: var(--accent-secondary);
-}
-.inventory-item .title-item-actions .btn-secondary:hover:not(:disabled) {
-    background-color: rgba(var(--accent-secondary-rgb), 0.15);
-    border-color: var(--accent-primary);
-    color: var(--accent-primary);
-}
-
-#user-titles-inventory-empty {
-    border-style: solid;
-    border-color: var(--border-color-light);
-    background-color: rgba(var(--card-solid-rgb), 0.5);
-    margin: 1.5rem; /* Match shop empty state margin */
-}
-#user-titles-inventory-empty .empty-state-icon {
-    color: var(--accent-secondary); /* Different icon color for distinction */
-}
-/* --- END: User Titles Inventory Styles --- */
-/* Скелет для магазина украшений */
-.decoration-item.loading .loading-skeleton {
-    display: flex !important; /* Override display: none */
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-}
-.decoration-item .loading-skeleton { display: none; } /* Hide skeleton by default */
-
-/* --- END: НОВЫЕ СТИЛИ ДЛЯ УКРАШЕНИЙ АВАТАРА --- */
-
-/* Reduced Motion (Copy from base) */
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; animation-delay: -0.01ms !important; transition-delay: 0ms !important; will-change: auto !important; } .sidebar { transition: transform 0.01ms !important, width 0.01ms !important; } main { transition: margin-left 0.01ms !important, width 0.01ms !important; } .main-content-wrapper [data-animate] { opacity: 1 !important; transform: none !important; transition: none !important; } .mouse-follower-glow { display: none !important; } body::before, body::after { animation: none !important; } .refresh-btn.loading i { animation: none !important; } .loading-spinner, .initial-loading-overlay .loading-spinner { animation: none !important; border: 4px solid var(--accent-primary) !important; } .card:hover, .badge-card:hover, .achievement-card:hover, .title-item:hover, .btn:hover, .btn-outline:hover, .refresh-btn:hover { transform: none !important; } .skeleton::after { animation: none !important; background: var(--skeleton-highlight) !important; } .section-title::after { animation: none !important; background: var(--accent-primary) !important; } .btn-icon-only i { transition: none !important; } .avatar-wrapper.decoration-neon-border { animation: none; } /* Disable neon pulse */ }
-
-/* Tooltipster Cyberpunk Theme */
-.tooltipster-shadow { border-radius: 8px; background: var(--interface-bg); color: var(--text-light); box-shadow: var(--shadow-card); border: 1px solid var(--border-color-medium); }
-.tooltipster-shadow .tooltipster-content { padding: 8px 14px; font-size: 0.88rem; font-family: var(--font-primary); }
+.user-titles-inventory-section .section-title::after,
+.avatar-decorations-shop .section-title::after { display: none; }
+.user-titles-inventory-section > div:not(.section-title),
+.avatar-decorations-shop > div:not(.section-title):not(.current-credits) { padding: 1.5rem; }
+#user-titles-inventory-grid, #avatar-decorations-grid { padding: 0 1.5rem 1.5rem; }
+#user-titles-inventory-empty, #avatar-decorations-empty { margin: 1.5rem; border-style: solid; border-color: var(--border-color-light); background-color: rgba(var(--card-solid-rgb), 0.5); }
+#user-titles-inventory-empty .empty-state-icon, #avatar-decorations-empty .empty-state-icon { color: var(--accent-secondary); }
+#user-titles-inventory-loading, #avatar-decorations-loading { min-height: 150px; }
 /* --- END: Киберпанк CSS Тема --- */
