@@ -158,47 +158,35 @@
                         </div>
                      </section>
 
-                    <section class="infinite-scroll-demo-section" id="infinite-scroll-demo-section" data-animate style="--animation-order: 7; margin-top: 2.5rem;">
-                        <h2 class="section-title"><i class="fas fa-layer-group"></i>Témata k Procvičení</h2>
-                        <div id="demo-infinite-scroll-items-container" class="dashboard-grid" style="gap: 1.5rem;">
-                            <div class="shortcut-card card item-card" data-animate>
-                                <div class="shortcut-icon" style="background: linear-gradient(135deg, var(--accent-secondary), var(--accent-pink));">
-                                    <i class="fas fa-calculator"></i>
+                    <section class="section card data-table-section" id="topic-progress-section" data-animate style="--animation-order: 7; margin-top: 2.5rem;">
+                        <div class="loading-overlay hidden" id="topic-progress-table-loading-overlay"> <div class="loading-spinner"></div> </div>
+                        <div class="data-table-header">
+                            <h2 class="section-title data-table-title"><i class="fas fa-layer-group"></i>Pokrok v Tématech</h2>
+                            <div class="data-table-actions">
                                 </div>
-                                <h3 class="shortcut-title">Lineární Rovnice</h3>
-                                <p class="shortcut-desc">Procvičte si řešení lineárních rovnic s jednou neznámou, včetně rovnic se zlomky a závorkami.</p>
-                                <a href="vyuka/vyuka.html?topic=linear_equations" class="btn btn-sm btn-primary item-card-btn">Začít cvičit</a>
-                            </div>
-                            <div class="shortcut-card card item-card" data-animate>
-                                <div class="shortcut-icon" style="background: linear-gradient(135deg, var(--accent-lime), var(--accent-cyan));">
-                                    <i class="fas fa-ruler-combined"></i>
-                                </div>
-                                <h3 class="shortcut-title">Pythagorova Věta</h3>
-                                <p class="shortcut-desc">Výpočty přepony a odvěsen v pravoúhlém trojúhelníku, aplikace v úlohách.</p>
-                                <a href="vyuka/vyuka.html?topic=pythagorean_theorem" class="btn btn-sm btn-primary item-card-btn">Začít cvičit</a>
-                            </div>
-                            <div class="shortcut-card card item-card" data-animate>
-                                <div class="shortcut-icon" style="background: linear-gradient(135deg, var(--accent-orange), #FFC107);">
-                                    <i class="fas fa-percentage"></i>
-                                </div>
-                                <h3 class="shortcut-title">Procenta</h3>
-                                <p class="shortcut-desc">Výpočet procentové části, základu, počtu procent a slovní úlohy.</p>
-                                <a href="vyuka/vyuka.html?topic=percentages" class="btn btn-sm btn-primary item-card-btn">Začít cvičit</a>
-                            </div>
-                            <div class="shortcut-card card item-card" data-animate>
-                                <div class="shortcut-icon" style="background: linear-gradient(135deg, #4A00E0, #8E2DE2);">
-                                    <i class="fas fa-shapes"></i>
-                                </div>
-                                <h3 class="shortcut-title">Obsahy a Obvody</h3>
-                                <p class="shortcut-desc">Výpočty obsahů a obvodů základních geometrických útvarů (čtverec, obdélník, trojúhelník, kruh).</p>
-                                <a href="vyuka/vyuka.html?topic=area_perimeter" class="btn btn-sm btn-primary item-card-btn">Začít cvičit</a>
-                            </div>
-                            </div>
-                        <div id="demo-infinite-loader" class="loading-overlay" style="display: none; position: relative; padding: 2rem; background: transparent; min-height: 100px; justify-content: center; align-items: center;">
-                            <div class="loading-spinner" style="border-top-color: var(--accent-pink); border-right-color: transparent; border-bottom-color: var(--accent-pink); border-left-color: transparent;"></div>
-                            <p style="color: var(--accent-pink); margin-top: 1rem; font-weight: 500;">Načítám další témata...</p>
                         </div>
-                    </section>
+                        <div class="table-responsive">
+                            <table class="data-table" id="topic-progress-table" style="display: none;">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="topic_name">Téma</th>
+                                        <th data-sort="progress_percentage">Pokrok (%)</th>
+                                        <th data-sort="last_studied_at">Naposledy Studováno</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="topic-progress-body">
+                                    <tr class="skeleton-row"><td><div class="skeleton text-sm" style="width: 150px;"></div></td><td><div class="skeleton text-sm" style="width: 50px;"></div></td><td><div class="skeleton text-sm" style="width: 100px;"></div></td></tr>
+                                    <tr class="skeleton-row"><td><div class="skeleton text-sm" style="width: 180px;"></div></td><td><div class="skeleton text-sm" style="width: 60px;"></div></td><td><div class="skeleton text-sm" style="width: 90px;"></div></td></tr>
+                                    <tr class="skeleton-row"><td><div class="skeleton text-sm" style="width: 120px;"></div></td><td><div class="skeleton text-sm" style="width: 40px;"></div></td><td><div class="skeleton text-sm" style="width: 110px;"></div></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="empty-state" id="topic-progress-empty-state" style="display: none;">
+                            <i class="fas fa-book-reader"></i>
+                             <h3>Žádná data o pokroku</h3>
+                            <p>Zatím nemáte zaznamenaný žádný pokrok v tématech. Začněte procvičovat!</p>
+                        </div>
+                        </section>
                     </div>
 
                  <div class="tab-content" id="study-plan-tab-content">
