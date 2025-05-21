@@ -4,6 +4,7 @@
 // 1. Milníky série se nyní správně načítají a ukládají lokálně.
 // 2. Opraveno nekonečné načítání v patičce kreditů.
 // 3. Přidáno načítání claimed_streak_milestones při inicializaci.
+// 4. OPRAVA CHYBY: Doplněn chybějící blok catch v initializeApp
 (function() {
     'use strict';
 
@@ -540,21 +541,17 @@
                 if (weeklyPoints > 0) ui.totalPointsFooter.classList.add('positive');
                 else ui.totalPointsFooter.classList.add('negative');
             } else {
-                // Pokud jsou weeklyPoints 0, patičku aktualizuje fetchAndDisplayLatestCreditTransaction.
-                // Zde pouze zobrazíme "načítání", POKUD se zrovna načítá poslední transakce.
-                // Pokud se nenačítá A patička ještě nebyla aktualizována (např. při prvním renderu), může zůstat prázdná nebo zobrazit placeholder.
+                // If weeklyPoints is 0, the footer is updated by fetchAndDisplayLatestCreditTransaction.
+                // Here, only show "loading" if latestCreditTransaction is actively loading.
+                // Otherwise, leave it to be set by fetchAndDisplayLatestCreditTransaction.
                 if (isLoading.latestCreditTransaction) {
                     ui.totalPointsFooter.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Načítání transakce...`;
                 } else if (!ui.totalPointsFooter.innerHTML || !ui.totalPointsFooter.querySelector('strong')) {
-                    // Pokud se nenačítá a patička ještě nemá finální obsah (poznáme podle absence <strong>),
-                    // můžeme zde nechat výchozí "Žádné nedávné transakce" nebo jiný placeholder,
-                    // který nastaví fetchAndDisplayLatestCreditTransaction, nebo zde můžeme nastavit "--".
-                    // Prozatím necháme tak, aby fetchAndDisplayLatestCreditTransaction měl plnou kontrolu.
-                    // Případně, pokud by tam byl starý "Načítání...", tak ho tam necháme, dokud nepřijde update.
-                    if (ui.totalPointsFooter.innerHTML.includes("Načítání transakce...")) {
-                        // Ponecháme, pokud už tam je načítání, dokud fetchAndDisplayLatestCreditTransaction neskončí.
-                    } else if (!ui.totalPointsFooter.querySelector('strong')) { // Pokud tam není finální obsah
-                        ui.totalPointsFooter.innerHTML = `<i class="fas fa-info-circle"></i> --`;
+                    // If not loading AND footer doesn't have final content (no <strong> tag from transaction)
+                    // set a placeholder, or leave it to be filled by fetchAndDisplayLatestCreditTransaction.
+                    // For now, if it's not loading and doesn't have transaction info, show a simple placeholder.
+                    if (!ui.totalPointsFooter.querySelector('strong')) {
+                         ui.totalPointsFooter.innerHTML = `<i class="fas fa-info-circle"></i> --`;
                     }
                 }
             }
@@ -701,6 +698,7 @@
         const sidebarElement = ui.sidebar;
         const headerElement = ui.dashboardHeader;
 
+        // Zde je začátek bloku try, kde byla chyba
         try {
             if (sidebarElement) sidebarElement.style.display = 'flex';
             if (headerElement) headerElement.style.display = 'flex';
@@ -750,6 +748,7 @@
             setLoadingState('session', true);
             console.log("[INIT Dashboard] Checking auth session (async)...");
 
+            // Druhý blok try pro autentizaci a načítání dat
             try {
                 const { data: { session }, error: sessionError } = await withTimeout(supabase.auth.getSession(), AUTH_TIMEOUT, new Error('Ověření sezení vypršelo.'));
                 console.log(`[INIT Dashboard] getSession Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
@@ -768,11 +767,10 @@
                     console.log(`[INIT Dashboard] User authenticated (ID: ${currentUser.id}). Loading profile and titles...`);
                     if (ui.mainContentAreaPlaceholder) ui.mainContentAreaPlaceholder.style.display = 'none';
 
-                    // Paralelní načítání profilu, titulů a VYZVEDNUTÝCH MILNÍKŮ
                     const [profileResult, titlesResult, claimedMilestonesResult] = await Promise.allSettled([
                         fetchUserProfile(currentUser.id),
                         fetchTitles(),
-                        fetchClaimedStreakMilestones(currentUser.id) // Nové volání
+                        fetchClaimedStreakMilestones(currentUser.id)
                     ]);
                     stepStartTime = performance.now();
 
@@ -796,16 +794,14 @@
                         showToast('Varování', 'Nepodařilo se načíst seznam titulů.', 'warning');
                     }
 
-                    // Zpracování vyzvednutých milníků
                     if (claimedMilestonesResult.status === 'fulfilled' && currentProfile) {
                         currentProfile.claimed_streak_milestones = claimedMilestonesResult.value || [];
                         console.log(`[INIT Dashboard] Claimed streak milestones loaded: ${currentProfile.claimed_streak_milestones.length}`);
                     } else if (currentProfile) {
                         console.warn("[INIT Dashboard] Failed to load claimed streak milestones:", claimedMilestonesResult.reason);
-                        currentProfile.claimed_streak_milestones = []; // Zajistíme, že pole existuje
+                        currentProfile.claimed_streak_milestones = [];
                         showToast('Varování', 'Nepodařilo se načíst vyzvednuté milníky série.', 'warning');
                     }
-
 
                     updateSidebarProfile(currentProfile);
                     updateCopyrightYear();
@@ -852,6 +848,7 @@
                     showError("Nejste přihlášeni. Přesměrovávám na přihlašovací stránku...", false, ui.mainContentAreaPlaceholder || ui.mainContent);
                     setTimeout(() => { window.location.href = '/auth/index.html'; }, 3000);
                 }
+            // Zde končí vnitřní blok try pro autentizaci
             } catch (authRelatedError) {
                 console.error("❌ [INIT Dashboard] Auth/Session Check or Subsequent Operation Error:", authRelatedError);
                 setLoadingState('session', false);
@@ -864,10 +861,7 @@
                 showError(userFriendlyMessage, false, ui.mainContentAreaPlaceholder || ui.mainContent);
                 if (ui.mainContent) ui.mainContent.style.display = 'block';
             }
-
-            const totalEndTime = performance.now();
-            console.log(`✅ [INIT Dashboard] App initializeApp function finished. Total Time: ${(totalEndTime - totalStartTime).toFixed(2)}ms`);
-
+        // Zde je opravené místo - doplněný blok catch pro vnější try
         } catch (error) {
             console.error("❌ [INIT Dashboard] Kritická chyba PŘED ověřením sezení (nebo v úplně úvodní fázi):", error);
             const endTime = performance.now();
@@ -887,6 +881,9 @@
             const mainContentForError = document.getElementById('main-content');
             if (mainContentForError) mainContentForError.style.display = 'none';
             if (typeof setLoadingState === 'function') setLoadingState('all', false);
+        } finally { // Přidán blok finally
+            const totalEndTime = performance.now();
+            console.log(`✅ [INIT Dashboard] App initializeApp function finished (nebo selhala). Total Time: ${(totalEndTime - totalStartTime).toFixed(2)}ms`);
         }
     }
     // --- END: App Initialization ---
