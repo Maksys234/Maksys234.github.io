@@ -681,7 +681,7 @@
         console.log("[INIT Dashboard] initializeApp: Start v27.0.7 (Radically simplified try-catch)");
         let stepStartTime = totalStartTime;
 
-        try {
+        try { // Main try block for the entire initialization
             cacheDOMElements();
             console.log(`[INIT Dashboard] cacheDOMElements Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
             stepStartTime = performance.now();
@@ -720,7 +720,7 @@
             console.log(`[INIT Dashboard] Basic UI visible, initialLoader hidden. Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
             stepStartTime = performance.now();
 
-            // --- CORE INITIALIZATION LOGIC - NOW DIRECTLY IN initializeApp's TRY ---
+            // --- CORE INITIALIZATION LOGIC ---
             const waitForSupabase = new Promise((resolve, reject) => {
                 const maxAttempts = 10; let attempts = 0;
                 const intervalId = setInterval(() => {
@@ -853,8 +853,7 @@
                 showError("Nejste přihlášeni. Přesměrovávám na přihlašovací stránku...", false, ui.mainContentAreaPlaceholder || ui.mainContent);
                 setTimeout(() => { window.location.href = '/auth/index.html'; }, 3000);
             }
-            // --- END OF CORE INITIALIZATION LOGIC ---
-
+        // Zde končí `try` blok (řádek 898 v tomto kódu)
         } catch (error) { // Catch block for the main initializeApp try
             console.error("❌ [INIT Dashboard] Error during core initialization (MAIN CATCH):", error);
             let friendlyMessage = `Chyba během inicializace: ${error.message || 'Neznámá chyba.'}`;
@@ -880,7 +879,7 @@
             const totalEndTime = performance.now();
             console.log(`✅ [INIT Dashboard] App initializeApp function finished (outer try-finally). Total Time: ${(totalEndTime - totalStartTime).toFixed(2)}ms`);
         }
-    }
+    } // Konec funkce initializeApp (řádek ~913)
     // --- END: App Initialization ---
 
     // --- START THE APP ---
