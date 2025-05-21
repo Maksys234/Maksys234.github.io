@@ -4,7 +4,7 @@
 // 1. Milníky série se nyní správně načítají a ukládají lokálně.
 // 2. Opraveno nekonečné načítání v patičce kreditů.
 // 3. Přidáno načítání claimed_streak_milestones při inicializaci.
-// 4. OPRAVA CHYBY: Finální revize a oprava struktury try-catch v initializeApp (aktuální oprava)
+// 4. OPRAVA CHYBY: Komplexní revize a oprava struktury try-catch v initializeApp (aktuální oprava)
 (function() {
     'use strict';
 
@@ -683,7 +683,8 @@
         console.log("[INIT Dashboard] initializeApp: Start v27.0.3");
         let stepStartTime = performance.now();
 
-        try { // Главный блок try для всей инициализации
+        // MAIN TRY-CATCH-FINALLY FOR THE ENTIRE INITIALIZATION PROCESS
+        try {
             cacheDOMElements();
             console.log(`[INIT Dashboard] cacheDOMElements Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
             stepStartTime = performance.now();
@@ -739,23 +740,22 @@
                     }
                 }, 200);
             });
-            await waitForSupabase;
+            await waitForSupabase; // This can throw if the promise is rejected
             console.log(`[INIT Dashboard] waitForSupabase Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
             stepStartTime = performance.now();
 
-            if (!initializeSupabase()) {
-                console.error("[INIT Dashboard] Supabase init function failed. Aborting.");
-                // No need to throw here, initializeSupabase already calls showError and returns false
-                return;
+            if (!initializeSupabase()) { // initializeSupabase calls showError itself on failure
+                console.error("[INIT Dashboard] Supabase init function failed. Aborting app initialization.");
+                return; // Exit initializeApp if Supabase can't be set up
             }
             console.log(`[INIT Dashboard] initializeSupabase Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
             stepStartTime = performance.now();
 
-            applyInitialSidebarState();
+            applyInitialSidebarState(); // This function has its own try-catch
             console.log(`[INIT Dashboard] applyInitialSidebarState Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
             stepStartTime = performance.now();
 
-            setupEventListeners();
+            setupEventListeners(); // This function is generally safe (adds listeners)
             console.log(`[INIT Dashboard] setupEventListeners Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
             stepStartTime = performance.now();
 
@@ -771,7 +771,7 @@
                 if (sessionError.message.toLowerCase().includes('networkerror')) {
                     friendlyMessage = 'Chyba sítě při ověřování sezení. Zkontrolujte své připojení k internetu.';
                 }
-                throw new Error(friendlyMessage); // This error will be caught by the outer catch
+                throw new Error(friendlyMessage); // Will be caught by the main catch block
             }
 
             if (session?.user) {
@@ -779,44 +779,50 @@
                 console.log(`[INIT Dashboard] User authenticated (ID: ${currentUser.id}). Loading profile and titles...`);
                 if (ui.mainContentAreaPlaceholder) ui.mainContentAreaPlaceholder.style.display = 'none';
 
+                // Fetch initial user data
                 const [profileResult, titlesResult, claimedMilestonesResult] = await Promise.allSettled([
-                    fetchUserProfile(currentUser.id),
-                    fetchTitles(),
-                    fetchClaimedStreakMilestones(currentUser.id)
+                    fetchUserProfile(currentUser.id), // Has its own try-catch
+                    fetchTitles(), // Has its own try-catch-finally
+                    fetchClaimedStreakMilestones(currentUser.id) // Has its own try-catch-finally
                 ]);
                 stepStartTime = performance.now();
 
+                // Process profile
                 if (profileResult.status === 'fulfilled' && profileResult.value) {
                     currentProfile = profileResult.value;
                     console.log("[INIT Dashboard] Profile loaded:", currentProfile);
                 } else {
                     const profileErrorReason = profileResult.reason || 'Neznámá chyba při načítání profilu.';
                     console.warn(`[INIT Dashboard] Profile not found or fetch failed (${profileErrorReason}), attempting to create default...`);
-                    currentProfile = await createDefaultProfile(currentUser.id, currentUser.email);
+                    currentProfile = await createDefaultProfile(currentUser.id, currentUser.email); // Has its own try-catch
                     if (!currentProfile) {
-                        // If createDefaultProfile also fails, throw to be caught by the outer catch
                         throw new Error(`Nepodařilo se vytvořit/načíst profil uživatele. Důvod: ${profileErrorReason}`);
                     }
                     console.log("[INIT Dashboard] Default profile created/retrieved.");
                 }
 
+                // Process titles
                 if (titlesResult.status === 'fulfilled') {
                     allTitles = titlesResult.value || [];
                     console.log("[INIT Dashboard] Titles loaded:", allTitles.length);
                 } else {
                     console.warn("[INIT Dashboard] Failed to load titles:", titlesResult.reason);
-                    allTitles = [];
+                    allTitles = []; // Ensure it's an array
                     showToast('Varování', 'Nepodařilo se načíst seznam titulů.', 'warning');
                 }
-
-                if (claimedMilestonesResult.status === 'fulfilled' && currentProfile) {
-                    currentProfile.claimed_streak_milestones = claimedMilestonesResult.value || [];
-                    console.log(`[INIT Dashboard] Claimed streak milestones loaded: ${currentProfile.claimed_streak_milestones.length}`);
-                } else if (currentProfile) { // only if profile exists
-                    console.warn("[INIT Dashboard] Failed to load claimed streak milestones:", claimedMilestonesResult.reason);
-                    currentProfile.claimed_streak_milestones = []; // ensure it's an array
-                    showToast('Varování', 'Nepodařilo se načíst vyzvednuté milníky série.', 'warning');
+                
+                // Process claimed milestones
+                if (currentProfile) { // Ensure profile exists before trying to assign to it
+                    if (claimedMilestonesResult.status === 'fulfilled') {
+                        currentProfile.claimed_streak_milestones = claimedMilestonesResult.value || [];
+                        console.log(`[INIT Dashboard] Claimed streak milestones loaded: ${currentProfile.claimed_streak_milestones.length}`);
+                    } else {
+                        console.warn("[INIT Dashboard] Failed to load claimed streak milestones:", claimedMilestonesResult.reason);
+                        currentProfile.claimed_streak_milestones = [];
+                        showToast('Varování', 'Nepodařilo se načíst vyzvednuté milníky série.', 'warning');
+                    }
                 }
+
 
                 updateSidebarProfile(currentProfile);
                 updateCopyrightYear();
@@ -832,7 +838,8 @@
                     });
                 } else {
                     console.error("Modul DashboardLists není definován nebo nemá funkci initialize!");
-                    setLoadingState('activities', false); setLoadingState('creditHistory', false);
+                    setLoadingState('activities', false); 
+                    setLoadingState('creditHistory', false);
                 }
                 
                 if (ui.mainContentAreaPlaceholder) ui.mainContentAreaPlaceholder.style.display = 'none';
@@ -841,7 +848,7 @@
                 toggleSkeletonUI('stats', false);
                 toggleSkeletonUI('shortcuts', false);
 
-                await loadDashboardData(currentUser, currentProfile);
+                await loadDashboardData(currentUser, currentProfile); // This function has its own robust try-catch-finally
                 console.log(`[INIT Dashboard] loadDashboardData Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
 
                 requestAnimationFrame(() => {
@@ -863,32 +870,32 @@
                 showError("Nejste přihlášeni. Přesměrovávám na přihlašovací stránku...", false, ui.mainContentAreaPlaceholder || ui.mainContent);
                 setTimeout(() => { window.location.href = '/auth/index.html'; }, 3000);
             }
-        // Конец главного блока try
-        } catch (error) { // Catch for the main try block
+        // End of the main try block
+        } catch (error) { 
+            // Catch for the main try block
             console.error("❌ [INIT Dashboard] Critical error during initialization process:", error);
-            const endTime = performance.now();
+            const endTime = performance.now(); // Capture time even on error
             console.log(`[INIT Dashboard] Initialization failed. Total Time: ${(endTime - totalStartTime).toFixed(2)}ms`);
             
             const initialLoaderElementForError = document.getElementById('initial-loader');
             if (initialLoaderElementForError && !initialLoaderElementForError.classList.contains('hidden')) {
-                initialLoaderElementForError.innerHTML = `<p style="color: var(--accent-pink);">CHYBA (${error.message}). OBNOVTE STRÁNKU.</p>`;
+                initialLoaderElementForError.innerHTML = `<p style="color: var(--accent-pink);">CHYBA (${sanitizeHTML(error.message)}). OBNOVTE STRÁNKU.</p>`;
             } else {
                 const globalErrorElement = document.getElementById('global-error');
                  if (globalErrorElement) {
                      globalErrorElement.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>Kritická chyba inicializace: ${sanitizeHTML(error.message)}</div><button class="retry-button btn" onclick="location.reload()">Obnovit Stránku</button></div>`;
                      globalErrorElement.style.display = 'block';
                  } else {
-                    // Fallback if even globalError is not found
-                    alert(`Kritická chyba inicializace: ${error.message}`);
+                    alert(`Kritická chyba inicializace: ${error.message}`); // Fallback
                  }
             }
             const mainContentForError = document.getElementById('main-content');
-            if (mainContentForError) mainContentForError.style.display = 'none'; // Hide main content on critical early error
+            if (mainContentForError) mainContentForError.style.display = 'none';
             
-            // Ensure all loading states are reset if an error occurs early
             if (typeof setLoadingState === 'function') setLoadingState('all', false);
 
-        } finally { // Finally for the main try block
+        } finally { 
+            // Finally for the main try block
             const totalEndTime = performance.now();
             console.log(`✅ [INIT Dashboard] App initializeApp function finished (either successfully or after an error). Total Time: ${(totalEndTime - totalStartTime).toFixed(2)}ms`);
         }
