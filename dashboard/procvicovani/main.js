@@ -1,5 +1,5 @@
 // dashboard/procvicovani/main.js
-// Version: 25.1.5 - Zobrazuje všechna témata v tabulce pokroku, i s 0% pokud zatím není záznam.
+// Version: 25.1.6 - Přidáno vytváření výchozích 0% záznamů v user_topic_progress po výběru cíle.
 // MODIFIED: Přidána tabulka s pokrokem v tématech.
 
 (function() { // Start IIFE
@@ -69,7 +69,7 @@
 	function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
 	function getInitials(userData) { if (!userData) return '?'; const f = userData.first_name?.[0] || ''; const l = userData.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || 'P'; }
 	function formatDate(dateString, includeTime = false) {
-        if (!dateString) return 'Nezaznamenáno'; // Změna pro tabulku
+        if (!dateString) return 'Nezaznamenáno';
         try {
             const date = new Date(dateString);
             if (isNaN(date.getTime())) return 'Neplatné datum';
@@ -131,7 +131,7 @@
                 </tr>`;
         }
         tbodyElement.innerHTML = skeletonHTML;
-        const table = ui.topicProgressTable; // Získání celého table elementu
+        const table = ui.topicProgressTable;
         if (table) table.style.display = 'table';
         const emptyState = ui.topicProgressEmptyState;
         if(emptyState) emptyState.style.display = 'none';
@@ -170,7 +170,7 @@
             shortcuts: renderShortcutSkeletons,
             plan: renderPlanSkeletons,
             notifications: renderNotificationSkeletons,
-            topicProgressTable: (container) => renderTopicProgressTableSkeletons(ui.topicProgressBody, 5) // Zvýšeno na 5
+            topicProgressTable: (container) => renderTopicProgressTableSkeletons(ui.topicProgressBody, 5)
         };
         const displayTypeMap = {
             stats: 'grid',
@@ -244,6 +244,7 @@
             } else if (container && container !== primaryElement) {
                 container.classList.add('loading');
             }
+
         } else {
             console.log(`[SetLoadingState v3 Cleanup] Clearing loading state for ${sectionKey}.`);
             if (container) container.classList.remove('loading');
@@ -312,14 +313,14 @@
 	async function fetchDashboardStats(userId, profileData) {
 		startPerformanceTimer('fetchDashboardStats');
 		console.log("[Fetch Data] fetchDashboardStats called. Profile Data:", profileData);
-		await new Promise(resolve => setTimeout(resolve, 300)); // Simulační zpoždění
+		await new Promise(resolve => setTimeout(resolve, 300));
 		console.log("[Fetch Data] fetchDashboardStats finished delay.");
 		const lastTest = diagnosticResultsData?.length > 0 ? diagnosticResultsData[0] : null;
 		const stats = {
 			totalPoints: profileData?.points || 0,
 			completedExercises: profileData?.completed_exercises || 0,
 			activeStreak: profileData?.streak_days || 0,
-            longestStreakDays: profileData?.longest_streak_days || 0, // Použijeme nové pole
+            longestStreakDays: profileData?.longest_streak_days || 0,
 			completedExercisesToday: profileData?.exercises_today || 0,
 			lastTestScore: lastTest?.total_score ?? null,
 			lastTestDate: lastTest?.completed_at ?? null
@@ -337,13 +338,13 @@
         if (!supabase || !userId) {
             console.error("[UserTopicProgress] Supabase client or userId missing.");
             stopPerformanceTimer('fetchUserTopicProgress');
-            return []; // Vracíme prázdné pole při chybě
+            return [];
         }
         try {
             // 1. Načteme všechna existující témata
             const { data: allExamTopics, error: topicsError } = await supabase
                 .from('exam_topics')
-                .select('id, name, icon_class, subject'); // Přidáno subject pro případné filtrování
+                .select('id, name, icon_class'); // icon_class je název sloupce z vaší tabulky
 
             if (topicsError) {
                 console.error("[UserTopicProgress] Error fetching all exam_topics:", topicsError);
@@ -369,18 +370,22 @@
             const mergedProgress = allExamTopics.map(topic => {
                 const userProgress = userProgressData?.find(p => p.topic_id === topic.id);
                 return {
-                    topic: { // Vnořený objekt pro téma, jak očekává renderovací funkce
+                    topic: { // Vnořený objekt pro téma
                         id: topic.id,
                         name: topic.name,
-                        icon_class: topic.icon_class
+                        icon_class: topic.icon_class // Použijeme icon_class z exam_topics
                     },
                     progress_percentage: userProgress?.progress_percentage || 0,
-                    last_studied_at: userProgress?.last_studied_at || null // null pro "Nezahájeno"
+                    last_studied_at: userProgress?.last_studied_at || null
                 };
             });
 
-            // Seřadíme (např. podle názvu tématu pro konzistentní zobrazení)
-            mergedProgress.sort((a, b) => a.topic.name.localeCompare(b.topic.name, 'cs'));
+            // Seřadíme (např. nejprve témata s nějakým pokrokem, pak podle názvu)
+            mergedProgress.sort((a, b) => {
+                if ((a.progress_percentage > 0 || a.last_studied_at) && !(b.progress_percentage > 0 || b.last_studied_at)) return -1;
+                if (!(a.progress_percentage > 0 || a.last_studied_at) && (b.progress_percentage > 0 || b.last_studied_at)) return 1;
+                return a.topic.name.localeCompare(b.topic.name, 'cs');
+            });
 
             console.log(`[UserTopicProgress] Merged and sorted ${mergedProgress.length} topic progress records.`);
             stopPerformanceTimer('fetchUserTopicProgress');
@@ -389,17 +394,17 @@
         } catch (err) {
             console.error("[UserTopicProgress] General error in fetchUserTopicProgress:", err);
             stopPerformanceTimer('fetchUserTopicProgress');
-            return []; // V případě chyby vrátit prázdné pole
+            return [];
         }
     }
 	// --- END: Data Fetching ---
 
-	// --- START: "Témata k Procvičení" Logic - Aktualizováno na tabulku pokroku ---
+	// --- START: "Témata k Procvičení" - Aktualizováno na tabulku pokroku ---
     function renderUserTopicProgressTable(progressData) {
         startPerformanceTimer('renderUserTopicProgressTable');
         console.log("[TopicProgressTable] Rendering table with data:", progressData);
         const tbody = ui.topicProgressBody;
-        const tableContainer = ui.topicProgressSection; // Použijeme hlavní kontejner sekce pro loader
+        const tableContainer = ui.topicProgressSection;
         const tableElement = ui.topicProgressTable;
         const emptyState = ui.topicProgressEmptyState;
 
@@ -422,8 +427,7 @@
             progressData.forEach(item => {
                 const topicName = item.topic?.name || 'Neznámé téma';
                 const progress = item.progress_percentage || 0;
-                // Používáme formatDate s includeTime = true, pokud chceme čas
-                const lastStudied = item.last_studied_at ? formatDate(item.last_studied_at, true) : 'Nezahájeno';
+                const lastStudied = formatDate(item.last_studied_at, true); // Použije 'Nezaznamenáno' pokud je null
                 const iconClass = item.topic?.icon_class || topicIcons[topicName] || topicIcons.default;
 
                 const tr = document.createElement('tr');
@@ -468,7 +472,109 @@
 	function showStep2(goalType) { startPerformanceTimer('showStep2'); const step2Id = `goal-step-${goalType.replace('math_', '')}`; const step2Element = document.getElementById(step2Id); if (!ui.goalSelectionModal || !ui.goalStep1 || !step2Element) { console.error(`[GoalModal] Cannot show step 2 for ${goalType}: Missing elements.`); showError("Chyba zobrazení kroku 2.", true); stopPerformanceTimer('showStep2'); return; } console.log(`[GoalModal] Showing step 2: #${step2Id}`); ui.goalSelectionModal.querySelectorAll('.modal-step').forEach(step => step.classList.remove('active')); step2Element.classList.add('active'); const backBtn = step2Element.querySelector('.modal-back-btn'); if (backBtn) { const oldHandler = backBtn._backHandler; if (oldHandler) backBtn.removeEventListener('click', oldHandler); const newHandler = () => handleBackToStep1(ui.goalStep1, step2Element); backBtn.addEventListener('click', newHandler); backBtn._backHandler = newHandler; } const confirmBtn = step2Element.querySelector('.modal-confirm-btn'); if (confirmBtn) { const oldHandler = confirmBtn._confirmHandler; if (oldHandler) confirmBtn.removeEventListener('click', oldHandler); const newHandler = () => handleStep2Confirm(goalType); confirmBtn.addEventListener('click', newHandler); confirmBtn._confirmHandler = newHandler; confirmBtn.disabled = false; confirmBtn.innerHTML = 'Potvrdit a pokračovat'; } stopPerformanceTimer('showStep2'); }
 	function handleBackToStep1(step1Element, currentStep2Element) { startPerformanceTimer('handleBackToStep1'); console.log("[GoalModal] Back to step 1..."); if(currentStep2Element) currentStep2Element.classList.remove('active'); if(step1Element) step1Element.classList.add('active'); pendingGoal = null; stopPerformanceTimer('handleBackToStep1'); }
 	function handleStep2Confirm(goalType) { startPerformanceTimer('handleStep2Confirm'); if (goalSelectionInProgress) { stopPerformanceTimer('handleStep2Confirm'); return; } const step2Id = `goal-step-${goalType.replace('math_', '')}`; const step2Element = document.getElementById(step2Id); if (!step2Element) { console.error(`[GoalModal] Step 2 element ${step2Id} not found.`); stopPerformanceTimer('handleStep2Confirm'); return; } const details = {}; let isValid = true; try { if (goalType === 'math_accelerate') { details.accelerate_areas = Array.from(step2Element.querySelectorAll('input[name="accelerate_area"]:checked')).map(cb => cb.value); const reasonRadio = step2Element.querySelector('input[name="accelerate_reason"]:checked'); details.accelerate_reason = reasonRadio ? reasonRadio.value : null; if(details.accelerate_areas.length === 0) { showToast("Chyba", "Vyberte alespoň jednu oblast zájmu.", "warning"); isValid = false; } if(!details.accelerate_reason) { showToast("Chyba", "Vyberte důvod pro učení napřed.", "warning"); isValid = false; } } else if (goalType === 'math_review') { details.review_areas = Array.from(step2Element.querySelectorAll('input[name="review_area"]:checked')).map(cb => cb.value); } } catch (e) { console.error("[GoalModal] Error getting step 2 details:", e); isValid = false; showToast("Chyba", "Chyba zpracování výběru.", "error"); } if (isValid) { console.log(`[GoalModal] Step 2 details for ${goalType}:`, details); saveGoalAndProceed(pendingGoal, details); } stopPerformanceTimer('handleStep2Confirm'); }
-	async function saveGoalAndProceed(goal, details = null) { startPerformanceTimer('saveGoalAndProceed'); if (goalSelectionInProgress || !goal) { stopPerformanceTimer('saveGoalAndProceed'); return; } goalSelectionInProgress = true; setLoadingState('goalSelection', true); console.log(`[GoalModal Save] Saving goal: ${goal}, details:`, details); const activeStep = ui.goalSelectionModal?.querySelector('.modal-step.active'); const confirmButton = activeStep?.querySelector('.modal-confirm-btn'); const backButton = activeStep?.querySelector('.modal-back-btn'); if (confirmButton) { confirmButton.disabled = true; confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...'; } if (backButton) backButton.disabled = true; try { if (!supabase || !currentUser || !currentProfile) throw new Error("Core dependencies missing."); const finalPreferences = { ...(currentProfile.preferences || {}), goal_details: (details && Object.keys(details).length > 0) ? details : undefined }; const updatePayload = { learning_goal: goal, preferences: finalPreferences, updated_at: new Date().toISOString() }; console.log("[GoalModal Save] Updating Supabase profile:", updatePayload); const { data: updatedProfileData, error } = await supabase.from('profiles').update(updatePayload).eq('id', currentUser.id).select('*, selected_title, preferences, longest_streak_days').single(); if (error) throw error; currentProfile = updatedProfileData; if (!currentProfile.preferences) currentProfile.preferences = {}; console.log("[GoalModal Save] Goal saved to DB:", currentProfile.learning_goal); let goalTextKey = `goal_${goal.replace('math_', '')}`; let goalText = { goal_exam_prep: 'Příprava na zkoušky', goal_accelerate: 'Učení napřed', goal_review: 'Doplnění mezer', goal_explore: 'Volné prozkoumávání' }[goalTextKey] || goal; showToast('Cíl uložen!', `Váš cíl: ${goalText}.`, 'success'); hideGoalSelectionModal(); if (ui.mainContent) { ui.mainContent.style.display = 'flex'; requestAnimationFrame(() => { if(ui.mainContent) ui.mainContent.classList.add('loaded'); }); } else { console.warn("[GoalModal Save] mainContent element not found. Cannot make it visible."); } console.log("[GoalModal Save] Making main content areas (tabs, tab-content) visible..."); if(ui.tabsWrapper) { ui.tabsWrapper.style.display = 'flex'; ui.tabsWrapper.classList.add('visible'); } else { console.warn("[GoalModal Save] tabsWrapper not found."); } if(ui.tabContentContainer) { ui.tabContentContainer.style.display = 'flex'; ui.tabContentContainer.classList.add('visible'); } else { console.warn("[GoalModal Save] tabContentContainer not found."); } if(ui.tabContents) { ui.tabContents.forEach(el => {if (el) el.style.display='none';}); } configureUIForGoal(); await loadPageData(); if(ui.mainContent) ui.mainContent.classList.remove('interaction-disabled'); console.log("[GoalModal Save] UI configured and page data loading initiated."); } catch (error) { console.error("[GoalModal Save] Error saving goal:", error); showToast('Chyba', 'Nepodařilo se uložit váš cíl.', 'error'); if (confirmButton) { confirmButton.disabled = false; confirmButton.innerHTML = 'Potvrdit a pokračovat'; } if (backButton) backButton.disabled = false; } finally { goalSelectionInProgress = false; setLoadingState('goalSelection', false); pendingGoal = null; } stopPerformanceTimer('saveGoalAndProceed'); }
+	async function saveGoalAndProceed(goal, details = null) {
+        startPerformanceTimer('saveGoalAndProceed');
+        if (goalSelectionInProgress || !goal) {
+            stopPerformanceTimer('saveGoalAndProceed');
+            return;
+        }
+        goalSelectionInProgress = true;
+        setLoadingState('goalSelection', true);
+        console.log(`[GoalModal Save] Saving goal: ${goal}, details:`, details);
+        const activeStep = ui.goalSelectionModal?.querySelector('.modal-step.active');
+        const confirmButton = activeStep?.querySelector('.modal-confirm-btn');
+        const backButton = activeStep?.querySelector('.modal-back-btn');
+        if (confirmButton) { confirmButton.disabled = true; confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ukládám...'; }
+        if (backButton) backButton.disabled = true;
+
+        try {
+            if (!supabase || !currentUser || !currentProfile) throw new Error("Core dependencies missing.");
+            const finalPreferences = { ...(currentProfile.preferences || {}), goal_details: (details && Object.keys(details).length > 0) ? details : undefined };
+            const updatePayload = { learning_goal: goal, preferences: finalPreferences, updated_at: new Date().toISOString() };
+            console.log("[GoalModal Save] Updating Supabase profile:", updatePayload);
+            const { data: updatedProfileData, error } = await supabase.from('profiles').update(updatePayload).eq('id', currentUser.id).select('*, selected_title, preferences, longest_streak_days').single();
+            if (error) throw error;
+            currentProfile = updatedProfileData;
+            if (!currentProfile.preferences) currentProfile.preferences = {};
+            console.log("[GoalModal Save] Goal saved to DB:", currentProfile.learning_goal);
+
+            // <<< START: Vytvoření výchozích záznamů o pokroku v tématech >>>
+            console.log("[GoalModal Save] Initializing topic progress for user...");
+            const { data: allExamTopics, error: topicsError } = await supabase
+                .from('exam_topics')
+                .select('id');
+
+            if (topicsError) {
+                console.error("[GoalModal Save] Error fetching exam_topics for progress initialization:", topicsError);
+                showToast("Chyba", "Nepodařilo se načíst témata pro inicializaci pokroku.", "error");
+            } else if (allExamTopics && allExamTopics.length > 0) {
+                const existingProgressRecords = await supabase
+                    .from('user_topic_progress')
+                    .select('topic_id')
+                    .eq('user_id', currentUser.id);
+
+                const existingTopicIds = new Set(existingProgressRecords.data?.map(p => p.topic_id) || []);
+                const newProgressEntries = [];
+
+                allExamTopics.forEach(topic => {
+                    if (!existingTopicIds.has(topic.id)) {
+                        newProgressEntries.push({
+                            user_id: currentUser.id,
+                            topic_id: topic.id,
+                            progress_percentage: 0,
+                            last_studied_at: null // Nebo new Date().toISOString() pokud chceme zaznamenat čas vytvoření
+                        });
+                    }
+                });
+
+                if (newProgressEntries.length > 0) {
+                    const { error: insertProgressError } = await supabase
+                        .from('user_topic_progress')
+                        .insert(newProgressEntries);
+                    if (insertProgressError) {
+                        console.error("[GoalModal Save] Error inserting default topic progress records:", insertProgressError);
+                        showToast("Varování", "Nepodařilo se plně inicializovat pokrok v tématech.", "warning");
+                    } else {
+                        console.log(`[GoalModal Save] Successfully inserted ${newProgressEntries.length} default topic progress records.`);
+                    }
+                } else {
+                    console.log("[GoalModal Save] No new topic progress records needed or all topics already initialized.");
+                }
+            } else {
+                console.warn("[GoalModal Save] No exam_topics found to initialize progress against.");
+            }
+            // <<< END: Vytvoření výchozích záznamů o pokroku v tématech >>>
+
+
+            let goalTextKey = `goal_${goal.replace('math_', '')}`;
+            let goalText = { goal_exam_prep: 'Příprava na zkoušky', goal_accelerate: 'Učení napřed', goal_review: 'Doplnění mezer', goal_explore: 'Volné prozkoumávání' }[goalTextKey] || goal;
+            showToast('Cíl uložen!', `Váš cíl: ${goalText}.`, 'success');
+            hideGoalSelectionModal();
+            if (ui.mainContent) { ui.mainContent.style.display = 'flex'; requestAnimationFrame(() => { if(ui.mainContent) ui.mainContent.classList.add('loaded'); }); }
+            else { console.warn("[GoalModal Save] mainContent element not found. Cannot make it visible."); }
+            console.log("[GoalModal Save] Making main content areas (tabs, tab-content) visible...");
+            if(ui.tabsWrapper) { ui.tabsWrapper.style.display = 'flex'; ui.tabsWrapper.classList.add('visible'); }
+            else { console.warn("[GoalModal Save] tabsWrapper not found."); }
+            if(ui.tabContentContainer) { ui.tabContentContainer.style.display = 'flex'; ui.tabContentContainer.classList.add('visible'); }
+            else { console.warn("[GoalModal Save] tabContentContainer not found."); }
+            if(ui.tabContents) { ui.tabContents.forEach(el => {if (el) el.style.display='none';}); }
+
+            configureUIForGoal();
+            await loadPageData(); // Načte data pro nově nakonfigurované UI
+            if(ui.mainContent) ui.mainContent.classList.remove('interaction-disabled');
+            console.log("[GoalModal Save] UI configured and page data loading initiated.");
+        } catch (error) {
+            console.error("[GoalModal Save] Error saving goal:", error);
+            showToast('Chyba', 'Nepodařilo se uložit váš cíl.', 'error');
+            if (confirmButton) { confirmButton.disabled = false; confirmButton.innerHTML = 'Potvrdit a pokračovat'; }
+            if (backButton) backButton.disabled = false;
+        } finally {
+            goalSelectionInProgress = false;
+            setLoadingState('goalSelection', false);
+            pendingGoal = null;
+        }
+        stopPerformanceTimer('saveGoalAndProceed');
+    }
 	// --- END: Goal Selection Logic ---
 
 	// --- START: UI Configuration and Data Loading ---
@@ -602,14 +708,13 @@
 	async function handleRefreshClick() { startPerformanceTimer('handleRefreshClick'); if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné se přihlásit.", "error"); stopPerformanceTimer('handleRefreshClick'); return; } if (currentlyLoadingTabId) { showToast("PROBÍHÁ SYNCHRONIZACE", `Data pro záložku '${currentlyLoadingTabId}' se již načítají.`, "info"); console.warn("[Refresh] Blocked: A tab is currently loading."); stopPerformanceTimer('handleRefreshClick'); return; } console.log("🔄 Manual refresh triggered..."); const icon = ui.refreshDataBtn?.querySelector('i'); const text = ui.refreshDataBtn?.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'RELOADING...'; if (ui.refreshDataBtn) ui.refreshDataBtn.disabled = true; const activeTabButton = document.querySelector('.content-tab.active'); const activeTabId = activeTabButton ? activeTabButton.dataset.tab : (localStorage.getItem(LAST_ACTIVE_TAB_KEY) || 'practice-tab'); console.log(`[Refresh] Reloading data for currently active tab: ${activeTabId}`); await loadTabData(activeTabId); if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'RELOAD'; if (ui.refreshDataBtn) ui.refreshDataBtn.disabled = false; console.log("[Refresh] Reload process initiated for active tab."); stopPerformanceTimer('handleRefreshClick'); }
 	// --- END: UI Configuration and Data Loading ---
 
-    // --- NEW: fetchTitles function (similar to profile.js) ---
     async function fetchTitles() {
         if (!supabase) return [];
         console.log("[Titles] Fetching available titles...");
-        setLoadingState('titles', true); // Assuming you might add a loading state for this
+        setLoadingState('titles', true);
         try {
             const { data, error } = await supabase
-                .from('title_shop') // Make sure this table name is correct
+                .from('title_shop')
                 .select('title_key, name');
             if (error) throw error;
             console.log("[Titles] Fetched titles:", data);
@@ -622,7 +727,6 @@
             return [];
         }
     }
-    // --- END: fetchTitles function ---
 
 	// --- START: Initialization (Modified) ---
 	function initializeSupabase() { startPerformanceTimer('initializeSupabase'); try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not loaded or createClient is not a function."); } if (window.supabaseClient) { supabase = window.supabaseClient; console.log('[Supabase] Using existing global client instance.'); } else if (supabase === null) { supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); if (!supabase) throw new Error("Supabase client creation failed."); window.supabaseClient = supabase; console.log('[Supabase] Client initialized by main.js and stored globally.'); } else { console.log('[Supabase] Using existing local client instance.'); } stopPerformanceTimer('initializeSupabase'); return true; } catch (error) { console.error('[Supabase] Initialization failed:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi.", true); stopPerformanceTimer('initializeSupabase'); return false; } }
@@ -652,7 +756,7 @@
 
 	async function initializeApp() {
 		startPerformanceTimer('initializeApp_Total');
-		console.log(`[INIT Procvičování] App Init Start v25.1.5...`); // Updated version
+		console.log(`[INIT Procvičování] App Init Start v25.1.6...`);
 		try {
 			startPerformanceTimer('initializeApp_cacheDOM');
 			cacheDOMElements();
@@ -737,7 +841,7 @@
 
 				setupTabEventListeners();
 				initDeferredUIFeatures();
-				console.log("✅ [INIT Procvičování] Verze v25.1.5 Initialized.");
+				console.log("✅ [INIT Procvičování] Verze v25.1.6 Initialized.");
 
 			} else {
 				console.log('[INIT Procvičování] Uživatel není přihlášen, přesměrování...');
@@ -829,7 +933,6 @@
             { key: 'goalStepReview', id: 'goal-step-review', critical: false },
             { key: 'reviewAreasGroup', id: 'review-areas-group', critical: false },
             { key: 'goalStepExplore', id: 'goal-step-explore', critical: false },
-            // Nové elementy pro tabulku pokroku v tématech
             { key: 'topicProgressSection', id: 'topic-progress-section', critical: true},
             { key: 'topicProgressTableLoadingOverlay', id: 'topic-progress-table-loading-overlay', critical: true},
             { key: 'topicProgressTable', id: 'topic-progress-table', critical: true},
