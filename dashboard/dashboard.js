@@ -900,7 +900,7 @@
             const totalEndTime = performance.now();
             console.log(`✅ [INIT Dashboard] App initializeApp function finished. Total Time: ${(totalEndTime - totalStartTime).toFixed(2)}ms`);
         }
-    }
+    } // End of initializeApp
     // --- END: App Initialization ---
 
     // --- START THE APP ---
