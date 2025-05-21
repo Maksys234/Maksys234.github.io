@@ -4,7 +4,8 @@
 // 1. Milníky série se nyní správně načítají a ukládají lokálně.
 // 2. Opraveno nekonečné načítání v patičce kreditů.
 // 3. Přidáno načítání claimed_streak_milestones při inicializaci.
-// 4. OPRAVA CHYBY: Doplněn chybějící blok catch v initializeApp
+// 4. OPRAVA CHYBY: Doplněn chybějící blok catch v initializeApp (předchozí oprava)
+// 5. OPRAVA CHYBY: Doplněn další chybějící blok catch v initializeApp v okolí řádku 904
 (function() {
     'use strict';
 
@@ -541,16 +542,10 @@
                 if (weeklyPoints > 0) ui.totalPointsFooter.classList.add('positive');
                 else ui.totalPointsFooter.classList.add('negative');
             } else {
-                // If weeklyPoints is 0, the footer is updated by fetchAndDisplayLatestCreditTransaction.
-                // Here, only show "loading" if latestCreditTransaction is actively loading.
-                // Otherwise, leave it to be set by fetchAndDisplayLatestCreditTransaction.
                 if (isLoading.latestCreditTransaction) {
                     ui.totalPointsFooter.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Načítání transakce...`;
-                } else if (!ui.totalPointsFooter.innerHTML || !ui.totalPointsFooter.querySelector('strong')) {
-                    // If not loading AND footer doesn't have final content (no <strong> tag from transaction)
-                    // set a placeholder, or leave it to be filled by fetchAndDisplayLatestCreditTransaction.
-                    // For now, if it's not loading and doesn't have transaction info, show a simple placeholder.
-                    if (!ui.totalPointsFooter.querySelector('strong')) {
+                } else if (!ui.totalPointsFooter.querySelector('strong')) {
+                    if (!ui.totalPointsFooter.innerHTML.includes("Načítání transakce...")) { // Avoid overwriting if it's already "loading"
                          ui.totalPointsFooter.innerHTML = `<i class="fas fa-info-circle"></i> --`;
                     }
                 }
@@ -698,7 +693,7 @@
         const sidebarElement = ui.sidebar;
         const headerElement = ui.dashboardHeader;
 
-        // Zde je začátek bloku try, kde byla chyba
+        // This is the start of the try block that was missing a catch/finally
         try {
             if (sidebarElement) sidebarElement.style.display = 'flex';
             if (headerElement) headerElement.style.display = 'flex';
@@ -748,7 +743,7 @@
             setLoadingState('session', true);
             console.log("[INIT Dashboard] Checking auth session (async)...");
 
-            // Druhý blok try pro autentizaci a načítání dat
+            // Second try block for authentication and data loading
             try {
                 const { data: { session }, error: sessionError } = await withTimeout(supabase.auth.getSession(), AUTH_TIMEOUT, new Error('Ověření sezení vypršelo.'));
                 console.log(`[INIT Dashboard] getSession Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
@@ -848,7 +843,7 @@
                     showError("Nejste přihlášeni. Přesměrovávám na přihlašovací stránku...", false, ui.mainContentAreaPlaceholder || ui.mainContent);
                     setTimeout(() => { window.location.href = '/auth/index.html'; }, 3000);
                 }
-            // Zde končí vnitřní blok try pro autentizaci
+            // This is where the inner try block ends
             } catch (authRelatedError) {
                 console.error("❌ [INIT Dashboard] Auth/Session Check or Subsequent Operation Error:", authRelatedError);
                 setLoadingState('session', false);
@@ -861,8 +856,8 @@
                 showError(userFriendlyMessage, false, ui.mainContentAreaPlaceholder || ui.mainContent);
                 if (ui.mainContent) ui.mainContent.style.display = 'block';
             }
-        // Zde je opravené místo - doplněný blok catch pro vnější try
-        } catch (error) {
+        // This is where the outer try block ends, and the catch/finally should be
+        } catch (error) { // This is the CATCH block for the OUTER try
             console.error("❌ [INIT Dashboard] Kritická chyba PŘED ověřením sezení (nebo v úplně úvodní fázi):", error);
             const endTime = performance.now();
             console.log(`[INIT Dashboard] Initialization failed early. Time: ${(endTime - totalStartTime).toFixed(2)}ms`);
@@ -881,7 +876,7 @@
             const mainContentForError = document.getElementById('main-content');
             if (mainContentForError) mainContentForError.style.display = 'none';
             if (typeof setLoadingState === 'function') setLoadingState('all', false);
-        } finally { // Přidán blok finally
+        } finally { // This is the FINALLY block for the OUTER try
             const totalEndTime = performance.now();
             console.log(`✅ [INIT Dashboard] App initializeApp function finished (nebo selhala). Total Time: ${(totalEndTime - totalStartTime).toFixed(2)}ms`);
         }
