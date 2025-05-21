@@ -853,7 +853,7 @@
                 showError("Nejste přihlášeni. Přesměrovávám na přihlašovací stránku...", false, ui.mainContentAreaPlaceholder || ui.mainContent);
                 setTimeout(() => { window.location.href = '/auth/index.html'; }, 3000);
             }
-        // Zde končí `try` blok (řádek 898 v tomto kódu)
+        // Zde končí `try` blok (řádek 897 v tomto kódu)
         } catch (error) { // Catch block for the main initializeApp try
             console.error("❌ [INIT Dashboard] Error during core initialization (MAIN CATCH):", error);
             let friendlyMessage = `Chyba během inicializace: ${error.message || 'Neznámá chyba.'}`;
@@ -879,7 +879,7 @@
             const totalEndTime = performance.now();
             console.log(`✅ [INIT Dashboard] App initializeApp function finished (outer try-finally). Total Time: ${(totalEndTime - totalStartTime).toFixed(2)}ms`);
         }
-    } // Konec funkce initializeApp (řádek ~913)
+    } // Konec funkce initializeApp (řádek ~912 v tomto kódu)
     // --- END: App Initialization ---
 
     // --- START THE APP ---
