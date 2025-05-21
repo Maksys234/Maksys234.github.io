@@ -111,6 +111,54 @@
 	function renderMessage(container, type = 'info', title, message, addButtons = []) { if (!container) { console.error("[RenderMessage] Container not found!"); return; } console.log(`[RenderMessage] Rendering into: #${container.id || container.tagName}, Type: ${type}, Title: ${title}`); const iconMap = { info: 'fa-info-circle', warning: 'fa-exclamation-triangle', error: 'fa-exclamation-circle', empty: 'fa-box-open' }; let buttonsHTML = ''; addButtons.forEach(btn => { buttonsHTML += `<button class="btn ${btn.class || 'btn-primary'}" id="${btn.id}" ${btn.disabled ? 'disabled' : ''}>${btn.icon ? `<i class="fas ${btn.icon}"></i> ` : ''}${sanitizeHTML(btn.text)}</button>`; }); container.innerHTML = `<div class="empty-state ${type}" style="display: flex;"> <i class="fas ${iconMap[type] || iconMap.info} empty-state-icon"></i> <h3>${sanitizeHTML(title)}</h3> <p>${sanitizeHTML(message)}</p> <div class="action-buttons">${buttonsHTML}</div> </div>`; container.style.display = 'flex'; addButtons.forEach(btn => { const btnElement = container.querySelector(`#${btn.id}`); if (btnElement && btn.onClick) btnElement.addEventListener('click', btn.onClick); }); }
 	function startPerformanceTimer(timerName) { if (!PERFORMANCE_LOGGING_ENABLED) return; performanceTimers[timerName] = performance.now(); console.log(`[Perf] Timer "${timerName}" started.`); }
 	function stopPerformanceTimer(timerName) { if (!PERFORMANCE_LOGGING_ENABLED || !performanceTimers[timerName]) return; const startTime = performanceTimers[timerName]; const endTime = performance.now(); const duration = endTime - startTime; console.log(`[Perf] Timer "${timerName}" stopped. Duration: ${duration.toFixed(2)} ms`); delete performanceTimers[timerName]; return duration; }
+
+    // New function to render the enhanced empty state for study plan
+    function renderEnhancedStudyPlanEmptyState(container) {
+        startPerformanceTimer('renderEnhancedStudyPlanEmptyState');
+        if (!container) {
+            console.error("[RenderEnhancedEmptyPlan] Container element not found!");
+            stopPerformanceTimer('renderEnhancedStudyPlanEmptyState');
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="empty-state-icon-enhanced">
+                <i class="fas fa-map-signs"></i>
+            </div>
+            <h3 class="empty-state-title-enhanced">Vesmírný Průzkumník Bez Mapy?</h3>
+            <p class="empty-state-text-enhanced">Vypadá to, že tvůj studijní plán je zatím prázdná hvězdná mapa. Žádné obavy, každý velký objevitel někde začínal!</p>
+            <div class="empty-state-actions-enhanced">
+                <p class="empty-state-suggestion">Absolvoval/a jsi už <strong>diagnostický test</strong>? To je první krok k vytvoření tvé osobní trasy vesmírem vědomostí.</p>
+                <button class="btn btn-primary btn-lg" id="create-new-plan-btn-empty">
+                    <i class="fas fa-drafting-compass"></i> Vytvořit Nový Plán
+                </button>
+                <button class="btn btn-secondary" id="go-to-diagnostic-test-btn-empty">
+                    <i class="fas fa-rocket"></i> K Diagnostickému Testu
+                </button>
+            </div>
+            <p class="empty-state-info-enhanced"><small>Tvůj osobní studijní plán ti pomůže navigovat výukou a dosáhnout tvých cílů rychleji.</small></p>
+        `;
+        container.classList.add('enhanced-empty-state'); // Ensure the class is there
+        container.style.display = 'flex'; // Make it visible
+
+        // Add event listeners for the new buttons
+        const createPlanBtn = container.querySelector('#create-new-plan-btn-empty');
+        const goToTestBtn = container.querySelector('#go-to-diagnostic-test-btn-empty');
+
+        if (createPlanBtn) {
+            createPlanBtn.onclick = () => {
+                // Redirect to plan creation page or trigger plan creation flow
+                window.location.href = 'plan.html'; // Assuming plan.html is the creation page
+            };
+        }
+
+        if (goToTestBtn) {
+            goToTestBtn.onclick = () => {
+                window.location.href = 'test1.html'; // Redirect to diagnostic test
+            };
+        }
+        stopPerformanceTimer('renderEnhancedStudyPlanEmptyState');
+    }
 	// --- END: Helper Functions ---
 
 	// --- START: Skeleton Rendering Functions ---
@@ -222,7 +270,7 @@
             console.log(`[SetLoadingState v3] Applying loading state for ${sectionKey}.`);
             if (emptyStateEl) emptyStateEl.style.display = 'none';
             if (primaryElement) {
-                if (sectionKey !== 'topicProgressTable' && (!primaryElement.querySelector('.loading-skeleton') && !primaryElement.querySelector('.item-card-skeleton')) ) {
+                if (sectionKey !== 'topicProgressTable' && (!primaryElement.querySelector('.loading-skeleton') && !primaryElement.querySelector('.item-card-skeleton') && !primaryElement.querySelector('.skeleton-row')) ) {
                     primaryElement.innerHTML = '';
                 }
                 if (sectionKey === 'topicProgressTable' && container) {
@@ -304,7 +352,48 @@
 		`;
 		container.innerHTML = html; container.style.display = 'grid'; console.log("[Render Stats] Rendering complete."); stopPerformanceTimer('renderStatsCards');
 	}
-	function renderStudyPlanOverview(plan, activities, goal) { startPerformanceTimer('renderStudyPlanOverview'); console.log("[Render Plan] Rendering plan overview. Plan:", plan); const container = ui.studyPlanContainer; const contentEl = ui.studyPlanContent; const emptyEl = ui.studyPlanEmpty; if (!container || !contentEl || !emptyEl) { console.error("[Render Plan] Study plan UI elements missing!"); stopPerformanceTimer('renderStudyPlanOverview'); return; } contentEl.innerHTML = ''; emptyEl.innerHTML = ''; contentEl.style.display = 'none'; emptyEl.style.display = 'none'; container.style.display = 'block'; if (plan) { console.log("[Render Plan] Active plan found, rendering summary."); contentEl.innerHTML = ` <div class="plan-summary card" style="margin: 1rem; border: 1px solid var(--border-color-medium); background-color: rgba(var(--dark-purple-accent-rgb), 0.3);"> <h4><i class="fas fa-map-signs"></i> ${sanitizeHTML(plan.title || 'Aktivní studijní plán')}</h4> <p style="margin-bottom: 0.5rem;">Stav: <strong style="color: var(--accent-lime);">${plan.status === 'active' ? 'Aktivní' : 'Neaktivní/Dokončený'}</strong></p> <p style="margin-bottom: 1rem;">Pokrok: <strong style="color: var(--accent-primary);">${plan.progress || 0}%</strong></p> <a href="plan.html" class="btn btn-primary btn-sm"> <i class="fas fa-tasks"></i> Zobrazit detail plánu </a> </div> <div id="main-plan-schedule" style="padding: 0 1rem 1rem 1rem; text-align: center; color: var(--text-muted);"> <p><small>Týdenní přehled aktivit je dostupný v detailu plánu.</small></p> </div>`; contentEl.style.display = 'block'; } else { console.log("[Render Plan] No active plan found, rendering empty state message."); renderMessage( emptyEl, 'empty', 'Žádný aktivní plán', 'Momentálně nemáte aktivní studijní plán. Pokud jste již absolvoval/a diagnostický test, můžete si <a href="plan.html" onclick="event.preventDefault(); showToast(\'Info\', \'Přejděte na detailní stránku plánu pro vytvoření.\', \'info\'); return false;">vytvořit nový</a>.', [{ id: 'goToTestBtnPlan', text: 'K diagnostickému testu', onClick: () => window.location.href = 'test1.html', class: 'btn-secondary btn-sm' }] ); } console.log("[Render Plan] Rendering complete."); stopPerformanceTimer('renderStudyPlanOverview'); }
+	function renderStudyPlanOverview(plan, activities, goal) {
+        startPerformanceTimer('renderStudyPlanOverview');
+        console.log("[Render Plan] Rendering plan overview. Plan:", plan);
+        const container = ui.studyPlanContainer;
+        const contentEl = ui.studyPlanContent;
+        const emptyEl = ui.studyPlanEmpty;
+
+        if (!container || !contentEl || !emptyEl) {
+            console.error("[Render Plan] Study plan UI elements missing!");
+            stopPerformanceTimer('renderStudyPlanOverview');
+            return;
+        }
+
+        contentEl.innerHTML = '';
+        emptyEl.innerHTML = ''; // Clear previous empty state content
+        emptyEl.className = 'empty-state'; // Reset classes before adding new ones
+        contentEl.style.display = 'none';
+        emptyEl.style.display = 'none';
+        container.style.display = 'block';
+
+        if (plan) {
+            console.log("[Render Plan] Active plan found, rendering summary.");
+            contentEl.innerHTML = `
+                <div class="plan-summary card" style="margin: 1rem; border: 1px solid var(--border-color-medium); background-color: rgba(var(--dark-purple-accent-rgb), 0.3);">
+                    <h4><i class="fas fa-map-signs"></i> ${sanitizeHTML(plan.title || 'Aktivní studijní plán')}</h4>
+                    <p style="margin-bottom: 0.5rem;">Stav: <strong style="color: var(--accent-lime);">${plan.status === 'active' ? 'Aktivní' : 'Neaktivní/Dokončený'}</strong></p>
+                    <p style="margin-bottom: 1rem;">Pokrok: <strong style="color: var(--accent-primary);">${plan.progress || 0}%</strong></p>
+                    <a href="plan.html" class="btn btn-primary btn-sm">
+                        <i class="fas fa-tasks"></i> Zobrazit detail plánu
+                    </a>
+                </div>
+                <div id="main-plan-schedule" style="padding: 0 1rem 1rem 1rem; text-align: center; color: var(--text-muted);">
+                    <p><small>Týdenní přehled aktivit je dostupný v detailu plánu.</small></p>
+                </div>`;
+            contentEl.style.display = 'block';
+        } else {
+            console.log("[Render Plan] No active plan found, rendering ENHANCED empty state message.");
+            renderEnhancedStudyPlanEmptyState(emptyEl); // Call the new enhanced empty state function
+        }
+        console.log("[Render Plan] Rendering complete.");
+        stopPerformanceTimer('renderStudyPlanOverview');
+    }
 	function renderShortcutsForGoal(goal, container) { startPerformanceTimer('renderShortcutsForGoal'); console.log(`[Render Shortcuts] Rendering for goal: ${goal}`); if (!container) { console.warn("[Render Shortcuts] Shortcut container not found."); stopPerformanceTimer('renderShortcutsForGoal'); return; } container.innerHTML = ''; let shortcutsHTML = ''; const shortcuts = { test: `<a href="test1.html" class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-graduation-cap"></i></div><h3 class="shortcut-title">Diagnostický Test</h3><p class="shortcut-desc">Ověřte své znalosti.</p></a>`, plan: `<a href="plan.html" class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-tasks"></i></div><h3 class="shortcut-title">Studijní Plán</h3><p class="shortcut-desc">Zobrazte personalizovaný plán.</p></a>`, tutor: `<a href="vyuka/vyuka.html" class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-book-open"></i></div><h3 class="shortcut-title">AI Tutor (Výuka)</h3><p class="shortcut-desc">Vysvětlení témat s AI.</p></a>`, progress: `<a href="../pokrok.html" class="shortcut-card card" data-animate><div class="shortcut-icon"><i class="fas fa-chart-line"></i></div><h3 class="shortcut-title">Můj Pokrok</h3><p class="shortcut-desc">Sledujte své zlepšení.</p></a>` }; shortcutsHTML = shortcuts.test + shortcuts.plan + shortcuts.tutor; if (!shortcutsHTML) { console.log("[Render Shortcuts] No shortcuts defined (this should not happen with the new logic)."); renderMessage(container, 'empty', 'Žádné rychlé akce', 'Pro tento cíl nejsou definovány žádné rychlé akce.'); container.style.display = 'block'; } else { container.innerHTML = shortcutsHTML; container.querySelectorAll('.shortcut-card').forEach((card, index) => card.style.setProperty('--animation-order', index + 1)); container.style.display = 'grid'; } if (typeof initScrollAnimations === 'function') initScrollAnimations(); if (typeof initTooltips === 'function') initTooltips(); console.log("[Render Shortcuts] Rendering complete."); stopPerformanceTimer('renderShortcutsForGoal'); }
 	function renderVyukaTabContent() { startPerformanceTimer('renderVyukaTabContent'); console.log("[Render Vyuka] Rendering static content for Výuka tab."); const container = ui.vyukaTabContent; if (!container) { console.error("[Render Vyuka] Container #vyuka-tab-content not found!"); stopPerformanceTimer('renderVyukaTabContent'); return; } container.style.display = 'block'; if (!container.querySelector('.vyuka-section')) { container.innerHTML = ` <section class="vyuka-section card"> <h2 class="section-title"><i class="fas fa-person-chalkboard"></i>Výuka s AI</h2> <div class="empty-state" style="display:flex;"> <i class="fas fa-robot empty-state-icon"></i> <h3>AI Výukový Modul</h3> <p>Zde můžete procházet výukové lekce s naším AI tutorem Justaxem. Lekce jsou přizpůsobeny vašemu studijnímu plánu a pokroku.</p> <a href="vyuka/vyuka.html" class="btn btn-primary" style="margin-top: 1rem;"> <i class="fas fa-book-open"></i> Spustit výuku </a> </div> </section> `; console.log("[Render Vyuka] Static content added."); } else { console.log("[Render Vyuka] Content already exists, skipping render."); } stopPerformanceTimer('renderVyukaTabContent'); }
 	// --- END: UI Update Functions ---
@@ -920,7 +1009,7 @@
             { key: 'notificationsDropdown', id: 'notifications-dropdown', critical: false },
             { key: 'notificationsList', id: 'notifications-list', critical: false },
             { key: 'noNotificationsMsg', id: 'no-notifications-msg', critical: false },
-            { key: 'markAllReadBtn', id: 'mark-all-read-btn', critical: false },
+            { key: 'markAllReadBtn', id: 'mark-all-read-btn', critical: false }, // Updated ID
             { key: 'diagnosticPrompt', id: 'diagnostic-prompt', critical: false },
             { key: 'statsCards', id: 'stats-cards', critical: false },
             { key: 'shortcutsGrid', id: 'shortcuts-grid', critical: false },
