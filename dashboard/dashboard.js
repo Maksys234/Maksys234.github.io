@@ -1,5 +1,5 @@
 // dashboard.js
-// Verze: 27.0.4 - Refaktorizace s pomocnou funkcí pro lepší izolaci try-catch
+// Verze: 27.0.5 - Přidán explicitní `finally` blok do vnořeného try-catch
 // Opravy:
 // 1. Milníky série se nyní správně načítají a ukládají lokálně.
 // 2. Opraveno nekonečné načítání v patičce kreditů.
@@ -678,7 +678,7 @@
     // --- START: App Initialization ---
     async function initializeApp() {
         const totalStartTime = performance.now();
-        console.log("[INIT Dashboard] initializeApp: Start v27.0.4 (Refactored with Helper)");
+        console.log("[INIT Dashboard] initializeApp: Start v27.0.5 (Added finally to inner try-catch)");
         let stepStartTime = totalStartTime;
 
         try {
@@ -719,7 +719,6 @@
             }
             console.log(`[INIT Dashboard] Basic UI visible, initialLoader hidden. Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
 
-            // Přesunuto volání executeCoreInitializationLogic
             await executeCoreInitializationLogic();
 
         } catch (criticalEarlyError) {
@@ -745,7 +744,6 @@
         }
     }
 
-    // Nová pomocná asynchronní funkce pro jádro inicializační logiky
     async function executeCoreInitializationLogic() {
         let stepStartTime = performance.now();
         try {
@@ -785,7 +783,7 @@
 
             const { data: { session }, error: sessionError } = await withTimeout(supabase.auth.getSession(), AUTH_TIMEOUT, new Error('Ověření sezení vypršelo.'));
             console.log(`[INIT CoreLogic] getSession Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
-            setLoadingState('session', false);
+
 
             if (sessionError) {
                 let friendlyMessage = `Nepodařilo se ověřit sezení: ${sessionError.message}`;
@@ -882,7 +880,6 @@
             }
         } catch (innerError) {
             console.error("❌ [INIT CoreLogic] Error during core initialization logic:", innerError);
-            setLoadingState('session', false);
             let friendlyMessage = `Chyba během inicializace: ${innerError.message || 'Neznámá chyba.'}`;
             if (innerError.message && innerError.message.toLowerCase().includes('ověření sezení vypršelo')) {
                friendlyMessage = "Ověření sezení vypršelo. Zkuste prosím obnovit stránku, nebo zkontrolujte své internetové připojení.";
@@ -893,8 +890,11 @@
             if (ui.mainContent && ui.mainContentAreaPlaceholder && ui.mainContentAreaPlaceholder.style.display === 'none') {
                  ui.mainContent.style.display = 'block';
             }
+        } finally {
+            setLoadingState('session', false); // Ensure session loading state is always reset
+            console.log("[INIT CoreLogic] Core logic execution finished (try-catch-finally).");
         }
-    }
+    } // End of executeCoreInitializationLogic
     // --- END: App Initialization ---
 
     // --- START THE APP ---
