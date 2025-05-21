@@ -6,7 +6,8 @@
 // 3. Přidáno načítání claimed_streak_milestones při inicializaci.
 // 4. OPRAVA CHYBY: Doplněn chybějící blok catch v initializeApp (předchozí oprava)
 // 5. OPRAVA CHYBY: Doplněn další chybějící blok catch v initializeApp v okolí řádku 904 (předchozí oprava)
-// 6. OPRAVA CHYBY: Doplněn chybějící blok catch v initializeApp v okolí řádku 899 (aktuální oprava)
+// 6. OPRAVA CHYBY: Doplněn chybějící blok catch v initializeApp v okolí řádku 899 (předchozí oprava)
+// 7. OPRAVA CHYBY: Finální kontrola a oprava struktury try-catch v initializeApp (aktuální oprava)
 (function() {
     'use strict';
 
@@ -694,8 +695,7 @@
         const sidebarElement = ui.sidebar;
         const headerElement = ui.dashboardHeader;
 
-        // This is the start of the try block that was missing a catch/finally
-        try {
+        try { // Outer try block for initial setup
             if (sidebarElement) sidebarElement.style.display = 'flex';
             if (headerElement) headerElement.style.display = 'flex';
             if (mainContentElement) mainContentElement.style.display = 'block';
@@ -703,11 +703,11 @@
             if (ui.mainContentAreaPlaceholder) {
                 ui.mainContentAreaPlaceholder.innerHTML = '<div class="loading-spinner" style="margin:auto;"></div><p>Načítání palubní desky...</p>';
                 ui.mainContentAreaPlaceholder.style.display = 'flex';
-                 toggleSkeletonUI('welcomeBanner', true);
-                 toggleSkeletonUI('stats', true);
-                 toggleSkeletonUI('shortcuts', true);
-                 if (ui.activityListContainerWrapper) ui.activityListContainerWrapper.classList.add('loading-section');
-                 if (ui.creditHistoryContainerWrapper) ui.creditHistoryContainerWrapper.classList.add('loading-section');
+                toggleSkeletonUI('welcomeBanner', true);
+                toggleSkeletonUI('stats', true);
+                toggleSkeletonUI('shortcuts', true);
+                if (ui.activityListContainerWrapper) ui.activityListContainerWrapper.classList.add('loading-section');
+                if (ui.creditHistoryContainerWrapper) ui.creditHistoryContainerWrapper.classList.add('loading-section');
             } else {
                 console.warn("[INIT Dashboard] mainContentAreaPlaceholder NOT FOUND in DOM after cache. Layout might be affected.");
             }
@@ -724,12 +724,32 @@
             console.log(`[INIT Dashboard] Basic UI visible, initialLoader hidden. Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
             stepStartTime = performance.now();
 
-            const waitForSupabase = new Promise((resolve, reject) => { const maxAttempts = 10; let attempts = 0; const intervalId = setInterval(() => { attempts++; if (typeof window.supabase !== 'undefined' && typeof window.supabase.createClient === 'function') { console.log(`[INIT Dashboard] Supabase library found after ${attempts} attempts.`); clearInterval(intervalId); resolve(); } else if (attempts >= maxAttempts) { console.error("[INIT Dashboard] Supabase library not found after waiting. Aborting."); clearInterval(intervalId); reject(new Error("Knihovna Supabase nebyla nalezena včas.")); } else { console.log(`[INIT Dashboard] Waiting for Supabase library... (Attempt ${attempts}/${maxAttempts})`); } }, 200); });
+            const waitForSupabase = new Promise((resolve, reject) => {
+                const maxAttempts = 10;
+                let attempts = 0;
+                const intervalId = setInterval(() => {
+                    attempts++;
+                    if (typeof window.supabase !== 'undefined' && typeof window.supabase.createClient === 'function') {
+                        console.log(`[INIT Dashboard] Supabase library found after ${attempts} attempts.`);
+                        clearInterval(intervalId);
+                        resolve();
+                    } else if (attempts >= maxAttempts) {
+                        console.error("[INIT Dashboard] Supabase library not found after waiting. Aborting.");
+                        clearInterval(intervalId);
+                        reject(new Error("Knihovna Supabase nebyla nalezena včas."));
+                    } else {
+                        console.log(`[INIT Dashboard] Waiting for Supabase library... (Attempt ${attempts}/${maxAttempts})`);
+                    }
+                }, 200);
+            });
             await waitForSupabase;
             console.log(`[INIT Dashboard] waitForSupabase Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
             stepStartTime = performance.now();
 
-            if (!initializeSupabase()) { console.error("[INIT Dashboard] Supabase init function failed. Aborting."); return; }
+            if (!initializeSupabase()) {
+                console.error("[INIT Dashboard] Supabase init function failed. Aborting.");
+                return;
+            }
             console.log(`[INIT Dashboard] initializeSupabase Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
             stepStartTime = performance.now();
 
@@ -744,8 +764,7 @@
             setLoadingState('session', true);
             console.log("[INIT Dashboard] Checking auth session (async)...");
 
-            // Second try block for authentication and data loading
-            // This is the try block that was around line 899
+            // Inner try-catch for session and data loading
             try {
                 const { data: { session }, error: sessionError } = await withTimeout(supabase.auth.getSession(), AUTH_TIMEOUT, new Error('Ověření sezení vypršelo.'));
                 console.log(`[INIT Dashboard] getSession Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
@@ -845,8 +864,7 @@
                     showError("Nejste přihlášeni. Přesměrovávám na přihlašovací stránku...", false, ui.mainContentAreaPlaceholder || ui.mainContent);
                     setTimeout(() => { window.location.href = '/auth/index.html'; }, 3000);
                 }
-            // This is where the inner try block ends, and its catch block begins
-            } catch (authRelatedError) {
+            } catch (authRelatedError) { // Catch for inner try (auth and data loading)
                 console.error("❌ [INIT Dashboard] Auth/Session Check or Subsequent Operation Error:", authRelatedError);
                 setLoadingState('session', false);
                 let userFriendlyMessage = `Chyba ověření nebo načítání dat: ${authRelatedError.message}`;
@@ -856,10 +874,10 @@
                     userFriendlyMessage = "Chyba sítě. Zkontrolujte své internetové připojení a zkuste to znovu.";
                 }
                 showError(userFriendlyMessage, false, ui.mainContentAreaPlaceholder || ui.mainContent);
-                if (ui.mainContent) ui.mainContent.style.display = 'block';
+                if (ui.mainContent) ui.mainContent.style.display = 'block'; // Show main content to display error
             }
-        // This is where the outer try block ends, and the catch/finally should be
-        } catch (error) { // This is the CATCH block for the OUTER try
+        // This is the CATCH for the OUTER try block
+        } catch (error) {
             console.error("❌ [INIT Dashboard] Kritická chyba PŘED ověřením sezení (nebo v úplně úvodní fázi):", error);
             const endTime = performance.now();
             console.log(`[INIT Dashboard] Initialization failed early. Time: ${(endTime - totalStartTime).toFixed(2)}ms`);
@@ -876,15 +894,14 @@
                  }
             }
             const mainContentForError = document.getElementById('main-content');
-            if (mainContentForError) mainContentForError.style.display = 'none';
+            if (mainContentForError) mainContentForError.style.display = 'none'; // Hide main content on critical early error
             if (typeof setLoadingState === 'function') setLoadingState('all', false);
-        } finally { // This is the FINALLY block for the OUTER try
+        } finally {
             const totalEndTime = performance.now();
-            console.log(`✅ [INIT Dashboard] App initializeApp function finished (nebo selhala). Total Time: ${(totalEndTime - totalStartTime).toFixed(2)}ms`);
+            console.log(`✅ [INIT Dashboard] App initializeApp function finished. Total Time: ${(totalEndTime - totalStartTime).toFixed(2)}ms`);
         }
     }
     // --- END: App Initialization ---
-
 
     // --- START THE APP ---
     if (document.readyState === 'loading') {
