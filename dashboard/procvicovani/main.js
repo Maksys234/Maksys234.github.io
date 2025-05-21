@@ -1,7 +1,5 @@
 // dashboard/procvicovani/main.js
-// Version: 25.1.3 - Полный пересмотр loadTabData для исправления синтаксиса и улучшения стабильности.
-// Убрана демо-логика бесконечной загрузки, добавлена загрузка тем из БД.
-// Рекорд серии теперь берется из longest_streak_days.
+// Version: 25.1.4 - Oprava chyby fetchTitles, sjednocení názvosloví pro topicProgressTable.
 // MODIFIED: Přidána tabulka s pokrokem v tématech.
 
 (function() { // Start IIFE
@@ -22,22 +20,20 @@
 	let supabase = null;
 	let currentUser = null;
 	let currentProfile = null;
-	let allTitles = [];
+	let allTitles = []; // Přidáno pro ukládání titulů
 	let userStatsData = null;
 	let diagnosticResultsData = [];
 	let testsChartInstance = null;
-	// let topicProgressData = []; // Odstraněno, bude načítáno ad-hoc nebo spravováno novou funkcí
 	let studyPlanData = null;
 	let planActivitiesData = [];
 	let isLoading = {
-		stats: false, tests: false, plan: false, topics: false,
+		stats: false, tests: false, plan: false, // topics: false, // Odebráno, nahrazeno topicProgressTable
 		shortcuts: false, notifications: false,
 		goalSelection: false, all: false,
 		'practice-tab': false,
 		'study-plan-tab': false,
 		'vyuka-tab': false,
-		// practiceTopics: false, // Nahrazeno topicProgressTable
-		topicProgressTable: false // Nový stav pro tabulku pokroku
+		topicProgressTable: false
 	};
 	let goalSelectionInProgress = false;
 	let pendingGoal = null;
@@ -47,11 +43,11 @@
 	// --- END: State Variables ---
 
 	// --- START: UI Elements Cache ---
-	const ui = {}; // Заполняется в cacheDOMElements()
+	const ui = {};
 	// --- END: UI Elements Cache ---
 
 	// --- START: Helper Functions ---
-	const topicIcons = { // Ponecháno pro případné budoucí použití
+	const topicIcons = {
 		"Algebra": "fa-calculator",
 		"Geometrie": "fa-draw-polygon",
 		"Funkce": "fa-chart-line",
@@ -72,7 +68,7 @@
 	function showError(message, isGlobal = false) { console.error("[Error Handler] Error:", message); if (isGlobal && ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" onclick="location.reload()">Obnovit</button></div>`; ui.globalError.style.display = 'block'; } else { showToast('CHYBA SYSTÉMU', message, 'error', 6000); } }
 	function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
 	function getInitials(userData) { if (!userData) return '?'; const f = userData.first_name?.[0] || ''; const l = userData.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || 'P'; }
-	function formatDate(dateString, includeTime = false) { // Přidána volitelná možnost času
+	function formatDate(dateString, includeTime = false) {
         if (!dateString) return '-';
         try {
             const date = new Date(dateString);
@@ -122,7 +118,6 @@
 	function renderPlanSkeletons(container) { const content = document.getElementById('study-plan-content'); if (!container || !content) { console.warn("[Skeletons] Study plan container or content not found."); return; } console.log("[Skeletons] Rendering plan skeletons..."); content.innerHTML = `<div class="plan-summary card loading"><div class="loading-skeleton"><div class="skeleton" style="height: 24px; width: 40%; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 16px; width: 60%; margin-bottom: 0.5rem;"></div><div class="skeleton" style="height: 16px; width: 50%; margin-bottom: 1rem;"></div><div class="skeleton" style="height: 30px; width: 120px;"></div></div></div>`; container.classList.add('loading'); container.style.display = 'block'; }
 	function renderShortcutSkeletons(container) { if (!container) { console.warn("[Skeletons] Shortcuts grid container not found."); return; } console.log("[Skeletons] Rendering shortcut skeletons..."); container.innerHTML = ''; for(let i = 0; i < 3; i++) { container.innerHTML += `<div class="shortcut-card card loading"><div class="loading-skeleton" style="align-items: center; padding: 1.8rem;"><div class="skeleton" style="width: 60px; height: 60px; border-radius: 16px; margin-bottom: 1.2rem;"></div><div class="skeleton" style="height: 18px; width: 70%; margin-bottom: 0.8rem;"></div><div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.4rem;"></div><div class="skeleton" style="height: 14px; width: 80%;"></div></div></div>`; } container.classList.add('loading'); container.style.display = 'grid'; }
 	function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) {console.warn("[Skeletons] Notifications list or no-message element not found."); return;} let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton"></div><div class="notification-content"><div class="skeleton" style="height:16px;width:70%;margin-bottom:6px;"></div><div class="skeleton" style="height:12px;width:90%;"></div><div class="skeleton" style="height:10px;width:40%;margin-top:6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
-	// NOVÁ FUNKCE pro skeleton tabulky pokroku v tématech
     function renderTopicProgressTableSkeletons(tbodyElement, count = 3) {
         if (!tbodyElement) { console.warn("[Skeletons] Topic progress table body not found."); return; }
         console.log("[Skeletons] Rendering topic progress table skeletons...");
@@ -137,9 +132,9 @@
         }
         tbodyElement.innerHTML = skeletonHTML;
         const table = tbodyElement.closest('table');
-        if (table) table.style.display = 'table';
+        if (table) table.style.display = 'table'; // Zobrazíme tabulku
         const emptyState = document.getElementById('topic-progress-empty-state');
-        if(emptyState) emptyState.style.display = 'none';
+        if(emptyState) emptyState.style.display = 'none'; // Skryjeme empty state
     }
 	// --- END: Skeleton Rendering Functions ---
 
@@ -159,11 +154,11 @@
             shortcuts: ui.shortcutsGrid,
             plan: ui.studyPlanContainer,
             notifications: ui.notificationsList,
-            topicProgressTable: ui.topicProgressTable // Přidáno pro tabulku
+            topicProgressTable: ui.topicProgressTable
         };
         const contentMap = {
             plan: ui.studyPlanContent,
-            topicProgressTable: ui.topicProgressBody // tbody pro obsah
+            topicProgressTable: ui.topicProgressBody
         };
         const emptyMap = {
             plan: ui.studyPlanEmpty,
@@ -175,14 +170,14 @@
             shortcuts: renderShortcutSkeletons,
             plan: renderPlanSkeletons,
             notifications: renderNotificationSkeletons,
-            topicProgressTable: (container) => renderTopicProgressTableSkeletons(ui.topicProgressBody, 3) // container je zde tbody
+            topicProgressTable: (container) => renderTopicProgressTableSkeletons(ui.topicProgressBody, 3)
         };
         const displayTypeMap = {
             stats: 'grid',
             shortcuts: 'grid',
             plan: 'block',
             notifications: 'block',
-            topicProgressTable: 'table-row-group' // pro tbody
+            topicProgressTable: 'table' // Změna z 'table-row-group' na 'table' pro celou tabulku
         };
 
         let container = null;
@@ -194,7 +189,7 @@
         if (sectionKey === 'practice-tab') {
             setLoadingState('stats', isLoadingFlag);
             setLoadingState('shortcuts', isLoadingFlag);
-            setLoadingState('topicProgressTable', isLoadingFlag); // Aktualizováno z practiceTopics
+            setLoadingState('topicProgressTable', isLoadingFlag);
             stopPerformanceTimer(`setLoadingState_${sectionKey}_${isLoadingFlag}`);
             return;
         } else if (sectionKey === 'study-plan-tab') {
@@ -221,34 +216,44 @@
             return;
         }
 
-        const primaryElement = contentEl || container;
+        const primaryElement = sectionKey === 'topicProgressTable' ? container : (contentEl || container); // Pro tabulku je primární celá tabulka
 
         if (isLoadingFlag) {
             console.log(`[SetLoadingState v3] Applying loading state for ${sectionKey}.`);
             if (emptyStateEl) emptyStateEl.style.display = 'none';
             if (primaryElement) {
+                 // Pro tabulku nechceme mazat celé tbody, skeletony se vkládají přímo do něj
                 if (sectionKey !== 'topicProgressTable' && (!primaryElement.querySelector('.loading-skeleton') && !primaryElement.querySelector('.item-card-skeleton')) ) {
-                    primaryElement.innerHTML = ''; // Pro tabulku nechceme mazat tbody, jen přidat skeletony
+                    primaryElement.innerHTML = '';
                 }
-                if (sectionKey !== 'topicProgressTable') primaryElement.style.display = 'none'; // Pro tabulku nechceme skrývat tbody
+                // Pro tabulku chceme, aby celá tabulka (container) byla viditelná, ne jen tbody (primaryElement)
+                if (sectionKey === 'topicProgressTable' && container) {
+                    container.style.display = 'table'; // Zobrazí tabulku, skeletony jsou v tbody
+                    if (ui.topicProgressTableLoadingOverlay) ui.topicProgressTableLoadingOverlay.classList.remove('hidden');
+                } else if (primaryElement && sectionKey !== 'topicProgressTable') {
+                    primaryElement.style.display = 'none';
+                }
+
 
                 if (skeletonFn) {
                     skeletonFn(primaryElement); // Zavolá funkci pro skeletony
-                    if (sectionKey === 'topicProgressTable' && ui.topicProgressTable) {
-                        ui.topicProgressTable.style.display = 'table'; // Zobrazí celou tabulku
-                    } else if (primaryElement && sectionKey !== 'topicProgressTable') {
+                    if (primaryElement && sectionKey !== 'topicProgressTable') { // Pro tabulku se displayType řeší výše
                          primaryElement.style.display = displayType;
                     }
                 }
             }
-            if (container && container !== primaryElement) container.classList.add('loading');
+             // Pokud kontejner pro tabulku není ten samý jako primární element (tbody), tak na něj taky aplikujeme třídu
+            if (sectionKey === 'topicProgressTable' && container && container !== primaryElement) {
+                container.classList.add('loading');
+            } else if (container && container !== primaryElement) {
+                container.classList.add('loading');
+            }
+
         } else {
             console.log(`[SetLoadingState v3 Cleanup] Clearing loading state for ${sectionKey}.`);
             if (container) container.classList.remove('loading');
-            // Zobrazení obsahu nebo empty state se řeší v render funkcích
-            if (sectionKey === 'topicProgressTable' && ui.topicProgressBody?.querySelectorAll('tr:not(.skeleton-row)').length === 0 && !ui.topicProgressEmptyState?.style.display === 'flex') {
-                // Pokud nejsou reálná data a není zobrazen empty state, necháme skeleton (nebo skryjeme tabulku)
-                // Toto se lépe řeší v render funkci
+            if (sectionKey === 'topicProgressTable' && ui.topicProgressTableLoadingOverlay) {
+                ui.topicProgressTableLoadingOverlay.classList.add('hidden');
             }
         }
         stopPerformanceTimer(`setLoadingState_${sectionKey}_${isLoadingFlag}`);
@@ -312,14 +317,14 @@
 	async function fetchDashboardStats(userId, profileData) {
 		startPerformanceTimer('fetchDashboardStats');
 		console.log("[Fetch Data] fetchDashboardStats called. Profile Data:", profileData);
-		await new Promise(resolve => setTimeout(resolve, 300)); // Simulační zpoždění
+		await new Promise(resolve => setTimeout(resolve, 300));
 		console.log("[Fetch Data] fetchDashboardStats finished delay.");
 		const lastTest = diagnosticResultsData?.length > 0 ? diagnosticResultsData[0] : null;
 		const stats = {
 			totalPoints: profileData?.points || 0,
 			completedExercises: profileData?.completed_exercises || 0,
 			activeStreak: profileData?.streak_days || 0,
-            longestStreakDays: profileData?.longest_streak_days || 0, // Použijeme nové pole
+            longestStreakDays: profileData?.longest_streak_days || 0,
 			completedExercisesToday: profileData?.exercises_today || 0,
 			lastTestScore: lastTest?.total_score ?? null,
 			lastTestDate: lastTest?.completed_at ?? null
@@ -330,7 +335,7 @@
 	async function fetchDiagnosticResults(userId, goal) { startPerformanceTimer('fetchDiagnosticResults'); console.log("[Fetch Data Stub] fetchDiagnosticResults called."); await new Promise(resolve => setTimeout(resolve, 300)); console.log("[Fetch Data Stub] fetchDiagnosticResults finished delay."); stopPerformanceTimer('fetchDiagnosticResults'); return []; }
 	async function fetchActiveStudyPlan(userId, goal) { startPerformanceTimer('fetchActiveStudyPlan'); console.log("[Fetch Data Stub] fetchActiveStudyPlan called."); await new Promise(resolve => setTimeout(resolve, 300)); console.log("[Fetch Data Stub] fetchActiveStudyPlan finished delay."); stopPerformanceTimer('fetchActiveStudyPlan'); return null; }
 	async function fetchPlanActivities(planId, goal) { startPerformanceTimer('fetchPlanActivities'); console.log("[Fetch Data Stub] fetchPlanActivities called."); await new Promise(resolve => setTimeout(resolve, 300)); console.log("[Fetch Data Stub] fetchPlanActivities finished delay."); stopPerformanceTimer('fetchPlanActivities'); return []; }
-	// NOVÁ FUNKCE pro načtení pokroku v tématech
+
     async function fetchUserTopicProgress(userId) {
         startPerformanceTimer('fetchUserTopicProgress');
         console.log(`[UserTopicProgress] Fetching topic progress for user ${userId}...`);
@@ -345,10 +350,10 @@
                 .select(`
                     progress_percentage,
                     last_studied_at,
-                    topic:exam_topics (name, icon_class)
+                    topic:exam_topics (id, name, icon_class)
                 `)
                 .eq('user_id', userId)
-                .order('last_studied_at', { ascending: false, nullsFirst: false }); // Řazení, aby relevantní byla nahoře
+                .order('last_studied_at', { ascending: false, nullsFirst: false });
 
             if (error) throw error;
             console.log(`[UserTopicProgress] Fetched ${data?.length || 0} topic progress records.`);
@@ -357,12 +362,12 @@
         } catch (err) {
             console.error("[UserTopicProgress] Error fetching topic progress:", err);
             stopPerformanceTimer('fetchUserTopicProgress');
-            return []; // V případě chyby vrátit prázdné pole
+            return [];
         }
     }
 	// --- END: Data Fetching ---
 
-	// --- START: "Témata k Procvičení" Logic - Aktualizováno na tabulku ---
+	// --- START: "Témata k Procvičení" - Aktualizováno na tabulku pokroku ---
     function renderUserTopicProgressTable(progressData) {
         startPerformanceTimer('renderUserTopicProgressTable');
         console.log("[TopicProgressTable] Rendering table with data:", progressData);
@@ -376,27 +381,27 @@
             return;
         }
 
-        tbody.innerHTML = ''; // Vyčistit předchozí obsah
+        tbody.innerHTML = ''; // Vyčistit předchozí obsah nebo skeletony
 
         if (!progressData || progressData.length === 0) {
             console.log("[TopicProgressTable] No topic progress data to display.");
             table.style.display = 'none';
-            emptyState.style.display = 'flex';
+            emptyState.style.display = 'flex'; // Zobrazit empty state
         } else {
-            table.style.display = 'table';
-            emptyState.style.display = 'none';
+            table.style.display = 'table'; // Zobrazit tabulku
+            emptyState.style.display = 'none'; // Skrýt empty state
             const fragment = document.createDocumentFragment();
             progressData.forEach(item => {
                 const topicName = item.topic?.name || 'Neznámé téma';
                 const progress = item.progress_percentage || 0;
                 const lastStudied = item.last_studied_at ? formatDate(item.last_studied_at, true) : 'Nezaznamenáno';
-                // const iconClass = item.topic?.icon_class || topicIcons.default; // Připraveno pro ikony
+                const iconClass = item.topic?.icon_class || topicIcons[topicName] || topicIcons.default;
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>
                         <div style="display: flex; align-items: center; gap: 0.75rem;">
-                            <i class="fas ${topicIcons[topicName] || topicIcons.default}" style="color: var(--accent-secondary); font-size: 1.1em;"></i>
+                            <i class="fas ${iconClass}" style="color: var(--accent-secondary); font-size: 1.1em; width: 20px; text-align: center;"></i>
                             <span>${sanitizeHTML(topicName)}</span>
                         </div>
                     </td>
@@ -416,16 +421,14 @@
         }
         stopPerformanceTimer('renderUserTopicProgressTable');
     }
-	// Odstraněna funkce loadAndRenderPracticeTopics, nahrazena logikou pro tabulku.
 	// --- END: "Témata k Procvičení" Logic ---
 
-
-	// --- START: Notification Stubs ---
+	// --- START: Notification ---
 	async function fetchNotifications(userId, limit) { startPerformanceTimer('fetchNotifications'); console.log(`[Notifications Stub] fetchNotifications called for user ${userId}, limit ${limit}.`); setLoadingState('notifications', true); await new Promise(resolve => setTimeout(resolve, 600)); console.log("[Notifications Stub] fetchNotifications finished delay."); const fakeNotifications = []; renderNotifications(0, fakeNotifications); stopPerformanceTimer('fetchNotifications'); return { unreadCount: 0, notifications: fakeNotifications }; }
 	function renderNotifications(count, notifications) { startPerformanceTimer('renderNotifications'); console.log(`[Notifications Stub] renderNotifications called with count ${count}.`); const list = ui.notificationsList; const noMsg = ui.noNotificationsMsg; const btn = ui.markAllReadBtn; const bellCount = ui.notificationCount; if (!list || !noMsg || !btn || !bellCount) { console.error("[Notifications Stub] UI elements missing."); setLoadingState('notifications', false); stopPerformanceTimer('renderNotifications'); return; } bellCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); bellCount.classList.toggle('visible', count > 0); if (notifications?.length > 0) { list.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div> <div class="notification-content"> <div class="notification-title">${sanitizeHTML(n.title)}</div> <div class="notification-message">${sanitizeHTML(n.message)}</div> <div class="notification-time">${formatRelativeTime(n.created_at)}</div> </div> </div>`; }).join(''); noMsg.style.display = 'none'; list.style.display = 'block'; } else { list.innerHTML = ''; noMsg.style.display = 'block'; list.style.display = 'none'; } btn.disabled = count === 0; setLoadingState('notifications', false); stopPerformanceTimer('renderNotifications'); }
 	async function markNotificationRead(notificationId) { startPerformanceTimer('markNotificationRead'); console.log(`[Notifications Stub] markNotificationRead for ID ${notificationId}.`); await new Promise(resolve => setTimeout(resolve, 200)); stopPerformanceTimer('markNotificationRead'); return true; }
 	async function markAllNotificationsRead() { startPerformanceTimer('markAllNotificationsRead'); console.log(`[Notifications Stub] markAllNotificationsRead.`); setLoadingState('notifications', true); await new Promise(resolve => setTimeout(resolve, 300)); renderNotifications(0, []); stopPerformanceTimer('markAllNotificationsRead'); }
-	// --- END: Notification Stubs ---
+	// --- END: Notification ---
 
 	// --- START: Goal Selection Logic ---
 	function checkUserGoalAndDiagnostic() { startPerformanceTimer('checkUserGoalAndDiagnostic'); console.log("[Goal Check] Checking user goal and diagnostic status..."); try { if (!currentProfile) { console.warn("[Goal Check] Profile not loaded yet."); if (ui.goalSelectionModal) ui.goalSelectionModal.style.display = 'none'; stopPerformanceTimer('checkUserGoalAndDiagnostic'); return; } if (!currentProfile.learning_goal) { if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'none'; console.log("[Goal Check] No learning_goal. Showing modal."); showGoalSelectionModal(); stopPerformanceTimer('checkUserGoalAndDiagnostic'); return; } const goal = currentProfile.learning_goal; console.log(`[Goal Check] User goal: ${goal}`); if (!ui.diagnosticPrompt) { console.warn("[Goal Check] ui.diagnosticPrompt not found."); stopPerformanceTimer('checkUserGoalAndDiagnostic'); return; } if (goal === 'exam_prep') { console.log("[Goal Check] Goal is exam_prep. Checking diagnosticResultsData."); if (diagnosticResultsData && diagnosticResultsData.length > 0) { const latestResult = diagnosticResultsData[0]; const score = latestResult.total_score ?? 0; console.log(`[Goal Check] Latest diagnostic score: ${score}`); if (score < 20) { ui.diagnosticPrompt.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: var(--accent-orange);"></i><p>Vaše skóre v posledním diagnostickém testu (${score}/50) bylo nízké. Pro optimální přípravu doporučujeme absolvovat test znovu nebo se zaměřit na slabší oblasti.</p><a href="test1.html" class="btn btn-primary" id="start-test-btn-prompt-lowscore"><i class="fas fa-play"></i> Opakovat test</a>`; ui.diagnosticPrompt.style.display = 'flex'; } else { ui.diagnosticPrompt.style.display = 'none'; console.log("[Goal Check] Diagnostic score good."); } } else { ui.diagnosticPrompt.innerHTML = `<i class="fas fa-exclamation-circle"></i><p>Pro odemčení personalizovaného obsahu a studijního plánu je potřeba absolvovat <strong>diagnostický test</strong>.</p><a href="test1.html" class="btn btn-primary" id="start-test-btn-prompt"><i class="fas fa-play"></i> Spustit test</a>`; ui.diagnosticPrompt.style.display = 'flex'; console.log("[Goal Check] No diagnostic results for exam_prep."); } } else { ui.diagnosticPrompt.style.display = 'none'; console.log("[Goal Check] Goal not exam_prep, hiding diagnostic prompt."); } } catch (error) { console.error("[Goal Check] Error:", error); if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'none'; } stopPerformanceTimer('checkUserGoalAndDiagnostic'); }
@@ -484,7 +487,7 @@
 		}
 
 		try {
-			if (!isLoading[tabId] || (!targetContentElement.querySelector('.loading-skeleton') && !targetContentElement.querySelector('.item-card-skeleton')) ) {
+			if (!isLoading[tabId] || (!targetContentElement.querySelector('.loading-skeleton') && !targetContentElement.querySelector('.item-card-skeleton') && !targetContentElement.querySelector('.skeleton-row')) ) {
 				targetContentElement.innerHTML = '';
 			}
 			targetContentElement.style.display = 'block';
@@ -494,11 +497,11 @@
 				case 'practice-tab':
 					setLoadingState('stats', true);
 					setLoadingState('shortcuts', true);
-					setLoadingState('topicProgressTable', true); // Změněno z practiceTopics
+					setLoadingState('topicProgressTable', true);
 
-					const [statsResult, topicProgressResult] = await Promise.allSettled([ // Přidáno topicProgressResult
+					const [statsResult, topicProgressResult] = await Promise.allSettled([
 						fetchDashboardStats(currentUser.id, currentProfile),
-						fetchUserTopicProgress(currentUser.id) // Nová funkce pro načtení pokroku
+						fetchUserTopicProgress(currentUser.id)
 					]);
 
 					if (statsResult.status === 'fulfilled') {
@@ -519,12 +522,12 @@
 					if(ui.diagnosticPrompt) {
 						await checkUserGoalAndDiagnostic();
 					}
-					// Načtení a vykreslení tabulky pokroku v tématech
+
                     if (topicProgressResult.status === 'fulfilled') {
                         renderUserTopicProgressTable(topicProgressResult.value);
                     } else {
                         console.error(`[Load Tab Data v30.1] Error fetching topic progress:`, topicProgressResult.reason);
-                        renderMessage(ui.topicProgressTableBody || targetContentElement, 'error', 'Chyba pokroku v tématech', topicProgressResult.reason?.message || 'Neznámá chyba');
+                        renderMessage(ui.topicProgressBody || targetContentElement, 'error', 'Chyba pokroku v tématech', topicProgressResult.reason?.message || 'Neznámá chyba');
                     }
                     setLoadingState('topicProgressTable', false);
 					break;
@@ -569,6 +572,28 @@
 	async function handleRefreshClick() { startPerformanceTimer('handleRefreshClick'); if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné se přihlásit.", "error"); stopPerformanceTimer('handleRefreshClick'); return; } if (currentlyLoadingTabId) { showToast("PROBÍHÁ SYNCHRONIZACE", `Data pro záložku '${currentlyLoadingTabId}' se již načítají.`, "info"); console.warn("[Refresh] Blocked: A tab is currently loading."); stopPerformanceTimer('handleRefreshClick'); return; } console.log("🔄 Manual refresh triggered..."); const icon = ui.refreshDataBtn?.querySelector('i'); const text = ui.refreshDataBtn?.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'RELOADING...'; if (ui.refreshDataBtn) ui.refreshDataBtn.disabled = true; const activeTabButton = document.querySelector('.content-tab.active'); const activeTabId = activeTabButton ? activeTabButton.dataset.tab : (localStorage.getItem(LAST_ACTIVE_TAB_KEY) || 'practice-tab'); console.log(`[Refresh] Reloading data for currently active tab: ${activeTabId}`); await loadTabData(activeTabId); if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'RELOAD'; if (ui.refreshDataBtn) ui.refreshDataBtn.disabled = false; console.log("[Refresh] Reload process initiated for active tab."); stopPerformanceTimer('handleRefreshClick'); }
 	// --- END: UI Configuration and Data Loading ---
 
+    // --- NEW: fetchTitles function (similar to profile.js) ---
+    async function fetchTitles() {
+        if (!supabase) return [];
+        console.log("[Titles] Fetching available titles...");
+        setLoadingState('titles', true); // Assuming you might add a loading state for this
+        try {
+            const { data, error } = await supabase
+                .from('title_shop') // Make sure this table name is correct
+                .select('title_key, name');
+            if (error) throw error;
+            console.log("[Titles] Fetched titles:", data);
+            setLoadingState('titles', false);
+            return data || [];
+        } catch (error) {
+            console.error("[Titles] Error fetching titles:", error);
+            showToast("Chyba načítání dostupných titulů.", "error");
+            setLoadingState('titles', false);
+            return [];
+        }
+    }
+    // --- END: fetchTitles function ---
+
 	// --- START: Initialization (Modified) ---
 	function initializeSupabase() { startPerformanceTimer('initializeSupabase'); try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not loaded or createClient is not a function."); } if (window.supabaseClient) { supabase = window.supabaseClient; console.log('[Supabase] Using existing global client instance.'); } else if (supabase === null) { supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); if (!supabase) throw new Error("Supabase client creation failed."); window.supabaseClient = supabase; console.log('[Supabase] Client initialized by main.js and stored globally.'); } else { console.log('[Supabase] Using existing local client instance.'); } stopPerformanceTimer('initializeSupabase'); return true; } catch (error) { console.error('[Supabase] Initialization failed:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi.", true); stopPerformanceTimer('initializeSupabase'); return false; } }
 	async function fetchUserProfile(userId) { // Added this helper for consistency
@@ -597,7 +622,7 @@
 
 	async function initializeApp() {
 		startPerformanceTimer('initializeApp_Total');
-		console.log(`[INIT Procvičování] App Init Start v25.1.3...`);
+		console.log(`[INIT Procvičování] App Init Start v25.1.4...`); // Updated version
 		try {
 			startPerformanceTimer('initializeApp_cacheDOM');
 			cacheDOMElements();
@@ -628,7 +653,7 @@
 				startPerformanceTimer('initializeApp_fetchInitialUserData');
 				const [profileResult, titlesResult, initialNotificationsResult] = await Promise.allSettled([
 					fetchUserProfile(currentUser.id),
-					fetchTitles(),
+					fetchTitles(), // Přidáno volání fetchTitles
 					fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT)
 				]);
 				stopPerformanceTimer('initializeApp_fetchInitialUserData');
@@ -646,9 +671,9 @@
 				stopPerformanceTimer('initializeApp_processProfile');
 
 				startPerformanceTimer('initializeApp_processTitlesAndNotifications');
-				allTitles = (titlesResult.status === 'fulfilled') ? (titlesResult.value?.data || []) : [];
+				allTitles = (titlesResult.status === 'fulfilled') ? (titlesResult.value || []) : []; // Zpracování výsledku fetchTitles
 				console.log(`[INIT Procvičování] Načteno ${allTitles.length} titulů.`);
-				updateSidebarProfile(currentProfile, allTitles);
+				updateSidebarProfile(currentProfile, allTitles); // Předání allTitles
 				if (initialNotificationsResult.status === 'fulfilled') { renderNotifications(initialNotificationsResult.value.unreadCount, initialNotificationsResult.value.notifications || []); } else { console.error("[INIT Procvičování] Chyba načítání počátečních notifikací:", initialNotificationsResult.reason); renderNotifications(0, []); }
 				stopPerformanceTimer('initializeApp_processTitlesAndNotifications');
 
@@ -676,13 +701,13 @@
 
 					configureUIForGoal();
 					hideInitialLoaderWithDelay();
-					loadPageData(); // Removed await to let UI show faster, data loads async
+					loadPageData();
 				}
 				stopPerformanceTimer('initializeApp_goalCheckAndConfig');
 
 				setupTabEventListeners();
 				initDeferredUIFeatures();
-				console.log("✅ [INIT Procvičování] Verze v25.1.3 Initialized.");
+				console.log("✅ [INIT Procvičování] Verze v25.1.4 Initialized.");
 
 			} else {
 				console.log('[INIT Procvičování] Uživatel není přihlášen, přesměrování...');
@@ -693,7 +718,7 @@
 			const il = ui.initialLoader;
 			if (il && !il.classList.contains('hidden')) { il.innerHTML = `<p style="color:var(--accent-pink);">CHYBA (${error.message}). Obnovte.</p>`; }
 			else { showError(`Chyba inicializace: ${error.message}`, true); }
-			if (ui.mainContent) ui.mainContent.style.display = 'flex';
+			if (ui.mainContent) ui.mainContent.style.display = 'flex'; // Změněno z none na flex, aby byla vidět chyba
 			setLoadingState('all', false);
 		} finally {
 			console.log("[INIT Procvičování] InitializeApp finally block finished.");
@@ -761,7 +786,7 @@
             { key: 'notificationsDropdown', id: 'notifications-dropdown', critical: false },
             { key: 'notificationsList', id: 'notifications-list', critical: false },
             { key: 'noNotificationsMsg', id: 'no-notifications-msg', critical: false },
-            { key: 'markAllReadBtn', id: 'mark-all-read-btn', critical: false }, // Opraveno ID
+            { key: 'markAllReadBtn', id: 'mark-all-read-btn', critical: false },
             { key: 'diagnosticPrompt', id: 'diagnostic-prompt', critical: false },
             { key: 'statsCards', id: 'stats-cards', critical: false },
             { key: 'shortcutsGrid', id: 'shortcuts-grid', critical: false },
@@ -776,11 +801,10 @@
             { key: 'goalStepExplore', id: 'goal-step-explore', critical: false },
             // Nové elementy pro tabulku pokroku v tématech
             { key: 'topicProgressSection', id: 'topic-progress-section', critical: true},
-            { key: 'topicProgressTableLoadingOverlay', id: 'topic-progress-table-loading-overlay', critical: true},
-            { key: 'topicProgressTable', id: 'topic-progress-table', critical: true},
-            { key: 'topicProgressBody', id: 'topic-progress-body', critical: true},
-            { key: 'topicProgressEmptyState', id: 'topic-progress-empty-state', critical: true},
-            // Odebrány elementy pro infinite scroll
+            { key: 'topicProgressTableLoadingOverlay', id: 'topic-progress-table-loading-overlay', critical: true}, // Overlay pro celou sekci
+            { key: 'topicProgressTable', id: 'topic-progress-table', critical: true}, // Samotná tabulka
+            { key: 'topicProgressBody', id: 'topic-progress-body', critical: true}, // Tělo tabulky pro vkládání řádků
+            { key: 'topicProgressEmptyState', id: 'topic-progress-empty-state', critical: true}, // Zpráva pro prázdný stav
         ];
         const notFoundCritical = []; const notFoundNonCritical = [];
         elementDefinitions.forEach(def => { const element = def.id ? document.getElementById(def.id) : document.querySelector(def.query); if (element) { ui[def.key] = element; } else { ui[def.key] = null; if (def.critical) notFoundCritical.push(`${def.key} (${def.id || def.query})`); else notFoundNonCritical.push(`${def.key} (${def.id || def.query})`); } });
