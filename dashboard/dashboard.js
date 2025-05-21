@@ -5,7 +5,8 @@
 // 2. Opraveno nekonečné načítání v patičce kreditů.
 // 3. Přidáno načítání claimed_streak_milestones při inicializaci.
 // 4. OPRAVA CHYBY: Doplněn chybějící blok catch v initializeApp (předchozí oprava)
-// 5. OPRAVA CHYBY: Doplněn další chybějící blok catch v initializeApp v okolí řádku 904
+// 5. OPRAVA CHYBY: Doplněn další chybějící blok catch v initializeApp v okolí řádku 904 (předchozí oprava)
+// 6. OPRAVA CHYBY: Doplněn chybějící blok catch v initializeApp v okolí řádku 899 (aktuální oprava)
 (function() {
     'use strict';
 
@@ -545,7 +546,7 @@
                 if (isLoading.latestCreditTransaction) {
                     ui.totalPointsFooter.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Načítání transakce...`;
                 } else if (!ui.totalPointsFooter.querySelector('strong')) {
-                    if (!ui.totalPointsFooter.innerHTML.includes("Načítání transakce...")) { // Avoid overwriting if it's already "loading"
+                    if (!ui.totalPointsFooter.innerHTML.includes("Načítání transakce...")) { 
                          ui.totalPointsFooter.innerHTML = `<i class="fas fa-info-circle"></i> --`;
                     }
                 }
@@ -744,6 +745,7 @@
             console.log("[INIT Dashboard] Checking auth session (async)...");
 
             // Second try block for authentication and data loading
+            // This is the try block that was around line 899
             try {
                 const { data: { session }, error: sessionError } = await withTimeout(supabase.auth.getSession(), AUTH_TIMEOUT, new Error('Ověření sezení vypršelo.'));
                 console.log(`[INIT Dashboard] getSession Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
@@ -843,7 +845,7 @@
                     showError("Nejste přihlášeni. Přesměrovávám na přihlašovací stránku...", false, ui.mainContentAreaPlaceholder || ui.mainContent);
                     setTimeout(() => { window.location.href = '/auth/index.html'; }, 3000);
                 }
-            // This is where the inner try block ends
+            // This is where the inner try block ends, and its catch block begins
             } catch (authRelatedError) {
                 console.error("❌ [INIT Dashboard] Auth/Session Check or Subsequent Operation Error:", authRelatedError);
                 setLoadingState('session', false);
