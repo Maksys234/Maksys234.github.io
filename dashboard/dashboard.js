@@ -853,6 +853,7 @@
                 showError("Nejste přihlášeni. Přesměrovávám na přihlašovací stránku...", false, ui.mainContentAreaPlaceholder || ui.mainContent);
                 setTimeout(() => { window.location.href = '/auth/index.html'; }, 3000);
             }
+        // Zde končí `try` blok
         } catch (error) { // Catch block for the main initializeApp try
             console.error("❌ [INIT Dashboard] Error during core initialization (MAIN CATCH):", error);
             let friendlyMessage = `Chyba během inicializace: ${error.message || 'Neznámá chyba.'}`;
