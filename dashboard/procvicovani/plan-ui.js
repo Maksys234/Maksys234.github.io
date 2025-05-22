@@ -1,19 +1,14 @@
 // Файл: plan-ui.js
 // Описание: Управляет пользовательским интерфейсом (UI) страницы studijního plánu,
 // включая рендеринг, обработку событий и взаимодействие с plan-core.js через PlanApp.
-// Версия: 23.2 (Добавлена функция initializeUI, исправлена инициализация UI)
+// Версия: 23.3 (Убрана попытка повторной загрузки активностей в showVerticalSchedule)
 
 (function() { // IIFE для изоляции области видимости
 	'use strict';
 
-	// --- Глобальное Пространство Имен ---
 	window.PlanApp = window.PlanApp || {};
-	const PlanApp = window.PlanApp; // Локальная ссылка для удобства
+	const PlanApp = window.PlanApp;
 
-	// --- DOM Элементы (Кэш) ---
-    // Кэширование теперь происходит внутри PlanApp.initializeUI
-
-	// Визуалы для уведомлений и активностей (копируем для рендеринга)
 	const activityVisuals = {
 		test: { name: 'Test', icon: 'fa-vial', class: 'test' },
 		exercise: { name: 'Cvičení', icon: 'fa-pencil-alt', class: 'exercise' },
@@ -31,10 +26,9 @@
 		default: { name: 'Aktivita', icon: 'fa-check-circle', class: 'default' }
 	};
 
-	// --- Инициализация UI Компонентов (НОВАЯ ФУНКЦИЯ) ---
 	PlanApp.initializeUI = function() {
 		console.log("[UI Init] Initializing UI components and caching DOM elements...");
-		PlanApp.ui = { // Кэширование DOM элементов происходит здесь
+		PlanApp.ui = {
 			initialLoader: document.getElementById('initial-loader'),
 			mainContent: document.getElementById('main-content'),
 			sidebar: document.getElementById('sidebar'),
@@ -69,7 +63,7 @@
 			notificationsDropdown: document.getElementById('notifications-dropdown'),
 			notificationsList: document.getElementById('notifications-list'),
 			noNotificationsMsg: document.getElementById('no-notifications-msg'),
-			markAllReadBtn: document.getElementById('mark-all-read'), // ID из plan.html - если отличается, исправьте!
+			markAllReadBtn: document.getElementById('mark-all-read'),
 			lockedPlanTemplate: document.getElementById('lockedPlanTemplate'),
 			createPlanFormTemplate: document.getElementById('createPlanFormTemplate'),
 			noDiagnosticTemplate: document.getElementById('noDiagnosticTemplate'),
@@ -81,18 +75,14 @@
 			mouseFollower: document.getElementById('mouse-follower')
 		};
 
-		// Проверка критических элементов UI
 		const criticalElements = ['initialLoader', 'mainContent', 'planTabs', 'currentPlanSection', 'historyPlanSection', 'createPlanSection', 'planSection'];
 		for (const elKey of criticalElements) {
 			if (!PlanApp.ui[elKey]) {
 				console.error(`[UI Init] Critical UI element missing after caching: ${elKey}`);
-				// Можно бросить ошибку или вернуть false, чтобы initializeApp в plan-main.js это обработал
-				// throw new Error(`Critical UI element ${elKey} not found.`);
-				return false; // Указать на неудачу
+				return false;
 			}
 		}
 
-		// Базовая UI инициализация, которая должна произойти после кэширования DOM
 		if (PlanApp.state && typeof PlanApp.updateTheme === 'function') {
 			 PlanApp.updateTheme();
 		} else {
@@ -106,11 +96,9 @@
 		if (typeof PlanApp.updateOnlineStatus === 'function') PlanApp.updateOnlineStatus();
 
 		console.log("[UI Init] UI components initialized and DOM elements cached successfully.");
-		return true; // Указать на успех
+		return true;
 	};
 
-
-	// --- Вспомогательные UI Функции (остаются без изменений) ---
 	PlanApp.showToast = (title, message, type = 'info', duration = 4500) => {
 		const ui = PlanApp.ui;
 		if (!ui?.toastContainer) { console.warn("[UI] Toast container not found."); return; }
@@ -288,21 +276,40 @@
 	 };
 
 	PlanApp.showVerticalSchedule = async (plan) => {
-		const ui = PlanApp.ui; const state = PlanApp.state;
+		const ui = PlanApp.ui;
+		const state = PlanApp.state;
         if (!state || !ui) { console.error("[ShowVertical] State or UI not initialized."); return; }
-		if (!plan || !plan.id) { console.error("[UI ShowVertical] Invalid plan data."); if(ui.currentPlanContent) { PlanApp.renderMessage(ui.currentPlanContent, 'error', 'Chyba plánu', 'Nelze zobrazit detaily plánu.'); ui.currentPlanContent.classList.add('content-visible');} if(ui.verticalScheduleList) ui.verticalScheduleList.classList.remove('schedule-visible'); if(ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible'); if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('schedule', false); return; }
-		console.log(`[UI ShowVertical] Displaying schedule for Plan ID ${plan.id}`);
-		if (ui.currentPlanContent) ui.currentPlanContent.classList.remove('content-visible');
 
-        let activities = state.currentPlanActivities || [];
-        if (!state.currentPlanActivities || state.currentPlanActivities.length === 0) {
-            console.warn("[ShowVertical] No activities in state, attempting to fetch...");
-            if (typeof PlanApp.fetchPlanActivities === 'function') { activities = await PlanApp.fetchPlanActivities(plan.id); } else { console.error("Error: fetchPlanActivities function is missing!"); activities = []; }
+		if (!plan || !plan.id) {
+			console.error("[UI ShowVertical] Invalid plan data.");
+			if(ui.currentPlanContent) {
+				 PlanApp.renderMessage(ui.currentPlanContent, 'error', 'Chyba plánu', 'Nelze zobrazit detaily plánu.');
+				 ui.currentPlanContent.classList.add('content-visible');
+			}
+			if(ui.verticalScheduleList) ui.verticalScheduleList.classList.remove('schedule-visible');
+			if(ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible');
+			if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('schedule', false);
+			return;
+		}
+		console.log(`[UI ShowVertical] Displaying schedule for Plan ID ${plan.id}`);
+		if (ui.currentPlanContent) ui.currentPlanContent.classList.remove('content-visible'); // Hide message area
+
+        // Directly use activities from state, populated by PlanApp.loadCurrentPlan (core)
+        const activities = state.currentPlanActivities || []; // Get activities from state
+
+        if (!activities || activities.length === 0) {
+            // This log indicates that PlanApp.loadCurrentPlan didn't populate activities.
+            // No need to call fetchPlanActivities here anymore.
+            console.warn("[UI ShowVertical] No activities found in state.currentPlanActivities. Rendering empty schedule or message.");
         }
-        PlanApp.renderVerticalSchedule(activities || [], plan.id);
+
+        PlanApp.renderVerticalSchedule(activities, plan.id); // Render with what's in state
+
         if (ui.verticalScheduleList) ui.verticalScheduleList.classList.add('schedule-visible');
         if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.add('nav-visible');
-        if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('schedule', false);
+
+		if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('schedule', false);
+		if (typeof PlanApp.initTooltips === 'function') PlanApp.initTooltips();
 	 };
 
 	PlanApp.renderPlanHistory = (plans) => {
@@ -338,7 +345,6 @@
 	PlanApp.renderNotificationSkeletons = (count = 2) => { const ui = PlanApp.ui; if (!ui) { console.error("[RenderNotificationSkeletons] UI cache not initialized!"); return; } if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height:16px;width:70%;margin-bottom:6px;"></div><div class="skeleton" style="height:12px;width:90%;"></div><div class="skeleton" style="height:10px;width:40%;margin-top:6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; };
 	PlanApp.exportPlanToPDFWithStyle = async (plan) => { const state = PlanApp.state; const ui = PlanApp.ui; if (!state || !ui) { console.error("[ExportPDF] State or UI not initialized."); return; } if (!plan) { PlanApp.showToast('Nelze exportovat, chybí data plánu.', 'error'); return; } let planToExport = { ...plan }; if (!planToExport.plan_content_markdown && planToExport.id && state.supabaseClient) { PlanApp.showToast('Načítám data pro PDF...', 'info', 2000); try { if (typeof PlanApp.fetchPlanDetails !== 'function') { throw new Error("Core function fetchPlanDetails is missing!"); } const fetchedData = await PlanApp.fetchPlanDetails(planToExport.id); if (!fetchedData) throw new Error("Nepodařilo se načíst data plánu."); planToExport = { ...planToExport, ...fetchedData }; } catch (fetchError) { console.error("Nepodařilo se načíst markdown pro export:", fetchError); PlanApp.showToast('Chyba: Nepodařilo se načíst data pro export.', 'error'); return; } } else if (!planToExport.plan_content_markdown) { PlanApp.showToast('Chyba: Chybí obsah plánu pro export.', 'error'); return; } const exportContainer = document.createElement('div'); exportContainer.id = 'pdf-export-content'; const pdfStyles = `/* ... стили PDF остаются без изменений ... */`; exportContainer.innerHTML = pdfStyles; const pdfTitle = planToExport.title ? planToExport.title.replace(/\s*\(\d{2}\.\d{2}\.\d{4}\)$/, '').trim() : 'Studijní plán'; exportContainer.innerHTML += `<div class="pdf-header"><h1>${PlanApp.sanitizeHTML(pdfTitle)}</h1><p>Vytvořeno: ${PlanApp.formatDate(planToExport.created_at)}</p></div>`; const studentName = ui.userName?.textContent || "Neznámý student"; exportContainer.innerHTML += `<div class="student-info"><h2>Informace o studentovi</h2><p><strong>Student:</strong> ${PlanApp.sanitizeHTML(studentName)}</p><p><strong>Datum vytvoření plánu:</strong> ${PlanApp.formatDate(planToExport.created_at)}</p>${planToExport.estimated_completion_date ? `<p><strong>Předpokládané dokončení:</strong> ${PlanApp.formatDate(planToExport.estimated_completion_date)}</p>` : ''}</div>`; const contentDiv = document.createElement('div'); contentDiv.className = 'pdf-content'; try { if (typeof marked === 'undefined') throw new Error("Marked library not loaded."); const rawHtml = marked.parse(planToExport.plan_content_markdown || ''); contentDiv.innerHTML = rawHtml; const daysCzech = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle']; contentDiv.querySelectorAll('h3').forEach(h3 => { if (daysCzech.some(day => h3.textContent.trim().startsWith(day))) { h3.classList.add('pdf-day-block'); } }); } catch (e) { contentDiv.innerHTML = '<p>Chyba při zpracování obsahu plánu.</p>'; } exportContainer.appendChild(contentDiv); exportContainer.innerHTML += `<div class="pdf-footer">&copy; ${new Date().getFullYear()} Justax.space</div>`; const options = { margin: [18, 13, 18, 13], filename: `studijni-plan-${PlanApp.formatDate(planToExport.created_at).replace(/\./g, '-')}.pdf`, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'avoid-all'] } }; if (typeof html2pdf === 'function') { PlanApp.showToast('Generuji PDF...', 'info', 5000); html2pdf().set(options).from(exportContainer).save().then(() => { PlanApp.showToast('PDF bylo úspěšně vygenerováno!', 'success'); }).catch(err => { console.error("Chyba exportu PDF:", err); PlanApp.showToast('Nepodařilo se exportovat PDF.', 'error'); }); } else { PlanApp.showToast('Chyba: Knihovna pro export PDF není načtena.', 'error'); } };
 
-	// --- Настройка обработчиков событий UI (остается без изменений) ---
 	PlanApp.setupEventListeners = () => {
 		const ui = PlanApp.ui;
 		console.log("[UI SETUP] Setting up event listeners...");
@@ -348,41 +354,40 @@
 		if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', PlanApp.closeMenu);
 		if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', PlanApp.closeMenu);
 		ui.planTabs?.forEach(tab => {
-			 tab.removeEventListener('click', PlanApp.handleTabClick); // Предотвращение дублирования
+			 tab.removeEventListener('click', PlanApp.handleTabClick);
 			 tab.addEventListener('click', PlanApp.handleTabClick);
 		});
 		if (ui.exportScheduleBtnVertical) {
-			ui.exportScheduleBtnVertical.removeEventListener('click', PlanApp.handleExportVerticalClick); // Предотвращение дублирования
+			ui.exportScheduleBtnVertical.removeEventListener('click', PlanApp.handleExportVerticalClick);
 			ui.exportScheduleBtnVertical.addEventListener('click', PlanApp.handleExportVerticalClick);
 		} else { console.warn("Export button for vertical schedule not found."); }
 		window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) PlanApp.closeMenu(); });
 		const scheduleContainer = ui.verticalScheduleList;
 		if (scheduleContainer) {
-			scheduleContainer.removeEventListener('click', PlanApp.handleScheduleClick); // Предотвращение дублирования
+			scheduleContainer.removeEventListener('click', PlanApp.handleScheduleClick);
 			scheduleContainer.addEventListener('click', PlanApp.handleScheduleClick);
-			scheduleContainer.removeEventListener('change', PlanApp.handleScheduleCheckboxChange); // Предотвращение дублирования
+			scheduleContainer.removeEventListener('change', PlanApp.handleScheduleCheckboxChange);
 			scheduleContainer.addEventListener('change', PlanApp.handleScheduleCheckboxChange);
 		} else { console.warn("Vertical schedule container not found for event delegation."); }
 		if (ui.notificationBell) {
-			 ui.notificationBell.removeEventListener('click', PlanApp.toggleNotifications); // Предотвращение дублирования
+			 ui.notificationBell.removeEventListener('click', PlanApp.toggleNotifications);
 			 ui.notificationBell.addEventListener('click', PlanApp.toggleNotifications);
 		}
 		if (ui.markAllReadBtn) {
-			 ui.markAllReadBtn.removeEventListener('click', PlanApp.handleMarkAllNotificationsReadClick); // Предотвращение дублирования
+			 ui.markAllReadBtn.removeEventListener('click', PlanApp.handleMarkAllNotificationsReadClick);
 			 ui.markAllReadBtn.addEventListener('click', PlanApp.handleMarkAllNotificationsReadClick);
 		}
 		if (ui.notificationsList) {
-			ui.notificationsList.removeEventListener('click', PlanApp.handleNotificationItemClick); // Предотвращение дублирования
+			ui.notificationsList.removeEventListener('click', PlanApp.handleNotificationItemClick);
 			ui.notificationsList.addEventListener('click', PlanApp.handleNotificationItemClick);
 		}
-		document.removeEventListener('click', PlanApp.handleOutsideNotificationClick); // Предотвращение дублирования
+		document.removeEventListener('click', PlanApp.handleOutsideNotificationClick);
 		document.addEventListener('click', PlanApp.handleOutsideNotificationClick);
 		window.addEventListener('online', PlanApp.updateOnlineStatus);
 		window.addEventListener('offline', PlanApp.updateOnlineStatus);
 		console.log("✅ [UI SETUP] Event listeners set up.");
 	};
 
-	// Добавляем обработчики для кнопок из setupMainEventListeners в plan-main.js
 	PlanApp.handleScheduleClick = (event) => {
 		const expandButton = event.target.closest('.expand-icon-button');
 		const header = event.target.closest('.day-header');
@@ -406,13 +411,12 @@
 			const planId = checkbox.dataset.planId; const isCompleted = checkbox.checked;
 			const activityElement = checkbox.closest('.activity-list-item');
 			if (activityElement) activityElement.classList.toggle('completed', isCompleted);
-			if (typeof PlanApp.handleActivityCompletionToggle === 'function') {
+			if (typeof PlanApp.handleActivityCompletionToggle === 'function') { // This is CORE logic
 				await PlanApp.handleActivityCompletionToggle(activityId, isCompleted, planId);
 			} else { console.error("Core PlanApp.handleActivityCompletionToggle missing!"); }
 		}
 	};
 
-
 	console.log("plan-ui.js loaded (and has defined PlanApp.initializeUI).");
 
-})(); // Конец IIFE
+})();
