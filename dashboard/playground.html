@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="cs" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playground - Testování Vylepšení Avatara</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <link rel="stylesheet" href="dashboard.css"> 
+    
+    <style>
+        /* Doplňkové styly pro playground specificky */
+        /* Styly pro vylepšení avataru (budeme je přidávat sem nebo do dashboard.css) */
+
+        /* 1. Pulzující Aura pro .user-profile */
+        .user-profile[data-profile-decoration="profile_animated_border"] {
+            --animation-color-1: rgba(var(--accent-primary-rgb), 0.8);
+            --animation-color-2: rgba(var(--accent-secondary-rgb), 0.7);
+            --animation-color-3: rgba(var(--accent-pink-rgb), 0.6);
+            border: 2px solid transparent;
+            animation: animatedProfileBorderGlowPlayground 4s infinite alternate;
+            position: relative;
+            overflow: visible; 
+        }
+
+        @keyframes animatedProfileBorderGlowPlayground {
+            0% {
+                box-shadow: 0 0 8px 2px var(--animation-color-1),
+                            inset 0 0 8px 2px var(--animation-color-1);
+                border-color: var(--animation-color-1);
+            }
+            33% {
+                box-shadow: 0 0 12px 3px var(--animation-color-2),
+                            inset 0 0 12px 3px var(--animation-color-2);
+                border-color: var(--animation-color-2);
+            }
+            66% {
+                box-shadow: 0 0 8px 2px var(--animation-color-3),
+                            inset 0 0 8px 2px var(--animation-color-3);
+                border-color: var(--animation-color-3);
+            }
+            100% {
+                box-shadow: 0 0 12px 3px var(--animation-color-1),
+                            inset 0 0 12px 3px var(--animation-color-1);
+                border-color: var(--animation-color-1);
+            }
+        }
+
+        /* 2. Kosmický Dešť pro .avatar-wrapper */
+        .avatar-wrapper[data-decoration-key="avatar_falling_elements"] {
+            position: relative;
+            overflow: visible; 
+        }
+
+        .avatar-wrapper[data-decoration-key="avatar_falling_elements"]::before,
+        .avatar-wrapper[data-decoration-key="avatar_falling_elements"]::after {
+            content: '✨'; 
+            position: absolute;
+            top: -20px; 
+            font-size: 1rem;
+            opacity: 0;
+            animation: fallingStarsPlayground 5s linear infinite;
+            text-shadow: 0 0 5px rgba(var(--accent-primary-rgb), 0.7),
+                         0 0 10px rgba(var(--accent-secondary-rgb), 0.5);
+        }
+
+        .avatar-wrapper[data-decoration-key="avatar_falling_elements"]::before {
+            left: 30%;
+            animation-delay: 0s;
+            font-size: 0.8rem;
+        }
+
+        .avatar-wrapper[data-decoration-key="avatar_falling_elements"]::after {
+            left: 60%;
+            animation-delay: 2.5s; 
+            font-size: 1.1rem;
+        }
+        
+        /* Definice --avatar-size pro animaci padajících hvězd, pokud není definována globálně */
+        :root {
+            --avatar-size: 42px; /* Velikost avataru v sidebaru */
+        }
+
+        @keyframes fallingStarsPlayground {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            20% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(calc(var(--avatar-size, 42px) + 40px)) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Styly pro testovací tlačítka */
+        .playground-controls {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: var(--card-radius);
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color-light);
+        }
+        .playground-controls h2 {
+            margin-top: 0;
+            color: var(--text-heading);
+        }
+        .playground-controls button {
+            margin-right: 1rem;
+            margin-bottom: 1rem;
+        }
+
+    </style>
+</head>
+<body class="dark">
+
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu"><i class="fas fa-times"></i></button>
+            <a href="#" class="sidebar-logo"><i class="fas fa-atom"></i> <span>Playground</span></a>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item"> <a href="#" class="sidebar-link active"> <i class="fas fa-flask"></i> <span>Testování</span> </a> </li>
+            <li class="sidebar-item"> <a href="#" class="sidebar-link"> <i class="fas fa-tachometer-alt"></i> <span>Nástěnka</span> </a> </li>
+            <li class="sidebar-item"> <a href="#" class="sidebar-link"> <i class="fas fa-user-astronaut"></i> <span>Profil</span> </a> </li>
+        </ul>
+        <div class="user-profile" id="user-profile-sidebar">
+             <div class="avatar-wrapper" id="avatar-wrapper-sidebar" data-decoration-key="">
+                 <div class="user-avatar" id="sidebar-avatar">
+                     <img src="https://avatar.iran.liara.run/public/3" alt="User Avatar">
+                     {/* Nebo A pro iniciály */}
+                 </div>
+             </div>
+            <div class="user-info">
+                <div class="user-name" id="sidebar-name">Tester GigaChad</div>
+                <div class="user-role" id="sidebar-user-title" title="Váš titul">Mistr Kódu</div>
+            </div>
+        </div>
+        <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
+    </aside>
+
+    <main id="main-content">
+        <header class="dashboard-header">
+             <div class="header-content">
+                 <div class="header-left-group">
+                     <button class="btn btn-icon-only sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Přepnout postranní panel" title="Přepnout postranní panel">
+                         <i class="fas fa-chevron-left"></i>
+                     </button>
+                     <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
+                         <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 id="dashboard-title"><i class="fas fa-flask"></i> Playground</h1>
+                 </div>
+                 <div class="header-actions">
+                     </div>
+             </div>
+        </header>
+
+        <div class="main-content-wrapper">
+            <div class="playground-controls card">
+                <h2>Ovládání Vylepšení</h2>
+                <button class="btn btn-primary" id="applyProfileBorder">Aplikovat Pulzující Auru (Profil)</button>
+                <button class="btn btn-primary" id="applyFallingStars">Aplikovat Kosmický Dešť (Avatar)</button>
+                <button class="btn btn-secondary" id="removeProfileDecoration">Odstranit Auru Profilu</button>
+                <button class="btn btn-secondary" id="removeAvatarDecoration">Odstranit Dešť Avataru</button>
+                <button class="btn btn-danger" id="removeAllDecorations">Odstranit Všechna Vylepšení</button>
+            </div>
+
+            <div class="card" style="padding: 2rem;">
+                <h2>Hlavní Obsah Stránky</h2>
+                <p>Toto je oblast pro běžný obsah vaší stránky. Můžete sem umístit jakékoli prvky pro testování.</p>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                <button class="btn">Testovací Tlačítko</button>
+            </div>
+        </div>
+
+        <footer class="main-footer">
+            <p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p>
+        </footer>
+    </main>
+
+    <div id="mouse-follower" class="mouse-follower-glow"></div>
+
+    <script>
+        // Základní JS pro interaktivitu playgroundu
+        document.addEventListener('DOMContentLoaded', function () {
+            const userProfileSidebar = document.getElementById('user-profile-sidebar');
+            const avatarWrapperSidebar = document.getElementById('avatar-wrapper-sidebar');
+
+            const applyProfileBorderBtn = document.getElementById('applyProfileBorder');
+            const applyFallingStarsBtn = document.getElementById('applyFallingStars');
+            const removeProfileDecorationBtn = document.getElementById('removeProfileDecoration');
+            const removeAvatarDecorationBtn = document.getElementById('removeAvatarDecoration');
+            const removeAllDecorationsBtn = document.getElementById('removeAllDecorations');
+
+            // Sidebar toggle logic (zjednodušená z dashboard.js)
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            const mainMobileMenuToggle = document.getElementById('main-mobile-menu-toggle');
+            const sidebarCloseToggle = document.getElementById('sidebar-close-toggle');
+            const sidebarToggleBtnDesktop = document.getElementById('sidebar-toggle-btn');
+
+            function openMenu() {
+                if (sidebar && sidebarOverlay) {
+                    document.body.classList.remove('sidebar-collapsed');
+                    sidebar.classList.add('active');
+                    sidebarOverlay.classList.add('active');
+                }
+            }
+            function closeMenu() {
+                if (sidebar && sidebarOverlay) {
+                    sidebar.classList.remove('active');
+                    sidebarOverlay.classList.remove('active');
+                }
+            }
+            function toggleSidebarDesktop() {
+                const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
+                localStorage.setItem('sidebarCollapsedStatePlayground', isCollapsed ? 'collapsed' : 'expanded');
+                const icon = sidebarToggleBtnDesktop.querySelector('i');
+                if (icon) {
+                    icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
+                }
+            }
+             function applyInitialSidebarState() {
+                const savedState = localStorage.getItem('sidebarCollapsedStatePlayground');
+                const shouldBeCollapsed = savedState === 'collapsed';
+                document.body.classList.toggle('sidebar-collapsed', shouldBeCollapsed);
+                const icon = sidebarToggleBtnDesktop.querySelector('i');
+                if (icon) {
+                    icon.className = shouldBeCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
+                }
+            }
+
+            if (mainMobileMenuToggle) mainMobileMenuToggle.addEventListener('click', openMenu);
+            if (sidebarCloseToggle) sidebarCloseToggle.addEventListener('click', closeMenu);
+            if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeMenu);
+            if (sidebarToggleBtnDesktop) sidebarToggleBtnDesktop.addEventListener('click', toggleSidebarDesktop);
+            
+            if (sidebarToggleBtnDesktop) applyInitialSidebarState();
+
+
+            // --- Ovládání vylepšení ---
+            if (applyProfileBorderBtn) {
+                applyProfileBorderBtn.addEventListener('click', () => {
+                    userProfileSidebar.setAttribute('data-profile-decoration', 'profile_animated_border');
+                    console.log('Aplikována Pulzující Aura na profil.');
+                });
+            }
+            if (applyFallingStarsBtn) {
+                applyFallingStarsBtn.addEventListener('click', () => {
+                    avatarWrapperSidebar.setAttribute('data-decoration-key', 'avatar_falling_elements');
+                    // Pokud chcete dynamicky přidávat částice pro testování, zde je místo:
+                    // const particle = document.createElement('div');
+                    // particle.className = 'star-particle';
+                    // particle.style.left = Math.random() * 100 + '%';
+                    // particle.style.animationDelay = Math.random() * 5 + 's';
+                    // particle.style.fontSize = (Math.random() * 0.5 + 0.5) + 'rem';
+                    // avatarWrapperSidebar.appendChild(particle);
+                    console.log('Aplikován Kosmický Dešť na avatar.');
+                });
+            }
+            if (removeProfileDecorationBtn) {
+                 removeProfileDecorationBtn.addEventListener('click', () => {
+                    userProfileSidebar.removeAttribute('data-profile-decoration');
+                    console.log('Odstraněna Pulzující Aura z profilu.');
+                });
+            }
+
+            if (removeAvatarDecorationBtn) {
+                removeAvatarDecorationBtn.addEventListener('click', () => {
+                    avatarWrapperSidebar.removeAttribute('data-decoration-key');
+                    // Odstranění dynamicky přidaných částic, pokud byly:
+                    // avatarWrapperSidebar.querySelectorAll('.star-particle').forEach(p => p.remove());
+                    console.log('Odstraněn Kosmický Dešť z avataru.');
+                });
+            }
+
+            if (removeAllDecorationsBtn) {
+                removeAllDecorationsBtn.addEventListener('click', () => {
+                    userProfileSidebar.removeAttribute('data-profile-decoration');
+                    avatarWrapperSidebar.removeAttribute('data-decoration-key');
+                    console.log('Všechna vylepšení odstraněna.');
+                });
+            }
+
+            // Copyright year
+            const currentYearSidebar = document.getElementById('currentYearSidebar');
+            const currentYearFooter = document.getElementById('currentYearFooter');
+            const year = new Date().getFullYear();
+            if (currentYearSidebar) currentYearSidebar.textContent = year;
+            if (currentYearFooter) currentYearFooter.textContent = year;
+
+            // Mouse follower (zjednodušená verze)
+            const mouseFollower = document.getElementById('mouse-follower');
+            if (mouseFollower) {
+                let hasMoved = false;
+                const updatePosition = (event) => {
+                    if (!hasMoved) { document.body.classList.add('mouse-has-moved'); hasMoved = true; }
+                    requestAnimationFrame(() => {
+                        mouseFollower.style.left = `${event.clientX}px`;
+                        mouseFollower.style.top = `${event.clientY}px`;
+                    });
+                };
+                window.addEventListener('mousemove', updatePosition, { passive: true });
+                document.body.addEventListener('mouseleave', () => { if (hasMoved) mouseFollower.style.opacity = '0'; });
+                document.body.addEventListener('mouseenter', () => { if (hasMoved) mouseFollower.style.opacity = '1'; });
+            }
+            
+            // Initial load display
+            document.getElementById('main-content').style.display = 'flex';
+
+        });
+    </script>
+</body>
+</html>
