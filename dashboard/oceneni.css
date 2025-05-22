@@ -1,4 +1,4 @@
-/* --- START: Киберпанк CSS Тема (Адаптировано для oceneni.html v10 - Ultra-Compact Collapse & Refined Design) --- */
+/* --- START: Киберпанк CSS Тема (Адаптировано для oceneni.html v11 - "Cool & Compact" Collapse) --- */
 /* --- Глобальные Настройки и Переменные (Синхронизировано с dashboard.css) --- */
 :root {
      /* Основа */
@@ -279,7 +279,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .section-title {
     font-size: 1.5rem;
     font-weight: 600;
-    margin-bottom: 1.5rem; /* Default margin for standalone titles */
+    margin-bottom: 1.5rem; /* Default for non-card titles */
     color: var(--text-heading);
     padding-bottom: 0.8rem;
     position: relative;
@@ -288,100 +288,69 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
     justify-content: space-between;
     gap: 0.7rem;
 }
-.section-title .section-title-text {
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-}
-.section-title i {
-    font-size: 1.1em;
-    color: var(--accent-secondary);
-    text-shadow: 0 0 8px var(--accent-secondary-glow);
-}
-.section-title::after { /* Decorative underline for standalone titles */
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 60px;
-    height: 3px;
-    background: var(--gradient-border-anim);
-    background-size: 300% 100%;
-    animation: gradient-move 4s linear infinite;
-    border-radius: 1.5px;
-    filter: drop-shadow(0 0 5px var(--accent-primary));
-}
+.section-title .section-title-text { display: flex; align-items: center; gap: 0.7rem; }
+.section-title i { font-size: 1.1em; color: var(--accent-secondary); text-shadow: 0 0 8px var(--accent-secondary-glow); }
+.section-title::after { content: ''; position: absolute; bottom: 0; left: 0; width: 60px; height: 3px; background: var(--gradient-border-anim); background-size: 300% 100%; animation: gradient-move 4s linear infinite; border-radius: 1.5px; filter: drop-shadow(0 0 5px var(--accent-primary)); }
 @keyframes gradient-move { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 
-.section-title .btn-icon-only {
-    width: 32px; height: 32px; font-size: 0.85rem;
-    background-color: rgba(var(--accent-primary-rgb), 0.1);
-    border-color: rgba(var(--accent-primary-rgb), 0.25);
-    color: var(--accent-primary);
-    box-shadow: none;
-}
-.section-title .btn-icon-only:hover:not(:disabled) {
-    background-color: rgba(var(--accent-primary-rgb), 0.2);
-    box-shadow: 0 0 8px rgba(var(--accent-primary-rgb), 0.35);
-    transform: translateY(-1px) scale(1.03);
-}
-.section-title .btn-icon-only i { transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+.section-title .btn-icon-only { width: 32px; height: 32px; font-size: 0.85rem; background-color: rgba(var(--accent-primary-rgb), 0.12); border-color: rgba(var(--accent-primary-rgb), 0.28); color: var(--accent-primary); box-shadow: none; }
+.section-title .btn-icon-only:hover:not(:disabled) { background-color: rgba(var(--accent-primary-rgb), 0.22); box-shadow: 0 0 8px rgba(var(--accent-primary-rgb), 0.4); transform: translateY(-1px) scale(1.03); }
+.section-title .btn-icon-only i { transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1.5); } /* Added smoother bounce */
 
-/* Collapsible content styling - Enhanced for "cool" design */
 .card-section {
-    margin-bottom: 0.75rem; /* Tighter spacing between sections */
+    margin-bottom: 0.5rem; /* Reduced margin for tighter look when some are collapsed */
     background: var(--card-bg);
     border-radius: var(--card-radius);
     border: 1px solid var(--border-color-light);
     box-shadow: var(--shadow-hud);
     padding: 0;
     position: relative;
-    overflow: hidden;
-    transition: margin-bottom var(--transition-medium) ease; /* Smooth margin change */
+    overflow: hidden; /* Important for max-height transition */
+    transition: margin-bottom var(--transition-medium) ease, box-shadow var(--transition-medium) ease;
 }
-.card-section > .section-title { /* Title within a card section */
-    padding: 1.2rem 1.5rem; /* Slightly reduced padding for compactness */
+.card-section > .section-title {
+    padding: 1.1rem 1.5rem; /* Compact padding for titles within cards */
     margin-bottom: 0;
-    border-bottom: 1px solid var(--border-color-light); /* Default border for expanded */
-    background: rgba(var(--dark-purple-accent-rgb), 0.3); /* Slightly darker background */
+    border-bottom: 1px solid transparent; /* Start with transparent, add when expanded */
+    background: rgba(var(--dark-purple-accent-rgb), 0.25);
+    cursor: pointer; /* Indicate the title is clickable to expand/collapse */
     transition: border-bottom-color var(--transition-medium) ease, background-color var(--transition-medium) ease;
 }
-.card-section .section-title::after {
-    display: none; /* No decorative underline for titles inside cards */
+.card-section:not(.collapsed-section) > .section-title {
+    border-bottom-color: var(--border-color-light); /* Border only when expanded */
+    background: rgba(var(--dark-purple-accent-rgb), 0.35); /* Slightly different bg when expanded */
 }
+.card-section .section-title::after { display: none; } /* No decorative underline for titles inside cards */
+
 .section-collapsible-content {
-    transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1), padding-top 0.45s ease, padding-bottom 0.45s ease, opacity 0.35s ease-out 0.05s;
+    transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1), padding-top 0.45s ease, padding-bottom 0.45s ease, opacity 0.3s ease-out;
     overflow: hidden;
-    max-height: 3000px;
+    max-height: 3000px; /* Large enough default */
     opacity: 1;
     padding: 1.5rem;
-    background-color: transparent; /* Ensure content area has card's main bg */
 }
-
-/* Collapsed State - More aggressive styling */
 .card-section.collapsed-section {
-    margin-bottom: 0.5rem; /* Even tighter when all are collapsed */
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25); /* Subtler shadow when collapsed */
+    margin-bottom: 0.35rem; /* Very tight spacing when all collapsed */
+    box-shadow: 0 1px 5px rgba(0,0,0,0.2); /* Even subtler shadow */
 }
 .card-section.collapsed-section > .section-title {
-    border-bottom-color: transparent; /* No border for title when content is hidden */
-    background: rgba(var(--dark-purple-accent-rgb), 0.2); /* Slightly lighter when collapsed, or same as expanded */
+    background: rgba(var(--dark-purple-accent-rgb), 0.15); /* Lighter when collapsed */
 }
-.card.collapsed-section .section-collapsible-content,
+.card-section.collapsed-section > .section-title:hover {
+    background: rgba(var(--dark-purple-accent-rgb), 0.25); /* Hover for collapsed title */
+}
 .card-section.collapsed-section .section-collapsible-content {
     max-height: 0 !important;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
     opacity: 0;
-    border-top: none !important;
     margin-top: 0 !important;
     margin-bottom: 0 !important;
+    visibility: hidden; /* Hide completely when collapsed */
 }
-.card.collapsed-section .btn-icon-only i,
 .card-section.collapsed-section .btn-icon-only i {
-    transform: rotate(-90deg); /* Chevron points down */
+    transform: rotate(-90deg);
 }
-
 
 /* --- Стили Oceneni (перенесены и адаптированы) --- */
 .achievement-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.8rem; margin-bottom: 2.5rem; }
@@ -451,12 +420,11 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .buy-title-btn i, .equip-title-btn i { font-size: 0.9em; }
 .buy-title-btn:disabled { background-color: var(--text-muted) !important; border-color: transparent !important; color: var(--card-solid) !important; opacity: 0.6; cursor: not-allowed; }
 .buy-title-btn:disabled::before { display: none; }
-.current-credits { text-align: right; margin: -0.5rem 0 1.5rem 0; font-size: 0.95rem; color: var(--text-muted); font-weight: 500; padding: 0 1.5rem; }
+.current-credits { text-align: right; margin-bottom: 1.5rem; margin-top:0; font-size: 0.95rem; color: var(--text-muted); font-weight: 500; padding: 0 1.5rem; }
 .current-credits strong { color: var(--accent-orange); font-size: 1.2em; font-weight: 700; text-shadow: 0 0 6px var(--accent-orange-glow); margin: 0 0.2em; }
 .current-credits i.fa-coins { color: var(--accent-orange); margin-left: 0.3em; }
 
-/* Leaderboard Styles - Font and Size Update */
-/* .leaderboard-header and .leaderboard-title are handled by .card-section > .section-title due to HTML structure change */
+.leaderboard-header { padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color-medium); flex-wrap: wrap; gap: 1rem; background-color: rgba(var(--card-solid-rgb), 0.5); }
 .leaderboard-table-container { max-height: 450px; overflow-y: auto; }
 .leaderboard-table { width: 100%; border-collapse: collapse; }
 .leaderboard-table th { padding: 0.9rem 1.2rem; text-align: left; color: var(--text-muted); font-weight: 600; font-size: 0.8rem; border-bottom: 1px solid var(--border-color-medium); background-color: rgba(var(--dark-purple-accent-rgb), 0.6); text-transform: uppercase; letter-spacing: 1px; position: sticky; top: 0; z-index: 10; white-space: nowrap; }
@@ -526,8 +494,8 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .tooltipster-shadow .tooltipster-content { padding: 8px 14px; font-size: 0.88rem; font-family: var(--font-primary); }
 
 .user-titles-inventory-section .section-title,
-.avatar-decorations-shop .section-title { /* Ensure these match the other sections */
-    padding: 1.2rem 1.5rem; /* Consistent with .card-section > .section-title */
+.avatar-decorations-shop .section-title {
+    padding: 1.2rem 1.5rem;
     margin-bottom: 0;
     border-bottom: 1px solid var(--border-color-light);
     background: rgba(var(--dark-purple-accent-rgb), 0.3);
@@ -544,16 +512,15 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .avatar-decorations-shop .current-credits {
     text-align: right;
     margin-bottom: 1.5rem;
-    margin-top: 0;
+    margin-top:0;
     font-size: 0.95rem;
     color: var(--text-muted);
     font-weight: 500;
     padding: 0 1.5rem;
 }
 .title-shop-section .section-collapsible-content {
-     padding-top: 0.5rem; /* Reduced top padding as credits are above the grid */
+     padding-top: 0.5rem;
 }
-
 
 #user-titles-inventory-grid, #avatar-decorations-grid {
     padding: 0;
