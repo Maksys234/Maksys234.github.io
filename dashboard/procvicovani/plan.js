@@ -24,9 +24,9 @@
          mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
          sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'),
          sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
-         // ***** OPRAVA ZDE: userName -> sidebarName *****
-         sidebarName: document.getElementById('sidebar-name'), // Správný klíč pro element se jménem
-         userAvatar: document.getElementById('sidebar-avatar'),
+         sidebarName: document.getElementById('sidebar-name'),
+         // ***** OPRAVA ZDE: userAvatar -> sidebarAvatar *****
+         sidebarAvatar: document.getElementById('sidebar-avatar'), // Správný klíč pro element s avatarem
          sidebarUserTitle: document.getElementById('sidebar-user-title'),
          toastContainer: document.getElementById('toast-container'),
          globalError: document.getElementById('global-error'),
@@ -389,7 +389,7 @@
             ]);
             state.currentProfile = profile;
             state.allTitles = titles;
-            updateSidebarProfile(); // Voláno ZDE, po načtení profilu A titulů
+            updateSidebarProfile();
             setupEventListeners();
             initTooltips();
             initMouseFollower();
@@ -441,7 +441,7 @@
         try {
             const { data, error } = await supabaseClient
                 .from('title_shop')
-                .select('title_key, name'); // Zjednodušený select
+                .select('title_key, name');
 
             if (error) {
                 console.error("[Titles] Error from Supabase:", error);
@@ -459,8 +459,7 @@
     }
 
     function updateSidebarProfile() {
-        // Používáme ui.sidebarName, ui.sidebarAvatar, ui.sidebarUserTitle
-        if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) {
+        if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { // Správná kontrola ui.sidebarAvatar
             console.warn("[SidebarUI] Chybí elementy postranního panelu pro profil.");
             return;
         }
@@ -468,7 +467,7 @@
             const profile = state.currentProfile;
             const user = state.currentUser;
             const displayName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username || user.email?.split('@')[0] || 'Pilot';
-            ui.sidebarName.textContent = sanitizeHTML(displayName); // Používáme ui.sidebarName
+            ui.sidebarName.textContent = sanitizeHTML(displayName);
 
             const initials = getInitials(profile, user.email);
             const avatarUrl = profile.avatar_url;
@@ -480,12 +479,12 @@
                 finalAvatarUrl = `${sanitizeHTML(avatarUrl)}?t=${new Date().getTime()}`;
             }
 
-            ui.sidebarAvatar.innerHTML = finalAvatarUrl ? `<img src="${finalAvatarUrl}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
-            const img = ui.sidebarAvatar.querySelector('img');
+            ui.sidebarAvatar.innerHTML = finalAvatarUrl ? `<img src="${finalAvatarUrl}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials); // Správné použití ui.sidebarAvatar
+            const img = ui.sidebarAvatar.querySelector('img'); // Správné použití ui.sidebarAvatar
             if (img) {
                 img.onerror = function() {
                     console.warn(`[SidebarUI] Nepodařilo se načíst avatar: ${this.src}. Zobrazuji iniciály.`);
-                    ui.sidebarAvatar.innerHTML = sanitizeHTML(initials);
+                    ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); // Správné použití ui.sidebarAvatar
                 };
             }
 
@@ -506,8 +505,8 @@
             ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle));
 
         } else {
-            ui.sidebarName.textContent = "Nepřihlášen"; // Používáme ui.sidebarName
-            ui.sidebarAvatar.textContent = '?';
+            ui.sidebarName.textContent = "Nepřihlášen";
+            ui.sidebarAvatar.textContent = '?'; // Správné použití ui.sidebarAvatar
             ui.sidebarUserTitle.textContent = 'Pilot';
             ui.sidebarUserTitle.removeAttribute('title');
         }
@@ -1238,7 +1237,7 @@ ${topicsData.map(topic => `  - ${topic.name}: ${topic.percentage}%`).join('\n')}
                 <h1>${sanitizeHTML(pdfTitle)}</h1>
                 <p>Vytvořeno: ${formatDate(plan.created_at)}</p>
             </div>`;
-        if (state.currentUser && ui.sidebarName?.textContent) { // Použijeme ui.sidebarName
+        if (state.currentUser && ui.sidebarName?.textContent) { // Použito ui.sidebarName
             exportContainer.innerHTML += `
                 <div class="student-info">
                     <h2>Informace o studentovi</h2>
