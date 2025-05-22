@@ -1,6 +1,5 @@
 // dashboard/pokrok.js
-// Verze: 23.23.3 - Sidebar logic removed, sidebar state key removed.
-// Sidebar UI elements (sidebarAvatar, sidebarName, sidebarUserTitle) are still cached for updateUserInfoUI.
+// Verze: 23.23.4 - Oprava chyby cacheDOMElements is not defined
 (function() {
 	const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
 	const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
@@ -14,56 +13,65 @@
 	let currentFilter = 'all';
 	let allActivitiesData = [];
 	let allTitles = [];
-	let isLoading = { stats: false, activities: false, notifications: false }; // Removed chart
+	let isLoading = { stats: false, activities: false, notifications: false };
 
-	const ui = {
-		 sidebarAvatar: document.getElementById('sidebar-avatar'), // Ponecháno pro updateUserInfoUI
-		 sidebarName: document.getElementById('sidebar-name'),       // Ponecháno pro updateUserInfoUI
-         sidebarUserTitle: document.getElementById('sidebar-user-title'), // Ponecháno pro updateUserInfoUI
-		 // currentTime: document.getElementById('current-time'), // Stále neexistuje v HTML
-		 refreshBtn: document.getElementById('refresh-btn'),
-		 globalError: document.getElementById('global-error'),
-		 statsGrid: document.getElementById('stats-grid'),
-		 overallProgressValue: document.getElementById('overall-progress-value'),
-		 overallProgressDesc: document.getElementById('overall-progress-desc'),
-		 overallProgressFooter: document.getElementById('overall-progress-footer'),
-		 totalPointsValue: document.getElementById('total-points-value'),
-		 totalPointsDesc: document.getElementById('total-points-desc'),
-		 totalPointsFooter: document.getElementById('total-points-footer'),
-		 streakValue: document.getElementById('streak-value'),
-		 streakDesc: document.getElementById('streak-desc'),
-		 streakFooter: document.getElementById('streak-footer'),
-		 completedCountValue: document.getElementById('completed-count-value'),
-		 completedCountDesc: document.getElementById('completed-count-desc'),
-		 completedCountFooter: document.getElementById('completed-count-footer'),
-		 activitiesSection: document.getElementById('activities-section'),
-		 tableLoadingOverlay: document.getElementById('table-loading-overlay'),
-		 activitiesTable: document.getElementById('activities-table'),
-		 activitiesBody: document.getElementById('activities-body'),
-		 activitiesEmptyState: document.getElementById('activities-empty-state'),
-		 activityTypeFilter: document.getElementById('activity-type-filter'),
-		 exportTableBtn: document.getElementById('export-table-btn'),
-		 tableHeaders: document.querySelectorAll('#activities-table th[data-sort]'),
-		 paginationControls: document.getElementById('pagination-controls'),
-		 prevPageBtn: document.getElementById('prev-page-btn'),
-		 nextPageBtn: document.getElementById('next-page-btn'),
-		 pageInfo: document.getElementById('page-info'),
-		 toastContainer: document.getElementById('toast-container'),
-         // sidebar, sidebarOverlay, sidebarCloseToggle, mainMobileMenuToggle, sidebarToggleBtn - ODEBRÁNY Z CACHE ZDE
-         mainElement: document.getElementById('main-content'),
-         dashboardHeader: document.querySelector('.dashboard-header'),
-         initialLoader: document.getElementById('initial-loader'),
-         mouseFollower: document.getElementById('mouse-follower'),
-         currentYearSidebar: document.getElementById('currentYearSidebar'),
-         currentYearFooter: document.getElementById('currentYearFooter'),
-         notificationBell: document.getElementById('notification-bell'),
-         notificationCount: document.getElementById('notification-count'),
-         notificationsDropdown: document.getElementById('notifications-dropdown'),
-         notificationsList: document.getElementById('notifications-list'),
-         noNotificationsMsg: document.getElementById('no-notifications-msg'),
-         markAllReadBtn: document.getElementById('mark-all-read'),
-         userCreditsDisplayValue: document.getElementById('credits-value')
-	};
+	// UI Elements Cache - bude naplněn v cacheDOMElements
+    let ui = {};
+
+    // Definice funkce cacheDOMElements PŘED jejím prvním možným použitím
+    function cacheDOMElements() {
+        console.log("[Pokrok CacheDOM v2] Caching elements...");
+        ui = { // Přepsání nebo inicializace ui objektu
+            sidebarAvatar: document.getElementById('sidebar-avatar'),
+            sidebarName: document.getElementById('sidebar-name'),
+            sidebarUserTitle: document.getElementById('sidebar-user-title'),
+            refreshBtn: document.getElementById('refresh-btn'),
+            globalError: document.getElementById('global-error'),
+            statsGrid: document.getElementById('stats-grid'),
+            overallProgressValue: document.getElementById('overall-progress-value'),
+            overallProgressDesc: document.getElementById('overall-progress-desc'),
+            overallProgressFooter: document.getElementById('overall-progress-footer'),
+            totalPointsValue: document.getElementById('total-points-value'),
+            totalPointsDesc: document.getElementById('total-points-desc'),
+            totalPointsFooter: document.getElementById('total-points-footer'),
+            streakValue: document.getElementById('streak-value'),
+            streakDesc: document.getElementById('streak-desc'),
+            streakFooter: document.getElementById('streak-footer'),
+            completedCountValue: document.getElementById('completed-count-value'),
+            completedCountDesc: document.getElementById('completed-count-desc'),
+            completedCountFooter: document.getElementById('completed-count-footer'),
+            activitiesSection: document.getElementById('activities-section'),
+            tableLoadingOverlay: document.getElementById('table-loading-overlay'),
+            activitiesTable: document.getElementById('activities-table'),
+            activitiesBody: document.getElementById('activities-body'),
+            activitiesEmptyState: document.getElementById('activities-empty-state'),
+            activityTypeFilter: document.getElementById('activity-type-filter'),
+            exportTableBtn: document.getElementById('export-table-btn'),
+            tableHeaders: document.querySelectorAll('#activities-table th[data-sort]'),
+            paginationControls: document.getElementById('pagination-controls'),
+            prevPageBtn: document.getElementById('prev-page-btn'),
+            nextPageBtn: document.getElementById('next-page-btn'),
+            pageInfo: document.getElementById('page-info'),
+            toastContainer: document.getElementById('toast-container'),
+            mainElement: document.getElementById('main-content'),
+            dashboardHeader: document.querySelector('.dashboard-header'),
+            initialLoader: document.getElementById('initial-loader'),
+            mouseFollower: document.getElementById('mouse-follower'),
+            currentYearSidebar: document.getElementById('currentYearSidebar'),
+            currentYearFooter: document.getElementById('currentYearFooter'),
+            notificationBell: document.getElementById('notification-bell'),
+            notificationCount: document.getElementById('notification-count'),
+            notificationsDropdown: document.getElementById('notifications-dropdown'),
+            notificationsList: document.getElementById('notifications-list'),
+            noNotificationsMsg: document.getElementById('no-notifications-msg'),
+            markAllReadBtn: document.getElementById('mark-all-read'),
+            userCreditsDisplayValue: document.getElementById('credits-value')
+            // Sidebar elementy pro ovládání (toggle buttons, overlay) zde již nejsou potřeba,
+            // protože jsou spravovány v sidebar-logic.js
+        };
+        console.log("[Pokrok CacheDOM v2] Caching complete. UI object:", ui);
+    }
+
 
 	 const activityTypeMap = {
 		 test: { name: 'Test', icon: 'fa-vial', class: 'test' },
@@ -86,7 +94,7 @@
 		 skipped: { name: 'Přeskočeno', class: 'skipped', icon: 'fa-forward' },
 		 default: { name: 'Neznámý', class: 'default', icon: 'fa-question-circle' }
 	 };
-     const activityVisuals = activityTypeMap; // Pro kompatibilitu s renderNotifications
+     const activityVisuals = activityTypeMap;
 
 	// --- Helper Functions ---
 	function showToast(title, message, type = 'info', duration = 4500) { if (!ui.toastContainer) return; try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content">${title ? `<div class="toast-title">${sanitizeHTML(title)}</div>` : ''}<div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Chyba při zobrazování toastu:", e); } }
@@ -96,9 +104,6 @@
     function getInitials(userData) { if (!userData) return '?'; const f = userData.first_name?.[0] || ''; const l = userData.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?'; }
 	function formatDate(dateString, includeTime = false) { if (!dateString) return '-'; try { const date = new Date(dateString); if (isNaN(date.getTime())) return '-'; const optionsDate = { day: 'numeric', month: 'numeric', year: 'numeric' }; const optionsTime = { hour: '2-digit', minute: '2-digit' }; let formatted = date.toLocaleDateString('cs-CZ', optionsDate); if (includeTime) { formatted += ' ' + date.toLocaleTimeString('cs-CZ', optionsTime); } return formatted; } catch (e) { console.error("Chyba formátování data:", dateString, e); return '-'; } }
 	function updateCurrentTime() { if (ui.currentTime) ui.currentTime.textContent = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' }); }
-
-    // Sidebar toggle a state funkce jsou nyní v sidebar-logic.js
-    // openMenu, closeMenu, toggleSidebar, applyInitialSidebarState - ODEBRÁNY
 
     function handleScroll() { if (!ui.mainElement || !ui.dashboardHeader) return; document.body.classList.toggle('scrolled', ui.mainElement.scrollTop > 10); }
 	function setLoadingState(section, isLoadingFlag) {
@@ -154,6 +159,7 @@
     const initScrollAnimations = () => { const animatedElements = document.querySelectorAll('.main-content-wrapper [data-animate]'); if (!animatedElements.length || !('IntersectionObserver' in window)) return; const observer = new IntersectionObserver((entries, observerInstance) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('animated'); observerInstance.unobserve(entry.target); } }); }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" }); animatedElements.forEach(element => observer.observe(element)); console.log(`Scroll animations initialized for ${animatedElements.length} elements.`); };
     const initHeaderScrollDetection = () => { let lastScrollY = ui.mainElement?.scrollTop || 0; const mainEl = ui.mainElement; if (!mainEl) return; mainEl.addEventListener('scroll', () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 10); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; }, { passive: true }); if (mainEl.scrollTop > 10) document.body.classList.add('scrolled'); };
     const updateCopyrightYear = () => { const year = new Date().getFullYear(); if (ui.currentYearSidebar) ui.currentYearSidebar.textContent = year; if (ui.currentYearFooter) ui.currentYearFooter.textContent = year; };
+    function formatRelativeTime(timestamp) { if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); if (isNaN(date.getTime())) return '-'; const diffMs = now - date; const diffSec = Math.round(diffMs / 1000); const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60); const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7); if (diffSec < 60) return 'Nyní'; if (diffMin < 60) return `Před ${diffMin} min`; if (diffHour < 24) return `Před ${diffHour} hod`; if (diffDay === 1) return `Včera`; if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`; return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { console.error("Chyba formátování času:", e, "Timestamp:", timestamp); return '-'; } }
 
 	// --- Supabase Initialization ---
 	function initializeSupabase() { try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Knihovna Supabase nebyla správně načtena."); } supabase = window.supabase.createClient(supabaseUrl, supabaseKey); if (!supabase) throw new Error("Vytvoření klienta Supabase selhalo."); console.log('[Supabase] Klient úspěšně inicializován.'); return true; } catch (error) { console.error('[Supabase] Inicializace selhala:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi.", true); return false; } }
@@ -419,8 +425,8 @@
 	function updatePaginationUI() { if (!ui.paginationControls || !ui.pageInfo || !ui.prevPageBtn || !ui.nextPageBtn) return; if (totalActivitiesCount <= activitiesPerPage) { ui.paginationControls.style.display = 'none'; return; } ui.paginationControls.style.display = 'flex'; const totalPages = Math.ceil(totalActivitiesCount / activitiesPerPage); ui.pageInfo.textContent = `Strana ${currentActivitiesPage} z ${totalPages}`; ui.prevPageBtn.disabled = currentActivitiesPage === 1; ui.nextPageBtn.disabled = currentActivitiesPage === totalPages; console.log(`[Pagination] UI aktualizováno: Strana ${currentActivitiesPage}/${totalPages}`); }
 
 	function setupEventListeners() {
-        console.log("[Events] Nastavování event listenerů...");
-        // Listenery pro sidebar jsou nyní v sidebar-logic.js
+        console.log("[Events] Nastavování event listenerů pro pokrok.html...");
+        // Sidebar listenery jsou nyní v sidebar-logic.js
 
          if (ui.refreshBtn) ui.refreshBtn.addEventListener('click', handleRefreshClick);
          if (ui.activityTypeFilter) ui.activityTypeFilter.addEventListener('change', handleActivityFilterChange);
@@ -429,6 +435,7 @@
          if (ui.prevPageBtn) ui.prevPageBtn.addEventListener('click', () => changeActivitiesPage(-1));
          if (ui.nextPageBtn) ui.nextPageBtn.addEventListener('click', () => changeActivitiesPage(1));
 
+         // Notification Listeners
          if (ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); }
          if (ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead); }
          if (ui.notificationsList) { ui.notificationsList.addEventListener('click', handleNotificationClick); }
@@ -447,15 +454,14 @@
 
 	async function initializeApp() {
         console.log("🚀 [Init Pokrok] Spouštění inicializace...");
-        // cacheDOMElements(); // Přesunuto za initializeSupabase, aby se zajistilo, že ui je definováno
-        if (!initializeSupabase()) return; // Kritická chyba, pokud Supabase selže
+        // cacheDOMElements je voláno v DOMContentLoaded níže
+        if (!initializeSupabase()) return;
 
-        // Sidebar-logic.js by se měl postarat o applyInitialSidebarState
-        // a nastavení svých listenerů pro sidebarToggleBtn, mainMobileMenuToggle, atd.
-        // Není třeba je zde volat explicitně, pokud sidebar-logic.js běží na DOMContentLoaded.
+        // Sidebar-logic.js se postará o applyInitialSidebarState a své listenery
+        // není potřeba je volat explicitně zde.
 
         if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; }
-        if (ui.mainElement) ui.mainElement.style.display = 'none'; // Skryjeme hlavní obsah, dokud není vše načteno
+        if (ui.mainElement) ui.mainElement.style.display = 'none';
 
         try {
             console.log("[Init] Ověřování session...");
@@ -486,7 +492,7 @@
                     allTitles = [];
                 }
 
-                updateUserInfoUI(); // Tato funkce nyní používá 'allTitles'
+                updateUserInfoUI();
                 setupEventListeners(); // Nastaví listenery pro prvky specifické pro pokrok.html
                 updateCurrentTime(); setInterval(updateCurrentTime, 60000);
 
@@ -509,21 +515,13 @@
             console.error("❌ [Init] Kritická chyba inicializace:", error);
             if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--danger-color);">Chyba (${error.message}). Obnovte stránku.</p>`; }
             else { showError(`Chyba při inicializaci: ${error.message}`, true); }
-            if (ui.mainElement) ui.mainElement.style.display = 'none'; // Skrýt hlavní obsah při chybě
+            if (ui.mainElement) ui.mainElement.style.display = 'none';
         }
     }
 
-    // Před DOMContentLoaded musíme mít UI elementy pro sidebar-logic.js
-    // Tento blok by měl být spuštěn co nejdříve, ale po definici ui objektu.
-    // Jelikož sidebar-logic.js má vlastní DOMContentLoaded, stačí definovat ui zde.
-    // (Samotné cachování se přesunulo do initializeApp pro konzistenci)
-
-    // --- START THE APP ---
-    // Nejprve cachujeme DOM elementy, pak inicializujeme zbytek.
-    // Přesunuto do initializeApp pro jistotu, že všechny závislosti jsou načteny.
 	document.addEventListener('DOMContentLoaded', () => {
-        cacheDOMElements(); // Cachování DOM elementů by mělo proběhnout zde, aby byly dostupné pro sidebar-logic i pro pokrok.js
-        initializeApp();
+        cacheDOMElements(); // Cachování DOM elementů po načtení DOMu
+        initializeApp();    // Spuštění hlavní inicializační logiky
     });
 
 })();
