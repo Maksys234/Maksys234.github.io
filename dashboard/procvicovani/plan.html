@@ -10,17 +10,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <script>
-        // Configure MathJax before loading the script
         if (typeof window.MathJax === 'undefined') {
             window.MathJax = {
                 tex: {
-                    inlineMath: [['$', '$'], ['\\(', '\\)']], // Define inline math delimiters
-                    displayMath: [['$$', '$$']],             // Define display math delimiters
-                    processEscapes: true                   // Process escaped characters like \$
+                    inlineMath: [['$', '$'], ['\\(', '\\)']],
+                    displayMath: [['$$', '$$']],
+                    processEscapes: true
                 },
                 options: {
-                    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], // Tags to ignore
-                    ignoreHtmlClass: 'tex2jax_ignore'       // Class to ignore
+                    skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+                    ignoreHtmlClass: 'tex2jax_ignore'
                 },
                 startup: {
                     ready: () => {
@@ -47,7 +46,7 @@
     <link rel="stylesheet" href="plan.css">
 
 </head>
-<body class="dark"> {/* Přidána třída "dark" pro konzistenci, pokud ji JS ovládá, jinak může být odstraněna/změněna */}
+<body class="dark">
 
     <div class="initial-loading-overlay" id="initial-loader">
         <div class="loading-spinner"></div>
@@ -67,16 +66,13 @@
         </div>
         <ul class="sidebar-menu">
             <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-tachometer-alt"></i> <span>Nástěnka</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link"> <i class="fas fa-laptop-code"></i> <span>Procvičování</span> </a> </li>
-            {/* Aktivní třída se nyní bude přidávat dynamicky přes JS, ale pro plan.html ji zatím necháme zde */}
-            <li class="sidebar-item"> <a href="/dashboard/procvicovani/plan.html" class="sidebar-link active"> <i class="fas fa-route"></i> <span>Plán</span> </a> </li>
+            <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link active"> <i class="fas fa-laptop-code"></i> <span>Procvičování</span> </a> </li>
             <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li>
             <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li>
             <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-database"></i> <span>Databanka</span> </a> </li>
             <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link"> <i class="fas fa-user-astronaut"></i> <span>Profil</span> </a> </li>
         </ul>
         <div class="user-profile">
-            {/* Struktura pro avatar, jméno a titul - stejná jako v main.html */}
             <div class="avatar-wrapper" data-decoration-key="">
                 <div class="user-avatar" id="sidebar-avatar">?</div>
             </div>
@@ -90,9 +86,8 @@
 
     <main id="main-content">
         <header class="dashboard-header">
-            {/* Upravená struktura headeru pro přidání tlačítka pro sklápění */}
-            <div class="header-content"> {/* Tento div obaluje levou i pravou část headeru pro lepší layout */}
-                <div class="header-left-group"> {/* Nový div pro levou část headeru */}
+            <div class="header-content">
+                <div class="header-left-group">
                     <button class="btn btn-icon-only sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Přepnout postranní panel" title="Přepnout postranní panel">
                         <i class="fas fa-chevron-left"></i>
                     </button>
@@ -116,7 +111,6 @@
                                  <button class="mark-all-read-btn" id="mark-all-read" disabled>Vymazat vše</button>
                              </div>
                              <div id="notifications-list">
-                                 {/* Skeletons and messages will be loaded by JS */}
                                  <div id="no-notifications-msg" style="display: none;">ŽÁDNÉ NOVÉ SIGNÁLY</div>
                              </div>
                              <div class="notifications-footer">
@@ -145,11 +139,9 @@
                     <p>Načítám aktuální plán...</p>
                 </div>
                 <div id="currentPlanContent" class="section-content">
-                    {/* Obsah bude načten JS, nebo zde bude skeleton/prázdný stav */}
                 </div>
                 <div id="vertical-schedule-list" class="vertical-schedule-list section-content">
-                     {/* Skeleton pro vertikální rozvrh, pokud je potřeba */}
-                     <div class="skeleton day-card-skeleton" style="display:none;"> {/* Skrytý defaultně */}
+                     <div class="skeleton day-card-skeleton" style="display:none;">
                          <div class="skeleton day-header-skeleton"></div>
                          <div class="skeleton activity-item-skeleton">
                              <div class="skeleton activity-checkbox-skeleton"></div>
@@ -160,7 +152,7 @@
                          </div>
                      </div>
                 </div>
-                 <div class="step-navigation" id="verticalScheduleNav" style="display:none;"> {/* Skrytý defaultně */}
+                 <div class="step-navigation" id="verticalScheduleNav" style="display:none;">
                      <button class="btn btn-primary btn-tooltip" id="exportScheduleBtnVertical" title="Stáhnout plán jako PDF">
                          <i class="fas fa-file-pdf"></i> Exportovat
                      </button>
@@ -168,20 +160,18 @@
             </div>
 
             <div class="section" id="historyPlanSection">
-                {/* Název sekce bude zde, pokud je potřeba */}
                 <div class="loader-container visible-loader" id="historyLoader">
                     <div class="loading-spinner"></div>
                     <p>Načítám historii...</p>
                 </div>
                 <div id="historyPlanContent" class="plan-history section-content">
-                     {/* Skeleton pro historii */}
-                     <div class="skeleton history-item-skeleton" style="display:none;">  {/* Skrytý defaultně */}
+                     <div class="skeleton history-item-skeleton" style="display:none;">
                          <div class="skeleton text-sm" style="width: 40%;"></div>
                          <div class="skeleton title-sm" style="width: 80%; height: 16px;"></div>
                          <div class="skeleton text-sm" style="width: 50%;"></div>
                      </div>
                 </div>
-            </div>
+                </div>
 
             <div class="section" id="createPlanSection">
                  <div class="loader-container visible-loader" id="createPlanLoader">
@@ -189,7 +179,6 @@
                     <p>Ověřuji dostupnost...</p>
                 </div>
                 <div id="createPlanContent" class="section-content">
-                    {/* Obsah bude načten JS */}
                 </div>
             </div>
 
@@ -200,7 +189,6 @@
                          <div class="plan-date" id="plan-meta-date">Vytvořeno: -</div>
                      </div>
                      <div class="plan-actions" id="planActions" style="display: none;">
-                         {/* Akce budou přidány JS */}
                      </div>
                  </div>
                  <div class="section-content" style="padding-top:0;">
@@ -214,7 +202,6 @@
                          <p>Načítám / Generuji...</p>
                      </div>
                      <div class="plan-content" id="planContent">
-                         {/* Obsah bude načten JS */}
                      </div>
                  </div>
             </div>
