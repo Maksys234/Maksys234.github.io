@@ -7,7 +7,7 @@
     const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
     let supabaseClient = null;
-    const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // !!! БЕЗОПАСНОСТЬ: Переместить на сервер !!!
+    const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs';
     const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
     const PLAN_GENERATION_COOLDOWN_DAYS = 7;
     const NOTIFICATION_FETCH_LIMIT = 5;
@@ -24,9 +24,10 @@
          mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
          sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'),
          sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
-         userName: document.getElementById('sidebar-name'), // Použito v updateSidebarProfile
-         userAvatar: document.getElementById('sidebar-avatar'), // Použito v updateSidebarProfile
-         sidebarUserTitle: document.getElementById('sidebar-user-title'), // Použito v updateSidebarProfile
+         // ***** OPRAVA ZDE: userName -> sidebarName *****
+         sidebarName: document.getElementById('sidebar-name'), // Správný klíč pro element se jménem
+         userAvatar: document.getElementById('sidebar-avatar'),
+         sidebarUserTitle: document.getElementById('sidebar-user-title'),
          toastContainer: document.getElementById('toast-container'),
          globalError: document.getElementById('global-error'),
          planTabs: document.querySelectorAll('.plan-tab'),
@@ -388,7 +389,7 @@
             ]);
             state.currentProfile = profile;
             state.allTitles = titles;
-            updateSidebarProfile();
+            updateSidebarProfile(); // Voláno ZDE, po načtení profilu A titulů
             setupEventListeners();
             initTooltips();
             initMouseFollower();
@@ -422,7 +423,7 @@
         try {
             const { data, error } = await supabaseClient
                 .from('profiles')
-                .select('*, selected_title, preferences, longest_streak_days') // Přidáno selected_title atd.
+                .select('*, selected_title, preferences, longest_streak_days')
                 .eq('id', userId)
                 .single();
             if (error && error.code !== 'PGRST116') throw error;
@@ -438,21 +439,18 @@
         console.log("[Titles] Fetching available titles...");
         setLoadingState('titles', true);
         try {
-            // ***** UPRAVENÝ DOTAZ *****
             const { data, error } = await supabaseClient
                 .from('title_shop')
-                .select('title_key, name'); // Požadujeme pouze title_key a name
+                .select('title_key, name'); // Zjednodušený select
 
             if (error) {
-                console.error("[Titles] Error from Supabase:", error); // Logujeme chybu podrobněji
+                console.error("[Titles] Error from Supabase:", error);
                 throw error;
             }
             console.log("[Titles] Fetched titles:", data);
             setLoadingState('titles', false);
             return data || [];
         } catch (error) {
-            // Chyba je již logována uvnitř bloku if (error)
-            // Můžeme zde přidat obecnější logování, pokud je to nutné
             console.error("[Titles] Catch block error fetching titles:", error.message);
             showToast("Chyba", "Nepodařilo se načíst dostupné tituly. Zkontrolujte konzoli pro detaily.", "error");
             setLoadingState('titles', false);
@@ -461,6 +459,7 @@
     }
 
     function updateSidebarProfile() {
+        // Používáme ui.sidebarName, ui.sidebarAvatar, ui.sidebarUserTitle
         if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) {
             console.warn("[SidebarUI] Chybí elementy postranního panelu pro profil.");
             return;
@@ -469,7 +468,7 @@
             const profile = state.currentProfile;
             const user = state.currentUser;
             const displayName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username || user.email?.split('@')[0] || 'Pilot';
-            ui.sidebarName.textContent = sanitizeHTML(displayName);
+            ui.sidebarName.textContent = sanitizeHTML(displayName); // Používáme ui.sidebarName
 
             const initials = getInitials(profile, user.email);
             const avatarUrl = profile.avatar_url;
@@ -507,7 +506,7 @@
             ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle));
 
         } else {
-            ui.sidebarName.textContent = "Nepřihlášen";
+            ui.sidebarName.textContent = "Nepřihlášen"; // Používáme ui.sidebarName
             ui.sidebarAvatar.textContent = '?';
             ui.sidebarUserTitle.textContent = 'Pilot';
             ui.sidebarUserTitle.removeAttribute('title');
@@ -1239,11 +1238,11 @@ ${topicsData.map(topic => `  - ${topic.name}: ${topic.percentage}%`).join('\n')}
                 <h1>${sanitizeHTML(pdfTitle)}</h1>
                 <p>Vytvořeno: ${formatDate(plan.created_at)}</p>
             </div>`;
-        if (state.currentUser && ui.userName?.textContent) {
+        if (state.currentUser && ui.sidebarName?.textContent) { // Použijeme ui.sidebarName
             exportContainer.innerHTML += `
                 <div class="student-info">
                     <h2>Informace o studentovi</h2>
-                    <p><strong>Student:</strong> ${ui.userName.textContent}</p>
+                    <p><strong>Student:</strong> ${ui.sidebarName.textContent}</p>
                     <p><strong>Datum vytvoření plánu:</strong> ${formatDate(plan.created_at)}</p>
                     ${plan.estimated_completion_date ? `<p><strong>Předpokládané dokončení:</strong> ${formatDate(plan.estimated_completion_date)}</p>` : ''}
                 </div>`;
