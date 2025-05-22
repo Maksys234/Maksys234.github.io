@@ -242,11 +242,14 @@
         ui.creditHistoryList = document.getElementById('credit-history-list');
         ui.creditHistoryEmptyState = document.getElementById('credit-history-empty-state');
         ui.creditHistoryErrorState = document.getElementById('credit-history-error-state');
-        if (ui.statsCardsContainer && !ui.progressCard) {
+
+        // Ensure stat cards are specifically selected if general container is present
+        if (ui.statsCardsContainer && !ui.progressCard) { // Only if not already individually cached
             ui.progressCard = ui.statsCardsContainer.querySelector('#progress-card');
             ui.pointsCard = ui.statsCardsContainer.querySelector('#points-card');
             ui.streakCard = ui.statsCardsContainer.querySelector('#streak-card');
         }
+
         if (notFoundCritical.length > 0) { console.error(`[CACHE DOM] CRITICAL elements not found: (${notFoundCritical.length})`, notFoundCritical); throw new Error(`Chyba načítání stránky: Kritické komponenty chybí (${notFoundCritical.join(', ')}).`); }
         else { console.log("[CACHE DOM] All critical elements found."); }
         const endTime = performance.now();
@@ -361,6 +364,7 @@
                 if (isLoadingFlag) {
                     ui.totalPointsFooter.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Načítání...`;
                 }
+                // No 'else' here, as the content will be updated by fetchAndDisplayLatestCreditTransaction
             }
         } else {
             console.warn(`[SetLoadingState] Unknown section key or unhandled UI in dashboard.js: ${sectionKey}`);
@@ -426,7 +430,7 @@
                 .limit(1)
                 .single();
 
-            if (error && error.code !== 'PGRST116') {
+            if (error && error.code !== 'PGRST116') { // PGRST116 means "0 rows found", which is not an error here
                 throw error;
             }
 
@@ -436,21 +440,23 @@
                     const sign = data.amount > 0 ? '+' : (data.amount < 0 ? '' : '');
                     const descText = data.description || `Transakce`;
                     let displayDesc = descText;
-                    if (displayDesc.length > 25) {
+                    if (displayDesc.length > 25) { // Truncate if too long for display
                         displayDesc = displayDesc.substring(0, 22) + "...";
                     }
                     const amountColorClass = data.amount > 0 ? 'positive' : (data.amount < 0 ? 'negative' : '');
 
                     ui.totalPointsFooter.innerHTML = `<i class="fas fa-history"></i> <span title="${sanitizeHTML(descText)} (${formatRelativeTime(data.created_at)}): ${sign}${data.amount}">${sanitizeHTML(displayDesc)}: <strong class="${amountColorClass}">${sign}${data.amount}</strong></span>`;
-                    ui.totalPointsFooter.classList.remove('positive', 'negative');
+                    ui.totalPointsFooter.classList.remove('positive', 'negative'); // Reset classes
                     if (data.amount > 0) ui.totalPointsFooter.classList.add('positive');
                     if (data.amount < 0) ui.totalPointsFooter.classList.add('negative');
+
                 } else {
                     console.log('[CreditChange] No credit transactions found for user.');
                     ui.totalPointsFooter.innerHTML = `<i class="fas fa-info-circle"></i> Žádné nedávné transakce`;
                     ui.totalPointsFooter.classList.remove('positive', 'negative');
                 }
             }
+
         } catch (error) {
             console.error('[CreditChange] Error fetching latest credit transaction:', error);
             if (ui.totalPointsFooter) {
@@ -501,9 +507,12 @@
             }
             if (statElements.streak) statElements.streak.textContent = '-';
             if (statElements.progressFooter) statElements.progressFooter.innerHTML = `<i class="fas fa-minus"></i> Načítání...`;
+
+            // Reset totalPointsFooter only if it's currently in a loading state or empty
             if (ui.totalPointsFooter && !isLoading.latestCreditTransaction && (!ui.totalPointsFooter.innerHTML || ui.totalPointsFooter.innerHTML.includes("Načítání"))) {
                  ui.totalPointsFooter.innerHTML = `<i class="fas fa-minus"></i> Načítání...`;
             }
+
             if (statElements.streakFooter) statElements.streakFooter.innerHTML = `MAX: - dní`;
             return;
         }
@@ -523,27 +532,31 @@
         }
         statElements.progressFooter.innerHTML = progressFooterHTML;
 
+        // Update total points value, keeping the span for latest change
         const pointsValue = stats.points ?? 0;
         if (ui.totalPointsValue.firstChild && ui.totalPointsValue.firstChild.nodeType === Node.TEXT_NODE) {
             ui.totalPointsValue.firstChild.nodeValue = `${pointsValue} `;
         } else {
             const existingSpan = ui.totalPointsValue.querySelector('#latest-credit-change');
-            ui.totalPointsValue.textContent = `${pointsValue} `;
+            ui.totalPointsValue.textContent = `${pointsValue} `; // Add a space for visual separation
             if (existingSpan) ui.totalPointsValue.appendChild(existingSpan);
         }
 
+        // Update weekly points in totalPointsFooter
         const weeklyPoints = stats.points_weekly ?? 0;
         if (ui.totalPointsFooter) {
-            if (weeklyPoints !== 0 && weeklyPoints != null) {
+            if (weeklyPoints !== 0 && weeklyPoints != null) { // Only update if there's weekly data
                 ui.totalPointsFooter.classList.remove('positive', 'negative');
                 ui.totalPointsFooter.innerHTML = weeklyPoints > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyPoints} týdně` : `<i class="fas fa-arrow-down"></i> ${weeklyPoints} týdně`;
                 if (weeklyPoints > 0) ui.totalPointsFooter.classList.add('positive');
                 else ui.totalPointsFooter.classList.add('negative');
             } else {
+                // If no weekly points data, AND not currently loading latest transaction, show default/placeholder
                 if (isLoading.latestCreditTransaction) {
                     ui.totalPointsFooter.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Načítání transakce...`;
                 } else if (!ui.totalPointsFooter.querySelector('strong')) { // Only update if not already set by transaction fetch
-                    if (!ui.totalPointsFooter.innerHTML.includes("Načítání transakce...")) { // Avoid overwriting "loading"
+                    // Ensure we don't overwrite "Načítání transakce..." if it's currently displaying that
+                    if (!ui.totalPointsFooter.innerHTML.includes("Načítání transakce...")) {
                          ui.totalPointsFooter.innerHTML = `<i class="fas fa-info-circle"></i> --`;
                     }
                 }
@@ -600,75 +613,87 @@
         setLoadingState('notifications', true);
         setLoadingState('activities', true);
         setLoadingState('creditHistory', true);
-        setLoadingState('latestCreditTransaction', true);
+        setLoadingState('latestCreditTransaction', true); // Add this
 
         try {
-            await checkAndUpdateLoginStreak();
-            updateSidebarProfile(currentProfile);
-            console.log("[MAIN] loadDashboardData: Paralelní načítání...");
+            // These must complete before stats can be fully accurate or other dependent data is fetched
+            await checkAndUpdateLoginStreak(); // Updates currentProfile
+            updateSidebarProfile(currentProfile); // Reflect potential streak updates
+            console.log("[MAIN] loadDashboardData: Paralelní načítání hlavních dat...");
 
+            // Fetch stats, notifications, and lists in parallel
             const dataPromises = [
-                fetchUserStats(user.id, currentProfile),
+                fetchUserStats(user.id, currentProfile), // Uses potentially updated currentProfile
                 fetchNotifications(user.id, 5)
             ];
             if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderAll === 'function') {
                 dataPromises.push(DashboardLists.loadAndRenderAll(user.id, 5));
             } else {
                 console.warn("DashboardLists.loadAndRenderAll not found, skipping list loads.");
-                dataPromises.push(Promise.resolve({ status: 'fulfilled', value: null }));
+                dataPromises.push(Promise.resolve({ status: 'fulfilled', value: null })); // Placeholder to keep promise order
             }
-            dataPromises.push(fetchAndDisplayLatestCreditTransaction(user.id));
+            // Add fetching latest credit transaction to the parallel promises
+            dataPromises.push(fetchAndDisplayLatestCreditTransaction(user.id)); // Add this
 
             const results = await Promise.allSettled(dataPromises);
-            const [statsResult, notificationsResult, dashboardListsResult, latestCreditResult] = results;
+            const [statsResult, notificationsResult, dashboardListsResult, latestCreditResult] = results; // Deconstruct results
 
 
-            console.log("[MAIN] loadDashboardData: Основные данные получены.");
+            console.log("[MAIN] loadDashboardData: Hlavní data načtena.");
 
+            // Process Stats
             if (statsResult.status === 'fulfilled' && statsResult.value) {
                 userStatsData = statsResult.value;
-                updateStatsCards(userStatsData);
+                updateStatsCards(userStatsData); // This updates cards based on fetched stats
             } else {
                 console.error("❌ Chyba při načítání statistik:", statsResult.reason);
                 showError("Nepodařilo se načíst statistiky.", false);
-                updateStatsCards(currentProfile);
+                updateStatsCards(currentProfile); // Fallback to profile data for stats display
             }
 
+            // Process Notifications
             if (notificationsResult.status === 'fulfilled' && notificationsResult.value) {
                 const { unreadCount, notifications } = notificationsResult.value;
                 renderNotifications(unreadCount, notifications);
             } else {
                 console.error("❌ Chyba při načítání oznámení:", notificationsResult.reason);
-                renderNotifications(0, []);
+                renderNotifications(0, []); // Render empty on error
             }
 
+            // Handle DashboardLists (Activities & Credit History)
             if (dashboardListsResult.status === 'rejected') {
-                console.error("❌ Chyba при DashboardLists.loadAndRenderAll:", dashboardListsResult.reason);
+                console.error("❌ Chyba při DashboardLists.loadAndRenderAll:", dashboardListsResult.reason);
+                // Specific error handling or UI update for list loading failure handled within DashboardLists module
             }
 
+            // Handle Latest Credit Transaction (already displayed by its own function)
             if (latestCreditResult.status === 'rejected') {
                 console.error("❌ Chyba při načítání poslední kreditní transakce pro patičku:", latestCreditResult.reason);
+                // Error already handled by fetchAndDisplayLatestCreditTransaction itself in its finally block.
             }
+
 
             const endTime = performance.now();
             console.log(`[MAIN] loadDashboardData: Data načtena a zobrazena. Time: ${(endTime - startTime).toFixed(2)}ms`);
+
         } catch (error) {
             console.error('[MAIN] loadDashboardData: Zachycena hlavní chyba:', error);
             showError('Nepodařilo se kompletně načíst data nástěnky: ' + error.message);
-            updateStatsCards(currentProfile);
+            // Fallbacks on critical error
+            updateStatsCards(currentProfile); // Fallback to profile data
             renderNotifications(0, []);
             if (typeof DashboardLists !== 'undefined') {
-                if (typeof DashboardLists.renderActivities === 'function') DashboardLists.renderActivities(null);
+                if (typeof DashboardLists.renderActivities === 'function') DashboardLists.renderActivities(null); // Show error state in lists
                 if (typeof DashboardLists.renderCreditHistory === 'function') DashboardLists.renderCreditHistory(null);
             }
             if (ui.totalPointsFooter) ui.totalPointsFooter.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Info o transakci chybí`;
-            if (ui.latestCreditChange) ui.latestCreditChange.style.display = 'none';
+            if (ui.latestCreditChange) ui.latestCreditChange.style.display = 'none'; // Hide if error
         } finally {
             setLoadingState('stats', false);
             setLoadingState('notifications', false);
             setLoadingState('activities', false);
             setLoadingState('creditHistory', false);
-            setLoadingState('latestCreditTransaction', false);
+            setLoadingState('latestCreditTransaction', false); // Turn off specific loader
             if (typeof initTooltips === 'function') initTooltips();
             console.log("[MAIN] loadDashboardData: Blok finally dokončen.");
         }
@@ -691,36 +716,43 @@
             const sidebarElement = ui.sidebar;
             const headerElement = ui.dashboardHeader;
 
+            // Make basic layout visible BEFORE any async operations
             if (sidebarElement) sidebarElement.style.display = 'flex';
             if (headerElement) headerElement.style.display = 'flex';
-            if (mainContentElement) mainContentElement.style.display = 'block';
+            if (mainContentElement) mainContentElement.style.display = 'block'; // Or 'flex' if main is a flex container
 
+            // Show placeholder for main content area while session/profile loads
             if (ui.mainContentAreaPlaceholder) {
                 ui.mainContentAreaPlaceholder.innerHTML = '<div class="loading-spinner" style="margin:auto;"></div><p>Načítání palubní desky...</p>';
                 ui.mainContentAreaPlaceholder.style.display = 'flex';
+                // Show skeletons for sections that will load data
                 toggleSkeletonUI('welcomeBanner', true);
                 toggleSkeletonUI('stats', true);
                 toggleSkeletonUI('shortcuts', true);
-                if (ui.activityListContainerWrapper) ui.activityListContainerWrapper.classList.add('loading-section');
+                if (ui.activityListContainerWrapper) ui.activityListContainerWrapper.classList.add('loading-section'); // Or use a specific skeleton state
                 if (ui.creditHistoryContainerWrapper) ui.creditHistoryContainerWrapper.classList.add('loading-section');
             } else {
                 console.warn("[INIT Dashboard] mainContentAreaPlaceholder NOT FOUND. Layout might be affected.");
             }
 
+            // Ensure real content containers are initially hidden if using skeletons
             if (ui.welcomeBannerReal) ui.welcomeBannerReal.style.display = 'none';
             if (ui.statsCardsContainer) ui.statsCardsContainer.style.display = 'none';
             if (ui.shortcutGridReal) ui.shortcutGridReal.style.display = 'none';
             if (ui.activityListContainer) ui.activityListContainer.style.display = 'none';
             if (ui.creditHistoryListContainer) ui.creditHistoryListContainer.style.display = 'none';
 
+
+            // Hide initial page loader almost immediately
             if (initialLoaderElement) {
                 initialLoaderElement.classList.add('hidden');
-                setTimeout(() => { if (initialLoaderElement) initialLoaderElement.style.display = 'none'; }, 50);
+                setTimeout(() => { if (initialLoaderElement) initialLoaderElement.style.display = 'none'; }, 50); // Small delay for transition
             }
             console.log(`[INIT Dashboard] Basic UI visible, initialLoader hidden. Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
             stepStartTime = performance.now();
 
             // --- CORE INITIALIZATION LOGIC ---
+            // Ensure Supabase library is loaded before trying to initialize
             const waitForSupabase = new Promise((resolve, reject) => {
                 const maxAttempts = 10; let attempts = 0;
                 const intervalId = setInterval(() => {
@@ -731,7 +763,7 @@
                     } else if (attempts >= maxAttempts) {
                         clearInterval(intervalId); reject(new Error("Knihovna Supabase nebyla nalezena včas."));
                     } else { console.log(`[INIT Dashboard] Waiting for Supabase library... (Attempt ${attempts}/${maxAttempts})`); }
-                }, 200);
+                }, 200); // Check every 200ms
             });
             await waitForSupabase;
             console.log(`[INIT Dashboard] waitForSupabase Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
@@ -751,9 +783,10 @@
             console.log(`[INIT Dashboard] setupEventListeners Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
             stepStartTime = performance.now();
 
-            setLoadingState('session', true);
+            setLoadingState('session', true); // Indicate session check start
             console.log("[INIT Dashboard] Checking auth session (async)...");
 
+            // Fetch session
             const { data: { session }, error: sessionError } = await withTimeout(supabase.auth.getSession(), AUTH_TIMEOUT, new Error('Ověření sezení vypršelo.'));
             console.log(`[INIT Dashboard] getSession Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
             // setLoadingState('session', false); // Moved to finally block
@@ -769,8 +802,9 @@
             if (session?.user) {
                 currentUser = session.user;
                 console.log(`[INIT Dashboard] User authenticated (ID: ${currentUser.id}). Loading profile and titles...`);
-                if (ui.mainContentAreaPlaceholder) ui.mainContentAreaPlaceholder.style.display = 'none';
+                if (ui.mainContentAreaPlaceholder) ui.mainContentAreaPlaceholder.style.display = 'none'; // Hide placeholder once user confirmed
 
+                // Fetch profile, titles, and claimed milestones concurrently
                 const [profileResult, titlesResult, claimedMilestonesResult] = await Promise.allSettled([
                     fetchUserProfile(currentUser.id),
                     fetchTitles(),
@@ -795,12 +829,13 @@
                     allTitles = titlesResult.value || [];
                 } else {
                     console.warn("[INIT Dashboard] Failed to load titles:", titlesResult.reason);
-                    allTitles = [];
+                    allTitles = []; // Default to empty array on failure
                     showToast('Varování', 'Nepodařilo se načíst seznam titulů.', 'warning');
                 }
                 console.log("[INIT Dashboard] Titles processed:", allTitles.length);
 
-                if (currentProfile) {
+                // Assign claimed milestones to the profile
+                if (currentProfile) { // Ensure profile exists before assigning
                      if (claimedMilestonesResult.status === 'fulfilled') {
                         currentProfile.claimed_streak_milestones = claimedMilestonesResult.value || [];
                     } else {
@@ -812,66 +847,96 @@
                 }
 
 
-                updateSidebarProfile(currentProfile);
+                updateSidebarProfile(currentProfile); // Now has titles and claimed milestones
                 updateCopyrightYear();
                 updateOnlineStatus();
 
+                // Initialize DashboardLists module with dependencies
                 if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.initialize === 'function') {
                     DashboardLists.initialize({
-                        supabaseClient: supabase, currentUser: currentUser, activityVisuals: activityVisuals,
-                        formatRelativeTime: formatRelativeTime, sanitizeHTML: sanitizeHTML,
+                        supabaseClient: supabase,
+                        currentUser: currentUser,
+                        activityVisuals: activityVisuals,
+                        formatRelativeTime: formatRelativeTime,
+                        sanitizeHTML: sanitizeHTML,
+                        // toggleSkeletonUI: toggleSkeletonUI // Pass the function reference
                     });
                 } else {
                     console.error("Modul DashboardLists není definován nebo nemá funkci initialize!");
-                    setLoadingState('activities', false); setLoadingState('creditHistory', false);
+                    // If lists module fails, ensure loading states are turned off to prevent permanent skeletons
+                    setLoadingState('activities', false);
+                    setLoadingState('creditHistory', false);
                 }
 
+                // Hide main content area placeholder if it was shown
                 if (ui.mainContentAreaPlaceholder) ui.mainContentAreaPlaceholder.style.display = 'none';
+
+                // Show real content containers by hiding skeletons
                 toggleSkeletonUI('welcomeBanner', false);
                 toggleSkeletonUI('stats', false);
                 toggleSkeletonUI('shortcuts', false);
+                // For lists, DashboardLists.js will handle its internal skeletons.
+                // The section wrapper class 'loading-section' can be removed here or by DashboardLists.
+                // For now, let's assume DashboardLists handles its parent wrapper too.
 
-                await loadDashboardData(currentUser, currentProfile);
+                await loadDashboardData(currentUser, currentProfile); // Fetch main dashboard data
                 console.log(`[INIT Dashboard] loadDashboardData Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
 
+
+                // Make main content visible AFTER data is loaded (or attempted to load)
                 requestAnimationFrame(() => {
                     if (ui.mainContent) ui.mainContent.classList.add('loaded');
-                    initScrollAnimations();
+                    initScrollAnimations(); // Initialize animations after content is in DOM
                 });
 
+                // Initialize other non-critical UI features
                 initMouseFollower();
                 initHeaderScrollDetection();
-                initTooltips();
+                initTooltips(); // Initialize tooltips for any newly rendered elements
 
+                // Dispatch a custom event indicating the dashboard is ready (optional)
                 const readyEvent = new CustomEvent('dashboardReady', { detail: { user: currentUser, profile: currentProfile, client: supabase, titles: allTitles } });
                 document.dispatchEvent(readyEvent);
                 console.log("[INIT Dashboard] Dispatching 'dashboardReady' event.");
 
             } else { // No user in session
                 console.log('[INIT Dashboard] V sezení není uživatel, přesměrování.');
-                if (ui.mainContentAreaPlaceholder) ui.mainContentAreaPlaceholder.style.display = 'none';
-                showError("Nejste přihlášeni. Přesměrovávám na přihlašovací stránku...", false, ui.mainContentAreaPlaceholder || ui.mainContent);
+                if (ui.mainContentAreaPlaceholder) ui.mainContentAreaPlaceholder.style.display = 'none'; // Hide placeholder
+                showError("Nejste přihlášeni. Přesměrovávám na přihlašovací stránku...", false, ui.mainContentAreaPlaceholder || ui.mainContent); // Show message in main area
                 setTimeout(() => { window.location.href = '/auth/index.html'; }, 3000);
             }
         // Zde končí `try` blok
         } catch (error) { // Catch block for the main initializeApp try
             console.error("❌ [INIT Dashboard] Error during core initialization (MAIN CATCH):", error);
             let friendlyMessage = `Chyba během inicializace: ${error.message || 'Neznámá chyba.'}`;
+
             if (error.message && error.message.toLowerCase().includes('ověření sezení vypršelo')) {
                friendlyMessage = "Ověření sezení vypršelo. Zkuste prosím obnovit stránku, nebo zkontrolujte své internetové připojení.";
             } else if (error.message && error.message.toLowerCase().includes('networkerror')) {
                friendlyMessage = "Chyba sítě. Zkontrolujte své internetové připojení a zkuste to znovu.";
             } else if (error.message && error.message.toLowerCase().includes('selhání inicializace supabase')) {
+                // This specific error is critical and likely means DB is unreachable
                 friendlyMessage = "Kritická chyba: Nepodařilo se spojit se serverem. Zkontrolujte připojení nebo zkuste později.";
             }
 
-            const initialLoaderElementForError = document.getElementById('initial-loader');
+            const initialLoaderElementForError = document.getElementById('initial-loader'); // Re-fetch in case ui cache failed
             if (initialLoaderElementForError && !initialLoaderElementForError.classList.contains('hidden')) {
+                // If initial page loader is still visible, show error there
                 initialLoaderElementForError.innerHTML = `<p style="color: var(--accent-pink);">KRITICKÁ CHYBA (${sanitizeHTML(friendlyMessage)}). OBNOVTE STRÁNKU.</p>`;
             } else {
+                // Otherwise, show error in the main content placeholder or global error div
                  showError(friendlyMessage, true, ui.mainContentAreaPlaceholder || ui.globalError || document.body);
             }
-            if (ui.mainContent) ui.mainContent.style.display = 'none'; // Hide main content on critical error
+
+            // Ensure skeletons are hidden and main content area is at least attempted to be shown for error
+            if (ui.mainContentAreaPlaceholder) ui.mainContentAreaPlaceholder.style.display = 'flex'; // Show it to display error
+            toggleSkeletonUI('welcomeBanner', false);
+            toggleSkeletonUI('stats', false);
+            toggleSkeletonUI('shortcuts', false);
+            if (ui.activityListContainerWrapper) ui.activityListContainerWrapper.classList.remove('loading-section');
+            if (ui.creditHistoryContainerWrapper) ui.creditHistoryContainerWrapper.classList.remove('loading-section');
+
+            if (ui.mainContent) ui.mainContent.style.display = 'none'; // Hide main content on critical error if it was shown
             console.log(`[INIT Dashboard] Initialization failed. Total Time: ${(performance.now() - totalStartTime).toFixed(2)}ms`);
 
         } finally { // Finally for the main initializeApp try
@@ -890,8 +955,10 @@
     }
     // --- END THE APP ---
 
+    // Expose utility functions or main app object to global scope if needed by other scripts
     window.DashboardApp = {
         showToast,
+        // Any other functions you might need globally
     };
 
 })();
