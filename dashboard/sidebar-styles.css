@@ -1,0 +1,386 @@
+/* dashboard/sidebar-styles.css */
+/* Styly pro boční panel a jeho prvky */
+/* Verze: 1.0 */
+
+/* Základní proměnné, které sidebar potřebuje (můžeme je sem zkopírovat nebo importovat, pokud používáš preprocesor) */
+/* Pokud proměnné zůstávají v hlavních CSS souborech, není třeba je zde znovu definovat. */
+/* :root {
+    --sidebar-width: 260px;
+    --sidebar-collapsed-width: 80px;
+    --gradient-sidebar: linear-gradient(190deg, var(--bg-secondary) 0%, var(--dark-purple-accent) 100%);
+    --text-medium: #b8c4e0;
+    --text-heading: #ffffff;
+    --text-muted: #808db0;
+    --accent-primary: #00e0ff;
+    --accent-secondary: #a05cff;
+    --border-color-light: rgba(var(--accent-secondary-rgb), 0.25);
+    --button-radius: 10px;
+    --transition-medium: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    --accent-primary-rgb: 0, 224, 255; // Přidáno pro rgba()
+    --accent-secondary-rgb: 160, 92, 255; // Přidáno pro rgba()
+    --white-rgb: 255, 255, 255; // Přidáno pro rgba()
+    --bg-secondary: #0a071f; // Přidáno
+    --dark-purple-accent: #160c41; // Přidáno
+} */
+
+.sidebar {
+    width: var(--sidebar-width);
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: var(--gradient-sidebar);
+    color: var(--text-medium);
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4);
+    border-right: 1px solid var(--border-color-light);
+    transition: width var(--transition-medium), transform var(--transition-medium) ease;
+    overflow: hidden;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2.5rem;
+    padding: 0 0.5rem;
+    position: relative;
+    min-height: 45px;
+    transition: padding var(--transition-medium) ease;
+}
+
+#sidebar-close-toggle { /* Kнопка закрытия на мобильных */
+    display: none;
+    position: absolute;
+    right: 0px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.8rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    line-height: 1;
+    transition: color var(--transition-fast);
+}
+#sidebar-close-toggle:hover {
+    color: var(--accent-primary);
+}
+
+.sidebar-logo {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--text-heading);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    text-shadow: 0 0 8px var(--accent-secondary-glow);
+    transition: gap var(--transition-medium) ease;
+    width: 100%;
+}
+
+.sidebar-logo i {
+    font-size: 1.8rem;
+    color: var(--accent-secondary);
+    flex-shrink: 0;
+}
+
+.sidebar-logo span {
+    transition: opacity 0.1s linear, max-width 0.2s linear 0.1s;
+    opacity: 1;
+    max-width: 150px;
+    overflow: hidden;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex-grow: 1;
+    overflow-y: auto;
+    overflow-x: hidden; /* Zabraňuje horizontálnímu posouvání, když se text zkracuje */
+}
+/* Scrollbar pro sidebar menu */
+.sidebar-menu::-webkit-scrollbar { width: 5px; }
+.sidebar-menu::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 3px;}
+.sidebar-menu::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.4); border-radius: 3px; }
+.sidebar-menu::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--accent-primary-rgb), 0.6); }
+.sidebar-menu { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.4) rgba(255, 255, 255, 0.05); }
+
+
+.sidebar-item {
+    margin-bottom: 0.6rem;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: 0.85rem 1rem;
+    color: var(--text-medium);
+    text-decoration: none;
+    border-radius: var(--button-radius);
+    transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, border-left-color 0.25s ease;
+    font-weight: 500;
+    position: relative;
+    border-left: 4px solid transparent;
+    overflow: hidden; /* Důležité pro schování textu */
+    white-space: nowrap; /* Důležité pro schování textu */
+}
+
+.sidebar-link i {
+    margin-right: 0.85rem;
+    font-size: 1.25rem;
+    width: 25px;
+    text-align: center;
+    transition: color 0.25s ease, margin-right var(--transition-medium) ease, font-size var(--transition-medium) ease;
+    color: var(--text-muted);
+    flex-shrink: 0; /* Zabrání zmenšení ikony */
+}
+
+.sidebar-link span {
+    transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; /* Upravené zpoždění pro plynulejší zmizení */
+    opacity: 1;
+    max-width: 150px; /* Maximální šířka textu */
+    overflow: hidden;
+    white-space: nowrap;
+    display: inline-block; /* Aby max-width fungovalo */
+    vertical-align: middle; /* Pro lepší zarovnání s ikonou */
+}
+
+.sidebar-link:hover {
+    background-color: rgba(var(--accent-primary-rgb), 0.1);
+    color: var(--text-light);
+    box-shadow: inset 3px 0 8px -2px rgba(var(--accent-primary-rgb), 0.3);
+}
+.sidebar-link:hover i {
+    color: var(--accent-primary);
+}
+
+.sidebar-link.active {
+    background-color: rgba(var(--accent-primary-rgb), 0.15);
+    color: var(--white);
+    font-weight: 600;
+    border-left-color: var(--accent-primary);
+    box-shadow: inset 4px 0 10px -3px rgba(var(--accent-primary-rgb), 0.4);
+}
+.sidebar-link.active i {
+    color: var(--accent-primary);
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    margin-top: 1.5rem;
+    background-color: rgba(var(--accent-secondary-rgb), 0.1);
+    border-radius: 12px;
+    border: 1px solid var(--border-color-light);
+    flex-shrink: 0; /* Aby se nezmenšoval, když je málo místa */
+    transition: padding var(--transition-medium) ease;
+    overflow: hidden; /* Skryje obsah, který se nevejde */
+    white-space: nowrap; /* Udrží obsah na jedné řádce */
+}
+
+.user-profile .avatar-wrapper {
+    position: relative;
+    display: inline-block;
+    line-height: 0;
+    margin-right: 0.85rem;
+    transition: margin-right var(--transition-medium) ease;
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    background: none;
+    padding: 0;
+    border-radius: 50%;
+}
+
+.user-avatar {
+    width: 100%; /* Bylo 42px */
+    height: 100%; /* Bylo 42px */
+    border-radius: 50%;
+    background-color: var(--accent-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* margin-right: 0.85rem; - Přesunuto do .avatar-wrapper */
+    font-weight: 600;
+    font-size: 1.1rem;
+    overflow: hidden;
+    color: var(--white);
+    border: 2px solid rgba(var(--accent-primary-rgb), 0.3);
+    flex-shrink: 0;
+    box-shadow: 0 0 8px rgba(var(--accent-secondary-rgb), 0.4);
+    transition: all var(--transition-medium) ease; /* Animate size and margin */
+    position: relative; /* Pro dekorace */
+}
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-info {
+    flex-grow: 1;
+    overflow: hidden;
+    transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; /* Upravené zpoždění */
+    opacity: 1;
+    max-width: 150px;
+}
+.user-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text-light);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.user-role {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-footer {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: center;
+    flex-shrink: 0; /* Zabraňuje smrštění */
+    opacity: 0.7;
+    transition: opacity 0.2s ease, max-width 0.2s linear 0.1s;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 200px; /* Max šířka textu */
+}
+
+/* Styly pro sbalený sidebar */
+body.sidebar-collapsed .sidebar {
+    width: var(--sidebar-collapsed-width);
+}
+body.sidebar-collapsed .sidebar-logo span,
+body.sidebar-collapsed .sidebar-link span,
+body.sidebar-collapsed .user-info,
+body.sidebar-collapsed .sidebar-footer {
+    opacity: 0;
+    max-width: 0;
+    overflow: hidden; /* Důležité */
+    white-space: nowrap; /* Důležité */
+    pointer-events: none; /* Aby nešlo interagovat s neviditelným textem */
+}
+
+body.sidebar-collapsed .sidebar-header,
+body.sidebar-collapsed .sidebar-logo {
+    padding-left: 0;
+    padding-right: 0;
+    justify-content: center;
+    gap: 0; /* Žádná mezera mezi ikonou a (neviditelným) textem */
+}
+
+body.sidebar-collapsed .sidebar-link {
+    justify-content: center;
+    padding: 0.85rem 0.5rem; /* Menší padding, aby se ikona vešla */
+}
+body.sidebar-collapsed .sidebar-link i {
+    margin-right: 0; /* Ikona se zarovná na střed */
+    font-size: 1.4rem; /* Trochu větší ikona, když je sama */
+}
+
+body.sidebar-collapsed .user-profile {
+    padding: 0.8rem 0; /* Jen vertikální padding */
+    justify-content: center;
+    border-left: none; /* Odebrat případné boční okraje */
+    border-right: none;
+}
+.sidebar-collapsed .user-profile .avatar-wrapper {
+    margin-right: 0; /* Odebrat margin */
+    width: 40px; /* Menší avatar */
+    height: 40px;
+    padding: 0;
+    background: none;
+}
+.sidebar-collapsed .user-avatar {
+    font-size: 1rem; /* Menší písmo pro iniciály */
+    width: 100%;
+    height: 100%;
+}
+body.sidebar-collapsed #sidebar-close-toggle {
+     display: none; /* Skryjeme 'X' v sbaleném stavu na desktopu */
+}
+
+/* Obal pro mobilní menu */
+.sidebar-overlay {
+    display: none; /* Skrytý defaultně */
+    position: fixed;
+    inset: 0; /* top, right, bottom, left = 0 */
+    background-color: rgba(var(--bg-color), 0.7); /* Tmavší s průhledností */
+    z-index: 999; /* Pod sidebarem, nad obsahem */
+    opacity: 0;
+    transition: opacity var(--transition-medium) ease;
+    backdrop-filter: blur(5px); /* Rozmazání pozadí */
+}
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Styly pro mobilní zobrazení (<992px) */
+@media (max-width: 992px) {
+    /* .sidebar je již nastaven pro mobilní zobrazení, když má třídu .active */
+    /* Není třeba měnit --sidebar-width, protože transform se používá pro zobrazení/skrytí */
+    .sidebar:not(.active) { /* Když NENÍ aktivní na mobilu, je schovaný */
+        transform: translateX(-100%);
+    }
+    .sidebar.active { /* Když JE aktivní na mobilu, je viditelný */
+        transform: translateX(0);
+        width: var(--sidebar-width); /* Použije standardní šířku */
+    }
+
+    /* Zobrazení textů a prvků v mobilním menu, KDYŽ JE OTEVŘENÉ (.active) */
+    .sidebar.active .sidebar-logo span,
+    .sidebar.active .sidebar-link span,
+    .sidebar.active .user-info,
+    .sidebar.active .sidebar-footer {
+        opacity: 1;
+        max-width: 150px; /* Nebo jiná vhodná hodnota */
+    }
+    .sidebar.active .sidebar-header,
+    .sidebar.active .sidebar-logo {
+        justify-content: flex-start; /* Zarovnání doleva */
+        gap: 0.8rem; /* Obnovení mezery */
+    }
+    .sidebar.active .sidebar-link {
+        justify-content: flex-start; /* Zarovnání doleva */
+        padding: 0.85rem 1rem; /* Obnovení paddingu */
+    }
+    .sidebar.active .sidebar-link i {
+        margin-right: 0.85rem; /* Obnovení marginu */
+        font-size: 1.25rem; /* Obnovení velikosti */
+    }
+    .sidebar.active .user-profile {
+        padding: 1rem; /* Obnovení paddingu */
+        justify-content: flex-start; /* Zarovnání doleva */
+    }
+    .sidebar.active .user-profile .avatar-wrapper {
+        margin-right: 0.85rem; /* Obnovení marginu */
+        width: 42px;
+        height: 42px;
+    }
+     .sidebar.active .user-avatar { /* Není třeba měnit, protože se přizpůsobí .avatar-wrapper */ }
+
+    #sidebar-close-toggle { /* Zobrazit 'X' tlačítko pouze v aktivním mobilním menu */
+        display: none; /* Defaultně skryté */
+    }
+    .sidebar.active #sidebar-close-toggle {
+        display: block; /* Zobrazit, když je menu aktivní */
+    }
+}
