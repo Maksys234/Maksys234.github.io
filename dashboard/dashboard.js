@@ -905,7 +905,6 @@
                 showError("Nejste přihlášeni. Přesměrovávám na přihlašovací stránku...", false, ui.mainContentAreaPlaceholder || ui.mainContent); // Show message in main area
                 setTimeout(() => { window.location.href = '/auth/index.html'; }, 3000);
             }
-        // Zde končí `try` blok
         } catch (error) { // Catch block for the main initializeApp try
             console.error("❌ [INIT Dashboard] Error during core initialization (MAIN CATCH):", error);
             let friendlyMessage = `Chyba během inicializace: ${error.message || 'Neznámá chyba.'}`;
@@ -924,7 +923,6 @@
                 // If initial page loader is still visible, show error there
                 initialLoaderElementForError.innerHTML = `<p style="color: var(--accent-pink);">KRITICKÁ CHYBA (${sanitizeHTML(friendlyMessage)}). OBNOVTE STRÁNKU.</p>`;
             } else {
-                // Otherwise, show error in the main content placeholder or global error div
                  showError(friendlyMessage, true, ui.mainContentAreaPlaceholder || ui.globalError || document.body);
             }
 
@@ -943,7 +941,7 @@
             setLoadingState('session', false); // Ensure session loading is always reset
             const totalEndTime = performance.now();
             console.log(`✅ [INIT Dashboard] App initializeApp function finished (outer try-finally). Total Time: ${(totalEndTime - totalStartTime).toFixed(2)}ms`);
-        }
+        } // Closing brace for the main finally block
     } // Konec funkce initializeApp
     // --- END: App Initialization ---
 
