@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Playground - Testování Vylepšení Avatara v2</title>
+    <title>Playground - Testování Vylepšení Avatara v2.1 (Fix)</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -12,91 +12,31 @@
     <link rel="stylesheet" href="dashboard.css"> 
     
     <style>
-        /* Doplňkové styly pro playground specificky */
-        body.playground-active {
-            display: flex;
-            padding-top: 20px; /* Přidáno pro lepší zobrazení obsahu, když je main fixní */
-        }
-        main#main-content {
-            padding-top: 1rem; /* Menší padding nahoře pro playground */
-        }
-        .auth-container {
-            width: 100%;
-            max-width: 450px;
-            margin: 4rem auto;
-            padding: 2.5rem;
-            background-color: var(--card-bg);
-            border-radius: var(--card-radius);
-            border: 1px solid var(--border-color-medium);
-            box-shadow: var(--shadow-card);
-        }
-        .auth-container h2 {
-            text-align: center;
-            color: var(--accent-primary);
-            margin-bottom: 1.5rem;
-            font-family: 'Orbitron', sans-serif;
-        }
+        /* ... (CSS styly zůstávají stejné jako v předchozí odpovědi) ... */
+        body.playground-active { display: flex; padding-top: 20px; }
+        main#main-content { padding-top: 1rem; }
+        .auth-container { width: 100%; max-width: 450px; margin: 4rem auto; padding: 2.5rem; background-color: var(--card-bg); border-radius: var(--card-radius); border: 1px solid var(--border-color-medium); box-shadow: var(--shadow-card); }
+        .auth-container h2 { text-align: center; color: var(--accent-primary); margin-bottom: 1.5rem; font-family: 'Orbitron', sans-serif; }
         .form-group { margin-bottom: 1.5rem; }
         .form-group label { display: block; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-medium); }
-        .form-group input {
-            width: 100%; padding: 0.8rem 1rem; background-color: var(--interface-bg);
-            border: 1px solid var(--border-color-light); border-radius: var(--button-radius);
-            color: var(--text-light); font-family: var(--font-primary); font-size: 0.95rem;
-        }
+        .form-group input { width: 100%; padding: 0.8rem 1rem; background-color: var(--interface-bg); border: 1px solid var(--border-color-light); border-radius: var(--button-radius); color: var(--text-light); font-family: var(--font-primary); font-size: 0.95rem; }
         .form-group input:focus { border-color: var(--accent-primary); box-shadow: 0 0 8px rgba(var(--accent-primary-rgb),0.2); }
         .auth-toggle { color: var(--text-link); font-size: 0.9rem; text-align: center; margin-top: 1rem; cursor: pointer; }
         .auth-toggle:hover { text-decoration: underline; }
-
         .hidden { display: none !important; }
-
-        .user-info-display {
-            background-color: rgba(var(--accent-primary-rgb), 0.08);
-            border: 1px solid var(--border-color-medium);
-            padding: 1rem 1.5rem; margin-bottom: 2rem;
-            border-radius: var(--card-radius);
-            display: flex; justify-content: space-between; align-items: center;
-            color: var(--text-medium);
-        }
+        .user-info-display { background-color: rgba(var(--accent-primary-rgb), 0.08); border: 1px solid var(--border-color-medium); padding: 1rem 1.5rem; margin-bottom: 2rem; border-radius: var(--card-radius); display: flex; justify-content: space-between; align-items: center; color: var(--text-medium); }
         .user-info-display strong { color: var(--text-light); }
-
-        /* Styly pro vylepšení avataru */
-        .user-profile[data-profile-decoration="profile_animated_border"] {
-            --animation-color-1: rgba(var(--accent-primary-rgb), 0.8);
-            --animation-color-2: rgba(var(--accent-secondary-rgb), 0.7);
-            --animation-color-3: rgba(var(--accent-pink-rgb), 0.6);
-            border: 2px solid transparent;
-            animation: animatedProfileBorderPlayground 4s infinite alternate;
-            position: relative;
-            overflow: visible; 
-        }
-
-        @keyframes animatedProfileBorderGlowPlayground {
-            0% { box-shadow: 0 0 8px 2px var(--animation-color-1), inset 0 0 8px 2px var(--animation-color-1); border-color: var(--animation-color-1); }
-            33% { box-shadow: 0 0 12px 3px var(--animation-color-2), inset 0 0 12px 3px var(--animation-color-2); border-color: var(--animation-color-2); }
-            66% { box-shadow: 0 0 8px 2px var(--animation-color-3), inset 0 0 8px 2px var(--animation-color-3); border-color: var(--animation-color-3); }
-            100% { box-shadow: 0 0 12px 3px var(--animation-color-1), inset 0 0 12px 3px var(--animation-color-1); border-color: var(--animation-color-1); }
-        }
-
+        .user-profile[data-profile-decoration="profile_animated_border"] { --animation-color-1: rgba(var(--accent-primary-rgb), 0.8); --animation-color-2: rgba(var(--accent-secondary-rgb), 0.7); --animation-color-3: rgba(var(--accent-pink-rgb), 0.6); border: 2px solid transparent; animation: animatedProfileBorderPlayground 4s infinite alternate; position: relative; overflow: visible; }
+        @keyframes animatedProfileBorderGlowPlayground { 0% { box-shadow: 0 0 8px 2px var(--animation-color-1), inset 0 0 8px 2px var(--animation-color-1); border-color: var(--animation-color-1); } 33% { box-shadow: 0 0 12px 3px var(--animation-color-2), inset 0 0 12px 3px var(--animation-color-2); border-color: var(--animation-color-2); } 66% { box-shadow: 0 0 8px 2px var(--animation-color-3), inset 0 0 8px 2px var(--animation-color-3); border-color: var(--animation-color-3); } 100% { box-shadow: 0 0 12px 3px var(--animation-color-1), inset 0 0 12px 3px var(--animation-color-1); border-color: var(--animation-color-1); } }
         .avatar-wrapper[data-decoration-key="avatar_falling_elements"] { position: relative; overflow: visible; }
-        .avatar-wrapper[data-decoration-key="avatar_falling_elements"]::before,
-        .avatar-wrapper[data-decoration-key="avatar_falling_elements"]::after {
-            content: '✨'; position: absolute; top: -20px; font-size: 1rem; opacity: 0;
-            animation: fallingStarsPlayground 5s linear infinite;
-            text-shadow: 0 0 5px rgba(var(--accent-primary-rgb), 0.7), 0 0 10px rgba(var(--accent-secondary-rgb), 0.5);
-        }
+        .avatar-wrapper[data-decoration-key="avatar_falling_elements"]::before, .avatar-wrapper[data-decoration-key="avatar_falling_elements"]::after { content: '✨'; position: absolute; top: -20px; font-size: 1rem; opacity: 0; animation: fallingStarsPlayground 5s linear infinite; text-shadow: 0 0 5px rgba(var(--accent-primary-rgb), 0.7), 0 0 10px rgba(var(--accent-secondary-rgb), 0.5); }
         .avatar-wrapper[data-decoration-key="avatar_falling_elements"]::before { left: 30%; animation-delay: 0s; font-size: 0.8rem; }
         .avatar-wrapper[data-decoration-key="avatar_falling_elements"]::after { left: 60%; animation-delay: 2.5s; font-size: 1.1rem; }
-        
-        :root { --avatar-size-playground: 42px; /* Přizpůsobit dle sidebaru */ }
-        @keyframes fallingStarsPlayground {
-            0% { transform: translateY(0) rotate(0deg); opacity: 1; } 20% { opacity: 1; }
-            100% { transform: translateY(calc(var(--avatar-size-playground, 42px) + 40px)) rotate(360deg); opacity: 0; }
-        }
-
+        :root { --avatar-size-playground: 42px; }
+        @keyframes fallingStarsPlayground { 0% { transform: translateY(0) rotate(0deg); opacity: 1; } 20% { opacity: 1; } 100% { transform: translateY(calc(var(--avatar-size-playground, 42px) + 40px)) rotate(360deg); opacity: 0; } }
         .playground-controls { background: var(--card-bg); padding: 2rem; border-radius: var(--card-radius); margin-bottom: 2rem; border: 1px solid var(--border-color-light); }
         .playground-controls h2 { margin-top: 0; color: var(--text-heading); }
         .playground-controls button { margin-right: 1rem; margin-bottom: 1rem; }
-
         .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1055; width: auto; max-width: 360px;}
         .toast { padding: 0.9rem 1.2rem; border-radius: 10px; background: var(--interface-bg); box-shadow: var(--shadow-card); display: flex; align-items: flex-start; color: var(--text-light); margin-bottom: 0.75rem; border-left: 5px solid var(--accent-primary); opacity: 0; transform: translateX(110%); transition: opacity 0.35s ease, transform 0.35s ease; }
         .toast.show { opacity: 1; transform: translateX(0); }
@@ -106,12 +46,10 @@
         .toast .toast-message { font-size: 0.9rem; color: var(--text-medium); line-height: 1.45; }
         .toast .toast-close { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.3rem; padding: 0.1rem; margin-left: auto; line-height: 1; opacity: 0.7;}
         .toast .toast-close:hover { opacity: 1; color: var(--accent-primary); }
-
         #initial-site-loader { position: fixed; inset:0; background-color: var(--bg-color); z-index: 9999; display:flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; transition: opacity 0.5s ease-out;}
         #initial-site-loader .loading-spinner { width: 40px; height: 40px; border: 4px solid var(--accent-primary); border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;}
         #initial-site-loader p { color: var(--text-medium); font-weight: 500;}
         @keyframes spin { to { transform: rotate(360deg); }}
-
     </style>
 </head>
 <body class="dark playground-active">
@@ -167,14 +105,8 @@
                 <div id="loginFormContainer">
                     <h2>Přihlášení</h2>
                     <form id="loginForm">
-                        <div class="form-group">
-                            <label for="login-email">Email:</label>
-                            <input type="email" id="login-email" name="email" required placeholder="vas@email.cz">
-                        </div>
-                        <div class="form-group">
-                            <label for="login-password">Heslo:</label>
-                            <input type="password" id="login-password" name="password" required placeholder="********">
-                        </div>
+                        <div class="form-group"><label for="login-email">Email:</label><input type="email" id="login-email" name="email" required placeholder="vas@email.cz"></div>
+                        <div class="form-group"><label for="login-password">Heslo:</label><input type="password" id="login-password" name="password" required placeholder="********"></div>
                         <button type="submit" class="btn btn-primary" style="width:100%;">Přihlásit se</button>
                     </form>
                     <p class="auth-toggle" id="showRegister">Nemáte účet? Zaregistrujte se.</p>
@@ -182,14 +114,8 @@
                 <div id="registerFormContainer" class="hidden">
                     <h2>Registrace</h2>
                     <form id="registerForm">
-                        <div class="form-group">
-                            <label for="register-email">Email:</label>
-                            <input type="email" id="register-email" name="email" required placeholder="vas@email.cz">
-                        </div>
-                        <div class="form-group">
-                            <label for="register-password">Heslo:</label>
-                            <input type="password" id="register-password" name="password" required placeholder="Minimálně 6 znaků">
-                        </div>
+                        <div class="form-group"><label for="register-email">Email:</label><input type="email" id="register-email" name="email" required placeholder="vas@email.cz"></div>
+                        <div class="form-group"><label for="register-password">Heslo:</label><input type="password" id="register-password" name="password" required placeholder="Minimálně 6 znaků"></div>
                         <button type="submit" class="btn btn-primary" style="width:100%;">Zaregistrovat se</button>
                     </form>
                     <p class="auth-toggle" id="showLogin">Máte již účet? Přihlaste se.</p>
@@ -197,9 +123,7 @@
             </div>
 
             <div id="appContent" class="hidden">
-                <div class="user-info-display">
-                    <span>Přihlášen jako: <strong id="userEmailDisplay"></strong></span>
-                </div>
+                <div class="user-info-display"><span>Přihlášen jako: <strong id="userEmailDisplay"></strong></span></div>
                 <div class="playground-controls card">
                     <h2>Ovládání Vylepšení (Sidebar)</h2>
                     <button class="btn btn-primary" id="applyProfileBorder">Pulzující Aura (Profil)</button>
@@ -209,17 +133,11 @@
                     <button class="btn btn-secondary" id="removeAvatarDecoration">Odstranit Dešť Avataru</button>
                     <button class="btn btn-danger" id="removeAllDecorations">Odstranit Vše</button>
                 </div>
-
-                <div class="card" style="padding: 2rem; margin-top: 2rem;">
-                    <h2>Hlavní Obsah Stránky</h2>
-                    <p>Toto je oblast pro běžný obsah vaší stránky.</p>
-                </div>
+                <div class="card" style="padding: 2rem; margin-top: 2rem;"><h2>Hlavní Obsah Stránky</h2><p>Toto je oblast pro běžný obsah.</p></div>
             </div>
         </div>
 
-        <footer class="main-footer">
-            <p>&copy; <span id="currentYearFooter"></span> Playground Footer</p>
-        </footer>
+        <footer class="main-footer"><p>&copy; <span id="currentYearFooter"></span> Playground Footer</p></footer>
     </main>
 
     <div class="toast-container" id="toast-container"></div>
@@ -232,7 +150,7 @@
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
             let supabase = null;
             let currentUser = null;
-            let currentProfile = null; // Pro ukládání dat profilu
+            let currentProfile = null;
 
             const ui = {
                 initialSiteLoader: document.getElementById('initial-site-loader'),
@@ -270,209 +188,118 @@
 
             function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
 
-            function showToast(message, type = 'info', duration = 3500) {
-                if (!ui.toastContainer) return;
-                const toastId = `toast-${Date.now()}`;
-                const notification = document.createElement('div');
-                notification.className = `toast ${type}`;
-                notification.id = toastId;
-                notification.innerHTML = `<i class="toast-icon"></i><div class="toast-message">${sanitizeHTML(message)}</div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`;
-                const iconElement = notification.querySelector('.toast-icon');
-                iconElement.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`;
-                notification.querySelector('.toast-close').addEventListener('click', () => { notification.classList.remove('show'); setTimeout(() => notification.remove(), 400); });
-                ui.toastContainer.appendChild(notification);
-                requestAnimationFrame(() => { notification.classList.add('show'); });
-                setTimeout(() => { if (notification.parentElement) { notification.classList.remove('show'); setTimeout(() => notification.remove(), 400); } }, duration);
-            }
+            function showToast(message, type = 'info', duration = 3500) { /* ... (stejná jako předtím) ... */ if (!ui.toastContainer) return; const toastId = `toast-${Date.now()}`; const notification = document.createElement('div'); notification.className = `toast ${type}`; notification.id = toastId; notification.innerHTML = `<i class="toast-icon"></i><div class="toast-message">${sanitizeHTML(message)}</div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const iconElement = notification.querySelector('.toast-icon'); iconElement.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; notification.querySelector('.toast-close').addEventListener('click', () => { notification.classList.remove('show'); setTimeout(() => notification.remove(), 400); }); ui.toastContainer.appendChild(notification); requestAnimationFrame(() => { notification.classList.add('show'); }); setTimeout(() => { if (notification.parentElement) { notification.classList.remove('show'); setTimeout(() => notification.remove(), 400); } }, duration); }
+            
+            function initializeSupabase() { /* ... (stejná jako předtím) ... */ try { if (!window.supabase?.createClient) throw new Error("Supabase library error."); supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); if (!supabase) throw new Error("Supabase client creation failed."); console.log('[Supabase] Playground Client initialized.'); return true; } catch (error) { console.error('[Supabase] Playground Init Error:', error.message); showToast(`Kritická chyba Supabase: ${error.message}`, "error", 10000); return false; } }
 
-            function initializeSupabase() {
+            async function fetchUserProfile(userId) { /* ... (stejná jako předtím) ... */ if (!supabase || !userId) return null; try { const { data, error } = await supabase.from('profiles').select('*, selected_title, selected_decoration, selected_profile_decoration').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; return data; } catch (e) { console.error('Chyba načítání profilu:', e); showToast(`Chyba načítání profilu: ${e.message}`, 'error'); return null; } }
+            
+            async function createAndFetchDefaultProfile(userId, userEmail) {
+                console.log("Profil nenalezen, vytvářím výchozí...");
+                const defaultProfileData = {
+                    id: userId,
+                    email: userEmail,
+                    username: userEmail.split('@')[0] || `user_${userId.substring(0,6)}`,
+                    level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0, longest_streak_days: 0,
+                    last_login: new Date().toISOString(),
+                    preferences: {"language":"cs","dark_mode":true,"show_progress":true,"sound_effects":true}, // Výchozí z tabulky
+                    notifications: {"email":true,"study_tips":true,"content_updates":true,"practice_reminders":true}, // Výchozí z tabulky
+                    purchased_titles: [], selected_title: null, 
+                    purchased_decorations: [], selected_decoration: null, selected_profile_decoration: null, // Přidáno pro dekorace
+                    monthly_claims: {}, last_milestone_claimed: 0
+                };
                 try {
-                    if (!window.supabase?.createClient) throw new Error("Supabase library error.");
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    if (!supabase) throw new Error("Supabase client creation failed.");
-                    console.log('[Supabase] Playground Client initialized.');
-                    return true;
-                } catch (error) {
-                    console.error('[Supabase] Playground Init Error:', error.message);
-                    showToast(`Kritická chyba Supabase: ${error.message}`, "error", 10000);
-                    return false;
-                }
-            }
-
-            async function fetchUserProfile(userId) {
-                if (!supabase || !userId) return null;
-                try {
-                    const { data, error } = await supabase
-                        .from('profiles')
-                        .select('*, selected_title, selected_decoration') // Načítáme i selected_decoration
-                        .eq('id', userId)
-                        .single();
-                    if (error && error.code !== 'PGRST116') throw error;
+                    const { data, error } = await supabase.from('profiles').insert(defaultProfileData)
+                        .select('*, selected_title, selected_decoration, selected_profile_decoration').single();
+                    if (error) {
+                        if (error.code === '23505') { // Unique violation, profil pravděpodobně již existuje
+                            console.warn("Výchozí profil již existuje (unique violation), pokus o opětovné načtení.");
+                            return await fetchUserProfile(userId);
+                        }
+                        throw error;
+                    }
+                    console.log("Výchozí profil vytvořen:", data);
                     return data;
                 } catch (e) {
-                    console.error('Chyba načítání profilu:', e);
-                    showToast(`Chyba načítání profilu: ${e.message}`, 'error');
-                    return null;
+                     console.error("Výjimka při vytváření výchozího profilu:", e);
+                     showToast(`Chyba při vytváření profilu: ${e.message}`, 'error');
+                     return null;
                 }
             }
             
-            function getInitials(profile) {
-                 if (!profile) return '?';
-                 const f = profile.first_name?.[0] || '';
-                 const l = profile.last_name?.[0] || '';
-                 return (f + l).toUpperCase() || profile.username?.[0].toUpperCase() || profile.email?.[0].toUpperCase() || '?';
-            }
+            function getInitials(profile) { /* ... (stejná jako předtím) ... */ if (!profile) return '?'; const f = profile.first_name?.[0] || ''; const l = profile.last_name?.[0] || ''; return (f + l).toUpperCase() || profile.username?.[0].toUpperCase() || profile.email?.[0].toUpperCase() || '?'; }
 
-
-            function updateSidebarUI() {
+            function updateSidebarUI() { /* ... (aktualizováno pro selected_profile_decoration) ... */
+                if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle || !ui.avatarWrapperSidebar || !ui.userProfileSidebar) return;
                 if (!currentUser || !currentProfile) {
-                    ui.sidebarName.textContent = "Nepřihlášen";
-                    ui.sidebarAvatar.textContent = "?";
-                    ui.sidebarUserTitle.textContent = "Pilot";
+                    ui.sidebarName.textContent = "Nepřihlášen"; ui.sidebarAvatar.innerHTML = "?"; ui.sidebarUserTitle.textContent = "Pilot";
                     ui.avatarWrapperSidebar.removeAttribute('data-decoration-key');
-                    ui.userProfileSidebar.removeAttribute('data-profile-decoration');
+                    ui.userProfileSidebar.removeAttribute('data-profile-decoration'); // Odstranit i dekoraci profilu
                     return;
                 }
                 const displayName = `${currentProfile.first_name || ''} ${currentProfile.last_name || ''}`.trim() || currentProfile.username || currentUser.email.split('@')[0];
                 ui.sidebarName.textContent = sanitizeHTML(displayName);
-                
                 const initials = getInitials(currentProfile);
-                ui.sidebarAvatar.innerHTML = currentProfile.avatar_url 
-                    ? `<img src="${sanitizeHTML(currentProfile.avatar_url)}?t=${Date.now()}" alt="Avatar">` 
-                    : sanitizeHTML(initials);
+                ui.sidebarAvatar.innerHTML = currentProfile.avatar_url ? `<img src="${sanitizeHTML(currentProfile.avatar_url)}?t=${Date.now()}" alt="Avatar">` : sanitizeHTML(initials);
+                ui.sidebarUserTitle.textContent = currentProfile.selected_title || "Pilot";
                 
-                // Zatím titul napevno, později z DB
-                ui.sidebarUserTitle.textContent = currentProfile.selected_title || "Pilot"; 
-
-                // Aplikace vylepšení
-                if (currentProfile.selected_decoration) {
-                    ui.avatarWrapperSidebar.setAttribute('data-decoration-key', currentProfile.selected_decoration);
-                } else {
-                    ui.avatarWrapperSidebar.removeAttribute('data-decoration-key');
-                }
-                // Prozatím nemáme v DB `selected_profile_decoration`, takže to necháme prázdné
-                // nebo budeme ovládat jen jedním atributem (např. data-decoration-key může obsahovat prefix)
-                // Pro jednoduchost teď necháme profilový rámeček ovládat zvlášť přes tlačítka.
-                 ui.userProfileSidebar.setAttribute('data-profile-decoration', currentProfile.selected_profile_decoration || '');
-
+                // Aplikace vylepšení avataru
+                if (currentProfile.selected_decoration) ui.avatarWrapperSidebar.setAttribute('data-decoration-key', currentProfile.selected_decoration);
+                else ui.avatarWrapperSidebar.removeAttribute('data-decoration-key');
+                
+                // Aplikace vylepšení profilového boxu
+                if (currentProfile.selected_profile_decoration) ui.userProfileSidebar.setAttribute('data-profile-decoration', currentProfile.selected_profile_decoration);
+                else ui.userProfileSidebar.removeAttribute('data-profile-decoration');
+                
                 console.log("Sidebar UI aktualizován pro:", displayName);
             }
 
-            function showAppContent(show) {
-                if (show) {
-                    ui.authSection.classList.add('hidden');
-                    ui.appContent.classList.remove('hidden');
-                    ui.sidebar.style.display = 'flex';
-                    ui.mainContent.style.display = 'flex';
-                    ui.logoutButton.style.display = 'inline-flex';
-                } else {
-                    ui.authSection.classList.remove('hidden');
-                    ui.appContent.classList.add('hidden');
-                    ui.sidebar.style.display = 'none';
-                    ui.mainContent.style.display = 'none';
-                    ui.logoutButton.style.display = 'none';
-                }
-            }
-
+            function showAppContent(show) { /* ... (stejná jako předtím) ... */ if (show) { ui.authSection.classList.add('hidden'); ui.appContent.classList.remove('hidden'); ui.sidebar.style.display = 'flex'; ui.mainContent.style.display = 'flex'; ui.logoutButton.style.display = 'inline-flex'; } else { ui.authSection.classList.remove('hidden'); ui.appContent.classList.add('hidden'); ui.sidebar.style.display = 'none'; ui.mainContent.style.display = 'none'; ui.logoutButton.style.display = 'none'; } }
+            
             async function handleAuthStateChange(event, session) {
-                console.log('Auth state change:', event, session);
-                if (session && session.user) {
-                    currentUser = session.user;
-                    ui.userEmailDisplay.textContent = currentUser.email;
-                    currentProfile = await fetchUserProfile(currentUser.id);
-                    if (!currentProfile) { // Pokud profil neexistuje, vytvoříme základní
-                        console.log("Profil nenalezen, pokus o vytvoření výchozího...");
-                        const { data, error } = await supabase.from('profiles').insert({
-                            id: currentUser.id,
-                            email: currentUser.email,
-                            username: currentUser.email.split('@')[0]
-                        }).select().single();
-                        if (error) {
-                            console.error("Chyba vytvoření profilu:", error);
-                            showToast("Nepodařilo se vytvořit profil.", "error");
-                            supabase.auth.signOut(); // Odhlásit, pokud selže vytvoření profilu
-                            return;
+                console.log('Playground Auth state change:', event, session);
+                try {
+                    if (session && session.user) {
+                        currentUser = session.user;
+                        if (ui.userEmailDisplay) ui.userEmailDisplay.textContent = currentUser.email;
+                        
+                        currentProfile = await fetchUserProfile(currentUser.id);
+                        if (!currentProfile) {
+                            currentProfile = await createAndFetchDefaultProfile(currentUser.id, currentUser.email);
                         }
-                        currentProfile = data;
-                        console.log("Výchozí profil vytvořen:", currentProfile);
+
+                        if (!currentProfile) {
+                            console.error("Nepodařilo se získat/vytvořit profil. Odhlašuji.");
+                            showToast("Kritická chyba profilu. Budete odhlášeni.", "error", 7000);
+                            await supabase.auth.signOut(); // Toto spustí onAuthStateChange znovu -> else blok
+                            return; 
+                        }
+                        
+                        console.log("Přihlášený profil (Playground):", currentProfile);
+                        updateSidebarUI();
+                        showAppContent(true);
+                    } else {
+                        currentUser = null; currentProfile = null;
+                        updateSidebarUI(); showAppContent(false);
                     }
-                    console.log("Přihlášený profil:", currentProfile);
-                    updateSidebarUI();
-                    showAppContent(true);
-                } else {
-                    currentUser = null;
-                    currentProfile = null;
-                    updateSidebarUI();
-                    showAppContent(false);
+                } catch (error) {
+                    console.error("Kritická chyba v onAuthStateChange handleru (Playground):", error);
+                    showToast("Nastala kritická chyba. Zkuste obnovit stránku.", "error", 10000);
+                    currentUser = null; currentProfile = null; updateSidebarUI(); showAppContent(false);
+                } finally {
+                    if (ui.initialSiteLoader) {
+                        ui.initialSiteLoader.style.opacity = '0';
+                        setTimeout(() => { if(ui.initialSiteLoader) ui.initialSiteLoader.style.display = 'none'; }, 300); // Krátší timeout pro playground
+                    }
                 }
-                if (ui.initialSiteLoader) {
-                    ui.initialSiteLoader.style.opacity = '0';
-                    setTimeout(() => { ui.initialSiteLoader.style.display = 'none'; }, 500);
-                }
             }
 
-            // --- Event Listeners pro autentizaci ---
-            if (ui.loginForm) {
-                ui.loginForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const email = ui.loginForm.email.value;
-                    const password = ui.loginForm.password.value;
-                    const button = ui.loginForm.querySelector('button[type="submit"]');
-                    button.disabled = true; button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Přihlašuji...';
-                    try {
-                        const { error } = await supabase.auth.signInWithPassword({ email, password });
-                        if (error) throw error;
-                        showToast("Přihlášení úspěšné!", "success");
-                    } catch (error) {
-                        showToast(`Chyba přihlášení: ${error.message}`, "error");
-                    } finally {
-                        button.disabled = false; button.innerHTML = 'Přihlásit se';
-                    }
-                });
-            }
-
-            if (ui.registerForm) {
-                ui.registerForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const email = ui.registerForm.email.value;
-                    const password = ui.registerForm.password.value;
-                    const button = ui.registerForm.querySelector('button[type="submit"]');
-                    button.disabled = true; button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registruji...';
-                    try {
-                        const { data, error } = await supabase.auth.signUp({ email, password });
-                        if (error) throw error;
-                        // Po úspěšné registraci Supabase pošle potvrzovací email.
-                        // Profil se vytvoří až po potvrzení emailu a prvním přihlášení,
-                        // nebo ho můžeme vytvořit hned (často se dělá pomocí triggeru v DB).
-                        // Pro jednoduchost zde předpokládáme, že profil se vytvoří při prvním přihlášení.
-                        showToast("Registrace úspěšná! Zkontrolujte svůj email pro potvrzení.", "success");
-                        ui.registerFormContainer.classList.add('hidden');
-                        ui.loginFormContainer.classList.remove('hidden');
-                    } catch (error) {
-                        showToast(`Chyba registrace: ${error.message}`, "error");
-                    } finally {
-                        button.disabled = false; button.innerHTML = 'Zaregistrovat se';
-                    }
-                });
-            }
-
-            if (ui.logoutButton) {
-                ui.logoutButton.addEventListener('click', async () => {
-                    try {
-                        const { error } = await supabase.auth.signOut();
-                        if (error) throw error;
-                        showToast("Odhlášení úspěšné.", "info");
-                    } catch (error) {
-                        showToast(`Chyba odhlášení: ${error.message}`, "error");
-                    }
-                });
-            }
-
+            if (ui.loginForm) { ui.loginForm.addEventListener('submit', async (e) => { /* ... (stejná jako předtím) ... */ e.preventDefault(); const email = ui.loginForm.email.value; const password = ui.loginForm.password.value; const button = ui.loginForm.querySelector('button[type="submit"]'); button.disabled = true; button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Přihlašuji...'; try { const { error } = await supabase.auth.signInWithPassword({ email, password }); if (error) throw error; showToast("Přihlášení úspěšné!", "success"); } catch (error) { showToast(`Chyba přihlášení: ${error.message}`, "error"); } finally { button.disabled = false; button.innerHTML = 'Přihlásit se'; } }); }
+            if (ui.registerForm) { ui.registerForm.addEventListener('submit', async (e) => { /* ... (stejná jako předtím) ... */ e.preventDefault(); const email = ui.registerForm.email.value; const password = ui.registerForm.password.value; const button = ui.registerForm.querySelector('button[type="submit"]'); button.disabled = true; button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registruji...'; try { const { data, error } = await supabase.auth.signUp({ email, password }); if (error) throw error; showToast("Registrace úspěšná! Zkontrolujte svůj email pro potvrzení.", "success"); ui.registerFormContainer.classList.add('hidden'); ui.loginFormContainer.classList.remove('hidden'); } catch (error) { showToast(`Chyba registrace: ${error.message}`, "error"); } finally { button.disabled = false; button.innerHTML = 'Zaregistrovat se'; } }); }
+            if (ui.logoutButton) { ui.logoutButton.addEventListener('click', async () => { /* ... (stejná jako předtím) ... */ try { const { error } = await supabase.auth.signOut(); if (error) throw error; showToast("Odhlášení úspěšné.", "info"); } catch (error) { showToast(`Chyba odhlášení: ${error.message}`, "error"); } }); }
             if (ui.showRegister) ui.showRegister.addEventListener('click', () => { ui.loginFormContainer.classList.add('hidden'); ui.registerFormContainer.classList.remove('hidden'); });
             if (ui.showLogin) ui.showLogin.addEventListener('click', () => { ui.registerFormContainer.classList.add('hidden'); ui.loginFormContainer.classList.remove('hidden'); });
-
-
-            // --- Sidebar & Vylepšení Listeners ---
+            
             function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { document.body.classList.remove('sidebar-collapsed'); ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
             function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
             function toggleSidebarDesktop() { const isCollapsed = document.body.classList.toggle('sidebar-collapsed'); localStorage.setItem('sidebarCollapsedStatePlayground', isCollapsed ? 'collapsed' : 'expanded'); const icon = ui.sidebarToggleBtnDesktop.querySelector('i'); if (icon) icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; }
@@ -481,75 +308,72 @@
             if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
             if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
             if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
-            if (ui.sidebarToggleBtnDesktop) {
-                ui.sidebarToggleBtnDesktop.addEventListener('click', toggleSidebarDesktop);
-                applyInitialSidebarState();
-            }
+            if (ui.sidebarToggleBtnDesktop) { ui.sidebarToggleBtnDesktop.addEventListener('click', toggleSidebarDesktop); applyInitialSidebarState(); }
             
-            // Simulace nákupu/vybavení - ukládá do currentProfile a aktualizuje UI
             async function setProfileDecoration(decorationKey) {
-                if (!currentProfile || !supabase) return;
-                currentProfile.selected_profile_decoration = decorationKey; // Toto je fiktivní, DB nemá tento sloupec
-                ui.userProfileSidebar.setAttribute('data-profile-decoration', decorationKey);
-                // Reálně by zde byl update do DB
-                // const { error } = await supabase.from('profiles').update({ selected_profile_decoration: decorationKey }).eq('id', currentUser.id);
-                // if (error) console.error("Chyba DB (profil):", error); else console.log("Dekorace profilu uložena");
-                showToast(`Aplikována dekorace profilu: ${decorationKey || 'Výchozí'}`, "success");
+                if (!currentProfile || !supabase) { showToast("Nejste přihlášen/a nebo chyba spojení.", "error"); return; }
+                const oldDecoration = currentProfile.selected_profile_decoration;
+                currentProfile.selected_profile_decoration = decorationKey; // Lokální změna
+                updateSidebarUI(); // Okamžitá vizuální změna
+                showToast(`Aplikuji dekoraci profilu: ${decorationKey || 'Výchozí'}...`, "info", 1500);
+                try {
+                    const { error } = await supabase.from('profiles').update({ selected_profile_decoration: decorationKey }).eq('id', currentUser.id);
+                    if (error) {
+                        currentProfile.selected_profile_decoration = oldDecoration; // Vrátit zpět lokální změnu
+                        updateSidebarUI();
+                        throw error;
+                    }
+                    console.log("Dekorace profilu uložena do DB:", decorationKey);
+                    showToast(`Dekorace profilu úspěšně nastavena na: ${decorationKey || 'Výchozí'}`, "success");
+                } catch (error) {
+                    console.error("Chyba ukládání dekorace profilu:", error);
+                    showToast(`Chyba ukládání dekorace profilu: ${error.message}`, 'error');
+                }
             }
 
             async function setAvatarDecoration(decorationKey) {
-                if (!currentProfile || !supabase) return;
-                currentProfile.selected_decoration = decorationKey;
-                ui.avatarWrapperSidebar.setAttribute('data-decoration-key', decorationKey);
-                 // Reálně by zde byl update do DB
+                if (!currentProfile || !supabase) { showToast("Nejste přihlášen/a nebo chyba spojení.", "error"); return; }
+                const oldDecoration = currentProfile.selected_decoration;
+                currentProfile.selected_decoration = decorationKey; // Lokální změna
+                updateSidebarUI(); // Okamžitá vizuální změna
+                showToast(`Aplikuji dekoraci avataru: ${decorationKey || 'Výchozí'}...`, "info", 1500);
                 try {
                     const { error } = await supabase.from('profiles').update({ selected_decoration: decorationKey }).eq('id', currentUser.id);
-                    if (error) throw error;
-                    console.log("Dekorace avataru uložena do DB");
-                    showToast(`Aplikována dekorace avataru: ${decorationKey || 'Výchozí'}`, "success");
+                    if (error) {
+                        currentProfile.selected_decoration = oldDecoration; // Vrátit zpět lokální změnu
+                        updateSidebarUI();
+                        throw error;
+                    }
+                    console.log("Dekorace avataru uložena do DB:", decorationKey);
+                    showToast(`Dekorace avataru úspěšně nastavena na: ${decorationKey || 'Výchozí'}`, "success");
                 } catch (error) {
-                     console.error("Chyba ukládání dekorace avataru do DB:", error);
+                     console.error("Chyba ukládání dekorace avataru:", error);
                      showToast(`Chyba ukládání dekorace avataru: ${error.message}`, 'error');
                 }
             }
 
             if (ui.applyProfileBorderBtn) ui.applyProfileBorderBtn.addEventListener('click', () => setProfileDecoration('profile_animated_border'));
             if (ui.applyFallingStarsBtn) ui.applyFallingStarsBtn.addEventListener('click', () => setAvatarDecoration('avatar_falling_elements'));
-            if (ui.removeProfileDecorationBtn) ui.removeProfileDecorationBtn.addEventListener('click', () => setProfileDecoration(''));
-            if (ui.removeAvatarDecorationBtn) ui.removeAvatarDecorationBtn.addEventListener('click', () => setAvatarDecoration(''));
-            if (ui.removeAllDecorationsBtn) ui.removeAllDecorationsBtn.addEventListener('click', () => { setProfileDecoration(''); setAvatarDecoration(''); });
+            if (ui.removeProfileDecorationBtn) ui.removeProfileDecorationBtn.addEventListener('click', () => setProfileDecoration(null)); // null pro odstranění
+            if (ui.removeAvatarDecorationBtn) ui.removeAvatarDecorationBtn.addEventListener('click', () => setAvatarDecoration(null)); // null pro odstranění
+            if (ui.removeAllDecorationsBtn) ui.removeAllDecorationsBtn.addEventListener('click', () => { setProfileDecoration(null); setAvatarDecoration(null); });
 
-            // Copyright year
             const year = new Date().getFullYear();
             if (ui.currentYearSidebar) ui.currentYearSidebar.textContent = year;
             if (ui.currentYearFooter) ui.currentYearFooter.textContent = year;
 
-            // Mouse follower
-            if (ui.mouseFollower) {
-                let hasMoved = false;
-                const updatePosition = (event) => {
-                    if (!hasMoved) { document.body.classList.add('mouse-has-moved'); ui.mouseFollower.style.opacity = '1'; hasMoved = true; }
-                    requestAnimationFrame(() => { ui.mouseFollower.style.left = `${event.clientX}px`; ui.mouseFollower.style.top = `${event.clientY}px`; });
-                };
-                window.addEventListener('mousemove', updatePosition, { passive: true });
-                document.body.addEventListener('mouseleave', () => { if (hasMoved) ui.mouseFollower.style.opacity = '0'; });
-                document.body.addEventListener('mouseenter', () => { if (hasMoved) ui.mouseFollower.style.opacity = '1'; });
-            }
+            if (ui.mouseFollower) { let hasMoved = false; const updatePosition = (event) => { if (!hasMoved) { document.body.classList.add('mouse-has-moved'); ui.mouseFollower.style.opacity = '1'; hasMoved = true; } requestAnimationFrame(() => { ui.mouseFollower.style.left = `${event.clientX}px`; ui.mouseFollower.style.top = `${event.clientY}px`; }); }; window.addEventListener('mousemove', updatePosition, { passive: true }); document.body.addEventListener('mouseleave', () => { if (hasMoved) ui.mouseFollower.style.opacity = '0'; }); document.body.addEventListener('mouseenter', () => { if (hasMoved) ui.mouseFollower.style.opacity = '1'; }); }
             
-            // Initial Supabase client
             if (initializeSupabase()) {
                 supabase.auth.onAuthStateChange(handleAuthStateChange);
-                 // Check initial session
                 supabase.auth.getSession().then(({ data: { session } }) => {
-                    handleAuthStateChange('INITIAL_SESSION', session);
+                    handleAuthStateChange('INITIAL_SESSION_PLAYGROUND', session);
                 }).catch(error => {
-                    console.error("Error getting initial session:", error);
-                    handleAuthStateChange('INITIAL_SESSION_ERROR', null);
+                    console.error("Chyba getSession v playgroundu:", error);
+                    handleAuthStateChange('INITIAL_SESSION_ERROR_PLAYGROUND', null);
                 });
             } else {
-                 if (ui.initialSiteLoader) {
-                    ui.initialSiteLoader.innerHTML = "<p style='color:var(--accent-pink)'>Kritická chyba: Nelze se připojit k databázi.</p>";
-                }
+                 if (ui.initialSiteLoader) ui.initialSiteLoader.innerHTML = "<p style='color:var(--accent-pink)'>Kritická chyba databáze.</p>";
             }
         });
     </script>
