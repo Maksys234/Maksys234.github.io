@@ -1,7 +1,7 @@
 // Файл: plan-ui.js
 // Описание: Управляет пользовательским интерфейсом (UI) страницы studijního plánu,
 // включая рендеринг, обработку событий и взаимодействие с plan-core.js через PlanApp.
-// Версия: 23.3 (Убрана попытка повторной загрузки активностей в showVerticalSchedule)
+// Версия: 23.5 (Добавлена renderNoActivePlanOrPrompt и улучшено взаимодействие с plan-core)
 
 (function() { // IIFE для изоляции области видимости
 	'use strict';
@@ -24,7 +24,7 @@
 		level_up: { name: 'Postup', icon: 'fa-level-up-alt', class: 'level_up' },
 		other: { name: 'Jiná', icon: 'fa-info-circle', class: 'other' },
 		default: { name: 'Aktivita', icon: 'fa-check-circle', class: 'default' }
-	};
+    };
 
 	PlanApp.initializeUI = function() {
 		console.log("[UI Init] Initializing UI components and caching DOM elements...");
@@ -222,7 +222,6 @@
 			 dayCard.className = `day-schedule-card ${isToday ? 'today' : ''} expanded`;
 			 dayCard.setAttribute('data-animate', '');
 			 dayCard.style.setProperty('--animation-order', daysOrder.indexOf(dayIndex));
-
 			 const dayHeader = document.createElement('div');
 			 dayHeader.className = 'day-header';
 			 dayHeader.innerHTML = `${PlanApp.sanitizeHTML(dayName)} ${isToday ? '<span>(Dnes)</span>' : ''}<i class="fas fa-chevron-down day-expand-icon"></i>`;
@@ -242,21 +241,7 @@
 					 const iconClass = typeof PlanApp.getActivityIcon === 'function' ? PlanApp.getActivityIcon(activity.title, activity.type) : 'fa-question-circle';
 					 const hasDescription = activity.description && activity.description.trim().length > 0;
 					 const expandIcon = hasDescription ? `<button class="expand-icon-button btn-tooltip" aria-label="Rozbalit popis" title="Zobrazit/skrýt popis"><i class="fas fa-chevron-down expand-icon"></i></button>` : '';
-					 activityElement.innerHTML = `
-						<label class="activity-checkbox">
-							<input type="checkbox" id="vertical-activity-${activity.id}" ${activity.completed ? 'checked' : ''} data-activity-id="${activity.id}" data-plan-id="${planId}">
-						</label>
-						<i class="fas ${iconClass} activity-icon"></i>
-						<div class="activity-details">
-							<div class="activity-header">
-								<div class="activity-title-time">
-									<span class="activity-title">${PlanApp.sanitizeHTML(activity.title || 'Aktivita')}</span>
-									${timeDisplay}
-								</div>
-								${expandIcon}
-							</div>
-							${hasDescription ? `<div class="activity-desc">${PlanApp.sanitizeHTML(activity.description)}</div>` : ''}
-						</div>`;
+					 activityElement.innerHTML = `<label class="activity-checkbox"><input type="checkbox" id="vertical-activity-${activity.id}" ${activity.completed ? 'checked' : ''} data-activity-id="${activity.id}" data-plan-id="${planId}"></label><i class="fas ${iconClass} activity-icon"></i><div class="activity-details"><div class="activity-header"><div class="activity-title-time"><span class="activity-title">${PlanApp.sanitizeHTML(activity.title || 'Aktivita')}</span>${timeDisplay}</div>${expandIcon}</div>${hasDescription ? `<div class="activity-desc">${PlanApp.sanitizeHTML(activity.description)}</div>` : ''}</div>`;
 					 activitiesContainer.appendChild(activityElement);
 				 });
 			 } else {
@@ -291,51 +276,52 @@
 			if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('schedule', false);
 			return;
 		}
-		console.log(`[UI ShowVertical] Displaying schedule for Plan ID ${plan.id}`);
-		if (ui.currentPlanContent) ui.currentPlanContent.classList.remove('content-visible'); // Hide message area
+		console.log(`[UI ShowVertical v23.5] Displaying schedule for Plan ID ${plan.id}. Using activities from state.`);
+		if (ui.currentPlanContent) ui.currentPlanContent.classList.remove('content-visible');
 
-        // Directly use activities from state, populated by PlanApp.loadCurrentPlan (core)
-        const activities = state.currentPlanActivities || []; // Get activities from state
+        const activities = state.currentPlanActivities || [];
 
         if (!activities || activities.length === 0) {
-            // This log indicates that PlanApp.loadCurrentPlan didn't populate activities.
-            // No need to call fetchPlanActivities here anymore.
-            console.warn("[UI ShowVertical] No activities found in state.currentPlanActivities. Rendering empty schedule or message.");
+            console.warn("[UI ShowVertical v23.5] No activities found in state.currentPlanActivities. Rendering empty schedule or message.");
         }
 
-        PlanApp.renderVerticalSchedule(activities, plan.id); // Render with what's in state
+        PlanApp.renderVerticalSchedule(activities, plan.id);
 
         if (ui.verticalScheduleList) ui.verticalScheduleList.classList.add('schedule-visible');
         if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.add('nav-visible');
 
 		if (typeof PlanApp.setLoadingState === 'function') PlanApp.setLoadingState('schedule', false);
-		if (typeof PlanApp.initTooltips === 'function') PlanApp.initTooltips();
+		// initTooltips вызывается внутри renderVerticalSchedule, если это необходимо
 	 };
 
-	PlanApp.renderPlanHistory = (plans) => {
-		const ui = PlanApp.ui; if (!ui) { console.error("[RenderHistory] UI cache not initialized!"); return; } if (!ui.historyPlanContent || !ui.historyItemTemplate) { console.error("[UI RenderHistory] Missing history container or template."); return; }
-		if (!plans || plans.length === 0) { PlanApp.renderMessage(ui.historyPlanContent, 'info', 'Žádná historie', 'Zatím jste nevytvořili žádné studijní plány.'); return; }
-		ui.historyPlanContent.innerHTML = ''; ui.historyPlanContent.style.display = 'grid';
-		plans.forEach((plan, index) => {
-			const node = ui.historyItemTemplate.content.cloneNode(true); const item = node.querySelector('.history-item');
-			if(item) {
-				item.dataset.planId = plan.id; item.classList.add(plan.status || 'inactive'); item.setAttribute('data-animate', ''); item.style.setProperty('--animation-order', index);
-				const dateEl = item.querySelector('.history-date'); const titleEl = item.querySelector('.history-title'); const progressEl = item.querySelector('.history-progress'); const statusEl = item.querySelector('.history-status');
-				if(dateEl) dateEl.textContent = `Vytvořeno: ${PlanApp.formatDate(plan.created_at)}`; if(titleEl) titleEl.textContent = PlanApp.sanitizeHTML(plan.title || "Studijní plán"); if(progressEl) progressEl.innerHTML = `Pokrok: <strong>${plan.progress ?? 0}%</strong>`;
-				if(statusEl) { const statusText = plan.status === 'active' ? 'Aktivní' : plan.status === 'completed' ? 'Dokončený' : 'Neaktivní'; statusEl.textContent = statusText; statusEl.className = `history-status ${plan.status || 'inactive'}`; }
-				 item.addEventListener('click', () => { if (typeof PlanApp.showPlanDetail === 'function') { PlanApp.showPlanDetail(plan); } else { console.error("PlanApp.showPlanDetail function not found!"); } });
-				ui.historyPlanContent.appendChild(node);
-			}
-		});
-		ui.historyPlanContent.classList.add('content-visible'); if (typeof PlanApp.initScrollAnimations === 'function') PlanApp.initScrollAnimations();
-	};
-
+	PlanApp.renderPlanHistory = (plans) => { const ui = PlanApp.ui; if (!ui) { console.error("[RenderHistory] UI cache not initialized!"); return; } if (!ui.historyPlanContent || !ui.historyItemTemplate) { console.error("[UI RenderHistory] Missing history container or template."); return; } if (!plans || plans.length === 0) { PlanApp.renderMessage(ui.historyPlanContent, 'info', 'Žádná historie', 'Zatím jste nevytvořili žádné studijní plány.'); return; } ui.historyPlanContent.innerHTML = ''; ui.historyPlanContent.style.display = 'grid'; plans.forEach((plan, index) => { const node = ui.historyItemTemplate.content.cloneNode(true); const item = node.querySelector('.history-item'); if(item) { item.dataset.planId = plan.id; item.classList.add(plan.status || 'inactive'); item.setAttribute('data-animate', ''); item.style.setProperty('--animation-order', index); const dateEl = item.querySelector('.history-date'); const titleEl = item.querySelector('.history-title'); const progressEl = item.querySelector('.history-progress'); const statusEl = item.querySelector('.history-status'); if(dateEl) dateEl.textContent = `Vytvořeno: ${PlanApp.formatDate(plan.created_at)}`; if(titleEl) titleEl.textContent = PlanApp.sanitizeHTML(plan.title || "Studijní plán"); if(progressEl) progressEl.innerHTML = `Pokrok: <strong>${plan.progress ?? 0}%</strong>`; if(statusEl) { const statusText = plan.status === 'active' ? 'Aktivní' : plan.status === 'completed' ? 'Dokončený' : 'Neaktivní'; statusEl.textContent = statusText; statusEl.className = `history-status ${plan.status || 'inactive'}`; } item.addEventListener('click', () => { if (typeof PlanApp.showPlanDetail === 'function') { PlanApp.showPlanDetail(plan); } else { console.error("PlanApp.showPlanDetail function not found!"); } }); ui.historyPlanContent.appendChild(node); } }); ui.historyPlanContent.classList.add('content-visible'); if (typeof PlanApp.initScrollAnimations === 'function') PlanApp.initScrollAnimations(); };
     PlanApp.getActivityIcon = (title = '', type = '') => { const lowerType = type?.toLowerCase() || ''; const lowerTitle = title.toLowerCase(); if (activityVisuals[lowerType]) return activityVisuals[lowerType].icon; if (lowerTitle.includes('test')) return activityVisuals.test.icon; if (lowerTitle.includes('cvičení') || lowerTitle.includes('procvič')) return activityVisuals.exercise.icon; if (lowerTitle.includes('příklad')) return activityVisuals.example.icon; if (lowerTitle.includes('opakování') || lowerTitle.includes('shrnutí')) return activityVisuals.review.icon; if (lowerTitle.includes('lekce') || lowerTitle.includes('teorie')) return activityVisuals.theory.icon; if (lowerTitle.includes('analýza')) return activityVisuals.analysis.icon; return activityVisuals.default.icon; };
 	PlanApp.renderHistorySkeletons = (count) => { const ui = PlanApp.ui; if (!ui?.historyPlanContent) return; ui.historyPlanContent.innerHTML = ''; if (count === 0) { ui.historyPlanContent.classList.remove('content-visible'); ui.historyPlanContent.style.display = 'none'; return; } ui.historyPlanContent.style.display = 'grid'; ui.historyPlanContent.classList.add('content-visible'); let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="skeleton history-item-skeleton"><div class="skeleton text-sm" style="width: 40%;"></div><div class="skeleton title-sm" style="width: 80%; height: 16px;"></div><div class="skeleton text-sm" style="width: 50%;"></div></div>`; } ui.historyPlanContent.innerHTML = skeletonHTML; };
     PlanApp.renderScheduleSkeletons = (container, dayCount) => { if (!container) return; container.innerHTML = ''; let skeletonHTML = ''; for (let i = 0; i < dayCount; i++) { skeletonHTML += `<div class="skeleton day-card-skeleton"><div class="skeleton day-header-skeleton"></div><div class="skeleton activity-item-skeleton"><div class="skeleton activity-checkbox-skeleton"></div><div class="skeleton activity-content-skeleton"><div class="skeleton activity-title-skeleton"></div><div class="skeleton activity-meta-skeleton"></div></div></div><div class="skeleton activity-item-skeleton"><div class="skeleton activity-checkbox-skeleton"></div><div class="skeleton activity-content-skeleton"><div class="skeleton activity-title-skeleton" style="width: 60%;"></div></div></div></div>`; } container.innerHTML = skeletonHTML; };
 	PlanApp.renderLockedPlanSection = (container) => { const ui = PlanApp.ui; const state = PlanApp.state; if (!state || !ui) { console.error("[RenderLocked] State or UI not initialized."); return; } if(!container || !ui.lockedPlanTemplate) { console.error("[UI RenderLocked] Missing container or template."); return; } console.log("[UI Render] Rendering Locked Plan Section..."); const node = ui.lockedPlanTemplate.content.cloneNode(true); const timerEl = node.getElementById('nextPlanTimer'); const viewBtn = node.getElementById('viewCurrentPlanBtnLocked'); if(timerEl && typeof PlanApp.updateNextPlanTimer === 'function') { PlanApp.updateNextPlanTimer(timerEl); } else if (!timerEl) { console.warn("Timer element #nextPlanTimer not found in locked template."); } if(viewBtn && typeof PlanApp.switchTab === 'function') { viewBtn.addEventListener('click', () => PlanApp.switchTab('current')); } else if (!viewBtn) { console.warn("View button #viewCurrentPlanBtnLocked not found in locked template."); } container.innerHTML = ''; container.appendChild(node); container.classList.add('content-visible'); if (typeof PlanApp.startPlanTimer === 'function') PlanApp.startPlanTimer(); console.log("[UI Render] Locked Plan Section Rendered."); };
 	PlanApp.renderPlanCreationForm = (container) => { const ui = PlanApp.ui; const state = PlanApp.state; if (!state || !ui) { console.error("[RenderForm] State or UI not initialized."); return; } if (!container || !ui.createPlanFormTemplate || !state.latestDiagnosticData) { console.error("[UI RenderForm] Missing container, template, or diagnostic data."); PlanApp.renderMessage(container, 'error', 'Chyba', 'Nelze zobrazit formulář pro vytvoření plánu.'); return; } console.log("[UI RenderForm] Rendering Plan Creation Form..."); const node = ui.createPlanFormTemplate.content.cloneNode(true); const diagInfo = node.getElementById('diagnosticInfo'); if (diagInfo) { const score = state.latestDiagnosticData.total_score ?? '-'; const totalQ = state.latestDiagnosticData.total_questions ?? '-'; const date = typeof PlanApp.formatDate === 'function' ? PlanApp.formatDate(state.latestDiagnosticData.completed_at) : '-'; diagInfo.innerHTML = `<p>Plán bude vycházet z testu ze dne: <strong>${date}</strong> (Skóre: ${score}/${totalQ})</p>`; } else { console.warn("[UI RenderForm] Diagnostic info element not found in template."); } container.innerHTML = ''; container.appendChild(node); container.classList.add('content-visible'); const actualGenBtn = container.querySelector('#generatePlanBtn'); if (actualGenBtn && typeof PlanApp.handleGenerateClick === 'function') { actualGenBtn.addEventListener('click', PlanApp.handleGenerateClick); console.log("[UI RenderForm] Event listener added to #generatePlanBtn."); } else if (!actualGenBtn) { console.error("[UI RenderForm] Failed to find #generatePlanBtn in the DOM after appending!"); } else { console.error("[UI RenderForm] PlanApp.handleGenerateClick function not found!"); } console.log("[UI RenderForm] Plan Creation Form Rendered."); };
 	PlanApp.renderNoDiagnosticAvailable = (container) => { const ui = PlanApp.ui; if (!ui) { console.error("[RenderNoDiag] UI cache not initialized!"); return; } if (!container || !ui.noDiagnosticTemplate) { console.error("[UI RenderNoDiag] Missing container or template."); return; } console.log("[UI Render] Rendering No Diagnostic Available..."); const node = ui.noDiagnosticTemplate.content.cloneNode(true); const btn = node.getElementById('goToTestBtn'); if(btn) btn.onclick = () => window.location.href = '/dashboard/procvicovani/test1.html'; container.innerHTML = ''; container.appendChild(node); container.classList.add('content-visible'); console.log("[UI Render] No Diagnostic Available Rendered."); };
+
+    PlanApp.renderNoActivePlanOrPrompt = () => {
+        const ui = PlanApp.ui;
+        const state = PlanApp.state;
+        if (!ui || !state) { console.error("[RenderNoActiveOrPrompt] UI or State not initialized!"); return; }
+        if (!ui.currentPlanContent) { console.error("[RenderNoActiveOrPrompt] currentPlanContent element not found!"); return;}
+
+        console.log("[UI v23.5] Rendering appropriate message for no active plan. Diagnostic data:", state.latestDiagnosticData);
+
+        if (ui.verticalScheduleList) ui.verticalScheduleList.classList.remove('schedule-visible');
+        if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible');
+
+        if (state.latestDiagnosticData === null) {
+            PlanApp.renderMessage(ui.currentPlanContent, 'error', 'Chyba načítání diagnostiky', 'Nepodařilo se ověřit stav vašeho diagnostického testu.');
+        } else if (state.latestDiagnosticData) { // diagnostic data exists (it's an object)
+            PlanApp.renderPromptCreatePlan(ui.currentPlanContent);
+        } else { // diagnostic data is false (meaning no diagnostic found)
+            PlanApp.renderNoActivePlan(ui.currentPlanContent);
+        }
+    };
+
 	PlanApp.renderPromptCreatePlan = (container) => { const ui = PlanApp.ui; if (!ui) { console.error("[RenderPrompt] UI cache not initialized!"); return; } if (!container || !ui.promptCreatePlanTemplate) { console.error("[UI RenderPrompt] Missing container or template."); return; } console.log("[UI Render] Rendering Prompt Create Plan..."); if (PlanApp.ui?.verticalScheduleList) PlanApp.ui.verticalScheduleList.classList.remove('schedule-visible'); if (PlanApp.ui?.verticalScheduleNav) PlanApp.ui.verticalScheduleNav.classList.remove('nav-visible'); const node = ui.promptCreatePlanTemplate.content.cloneNode(true); const btn = node.getElementById('createNewPlanFromPromptBtn'); if (btn && typeof PlanApp.switchTab === 'function') { btn.addEventListener('click', () => PlanApp.switchTab('create')); } else if (!btn) { console.warn("Button #createNewPlanFromPromptBtn not found in template."); } container.innerHTML = ''; container.appendChild(node); container.classList.add('content-visible'); console.log("[UI Render] Prompt Create Plan Rendered."); };
 	 PlanApp.renderNoActivePlan = (container) => { const ui = PlanApp.ui; if (!ui) { console.error("[RenderNoActive] UI cache not initialized!"); return; } if (!container || !ui.noActivePlanTemplate) { console.error("[UI RenderNoActive] Missing container or template."); return; } console.log("[UI Render] Rendering No Active Plan..."); if (PlanApp.ui?.verticalScheduleList) PlanApp.ui.verticalScheduleList.classList.remove('schedule-visible'); if (PlanApp.ui?.verticalScheduleNav) PlanApp.ui.verticalScheduleNav.classList.remove('nav-visible'); const node = ui.noActivePlanTemplate.content.cloneNode(true); const link = node.querySelector('.link-to-create-tab'); if (link && typeof PlanApp.switchTab === 'function') { link.addEventListener('click', (e) => { e.preventDefault(); PlanApp.switchTab('create'); }); } else if (!link) { console.warn("Link .link-to-create-tab not found in template."); } container.innerHTML = ''; container.appendChild(node); container.classList.add('content-visible'); console.log("[UI Render] No Active Plan Rendered."); };
 	 PlanApp.displayPlanContent = (markdownContent) => { const ui = PlanApp.ui; if (!ui) { console.error("[DisplayPlan] UI cache not initialized!"); return; } if (!ui.planContent) { console.error("[UI DisplayPlan] Plan content container not found!"); return; } try { if (typeof marked === 'undefined') { throw new Error("Marked library not loaded."); } marked.setOptions({ gfm: true, breaks: true, sanitize: false }); const htmlContent = marked.parse(markdownContent || ''); ui.planContent.innerHTML = htmlContent; if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') { setTimeout(() => { window.MathJax.typesetPromise([ui.planContent]).then(() => console.log("[MathJax] Typesetting complete for plan content.")).catch(e => console.error("[MathJax] Error typesetting plan content:", e)); }, 0); } else { console.warn("[MathJax] MathJax not ready for rendering plan content."); } } catch (e) { console.error("[UI DisplayPlan] Markdown rendering error:", e); PlanApp.renderMessage(ui.planContent, 'error', 'Chyba zobrazení plánu', e.message); ui.planContent.classList.add('content-visible'); } };
@@ -344,78 +330,9 @@
 	PlanApp.renderNotifications = (count, notifications) => { const ui = PlanApp.ui; if (!ui) { console.error("[RenderNotifications] UI cache not initialized!"); return; } console.log("[UI RenderNotifications] Start, Count:", count, "Notifications:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[UI RenderNotifications] Missing UI elements."); return; } ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${PlanApp.sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>${!n.is_read ? '<span class="unread-dot"></span>' : ''}<div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="notification-content"><div class="notification-title">${PlanApp.sanitizeHTML(n.title)}</div><div class="notification-message">${PlanApp.sanitizeHTML(n.message)}</div><div class="notification-time">${PlanApp.formatRelativeTime(n.created_at)}</div></div></div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } ui.notificationsList.closest('.notifications-dropdown-wrapper')?.classList.toggle('has-content', notifications && notifications.length > 0); console.log("[UI RenderNotifications] Finished rendering."); };
 	PlanApp.renderNotificationSkeletons = (count = 2) => { const ui = PlanApp.ui; if (!ui) { console.error("[RenderNotificationSkeletons] UI cache not initialized!"); return; } if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height:16px;width:70%;margin-bottom:6px;"></div><div class="skeleton" style="height:12px;width:90%;"></div><div class="skeleton" style="height:10px;width:40%;margin-top:6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; };
 	PlanApp.exportPlanToPDFWithStyle = async (plan) => { const state = PlanApp.state; const ui = PlanApp.ui; if (!state || !ui) { console.error("[ExportPDF] State or UI not initialized."); return; } if (!plan) { PlanApp.showToast('Nelze exportovat, chybí data plánu.', 'error'); return; } let planToExport = { ...plan }; if (!planToExport.plan_content_markdown && planToExport.id && state.supabaseClient) { PlanApp.showToast('Načítám data pro PDF...', 'info', 2000); try { if (typeof PlanApp.fetchPlanDetails !== 'function') { throw new Error("Core function fetchPlanDetails is missing!"); } const fetchedData = await PlanApp.fetchPlanDetails(planToExport.id); if (!fetchedData) throw new Error("Nepodařilo se načíst data plánu."); planToExport = { ...planToExport, ...fetchedData }; } catch (fetchError) { console.error("Nepodařilo se načíst markdown pro export:", fetchError); PlanApp.showToast('Chyba: Nepodařilo se načíst data pro export.', 'error'); return; } } else if (!planToExport.plan_content_markdown) { PlanApp.showToast('Chyba: Chybí obsah plánu pro export.', 'error'); return; } const exportContainer = document.createElement('div'); exportContainer.id = 'pdf-export-content'; const pdfStyles = `/* ... стили PDF остаются без изменений ... */`; exportContainer.innerHTML = pdfStyles; const pdfTitle = planToExport.title ? planToExport.title.replace(/\s*\(\d{2}\.\d{2}\.\d{4}\)$/, '').trim() : 'Studijní plán'; exportContainer.innerHTML += `<div class="pdf-header"><h1>${PlanApp.sanitizeHTML(pdfTitle)}</h1><p>Vytvořeno: ${PlanApp.formatDate(planToExport.created_at)}</p></div>`; const studentName = ui.userName?.textContent || "Neznámý student"; exportContainer.innerHTML += `<div class="student-info"><h2>Informace o studentovi</h2><p><strong>Student:</strong> ${PlanApp.sanitizeHTML(studentName)}</p><p><strong>Datum vytvoření plánu:</strong> ${PlanApp.formatDate(planToExport.created_at)}</p>${planToExport.estimated_completion_date ? `<p><strong>Předpokládané dokončení:</strong> ${PlanApp.formatDate(planToExport.estimated_completion_date)}</p>` : ''}</div>`; const contentDiv = document.createElement('div'); contentDiv.className = 'pdf-content'; try { if (typeof marked === 'undefined') throw new Error("Marked library not loaded."); const rawHtml = marked.parse(planToExport.plan_content_markdown || ''); contentDiv.innerHTML = rawHtml; const daysCzech = ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle']; contentDiv.querySelectorAll('h3').forEach(h3 => { if (daysCzech.some(day => h3.textContent.trim().startsWith(day))) { h3.classList.add('pdf-day-block'); } }); } catch (e) { contentDiv.innerHTML = '<p>Chyba při zpracování obsahu plánu.</p>'; } exportContainer.appendChild(contentDiv); exportContainer.innerHTML += `<div class="pdf-footer">&copy; ${new Date().getFullYear()} Justax.space</div>`; const options = { margin: [18, 13, 18, 13], filename: `studijni-plan-${PlanApp.formatDate(planToExport.created_at).replace(/\./g, '-')}.pdf`, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, logging: false, letterRendering: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'avoid-all'] } }; if (typeof html2pdf === 'function') { PlanApp.showToast('Generuji PDF...', 'info', 5000); html2pdf().set(options).from(exportContainer).save().then(() => { PlanApp.showToast('PDF bylo úspěšně vygenerováno!', 'success'); }).catch(err => { console.error("Chyba exportu PDF:", err); PlanApp.showToast('Nepodařilo se exportovat PDF.', 'error'); }); } else { PlanApp.showToast('Chyba: Knihovna pro export PDF není načtena.', 'error'); } };
-
-	PlanApp.setupEventListeners = () => {
-		const ui = PlanApp.ui;
-		console.log("[UI SETUP] Setting up event listeners...");
-		const mainMobileToggle = ui.mobileMenuToggle;
-		if (mainMobileToggle) mainMobileToggle.addEventListener('click', PlanApp.openMenu);
-		else console.warn("Main mobile menu toggle button not found.");
-		if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', PlanApp.closeMenu);
-		if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', PlanApp.closeMenu);
-		ui.planTabs?.forEach(tab => {
-			 tab.removeEventListener('click', PlanApp.handleTabClick);
-			 tab.addEventListener('click', PlanApp.handleTabClick);
-		});
-		if (ui.exportScheduleBtnVertical) {
-			ui.exportScheduleBtnVertical.removeEventListener('click', PlanApp.handleExportVerticalClick);
-			ui.exportScheduleBtnVertical.addEventListener('click', PlanApp.handleExportVerticalClick);
-		} else { console.warn("Export button for vertical schedule not found."); }
-		window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) PlanApp.closeMenu(); });
-		const scheduleContainer = ui.verticalScheduleList;
-		if (scheduleContainer) {
-			scheduleContainer.removeEventListener('click', PlanApp.handleScheduleClick);
-			scheduleContainer.addEventListener('click', PlanApp.handleScheduleClick);
-			scheduleContainer.removeEventListener('change', PlanApp.handleScheduleCheckboxChange);
-			scheduleContainer.addEventListener('change', PlanApp.handleScheduleCheckboxChange);
-		} else { console.warn("Vertical schedule container not found for event delegation."); }
-		if (ui.notificationBell) {
-			 ui.notificationBell.removeEventListener('click', PlanApp.toggleNotifications);
-			 ui.notificationBell.addEventListener('click', PlanApp.toggleNotifications);
-		}
-		if (ui.markAllReadBtn) {
-			 ui.markAllReadBtn.removeEventListener('click', PlanApp.handleMarkAllNotificationsReadClick);
-			 ui.markAllReadBtn.addEventListener('click', PlanApp.handleMarkAllNotificationsReadClick);
-		}
-		if (ui.notificationsList) {
-			ui.notificationsList.removeEventListener('click', PlanApp.handleNotificationItemClick);
-			ui.notificationsList.addEventListener('click', PlanApp.handleNotificationItemClick);
-		}
-		document.removeEventListener('click', PlanApp.handleOutsideNotificationClick);
-		document.addEventListener('click', PlanApp.handleOutsideNotificationClick);
-		window.addEventListener('online', PlanApp.updateOnlineStatus);
-		window.addEventListener('offline', PlanApp.updateOnlineStatus);
-		console.log("✅ [UI SETUP] Event listeners set up.");
-	};
-
-	PlanApp.handleScheduleClick = (event) => {
-		const expandButton = event.target.closest('.expand-icon-button');
-		const header = event.target.closest('.day-header');
-		const titleArea = event.target.closest('.activity-title-time');
-		const checkboxLabel = event.target.closest('.activity-checkbox');
-		if (checkboxLabel || event.target.tagName === 'INPUT') return;
-		if (expandButton || titleArea) {
-			const activityElement = (expandButton || titleArea).closest('.activity-list-item');
-			const descElement = activityElement?.querySelector('.activity-desc');
-			if (activityElement && descElement && descElement.textContent.trim()) {
-				activityElement.classList.toggle('expanded');
-			}
-		} else if (header) {
-			const dayCard = header.closest('.day-schedule-card');
-			if (dayCard) dayCard.classList.toggle('expanded');
-		}
-	};
-	PlanApp.handleScheduleCheckboxChange = async (event) => {
-		if (event.target.type === 'checkbox' && event.target.closest('.activity-checkbox')) {
-			const checkbox = event.target; const activityId = checkbox.dataset.activityId;
-			const planId = checkbox.dataset.planId; const isCompleted = checkbox.checked;
-			const activityElement = checkbox.closest('.activity-list-item');
-			if (activityElement) activityElement.classList.toggle('completed', isCompleted);
-			if (typeof PlanApp.handleActivityCompletionToggle === 'function') { // This is CORE logic
-				await PlanApp.handleActivityCompletionToggle(activityId, isCompleted, planId);
-			} else { console.error("Core PlanApp.handleActivityCompletionToggle missing!"); }
-		}
-	};
+	PlanApp.setupEventListeners = () => { const ui = PlanApp.ui; console.log("[UI SETUP] Setting up event listeners..."); const mainMobileToggle = ui.mobileMenuToggle; if (mainMobileToggle) mainMobileToggle.addEventListener('click', PlanApp.openMenu); else console.warn("Main mobile menu toggle button not found."); if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', PlanApp.closeMenu); if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', PlanApp.closeMenu); ui.planTabs?.forEach(tab => { tab.removeEventListener('click', PlanApp.handleTabClick); tab.addEventListener('click', PlanApp.handleTabClick); }); if (ui.exportScheduleBtnVertical) { ui.exportScheduleBtnVertical.removeEventListener('click', PlanApp.handleExportVerticalClick); ui.exportScheduleBtnVertical.addEventListener('click', PlanApp.handleExportVerticalClick); } else { console.warn("Export button for vertical schedule not found."); } window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) PlanApp.closeMenu(); }); const scheduleContainer = ui.verticalScheduleList; if (scheduleContainer) { scheduleContainer.removeEventListener('click', PlanApp.handleScheduleClick); scheduleContainer.addEventListener('click', PlanApp.handleScheduleClick); scheduleContainer.removeEventListener('change', PlanApp.handleScheduleCheckboxChange); scheduleContainer.addEventListener('change', PlanApp.handleScheduleCheckboxChange); } else { console.warn("Vertical schedule container not found for event delegation."); } if (ui.notificationBell) { ui.notificationBell.removeEventListener('click', PlanApp.toggleNotifications); ui.notificationBell.addEventListener('click', PlanApp.toggleNotifications); } if (ui.markAllReadBtn) { ui.markAllReadBtn.removeEventListener('click', PlanApp.handleMarkAllNotificationsReadClick); ui.markAllReadBtn.addEventListener('click', PlanApp.handleMarkAllNotificationsReadClick); } if (ui.notificationsList) { ui.notificationsList.removeEventListener('click', PlanApp.handleNotificationItemClick); ui.notificationsList.addEventListener('click', PlanApp.handleNotificationItemClick); } document.removeEventListener('click', PlanApp.handleOutsideNotificationClick); document.addEventListener('click', PlanApp.handleOutsideNotificationClick); window.addEventListener('online', PlanApp.updateOnlineStatus); window.addEventListener('offline', PlanApp.updateOnlineStatus); console.log("✅ [UI SETUP] Event listeners set up."); };
+	PlanApp.handleScheduleClick = (event) => { const expandButton = event.target.closest('.expand-icon-button'); const header = event.target.closest('.day-header'); const titleArea = event.target.closest('.activity-title-time'); const checkboxLabel = event.target.closest('.activity-checkbox'); if (checkboxLabel || event.target.tagName === 'INPUT') return; if (expandButton || titleArea) { const activityElement = (expandButton || titleArea).closest('.activity-list-item'); const descElement = activityElement?.querySelector('.activity-desc'); if (activityElement && descElement && descElement.textContent.trim()) { activityElement.classList.toggle('expanded'); } } else if (header) { const dayCard = header.closest('.day-schedule-card'); if (dayCard) dayCard.classList.toggle('expanded'); } };
+	PlanApp.handleScheduleCheckboxChange = async (event) => { if (event.target.type === 'checkbox' && event.target.closest('.activity-checkbox')) { const checkbox = event.target; const activityId = checkbox.dataset.activityId; const planId = checkbox.dataset.planId; const isCompleted = checkbox.checked; const activityElement = checkbox.closest('.activity-list-item'); if (activityElement) activityElement.classList.toggle('completed', isCompleted); if (typeof PlanApp.handleActivityCompletionToggle === 'function') { await PlanApp.handleActivityCompletionToggle(activityId, isCompleted, planId); } else { console.error("Core PlanApp.handleActivityCompletionToggle missing!"); } } };
 
 	console.log("plan-ui.js loaded (and has defined PlanApp.initializeUI).");
 
