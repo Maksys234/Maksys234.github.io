@@ -9,9 +9,9 @@
     let supabaseClient = null;
     const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // !!! БЕЗОПАСНОСТЬ: Переместить на сервер !!!
     const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-    const PLAN_GENERATION_COOLDOWN_DAYS = 7; // Кулдаун для генерации плана
-    const NOTIFICATION_FETCH_LIMIT = 5; // Max notifications to show in dropdown
-    const SIDEBAR_STATE_KEY = 'sidebarCollapsedState'; // NOVÁ KONSTANTA pro stav panelu
+    const PLAN_GENERATION_COOLDOWN_DAYS = 7;
+    const NOTIFICATION_FETCH_LIMIT = 5;
+    const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
 
     // ==============================================
     //          DOM Элементы (Кэш)
@@ -21,13 +21,12 @@
          mainContent: document.getElementById('main-content'),
          sidebar: document.getElementById('sidebar'),
          sidebarOverlay: document.getElementById('sidebar-overlay'),
-         // Přejmenováno pro konzistenci s main.html a novým tlačítkem pro desktop
-         mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'), // ID z HTML pro mobilní menu
-         sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'), // NOVÉ tlačítko pro desktop
+         mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
+         sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'),
          sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
-         userName: document.getElementById('sidebar-name'),
-         userAvatar: document.getElementById('sidebar-avatar'),
-         sidebarUserTitle: document.getElementById('sidebar-user-title'), // NOVÝ element pro titul
+         userName: document.getElementById('sidebar-name'), // Použito v updateSidebarProfile
+         userAvatar: document.getElementById('sidebar-avatar'), // Použito v updateSidebarProfile
+         sidebarUserTitle: document.getElementById('sidebar-user-title'), // Použito v updateSidebarProfile
          toastContainer: document.getElementById('toast-container'),
          globalError: document.getElementById('global-error'),
          planTabs: document.querySelectorAll('.plan-tab'),
@@ -75,9 +74,9 @@
         nextPlanCreateTime: null, planTimerInterval: null, currentTab: 'current',
         lastGeneratedMarkdown: null, lastGeneratedActivitiesJson: null,
         lastGeneratedTopicsData: null,
-        isLoading: { current: false, history: false, create: false, detail: false, schedule: false, generation: false, notifications: false, titles: false }, // Přidáno titles
+        isLoading: { current: false, history: false, create: false, detail: false, schedule: false, generation: false, notifications: false, titles: false },
         topicMap: { /* Populate this if needed from DB or keep static */ },
-        allTitles: [] // NOVÝ stav pro všechny tituly
+        allTitles: []
     };
 
      const activityVisuals = {
@@ -98,7 +97,6 @@
     const formatDate = (dateString) => { if(!dateString) return '-'; try { const date = new Date(dateString); return date.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit', year: 'numeric' }); } catch(e){ return '-'}};
     function showToast(title, message, type = 'info', duration = 4500) { if (!ui.toastContainer) return; try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content">${title ? `<div class="toast-title">${sanitizeHTML(title)}</div>` : ''}<div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Chyba při zobrazování toastu:", e); } };
     const sanitizeHTML = (str) => { const t = document.createElement('div'); t.textContent = str || ''; return t.innerHTML; };
-    // PŮVODNÍ getInitials pro avatar - upraveno pro plan.js
     const getInitials = (profileData, email) => {
         if (!profileData && !email) return '?';
         let i = '';
@@ -107,11 +105,11 @@
         if (i) return i.toUpperCase();
         if (profileData?.username) return profileData.username[0].toUpperCase();
         if (email) return email[0].toUpperCase();
-        return 'P'; // Fallback na 'Pilot' nebo 'P'
+        return 'P';
     };
     const openMenu = () => {
         if (ui.sidebar && ui.sidebarOverlay) {
-            document.body.classList.remove('sidebar-collapsed'); // Zajistí, že panel není sbalený
+            document.body.classList.remove('sidebar-collapsed');
             ui.sidebar.classList.add('active');
             ui.sidebarOverlay.classList.add('active');
         }
@@ -132,7 +130,6 @@
     const initHeaderScrollDetection = () => { let lastScrollY = window.scrollY; const mainEl = ui.mainContent; if (!mainEl) return; mainEl.addEventListener('scroll', () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 10); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; }, { passive: true }); if (mainEl.scrollTop > 10) document.body.classList.add('scrolled'); };
     const updateOnlineStatus = () => { /* Offline banner not present in plan.html */ };
 
-    // NOVÉ FUNKCE PRO SKLÁPĚCÍ PANEL (převzato z main.js)
     function applyInitialSidebarState() {
         try {
             const state = localStorage.getItem(SIDEBAR_STATE_KEY);
@@ -267,17 +264,13 @@
         });
     };
 
-    // ==============================================
-    //          Инициализация и Навигация
-    // ==============================================
     const initializeSupabase = () => { try { if (!window.supabase) throw new Error("Supabase library not loaded."); supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey); console.log("Supabase client initialized."); return true; } catch (error) { console.error("Supabase init failed:", error); showGlobalError("Chyba připojení k databázi."); return false; } };
     const setupEventListeners = () => {
         console.log("[SETUP] Setting up event listeners...");
-        // Použijeme ID #main-mobile-menu-toggle, jak je definováno v HTML
         if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
         else console.warn("Main mobile menu toggle button (#main-mobile-menu-toggle) not found.");
 
-        if (ui.sidebarToggleBtn) ui.sidebarToggleBtn.addEventListener('click', toggleSidebar); // NOVÝ listener
+        if (ui.sidebarToggleBtn) ui.sidebarToggleBtn.addEventListener('click', toggleSidebar);
         else console.warn("Sidebar toggle button (#sidebar-toggle-btn) not found.");
 
         if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
@@ -380,7 +373,7 @@
     const initializeApp = async () => {
         console.log("🚀 [Init Plan] Starting...");
         if (!initializeSupabase()) return;
-        applyInitialSidebarState(); // NOVÉ: Aplikace stavu panelu
+        applyInitialSidebarState();
         if(ui.initialLoader) { ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden');}
         if (ui.mainContent) ui.mainContent.style.display = 'none';
         hideGlobalError();
@@ -389,28 +382,25 @@
             if (error) throw new Error("Nepodařilo se ověřit uživatele.");
             if (!user) { window.location.href = '/auth/index.html'; return; }
             state.currentUser = user;
-            // Načtení profilu a titulů PŘED aktualizací UI
             const [profile, titles] = await Promise.all([
                 fetchUserProfile(user.id),
-                fetchTitles() // NOVÉ: Načtení titulů
+                fetchTitles()
             ]);
             state.currentProfile = profile;
-            state.allTitles = titles; // Uložení titulů
-
-            updateSidebarProfile(); // Aktualizace panelu s titulem
+            state.allTitles = titles;
+            updateSidebarProfile();
             setupEventListeners();
             initTooltips();
             initMouseFollower();
             initHeaderScrollDetection();
             updateCopyrightYear();
-
             const loadNotificationsPromise = fetchNotifications(user.id, NOTIFICATION_FETCH_LIMIT)
                 .then(({ unreadCount, notifications }) => renderNotifications(unreadCount, notifications))
                 .catch(err => { console.error("Failed to load notifications initially:", err); renderNotifications(0, []); });
             const loadInitialTabPromise = switchTab('current');
             await Promise.all([loadNotificationsPromise, loadInitialTabPromise]);
             if (ui.mainContent) {
-                ui.mainContent.style.display = 'block'; // Změněno na 'block' místo 'flex' pro hlavní obsah
+                ui.mainContent.style.display = 'block';
                 requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); });
             }
             console.log("✅ [Init Plan] Page Initialized.");
@@ -427,30 +417,49 @@
             }
         }
     };
-    const fetchUserProfile = async (userId) => { if (!userId || !supabaseClient) return null; try { const { data, error } = await supabaseClient.from('profiles').select('*, selected_title, preferences, longest_streak_days').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; return data; } catch (e) { console.error("Profile fetch error:", e); return null; } };
+    const fetchUserProfile = async (userId) => {
+        if (!userId || !supabaseClient) return null;
+        try {
+            const { data, error } = await supabaseClient
+                .from('profiles')
+                .select('*, selected_title, preferences, longest_streak_days') // Přidáno selected_title atd.
+                .eq('id', userId)
+                .single();
+            if (error && error.code !== 'PGRST116') throw error;
+            return data;
+        } catch (e) {
+            console.error("Profile fetch error:", e);
+            return null;
+        }
+    };
 
-    // NOVÁ FUNKCE pro načtení titulů (převzato z main.js)
     async function fetchTitles() {
         if (!supabaseClient) return [];
         console.log("[Titles] Fetching available titles...");
         setLoadingState('titles', true);
         try {
+            // ***** UPRAVENÝ DOTAZ *****
             const { data, error } = await supabaseClient
-                .from('title_shop') // Předpokládáme, že tabulka se jmenuje 'title_shop'
-                .select('title_key, name, description, icon_class, cost, category');
-            if (error) throw error;
+                .from('title_shop')
+                .select('title_key, name'); // Požadujeme pouze title_key a name
+
+            if (error) {
+                console.error("[Titles] Error from Supabase:", error); // Logujeme chybu podrobněji
+                throw error;
+            }
             console.log("[Titles] Fetched titles:", data);
             setLoadingState('titles', false);
             return data || [];
         } catch (error) {
-            console.error("[Titles] Error fetching titles:", error);
-            showToast("Chyba", "Nepodařilo se načíst dostupné tituly.", "error");
+            // Chyba je již logována uvnitř bloku if (error)
+            // Můžeme zde přidat obecnější logování, pokud je to nutné
+            console.error("[Titles] Catch block error fetching titles:", error.message);
+            showToast("Chyba", "Nepodařilo se načíst dostupné tituly. Zkontrolujte konzoli pro detaily.", "error");
             setLoadingState('titles', false);
             return [];
         }
     }
 
-    // UPRAVENÁ FUNKCE pro aktualizaci UI panelu, nyní updateSidebarProfile (převzato z main.js)
     function updateSidebarProfile() {
         if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) {
             console.warn("[SidebarUI] Chybí elementy postranního panelu pro profil.");
@@ -482,7 +491,7 @@
             }
 
             const selectedTitleKey = profile.selected_title;
-            let displayTitle = 'Pilot'; // Výchozí titul
+            let displayTitle = 'Pilot';
 
             if (selectedTitleKey && state.allTitles && state.allTitles.length > 0) {
                 const foundTitle = state.allTitles.find(t => t.title_key === selectedTitleKey);
@@ -504,7 +513,6 @@
             ui.sidebarUserTitle.removeAttribute('title');
         }
     }
-
 
     const switchTab = async (tabId) => {
         if (!supabaseClient) { showGlobalError("Aplikace není správně inicializována."); return; }
@@ -1123,7 +1131,6 @@ ${topicsData.map(topic => `  - ${topic.name}: ${topic.percentage}%`).join('\n')}
 [
   { "day_of_week": 1, "type": "theory", "title": "Teorie - [Název z Po]", "description": "Popis úkolu...", "time_slot": "X min" },
   { "day_of_week": 1, "type": "practice", "title": "Procvičování - [Název z Po]", "description": "Popis úkolu...", "time_slot": "Y min" },
-  // ... (JSON objekty pro Út, St, Čt, Pá) ...
   { "day_of_week": 6, "type": "test", "title": "Opakovací test týdne", "description": "Otestujte si znalosti z témat: [Téma 1], [Téma 2].", "time_slot": "60 min" }
 ]
 \`\`\`
