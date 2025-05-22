@@ -1,44 +1,44 @@
 /* dashboard/sidebar-styles.css */
 /* Styly pro boční panel a jeho prvky */
-/* Verze: 1.0 */
+/* Verze: 1.1 - Zajištění viditelnosti a základního pozicování */
 
-/* Základní proměnné, které sidebar potřebuje (můžeme je sem zkopírovat nebo importovat, pokud používáš preprocesor) */
-/* Pokud proměnné zůstávají v hlavních CSS souborech, není třeba je zde znovu definovat. */
-/* :root {
+/* :root proměnné by měly být definovány v hlavním CSS souboru stránky (např. pokrok.css nebo dashboard.css) */
+/* Příklad potřebných proměnných (pokud nejsou jinde):
+:root {
     --sidebar-width: 260px;
     --sidebar-collapsed-width: 80px;
-    --gradient-sidebar: linear-gradient(190deg, var(--bg-secondary) 0%, var(--dark-purple-accent) 100%);
+    --gradient-sidebar: linear-gradient(190deg, #0a071f 0%, #160c41 100%);
     --text-medium: #b8c4e0;
     --text-heading: #ffffff;
     --text-muted: #808db0;
     --accent-primary: #00e0ff;
+    --accent-primary-rgb: 0, 224, 255;
     --accent-secondary: #a05cff;
-    --border-color-light: rgba(var(--accent-secondary-rgb), 0.25);
+    --accent-secondary-rgb: 160, 92, 255;
+    --border-color-light: rgba(160, 92, 255, 0.25);
     --button-radius: 10px;
     --transition-medium: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    --accent-primary-rgb: 0, 224, 255; // Přidáno pro rgba()
-    --accent-secondary-rgb: 160, 92, 255; // Přidáno pro rgba()
-    --white-rgb: 255, 255, 255; // Přidáno pro rgba()
-    --bg-secondary: #0a071f; // Přidáno
-    --dark-purple-accent: #160c41; // Přidáno
-} */
+    --transition-fast: all 0.2s ease-out;
+    --bg-color: #03020c; // Pro sidebar-overlay
+}
+*/
 
 .sidebar {
     width: var(--sidebar-width);
     height: 100vh;
     position: fixed;
     top: 0;
-    left: 0;
+    left: 0; /* Zajištění, že je panel na levé straně */
     background: var(--gradient-sidebar);
     color: var(--text-medium);
     padding: 1.5rem 1rem;
-    display: flex;
+    display: flex; /* Důležité pro zobrazení */
     flex-direction: column;
-    z-index: 1000;
+    z-index: 1000; /* Vysoký z-index, aby byl navrchu */
     box-shadow: 5px 0 30px rgba(0, 0, 0, 0.4);
     border-right: 1px solid var(--border-color-light);
     transition: width var(--transition-medium), transform var(--transition-medium) ease;
-    overflow: hidden;
+    overflow: hidden; /* Skryje obsah, který se nevejde při sbalování */
 }
 
 .sidebar-header {
@@ -49,10 +49,11 @@
     position: relative;
     min-height: 45px;
     transition: padding var(--transition-medium) ease;
+    flex-shrink: 0; /* Aby se header nezmenšoval */
 }
 
-#sidebar-close-toggle { /* Kнопка закрытия на мобильных */
-    display: none;
+#sidebar-close-toggle {
+    display: none; /* Viditelné pouze na mobilu, když je sidebar aktivní */
     position: absolute;
     right: 0px;
     top: 50%;
@@ -81,6 +82,7 @@
     text-shadow: 0 0 8px var(--accent-secondary-glow);
     transition: gap var(--transition-medium) ease;
     width: 100%;
+    flex-shrink: 0; /* Aby se logo nezmenšovalo */
 }
 
 .sidebar-logo i {
@@ -90,7 +92,7 @@
 }
 
 .sidebar-logo span {
-    transition: opacity 0.1s linear, max-width 0.2s linear 0.1s;
+    transition: opacity 0.1s linear 0.1s, max-width 0.2s linear 0.1s; /* Zpoždění pro plynulejší zmizení */
     opacity: 1;
     max-width: 150px;
     overflow: hidden;
@@ -104,14 +106,13 @@
     margin: 0;
     flex-grow: 1;
     overflow-y: auto;
-    overflow-x: hidden; /* Zabraňuje horizontálnímu posouvání, když se text zkracuje */
+    overflow-x: hidden;
 }
-/* Scrollbar pro sidebar menu */
 .sidebar-menu::-webkit-scrollbar { width: 5px; }
-.sidebar-menu::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); border-radius: 3px;}
+.sidebar-menu::-webkit-scrollbar-track { background: rgba(var(--white-rgb, 255, 255, 255), 0.05); border-radius: 3px;}
 .sidebar-menu::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.4); border-radius: 3px; }
 .sidebar-menu::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--accent-primary-rgb), 0.6); }
-.sidebar-menu { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.4) rgba(255, 255, 255, 0.05); }
+.sidebar-menu { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.4) rgba(var(--white-rgb, 255, 255, 255), 0.05); }
 
 
 .sidebar-item {
@@ -129,8 +130,8 @@
     font-weight: 500;
     position: relative;
     border-left: 4px solid transparent;
-    overflow: hidden; /* Důležité pro schování textu */
-    white-space: nowrap; /* Důležité pro schování textu */
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .sidebar-link i {
@@ -140,17 +141,17 @@
     text-align: center;
     transition: color 0.25s ease, margin-right var(--transition-medium) ease, font-size var(--transition-medium) ease;
     color: var(--text-muted);
-    flex-shrink: 0; /* Zabrání zmenšení ikony */
+    flex-shrink: 0;
 }
 
 .sidebar-link span {
-    transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; /* Upravené zpoždění pro plynulejší zmizení */
+    transition: opacity 0.1s linear 0.1s, max-width 0.2s linear 0.1s; /* Upravené zpoždění */
     opacity: 1;
-    max-width: 150px; /* Maximální šířka textu */
+    max-width: 150px;
     overflow: hidden;
     white-space: nowrap;
-    display: inline-block; /* Aby max-width fungovalo */
-    vertical-align: middle; /* Pro lepší zarovnání s ikonou */
+    display: inline-block;
+    vertical-align: middle;
 }
 
 .sidebar-link:hover {
@@ -181,10 +182,10 @@
     background-color: rgba(var(--accent-secondary-rgb), 0.1);
     border-radius: 12px;
     border: 1px solid var(--border-color-light);
-    flex-shrink: 0; /* Aby se nezmenšoval, když je málo místa */
+    flex-shrink: 0;
     transition: padding var(--transition-medium) ease;
-    overflow: hidden; /* Skryje obsah, který se nevejde */
-    white-space: nowrap; /* Udrží obsah na jedné řádce */
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .user-profile .avatar-wrapper {
@@ -202,14 +203,13 @@
 }
 
 .user-avatar {
-    width: 100%; /* Bylo 42px */
-    height: 100%; /* Bylo 42px */
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
     background-color: var(--accent-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
-    /* margin-right: 0.85rem; - Přesunuto do .avatar-wrapper */
     font-weight: 600;
     font-size: 1.1rem;
     overflow: hidden;
@@ -217,8 +217,8 @@
     border: 2px solid rgba(var(--accent-primary-rgb), 0.3);
     flex-shrink: 0;
     box-shadow: 0 0 8px rgba(var(--accent-secondary-rgb), 0.4);
-    transition: all var(--transition-medium) ease; /* Animate size and margin */
-    position: relative; /* Pro dekorace */
+    transition: all var(--transition-medium) ease;
+    position: relative;
 }
 .user-avatar img {
     width: 100%;
@@ -229,7 +229,7 @@
 .user-info {
     flex-grow: 1;
     overflow: hidden;
-    transition: opacity 0.1s linear, max-width 0.2s linear 0.1s; /* Upravené zpoždění */
+    transition: opacity 0.1s linear 0.1s, max-width 0.2s linear 0.1s;
     opacity: 1;
     max-width: 150px;
 }
@@ -255,90 +255,86 @@
     font-size: 0.8rem;
     color: var(--text-muted);
     text-align: center;
-    flex-shrink: 0; /* Zabraňuje smrštění */
+    flex-shrink: 0;
     opacity: 0.7;
     transition: opacity 0.2s ease, max-width 0.2s linear 0.1s;
     overflow: hidden;
     white-space: nowrap;
-    max-width: 200px; /* Max šířka textu */
+    max-width: 200px;
 }
 
-/* Styly pro sbalený sidebar */
-body.sidebar-collapsed .sidebar {
+/* Styly pro sbalený sidebar (desktop) */
+body.sidebar-collapsed-supported.sidebar-collapsed .sidebar {
     width: var(--sidebar-collapsed-width);
 }
-body.sidebar-collapsed .sidebar-logo span,
-body.sidebar-collapsed .sidebar-link span,
-body.sidebar-collapsed .user-info,
-body.sidebar-collapsed .sidebar-footer {
+body.sidebar-collapsed-supported.sidebar-collapsed .sidebar-logo span,
+body.sidebar-collapsed-supported.sidebar-collapsed .sidebar-link span,
+body.sidebar-collapsed-supported.sidebar-collapsed .user-info,
+body.sidebar-collapsed-supported.sidebar-collapsed .sidebar-footer {
     opacity: 0;
     max-width: 0;
-    overflow: hidden; /* Důležité */
-    white-space: nowrap; /* Důležité */
-    pointer-events: none; /* Aby nešlo interagovat s neviditelným textem */
+    pointer-events: none;
 }
 
-body.sidebar-collapsed .sidebar-header,
-body.sidebar-collapsed .sidebar-logo {
+body.sidebar-collapsed-supported.sidebar-collapsed .sidebar-header,
+body.sidebar-collapsed-supported.sidebar-collapsed .sidebar-logo {
     padding-left: 0;
     padding-right: 0;
     justify-content: center;
-    gap: 0; /* Žádná mezera mezi ikonou a (neviditelným) textem */
+    gap: 0;
 }
 
-body.sidebar-collapsed .sidebar-link {
+body.sidebar-collapsed-supported.sidebar-collapsed .sidebar-link {
     justify-content: center;
-    padding: 0.85rem 0.5rem; /* Menší padding, aby se ikona vešla */
+    padding: 0.85rem 0.5rem;
 }
-body.sidebar-collapsed .sidebar-link i {
-    margin-right: 0; /* Ikona se zarovná na střed */
-    font-size: 1.4rem; /* Trochu větší ikona, když je sama */
+body.sidebar-collapsed-supported.sidebar-collapsed .sidebar-link i {
+    margin-right: 0;
+    font-size: 1.4rem;
 }
 
-body.sidebar-collapsed .user-profile {
-    padding: 0.8rem 0; /* Jen vertikální padding */
+body.sidebar-collapsed-supported.sidebar-collapsed .user-profile {
+    padding: 0.8rem 0;
     justify-content: center;
-    border-left: none; /* Odebrat případné boční okraje */
-    border-right: none;
 }
-.sidebar-collapsed .user-profile .avatar-wrapper {
-    margin-right: 0; /* Odebrat margin */
-    width: 40px; /* Menší avatar */
+body.sidebar-collapsed-supported.sidebar-collapsed .user-profile .avatar-wrapper {
+    margin-right: 0;
+    width: 40px;
     height: 40px;
-    padding: 0;
-    background: none;
 }
-.sidebar-collapsed .user-avatar {
-    font-size: 1rem; /* Menší písmo pro iniciály */
-    width: 100%;
-    height: 100%;
+body.sidebar-collapsed-supported.sidebar-collapsed .user-avatar {
+    font-size: 1rem;
 }
-body.sidebar-collapsed #sidebar-close-toggle {
-     display: none; /* Skryjeme 'X' v sbaleném stavu na desktopu */
+
+body.sidebar-collapsed-supported.sidebar-collapsed #sidebar-close-toggle { /* Mobilní 'X' tlačítko */
+     display: none;
 }
+body.sidebar-collapsed-supported.sidebar-collapsed .sidebar-menu {
+    overflow-y: hidden; /* Skryje scrollbar když je sbalený na desktopu */
+}
+
 
 /* Obal pro mobilní menu */
 .sidebar-overlay {
-    display: none; /* Skrytý defaultně */
+    display: none;
     position: fixed;
-    inset: 0; /* top, right, bottom, left = 0 */
-    background-color: rgba(var(--bg-color), 0.7); /* Tmavší s průhledností */
-    z-index: 999; /* Pod sidebarem, nad obsahem */
+    inset: 0;
+    background-color: rgba(var(--bg-color), 0.7); /* Použijte proměnnou, pokud existuje */
+    z-index: 999;
     opacity: 0;
     transition: opacity var(--transition-medium) ease;
-    backdrop-filter: blur(5px); /* Rozmazání pozadí */
+    backdrop-filter: blur(5px);
 }
 .sidebar-overlay.active {
     display: block;
     opacity: 1;
 }
 
-/* Styly pro mobilní zobrazení (<992px) */
+/* Styly pro mobilní zobrazení (<992px), když je sidebar aktivní */
 @media (max-width: 992px) {
-    /* .sidebar je již nastaven pro mobilní zobrazení, když má třídu .active */
-    /* Není třeba měnit --sidebar-width, protože transform se používá pro zobrazení/skrytí */
-    .sidebar:not(.active) { /* Když NENÍ aktivní na mobilu, je schovaný */
+    .sidebar { /* Když není aktivní (schovaný mimo obrazovku) */
         transform: translateX(-100%);
+        /* Sbalené styly se na mobilu neaplikují, pokud je menu otevřené */
     }
     .sidebar.active { /* Když JE aktivní na mobilu, je viditelný */
         transform: translateX(0);
@@ -351,7 +347,7 @@ body.sidebar-collapsed #sidebar-close-toggle {
     .sidebar.active .user-info,
     .sidebar.active .sidebar-footer {
         opacity: 1;
-        max-width: 150px; /* Nebo jiná vhodná hodnota */
+        max-width: 150px;
     }
     .sidebar.active .sidebar-header,
     .sidebar.active .sidebar-logo {
@@ -375,12 +371,12 @@ body.sidebar-collapsed #sidebar-close-toggle {
         width: 42px;
         height: 42px;
     }
-     .sidebar.active .user-avatar { /* Není třeba měnit, protože se přizpůsobí .avatar-wrapper */ }
 
     #sidebar-close-toggle { /* Zobrazit 'X' tlačítko pouze v aktivním mobilním menu */
-        display: none; /* Defaultně skryté */
+        display: none;
     }
     .sidebar.active #sidebar-close-toggle {
-        display: block; /* Zobrazit, když je menu aktivní */
+        display: block;
     }
+    /* Desktopové sbalovací tlačítko je skryto na mobilu pomocí media query v HTML nebo hlavním CSS */
 }
