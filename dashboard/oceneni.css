@@ -1,4 +1,4 @@
-/* --- START: Киберпанк CSS Тема (Адаптировано для oceneni.html v8 - Consistent Titles & Improved Collapse) --- */
+/* --- START: Киберпанк CSS Тема (Адаптировано для oceneni.html v9 - Improved Collapse Design & Title Font) --- */
 /* --- Глобальные Настройки и Переменные (Синхронизировано с dashboard.css) --- */
 :root {
      /* Основа */
@@ -275,30 +275,110 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 /* --- Основной контент дашборда --- */
 .main-content-wrapper { padding: var(--section-padding-y) 0; }
 #achievements-content { /* Container for all sections */ }
-.section { margin-bottom: 2.5rem; }
-.section-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-heading); padding-bottom: 0.8rem; position: relative; display: flex; align-items: center; justify-content: space-between; gap: 0.7rem; }
-.section-title .section-title-text { display: flex; align-items: center; gap: 0.7rem; }
-.section-title i { font-size: 1.1em; color: var(--accent-secondary); text-shadow: 0 0 8px var(--accent-secondary-glow); }
-.section-title::after { content: ''; position: absolute; bottom: 0; left: 0; width: 60px; height: 3px; background: var(--gradient-border-anim); background-size: 300% 100%; animation: gradient-move 4s linear infinite; border-radius: 1.5px; filter: drop-shadow(0 0 5px var(--accent-primary)); }
+
+.section-title {
+    font-size: 1.5rem; /* Consistent with other titles */
+    font-weight: 600; /* Consistent with other titles */
+    margin-bottom: 1.5rem; /* Consistent bottom margin */
+    color: var(--text-heading); /* Consistent text color */
+    padding-bottom: 0.8rem; /* Consistent padding */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Space between title and button */
+    gap: 0.7rem; /* Consistent gap */
+}
+.section-title .section-title-text { /* Wrapper for icon and text */
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+.section-title i { /* Icon within the title text */
+    font-size: 1.1em; /* Consistent icon size */
+    color: var(--accent-secondary); /* Consistent icon color */
+    text-shadow: 0 0 8px var(--accent-secondary-glow); /* Consistent icon shadow */
+}
+.section-title::after { /* Decorative underline */
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: var(--gradient-border-anim); /* Animated gradient */
+    background-size: 300% 100%;
+    animation: gradient-move 4s linear infinite;
+    border-radius: 1.5px;
+    filter: drop-shadow(0 0 5px var(--accent-primary));
+}
 @keyframes gradient-move { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
-.section-title .btn-icon-only { width: 32px; height: 32px; font-size: 0.85rem; background-color: rgba(var(--accent-primary-rgb), 0.1); border-color: rgba(var(--accent-primary-rgb), 0.25); color: var(--accent-primary); box-shadow: none; }
-.section-title .btn-icon-only:hover:not(:disabled) { background-color: rgba(var(--accent-primary-rgb), 0.2); box-shadow: 0 0 8px rgba(var(--accent-primary-rgb), 0.35); transform: translateY(-1px) scale(1.03); }
+
+/* Toggle button for sections */
+.section-title .btn-icon-only {
+    width: 32px; height: 32px; font-size: 0.85rem;
+    background-color: rgba(var(--accent-primary-rgb), 0.1);
+    border-color: rgba(var(--accent-primary-rgb), 0.25);
+    color: var(--accent-primary);
+    box-shadow: none;
+}
+.section-title .btn-icon-only:hover:not(:disabled) {
+    background-color: rgba(var(--accent-primary-rgb), 0.2);
+    box-shadow: 0 0 8px rgba(var(--accent-primary-rgb), 0.35);
+    transform: translateY(-1px) scale(1.03);
+}
 .section-title .btn-icon-only i { transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
 
-.card-section { margin-bottom: 2.5rem; background: var(--card-bg); border-radius: var(--card-radius); border: 1px solid var(--border-color-light); box-shadow: var(--shadow-hud); padding: 0; position: relative; overflow: hidden; }
-.card-section > .section-title { padding: 1.5rem; margin-bottom: 0; border-bottom: 1px solid var(--border-color-light); background: rgba(var(--dark-purple-accent-rgb), 0.2); }
-.card-section.collapsed-section > .section-title { border-bottom-color: transparent; }
-.card-section .section-title::after { display: none; }
-
-.section-collapsible-content { transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease-out 0.05s, padding 0.45s cubic-bezier(0.4, 0, 0.2, 1), margin 0.45s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; max-height: 3000px; /* Adjusted to a larger value for safety */ opacity: 1; padding: 1.5rem; }
-.card.collapsed-section .section-collapsible-content, /* Backward compatibility */
-.card-section.collapsed-section .section-collapsible-content { max-height: 0 !important; padding-top: 0 !important; padding-bottom: 0 !important; margin-top: 0 !important; margin-bottom: 0 !important; opacity: 0; border-top: none !important; }
+/* Collapsible content styling */
+.card-section {
+    margin-bottom: 1.5rem; /* Reduced margin for tighter look when collapsed */
+    background: var(--card-bg);
+    border-radius: var(--card-radius);
+    border: 1px solid var(--border-color-light);
+    box-shadow: var(--shadow-hud);
+    padding: 0; /* Padding will be on title and content separately */
+    position: relative;
+    overflow: hidden;
+}
+.card-section > .section-title {
+    padding: 1.5rem; /* Add padding to the title itself */
+    margin-bottom: 0; /* No bottom margin when content is part of it */
+    border-bottom: 1px solid var(--border-color-light);
+    background: rgba(var(--dark-purple-accent-rgb), 0.2);
+}
+.card-section.collapsed-section > .section-title {
+    border-bottom-color: transparent; /* Remove border when collapsed */
+}
+.card-section .section-title::after {
+    display: none; /* Remove the general ::after underline for titles within .card-section */
+}
+.section-collapsible-content {
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding-top 0.4s ease, padding-bottom 0.4s ease, opacity 0.3s ease-out 0.05s, visibility 0s 0.4s;
+    overflow: hidden;
+    max-height: 3000px; /* Large enough default */
+    opacity: 1;
+    visibility: visible;
+    padding: 1.5rem; /* Default padding for expanded content */
+}
+.card.collapsed-section .section-collapsible-content,
+.card-section.collapsed-section .section-collapsible-content {
+    max-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    opacity: 0;
+    visibility: hidden;
+    border-top: none !important;
+    margin-top: 0 !important; /* Ensure no margin when collapsed */
+    margin-bottom: 0 !important; /* Ensure no margin when collapsed */
+}
 .card.collapsed-section .section-title,
-.card-section.collapsed-section .section-title { margin-bottom: 0; border-bottom-color: transparent; }
-.card.collapsed-section .section-title::after,
-.card-section.collapsed-section .section-title::after { display: none; }
+.card-section.collapsed-section .section-title {
+    margin-bottom: 0; /* No margin on title when collapsed */
+    border-bottom-color: transparent;
+}
 .card.collapsed-section .btn-icon-only i,
-.card-section.collapsed-section .btn-icon-only i { transform: rotate(-90deg); }
+.card-section.collapsed-section .btn-icon-only i {
+    transform: rotate(-90deg); /* Chevron points down */
+}
 
 
 /* --- Стили Oceneni (перенесены и адаптированы) --- */
@@ -374,35 +454,10 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .current-credits i.fa-coins { color: var(--accent-orange); margin-left: 0.3em; }
 
 /* Leaderboard Styles - Font and Size Update */
-.leaderboard-section { background: var(--card-bg); border-radius: var(--card-radius); border: 1px solid var(--border-color-light); box-shadow: var(--shadow-hud); margin-bottom: 2.5rem; padding: 0; position: relative; }
-.leaderboard-container.loading .leaderboard-skeleton { display: block; }
-.leaderboard-container.loading .leaderboard-header, .leaderboard-container.loading .leaderboard-table-container { visibility: hidden; }
-.leaderboard-skeleton { display: none; padding: 1.5rem; position: absolute; inset: 0; background: var(--card-bg); z-index: 5; backdrop-filter: blur(2px); }
-.leaderboard-header-skeleton { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color-light); }
-.leaderboard-table-skeleton { display: flex; flex-direction: column; gap: 1rem; }
-.leaderboard-table-skeleton .skeleton-row { display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0; }
-.skeleton.rank-placeholder { width: 30px; height: 20px; flex-shrink: 0; border-radius: 4px; }
-.skeleton.avatar-placeholder { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; }
-.skeleton.name-placeholder { width: 120px; height: 16px; border-radius: 4px; }
-.skeleton.score-placeholder { width: 50px; height: 18px; margin-left: auto; border-radius: 4px; }
-.skeleton.badges-placeholder { width: 40px; height: 16px; border-radius: 4px; margin-left: 1rem; }
-.skeleton.streak-placeholder { width: 40px; height: 16px; border-radius: 4px; margin-left: 1rem;}
 .leaderboard-header { padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color-medium); flex-wrap: wrap; gap: 1rem; background-color: rgba(var(--card-solid-rgb), 0.5); }
-.leaderboard-title {
-    /* Inherits from .section-title if not overridden */
-    /* Explicitly set to match .section-title */
-    font-size: 1.5rem; /* Matches .section-title */
-    font-weight: 600; /* Matches .section-title */
-    color: var(--text-heading); /* Matches .section-title */
-    display: flex; align-items: center; gap: 0.7rem; /* Matches .section-title */
-    margin: 0; padding: 0; border: none;
-}
-.leaderboard-title i {
-    font-size: 1.1em; /* Matches .section-title i */
-    color: var(--accent-secondary); /* Matches .section-title i */
-    text-shadow: 0 0 8px var(--accent-secondary-glow); /* Matches .section-title i */
-}
-.leaderboard-title::after { display: none; } /* Leaderboard doesn't use the ::after */
+.leaderboard-title { /* This now inherits font-size from .section-title thanks to HTML structure change */ font-weight: 600; color: var(--text-light); display: flex; align-items: center; gap: 0.7rem; /* Matches .section-title */ margin: 0; padding: 0; border: none; }
+.leaderboard-title i { font-size: 1.1em; color: var(--accent-secondary); text-shadow: 0 0 8px var(--accent-secondary-glow); } /* Matches .section-title */
+.leaderboard-title::after { display: none; }
 
 .leaderboard-table-container { max-height: 450px; overflow-y: auto; }
 .leaderboard-table { width: 100%; border-collapse: collapse; }
@@ -495,11 +550,12 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
     font-size: 0.95rem;
     color: var(--text-muted);
     font-weight: 500;
-    padding: 0 1.5rem;
+    padding: 0 1.5rem; /* Removed top padding from here, as it's on section-title */
 }
 .title-shop-section .section-collapsible-content {
-    padding-top: 0; /* Remove top padding if credits are inside */
+    padding-top: 0; /* Remove top padding if credits are inside and title has padding */
 }
+
 
 #user-titles-inventory-grid, #avatar-decorations-grid {
     padding: 0;
