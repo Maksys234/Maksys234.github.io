@@ -1,3 +1,5 @@
+/* dashboard/oceneni.css */
+/* Версия: 23.23.3 - Исправлен supabaseClient на supabase в fetchLeaderboardData. Улучшена логика сворачивания/разворачивания. */
 /* --- START: Киберпанк CSS Тема (Адаптировано для oceneni.html v11 - "Cool & Compact" Collapse) --- */
 /* --- Глобальные Настройки и Переменные (Синхронизировано с dashboard.css) --- */
 :root {
@@ -298,47 +300,109 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .section-title .btn-icon-only i { transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1.5); } /* Added smoother bounce */
 
 .card-section {
-    margin-bottom: 0.5rem; /* Reduced margin for tighter look when some are collapsed */
+    margin-bottom: 0.5rem;
     background: var(--card-bg);
     border-radius: var(--card-radius);
     border: 1px solid var(--border-color-light);
     box-shadow: var(--shadow-hud);
     padding: 0;
     position: relative;
-    overflow: hidden; /* Important for max-height transition */
-    transition: margin-bottom var(--transition-medium) ease, box-shadow var(--transition-medium) ease;
+    overflow: hidden;
+    transition: margin-bottom var(--transition-medium) ease, box-shadow var(--transition-medium) ease,
+                background-color var(--transition-medium) ease, border-color var(--transition-medium) ease; /* Added transitions */
 }
 .card-section > .section-title {
-    padding: 1.1rem 1.5rem; /* Compact padding for titles within cards */
+    padding: 1.1rem 1.5rem;
     margin-bottom: 0;
-    border-bottom: 1px solid transparent; /* Start with transparent, add when expanded */
+    border-bottom: 1px solid transparent;
     background: rgba(var(--dark-purple-accent-rgb), 0.25);
-    cursor: pointer; /* Indicate the title is clickable to expand/collapse */
+    cursor: pointer;
     transition: border-bottom-color var(--transition-medium) ease, background-color var(--transition-medium) ease;
 }
 .card-section:not(.collapsed-section) > .section-title {
-    border-bottom-color: var(--border-color-light); /* Border only when expanded */
-    background: rgba(var(--dark-purple-accent-rgb), 0.35); /* Slightly different bg when expanded */
+    border-bottom-color: var(--border-color-light);
+    background: rgba(var(--dark-purple-accent-rgb), 0.35);
 }
-.card-section .section-title::after { display: none; } /* No decorative underline for titles inside cards */
+.card-section .section-title::after { display: none; }
 
 .section-collapsible-content {
     transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1), padding-top 0.45s ease, padding-bottom 0.45s ease, opacity 0.3s ease-out;
     overflow: hidden;
-    max-height: 3000px; /* Large enough default */
+    max-height: 3000px;
     opacity: 1;
     padding: 1.5rem;
 }
+/* --- START: MODIFIED COLLAPSED SECTION STYLES --- */
 .card-section.collapsed-section {
-    margin-bottom: 0.35rem; /* Very tight spacing when all collapsed */
-    box-shadow: 0 1px 5px rgba(0,0,0,0.2); /* Even subtler shadow */
+    margin-bottom: 0.75rem; /* Increased margin for better separation */
+    background-color: var(--card-solid); /* Darker, solid background */
+    border: 1px solid var(--border-color-medium);
+    border-left: 4px solid var(--accent-primary); /* Accent bar on the left */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3), inset 3px 0 8px -2px rgba(var(--accent-primary-rgb), 0.2);
 }
+
 .card-section.collapsed-section > .section-title {
-    background: rgba(var(--dark-purple-accent-rgb), 0.15); /* Lighter when collapsed */
+    background: transparent; /* Remove specific background for title, parent card handles it */
+    padding: 0.9rem 1.2rem; /* Adjusted padding for a more compact feel */
+    border-bottom-color: transparent !important; /* Ensure no bottom border from expanded state */
+    display: flex; /* Ensure flex properties work as expected */
+    align-items: center;
+    justify-content: space-between; /* Ensure title text and button are spaced */
+    min-height: 50px; /* Consistent height for collapsed titles */
 }
-.card-section.collapsed-section > .section-title:hover {
-    background: rgba(var(--dark-purple-accent-rgb), 0.25); /* Hover for collapsed title */
+
+/* Emphasize the title text and icon within the collapsed bar */
+.card-section.collapsed-section > .section-title .section-title-text {
+    color: var(--text-light);
+    font-weight: 600;
+    font-size: 1.1rem; /* Slightly larger title text when collapsed */
 }
+
+.card-section.collapsed-section > .section-title .section-title-text i {
+    color: var(--accent-primary); /* Make section icon match accent */
+    font-size: 1.2em; /* Slightly larger icon */
+    text-shadow: 0 0 6px var(--accent-glow);
+}
+
+/* Style the toggle button more prominently */
+.card-section.collapsed-section > .section-title .btn-icon-only {
+    background-color: rgba(var(--accent-primary-rgb), 0.1);
+    border-color: rgba(var(--accent-primary-rgb), 0.3);
+    color: var(--accent-primary);
+    transform: scale(0.95); /* Slightly smaller to fit better */
+}
+
+.card-section.collapsed-section > .section-title .btn-icon-only i {
+    transform: rotate(-90deg) scale(1.1); /* Keep rotation, slightly larger icon */
+    transition: transform 0.35s var(--transition-bounce);
+}
+
+/* Enhanced Hover effect for collapsed section */
+.card-section.collapsed-section:hover {
+    border-left-color: var(--accent-pink);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35),
+                inset 0 0 15px rgba(var(--accent-pink-rgb), 0.15), /* Inner glow */
+                0 0 20px rgba(var(--accent-pink-rgb), 0.3); /* Outer glow */
+    background-color: rgba(var(--card-solid-rgb), 0.95); /* Slightly lighten on hover */
+}
+
+.card-section.collapsed-section:hover > .section-title .section-title-text {
+    color: var(--accent-pink); /* Change title color on hover */
+}
+.card-section.collapsed-section:hover > .section-title .section-title-text i {
+    color: var(--accent-pink); /* Change icon color on hover */
+    text-shadow: 0 0 8px var(--accent-pink-glow);
+}
+.card-section.collapsed-section:hover > .section-title .btn-icon-only {
+    background-color: rgba(var(--accent-pink-rgb), 0.15);
+    border-color: var(--accent-pink);
+    color: var(--accent-pink);
+}
+.card-section.collapsed-section:hover > .section-title .btn-icon-only i {
+    transform: rotate(-90deg) scale(1.2); /* Icon animates slightly on hover */
+}
+
+/* Keep existing content hidden */
 .card-section.collapsed-section .section-collapsible-content {
     max-height: 0 !important;
     padding-top: 0 !important;
@@ -346,11 +410,11 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
     opacity: 0;
     margin-top: 0 !important;
     margin-bottom: 0 !important;
-    visibility: hidden; /* Hide completely when collapsed */
+    visibility: hidden;
+    border-top: none; /* Ensure no top border when collapsed */
 }
-.card-section.collapsed-section .btn-icon-only i {
-    transform: rotate(-90deg);
-}
+/* --- END: MODIFIED COLLAPSED SECTION STYLES --- */
+
 
 /* --- Стили Oceneni (перенесены и адаптированы) --- */
 .achievement-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.8rem; margin-bottom: 2.5rem; }
@@ -452,7 +516,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .error-message i { margin-right: 0.8rem; font-size: 1.3rem; }
 .retry-button { margin-left: auto; padding: 0.4rem 0.8rem; font-size: 0.85rem; background: var(--accent-pink); color: var(--white); border: none; border-radius: var(--button-radius); cursor: pointer;}
 .retry-button:hover { background: var(--accent-secondary); }
-.empty-state { padding: 3rem 2rem; text-align: center; color: var(--text-muted); display: none; background-color: transparent; border-radius: var(--card-radius); border: 1px dashed var(--border-color-medium); margin-top: 1rem; }
+.empty-state { padding: 3rem 2rem; text-align: center; color: var(--text-muted); display: none; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; min-height: 200px; background-color: transparent; border-radius: var(--card-radius); border: 1px dashed var(--border-color-medium); margin-top: 1rem; }
 .empty-state i.empty-state-icon { font-size: 3rem; margin-bottom: 1.2rem; color: var(--accent-secondary); opacity: 0.6; }
 .empty-state h3.empty-state-title { font-size: 1.2rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.8rem; }
 .empty-state p.empty-state-desc { margin: 0 auto 1.5rem auto; font-size: 0.95rem; max-width: 450px; color: var(--text-medium); }
@@ -484,7 +548,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .main-content-wrapper [data-animate] { opacity: 0; transform: translateY(25px) scale(0.98) rotateX(-4deg); transform-origin: center bottom; transition: opacity var(--transition-entrance) ease-out, transform var(--transition-entrance) ease-out; will-change: opacity, transform; }
 .main-content-wrapper [data-animate].animated { opacity: 1; transform: translateY(0) scale(1) rotateX(0); }
 .achievement-stats > [data-animate], .badge-grid > [data-animate], .achievement-grid > [data-animate], .leaderboard-section[data-animate], .recent-achievements[data-animate], .title-shop-section[data-animate], .title-shop-grid > [data-animate] { transition-delay: calc(var(--animation-order, 0) * 0.08s); }
-@media (max-width: 992px) { /* :root { --sidebar-width: 85px; } */ /* main { margin-left: 85px; width: calc(100% - 85px); } */ /* .sidebar { width: 85px; } */ /* .sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; } */ /* .sidebar-link i { margin-right: 0; font-size: 1.6rem; } */ /* .sidebar-logo i { margin-right: 0; } */ /* .sidebar-header, .sidebar-link { justify-content: center; } */ /* .user-profile { justify-content: center; padding: 0.8rem; } */ /* .user-avatar { margin-right: 0; width: 45px; height: 45px; } */ .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } .achievement-stats { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); } .badge-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); } .achievement-grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); } .title-shop-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); } .avatar-shop-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); } }
+@media (max-width: 992px) { .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } .achievement-stats { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); } .badge-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); } .achievement-grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); } .title-shop-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); } .avatar-shop-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); } }
 @media (max-width: 768px) { main { padding: 0 1rem; } .header-content { flex-direction: column; align-items: stretch; } .header-content > div:first-child { justify-content: space-between;} .header-actions { justify-content: flex-end; margin-top: 0.5rem; gap: 0.8rem; } .dashboard-header { padding: 0.8rem 1rem; } .section-title { font-size: 1.3rem; } .achievement-stats, .achievement-grid, .badge-grid, .title-shop-grid, .avatar-shop-grid { grid-template-columns: 1fr; gap: 1.5rem; } .leaderboard-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; } .leaderboard-filter { width: 100%; justify-content: flex-start; flex-wrap: wrap; } .leaderboard-table th:nth-child(5), .leaderboard-table td:nth-child(5) { display: none; } .leaderboard-table th:nth-child(4), .leaderboard-table td:nth-child(4) { display: none; } .achievement-card { flex-direction: column; align-items: center; text-align: center; } .achievement-icon { margin-bottom: 1rem; } .title-item { flex-direction: column; align-items: center; text-align: center; } .title-item-icon { margin-bottom: 1rem; } }
 @media (max-width: 576px) { :root { --sidebar-width: 0; } main { margin-left: 0; width: 100%; padding: 0 0.75rem; } .sidebar { transform: translateX(-110%); width: 280px; z-index: 1100; } .sidebar.active { transform: translateX(0); } .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; } .sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; } .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; } .sidebar.active .user-profile { padding: 1rem; } .sidebar.active .user-avatar { margin-right: 0.85rem; width: 42px; height: 42px; } .sidebar.active #sidebar-close-toggle { display: block; } .header-actions { gap: 0.5rem; } .stat-card-value { font-size: 2rem; } .badge-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); } .badge-card { padding: 1.5rem 1rem; } .badge-icon { width: 60px; height: 60px; font-size: 1.8rem; margin-bottom: 1rem; } .user-cell { flex-direction: column; align-items: center; text-align: center; gap: 0.5rem; } .user-avatar-sm { margin-bottom: 0.25rem;} .toast-container { bottom: 1rem; right: 1rem; max-width: calc(100% - 2rem); } .mouse-follower-glow { display: none !important; } .leaderboard-table th:nth-child(5), .leaderboard-table td:nth-child(5) { display: none; } .leaderboard-table th:nth-child(4), .leaderboard-table td:nth-child(4) { display: none; } .title-item-footer { flex-direction: column; align-items: center; gap: 0.8rem; } .title-item-actions { justify-content: center; } .avatar-shop-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } }
 .sidebar-overlay { display: none; position: fixed; inset: 0; background-color: rgba(3, 2, 12, 0.7); z-index: 1000; opacity: 0; transition: opacity var(--transition-medium) ease; backdrop-filter: blur(5px); }
