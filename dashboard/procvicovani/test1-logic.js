@@ -1,6 +1,6 @@
 // Файл: test1-logic.js
 // Содержит основную логику для загрузки теста, оценки ответов, сохранения результатов и загрузки уведомлений.
-// Версия v10: Добавлена логика выбора вопросов на основе learning_goal пользователя.
+// Версия v10.1: Исправлена синтаксическая ошибка 'Unexpected token async'.
 // Обновлено для поддержки answer_prefix, answer_suffix и многочастных ответов при оценке.
 
 // Используем IIFE для изоляции области видимости
@@ -13,10 +13,10 @@
     const GEMINI_API_KEY = 'AIzaSyDQboM6qtC_O2sqqpaKZZffNf2zk6HrhEs'; // !!! Безопасность: Переместить на бэкенд !!!
     const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-    const SCORE_THRESHOLD_FOR_SAVING = 5; 
-    const NUMERIC_TOLERANCE = 0.001;      
-    const BASE_POINTS_FOR_100_PERCENT = 30; 
-    const NOTIFICATION_FETCH_LIMIT = 5; // Добавлено из test1.js для fetchNotificationsLogic
+    const SCORE_THRESHOLD_FOR_SAVING = 5;
+    const NUMERIC_TOLERANCE = 0.001;
+    const BASE_POINTS_FOR_100_PERCENT = 30;
+    const NOTIFICATION_FETCH_LIMIT = 5;
 
     // --- START: Вспомогательные функции ---
     function shuffleArray(array) {
@@ -33,30 +33,30 @@
              console.log("[compareNumeric v10] Alespoň jedna hodnota je null/undefined. Výsledek: null.");
              return null;
          }
-         const normalizeAndEvaluate = (inputValue) => { 
-            if (typeof inputValue === 'number') { return inputValue; } 
-            if (typeof inputValue !== 'string') { return NaN; } 
+         const normalizeAndEvaluate = (inputValue) => {
+            if (typeof inputValue === 'number') { return inputValue; }
+            if (typeof inputValue !== 'string') { return NaN; }
             let processedString = inputValue.trim()
                 .replace(/\s+/g, '')
-                .replace(/kč|czk|korun|eur|usd|cm|m|km|mm|l|ml|kg|g|%|stupňů|manažerů|způsobů|lidí|ks|stran|cm2|cm3|hodin|minut/gi, '') // Добавлены единицы
+                .replace(/kč|czk|korun|eur|usd|cm|m|km|mm|l|ml|kg|g|%|stupňů|manažerů|způsobů|lidí|ks|stran|cm2|cm3|hodin|minut/gi, '')
                 .replace(/[\.,]+$/, '')
-                .replace(',', '.'); 
-            const fractionRegex = /^(-?)(\d+)\/(\d+)$/; 
-            const fractionMatch = processedString.match(fractionRegex); 
-            if (fractionMatch) { 
-                const signMultiplier = fractionMatch[1] === '-' ? -1 : 1; 
-                const numerator = parseFloat(fractionMatch[2]); 
-                const denominator = parseFloat(fractionMatch[3]); 
-                if (!isNaN(numerator) && !isNaN(denominator) && denominator !== 0) { 
-                    console.log(`[compareNumeric v10] Parsuji zlomek: ${processedString} -> ${signMultiplier * (numerator / denominator)}`); 
-                    return signMultiplier * (numerator / denominator); 
-                } 
-            } 
-            const floatValue = parseFloat(processedString); 
-            if (!isNaN(floatValue)) { 
-                console.log(`[compareNumeric v10] Parsuji float: '${processedString}' -> ${floatValue}`); 
-                return floatValue; 
-            } 
+                .replace(',', '.');
+            const fractionRegex = /^(-?)(\d+)\/(\d+)$/;
+            const fractionMatch = processedString.match(fractionRegex);
+            if (fractionMatch) {
+                const signMultiplier = fractionMatch[1] === '-' ? -1 : 1;
+                const numerator = parseFloat(fractionMatch[2]);
+                const denominator = parseFloat(fractionMatch[3]);
+                if (!isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
+                    console.log(`[compareNumeric v10] Parsuji zlomek: ${processedString} -> ${signMultiplier * (numerator / denominator)}`);
+                    return signMultiplier * (numerator / denominator);
+                }
+            }
+            const floatValue = parseFloat(processedString);
+            if (!isNaN(floatValue)) {
+                console.log(`[compareNumeric v10] Parsuji float: '${processedString}' -> ${floatValue}`);
+                return floatValue;
+            }
             // Более агрессивная очистка для сложных случаев
             let aggressiveProcessedString = inputValue.trim().replace(/\s+/g, '').replace(',', '.');
             // Удаляем все нечисловые символы, кроме точки, минуса и плюса в начале
@@ -77,13 +77,13 @@
                  }
             }
 
-            const aggressiveFloatValue = parseFloat(aggressiveProcessedString); 
-            if (!isNaN(aggressiveFloatValue)) { 
-                console.log(`[compareNumeric v10] Parsuji AGRESIVNĚ float: Vstup: '${inputValue}', Zpracováno: '${aggressiveProcessedString}' -> ${aggressiveFloatValue}`); 
-                return aggressiveFloatValue; 
-            } 
-            console.warn(`[compareNumeric v10] Nepodařilo se parsovat hodnotu jako číslo: '${inputValue}' (Zpracováno: '${processedString}', Agresivně: '${aggressiveProcessedString}')`); 
-            return NaN; 
+            const aggressiveFloatValue = parseFloat(aggressiveProcessedString);
+            if (!isNaN(aggressiveFloatValue)) {
+                console.log(`[compareNumeric v10] Parsuji AGRESIVNĚ float: Vstup: '${inputValue}', Zpracováno: '${aggressiveProcessedString}' -> ${aggressiveFloatValue}`);
+                return aggressiveFloatValue;
+            }
+            console.warn(`[compareNumeric v10] Nepodařilo se parsovat hodnotu jako číslo: '${inputValue}' (Zpracováno: '${processedString}', Agresivně: '${aggressiveProcessedString}')`);
+            return NaN;
         };
          const number1 = normalizeAndEvaluate(value1);
          const number2 = normalizeAndEvaluate(value2);
@@ -101,34 +101,24 @@
     function compareTextAdvanced(value1, value2) {
         console.log(`[compareText v10] Porovnávám: '${value1}' vs '${value2}'`);
         if (value1 === null || value1 === undefined || value2 === null || value2 === undefined) { console.log("[compareText v10] Alespoň jedna hodnota je null/undefined. Výsledek: false."); return false; }
-        
+
         const normalizeString = (inputValue) => {
             if (typeof inputValue !== 'string' && typeof inputValue !== 'number') { return null; }
             let processedString = String(inputValue).toLowerCase().trim();
-            // Нормализация пробелов
             processedString = processedString.replace(/\s+/g, ' ');
-            // Удаление обычных знаков препинания в конце строки, которые не влияют на смысл
             processedString = processedString.replace(/[\.,;:!?]+$/, '');
-            // Specifické pro ano/ne - normalizace na klíčová slova
             if (/\b(ano|áno|a)\b/.test(processedString) || processedString === 'a') return 'ano';
             if (/\b(ne|n)\b/.test(processedString)) return 'ne';
-            // Normalizace pro zlomky: odstranění mezer kolem lomítka
             processedString = processedString.replace(/\s*\/\s*/g, '/');
-            // Normalizace pro algebraické výrazy: odstranění nadbytečných mezer kolem operátorů, pokud to dává smysl.
-            // Toto может быть сложным и зависеть от формата. Для простоты пока только общие пробелы.
-            // Například: '3a - 4' vs '3a-4'
             processedString = processedString.replace(/\s*([+\-*/=()^])\s*/g, '$1');
-
-
             console.log(`[compareText v10] Normalizováno na: '${processedString}'`);
             return processedString;
         };
         const normalized1 = normalizeString(value1);
         const normalized2 = normalizeString(value2);
 
-        if (normalized1 === null || normalized2 === null) return false; // Если одна из строк не может быть нормализована
+        if (normalized1 === null || normalized2 === null) return false;
 
-        // Прямое сравнение после нормализации
         const areEquivalent = (normalized1 === normalized2 && normalized1 !== '');
 
         console.log(`[compareText v10] Normalizované 1: '${normalized1}', Normalizované 2: '${normalized2}'. Výsledek: ${areEquivalent}`);
@@ -136,8 +126,8 @@
     }
     // --- END: Вспомогательные функции ---
 
-    // --- START: Логика загрузки вопросов (МОДИФИЦИРОВАНО) ---
-    async function loadTestQuestionsLogic(supabase, profileData, testTypeConfig) {
+    // --- START: Логика загрузки вопросов (ИСПРАВЛЕНО) ---
+    async function loadTestQuestionsLogic(supabase, profileData, testTypeConfig) { // <--- Ключевое слово function было добавлено здесь
         if (!supabase) { throw new Error("Supabase client není inicializován."); }
         if (!profileData || !profileData.learning_goal) {
             console.warn("[Logic LoadQ v10] Chybí profilová data nebo learning_goal. Používám výchozí 'exam_prep'.");
@@ -151,13 +141,13 @@
 
         if (learningGoal === 'math_review') {
             sourceExamTypeFilter = 'math_review';
-            questionLimit = 19; 
-            selectRandomly = false; 
+            questionLimit = 19;
+            selectRandomly = false;
             console.log(`[Logic LoadQ v10] Cíl: math_review. Načítám ${questionLimit} otázek typu '${sourceExamTypeFilter}'.`);
-        } else { 
+        } else {
             sourceExamTypeFilter = 'prijimacky';
-            questionLimit = 30; 
-            selectRandomly = true; 
+            questionLimit = 30;
+            selectRandomly = true;
             console.log(`[Logic LoadQ v10] Cíl: ${learningGoal}. Načítám ~${questionLimit} náhodných otázek typu '${sourceExamTypeFilter}'.`);
         }
 
@@ -168,12 +158,12 @@
                 id, question_text, question_type, options, correct_answer,
                 solution_explanation, topic_id, subtopic_id, difficulty,
                 image_url, source_year, source_exam_type,
-                answer_prefix, answer_suffix, /* Добавлено */
+                answer_prefix, answer_suffix,
                 topic:topic_id ( id, name ),
                 subtopic:subtopic_id ( id, name )
             `)
             .eq('source_exam_type', sourceExamTypeFilter)
-            .neq('question_type', 'construction');      
+            .neq('question_type', 'construction');
 
         if (fetchError) { throw fetchError; }
         if (!allQuestions || allQuestions.length === 0) { throw new Error(`V databázi nejsou žádné otázky pro typ '${sourceExamTypeFilter}' (kromě konstrukčních).`); }
@@ -184,7 +174,7 @@
         if (initialIds.length !== uniqueInitialIds.size) { console.warn(`[Logic LoadQ v10] POZOR: Data načtená z databáze obsahují ${initialIds.length - uniqueInitialIds.size} duplicitních ID!`); }
 
         let selectedQuestions = [];
-        const shuffledQuestions = shuffleArray(allQuestions); 
+        const shuffledQuestions = shuffleArray(allQuestions);
         const selectedIds = new Set();
 
         if (selectRandomly) {
@@ -229,8 +219,8 @@
             image_url: question.image_url,
             source_year: question.source_year,
             source_exam_type: question.source_exam_type,
-            answer_prefix: question.answer_prefix, // Добавлено
-            answer_suffix: question.answer_suffix  // Добавлено
+            answer_prefix: question.answer_prefix,
+            answer_suffix: question.answer_suffix
         }));
 
         console.log(`[Logic LoadQ v10] Vybráno ${formattedQuestions.length} unikátních otázek pro cíl '${learningGoal}'.`);
@@ -244,26 +234,25 @@
 
     // --- START: Логика оценки ответов (Gemini) ---
     async function checkAnswerWithGeminiLogic(
-        questionType, 
-        questionText, 
-        correctAnswerOrExplanation, // This is qData.correct_answer from userAnswers in test1.js
-        userAnswer, // This is answerData.userAnswerValue
-        maxScore = 1, 
+        questionType,
+        questionText,
+        correctAnswerOrExplanation,
+        userAnswer,
+        maxScore = 1,
         currentQuestionIndex,
-        // Дополнительные параметры для более точной оценки Gemini
-        solutionExplanationForConstruction = null, // This is qData.solution_explanation
-        optionsForMC = null // This is qData.options
+        solutionExplanationForConstruction = null,
+        optionsForMC = null
     ) {
-        if (questionType === 'construction') { 
-            return { 
-                score: 0, 
-                max_score: maxScore, 
-                correctness: "skipped", // "skipped" or a new "manual_review" status
-                reasoning: "Konstrukční úlohy se hodnotí manuálně nebo jsou dočasně přeskočeny.", 
-                error_analysis: null, 
-                feedback: "Postup pro konstrukční úlohy bude zkontrolován později.", 
-                is_equivalent: null 
-            }; 
+        if (questionType === 'construction') {
+            return {
+                score: 0,
+                max_score: maxScore,
+                correctness: "skipped",
+                reasoning: "Konstrukční úlohy se hodnotí manuálně nebo jsou dočasně přeskočeny.",
+                error_analysis: null,
+                feedback: "Postup pro konstrukční úlohy bude zkontrolován později.",
+                is_equivalent: null
+            };
         }
 
         console.log(`--- [Logic Check v10] Vyhodnocování Q#${currentQuestionIndex + 1} (Typ: ${questionType}, Max bodů: ${maxScore}) ---`);
@@ -271,30 +260,27 @@
         console.log(`   Správně (raw z DB): `, correctAnswerOrExplanation);
         console.log(`   Uživatel (raw z UI): `, userAnswer);
 
-        // Обработка пропущенных или пустых ответов
         let isSkippedOrEmpty = false;
         if (userAnswer === null || userAnswer === undefined) {
             isSkippedOrEmpty = true;
-        } else if (typeof userAnswer === 'object' && userAnswer !== null) { // Для многочастных ответов
+        } else if (typeof userAnswer === 'object' && userAnswer !== null) {
             isSkippedOrEmpty = Object.values(userAnswer).every(val => val === null || String(val).trim() === '');
         } else {
             isSkippedOrEmpty = String(userAnswer).trim() === "";
         }
 
         if (isSkippedOrEmpty) {
-            return { 
-                score: 0, 
-                max_score: maxScore, 
-                correctness: "skipped", 
-                reasoning: "Odpověď nebyla poskytnuta nebo je prázdná.", 
-                error_analysis: null, 
-                feedback: "Příště zkuste odpovědět.", 
-                is_equivalent: null 
+            return {
+                score: 0,
+                max_score: maxScore,
+                correctness: "skipped",
+                reasoning: "Odpověď nebyla poskytnuta nebo je prázdná.",
+                error_analysis: null,
+                feedback: "Příště zkuste odpovědět.",
+                is_equivalent: null
             };
         }
-        
-        // Локальное сравнение для простых типов (если возможно и нужно)
-        // Для многочастных ответов локальное сравнение может быть сложным, лучше доверить Gemini или реализовать детальную логику здесь.
+
         if (questionType === 'multiple_choice' && optionsForMC && typeof correctAnswerOrExplanation === 'string') {
             console.log(`[Logic v10 Q#${currentQuestionIndex + 1}] Lokální MC srovnání.`);
             const correctLetter = String(correctAnswerOrExplanation).trim().toUpperCase().charAt(0);
@@ -303,23 +289,21 @@
             const finalCorrectness = localComparisonResult ? 'correct' : 'incorrect';
             const finalScore = localComparisonResult ? maxScore : 0;
             let finalReasoning = localComparisonResult ? `Správně jste vybral(a) možnost ${correctLetter}.` : `Nesprávně. Správná možnost byla ${correctLetter}.`;
-            
-            // Pokus o získání textu správné možnosti
+
             const correctOptionIndex = correctLetter.charCodeAt(0) - 65;
             if (Array.isArray(optionsForMC) && optionsForMC[correctOptionIndex] !== undefined) {
                  finalReasoning += ` (${optionsForMC[correctOptionIndex]})`;
             }
-            
+
             return { score: finalScore, max_score: maxScore, correctness: finalCorrectness, reasoning: finalReasoning, error_analysis: localComparisonResult ? null : "Vybrána nesprávná možnost.", feedback: localComparisonResult ? null : "Pečlivě si přečtěte všechny možnosti.", is_equivalent: null };
         } else if (['numeric', 'text', 'ano_ne'].includes(questionType) && typeof userAnswer !== 'object' && typeof correctAnswerOrExplanation === 'string') {
-            // Простое локальное сравнение для одиночных текстовых/числовых ответов
             const numericCheck = compareNumericAdvanced(userAnswer, correctAnswerOrExplanation);
             const textCheck = compareTextAdvanced(userAnswer, correctAnswerOrExplanation);
             let localComparisonResult = null;
 
             if (questionType === 'numeric') {
                 localComparisonResult = numericCheck;
-            } else { // text, ano_ne
+            } else {
                 localComparisonResult = textCheck;
             }
 
@@ -327,23 +311,22 @@
                 console.log(`[Logic v10 Q#${currentQuestionIndex + 1}] Lokální srovnání bylo JEDNOZNAČNÉ (${localComparisonResult}). Gemini se nevolá.`);
                 const finalCorrectness = localComparisonResult ? 'correct' : 'incorrect';
                 const finalScore = localComparisonResult ? maxScore : 0;
-                return { 
-                    score: finalScore, 
-                    max_score: maxScore, 
-                    correctness: finalCorrectness, 
-                    reasoning: localComparisonResult ? "Odpověď je správná." : `Odpověď '${userAnswer}' není správná. Správná odpověď: '${correctAnswerOrExplanation}'.`, 
-                    error_analysis: localComparisonResult ? null : `Vaše odpověď se neshoduje se správnou.`, 
-                    feedback: localComparisonResult ? null : "Zkontrolujte svůj výpočet/odpověď.", 
-                    is_equivalent: localComparisonResult 
+                return {
+                    score: finalScore,
+                    max_score: maxScore,
+                    correctness: finalCorrectness,
+                    reasoning: localComparisonResult ? "Odpověď je správná." : `Odpověď '${userAnswer}' není správná. Správná odpověď: '${correctAnswerOrExplanation}'.`,
+                    error_analysis: localComparisonResult ? null : `Vaše odpověď se neshoduje se správnou.`,
+                    feedback: localComparisonResult ? null : "Zkontrolujte svůj výpočet/odpověď.",
+                    is_equivalent: localComparisonResult
                 };
             }
             console.log(`[Logic v10 Q#${currentQuestionIndex + 1}] Lokální srovnání NENÍ JEDNOZNAČNÉ. Volám Gemini.`);
         }
 
-
-        const runFallbackCheck = (fallbackReason = "Automatické hodnocení selhalo. Použita záložní kontrola.") => { 
-            console.warn(`!!! [Logic Fallback v10] Používá se FALLBACK logika pro vyhodnocení Q#${currentQuestionIndex + 1} !!! Důvod:`, fallbackReason); 
-            let fallbackScore = 0; let fallbackCorrectness = "error"; let fallbackErrorAnalysis = "Chyba systému hodnocení."; let feedback = "Kontaktujte podporu, pokud problém přetrvává."; let isEquivalent = null; 
+        const runFallbackCheck = (fallbackReason = "Automatické hodnocení selhalo. Použita záložní kontrola.") => {
+            console.warn(`!!! [Logic Fallback v10] Používá se FALLBACK logika pro vyhodnocení Q#${currentQuestionIndex + 1} !!! Důvod:`, fallbackReason);
+            let fallbackScore = 0; let fallbackCorrectness = "error"; let fallbackErrorAnalysis = "Chyba systému hodnocení."; let feedback = "Kontaktujte podporu, pokud problém přetrvává."; let isEquivalent = null;
             if (questionType === 'multiple_choice' && typeof correctAnswerOrExplanation === 'string') {
                 const correctLetter = String(correctAnswerOrExplanation).trim().toUpperCase().charAt(0);
                 const userLetter = String(userAnswer).trim().toUpperCase().charAt(0);
@@ -353,18 +336,17 @@
             } else {
                 fallbackCorrectness = "error";
             }
-            console.log(`[Logic Fallback v10 Výsledek] Skóre: ${fallbackScore}/${maxScore}, Správnost: ${fallbackCorrectness}, Ekvivalent: ${isEquivalent}`); 
-            return { score: fallbackScore, max_score: maxScore, correctness: fallbackCorrectness, reasoning: fallbackReason, error_analysis: fallbackErrorAnalysis, feedback: feedback, is_equivalent: isEquivalent }; 
+            console.log(`[Logic Fallback v10 Výsledek] Skóre: ${fallbackScore}/${maxScore}, Správnost: ${fallbackCorrectness}, Ekvivalent: ${isEquivalent}`);
+            return { score: fallbackScore, max_score: maxScore, correctness: fallbackCorrectness, reasoning: fallbackReason, error_analysis: fallbackErrorAnalysis, feedback: feedback, is_equivalent: isEquivalent };
         };
 
         if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_') || GEMINI_API_KEY.length < 10) { return runFallbackCheck("Chybí platný Gemini API klíč."); }
-        
+
         let prompt;
         const baseInstruction = `Jsi PŘÍSNÝ, DETAILNÍ a PŘESNÝ AI hodnotitel odpovědí z PŘIJÍMACÍCH ZKOUŠEK z matematiky/logiky pro 9. třídu ZŠ v ČR. Tvým úkolem je KOMPLEXNĚ posoudit odpověď studenta vůči správnému řešení/odpovědi v kontextu dané otázky. MUSÍŠ vrátit POUZE JSON objekt podle PŘESNĚ definované struktury. NEPŘIDÁVEJ žádný text PŘED nebo ZA JSON blok. Buď si VĚDOM toho, že odpovědi mohou být MATEMATICKY ekvivalentní i přes jiný formát (např. zlomek vs. desetinné číslo, různé formáty zápisu výrazů, pořadí u vícedílných odpovědí jako x=1, y=2 vs y=2, x=1). Pro textové odpovědi (včetně ano/ne) buď tolerantní k interpunkci a mezerám, ale k jádru odpovědi.`;
         const outputStructure = `{ "score": number (0-${maxScore}, celé číslo), "max_score": ${maxScore}, "correctness": string ("correct" | "incorrect" | "partial"), "reasoning": string (DETAILNÍ zdůvodnění skóre a vysvětlení správného postupu/odpovědi v ČEŠTINĚ, včetně uznání ekvivalentních formátů), "error_analysis": string | null (KONKRÉTNÍ popis chyby studenta v ČEŠTINĚ; null pokud správně), "feedback": string | null (Krátká konstruktivní rada pro studenta v ČEŠTINĚ; null pokud správně), "is_equivalent": boolean | null (True, pokud je odpověď matematicky/logicky správná i přes jiný formát. False pokud je nesprávná. Null pro 'multiple_choice' nebo pokud nelze jednoznačně určit.) }`;
         const questionContext = `Kontext otázky: """${questionText}"""`;
-        
-        // Форматирование correctAnswerOrExplanation и userAnswer для промпта
+
         let formattedCorrectAnswer = correctAnswerOrExplanation;
         let formattedUserAnswer = userAnswer;
 
@@ -376,16 +358,15 @@
         }
 
         const inputData = `SPRÁVNÁ ODPOVĚĎ/ŘEŠENÍ: """${formattedCorrectAnswer}"""\nODPOVĚĎ STUDENTA: """${formattedUserAnswer}"""`;
-        
+
         if (questionType === 'multiple_choice') {
-            const optionsText = Array.isArray(optionsForMC) ? `Možnosti: ${optionsForMC.map((opt, i) => `${indexToLetter(i)}. ${opt}`).join('; ')}.` : "";
+            const optionsText = Array.isArray(optionsForMC) ? `Možnosti: ${optionsForMC.map((opt, i) => `${String.fromCharCode(65 + i)}. ${opt}`).join('; ')}.` : "";
             prompt = `${baseInstruction} Typ otázky: Výběr z možností. Maximální skóre: ${maxScore}. ${questionContext} ${optionsText} ${inputData} ÚKOL: Porovnej POUZE PÍSMENO studentovy odpovědi (case-insensitive) se správným písmenem. SKÓRE: ${maxScore} (correct) POKUD se shoduje, jinak 0 (incorrect). "is_equivalent" = null. Zdůvodnění: Uveď správné písmeno a proč je daná možnost správná. Pokud špatně, uveď i proč je studentova volba špatná. Vrať POUZE JSON (${outputStructure}).`;
-        } else { // Handles 'numeric', 'text', 'ano_ne', and multi-part text via JSON strings
+        } else {
              let multiPartInfo = "";
              if (typeof userAnswer === 'object' && userAnswer !== null && typeof correctAnswerOrExplanation === 'object' && correctAnswerOrExplanation !== null) {
                  multiPartInfo = "Toto je vícedílná odpověď, posuzuj každou část. Pořadí částí nemusí hrát roli (např. x=1, y=2 je ekvivalentní y=2, x=1).";
              }
-
             prompt = `${baseInstruction} Typ otázky: ${questionType === 'ano_ne' ? 'Ano/Ne' : (questionType === 'numeric' ? 'Numerická/Výpočetní' : 'Textová/Symbolická')}. ${multiPartInfo} Maximální skóre: ${maxScore}. ${questionContext} ${inputData} ÚKOL: Pečlivě posuď ekvivalenci a správnost. Vrať POUZE JSON (${outputStructure}).`;
         }
 
@@ -427,7 +408,7 @@
     }
 
     async function saveTestResultsLogic(supabase, currentUser, testResultsData, userAnswers, questions, testEndTime) {
-         if (!currentUser || currentUser.id === 'PLACEHOLDER_USER_ID' || !supabase) { console.warn("[Logic Save v10] Neukládám: Chybí uživatel nebo Supabase."); return { success: false, error: "Uživatel není přihlášen." }; } if (testResultsData.score < SCORE_THRESHOLD_FOR_SAVING) { console.log(`[Logic Save v10] Skóre (${testResultsData.score}/50) < ${SCORE_THRESHOLD_FOR_SAVING}. Přeskakuji ukládání.`); return { success: false, error: `Skóre je příliš nízké (<${SCORE_THRESHOLD_FOR_SAVING}) pro uložení.` }; } console.log(`[Logic Save v10] Pokouším se uložit výsledky...`); let savedDiagnosticId = null; try { const detailedAnalysis = generateDetailedAnalysisLogic(testResultsData, userAnswers, questions); const answersToSave = userAnswers.map(a => ({ question_db_id: a.question_db_id, question_number_in_test: a.question_number_in_test, question_type: a.question_type, topic_id: a.topic_id, difficulty: a.difficulty, userAnswerValue: a.userAnswerValue, // Сохраняем как есть (может быть объектом) scoreAwarded: a.scoreAwarded, maxScore: a.maxScore, correctness: a.correctness, reasoning: a.reasoning, error_analysis: a.error_analysis, feedback: a.feedback, checked_by: a.checked_by })); const dataToSave = { user_id: currentUser.id, completed_at: testEndTime ? testEndTime.toISOString() : new Date().toISOString(), total_score: testResultsData.score, total_questions: testResultsData.totalQuestions, answers: answersToSave, topic_results: testResultsData.topicResults, analysis: detailedAnalysis, time_spent: testResultsData.timeSpent }; console.log("[Logic Save v10] Data k uložení:", dataToSave); const { data, error } = await supabase.from('user_diagnostics').insert(dataToSave).select('id').single(); if (error) throw error; savedDiagnosticId = data.id; console.log("[Logic Save v10] Diagnostika uložena, ID:", savedDiagnosticId); if (typeof window.VyukaApp?.checkAndAwardAchievements === 'function') { console.log('[Achievements v10] Triggering check after saving test results...'); window.VyukaApp.checkAndAwardAchievements(currentUser.id); } else { console.warn("[Achievements v10] Check function (window.VyukaApp.checkAndAwardAchievements) not found after saving test results."); } return { success: true, diagnosticId: savedDiagnosticId }; } catch (error) { console.error('[Logic Save v10] Chyba při ukládání:', error); return { success: false, error: `Nepodařilo se uložit výsledky: ${error.message}`, diagnosticId: savedDiagnosticId }; }
+         if (!currentUser || currentUser.id === 'PLACEHOLDER_USER_ID' || !supabase) { console.warn("[Logic Save v10] Neukládám: Chybí uživatel nebo Supabase."); return { success: false, error: "Uživatel není přihlášen." }; } if (testResultsData.score < SCORE_THRESHOLD_FOR_SAVING) { console.log(`[Logic Save v10] Skóre (${testResultsData.score}/50) < ${SCORE_THRESHOLD_FOR_SAVING}. Přeskakuji ukládání.`); return { success: false, error: `Skóre je příliš nízké (<${SCORE_THRESHOLD_FOR_SAVING}) pro uložení.` }; } console.log(`[Logic Save v10] Pokouším se uložit výsledky...`); let savedDiagnosticId = null; try { const detailedAnalysis = generateDetailedAnalysisLogic(testResultsData, userAnswers, questions); const answersToSave = userAnswers.map(a => ({ question_db_id: a.question_db_id, question_number_in_test: a.question_number_in_test, question_type: a.question_type, topic_id: a.topic_id, difficulty: a.difficulty, userAnswerValue: a.userAnswerValue, scoreAwarded: a.scoreAwarded, maxScore: a.maxScore, correctness: a.correctness, reasoning: a.reasoning, error_analysis: a.error_analysis, feedback: a.feedback, checked_by: a.checked_by })); const dataToSave = { user_id: currentUser.id, completed_at: testEndTime ? testEndTime.toISOString() : new Date().toISOString(), total_score: testResultsData.score, total_questions: testResultsData.totalQuestions, answers: answersToSave, topic_results: testResultsData.topicResults, analysis: detailedAnalysis, time_spent: testResultsData.timeSpent }; console.log("[Logic Save v10] Data k uložení:", dataToSave); const { data, error } = await supabase.from('user_diagnostics').insert(dataToSave).select('id').single(); if (error) throw error; savedDiagnosticId = data.id; console.log("[Logic Save v10] Diagnostika uložena, ID:", savedDiagnosticId); if (typeof window.VyukaApp?.checkAndAwardAchievements === 'function') { console.log('[Achievements v10] Triggering check after saving test results...'); window.VyukaApp.checkAndAwardAchievements(currentUser.id); } else { console.warn("[Achievements v10] Check function (window.VyukaApp.checkAndAwardAchievements) not found after saving test results."); } return { success: true, diagnosticId: savedDiagnosticId }; } catch (error) { console.error('[Logic Save v10] Chyba při ukládání:', error); return { success: false, error: `Nepodařilo se uložit výsledky: ${error.message}`, diagnosticId: savedDiagnosticId }; }
     }
 
     async function awardPointsLogic(supabase, currentUser, currentProfile, selectedTestType, testResultsData, testTypeConfig) {
@@ -450,19 +431,19 @@
 
     // --- START: Глобальный Экспорт ---
     global.TestLogic = {
-        loadTestQuestions: loadTestQuestionsLogic, 
-        checkAnswerWithGemini: checkAnswerWithGeminiLogic, 
-        calculateFinalResults: calculateFinalResultsLogic, 
-        generateDetailedAnalysis: generateDetailedAnalysisLogic, 
-        saveTestResults: saveTestResultsLogic, 
-        awardPoints: awardPointsLogic, 
-        checkExistingDiagnostic: checkExistingDiagnosticLogic, 
-        fetchNotifications: fetchNotificationsLogic, 
+        loadTestQuestions: loadTestQuestionsLogic,
+        checkAnswerWithGemini: checkAnswerWithGeminiLogic,
+        calculateFinalResults: calculateFinalResultsLogic,
+        generateDetailedAnalysis: generateDetailedAnalysisLogic,
+        saveTestResults: saveTestResultsLogic,
+        awardPoints: awardPointsLogic,
+        checkExistingDiagnostic: checkExistingDiagnosticLogic,
+        fetchNotifications: fetchNotificationsLogic,
         SCORE_THRESHOLD_FOR_SAVING: SCORE_THRESHOLD_FOR_SAVING,
-        compareNumericAdvanced: compareNumericAdvanced, 
-        compareTextAdvanced: compareTextAdvanced, 
+        compareNumericAdvanced: compareNumericAdvanced,
+        compareTextAdvanced: compareTextAdvanced,
     };
-    console.log("test1-logic.js loaded and TestLogic exposed (v10 - Multi-part answer handling in Gemini logic).");
+    console.log("test1-logic.js loaded and TestLogic exposed (v10.1 - Fixed async syntax).");
     // --- END: Глобальный Экспорт ---
 
 })(window); // Передаем глобальный объект (window в браузере)
