@@ -176,7 +176,7 @@
             }
              if (key === 'notifications' && ui.notificationBell) {
                  ui.notificationBell.style.opacity = loading ? 0.5 : 1;
-                 if (ui.markAllRead) { // Corrected ID
+                 if (ui.markAllRead) {
                      const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
                      ui.markAllRead.disabled = loading || currentUnreadCount === 0;
                  }
@@ -205,7 +205,7 @@
     function renderUserTitlesInventorySkeletons(container = ui.userTitlesInventoryGrid, count = 4) { if (!container) { console.warn("[Skeletons] User Titles Inventory container not found."); return; } container.innerHTML = ''; container.style.display = 'grid'; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += ` <div class="title-item card loading"> <div class="loading-skeleton" style="display: flex !important;"> <div style="display: flex; gap: 1.2rem; align-items: flex-start; width: 100%;"> <div class="skeleton" style="width: 60px; height: 60px; border-radius: 14px; flex-shrink: 0;"></div> <div style="flex-grow: 1;"> <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 0.7rem;"></div> <div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.5rem;"></div> <div class="skeleton" style="height: 14px; width: 75%;"></div> </div> </div> </div> </div>`; } container.innerHTML = skeletonHTML; }
     // --- END: Skeleton Rendering Functions ---
 
-    // --- START: Data Fetching Functions ---
+    // --- START: Data Fetching Functions (with new fetches) ---
     async function fetchUserFullProfile(userId) {
         if (!supabase || !userId) return null;
         console.log(`[Profile Full] Fetching FULL profile for achievements, user ID: ${userId}`);
@@ -228,7 +228,7 @@
         }
     }
 
-    async function fetchUserStats(userId) {
+    async function fetchUserStats(userId) { // Removed profileData dependency
         if (!supabase || !userId ) return {};
         console.log(`[UserStats] Fetching user_stats for user ${userId}`);
         try {
@@ -250,7 +250,6 @@
 
     async function fetchAllBadgesDefinition() {
         if (!supabase) return [];
-        // setLoadingState('userBadges', true); // No, this is for specific rendering
         try {
             const { data, error } = await supabase.from('badges').select('*').order('id');
             if (error) throw error;
@@ -279,7 +278,6 @@
     async function fetchAllPurchasableTitles() {
         if (!supabase) return [];
         console.log("[Titles] Fetching ALL available & purchasable titles from DB...");
-        // setLoadingState('titles', true); // Not for this global fetch
         try {
             const { data, error } = await supabase
                 .from('title_shop')
@@ -301,7 +299,6 @@
 
     async function fetchLeaderboardData() {
         if (!supabase) return [];
-        // setLoadingState('leaderboard', true); // Will be set before rendering
         try {
             const { data, error } = await supabase
                 .from('leaderboard')
@@ -322,7 +319,6 @@
     }
     async function fetchNotifications(userId, limit = NOTIFICATION_FETCH_LIMIT) {
         if (!supabase || !userId) return { unreadCount: 0, notifications: [] };
-        // setLoadingState('notifications', true); // Will be set before rendering
         try {
             const { data, error, count } = await supabase
                 .from('user_notifications')
@@ -422,7 +418,6 @@
                 .from('study_plans')
                 .select('id', { count: 'exact', head: true })
                 .eq('user_id', userId);
-            // Consider adding .eq('status', 'active') if only active plans count
             if (error) throw error;
             console.log(`[FetchData] Study plans count for user ${userId}: ${count || 0}`);
             return count || 0;
@@ -439,10 +434,10 @@
         setLoadingState('userAiLessons', true);
         try {
             const { count, error } = await supabase
-                .from('ai_sessions') // Assuming this table tracks AI lessons
+                .from('ai_sessions')
                 .select('id', { count: 'exact', head: true })
                 .eq('user_id', userId)
-                .eq('status', 'ended'); // Or 'completed' or similar, based on your schema
+                .eq('status', 'ended');
             if (error) throw error;
             console.log(`[FetchData] AI lessons completed count for user ${userId}: ${count || 0}`);
             return count || 0;
@@ -461,7 +456,7 @@
     function checkRequirements(profileData, requirements, otherData = {}) {
         if (!profileData || !requirements || typeof requirements !== 'object') {
             console.warn("[Achievements CheckReq] Invalid input for checking requirements.", profileData, requirements);
-            return { met: false, current: 0, target: requirements.target || requirements.count || 1, progressText: "Chyba" };
+            return { met: false, current: 0, target: requirements?.target || requirements?.count || 1, progressText: "Chyba" };
         }
 
         const reqType = requirements.type;
@@ -553,9 +548,46 @@
                      targetValue = reqTarget;
                      progressText = `${currentValue}/${targetValue} cvičení`;
                      break;
+                // Cases for original requirements (IDs 1-4, 7) if their JSON is updated
+                case 'topic_score': // For 'Algebraický mistr'
+                    // This requires fetching specific topic scores, which is not directly in user_topic_progress's current structure (it has percentage)
+                    // Assuming a placeholder or that this logic will be adapted if detailed scores per topic are stored differently.
+                    // For now, let's use topic_progress_reached as a proxy if min_score_percentage is available
+                    if (requirements.min_score_percentage) {
+                        const scoreTopicProgress = (otherData.userTopicProgressList || []).find(tp => tp.topic_id === requirements.topic_id); // Assuming topic_id maps to algebra if defined in badge
+                        currentValue = scoreTopicProgress ? scoreTopicProgress.progress_percentage : 0;
+                        targetValue = requirements.min_score_percentage;
+                        const scoreTopicName = (otherData.allExamTopics || []).find(et => et.id === requirements.topic_id)?.name || `Téma ID ${requirements.topic_id}`;
+                        progressText = `${currentValue}% v "${sanitizeHTML(scoreTopicName)}" (Cíl: ${targetValue}%)`;
+                    } else {
+                         progressText = "N/A (Chybí min_score_percentage)";
+                    }
+                    break;
+                case 'topic_exercises_completed': // For 'Geometr', 'Čtenář'
+                    // This requires counting exercises per topic. currentProfile.completed_exercises is total.
+                    // Placeholder - this needs more data from user_exercises joined with exercises and topics.
+                    currentValue = 0; // Placeholder
+                    targetValue = reqTarget;
+                    const exTopicName = (otherData.allExamTopics || []).find(et => et.id === requirements.topic_id)?.name || `Téma ID ${requirements.topic_id}`;
+                    progressText = `${currentValue}/${targetValue} cv. ("${sanitizeHTML(exTopicName)}")`;
+                    break;
+                case 'topic_perfect_exercises': // For 'Gramatický expert'
+                    // Placeholder - requires tracking of perfect exercises per topic.
+                    currentValue = 0; // Placeholder
+                    targetValue = reqTarget;
+                     const perfTopicName = (otherData.allExamTopics || []).find(et => et.id === requirements.topic_id)?.name || `Téma ID ${requirements.topic_id}`;
+                    progressText = `${currentValue}/${targetValue} perfektních cv. ("${sanitizeHTML(perfTopicName)}")`;
+                    break;
+
                 default:
-                    console.warn(`[Achievements CheckReq] Unknown requirement type: ${reqType}`);
-                    progressText = "Neznámý typ";
+                    // If reqType is undefined, it means the requirements JSON for a badge is missing the 'type' field.
+                    if (reqType === undefined) {
+                         console.error(`[Achievements CheckReq] CRITICAL: Badge requirement 'type' is undefined for requirement object:`, requirements, `Badge Title (if available from context): N/A`);
+                         progressText = "Chybná definice";
+                    } else {
+                        console.warn(`[Achievements CheckReq] Unknown requirement type: ${reqType}`);
+                        progressText = "Neznámý typ";
+                    }
                     return { met: false, current: 0, target: targetValue, progressText };
             }
             return { met: currentValue >= targetValue, current: currentValue, target: targetValue, progressText };
@@ -591,10 +623,9 @@
                 if (updateProfileError) { console.error("[AwardBadge] Error updating profile stats:", updateProfileError); }
                 else {
                     console.log(`[AwardBadge] Profile stats updated for user ${userId}: badges_count=${updates.badges_count}` + (updates.points ? `, points=${updates.points}` : ''));
-                    if (currentProfile && currentProfile.id === userId) { // Update global currentProfile
+                    if (currentProfile && currentProfile.id === userId) {
                         currentProfile.badges_count = updates.badges_count;
-                        if (updates.points !== undefined) currentProfile.points = updates.points; // Check for undefined
-                        // No need to call updateSidebarProfile and updateStatsCards here, will be done after all checks
+                        if (updates.points !== undefined) currentProfile.points = updates.points;
                     }
                 }
             }
@@ -602,8 +633,17 @@
             const notificationTitle = `🏆 Nový Odznak!`;
             const notificationMessage = `Získali jste odznak: "${badgeTitle}"! ${pointsAwarded > 0 ? `(+${pointsAwarded} kreditů)` : ''}`;
             const { error: notifyError } = await supabaseInstance.from('user_notifications').insert({ user_id: userId, title: notificationTitle, message: notificationMessage, type: 'badge', link: '/dashboard/oceneni.html' });
-            if (notifyError) console.error("[AwardBadge] Error creating notification:", notifyError);
-            else console.log(`[AwardBadge] Notification created for badge ${badgeId}`);
+            if (notifyError) {
+                console.error("[AwardBadge] Error creating notification:", notifyError);
+                 // Check if it's an RLS violation
+                if (notifyError.code === '42501' || notifyError.message.includes('violates row-level security policy')) {
+                    showToast('Chyba Notifikace', 'Odznak udělen, ale nepodařilo se vytvořit oznámení (chyba oprávnění).', 'warning');
+                } else {
+                    showToast('Chyba Notifikace', 'Odznak udělen, ale nepodařilo se vytvořit oznámení.', 'warning');
+                }
+            } else {
+                console.log(`[AwardBadge] Notification created for badge ${badgeId}`);
+            }
 
             showToast(notificationTitle, notificationMessage, 'success', 6000);
         } catch (error) {
@@ -624,16 +664,17 @@
 
             const { data: allBadgesData, error: badgesError } = await supabaseInstance.from('badges').select('id, title, requirements, points').order('id');
             if (badgesError) throw badgesError;
-            if (!allBadgesData || allBadgesData.length === 0) { console.log("[Achievements Check] No badge definitions found."); return; }
+            if (!allBadgesData || allBadgesData.length === 0) { console.log("[Achievements Check] No badge definitions found."); setLoadingState('availableBadges', false); return; } // Early exit if no badges to check
 
             const { data: earnedBadgesData, error: earnedError } = await supabaseInstance.from('user_badges').select('badge_id').eq('user_id', userId);
             if (earnedError) throw earnedError;
 
             const earnedBadgeIds = new Set((earnedBadgesData || []).map(b => b.badge_id));
-            allBadges = allBadgesData; // Store all badge definitions globally
-            userBadges = earnedBadgesData.map(eb => ({ // Store detailed earned badges if needed elsewhere, or just IDs
+            allBadges = allBadgesData;
+            userBadges = earnedBadgesData.map(eb => ({
                 badge_id: eb.badge_id,
-                badge: allBadges.find(b => b.id === eb.badge_id) || {} // Add full badge detail
+                badge: allBadges.find(b => b.id === eb.badge_id) || {},
+                earned_at: allBadges.find(b => b.id === eb.badge_id)?.created_at // Placeholder, ideally this comes from user_badges
             }));
 
 
@@ -651,6 +692,14 @@
 
             let newBadgeAwardedThisSession = false;
             for (const badge of unearnedBadges) {
+                if (!badge.requirements) {
+                    console.warn(`[Achievements Check] Badge ID: ${badge.id} (${badge.title}) has no requirements defined. Skipping.`);
+                    continue;
+                }
+                if (badge.requirements.type === undefined) { // Check if 'type' is missing within requirements
+                    console.warn(`[Achievements Check] Badge ID: ${badge.id} (${badge.title}) has requirements JSON but missing 'type' field. Skipping. Req:`, badge.requirements);
+                    continue;
+                }
                 const progressResult = checkRequirements(profileDataForCheck, badge.requirements, otherDataForAchievements);
                 if (progressResult.met) {
                     console.log(`[Achievements Check] Criteria MET for badge ID: ${badge.id} (${badge.title})! Triggering award...`);
@@ -661,11 +710,10 @@
             console.log(`[Achievements Check] Finished checking for user ${userId}. New badges awarded this session: ${newBadgeAwardedThisSession}`);
 
             if (newBadgeAwardedThisSession) {
-                // Re-fetch the profile because points/badges_count might have changed
                 const updatedProfile = await fetchUserFullProfile(userId);
                 if(updatedProfile) currentProfile = updatedProfile;
 
-                userBadges = await fetchUserEarnedBadges(userId); // Re-fetch earned badges
+                userBadges = await fetchUserEarnedBadges(userId);
                 renderUserBadges(userBadges);
                  updateSidebarProfile(currentProfile, allTitlesFromDB);
                  updateStatsCards({
@@ -674,11 +722,9 @@
                      streak_current: currentProfile.streak_days,
                      streak_longest: currentProfile.longest_streak_days,
                      rank: leaderboardData.find(u => u.user_id === currentUser.id)?.rank,
-                     totalUsers: leaderboardData.length > 0 ? leaderboardData.length : (await supabase.from('profiles').select('id', {count: 'exact', head: true})).count
+                     totalUsers: leaderboardData.length > 0 ? leaderboardData.length : ((await supabase.from('profiles').select('id', {count: 'exact', head: true})).count || 0)
                  });
-
             }
-            // Always re-render available badges to update progress displays
             renderAvailableBadges(allBadges, userBadges, currentProfile, otherDataForAchievements);
 
         } catch (error) {
@@ -690,168 +736,16 @@
     // --- END: Achievement Logic ---
 
     // --- START: Data Rendering Functions ---
-    function updateSidebarProfile(profile, titlesData = allTitlesFromDB) {
-        if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) return;
-        if (profile) {
-            const displayName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username || currentUser?.email?.split('@')[0] || 'Pilot';
-            ui.sidebarName.textContent = sanitizeHTML(displayName);
-            const initials = getInitials(profile);
-            const avatarUrl = profile.avatar_url;
-            const selectedDecorationKey = profile.selected_decoration || '';
-
-            const avatarWrapper = ui.sidebarAvatar.closest('.avatar-wrapper');
-            if (avatarWrapper) {
-                const decorationClasses = (allDecorations || []).map(d => d.decoration_key).filter(Boolean);
-                decorationClasses.forEach(cls => avatarWrapper.classList.remove(cls));
-                if (selectedDecorationKey) {
-                    avatarWrapper.classList.add(sanitizeHTML(selectedDecorationKey));
-                }
-                avatarWrapper.dataset.decorationKey = selectedDecorationKey;
-            }
-
-            ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
-            const sidebarImg = ui.sidebarAvatar.querySelector('img');
-            if(sidebarImg) { sidebarImg.onerror = () => { ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); }; }
-
-            const selectedTitleKey = profile.selected_title;
-            let displayTitle = 'Pilot';
-            if (selectedTitleKey && titlesData && titlesData.length > 0) {
-                const foundTitle = titlesData.find(t => t.title_key === selectedTitleKey);
-                if (foundTitle && foundTitle.name) displayTitle = foundTitle.name;
-            }
-            ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle);
-            ui.sidebarUserTitle.title = sanitizeHTML(displayTitle);
-        } else {
-            ui.sidebarName.textContent = "Pilot"; ui.sidebarAvatar.textContent = '?';
-            ui.sidebarUserTitle.textContent = 'Pilot'; ui.sidebarUserTitle.removeAttribute('title');
-             const avatarWrapper = ui.sidebarAvatar?.closest('.avatar-wrapper');
-            if (avatarWrapper) {
-                const decorationClasses = (allDecorations || []).map(d => d.decoration_key).filter(Boolean);
-                decorationClasses.forEach(cls => avatarWrapper.classList.remove(cls));
-                avatarWrapper.dataset.decorationKey = '';
-            }
-        }
-    }
-
-    function updateStatsCards(stats) {
-        if (!stats) { console.warn("No stats data to update cards."); return; }
-        const getVal = (v) => (v !== null && v !== undefined) ? v : '-';
-
-        if (ui.badgesCount) ui.badgesCount.textContent = getVal(stats.badges);
-        if (ui.pointsCount) ui.pointsCount.textContent = getVal(stats.points);
-        if (ui.streakDays) ui.streakDays.textContent = getVal(stats.streak_current);
-        if (ui.streakChange) ui.streakChange.textContent = `MAX: ${getVal(stats.streak_longest)} dní`;
-        if (ui.rankValue) ui.rankValue.textContent = getVal(stats.rank);
-        if (ui.rankChange && ui.totalUsers) ui.rankChange.innerHTML = `<i class="fas fa-users"></i> z ${getVal(stats.totalUsers)} pilotů`;
-
-        if (ui.badgesCard) ui.badgesCard.classList.remove('loading');
-        if (ui.pointsCard) ui.pointsCard.classList.remove('loading');
-        if (ui.streakCard) ui.streakCard.classList.remove('loading');
-        if (ui.rankCard) ui.rankCard.classList.remove('loading');
-    }
-
-    function renderUserBadges(earnedBadges) {
-        setLoadingState('userBadges', false);
-        if (!ui.badgeGrid || !ui.emptyBadges) return;
-        ui.badgeGrid.innerHTML = '';
-        if (!earnedBadges || earnedBadges.length === 0) {
-            ui.emptyBadges.style.display = 'block';
-            ui.badgeGrid.style.display = 'none';
-            return;
-        }
-        ui.emptyBadges.style.display = 'none';
-        ui.badgeGrid.style.display = 'grid';
-        const fragment = document.createDocumentFragment();
-        earnedBadges.forEach((ub, index) => {
-            const badge = ub.badge; // Assuming badge detail is now nested
-            if (!badge) {
-                console.warn("Earned badge data is missing details for an entry:", ub);
-                return;
-            }
-            const badgeType = badge.type?.toLowerCase() || 'default';
-            const visual = badgeVisuals[badgeType] || badgeVisuals.default;
-            const badgeElement = document.createElement('div');
-            badgeElement.className = 'badge-card card';
-            badgeElement.setAttribute('data-animate', '');
-            badgeElement.style.setProperty('--animation-order', index);
-            badgeElement.innerHTML = `
-                <div class="badge-icon ${badgeType}" style="background: ${visual.gradient};">
-                    <i class="fas ${sanitizeHTML(visual.icon)}"></i>
-                </div>
-                <h3 class="badge-title">${sanitizeHTML(badge.title)}</h3>
-                <p class="badge-desc">${sanitizeHTML(badge.description || '')}</p>
-                <div class="badge-date">
-                    <i class="far fa-calendar-alt"></i> ${formatDate(ub.earned_at)}
-                </div>`;
-            fragment.appendChild(badgeElement);
-        });
-        ui.badgeGrid.appendChild(fragment);
-        requestAnimationFrame(initScrollAnimations);
-    }
-
-    function renderAvailableBadges(allBadgesDef, userBadgesData, profile, otherData = {}) {
-        setLoadingState('availableBadges', false);
-        if (!ui.availableBadgesGrid || !ui.emptyAvailableBadges) {
-            console.warn("[Render AvailableBadges] UI elements missing.");
-            return;
-        }
-        const earnedIds = new Set((userBadgesData || []).map(ub => ub.badge_id));
-        const available = (allBadgesDef || []).filter(b => !earnedIds.has(b.id));
-
-        ui.availableBadgesGrid.innerHTML = '';
-        if (available.length === 0) {
-            ui.emptyAvailableBadges.style.display = 'block';
-            ui.availableBadgesGrid.style.display = 'none';
-            ui.emptyAvailableBadges.innerHTML = `
-                <i class="fas fa-check-double empty-state-icon" style="color: var(--accent-lime);"></i>
-                <h3 class="empty-state-title">VŠECHNY VÝZVY SPLNĚNY!</h3>
-                <p class="empty-state-desc"> Gratulace, pilote! Získal jsi všechna dostupná ocenění. Nové výzvy brzy dorazí.</p>`;
-            return;
-        }
-        ui.emptyAvailableBadges.style.display = 'none';
-        ui.availableBadgesGrid.style.display = 'grid';
-
-        const fragment = document.createDocumentFragment();
-        available.forEach((badge, index) => {
-            const badgeType = badge.type?.toLowerCase() || 'default';
-            const visual = badgeVisuals[badgeType] || badgeVisuals.default;
-
-            const progressResult = checkRequirements(profile, badge.requirements, otherData);
-            const currentValue = progressResult.current;
-            const targetValue = progressResult.target;
-            const progressPercent = targetValue > 0 ? Math.min(100, Math.round((currentValue / targetValue) * 100)) : 0;
-            const displayProgressText = progressResult.progressText || `${currentValue}/${targetValue}`;
-
-            const badgeElement = document.createElement('div');
-            badgeElement.className = 'achievement-card card';
-            badgeElement.setAttribute('data-animate', '');
-            badgeElement.style.setProperty('--animation-order', index);
-            badgeElement.innerHTML = `
-                <div class="achievement-icon ${badgeType}" style="background: ${visual.gradient};">
-                    <i class="fas ${sanitizeHTML(visual.icon)}"></i>
-                </div>
-                <div class="achievement-content">
-                    <h3 class="achievement-title">${sanitizeHTML(badge.title)}</h3>
-                    <p class="achievement-desc">${sanitizeHTML(badge.description || '')}</p>
-                    <div class="progress-container">
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${progressPercent}%; background: ${visual.gradient};"></div>
-                        </div>
-                        <div class="progress-stats">${progressPercent}% (${displayProgressText})</div>
-                    </div>
-                </div>`;
-            fragment.appendChild(badgeElement);
-        });
-        ui.availableBadgesGrid.appendChild(fragment);
-        requestAnimationFrame(initScrollAnimations);
-    }
-
-    function renderLeaderboard(data) { /* ... (same as before, ensure it uses 'supabase' for consistency if any DB calls were there) ... */ }
-    function selectDailyUserSpecificTitles(allPurchasable, purchasedKeys, userId) { /* ... (same as before) ... */ return []}
-    function renderTitleShop(titlesToDisplay, profile) { /* ... (same as before) ... */ }
-    function renderUserTitlesInventory(profile, allTitlesData) { /* ... (same as before) ... */ }
-    function renderAvatarDecorationsShop(decorations, profile) { /* ... (same as before) ... */ }
-    function renderNotifications(count, notifications) { /* ... (same as before, ensure it uses 'supabase' for consistency if any DB calls were there) ... */ }
+    function updateSidebarProfile(profile, titlesData = allTitlesFromDB) { /* ... */ }
+    function updateStatsCards(stats) { /* ... */ }
+    function renderUserBadges(earnedBadges) { /* ... */ }
+    function renderAvailableBadges(allBadgesDef, userBadgesData, profile, otherData = {}) { /* ... */ }
+    function renderLeaderboard(data) { /* ... */ }
+    function selectDailyUserSpecificTitles(allPurchasable, purchasedKeys, userId) { /* ... */ return [];}
+    function renderTitleShop(titlesToDisplay, profile) { /* ... */ }
+    function renderUserTitlesInventory(profile, allTitlesData) { /* ... */ }
+    function renderAvatarDecorationsShop(decorations, profile) { /* ... */ }
+    function renderNotifications(count, notifications) { /* ... */ }
     // --- END: Data Rendering Functions ---
 
     // --- START: Shop Interaction Logic ---
@@ -876,10 +770,10 @@
         setLoadingState('all', true);
         try {
             const results = await Promise.allSettled([
-                fetchUserFullProfile(currentUser.id), // Fetch full profile here
+                fetchUserFullProfile(currentUser.id),
                 fetchAllBadgesDefinition(),
                 fetchUserEarnedBadges(currentUser.id),
-                fetchAllPurchasableTitles(), // This now populates allTitlesFromDB
+                fetchAllPurchasableTitles(),
                 fetchAvatarDecorationsData(),
                 fetchLeaderboardData(),
                 fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT),
@@ -889,13 +783,12 @@
                 fetchAllExamTopics(),
                 fetchUserStudyPlansCount(currentUser.id),
                 fetchUserAiLessonsCompletedCount(currentUser.id)
-                // No separate fetchUserStats, data comes from currentProfile and leaderboard
             ]);
             console.log("[LoadAwards] Data fetch results:", results);
 
             const [
                 profileResult, allBadgesResult, userBadgesResult,
-                allTitlesResult, avatarShopResult, leaderboardResult, // allTitlesResult is now allTitlesFromDB
+                allTitlesResult, avatarShopResult, leaderboardResult,
                 notificationsResult, diagnosticCountResult, learningLogsCountResult,
                 topicProgressResult, examTopicsResult, studyPlansCountResult,
                 aiLessonsCountResult
@@ -912,7 +805,7 @@
 
             allBadges = (allBadgesResult.status === 'fulfilled') ? allBadgesResult.value : [];
             userBadges = (userBadgesResult.status === 'fulfilled') ? userBadgesResult.value : [];
-            // allTitlesFromDB is already populated by fetchAllPurchasableTitles
+            allTitlesFromDB = (allTitlesResult.status === 'fulfilled') ? allTitlesResult.value : [];
             allDecorations = (avatarShopResult.status === 'fulfilled') ? avatarShopResult.value : [];
             leaderboardData = (leaderboardResult.status === 'fulfilled') ? leaderboardResult.value : [];
             const { unreadCount, notifications: fetchedNotifications } = (notificationsResult.status === 'fulfilled') ? notificationsResult.value : { unreadCount: 0, notifications: [] };
@@ -932,7 +825,7 @@
                 streak_current: currentProfile.streak_days,
                 streak_longest: currentProfile.longest_streak_days,
                 rank: leaderboardData.find(u => u.user_id === currentUser.id)?.rank,
-                totalUsers: leaderboardData.length > 0 ? leaderboardData.length : (await supabase.from('profiles').select('id', {count: 'exact', head: true})).count
+                totalUsers: leaderboardData.length > 0 ? leaderboardData.length : ((await supabase.from('profiles').select('id', {count: 'exact', head: true})).count || 0)
             });
 
             renderUserBadges(userBadges);
@@ -987,7 +880,7 @@
         safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn');
         safeAddListener(ui.refreshDataBtn, 'click', loadAllAwardData, 'refreshDataBtn');
         safeAddListener(ui.notificationBell, 'click', (e) => { e.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell');
-        safeAddListener(ui.markAllRead, 'click', handleMarkAllReadClick, 'markAllRead'); // Corrected ID
+        safeAddListener(ui.markAllRead, 'click', handleMarkAllReadClick, 'markAllRead');
         safeAddListener(ui.notificationsList, 'click', handleNotificationClick, 'notificationsList');
         safeAddListener(ui.titleShopGrid, 'click', handleShopInteraction, 'titleShopGrid');
         safeAddListener(ui.avatarDecorationsGrid, 'click', handleShopInteraction, 'avatarDecorationsGrid');
@@ -1011,7 +904,7 @@
             const contentElement = sectionToggleMap[buttonKey];
 
             if (button && contentElement) {
-                const sectionCard = button.closest('.card-section');
+                const sectionCard = button.closest('.card-section'); // Updated selector
                 const storedState = localStorage.getItem(`section-${buttonKey}-collapsed`);
                 let isInitiallyCollapsed = storedState === 'true';
 
@@ -1094,7 +987,7 @@
 
     // --- START: Initialization ---
     async function initializeApp() {
-        console.log("🚀 [Init Oceneni v23.23.5] Starting...");
+        console.log("🚀 [Init Oceneni v23.23.6] Starting..."); // Updated version
         cacheDOMElements();
         if (!initializeSupabase()) return;
         applyInitialSidebarState();
@@ -1109,13 +1002,11 @@
             currentUser = session.user;
             console.log(`[Init Oceneni] User authenticated (ID: ${currentUser.id}).`);
 
-            // Basic profile and titles for sidebar before full data load
-            const tempProfile = await fetchUserFullProfile(currentUser.id); // Fetch full profile early
-            if (!tempProfile) {
-                 console.log("[Init Oceneni] Profile not found, attempting to create default (basic info for now)...");
-                 currentProfile = { id: currentUser.id, email: currentUser.email, points:0, badges_count:0, streak_days:0, longest_streak_days:0 };
-            } else {
-                currentProfile = tempProfile;
+            // Call fetchUserFullProfile instead of fetchUserProfile
+            currentProfile = await fetchUserFullProfile(currentUser.id);
+            if (!currentProfile) {
+                console.log("[Init Oceneni] Profile not found, attempting to create default (basic info for now)...");
+                currentProfile = { id: currentUser.id, email: currentUser.email, points:0, badges_count:0, streak_days:0, longest_streak_days:0, purchased_titles: [], selected_title: null, selected_decoration: null }; // Minimal for sidebar
             }
             allTitlesFromDB = await fetchAllPurchasableTitles();
 
@@ -1127,7 +1018,7 @@
             updateCopyrightYear();
             updateOnlineStatus();
 
-            await loadAllAwardData(); // This now includes fetching the full profile again if needed, and other data
+            await loadAllAwardData();
 
             if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); }
             if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }
