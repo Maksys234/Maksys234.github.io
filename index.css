@@ -646,7 +646,7 @@ section:has(.section-title.animated) .section-title span::after,
 }
 
 /* Ensure content is above pattern */
-.feature-card-header, .feature-card p {
+.feature-card-header, .feature-card p { /* Combined for simplicity */
 	position: relative;
 	z-index: 1;
 	transform: translateZ(20px); /* Slight 3D effect for content */
@@ -1405,6 +1405,95 @@ button:hover ~ .mouse-follower-glow,
     filter: blur(0);
 }
 
+
+/* ==========================================================================
+   Yuki Special Section Styles (NEW)
+   ========================================================================== */
+.yuki-special-section {
+    background-color: var(--clr-bg-secondary); /* Or any other background you prefer */
+    border-block: 1px solid rgba(255, 51, 168, 0.2); /* Pinkish border */
+    text-align: center; /* Center the card */
+}
+
+.yuki-card {
+    background: var(--clr-bg-card);
+    backdrop-filter: blur(10px) saturate(1.2);
+    border: 1px solid transparent;
+    border-image: linear-gradient(135deg, var(--clr-accent-pink), var(--clr-accent-purple), var(--clr-accent-cyan)) 1;
+    padding: clamp(30px, 6vw, 50px);
+    border-radius: var(--layout-border-radius-lg);
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5), var(--glow-pink);
+    max-width: 650px; /* Adjust as needed */
+    margin: 2rem auto 0 auto; /* Center card and add top margin */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.yuki-card::before { /* Optional subtle pattern, similar to feature cards */
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(rgba(255, 51, 168, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(160, 92, 255, 0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.5;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.yuki-card > * { /* Ensure content is above the pattern */
+    position: relative;
+    z-index: 1;
+}
+
+.yuki-photo {
+    width: clamp(150px, 30vw, 200px); /* Responsive size */
+    height: clamp(150px, 30vw, 200px);
+    border-radius: 50%; /* Circular photo */
+    object-fit: cover; /* Ensure photo covers the area well */
+    margin-bottom: 1.8rem;
+    border: 4px solid var(--clr-accent-pink);
+    box-shadow: 0 0 20px var(--clr-accent-pink), 0 0 30px rgba(255, 51, 168, 0.3);
+    transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
+}
+
+.yuki-card:hover .yuki-photo {
+    transform: scale(1.05) rotate(-3deg);
+    box-shadow: 0 0 25px var(--clr-accent-pink), 0 0 40px rgba(255, 51, 168, 0.5), 0 0 15px var(--clr-accent-cyan) inset;
+}
+
+.yuki-card h3 {
+    color: var(--clr-text-highlight);
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    margin-bottom: 1rem;
+    text-shadow: 0 0 8px var(--clr-accent-pink);
+}
+
+.yuki-card p {
+    color: var(--clr-text-primary);
+    font-size: clamp(1rem, 2vw, 1.15rem);
+    line-height: 1.7;
+    max-width: 90%;
+    margin-bottom: 1.5rem;
+}
+
+.yuki-card .small-note {
+    font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+    color: var(--clr-text-secondary);
+    opacity: 0.8;
+    font-style: italic;
+    margin-top: 1rem; /* Space above the note */
+    margin-bottom: 0;
+}
+.yuki-card .small-note i { /* If you use an icon in the small note */
+    color: var(--clr-accent-cyan);
+    margin-right: 5px;
+}
+
+
 /* ==========================================================================
    Responsive Design Adjustments
    ========================================================================== */
@@ -1480,7 +1569,6 @@ button:hover ~ .mouse-follower-glow,
     .slider-btn.prev-btn { left: 5px; }
     .slider-btn.next-btn { right: 5px; }
 
-
 	/* Simplify hover effects on mobile */
 	.feature-card:hover, .testimonial-card:hover {
 		transform: translateY(-6px) scale(1.01);
@@ -1501,11 +1589,19 @@ button:hover ~ .mouse-follower-glow,
 		transform-origin: center center;
 	}
 
-
 	.footer-grid { grid-template-columns: 1fr; text-align: center; gap: 35px; }
 	.social-links { justify-content: center; }
 	.footer-column .logo { justify-content: center; display: flex; } /* Center logo */
     .footer-column ul li i { display: none; } /* Hide icons in lists on mobile */
+
+    /* Yuki card on mobile */
+    .yuki-card {
+        padding: 25px 20px;
+    }
+    .yuki-photo {
+        width: 120px;
+        height: 120px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -1519,19 +1615,33 @@ button:hover ~ .mouse-follower-glow,
 	.testimonial-text { font-size: 0.95rem; }
 	.ai-content-area { padding: 15px; }
 	.ai-log-window { padding: 15px; font-size: 0.8rem; height: 250px; }
+
+    .yuki-card h3 {
+        font-size: 1.6rem;
+    }
+     .yuki-card p {
+        font-size: 0.95rem;
+    }
+    .yuki-photo {
+        width: 100px;
+        height: 100px;
+        border-width: 3px;
+    }
 }
 
 /* --- Print Styles --- */
 @media print {
 	body { background: #fff; color: #000; }
-	#header, #footer, .hero #particles-js, .mouse-follower-glow, .cta, .ai-interface-section, .testimonial-slider-wrapper .slider-btn { display: none; } /* Hide slider buttons */
+	#header, #footer, .hero #particles-js, .mouse-follower-glow, .cta, .ai-interface-section, .testimonial-slider-wrapper .slider-btn, .yuki-special-section .yuki-card::before { display: none; } /* Hide slider buttons and yuki pattern */
 	.container { width: 100%; max-width: none; margin: 0; padding: 0 1cm; }
 	a { color: #000; text-decoration: underline; }
-	h1, h2, h3 { color: #000; }
+	h1, h2, h3 { color: #000; text-shadow: none; }
 	p { color: #333; }
 	.feature-card, .how-it-works-step { border: 1px solid #ccc; box-shadow: none; backdrop-filter: none; background: #f8f8f8; padding: 15px; break-inside: avoid; }
     .testimonial-slider-container { overflow: visible; } /* Show all cards on print */
     .testimonial-slider-track { display: block; /* Stack cards vertically */ transform: none !important; /* Reset transform */ }
     .testimonial-card { border: 1px solid #ccc; box-shadow: none; backdrop-filter: none; background: #f8f8f8; padding: 15px; break-inside: avoid; width: 100%; margin-bottom: 1cm; margin-right: 0; }
     .hero h1 .highlight { background: none; color: #000; } /* Basic print style for highlighted text */
+    .yuki-card { border: 1px solid #ccc; box-shadow: none; backdrop-filter: none; background: #f8f8f8; padding: 1cm; text-align: left; max-width: 100%; }
+    .yuki-photo { border: 2px solid #666; box-shadow: none; float: right; margin-left: 1cm; width: 100px; height: 100px; }
 }
