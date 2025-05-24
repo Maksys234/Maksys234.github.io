@@ -3,6 +3,7 @@
 // используя логику из test1-logic.js (доступную через window.TestLogic).
 // Версия v12.1: Исправлена синтаксическая ошибка 'Unexpected token )' в initializeTest.
 // Обновлено для поддержки answer_prefix, answer_suffix и многочастных ответов.
+// Версия v12.2 (интеграция с main.js): Добавлена функциональность боковой панели и загрузка заголовка пользователя.
 
 // Используем IIFE для изоляции области видимости
 (function() {
@@ -22,7 +23,10 @@
     let testResultsData = null;
     let diagnosticId = null;
     let selectedTestType = null;
-    let isLoading = { page: true, test: false, results: false, notifications: false };
+    let isLoading = { page: true, test: false, results: false, notifications: false, titles: false }; // Added titles
+    let allTitles = []; // Added from main.js
+		const SIDEBAR_STATE_KEY = 'sidebarCollapsedState'; // Added from main.js
+
 
     const testTypeConfig = {
         quick: { questionsCount: 10, title: 'Rychlý diagnostický test', description: 'Základní prověření', multiplier: 1.0 },
@@ -38,6 +42,7 @@
     const ui = {
         sidebarAvatar: document.getElementById('sidebar-avatar'),
         sidebarName: document.getElementById('sidebar-name'),
+        sidebarUserTitle: document.getElementById('sidebar-user-title'), // Added from main.js
         initialLoader: document.getElementById('initial-loader'),
         sidebarOverlay: document.getElementById('sidebar-overlay'),
         geminiOverlay: document.getElementById('gemini-checking-overlay'),
@@ -45,6 +50,7 @@
         sidebar: document.getElementById('sidebar'),
         mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
         sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
+        sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'), // Added from main.js
         dashboardHeader: document.querySelector('.dashboard-header'),
         testSubject: document.getElementById('test-subject'),
         testLevel: document.getElementById('test-level'),
@@ -99,13 +105,64 @@
     function showError(message, isGlobal = false) { console.error("Došlo k chybě:", message); if (isGlobal && ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" onclick="location.reload()">Zkusit Znovu</button></div>`; ui.globalError.style.display = 'block'; } else { showToast('CHYBA SYSTÉMU', message, 'error', 6000); } }
     function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
     function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
-    function getInitials(profileData) { if (!profileData) return '?'; const f = profileData.first_name?.[0] || ''; const l = profileData.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = profileData.username?.[0].toUpperCase() || ''; const emailInitial = profileData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?'; }
+    function getInitials(profileData) { // Updated to match main.js (profileData instead of currentUser)
+        if (!profileData) return '?';
+        const f = profileData.first_name?.[0] || '';
+        const l = profileData.last_name?.[0] || '';
+        const nameInitial = (f + l).toUpperCase();
+        const usernameInitial = profileData.username?.[0].toUpperCase() || '';
+        const emailInitial = profileData.email?.[0].toUpperCase() || ''; // Assuming profile might have email
+        return nameInitial || usernameInitial || emailInitial || '?';
+    }
     function formatDate(dateString) { if (!dateString) return '-'; try { const d = new Date(dateString); if (isNaN(d.getTime())) return '-'; return d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { return '-'; } }
     function formatTime(seconds) { if (isNaN(seconds) || seconds < 0) return '--:--'; const m = Math.floor(seconds / 60); const s = Math.round(seconds % 60); return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`; }
-    function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
+    function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { document.body.classList.remove('sidebar-collapsed'); ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
     function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
-    function toggleMobileMenu() { closeMenu(); }
-    function updateUserInfoUI() { if (!ui.sidebarName || !ui.sidebarAvatar) return; if (currentUser && currentProfile) { const displayName = `${currentProfile.first_name || ''} ${currentProfile.last_name || ''}`.trim() || currentProfile.username || currentUser.email?.split('@')[0] || 'Pilot'; ui.sidebarName.textContent = displayName; const initials = getInitials(currentProfile); ui.sidebarAvatar.innerHTML = currentProfile.avatar_url ? `<img src="${sanitizeHTML(currentProfile.avatar_url)}?t=${Date.now()}" alt="${displayName}">` : initials; } else { ui.sidebarName.textContent = 'Nepřihlášen'; ui.sidebarAvatar.textContent = '?'; } }
+
+    function updateUserInfoUI() { // Modified to include sidebarUserTitle from main.js
+        if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) {
+            console.warn("[UI Sidebar] Sidebar profile elements missing for full update.");
+            return;
+        }
+        if (currentUser && currentProfile) {
+            const displayName = `${currentProfile.first_name || ''} ${currentProfile.last_name || ''}`.trim() || currentProfile.username || currentUser.email?.split('@')[0] || 'Pilot';
+            ui.sidebarName.textContent = sanitizeHTML(displayName);
+            const initials = getInitials(currentProfile); // Pass currentProfile
+            ui.sidebarAvatar.innerHTML = currentProfile.avatar_url ? `<img src="${sanitizeHTML(currentProfile.avatar_url)}?t=${Date.now()}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
+
+            const img = ui.sidebarAvatar.querySelector('img');
+            if (img) {
+                img.onerror = function() {
+                    console.warn(`[UI Sidebar] Failed to load avatar: ${this.src}. Showing initials.`);
+                    ui.sidebarAvatar.innerHTML = sanitizeHTML(initials);
+                };
+            }
+
+            // Logic for user title from main.js
+            const selectedTitleKey = currentProfile.selected_title;
+            let displayTitle = 'Pilot'; // Default title
+
+            if (selectedTitleKey && allTitles && allTitles.length > 0) {
+                const foundTitle = allTitles.find(t => t.title_key === selectedTitleKey);
+                if (foundTitle && foundTitle.name) {
+                    displayTitle = foundTitle.name;
+                } else {
+                    console.warn(`[UI Sidebar] Title key "${selectedTitleKey}" not found in fetched titles.`);
+                }
+            } else if (selectedTitleKey) {
+                 console.warn(`[UI Sidebar] Title key present but allTitles array is empty or not loaded.`);
+            }
+            ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle);
+            ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle));
+
+        } else {
+            ui.sidebarName.textContent = 'Nepřihlášen';
+            ui.sidebarAvatar.textContent = '?';
+            ui.sidebarUserTitle.textContent = 'Pilot';
+            ui.sidebarUserTitle.removeAttribute('title');
+        }
+    }
+
     function handleScroll() { if (!ui.mainContent || !ui.dashboardHeader) return; document.body.classList.toggle('scrolled', ui.mainContent.scrollTop > 10); }
     function indexToLetter(index){ return String.fromCharCode(65 + index); }
     function showGeminiOverlay(show){ if(ui.geminiOverlay) ui.geminiOverlay.style.display = show ? 'flex' : 'none'; }
@@ -118,10 +175,99 @@
     const initHeaderScrollDetection = () => { let lastScrollY = window.scrollY; const mainEl = ui.mainContent; if (!mainEl) return; mainEl.addEventListener('scroll', () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 10); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; }, { passive: true }); if (mainEl.scrollTop > 10) document.body.classList.add('scrolled'); };
     function updateOnlineStatus() { if (ui.offlineBanner) { ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; } if (!navigator.onLine) { showToast('Offline', 'Spojení bylo ztraceno. Některé funkce nemusí být dostupné.', 'warning'); } }
     function setLoadingState(section, isLoadingFlag) { if (isLoading[section] === isLoadingFlag && section !== 'all') return; if (section === 'all') { Object.keys(isLoading).forEach(key => isLoading[key] = isLoadingFlag); } else { isLoading[section] = isLoadingFlag; } console.log(`[SetLoading] Section: ${section}, isLoading: ${isLoadingFlag}`); if (section === 'test') { if (ui.testLoader) ui.testLoader.style.display = isLoadingFlag ? 'flex' : 'none'; if (ui.testContainer) ui.testContainer.style.display = isLoadingFlag ? 'none' : (selectedTestType ? 'block' : 'none'); } else if (section === 'results') { /* UI для загрузки результатов, если нужно */ } else if (section === 'notifications') { if(ui.notificationBell) ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1; if (ui.markAllReadBtn) { const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); ui.markAllReadBtn.disabled = isLoadingFlag || currentUnreadCount === 0; } } }
+
+		// Sidebar functions from main.js
+		function applyInitialSidebarState() {
+			try {
+					const state = localStorage.getItem(SIDEBAR_STATE_KEY);
+					const isCurrentlyCollapsed = document.body.classList.contains('sidebar-collapsed');
+					const shouldBeCollapsed = state === 'collapsed';
+
+					if (shouldBeCollapsed !== isCurrentlyCollapsed) {
+							document.body.classList.toggle('sidebar-collapsed', shouldBeCollapsed);
+					}
+
+					const icon = ui.sidebarToggleBtn?.querySelector('i');
+					if (icon) {
+							icon.className = shouldBeCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
+					}
+					if(ui.sidebarToggleBtn) {
+							ui.sidebarToggleBtn.title = shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel';
+					}
+			} catch (e) {
+					console.error("Chyba při aplikaci stavu postranního panelu:", e);
+			}
+		}
+
+		function toggleSidebar() {
+				try {
+						const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
+						localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded');
+						const icon = ui.sidebarToggleBtn?.querySelector('i');
+						if (icon) {
+								icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
+						}
+						if(ui.sidebarToggleBtn) {
+								ui.sidebarToggleBtn.title = isCollapsed ? 'Rozbalit panel' : 'Sbalit panel';
+						}
+				} catch (error) {
+						console.error("[ToggleSidebar] Chyba:", error);
+				}
+		}
     // --- END: Helper Functions ---
 
     // --- START: Data Fetching Wrappers (using TestLogic) ---
-    async function fetchUserProfile(userId) { if (!supabase || !userId) return null; console.log(`[Profile] Fetching profile for user ID: ${userId}`); try { const { data: profile, error } = await supabase.from('profiles').select('*').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; if (!profile) { console.warn(`[Profile] Profile not found for user ${userId}.`); return null; } console.log("[Profile] Profile data fetched."); return profile; } catch (error) { console.error('[Profile] Exception fetching profile:', error); showToast('Chyba Profilu', 'Nepodařilo se načíst data profilu.', 'error'); return null; } }
+    async function fetchUserProfile(userId) { // This was already in test1.js, ensuring it's complete
+        if (!supabase || !userId) return null;
+        console.log(`[Profile] Fetching profile for user ID: ${userId}`);
+        setLoadingState('titles', true); // For fetching titles if needed later
+        try {
+            const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('*, selected_title, preferences, longest_streak_days') // Ensure all necessary fields are selected
+                .eq('id', userId)
+                .single();
+            if (error && error.code !== 'PGRST116') throw error; // PGRST116 means no rows found, not necessarily an error here
+            if (!profile) {
+                console.warn(`[Profile] Profile not found for user ${userId}.`);
+                return null;
+            }
+            if (!profile.preferences) profile.preferences = {}; // Ensure preferences object exists
+            console.log("[Profile] Profile data fetched successfully:", profile);
+            return profile;
+        } catch (error) {
+            console.error('[Profile] Exception fetching profile:', error);
+            showToast('Chyba Profilu', 'Nepodařilo se načíst data profilu.', 'error');
+            return null;
+        } finally {
+            setLoadingState('titles', false);
+        }
+    }
+
+		async function fetchTitles() { // Added from main.js
+        if (!supabase) return [];
+        console.log("[Titles] Fetching available titles...");
+        setLoadingState('titles', true);
+        try {
+            const { data, error } = await supabase
+                .from('title_shop')
+                .select('title_key, name');
+
+            if (error) {
+                console.error("[Titles] Error from Supabase:", error);
+                throw error;
+            }
+            console.log("[Titles] Fetched titles:", data);
+            return data || [];
+        } catch (error) {
+            console.error("[Titles] Catch block error fetching titles:", error.message);
+            showToast("Chyba", "Nepodařilo se načíst dostupné tituly. Zkontrolujte konzoli pro detaily.", "error");
+            return [];
+        } finally {
+            setLoadingState('titles', false);
+        }
+    }
+
      async function checkExistingDiagnostic(userId) { setLoadingState('test', true); if (ui.loaderSubtext) ui.loaderSubtext.textContent = 'Kontroluji předchozí testy...'; try { const hasCompleted = await window.TestLogic.checkExistingDiagnostic(supabase, userId); return hasCompleted; } catch (err) { console.error("Error in checkExistingDiagnostic UI wrapper:", err); showToast("Chyba při kontrole testů.", "error"); setLoadingState('test', false); return false; } }
     async function loadTestQuestions(testType) { setLoadingState('test', true); if (ui.loaderSubtext) ui.loaderSubtext.textContent = 'Přizpůsobuji otázky...'; try { if (!currentProfile) { throw new Error("Profil uživatele není načtený. Nelze určit typ otázek."); } console.log(`[UI LoadQ v11] Volání TestLogic.loadTestQuestions s profilem (Goal: ${currentProfile.learning_goal})`); questions = await window.TestLogic.loadTestQuestions(supabase, currentProfile, testTypeConfig); console.log(`[UI LoadQ v11] Obdrženo ${questions.length} otázek z logiky.`); initializeTest(); } catch (error) { console.error('[UI] Error loading questions:', error); showErrorMessagePage(`Nepodařilo se načíst otázky: ${error.message}`); setLoadingState('test', false); } }
     // --- END: Data Fetching Wrappers ---
@@ -136,7 +282,7 @@
         if (ui.testTimer) ui.testTimer.style.display = 'flex';
         currentQuestionIndex = 0;
 
-        userAnswers = questions.map((q) => { // Removed index 'idx' as it's not used directly in the return object
+        userAnswers = questions.map((q) => {
             let maxScore = 1;
             const difficultyInt = parseInt(q.difficulty);
             if (q.question_type === 'construction') maxScore = 2;
@@ -158,8 +304,8 @@
                 subtopic_id: q.subtopic_id,
                 subtopic_name: q.subtopic_name,
                 difficulty: q.difficulty,
-                answer_prefix: q.answer_prefix, // Added
-                answer_suffix: q.answer_suffix, // Added
+                answer_prefix: q.answer_prefix,
+                answer_suffix: q.answer_suffix,
                 userAnswerValue: null,
                 scoreAwarded: null,
                 maxScore: maxScore,
@@ -168,7 +314,7 @@
                 reasoning: null,
                 error_analysis: null,
                 feedback: null
-            }; // <<< ИСПРАВЛЕННАЯ СТРОКА 488: здесь была лишняя ')'
+            };
         });
 
         testTime = 0;
@@ -184,7 +330,6 @@
             if (ui.testContainer) {
                 ui.testContainer.setAttribute('data-animate', '');
                 ui.testContainer.style.setProperty('--animation-order', 0);
-                // initScrollAnimations(); // Consider if needed here or after questions load
             }
         });
         setLoadingState('test', false);
@@ -420,7 +565,78 @@
     // --- END: Notification Logic ---
 
     // --- START: Event Listeners Setup ---
-    function setupEventListeners() { console.log("[SETUP] Nastavování posluchačů událostí..."); if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu); if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu); if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu); document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); }); if (ui.prevBtn) ui.prevBtn.addEventListener('click', () => { if (currentQuestionIndex > 0) showQuestion(currentQuestionIndex - 1); }); if (ui.nextBtn) ui.nextBtn.addEventListener('click', () => { if (currentQuestionIndex < questions.length - 1) showQuestion(currentQuestionIndex + 1); }); if (ui.finishBtn) { ui.finishBtn.addEventListener('click', async () => { const unansweredCount = userAnswers.filter(a => a && a.userAnswerValue === null).length; let confirmFinish = true; if (unansweredCount > 0) confirmFinish = confirm(`Nezodpověděli jste ${unansweredCount} ${unansweredCount === 1 ? 'otázku' : (unansweredCount < 5 ? 'otázky' : 'otázek')}. Přesto dokončit?`); else confirmFinish = confirm('Opravdu chcete dokončit test?'); if (confirmFinish) { await finishTest(); } }); } if (ui.retryBtn) { ui.retryBtn.addEventListener('click', () => { ui.resultsContainer.style.display = 'none'; ui.reviewContainer.style.display = 'none'; if (ui.testSelector) ui.testSelector.style.display = 'block'; questions = []; userAnswers = []; testResultsData = {}; diagnosticId = null; selectedTestType = null; ui.testTypeCards.forEach(c => c.classList.remove('selected')); if(ui.lowScoreMessageContainer) ui.lowScoreMessageContainer.innerHTML = ''; if (ui.continueBtn) { ui.continueBtn.disabled = true; ui.continueBtn.removeAttribute('data-save-error'); } if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; history.replaceState({ state: 'testSelection' }, document.title, window.location.href); }); } if (ui.continueBtn) { ui.continueBtn.addEventListener('click', () => { if (!ui.continueBtn.disabled) window.location.href = `/dashboard/procvicovani/plan.html`; }); } if (ui.reviewAnswersBtn) ui.reviewAnswersBtn.addEventListener('click', displayReview); if (ui.backToResultsBtn) ui.backToResultsBtn.addEventListener('click', () => { if(ui.reviewContainer) ui.reviewContainer.style.display = 'none'; if(ui.resultsContainer) ui.resultsContainer.style.display = 'block'; if(ui.mainContent) ui.mainContent.scrollTo({ top: 0, behavior: 'smooth' }); }); ui.testTypeCards.forEach(card => { card.addEventListener('click', function(event) { const testType = this.dataset.testType; const isButtonClicked = event.target.closest('.select-test-btn'); ui.testTypeCards.forEach(c => c.classList.remove('selected')); this.classList.add('selected'); selectedTestType = testType; if (isButtonClicked) { event.stopPropagation(); startSelectedTest(); } }); }); ui.selectTestBtns.forEach(button => { button.addEventListener('click', function(event) { event.stopPropagation(); const testType = this.closest('.test-type-card').dataset.testType; ui.testTypeCards.forEach(c => c.classList.remove('selected')); this.closest('.test-type-card').classList.add('selected'); selectedTestType = testType; startSelectedTest(); }); }); window.addEventListener('popstate', handleBackButton); window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) closeMenu(); }); if (ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); } if (ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsReadUI); } if (ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { await markNotificationReadUI(notificationId); } if (link) window.location.href = link; } }); } document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } }); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); console.log("[SETUP] Posluchači událostí nastaveni."); }
+    function setupEventListeners() {
+        console.log("[SETUP] Nastavování posluchačů událostí...");
+        if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
+        if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
+        if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
+        if (ui.sidebarToggleBtn) ui.sidebarToggleBtn.addEventListener('click', toggleSidebar); // Added from main.js
+
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); });
+        });
+        if (ui.prevBtn) ui.prevBtn.addEventListener('click', () => { if (currentQuestionIndex > 0) showQuestion(currentQuestionIndex - 1); });
+        if (ui.nextBtn) ui.nextBtn.addEventListener('click', () => { if (currentQuestionIndex < questions.length - 1) showQuestion(currentQuestionIndex + 1); });
+        if (ui.finishBtn) {
+            ui.finishBtn.addEventListener('click', async () => {
+                const unansweredCount = userAnswers.filter(a => a && a.userAnswerValue === null).length;
+                let confirmFinish = true;
+                if (unansweredCount > 0) {
+                    confirmFinish = confirm(`Nezodpověděli jste ${unansweredCount} ${unansweredCount === 1 ? 'otázku' : (unansweredCount < 5 ? 'otázky' : 'otázek')}. Přesto dokončit?`);
+                } else {
+                    confirmFinish = confirm('Opravdu chcete dokončit test?');
+                }
+                if (confirmFinish) { await finishTest(); }
+            });
+        }
+        if (ui.retryBtn) {
+            ui.retryBtn.addEventListener('click', () => {
+                ui.resultsContainer.style.display = 'none';
+                ui.reviewContainer.style.display = 'none';
+                if (ui.testSelector) ui.testSelector.style.display = 'block';
+                questions = []; userAnswers = []; testResultsData = {}; diagnosticId = null; selectedTestType = null;
+                ui.testTypeCards.forEach(c => c.classList.remove('selected'));
+                if(ui.lowScoreMessageContainer) ui.lowScoreMessageContainer.innerHTML = '';
+                if (ui.continueBtn) { ui.continueBtn.disabled = true; ui.continueBtn.removeAttribute('data-save-error'); }
+                if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu';
+                history.replaceState({ state: 'testSelection' }, document.title, window.location.href);
+            });
+        }
+        if (ui.continueBtn) {
+            ui.continueBtn.addEventListener('click', () => { if (!ui.continueBtn.disabled) window.location.href = `/dashboard/procvicovani/plan.html`; });
+        }
+        if (ui.reviewAnswersBtn) ui.reviewAnswersBtn.addEventListener('click', displayReview);
+        if (ui.backToResultsBtn) ui.backToResultsBtn.addEventListener('click', () => { if(ui.reviewContainer) ui.reviewContainer.style.display = 'none'; if(ui.resultsContainer) ui.resultsContainer.style.display = 'block'; if(ui.mainContent) ui.mainContent.scrollTo({ top: 0, behavior: 'smooth' }); });
+        ui.testTypeCards.forEach(card => {
+            card.addEventListener('click', function(event) {
+                const testType = this.dataset.testType;
+                const isButtonClicked = event.target.closest('.select-test-btn');
+                ui.testTypeCards.forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedTestType = testType;
+                if (isButtonClicked) { event.stopPropagation(); startSelectedTest(); }
+            });
+        });
+        ui.selectTestBtns.forEach(button => {
+            button.addEventListener('click', function(event) {
+                event.stopPropagation();
+                const testType = this.closest('.test-type-card').dataset.testType;
+                ui.testTypeCards.forEach(c => c.classList.remove('selected'));
+                this.closest('.test-type-card').classList.add('selected');
+                selectedTestType = testType;
+                startSelectedTest();
+            });
+        });
+        window.addEventListener('popstate', handleBackButton);
+        window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) closeMenu(); });
+        if (ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); }
+        if (ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsReadUI); }
+        if (ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { await markNotificationReadUI(notificationId); } if (link) window.location.href = link; } }); }
+        document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } });
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        console.log("[SETUP] Posluchači událostí nastaveni.");
+    }
     // --- END: Event Listeners Setup ---
 
     // --- START: Test Flow & Back Button ---
@@ -430,8 +646,9 @@
 
     // --- START: App Initialization ---
     async function initializeApp() {
-        console.log("🚀 [Init Test1 UI - Kyber v12.1] Starting...");
+        console.log("🚀 [Init Test1 UI - Kyber v12.2] Starting...");
         if (!initializeSupabase()) return;
+        applyInitialSidebarState(); // Added from main.js
 
         if (typeof window.TestLogic === 'undefined') {
             showErrorMessagePage("Kritická chyba: Chybí základní logika testu (test1-logic.js). Obnovte stránku.");
@@ -445,10 +662,29 @@
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
             if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
 
-            if (!session || !session.user) { console.log('[Init Test1 UI - Kyber v12.1] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; }
+            if (!session || !session.user) { console.log('[Init Test1 UI - Kyber v12.2] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; }
             currentUser = session.user;
-            currentProfile = await fetchUserProfile(currentUser.id);
-            updateUserInfoUI();
+
+            // Fetch profile and titles concurrently
+            const [profileResult, titlesResult] = await Promise.allSettled([
+                fetchUserProfile(currentUser.id),
+                fetchTitles() // Added from main.js
+            ]);
+
+            if (profileResult.status === 'fulfilled' && profileResult.value) {
+                currentProfile = profileResult.value;
+            } else {
+                console.error("[INIT] Profile fetch failed or no data:", profileResult.reason);
+                // Attempt to create a default profile or handle error
+                showError("Nepodařilo se načíst profil. Zkuste obnovit stránku.", true);
+                if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => {if(ui.initialLoader) ui.initialLoader.style.display = 'none';}, 300); }
+                return; // Stop initialization if profile is crucial and missing
+            }
+
+            allTitles = (titlesResult.status === 'fulfilled' && titlesResult.value) ? titlesResult.value : []; // Added from main.js
+            console.log(`[INIT] Loaded ${allTitles.length} titles.`);
+
+            updateUserInfoUI(); // Now includes title logic
 
             if (!currentProfile) { showError("Profil nenalezen. Test nelze spustit.", true); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => {if(ui.initialLoader) ui.initialLoader.style.display = 'none';}, 300); } if (ui.mainContent) ui.mainContent.style.display = 'block'; return; }
 
@@ -485,7 +721,7 @@
             setLoadingState('test', false);
 
             if (hasCompletedPrijimacky && userLearningGoal !== 'math_review') {
-                 console.log("[Init v12.1] Test 'prijimacky' již dokončen, zobrazuji zprávu.");
+                 console.log("[Init v12.2] Test 'prijimacky' již dokončen, zobrazuji zprávu.");
                  if(ui.testSelector) {
                     ui.testSelector.innerHTML = `<div class="section card" data-animate style="--animation-order: 0;"><h2 class="section-title"><i class="fas fa-check-circle" style="color: var(--accent-lime);"></i> Test již dokončen</h2><p>Tento diagnostický test (pro přípravu na přijímačky) jste již absolvoval/a. <strong>Nelze jej opakovat.</strong> Vaše výsledky byly použity pro studijní plán.</p><div style="margin-top:1.5rem; display:flex; gap:1rem; flex-wrap:wrap;"><a href="plan.html" class="btn btn-primary"><i class="fas fa-tasks"></i> Zobrazit plán</a><a href="main.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Zpět</a></div></div>`;
                     ui.testSelector.style.display = 'block';
@@ -493,7 +729,7 @@
                  if(ui.testLoader) ui.testLoader.style.display = 'none';
                  if(ui.testLevel) ui.testLevel.textContent = 'Dokončeno';
             } else if (autoStartType) {
-                 console.log(`[Init v12.1] Cíl je '${userLearningGoal}'. Automaticky spouštím test typu '${autoStartType}'.`);
+                 console.log(`[Init v12.2] Cíl je '${userLearningGoal}'. Automaticky spouštím test typu '${autoStartType}'.`);
                  selectedTestType = autoStartType;
                  const config = testTypeConfig[selectedTestType];
                  if (!config) { throw new Error(`Konfigurace pro autostart testu '${selectedTestType}' nenalezena.`); }
@@ -507,19 +743,20 @@
                  history.pushState({ state: 'testInProgress' }, document.title, window.location.href);
                  await loadTestQuestions(selectedTestType);
             } else {
-                 console.warn("[Init v12.1] Neočekávaný stav. Zobrazuji výběr (fallback).");
+                 console.warn("[Init v12.2] Neočekávaný stav. Zobrazuji výběr (fallback).");
                  if(ui.testSelector) { ui.testSelector.style.display = 'block'; }
                  if(ui.testLoader) ui.testLoader.style.display = 'none';
                  if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu';
             }
 
             if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
-            if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); }); }
+            if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }
 
-            console.log("✅ [Init Test1 UI - Kyber v12.1] Page initialized.");
+
+            console.log("✅ [Init Test1 UI - Kyber v12.2] Page initialized.");
 
         } catch (error) {
-            console.error("❌ [Init Test1 UI - Kyber v12.1] Error:", error);
+            console.error("❌ [Init Test1 UI - Kyber v12.2] Error:", error);
             if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">Chyba (${error.message}). Obnovte.</p>`; }
             else { showError(`Chyba inicializace: ${error.message}`, true); }
             if (ui.mainContent) ui.mainContent.style.display = 'block';
