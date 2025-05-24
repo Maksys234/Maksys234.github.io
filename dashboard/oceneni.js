@@ -1,5 +1,6 @@
 // dashboard/oceneni.js
 // Version: 23.23.7 - Corrected fetchUserProfile call, enhanced achievement checking and progress display. RLS and DB data are critical.
+// MODIFIED: Added logic to infer requirement type in checkRequirements if missing.
 (function() { // IIFE for scope isolation
     'use strict';
 
@@ -176,7 +177,7 @@
             }
              if (key === 'notifications' && ui.notificationBell) {
                  ui.notificationBell.style.opacity = loading ? 0.5 : 1;
-                 if (ui.markAllRead) { // Corrected ID
+                 if (ui.markAllRead) { // Corrected ID from `markAllReadBtn` to `markAllRead` as per HTML
                      const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
                      ui.markAllRead.disabled = loading || currentUnreadCount === 0;
                  }
@@ -298,9 +299,9 @@
     async function fetchAvatarDecorationsData() { console.warn("Avatar decorations fetching skipped: Table 'avatar_decorations_shop' does not exist or feature is disabled."); setLoadingState('avatarDecorations', false); return []; }
 
     async function fetchLeaderboardData() {
-        if (!supabase) return [];
+        if (!supabase) return []; // Použijeme globální 'supabase' namísto 'supabaseClient'
         try {
-            const { data, error } = await supabase
+            const { data, error } = await supabase // Použijeme globální 'supabase'
                 .from('leaderboard')
                 .select(`rank, user_id, points, badges_count, profile:profiles!inner(id, first_name, last_name, username, avatar_url, level, streak_days, selected_title, selected_decoration)`)
                 .eq('period', 'overall')
@@ -358,13 +359,15 @@
         if (!supabase || !userId) return 0;
         setLoadingState('userLearningLogs', true);
         try {
-            const { count, error } = await supabase
-                .from('learning_logs_detailed') // Assuming this is the correct table name
-                .select('id', { count: 'exact', head: true })
+            const { data: logs, error } = await supabase // Změna na načtení skutečných dat
+                .from('learning_logs_detailed')
+                .select('id') // Načítáme jen ID pro zjištění počtu
                 .eq('user_id', userId);
+
             if (error) throw error;
-            console.log(`[FetchData] Learning logs count for user ${userId}: ${count || 0}`);
-            return count || 0;
+            const count = logs ? logs.length : 0; // Počet záznamů
+            console.log(`[FetchData] Learning logs count for user ${userId}: ${count}`);
+            return count;
         } catch (e) {
             console.error("Error fetching user learning logs count:", e);
             return 0;
@@ -372,6 +375,7 @@
             setLoadingState('userLearningLogs', false);
         }
     }
+
 
     async function fetchUserTopicProgressList(userId) {
         if (!supabase || !userId) return [];
@@ -414,13 +418,14 @@
         if (!supabase || !userId) return 0;
         setLoadingState('userStudyPlans', true);
         try {
-            const { count, error } = await supabase
+            const { data: plans, error } = await supabase // Změna na načtení skutečných dat
                 .from('study_plans')
-                .select('id', { count: 'exact', head: true })
+                .select('id') // Načítáme jen ID pro zjištění počtu
                 .eq('user_id', userId);
             if (error) throw error;
-            console.log(`[FetchData] Study plans count for user ${userId}: ${count || 0}`);
-            return count || 0;
+            const count = plans ? plans.length : 0; // Počet záznamů
+            console.log(`[FetchData] Study plans count for user ${userId}: ${count}`);
+            return count;
         } catch (e) {
             console.error("Error fetching user study plans count:", e);
             return 0;
@@ -429,18 +434,21 @@
         }
     }
 
+
     async function fetchUserAiLessonsCompletedCount(userId) {
         if (!supabase || !userId) return 0;
         setLoadingState('userAiLessons', true);
         try {
-            const { count, error } = await supabase
+            const { data: lessons, error } = await supabase // Změna na načtení skutečných dat
                 .from('ai_sessions')
-                .select('id', { count: 'exact', head: true })
+                .select('id') // Načítáme jen ID pro zjištění počtu
                 .eq('user_id', userId)
-                .eq('status', 'ended');
+                .eq('status', 'ended'); // Předpokládáme, že 'ended' značí dokončenou lekci
+
             if (error) throw error;
-            console.log(`[FetchData] AI lessons completed count for user ${userId}: ${count || 0}`);
-            return count || 0;
+            const count = lessons ? lessons.length : 0; // Počet záznamů
+            console.log(`[FetchData] AI lessons completed count for user ${userId}: ${count}`);
+            return count;
         } catch (e) {
             console.error("Error fetching user AI lessons completed count:", e);
             return 0;
@@ -448,6 +456,7 @@
             setLoadingState('userAiLessons', false);
         }
     }
+
     // --- END: Data Fetching Functions ---
 
     // --- START: Achievement Logic ---
@@ -459,12 +468,35 @@
             return { met: false, current: 0, target: requirements?.target || requirements?.count || 1, progressText: "Chyba" };
         }
 
-        const reqType = requirements.type;
+        let reqType = requirements.type; // Nyní bude přepsáno, pokud chybí
         const reqTarget = parseInt(requirements.target, 10);
         const reqCount = parseInt(requirements.count, 10);
         let currentValue = 0;
         let targetValue = requirements.target || requirements.count || 1;
         let progressText = "";
+
+        // START: Infer reqType if missing
+        if (!reqType) {
+            if (requirements.fields_required !== undefined) reqType = 'profile_fields_filled';
+            else if (requirements.is_avatar_set !== undefined) reqType = 'avatar_set'; // Assuming a boolean field `is_avatar_set` if `type` is missing
+            else if (requirements.level !== undefined) reqType = 'level_reached'; // Assuming if 'level' exists, it's for 'level_reached'
+            else if (requirements.experience !== undefined) reqType = 'experience_earned';
+            else if (requirements.points !== undefined) reqType = 'points_earned_total';
+            else if (requirements.streak_days !== undefined) reqType = 'streak_days_reached';
+            else if (requirements.diagnostic_tests_completed_count !== undefined) reqType = 'diagnostic_test_completed';
+            else if (requirements.study_plans_created_count !== undefined) reqType = 'study_plan_created';
+            else if (requirements.ai_lessons_completed_count !== undefined) reqType = 'ai_lesson_completed';
+            else if (requirements.learning_logs_created_count !== undefined) reqType = 'learning_logs_created';
+            else if (requirements.topic_id !== undefined && requirements.min_progress_percentage !== undefined) reqType = 'topic_progress_reached';
+            else if (requirements.min_score_percentage !== undefined && (requirements.topic_id !== undefined || requirements.topic !== undefined)) reqType = 'topic_score'; // For topic_score, allow topic name
+            else if (requirements.exercises_completed_count !== undefined && requirements.topic_id === undefined && requirements.topic === undefined) reqType = 'exercises_completed_total'; // Only total if no topic specified
+            else if (requirements.exercises_completed_count !== undefined && (requirements.topic_id !== undefined || requirements.topic !== undefined)) reqType = 'topic_exercises_completed';
+            // Add more inferences as needed based on typical `requirements` structures for other badges
+            else {
+                 console.warn(`[Achievements CheckReq] Could not infer 'type' for requirement:`, requirements, `Used by badge: ${badge.title}`); // Added badge.title for context
+            }
+        }
+        // END: Infer reqType
 
         try {
             switch (reqType) {
@@ -487,42 +519,42 @@
                     break;
                 case 'level_reached':
                     currentValue = profileData.level ?? 1;
-                    targetValue = reqTarget;
+                    targetValue = requirements.level || reqTarget; // Use requirements.level if available
                     progressText = `${currentValue}/${targetValue} úr.`;
                     break;
                 case 'experience_earned':
                     currentValue = profileData.experience ?? 0;
-                    targetValue = reqTarget;
+                    targetValue = requirements.experience || reqTarget; // Use requirements.experience if available
                     progressText = `${currentValue}/${targetValue} XP`;
                     break;
                 case 'points_earned_total':
                     currentValue = profileData.points ?? 0;
-                    targetValue = reqTarget;
+                    targetValue = requirements.points || reqTarget; // Use requirements.points if available
                     progressText = `${currentValue}/${targetValue} kr.`;
                     break;
                 case 'streak_days_reached':
                     currentValue = profileData.streak_days ?? 0;
-                    targetValue = reqTarget;
+                    targetValue = requirements.streak_days || reqTarget; // Use requirements.streak_days if available
                     progressText = `${currentValue}/${targetValue} dní`;
                     break;
                 case 'diagnostic_test_completed':
                     currentValue = otherData.userDiagnosticTestsCount || 0;
-                    targetValue = reqCount || 1;
+                    targetValue = requirements.diagnostic_tests_completed_count || reqCount || 1; // Use specific or general count
                     progressText = `${currentValue}/${targetValue} testů`;
                     break;
                 case 'study_plan_created':
                     currentValue = otherData.userStudyPlansCount || 0;
-                    targetValue = reqCount || 1;
+                    targetValue = requirements.study_plans_created_count || reqCount || 1;
                     progressText = `${currentValue}/${targetValue} plánů`;
                     break;
                 case 'ai_lesson_completed':
                     currentValue = otherData.userAiLessonsCompletedCount || 0;
-                    targetValue = reqCount || 1;
+                    targetValue = requirements.ai_lessons_completed_count || reqCount || 1;
                     progressText = `${currentValue}/${targetValue} lekcí`;
                     break;
                 case 'learning_logs_created':
                     currentValue = otherData.userLearningLogsCount || 0;
-                    targetValue = reqTarget;
+                    targetValue = requirements.learning_logs_created_count || reqTarget;
                     progressText = `${currentValue}/${targetValue} záznamů`;
                     break;
                 case 'topic_progress_reached':
@@ -545,14 +577,14 @@
                     break;
                 case 'exercises_completed_total':
                      currentValue = profileData.completed_exercises ?? 0;
-                     targetValue = reqTarget;
+                     targetValue = requirements.exercises_completed_count || reqTarget; // Prefer specific field
                      progressText = `${currentValue}/${targetValue} cvičení`;
                      break;
-                case 'topic_score':
+                case 'topic_score': // Handles case where type was inferred
                     const scoreTopicId = requirements.topic_id || ( (otherData.allExamTopics || []).find(t => t.name?.toLowerCase() === requirements.topic?.toLowerCase()) || {} ).id;
-                    if (scoreTopicId && requirements.min_score_percentage) {
+                    if (scoreTopicId && requirements.min_score_percentage !== undefined) { // Check for min_score_percentage
                         const scoreTopicProgress = (otherData.userTopicProgressList || []).find(tp => tp.topic_id === scoreTopicId);
-                        currentValue = scoreTopicProgress ? scoreTopicProgress.progress_percentage : 0;
+                        currentValue = scoreTopicProgress ? scoreTopicProgress.progress_percentage : 0; // Assuming progress_percentage represents score
                         targetValue = requirements.min_score_percentage;
                         const scoreTopicObj = (otherData.allExamTopics || []).find(et => et.id === scoreTopicId);
                         const scoreTopicName = scoreTopicObj ? scoreTopicObj.name : `Téma ${requirements.topic || scoreTopicId}`;
@@ -562,21 +594,41 @@
                          console.warn(`[CheckReq topic_score] Chybí topic_id nebo min_score_percentage pro`, requirements);
                     }
                     break;
+                case 'exercises_count': // This was inferred for "Rychlé myšlení"
+                     if (requirements.max_time_minutes !== undefined) { // Specific check for "Rychlé myšlení"
+                        currentValue = 0; // Needs logic to count exercises within time limit. Placeholder.
+                        targetValue = requirements.exercises_count || reqTarget;
+                        progressText = `${currentValue}/${targetValue} cvičení (časový limit se připravuje)`;
+                     } else {
+                        currentValue = profileData.completed_exercises ?? 0; // Fallback to total if time limit not present
+                        targetValue = requirements.exercises_count || reqTarget;
+                        progressText = `${currentValue}/${targetValue} cvičení`;
+                     }
+                     break;
                 case 'topic_exercises_completed':
-                case 'topic_perfect_exercises': // Assuming data for perfect exercises is not yet tracked in detail
-                    // Placeholder: This requires more detailed data about exercises per topic.
-                    // For now, we show 0 progress or a generic message.
-                    currentValue = 0; // Placeholder value
-                    targetValue = reqTarget || 1;
+                case 'topic_perfect_exercises':
+                case 'perfect_exercises': // Added for "Gramatický expert"
+                    currentValue = 0;
+                    targetValue = requirements.exercises_count || requirements.perfect_exercises || reqTarget || 1;
                     const exTopicId = requirements.topic_id || ( (otherData.allExamTopics || []).find(t => t.name?.toLowerCase() === requirements.topic?.toLowerCase()) || {} ).id;
                     const exTopicObj = (otherData.allExamTopics || []).find(et => et.id === exTopicId);
-                    const exTopicNameText = exTopicObj ? exTopicObj.name : `Téma ${requirements.topic || exTopicId}`;
-                    progressText = `${currentValue}/${targetValue} cv. ("${sanitizeHTML(exTopicNameText)}") - Sledování se připravuje`;
+                    let exTopicNameText = "Nespecifikované téma";
+                    if (exTopicObj) {
+                        exTopicNameText = exTopicObj.name;
+                    } else if (requirements.topic) {
+                        exTopicNameText = `Téma "${requirements.topic}"`;
+                    }
+
+                    let taskType = "cvičení";
+                    if (reqType === 'topic_perfect_exercises' || reqType === 'perfect_exercises') {
+                        taskType = "perfektních cvičení";
+                    }
+                    progressText = `${currentValue}/${targetValue} ${taskType} (${sanitizeHTML(exTopicNameText)}) - Sledování se připravuje`;
                     break;
 
                 default:
                     if (reqType === undefined) {
-                         console.error(`[Achievements CheckReq] CRITICAL: Badge requirement 'type' is undefined for requirement object:`, requirements);
+                         console.error(`[Achievements CheckReq] CRITICAL: Badge requirement 'type' is undefined and could not be inferred for requirement object:`, requirements);
                          progressText = "Chybná definice";
                     } else {
                         console.warn(`[Achievements CheckReq] Unknown requirement type: ${reqType}`);
@@ -689,10 +741,7 @@
                     console.warn(`[Achievements Check] Badge ID: ${badge.id} (${badge.title}) has no requirements defined. Skipping.`);
                     continue;
                 }
-                if (badge.requirements.type === undefined) {
-                    console.warn(`[Achievements Check] Badge ID: ${badge.id} (${badge.title}) has requirements JSON but missing 'type' field. Skipping. Req:`, badge.requirements);
-                    continue;
-                }
+                // The 'type' inference logic is now inside checkRequirements
                 const progressResult = checkRequirements(profileDataForCheck, badge.requirements, otherDataForAchievements);
                 if (progressResult.met) {
                     console.log(`[Achievements Check] Criteria MET for badge ID: ${badge.id} (${badge.title})! Triggering award...`);
@@ -982,7 +1031,7 @@
 
     // --- START: Initialization ---
     async function initializeApp() {
-        console.log(`🚀 [Init Oceneni v${"23.23.6"}] Starting...`); // Updated version
+        console.log(`🚀 [Init Oceneni v${"23.23.7"}] Starting...`); // Updated version
         cacheDOMElements();
         if (!initializeSupabase()) return;
         applyInitialSidebarState();
@@ -997,10 +1046,9 @@
             currentUser = session.user;
             console.log(`[Init Oceneni] User authenticated (ID: ${currentUser.id}).`);
 
-            currentProfile = await fetchUserFullProfile(currentUser.id); // Corrected function call
+            currentProfile = await fetchUserFullProfile(currentUser.id);
             if (!currentProfile) {
                 console.log("[Init Oceneni] Profile not found, attempting to create default (basic info for now)...");
-                // Fallback to a minimal profile structure if creation also fails or is not implemented here
                 currentProfile = { id: currentUser.id, email: currentUser.email, points:0, badges_count:0, streak_days:0, longest_streak_days:0, purchased_titles: [], selected_title: null, selected_decoration: null };
             }
             allTitlesFromDB = await fetchAllPurchasableTitles();
@@ -1024,7 +1072,7 @@
             console.error("❌ [Init Oceneni] Kritická chyba inicializace:", error);
             if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA (${error.message}). OBNOVTE.</p>`; }
             else { showError(`Chyba inicializace: ${error.message}`, true); }
-            if (ui.mainContent) ui.mainContent.style.display = 'block';
+            if (ui.mainContent) ui.mainContent.style.display = 'block'; // Zobrazíme hlavní obsah, i když je chyba, aby se zobrazila globální chybová zpráva
             setLoadingState('all', false);
         }
     }
