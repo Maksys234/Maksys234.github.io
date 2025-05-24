@@ -760,3 +760,6 @@ ON public.user_topic_progress
 FOR UPDATE
 USING (auth.uid() = user_id)
 WITH CHECK (auth.uid() = user_id);
+ALTER TABLE public.exam_questions
+ADD COLUMN IF NOT EXISTS answer_prefix TEXT,
+ADD COLUMN IF NOT EXISTS answer_suffix TEXT;
