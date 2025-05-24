@@ -1,5 +1,5 @@
 // dashboard/oceneni.js
-// Version: 23.23.3 - Исправлен supabaseClient на supabase в fetchLeaderboardData. Улучшена логика сворачивания/разворачивания.
+// Version: 23.23.5 - Enhanced achievement checking and progress display
 (function() { // IIFE for scope isolation
     'use strict';
 
@@ -10,13 +10,14 @@
     const LEADERBOARD_LIMIT = 10;
     const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
     const DAILY_TITLE_SHOP_COUNT = 6;
+    const PROFILE_COLUMNS_TO_SELECT_FOR_ACHIEVEMENTS = 'id, username, first_name, last_name, email, avatar_url, bio, school, grade, level, completed_exercises, streak_days, longest_streak_days, badges_count, points, experience, purchased_titles, selected_title, selected_decoration'; // Added more fields
+
     // --- END: Configuration ---
 
     // --- START: State Variables ---
     let supabase = null;
     let currentUser = null;
     let currentProfile = null;
-    let userStatsData = null;
     let userBadges = [];
     let allBadges = [];
     let allTitlesFromDB = [];
@@ -24,11 +25,24 @@
     let allDecorations = [];
     let leaderboardData = [];
     let currentLeaderboardPeriod = 'overall';
+
+    // NEW: State for additional data needed for achievements
+    let userDiagnosticTestsCount = 0;
+    let userLearningLogsCount = 0;
+    let userTopicProgressList = [];
+    let allExamTopics = [];
+    let userStudyPlansCount = 0;
+    let userAiLessonsCompletedCount = 0;
+
+
     let isLoading = {
         stats: false, userBadges: false, availableBadges: false,
         leaderboard: false, titleShop: false, avatarDecorations: false,
         notifications: false, buyEquip: false, all: false, titles: false,
-        userTitlesInventory: false
+        userTitlesInventory: false,
+        // NEW loading states
+        userDiagnostics: false, userLearningLogs: false, userTopicProgress: false, examTopics: false,
+        userStudyPlans: false, userAiLessons: false
     };
     // --- END: State Variables ---
 
@@ -101,7 +115,6 @@
     function showToast(title, message, type = 'info', duration = 4500) { if (!ui.toastContainer) return; try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content">${title ? `<div class="toast-title">${sanitizeHTML(title)}</div>` : ''}<div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Chyba při zobrazování toastu:", e); } }
     function showError(message, isGlobal = false) { console.error("Došlo k chybě:", message); if (isGlobal && ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" onclick="location.reload()">Zkusit Znovu</button></div>`; ui.globalError.style.display = 'block'; } else { showToast('CHYBA SYSTÉMU', message, 'error', 6000); } }
     function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
-    function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Offline', 'Spojení ztraceno.', 'warning'); }
     function getInitials(userData) { if (!userData) return '?'; const f = userData.first_name?.[0] || ''; const l = userData.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?'; }
     function formatDate(dateString) { if (!dateString) return '-'; try { const d = new Date(dateString); if (isNaN(d.getTime())) return '-'; return d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { return '-'; } }
     function formatRelativeTime(timestamp) { if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); if (isNaN(date.getTime())) return '-'; const diffMs = now - date; const diffSec = Math.round(diffMs / 1000); const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60); const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7); if (diffSec < 60) return 'Nyní'; if (diffMin < 60) return `Před ${diffMin} min`; if (diffHour < 24) return `Před ${diffHour} hod`; if (diffDay === 1) return `Včera`; if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`; return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { console.error("Chyba formátování času:", e, "Timestamp:", timestamp); return '-'; } }
@@ -111,24 +124,12 @@
     const initMouseFollower = () => { const f = ui.mouseFollower; if (!f || window.innerWidth <= 576) return; let hM = false; const uP = (e) => { if (!hM) { document.body.classList.add('mouse-has-moved'); hM = true; } requestAnimationFrame(() => { f.style.left = `${e.clientX}px`; f.style.top = `${e.clientY}px`; }); }; window.addEventListener('mousemove', uP, { passive: true }); document.body.addEventListener('mouseleave', () => { if (hM) f.style.opacity = '0'; }); document.body.addEventListener('mouseenter', () => { if (hM) f.style.opacity = '1'; }); window.addEventListener('touchstart', () => { if(f) f.style.display = 'none'; }, { passive: true, once: true }); };
     const initScrollAnimations = () => { const els = document.querySelectorAll('.main-content-wrapper [data-animate]'); if (!els.length || !('IntersectionObserver' in window)) return; const obs = new IntersectionObserver((e, o) => { e.forEach(en => { if (en.isIntersecting) { en.target.classList.add('animated'); o.unobserve(en.target); } }); }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" }); els.forEach(el => obs.observe(el)); };
     const initHeaderScrollDetection = () => { let lSY = window.scrollY; const mE = ui.mainContent; if (!mE) return; mE.addEventListener('scroll', () => { const cSY = mE.scrollTop; document.body.classList.toggle('scrolled', cSY > 10); lSY = cSY <= 0 ? 0 : cSY; }, { passive: true }); if (mE.scrollTop > 10) document.body.classList.add('scrolled'); };
+    const updateOnlineStatus = () => { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Offline', 'Spojení ztraceno.', 'warning'); };
     const updateCopyrightYear = () => { const y = new Date().getFullYear(); if (ui.currentYearSidebar) ui.currentYearSidebar.textContent = y; if (ui.currentYearFooter) ui.currentYearFooter.textContent = y; };
-
-    function getSeededSortValue(seedString) {
-        let hash = 0;
-        if (!seedString || seedString.length === 0) return hash;
-        for (let i = 0; i < seedString.length; i++) {
-            const char = seedString.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash |= 0;
-        }
-        return Math.abs(hash);
-    }
-    // --- END: Helper Functions ---
-
-    // --- START: Sidebar Logic ---
     function toggleSidebar() { if (!ui.sidebarToggleBtn) return; try { const isCollapsed = document.body.classList.toggle('sidebar-collapsed'); localStorage.setItem(SIDEBAR_STATE_KEY, isCollapsed ? 'collapsed' : 'expanded'); const icon = ui.sidebarToggleBtn.querySelector('i'); if (icon) icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; ui.sidebarToggleBtn.setAttribute('aria-label', isCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); ui.sidebarToggleBtn.title = isCollapsed ? 'Rozbalit panel' : 'Sbalit panel'; } catch (error) { console.error("[Sidebar Toggle] Error:", error); } }
     function applyInitialSidebarState() { if (!ui.sidebarToggleBtn) return; try { const savedState = localStorage.getItem(SIDEBAR_STATE_KEY); const shouldBeCollapsed = savedState === 'collapsed'; if (shouldBeCollapsed) document.body.classList.add('sidebar-collapsed'); else document.body.classList.remove('sidebar-collapsed'); const icon = ui.sidebarToggleBtn.querySelector('i'); if (icon) icon.className = shouldBeCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left'; ui.sidebarToggleBtn.setAttribute('aria-label', shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel'); ui.sidebarToggleBtn.title = shouldBeCollapsed ? 'Rozbalit panel' : 'Sbalit panel'; } catch (error) { console.error("[Sidebar State] Error applying initial state:", error); document.body.classList.remove('sidebar-collapsed'); } }
-    // --- END: Sidebar Logic ---
+    function getSeededSortValue(seedString) { let hash = 0; if (!seedString || seedString.length === 0) return hash; for (let i = 0; i < seedString.length; i++) { const char = seedString.charCodeAt(i); hash = ((hash << 5) - hash) + char; hash |= 0; } return Math.abs(hash); }
+    // --- END: Helper Functions ---
 
     // --- START: Loading State Management ---
     function setLoadingState(sectionKey, isLoadingFlag) {
@@ -148,8 +149,7 @@
                 avatarDecorations: { container: ui.avatarDecorationsShop, emptyEl: ui.avatarDecorationsEmpty, contentEl: ui.avatarDecorationsGrid, loadingEl: ui.avatarDecorationsLoading, skeletonFn: renderAvatarDecorationsSkeleton, skeletonCount: 4 },
                 notifications: { container: ui.notificationsList, emptyEl: ui.noNotificationsMsg, skeletonFn: renderNotificationSkeletons, skeletonCount: 2 },
                 userTitlesInventory: { container: ui.userTitlesInventoryContainer, emptyEl: ui.userTitlesInventoryEmpty, contentEl: ui.userTitlesInventoryGrid, loadingEl: ui.userTitlesInventoryLoading, skeletonFn: renderUserTitlesInventorySkeletons, skeletonCount: 4 },
-                buyEquip: {},
-                titles: {}
+                buyEquip: {}, titles: {}, userDiagnostics: {}, userLearningLogs: {}, userTopicProgress: {}, examTopics: {}, userStudyPlans: {}, userAiLessons: {}
             };
 
             const config = sectionMap[key];
@@ -204,39 +204,83 @@
     function renderTitleShopSkeleton(container = ui.titleShopGrid, count = DAILY_TITLE_SHOP_COUNT) { if (!container) return; container.innerHTML = ''; container.style.display = 'grid'; let s = ''; for(let i = 0; i < count; i++) s += `<div class="title-item card loading"><div class="loading-skeleton" style="display: flex !important;"><div style="display: flex; gap: 1.2rem; align-items: flex-start; width: 100%;"><div class="skeleton" style="width: 60px; height: 60px; border-radius: 14px; flex-shrink: 0;"></div><div style="flex-grow: 1;"><div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 0.7rem;"></div><div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.5rem;"></div><div class="skeleton" style="height: 14px; width: 75%;"></div></div></div></div></div>`; container.innerHTML = s; }
     function renderAvatarDecorationsSkeleton(container = ui.avatarDecorationsGrid, count = 4) { if (!container) return; container.innerHTML = ''; container.style.display = 'grid'; let s = ''; for(let i = 0; i < count; i++) s += `<div class="decoration-item card loading"><div class="loading-skeleton" style="display: flex !important; flex-direction: column; align-items: center; padding:1rem;"><div class="skeleton" style="width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1rem auto;"></div><div class="skeleton" style="height: 18px; width: 70%; margin: 0 auto 0.7rem auto;"></div><div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.5rem;"></div><div class="skeleton" style="height: 14px; width: 80%;"></div><div style="margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid transparent; display: flex; justify-content: space-between; align-items: center; width:100%;"><div class="skeleton" style="height: 16px; width: 70px;"></div><div class="skeleton" style="height: 30px; width: 90px; border-radius: var(--button-radius);"></div></div></div></div>`; container.innerHTML = s; }
     function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) {console.warn("[Skeletons] Notifications list or no-message element not found."); return;} let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height:16px;width:70%;margin-bottom:6px;"></div><div class="skeleton" style="height:12px;width:90%;"></div><div class="skeleton" style="height:10px;width:40%;margin-top:6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
-    function renderUserTitlesInventorySkeletons(container = ui.userTitlesInventoryGrid, count = 4) {
-        if (!container) {
-            console.warn("[Skeletons] User Titles Inventory container not found.");
-            return;
-        }
-        container.innerHTML = '';
-        container.style.display = 'grid';
-        let skeletonHTML = '';
-        for (let i = 0; i < count; i++) {
-            skeletonHTML += `
-                <div class="title-item card loading">
-                    <div class="loading-skeleton" style="display: flex !important;">
-                        <div style="display: flex; gap: 1.2rem; align-items: flex-start; width: 100%;">
-                            <div class="skeleton" style="width: 60px; height: 60px; border-radius: 14px; flex-shrink: 0;"></div>
-                            <div style="flex-grow: 1;">
-                                <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 0.7rem;"></div>
-                                <div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.5rem;"></div>
-                                <div class="skeleton" style="height: 14px; width: 75%;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
-        }
-        container.innerHTML = skeletonHTML;
-    }
+    function renderUserTitlesInventorySkeletons(container = ui.userTitlesInventoryGrid, count = 4) { if (!container) { console.warn("[Skeletons] User Titles Inventory container not found."); return; } container.innerHTML = ''; container.style.display = 'grid'; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += ` <div class="title-item card loading"> <div class="loading-skeleton" style="display: flex !important;"> <div style="display: flex; gap: 1.2rem; align-items: flex-start; width: 100%;"> <div class="skeleton" style="width: 60px; height: 60px; border-radius: 14px; flex-shrink: 0;"></div> <div style="flex-grow: 1;"> <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 0.7rem;"></div> <div class="skeleton" style="height: 14px; width: 90%; margin-bottom: 0.5rem;"></div> <div class="skeleton" style="height: 14px; width: 75%;"></div> </div> </div> </div> </div>`; } container.innerHTML = skeletonHTML; }
     // --- END: Skeleton Rendering Functions ---
 
-    // --- START: Data Fetching Functions ---
-    async function fetchUserProfile(userId) { if (!supabase || !userId) return null; console.log(`[Profile] Fetching profile for user ID: ${userId}`); try { const { data: profile, error } = await supabase.from('profiles').select('*, selected_title, purchased_titles, selected_decoration, purchased_decorations').eq('id', userId).single(); if (error && error.code !== 'PGRST116') throw error; if (!profile) { console.warn(`[Profile] Profile for user ${userId} not found. Returning null.`); return null; } console.log("[Profile] Profile data fetched successfully."); return profile; } catch (error) { console.error('[Profile] Caught exception fetching profile:', error); return null; } }
-    async function fetchUserStats(userId, profileData) { if (!supabase || !userId || !profileData) return null; try { const { data: statsData, error } = await supabase.from('user_stats').select('progress, progress_weekly, points_weekly, streak_longest, completed_tests').eq('user_id', userId).maybeSingle(); if (error) { console.warn("Error fetching user_stats:", error.message); return {}; } const { data: rankData, error: rankError } = await supabase.from('leaderboard').select('rank').eq('user_id', userId).eq('period', 'overall').limit(1); if (rankError) console.warn("Error fetching rank:", rankError.message); const { count: totalUsersCount, error: countError } = await supabase.from('profiles').select('id', { count: 'exact', head: true }); if (countError) console.warn("Error fetching total users count:", countError.message); return { progress: statsData?.progress ?? profileData.progress ?? 0, progress_weekly: statsData?.progress_weekly ?? 0, points: profileData.points ?? 0, points_weekly: statsData?.points_weekly ?? 0, streak_current: profileData.streak_days ?? 0, streak_longest: Math.max(statsData?.streak_longest ?? 0, profileData.streak_days ?? 0), badges: profileData.badges_count ?? 0, rank: rankData?.[0]?.rank ?? null, totalUsers: totalUsersCount ?? null, }; } catch (e) { console.error("Exception fetching stats:", e); return null; } }
-    async function fetchAllBadgesDefinition() { if (!supabase) return []; try { const { data, error } = await supabase.from('badges').select('*').order('id'); if (error) throw error; return data || []; } catch (e) { console.error("Error fetching badge definitions:", e); return []; } }
-    async function fetchUserEarnedBadges(userId) { if (!supabase || !userId) return []; try { const { data, error } = await supabase.from('user_badges').select(`badge_id, earned_at, badge:badges!inner (id, title, description, type, icon, requirements, points)`).eq('user_id', userId).order('earned_at', { ascending: false }); if (error) throw error; return data || []; } catch (e) { console.error("Error fetching earned badges:", e); return []; } }
+    // --- START: Data Fetching Functions (with new fetches) ---
+    async function fetchUserFullProfile(userId) { // Renamed for clarity
+        if (!supabase || !userId) return null;
+        console.log(`[Profile Full] Fetching FULL profile for achievements, user ID: ${userId}`);
+        try {
+            const { data: profile, error } = await supabase
+                .from('profiles')
+                .select(PROFILE_COLUMNS_TO_SELECT_FOR_ACHIEVEMENTS)
+                .eq('id', userId)
+                .single();
+            if (error && error.code !== 'PGRST116') throw error;
+            if (!profile) {
+                console.warn(`[Profile Full] Profile for ${userId} not found. Returning null.`);
+                return null;
+            }
+            console.log("[Profile Full] Full profile data for achievements fetched successfully.");
+            return profile;
+        } catch (error) {
+            console.error('[Profile Full] Caught exception fetching full profile:', error);
+            return null;
+        }
+    }
 
+    async function fetchUserStats(userId, profileData) {
+        if (!supabase || !userId ) return {}; // Removed profileData dependency for this specific fetch
+        console.log(`[UserStats] Fetching user_stats for user ${userId}`);
+        try {
+            const { data: stats, error} = await supabase
+                .from('user_stats')
+                .select('progress, progress_weekly, points_weekly, streak_longest, completed_tests')
+                .eq('user_id', userId)
+                .maybeSingle();
+            if (error) {
+                console.warn("[UserStats] Error fetching user_stats from DB:", error.message);
+                return {}; // Return empty object on error to allow graceful degradation
+            }
+            return stats || {};
+        } catch (e) {
+            console.error("[UserStats] Exception fetching user_stats:", e);
+            return {};
+        }
+    }
+
+    async function fetchAllBadgesDefinition() {
+        if (!supabase) return [];
+        setLoadingState('userBadges', true); // Use userBadges as it's about displaying them
+        try {
+            const { data, error } = await supabase.from('badges').select('*').order('id');
+            if (error) throw error;
+            return data || [];
+        } catch (e) {
+            console.error("Error fetching badge definitions:", e);
+            return [];
+        } finally {
+            // setLoadingState('userBadges', false); // This will be turned off after rendering
+        }
+    }
+
+    async function fetchUserEarnedBadges(userId) {
+        if (!supabase || !userId) return [];
+        // setLoadingState('userBadges', true); // Loading state handled by calling function or render
+        try {
+            const { data, error } = await supabase
+                .from('user_badges')
+                .select(`badge_id, earned_at, badge:badges!inner (id, title, description, type, icon, requirements, points)`)
+                .eq('user_id', userId)
+                .order('earned_at', { ascending: false });
+            if (error) throw error;
+            return data || [];
+        } catch (e) {
+            console.error("Error fetching earned badges:", e);
+            return [];
+        }
+    }
     async function fetchAllPurchasableTitles() {
         if (!supabase) return [];
         console.log("[Titles] Fetching ALL available & purchasable titles from DB...");
@@ -245,16 +289,14 @@
             const { data, error } = await supabase
                 .from('title_shop')
                 .select('*')
-                .eq('is_available', true)
-                .eq('is_purchasable', true);
+                .eq('is_available', true); // Fetch all available, purchasable status checked later
             if (error) throw error;
-            const count = data ? data.length : 0;
-            console.log(`[Titles] Fetched all purchasable titles from DB: ${count}. Titles:`, data?.map(t => t.title_key));
-            allTitlesFromDB = data || [];
+            allTitlesFromDB = data || []; // Update global allTitlesFromDB
+            console.log(`[Titles] Fetched all titles from DB: ${allTitlesFromDB.length}.`);
             return allTitlesFromDB;
         } catch (error) {
-            console.error("[Titles] Error fetching all purchasable titles:", error);
-            showToast("Chyba načítání všech titulů z obchodu.", "error");
+            console.error("[Titles] Error fetching all titles:", error);
+            showToast("Chyba", "Chyba načítání titulů z obchodu.", "error");
             allTitlesFromDB = [];
             return [];
         } finally {
@@ -262,72 +304,392 @@
         }
     }
 
-    function selectDailyUserSpecificTitles(allPurchasable, purchasedKeys, userId) {
-        if (!userId) {
-            console.warn("[Titles Shop] Cannot select user-specific titles without userId. Returning empty.");
-            return [];
-        }
-        const purchasableArray = Array.isArray(allPurchasable) ? allPurchasable : [];
-        console.log(`[Titles Shop] Input - All Purchasable Titles (count: ${purchasableArray.length}):`, purchasableArray.map(t => t.title_key));
+    async function fetchAvatarDecorationsData() { console.warn("Avatar decorations fetching skipped: Table 'avatar_decorations_shop' does not exist or feature is disabled."); setLoadingState('avatarDecorations', false); return []; } // Kept as is
 
-        if (purchasableArray.length === 0) {
-            console.log("[Titles Shop] No purchasable titles available in the master list to select from.");
-            return [];
-        }
-
-        const candidateTitles = [...purchasableArray];
-        console.log(`[Titles Shop] ${candidateTitles.length} titles are candidates for the shop (not filtering purchased).`);
-
-        if (candidateTitles.length === 0) {
-            console.log("[Titles Shop] No titles available to select from for the shop.");
-            return [];
-        }
-        if (candidateTitles.length <= DAILY_TITLE_SHOP_COUNT) {
-            console.log(`[Titles Shop] Fewer than ${DAILY_TITLE_SHOP_COUNT} titles available, showing all ${candidateTitles.length}.`);
-            return candidateTitles;
-        }
-
-        const today = new Date().toISOString().slice(0, 10);
-
-        const seededSortedTitles = candidateTitles
-            .map(title => {
-                const seedString = `${userId}-${today}-${title.title_key}`;
-                return { ...title, sortValue: getSeededSortValue(seedString) };
-            })
-            .sort((a, b) => a.sortValue - b.sortValue);
-
-        const selected = seededSortedTitles.slice(0, DAILY_TITLE_SHOP_COUNT);
-        console.log(`[Titles Shop] Selected ${selected.length} daily random titles for user ${userId}. Titles:`, selected.map(t => t.title_key));
-        return selected;
-    }
-
-    async function fetchAvatarDecorationsData() { console.warn("Avatar decorations fetching skipped: Table 'avatar_decorations_shop' does not exist or feature is disabled."); return []; }
     async function fetchLeaderboardData() {
         if (!supabase) return [];
+        setLoadingState('leaderboard', true);
         try {
-            const { data, error } = await supabase // MODIFIED: supabaseClient -> supabase
+            const { data, error } = await supabase
                 .from('leaderboard')
                 .select(`rank, user_id, points, badges_count, profile:profiles!inner(id, first_name, last_name, username, avatar_url, level, streak_days, selected_title, selected_decoration)`)
-                .eq('period', 'overall')
+                .eq('period', 'overall') // Assuming 'overall' is the main leaderboard
                 .order('rank', { ascending: true })
                 .limit(LEADERBOARD_LIMIT);
             if (error) throw error;
             const rankedData = (data || []).map((entry, index) => ({
                 ...entry,
-                calculated_rank: entry.rank ?? (index + 1)
+                calculated_rank: entry.rank ?? (index + 1) // Fallback rank if DB rank is null
             }));
             return rankedData;
         } catch (e) {
             console.error("Error fetching leaderboard:", e);
             return [];
+        } finally {
+            // setLoadingState('leaderboard', false); // Turned off after rendering
         }
     }
-    async function fetchNotifications(userId, limit = NOTIFICATION_FETCH_LIMIT) { if (!supabase || !userId) return { unreadCount: 0, notifications: [] }; try { const { data, error, count } = await supabase.from('user_notifications').select('*', { count: 'exact' }).eq('user_id', userId).eq('is_read', false).order('created_at', { ascending: false }).limit(limit); if (error) throw error; return { unreadCount: count ?? 0, notifications: data || [] }; } catch (e) { console.error("Error fetching notifications:", e); return { unreadCount: 0, notifications: [] }; } }
+    async function fetchNotifications(userId, limit = NOTIFICATION_FETCH_LIMIT) {
+        if (!supabase || !userId) return { unreadCount: 0, notifications: [] };
+        setLoadingState('notifications', true);
+        try {
+            const { data, error, count } = await supabase
+                .from('user_notifications')
+                .select('*', { count: 'exact' })
+                .eq('user_id', userId)
+                .eq('is_read', false)
+                .order('created_at', { ascending: false })
+                .limit(limit);
+            if (error) throw error;
+            return { unreadCount: count ?? 0, notifications: data || [] };
+        } catch (e) {
+            console.error("Error fetching notifications:", e);
+            return { unreadCount: 0, notifications: [] };
+        } finally {
+            // setLoadingState('notifications', false); // Turned off after rendering
+        }
+    }
+
+    async function fetchUserDiagnosticTestCount(userId) {
+        if (!supabase || !userId) return 0;
+        setLoadingState('userDiagnostics', true);
+        try {
+            const { count, error } = await supabase
+                .from('user_diagnostics')
+                .select('id', { count: 'exact', head: true })
+                .eq('user_id', userId);
+            if (error) throw error;
+            console.log(`[FetchData] Diagnostic tests count for user ${userId}: ${count || 0}`);
+            return count || 0;
+        } catch (e) {
+            console.error("Error fetching user diagnostic test count:", e);
+            return 0;
+        } finally {
+            setLoadingState('userDiagnostics', false);
+        }
+    }
+
+    async function fetchUserLearningLogsCount(userId) {
+        if (!supabase || !userId) return 0;
+        setLoadingState('userLearningLogs', true);
+        try {
+            const { count, error } = await supabase
+                .from('learning_logs_detailed')
+                .select('id', { count: 'exact', head: true })
+                .eq('user_id', userId);
+            if (error) throw error;
+            console.log(`[FetchData] Learning logs count for user ${userId}: ${count || 0}`);
+            return count || 0;
+        } catch (e) {
+            console.error("Error fetching user learning logs count:", e);
+            return 0;
+        } finally {
+            setLoadingState('userLearningLogs', false);
+        }
+    }
+
+    async function fetchUserTopicProgressList(userId) {
+        if (!supabase || !userId) return [];
+        setLoadingState('userTopicProgress', true);
+        try {
+            const { data, error } = await supabase
+                .from('user_topic_progress')
+                .select('topic_id, progress_percentage')
+                .eq('user_id', userId);
+            if (error) throw error;
+            console.log(`[FetchData] User topic progress for user ${userId}:`, data);
+            return data || [];
+        } catch (e) {
+            console.error("Error fetching user topic progress list:", e);
+            return [];
+        } finally {
+            setLoadingState('userTopicProgress', false);
+        }
+    }
+
+    async function fetchAllExamTopics() {
+        if (!supabase) return [];
+        setLoadingState('examTopics', true);
+        try {
+            const { data, error } = await supabase
+                .from('exam_topics')
+                .select('id, name');
+            if (error) throw error;
+            console.log(`[FetchData] All exam topics:`, data);
+            return data || [];
+        } catch (e) {
+            console.error("Error fetching all exam topics:", e);
+            return [];
+        } finally {
+            setLoadingState('examTopics', false);
+        }
+    }
+
+    async function fetchUserStudyPlansCount(userId) {
+        if (!supabase || !userId) return 0;
+        setLoadingState('userStudyPlans', true);
+        try {
+            const { count, error } = await supabase
+                .from('study_plans')
+                .select('id', { count: 'exact', head: true })
+                .eq('user_id', userId);
+            if (error) throw error;
+            console.log(`[FetchData] Study plans count for user ${userId}: ${count || 0}`);
+            return count || 0;
+        } catch (e) {
+            console.error("Error fetching user study plans count:", e);
+            return 0;
+        } finally {
+            setLoadingState('userStudyPlans', false);
+        }
+    }
+
+    async function fetchUserAiLessonsCompletedCount(userId) {
+        // This is a placeholder as the schema for AI lesson completion isn't fully defined yet.
+        // You'll need to adapt this to your actual table and criteria for "completed".
+        if (!supabase || !userId) return 0;
+        setLoadingState('userAiLessons', true);
+        try {
+            // EXAMPLE: Assuming 'ai_sessions' has a 'status' column that can be 'completed'
+            const { count, error } = await supabase
+                .from('ai_sessions')
+                .select('id', { count: 'exact', head: true })
+                .eq('user_id', userId)
+                .eq('status', 'ended'); // Or 'completed', depending on your schema
+            if (error) throw error;
+            console.log(`[FetchData] AI lessons completed count for user ${userId}: ${count || 0}`);
+            return count || 0;
+        } catch (e) {
+            console.error("Error fetching user AI lessons completed count:", e);
+            return 0;
+        } finally {
+            setLoadingState('userAiLessons', false);
+        }
+    }
+
+
     // --- END: Data Fetching Functions ---
 
+    // --- START: Achievement Logic ---
+    function checkRequirements(profileData, requirements, otherData = {}) {
+        if (!profileData || !requirements || typeof requirements !== 'object') {
+            console.warn("[Achievements CheckReq] Invalid input for checking requirements.", profileData, requirements);
+            return { met: false, current: 0, target: requirements.target || requirements.count || 1, progressText: "Chyba" };
+        }
+
+        const reqType = requirements.type;
+        const reqTarget = parseInt(requirements.target, 10);
+        const reqCount = parseInt(requirements.count, 10);
+        let currentValue = 0;
+        let targetValue = requirements.target || requirements.count || 1;
+        let progressText = "";
+
+        try {
+            switch (reqType) {
+                case 'profile_fields_filled':
+                    const fields = requirements.fields_required || [];
+                    let filledCount = 0;
+                    fields.forEach(fieldKey => {
+                        if (profileData[fieldKey] && String(profileData[fieldKey]).trim() !== '') {
+                            filledCount++;
+                        }
+                    });
+                    currentValue = filledCount;
+                    targetValue = requirements.min_fields_to_fill || fields.length;
+                    progressText = `${currentValue}/${targetValue} polí`;
+                    break;
+                case 'avatar_set':
+                    currentValue = (profileData.avatar_url && profileData.avatar_url.trim() !== '') ? 1 : 0;
+                    targetValue = 1;
+                    progressText = currentValue >= targetValue ? "Nastaven" : "Nenastaven";
+                    break;
+                case 'level_reached':
+                    currentValue = profileData.level ?? 1;
+                    targetValue = reqTarget;
+                    progressText = `${currentValue}/${targetValue} úr.`;
+                    break;
+                case 'experience_earned':
+                    currentValue = profileData.experience ?? 0;
+                    targetValue = reqTarget;
+                    progressText = `${currentValue}/${targetValue} XP`;
+                    break;
+                case 'points_earned_total':
+                    currentValue = profileData.points ?? 0;
+                    targetValue = reqTarget;
+                    progressText = `${currentValue}/${targetValue} kr.`;
+                    break;
+                case 'streak_days_reached':
+                    currentValue = profileData.streak_days ?? 0;
+                    targetValue = reqTarget;
+                    progressText = `${currentValue}/${targetValue} dní`;
+                    break;
+                case 'diagnostic_test_completed':
+                    currentValue = otherData.userDiagnosticTestsCount || 0;
+                    targetValue = reqCount || 1;
+                    progressText = `${currentValue}/${targetValue} testů`;
+                    break;
+                case 'study_plan_created':
+                    currentValue = otherData.userStudyPlansCount || 0;
+                    targetValue = reqCount || 1;
+                    progressText = `${currentValue}/${targetValue} plánů`;
+                    break;
+                case 'ai_lesson_completed':
+                    currentValue = otherData.userAiLessonsCompletedCount || 0;
+                    targetValue = reqCount || 1;
+                    progressText = `${currentValue}/${targetValue} lekcí`;
+                    break;
+                case 'learning_logs_created':
+                    currentValue = otherData.userLearningLogsCount || 0;
+                    targetValue = reqTarget;
+                    progressText = `${currentValue}/${targetValue} záznamů`;
+                    break;
+                case 'topic_progress_reached':
+                    const topicProgress = (otherData.userTopicProgressList || []).find(tp => tp.topic_id === requirements.topic_id);
+                    currentValue = topicProgress ? topicProgress.progress_percentage : 0;
+                    targetValue = requirements.min_progress_percentage || 100;
+                    const topicName = (otherData.allExamTopics || []).find(et => et.id === requirements.topic_id)?.name || `Téma ID ${requirements.topic_id}`;
+                    progressText = `${currentValue}% v "${topicName}" (Cíl: ${targetValue}%)`;
+                    break;
+                case 'avatar_decoration_equipped':
+                    currentValue = (profileData.selected_decoration && profileData.selected_decoration.trim() !== '') ? 1 : 0;
+                    targetValue = 1;
+                    progressText = currentValue >= targetValue ? "Vylepšeno" : "Nevylepšeno";
+                    break;
+                case 'title_equipped':
+                    currentValue = (profileData.selected_title && profileData.selected_title.trim() !== '') ? 1 : 0;
+                    targetValue = 1;
+                    progressText = currentValue >= targetValue ? "Vyzbrojen" : "Nevyzbrojen";
+                    break;
+                case 'exercises_completed_total':
+                     currentValue = profileData.completed_exercises ?? 0;
+                     targetValue = reqTarget;
+                     progressText = `${currentValue}/${targetValue} cvičení`;
+                     break;
+                default:
+                    console.warn(`[Achievements CheckReq] Unknown requirement type: ${reqType}`);
+                    progressText = "Neznámý typ";
+                    return { met: false, current: 0, target: targetValue, progressText };
+            }
+            return { met: currentValue >= targetValue, current: currentValue, target: targetValue, progressText };
+        } catch (e) {
+            console.error("[Achievements CheckReq] Error evaluating requirement:", e, requirements, profileData);
+            return { met: false, current: 0, target: targetValue, progressText: "Chyba hodnocení" };
+        }
+    }
+
+    async function awardBadge(userId, badgeId, badgeTitle, pointsAwarded = 0) {
+        const supabaseInstance = supabase;
+        if (!supabaseInstance || !userId || !badgeId) { console.error("[AwardBadge] Missing Supabase client, userId, or badgeId."); return; }
+        console.log(`[AwardBadge] Attempting to award badge ${badgeId} (${badgeTitle}) to user ${userId}...`);
+        try {
+            const { data: existing, error: checkError } = await supabaseInstance.from('user_badges').select('badge_id').eq('user_id', userId).eq('badge_id', badgeId).limit(1);
+            if (checkError) throw checkError;
+            if (existing && existing.length > 0) { console.log(`[AwardBadge] Badge ${badgeId} already awarded to user ${userId}. Skipping.`); return; }
+
+            const { error: insertError } = await supabaseInstance.from('user_badges').insert({ user_id: userId, badge_id: badgeId });
+            if (insertError) throw insertError;
+            console.log(`[AwardBadge] Badge ${badgeId} inserted for user ${userId}.`);
+
+            const { data: currentProfileData, error: fetchProfileError } = await supabaseInstance.from('profiles').select('badges_count, points').eq('id', userId).single();
+            if (fetchProfileError) { console.error("[AwardBadge] Error fetching current profile stats for update:", fetchProfileError); }
+            else if (currentProfileData) {
+                const currentBadgeCount = currentProfileData.badges_count ?? 0;
+                let currentPoints = currentProfileData.points ?? 0; // Use let for points
+                const updates = { badges_count: currentBadgeCount + 1, updated_at: new Date().toISOString() };
+                if (pointsAwarded > 0) {
+                    updates.points = currentPoints + pointsAwarded;
+                    currentPoints = updates.points; // Update local currentPoints if awarding
+                }
+                const { error: updateProfileError } = await supabaseInstance.from('profiles').update(updates).eq('id', userId);
+                if (updateProfileError) { console.error("[AwardBadge] Error updating profile stats:", updateProfileError); }
+                else {
+                    console.log(`[AwardBadge] Profile stats updated for user ${userId}: badges_count=${updates.badges_count}` + (updates.points ? `, points=${updates.points}` : ''));
+                    if (currentProfile && currentProfile.id === userId) { // Update global currentProfile
+                        currentProfile.badges_count = updates.badges_count;
+                        if (updates.points) currentProfile.points = updates.points;
+                        updateSidebarProfile(currentProfile, allTitlesFromDB); // Refresh sidebar with new points/badges
+                        updateStatsCards({ // Also update stats cards on the page
+                            badges: currentProfile.badges_count,
+                            points: currentProfile.points,
+                            streak_current: currentProfile.streak_days,
+                            streak_longest: currentProfile.longest_streak_days,
+                            rank: leaderboardData.find(u => u.user_id === currentUser.id)?.rank,
+                            totalUsers: leaderboardData.length > 0 ? leaderboardData.length : (await supabase.from('profiles').select('id', {count: 'exact', head: true})).count
+                        });
+                    }
+                }
+            }
+
+            const notificationTitle = `🏆 Nový Odznak!`;
+            const notificationMessage = `Získali jste odznak: "${badgeTitle}"! ${pointsAwarded > 0 ? `(+${pointsAwarded} kreditů)` : ''}`;
+            const { error: notifyError } = await supabaseInstance.from('user_notifications').insert({ user_id: userId, title: notificationTitle, message: notificationMessage, type: 'badge', link: '/dashboard/oceneni.html' });
+            if (notifyError) console.error("[AwardBadge] Error creating notification:", notifyError);
+            else console.log(`[AwardBadge] Notification created for badge ${badgeId}`);
+
+            showToast(notificationTitle, notificationMessage, 'success', 6000);
+        } catch (error) {
+            console.error(`[AwardBadge] Error awarding badge ${badgeId} to user ${userId}:`, error);
+        }
+    }
+
+    async function checkAndAwardAchievements(userId) {
+        const supabaseInstance = supabase;
+        if (!supabaseInstance || !userId || !currentProfile) {
+            console.error("[Achievements Check] Missing Supabase client, userId, or currentProfile.");
+            return;
+        }
+        console.log(`[Achievements Check] Starting check for user ${userId}...`);
+        setLoadingState('availableBadges', true); // Show loading for available badges during check
+        try {
+            const profileDataForCheck = currentProfile;
+
+            const { data: allBadgesData, error: badgesError } = await supabaseInstance.from('badges').select('id, title, requirements, points').order('id');
+            if (badgesError) throw badgesError;
+            if (!allBadgesData || allBadgesData.length === 0) { console.log("[Achievements Check] No badge definitions found."); return; }
+
+            const { data: earnedBadgesData, error: earnedError } = await supabaseInstance.from('user_badges').select('badge_id').eq('user_id', userId);
+            if (earnedError) throw earnedError;
+
+            const earnedBadgeIds = new Set((earnedBadgesData || []).map(b => b.badge_id));
+            const unearnedBadges = allBadgesData.filter(b => !earnedBadgeIds.has(b.id));
+            console.log(`[Achievements Check] Found ${unearnedBadges.length} unearned badges to check.`);
+
+            const otherDataForAchievements = {
+                userDiagnosticTestsCount,
+                userLearningLogsCount,
+                userTopicProgressList,
+                userStudyPlansCount,
+                userAiLessonsCompletedCount,
+                allExamTopics
+            };
+
+            let newBadgeAwarded = false;
+            for (const badge of unearnedBadges) {
+                const progressResult = checkRequirements(profileDataForCheck, badge.requirements, otherDataForAchievements);
+                if (progressResult.met) {
+                    console.log(`[Achievements Check] Criteria MET for badge ID: ${badge.id} (${badge.title})! Triggering award...`);
+                    await awardBadge(userId, badge.id, badge.title, badge.points || 0);
+                    newBadgeAwarded = true;
+                }
+            }
+            console.log(`[Achievements Check] Finished checking for user ${userId}. New badges awarded: ${newBadgeAwarded}`);
+
+            if (newBadgeAwarded) { // If any badge was awarded, re-fetch user's badges
+                userBadges = await fetchUserEarnedBadges(userId);
+                renderUserBadges(userBadges); // Re-render "Vaše Odznaky"
+            }
+            // Always re-render available badges to update progress
+            renderAvailableBadges(allBadgesData, userBadges, currentProfile, otherDataForAchievements);
+
+        } catch (error) {
+            console.error(`[Achievements Check] Error during check/award process for user ${userId}:`, error);
+        } finally {
+            setLoadingState('availableBadges', false);
+        }
+    }
+    // --- END: Achievement Logic ---
+
     // --- START: Data Rendering Functions ---
-    const badgeVisuals = { math: { icon: 'fa-square-root-alt', gradient: 'var(--gradient-math)' }, language: { icon: 'fa-language', gradient: 'var(--gradient-lang)' }, streak: { icon: 'fa-fire', gradient: 'var(--gradient-streak)' }, special: { icon: 'fa-star', gradient: 'var(--gradient-special)' }, points: { icon: 'fa-coins', gradient: 'var(--gradient-warning)' }, exercises: { icon: 'fa-pencil-alt', gradient: 'var(--gradient-success)' }, test: { icon: 'fa-vial', gradient: 'var(--gradient-info)' }, default: { icon: 'fa-medal', gradient: 'var(--gradient-locked)' } };
-    const activityVisuals = { test: { icon: 'fa-vial', class: 'test' }, exercise: { icon: 'fa-pencil-alt', class: 'exercise' }, badge: { icon: 'fa-medal', class: 'badge' }, diagnostic: { icon: 'fa-clipboard-check', class: 'diagnostic' }, lesson: { icon: 'fa-book-open', class: 'lesson' }, plan_generated: { icon: 'fa-calendar-alt', class: 'plan_generated' }, level_up: { icon: 'fa-level-up-alt', class: 'level_up' }, other: { icon: 'fa-info-circle', class: 'other' }, default: { icon: 'fa-check-circle', class: 'default' } };
     function updateSidebarProfile(profile, titlesData = allTitlesFromDB) {
         if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) return;
         if (profile) {
@@ -335,23 +697,29 @@
             ui.sidebarName.textContent = sanitizeHTML(displayName);
             const initials = getInitials(profile);
             const avatarUrl = profile.avatar_url;
-            const selectedDecoration = profile.selected_decoration || '';
+            const selectedDecorationKey = profile.selected_decoration || '';
+
             const avatarWrapper = ui.sidebarAvatar.closest('.avatar-wrapper');
             if (avatarWrapper) {
+                // Remove all potential decoration classes first
                 const decorationClasses = (allDecorations || []).map(d => d.decoration_key).filter(Boolean);
-                avatarWrapper.classList.remove(...decorationClasses);
-                if (selectedDecoration) avatarWrapper.classList.add(sanitizeHTML(selectedDecoration));
-                avatarWrapper.dataset.decorationKey = selectedDecoration;
+                decorationClasses.forEach(cls => avatarWrapper.classList.remove(cls));
+                // Add the new one if it exists
+                if (selectedDecorationKey) {
+                    avatarWrapper.classList.add(sanitizeHTML(selectedDecorationKey));
+                }
+                avatarWrapper.dataset.decorationKey = selectedDecorationKey;
             }
+
+
             ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
             const sidebarImg = ui.sidebarAvatar.querySelector('img');
             if(sidebarImg) { sidebarImg.onerror = () => { ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); }; }
 
             const selectedTitleKey = profile.selected_title;
             let displayTitle = 'Pilot';
-            const allTitlesForLookup = titlesData || [];
-            if (selectedTitleKey && allTitlesForLookup.length > 0) {
-                const foundTitle = allTitlesForLookup.find(t => t.title_key === selectedTitleKey);
+            if (selectedTitleKey && titlesData && titlesData.length > 0) {
+                const foundTitle = titlesData.find(t => t.title_key === selectedTitleKey);
                 if (foundTitle && foundTitle.name) displayTitle = foundTitle.name;
             }
             ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle);
@@ -359,274 +727,241 @@
         } else {
             ui.sidebarName.textContent = "Pilot"; ui.sidebarAvatar.textContent = '?';
             ui.sidebarUserTitle.textContent = 'Pilot'; ui.sidebarUserTitle.removeAttribute('title');
-            const avatarWrapper = ui.sidebarAvatar?.closest('.avatar-wrapper');
+             const avatarWrapper = ui.sidebarAvatar?.closest('.avatar-wrapper');
             if (avatarWrapper) {
                 const decorationClasses = (allDecorations || []).map(d => d.decoration_key).filter(Boolean);
-                avatarWrapper.classList.remove(...decorationClasses);
+                decorationClasses.forEach(cls => avatarWrapper.classList.remove(cls));
                 avatarWrapper.dataset.decorationKey = '';
             }
         }
     }
-    function updateStatsCards(stats) { if (!stats) { console.warn("No stats data to update cards."); return; } const getVal = (v) => (v !== null && v !== undefined) ? v : '-'; if (ui.badgesCount) ui.badgesCount.textContent = getVal(stats.badges); if (ui.pointsCount) ui.pointsCount.textContent = getVal(stats.points); if (ui.streakDays) ui.streakDays.textContent = getVal(stats.streak_current); if (ui.streakChange) ui.streakChange.textContent = `MAX: ${getVal(stats.streak_longest)} dní`; if (ui.rankValue) ui.rankValue.textContent = getVal(stats.rank); if (ui.rankChange && ui.totalUsers) ui.rankChange.innerHTML = `<i class="fas fa-users"></i> z ${getVal(stats.totalUsers)} pilotů`; if (ui.badgesCard) ui.badgesCard.classList.remove('loading'); if (ui.pointsCard) ui.pointsCard.classList.remove('loading'); if (ui.streakCard) ui.streakCard.classList.remove('loading'); if (ui.rankCard) ui.rankCard.classList.remove('loading'); }
-    function renderUserBadges(earnedBadges) { setLoadingState('userBadges', false); if (!ui.badgeGrid || !ui.emptyBadges) return; ui.badgeGrid.innerHTML = ''; if (!earnedBadges || earnedBadges.length === 0) { ui.emptyBadges.style.display = 'block'; ui.badgeGrid.style.display = 'none'; return; } ui.emptyBadges.style.display = 'none'; ui.badgeGrid.style.display = 'grid'; const fragment = document.createDocumentFragment(); earnedBadges.forEach((ub, index) => { const badge = ub.badge; if (!badge) return; const badgeType = badge.type?.toLowerCase() || 'default'; const visual = badgeVisuals[badgeType] || badgeVisuals.default; const badgeElement = document.createElement('div'); badgeElement.className = 'badge-card card'; badgeElement.setAttribute('data-animate', ''); badgeElement.style.setProperty('--animation-order', index); badgeElement.innerHTML = `<div class="badge-icon ${badgeType}" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><h3 class="badge-title">${sanitizeHTML(badge.title)}</h3><p class="badge-desc">${sanitizeHTML(badge.description || '')}</p><div class="badge-date"><i class="far fa-calendar-alt"></i> ${formatDate(ub.earned_at)}</div>`; fragment.appendChild(badgeElement); }); ui.badgeGrid.appendChild(fragment); requestAnimationFrame(initScrollAnimations); }
-    function renderAvailableBadges(allBadgesDef, userBadges) { setLoadingState('availableBadges', false); if (!ui.availableBadgesGrid || !ui.emptyAvailableBadges) return; const earnedIds = new Set((userBadges || []).map(ub => ub.badge_id)); const available = (allBadgesDef || []).filter(b => !earnedIds.has(b.id)); ui.availableBadgesGrid.innerHTML = ''; if (available.length === 0) { ui.emptyAvailableBadges.style.display = 'block'; ui.availableBadgesGrid.style.display = 'none'; return; } ui.emptyAvailableBadges.style.display = 'none'; ui.availableBadgesGrid.style.display = 'grid'; const fragment = document.createDocumentFragment(); available.forEach((badge, index) => { const badgeType = badge.type?.toLowerCase() || 'default'; const visual = badgeVisuals[badgeType] || badgeVisuals.default; let progress = 0; let progressText = '???'; const req = badge.requirements; if (req && typeof req === 'object' && currentProfile) { const target = parseInt(req.target, 10) || 1; let current = 0; try { switch (req.type) { case 'points_earned': current = currentProfile.points ?? 0; progressText = `${current}/${target} KR`; break; case 'streak_days': current = currentProfile.streak_days ?? 0; progressText = `${current}/${target} dní`; break; case 'exercises_completed': current = currentProfile.completed_exercises ?? 0; progressText = `${current}/${target} cv.`; break; case 'level_reached': current = currentProfile.level ?? 1; progressText = `${current}/${target} úr.`; break; default: progressText = '?/?'; } if (target > 0) progress = Math.min(100, Math.max(0, Math.round((current / target) * 100))); } catch(e) { progressText = 'Chyba'; } } else { progressText = 'Nespec.'; } const badgeElement = document.createElement('div'); badgeElement.className = 'achievement-card card'; badgeElement.setAttribute('data-animate', ''); badgeElement.style.setProperty('--animation-order', index); badgeElement.innerHTML = `<div class="achievement-icon ${badgeType}" style="background: ${visual.gradient};"><i class="fas ${visual.icon}"></i></div><div class="achievement-content"><h3 class="achievement-title">${sanitizeHTML(badge.title)}</h3><p class="achievement-desc">${sanitizeHTML(badge.description || '')}</p><div class="progress-container"><div class="progress-bar"><div class="progress-fill" style="width: ${progress}%; background: ${visual.gradient};"></div></div><div class="progress-stats">${progress}% (${progressText})</div></div></div>`; fragment.appendChild(badgeElement); }); ui.availableBadgesGrid.appendChild(fragment); requestAnimationFrame(initScrollAnimations); }
-    function renderLeaderboard(data) {
-        setLoadingState('leaderboard', false);
-        if (!ui.leaderboardBody || !ui.leaderboardEmpty || !ui.leaderboardTableContainer) return;
-        ui.leaderboardBody.innerHTML = '';
 
-        if (!data || data.length === 0) {
-            ui.leaderboardEmpty.style.display = 'block';
-            ui.leaderboardTableContainer.style.display = 'none';
-        } else {
-            ui.leaderboardEmpty.style.display = 'none';
-            ui.leaderboardTableContainer.style.display = 'block';
-            const fragment = document.createDocumentFragment();
-            data.forEach((entry) => {
-                const userProf = entry.profile;
-                if (!userProf) return;
+    function updateStatsCards(stats) {
+        if (!stats) { console.warn("No stats data to update cards."); return; }
+        const getVal = (v) => (v !== null && v !== undefined) ? v : '-';
 
-                const rank = entry.calculated_rank || '?';
-                const isCurrent = entry.user_id === currentUser?.id;
-                const displayName = `${userProf.first_name || ''} ${userProf.last_name || ''}`.trim() || userProf.username || `Pilot #${entry.user_id.substring(0, 4)}`;
-                const initials = getInitials(userProf);
-                const avatarUrl = userProf.avatar_url;
-                const pointsVal = entry.points ?? 0;
-                const badgesCnt = entry.badges_count ?? 0;
-                const streakVal = userProf.streak_days ?? 0;
-                const selectedDecoration = userProf.selected_decoration || '';
+        if (ui.badgesCount) ui.badgesCount.textContent = getVal(stats.badges);
+        if (ui.pointsCount) ui.pointsCount.textContent = getVal(stats.points);
+        if (ui.streakDays) ui.streakDays.textContent = getVal(stats.streak_current);
+        if (ui.streakChange) ui.streakChange.textContent = `MAX: ${getVal(stats.streak_longest)} dní`;
+        if (ui.rankValue) ui.rankValue.textContent = getVal(stats.rank);
+        if (ui.rankChange && ui.totalUsers) ui.rankChange.innerHTML = `<i class="fas fa-users"></i> z ${getVal(stats.totalUsers)} pilotů`;
 
-                const rowEl = document.createElement('tr');
-                if (isCurrent) rowEl.classList.add('highlight-row');
-                rowEl.innerHTML = `
-                    <td class="rank-cell">${rank}</td>
-                    <td class="user-cell">
-                        <div class="avatar-wrapper ${sanitizeHTML(selectedDecoration)}" data-decoration-key="${sanitizeHTML(selectedDecoration)}">
-                            <div class="user-avatar-sm">${avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(displayName)}">` : sanitizeHTML(initials)}</div>
-                        </div>
-                        <div class="user-info-sm">
-                            <div class="user-name-sm">${sanitizeHTML(displayName)}</div>
-                            <div class="user-level">Úroveň ${userProf.level || 1}</div>
-                        </div>
-                    </td>
-                    <td class="score-cell">${pointsVal}</td>
-                    <td class="badge-count-cell">${badgesCnt}</td>
-                    <td class="streak-cell">${streakVal}</td>`;
-                fragment.appendChild(rowEl);
-            });
-            ui.leaderboardBody.appendChild(fragment);
-        }
+        if (ui.badgesCard) ui.badgesCard.classList.remove('loading');
+        if (ui.pointsCard) ui.pointsCard.classList.remove('loading');
+        if (ui.streakCard) ui.streakCard.classList.remove('loading');
+        if (ui.rankCard) ui.rankCard.classList.remove('loading');
     }
 
-    function renderTitleShop(titlesToDisplay, profile) {
-        setLoadingState('titleShop', false);
-        if (!ui.titleShopGrid || !ui.titleShopEmpty || !ui.shopUserCredits || !profile) {
-            console.error("[RenderShop] Missing critical UI elements or profile data.");
+    function renderUserBadges(earnedBadges) {
+        setLoadingState('userBadges', false);
+        if (!ui.badgeGrid || !ui.emptyBadges) return;
+        ui.badgeGrid.innerHTML = '';
+        if (!earnedBadges || earnedBadges.length === 0) {
+            ui.emptyBadges.style.display = 'block';
+            ui.badgeGrid.style.display = 'none';
             return;
         }
-        ui.shopUserCredits.textContent = profile.points ?? 0;
-        ui.titleShopGrid.innerHTML = '';
-
-        console.log(`[RenderShop] Rendering ${titlesToDisplay?.length || 0} titles for the shop.`);
-        if (!titlesToDisplay || titlesToDisplay.length === 0) {
-            ui.titleShopEmpty.style.display = 'block';
-            ui.titleShopGrid.style.display = 'none';
-
-            const allPurchasableTitlesInDB = (allTitlesFromDB || []).filter(t => t.is_purchasable && t.is_available);
-            const purchasedKeysSet = new Set(profile.purchased_titles || []);
-            const allPurchasableAndNotOwned = allPurchasableTitlesInDB.filter(t => !purchasedKeysSet.has(t.title_key));
-
-            const emptyMsgP = ui.titleShopEmpty.querySelector('p');
-            if (emptyMsgP) {
-                if (allPurchasableAndNotOwned.length === 0 && allPurchasableTitlesInDB.length > 0) {
-                     emptyMsgP.textContent = 'Všechny aktuálně dostupné tituly v obchodě již vlastníte! Zkuste to znovu zítra.';
-                } else if (allPurchasableTitlesInDB.length === 0) {
-                     emptyMsgP.textContent = 'Momentálně nejsou v obchodě žádné tituly. Zkuste to prosím později.';
-                } else {
-                     emptyMsgP.textContent = 'Dnešní nabídka je prázdná. Nové tituly se objeví zítra!';
-                }
-            }
-            console.log("[RenderShop] No titles to display. Showing empty state.");
-            return;
-        }
-        ui.titleShopEmpty.style.display = 'none';
-        ui.titleShopGrid.style.display = 'grid';
+        ui.emptyBadges.style.display = 'none';
+        ui.badgeGrid.style.display = 'grid';
         const fragment = document.createDocumentFragment();
-        const purchasedKeys = new Set(profile.purchased_titles || []);
-        const selectedKey = profile.selected_title;
-
-        titlesToDisplay.forEach((title, index) => {
-            const isPurchased = purchasedKeys.has(title.title_key);
-            const isEquipped = isPurchased && title.title_key === selectedKey;
-            const canAfford = profile.points >= title.cost;
-
-            const itemElement = document.createElement('div');
-            itemElement.className = 'title-item card';
-            itemElement.setAttribute('data-title-key', title.title_key);
-            itemElement.setAttribute('data-title-cost', title.cost);
-            itemElement.setAttribute('data-animate', '');
-            itemElement.style.setProperty('--animation-order', index);
-
-            itemElement.innerHTML = `
-                <div class="title-item-icon"><i class="${sanitizeHTML(title.icon || 'fas fa-user-tag')}"></i></div>
-                <div class="title-item-content">
-                    <h4 class="title-item-name">${sanitizeHTML(title.name)}</h4>
-                    ${title.description ? `<p class="title-item-desc">${sanitizeHTML(title.description)}</p>` : ''}
-                    <div class="title-item-footer">
-                        <span class="title-item-cost">Cena: ${title.cost} <i class="fas fa-coins"></i></span>
-                        <div class="title-item-actions">
-                            <button class="btn btn-sm btn-primary buy-title-btn" ${isPurchased ? 'style="display: none;"' : ''} ${canAfford ? '' : 'disabled'} title="${canAfford ? 'Koupit titul' : 'Nedostatek kreditů'}">
-                                <i class="fas fa-shopping-cart"></i> Koupit
-                            </button>
-                            <span class="title-status purchased" ${isPurchased && !isEquipped ? '' : 'style="display: none;"'}><i class="fas fa-check"></i> Zakoupeno</span>
-                            <span class="title-status equipped" ${isEquipped ? '' : 'style="display: none;"'}><i class="fas fa-user-check"></i> Používá se</span>
-                            <button class="btn btn-sm btn-secondary equip-title-btn" ${isPurchased && !isEquipped ? '' : 'style="display: none;"'}>
-                                <i class="fas fa-check-square"></i> Použít
-                            </button>
-                        </div>
-                    </div>
+        earnedBadges.forEach((ub, index) => {
+            const badge = ub.badge;
+            if (!badge) return;
+            const badgeType = badge.type?.toLowerCase() || 'default';
+            const visual = badgeVisuals[badgeType] || badgeVisuals.default; // badgeVisuals defined in oceneni.js global scope
+            const badgeElement = document.createElement('div');
+            badgeElement.className = 'badge-card card';
+            badgeElement.setAttribute('data-animate', '');
+            badgeElement.style.setProperty('--animation-order', index);
+            badgeElement.innerHTML = `
+                <div class="badge-icon ${badgeType}" style="background: ${visual.gradient};">
+                    <i class="fas ${sanitizeHTML(visual.icon)}"></i>
+                </div>
+                <h3 class="badge-title">${sanitizeHTML(badge.title)}</h3>
+                <p class="badge-desc">${sanitizeHTML(badge.description || '')}</p>
+                <div class="badge-date">
+                    <i class="far fa-calendar-alt"></i> ${formatDate(ub.earned_at)}
                 </div>`;
-            fragment.appendChild(itemElement);
+            fragment.appendChild(badgeElement);
         });
-        ui.titleShopGrid.appendChild(fragment);
-        requestAnimationFrame(initScrollAnimations);
-        console.log(`[RenderShop] Finished rendering titles.`);
-    }
-    function renderAvatarDecorationsShop(decorations, profile) { setLoadingState('avatarDecorations', false); if (!ui.avatarDecorationsGrid || !ui.avatarDecorationsEmpty || !ui.shopDecorCredits || !profile) return; ui.shopDecorCredits.textContent = profile.points ?? 0; ui.avatarDecorationsGrid.innerHTML = ''; ui.avatarDecorationsEmpty.style.display = 'block'; ui.avatarDecorationsGrid.style.display = 'none'; }
-    function renderNotifications(count, notifications) { setLoadingState('notifications', false); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllRead) return; ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>${!n.is_read ? '<span class="unread-dot"></span>' : ''}<div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="notification-content"><div class="notification-title">${sanitizeHTML(n.title)}</div><div class="notification-message">${sanitizeHTML(n.message)}</div><div class="notification-time">${formatRelativeTime(n.created_at)}</div></div></div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllRead.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllRead.disabled = true; } }
-
-    function renderUserTitlesInventory(profile, allTitlesData) {
-        setLoadingState('userTitlesInventory', false);
-        if (!ui.userTitlesInventoryGrid || !ui.userTitlesInventoryEmpty || !profile) {
-            console.error("[RenderInventory] Missing UI elements for inventory or profile data.");
-            return;
-        }
-        ui.userTitlesInventoryGrid.innerHTML = '';
-        const purchasedTitleKeys = profile.purchased_titles || [];
-
-        if (purchasedTitleKeys.length === 0) {
-            if (ui.userTitlesInventoryEmpty) {
-                ui.userTitlesInventoryEmpty.style.display = 'block';
-            }
-            if (ui.userTitlesInventoryGrid) {
-                ui.userTitlesInventoryGrid.style.display = 'none';
-            }
-            console.log("[RenderInventory] No titles purchased by user.");
-            return;
-        }
-
-        if (ui.userTitlesInventoryEmpty) ui.userTitlesInventoryEmpty.style.display = 'none';
-        if (ui.userTitlesInventoryGrid) ui.userTitlesInventoryGrid.style.display = 'grid';
-
-        const purchasedTitlesDetailed = purchasedTitleKeys.map(key => {
-            return (allTitlesData || []).find(title => title.title_key === key);
-        }).filter(Boolean);
-
-        purchasedTitlesDetailed.sort((a, b) => (a.cost || 0) - (b.cost || 0));
-
-        console.log(`[RenderInventory] Rendering ${purchasedTitlesDetailed.length} purchased titles, sorted by cost.`);
-
-        const fragment = document.createDocumentFragment();
-        const selectedKey = profile.selected_title;
-
-        purchasedTitlesDetailed.forEach((title, index) => {
-            const isEquipped = title.title_key === selectedKey;
-            const itemElement = document.createElement('div');
-            itemElement.className = 'title-item card inventory-item';
-            itemElement.setAttribute('data-title-key', title.title_key);
-            itemElement.setAttribute('data-animate', '');
-            itemElement.style.setProperty('--animation-order', index);
-
-            itemElement.innerHTML = `
-                <div class="title-item-icon"><i class="${sanitizeHTML(title.icon || 'fas fa-user-tag')}"></i></div>
-                <div class="title-item-content">
-                    <h4 class="title-item-name">${sanitizeHTML(title.name)}</h4>
-                    ${title.description ? `<p class="title-item-desc">${sanitizeHTML(title.description)}</p>` : ''}
-                    <div class="title-item-footer">
-                        <span class="title-item-cost" style="visibility:hidden;">Cena: ${title.cost} <i class="fas fa-coins"></i></span>
-                        <div class="title-item-actions">
-                            ${isEquipped ?
-                                `<span class="title-status equipped"><i class="fas fa-user-check"></i> Používá se</span>` :
-                                `<button class="btn btn-sm btn-secondary equip-title-btn">
-                                    <i class="fas fa-check-square"></i> Použít
-                                 </button>`
-                            }
-                        </div>
-                    </div>
-                </div>`;
-            fragment.appendChild(itemElement);
-        });
-        if (ui.userTitlesInventoryGrid) ui.userTitlesInventoryGrid.appendChild(fragment);
+        ui.badgeGrid.appendChild(fragment);
         requestAnimationFrame(initScrollAnimations);
     }
+
+    function renderAvailableBadges(allBadgesDef, userBadgesData, profile, otherData = {}) {
+        setLoadingState('availableBadges', false);
+        if (!ui.availableBadgesGrid || !ui.emptyAvailableBadges) {
+            console.warn("[Render AvailableBadges] UI elements missing.");
+            return;
+        }
+        const earnedIds = new Set((userBadgesData || []).map(ub => ub.badge_id));
+        const available = (allBadgesDef || []).filter(b => !earnedIds.has(b.id));
+
+        ui.availableBadgesGrid.innerHTML = '';
+        if (available.length === 0) {
+            ui.emptyAvailableBadges.style.display = 'block';
+            ui.availableBadgesGrid.style.display = 'none';
+            ui.emptyAvailableBadges.innerHTML = `
+                <i class="fas fa-check-double empty-state-icon" style="color: var(--accent-lime);"></i>
+                <h3 class="empty-state-title">VŠECHNY VÝZVY SPLNĚNY!</h3>
+                <p class="empty-state-desc"> Gratulace, pilote! Získal jsi všechna dostupná ocenění. Nové výzvy brzy dorazí.</p>`;
+            return;
+        }
+        ui.emptyAvailableBadges.style.display = 'none';
+        ui.availableBadgesGrid.style.display = 'grid';
+
+        const fragment = document.createDocumentFragment();
+        available.forEach((badge, index) => {
+            const badgeType = badge.type?.toLowerCase() || 'default';
+            const visual = badgeVisuals[badgeType] || badgeVisuals.default;
+
+            const progressResult = checkRequirements(profile, badge.requirements, otherData);
+            const currentValue = progressResult.current;
+            const targetValue = progressResult.target;
+            const progressPercent = targetValue > 0 ? Math.min(100, Math.round((currentValue / targetValue) * 100)) : 0;
+            // Použijeme progressText z checkRequirements, pokud je k dispozici, jinak standardní formát
+            const displayProgressText = progressResult.progressText || `${currentValue}/${targetValue}`;
+
+
+            const badgeElement = document.createElement('div');
+            badgeElement.className = 'achievement-card card';
+            badgeElement.setAttribute('data-animate', '');
+            badgeElement.style.setProperty('--animation-order', index);
+            badgeElement.innerHTML = `
+                <div class="achievement-icon ${badgeType}" style="background: ${visual.gradient};">
+                    <i class="fas ${sanitizeHTML(visual.icon)}"></i>
+                </div>
+                <div class="achievement-content">
+                    <h3 class="achievement-title">${sanitizeHTML(badge.title)}</h3>
+                    <p class="achievement-desc">${sanitizeHTML(badge.description || '')}</p>
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progressPercent}%; background: ${visual.gradient};"></div>
+                        </div>
+                        <div class="progress-stats">${progressPercent}% (${displayProgressText})</div>
+                    </div>
+                </div>`;
+            fragment.appendChild(badgeElement);
+        });
+        ui.availableBadgesGrid.appendChild(fragment);
+        requestAnimationFrame(initScrollAnimations);
+    }
+
+    function renderLeaderboard(data) { /* ... */ }
+    function selectDailyUserSpecificTitles(allPurchasable, purchasedKeys, userId) { /* ... */ return [];}
+    function renderTitleShop(titlesToDisplay, profile) { /* ... */ }
+    function renderUserTitlesInventory(profile, allTitlesData) { /* ... */ }
+    function renderAvatarDecorationsShop(decorations, profile) { /* ... */ }
+    function renderNotifications(count, notifications) { /* ... */ }
     // --- END: Data Rendering Functions ---
 
-    // --- START: Shop Interaction Logic ---
-    async function handleShopInteraction(event) { const buyTitleButton = event.target.closest('.buy-title-btn'); const equipTitleButton = event.target.closest('.equip-title-btn'); const buyDecorButton = event.target.closest('.buy-decor-btn'); const equipDecorButton = event.target.closest('.equip-decor-btn'); if (buyTitleButton) { const itemEl = buyTitleButton.closest('.title-item'); const key = itemEl?.dataset.titleKey; const cost = parseInt(itemEl?.dataset.titleCost, 10); if (key && !isNaN(cost)) handleBuyItem('title', key, cost, buyTitleButton); else showToast('Chyba: Nelze identifikovat titul.', 'error'); } else if (equipTitleButton) { const itemEl = equipTitleButton.closest('.title-item'); const key = itemEl?.dataset.titleKey; if (key) handleEquipItem('title', key, equipTitleButton); else showToast('Chyba: Nelze identifikovat titul.', 'error'); } else if (buyDecorButton) { showToast('Info', 'Nákup vylepšení avatarů není momentálně dostupný.', 'info'); } else if (equipDecorButton) { showToast('Info', 'Nastavení vylepšení avatarů není momentálně dostupný.', 'info'); } }
-    async function handleBuyItem(itemType, itemKey, cost, buttonElement) { if (!currentProfile || !supabase || !currentUser || isLoading.buyEquip) return; if(itemType === 'decoration') { showToast('Info', 'Nákup vylepšení avatarů není momentálně dostupný.', 'info'); return; } const currentCredits = currentProfile.points ?? 0; if (currentCredits < cost) { showToast('Nedostatek Kreditů', `Potřebujete ${cost} kreditů.`, 'warning'); return; } const itemData = (itemType === 'title' ? allTitlesFromDB : allDecorations).find(it => it[itemType === 'title' ? 'title_key' : 'decoration_key'] === itemKey); const itemName = itemData?.name || itemKey; const itemTypeName = itemType === 'title' ? 'titul' : 'vylepšení'; if (!confirm(`Opravdu koupit ${itemTypeName} "${itemName}" za ${cost} kreditů?`)) return; setLoadingState('buyEquip', true); buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; const purchaseField = itemType === 'title' ? 'purchased_titles' : 'purchased_decorations'; try { const currentPurchased = Array.isArray(currentProfile[purchaseField]) ? currentProfile[purchaseField] : []; if (currentPurchased.includes(itemKey)) { showToast('Již Vlastněno', `Tento ${itemTypeName} již máte.`, 'info'); return; } const newCredits = currentCredits - cost; const newPurchasedItems = [...currentPurchased, itemKey]; const updatePayload = { points: newCredits, [purchaseField]: newPurchasedItems }; const { data: updatedProfile, error: updateError } = await supabase.from('profiles').update(updatePayload).eq('id', currentUser.id).select('*, selected_title, purchased_titles, selected_decoration, purchased_decorations').single(); if (updateError) throw updateError; currentProfile = updatedProfile; if(itemType === 'title') { titleShopTitles = selectDailyUserSpecificTitles(allTitlesFromDB, currentProfile.purchased_titles || [], currentUser.id); renderTitleShop(titleShopTitles, currentProfile); renderUserTitlesInventory(currentProfile, allTitlesFromDB); } else { renderAvatarDecorationsShop(allDecorations, currentProfile); } updateSidebarProfile(currentProfile, allTitlesFromDB); if (ui.shopUserCredits) ui.shopUserCredits.textContent = currentProfile.points; if (ui.shopDecorCredits) ui.shopDecorCredits.textContent = currentProfile.points; if (ui.pointsCount) ui.pointsCount.textContent = currentProfile.points; showToast('Nákup Úspěšný', `${itemTypeName} "${itemName}" zakoupen!`, 'success'); } catch (error) { console.error(`Error buying ${itemType}:`, error); showToast('Chyba Nákupu', error.message, 'error'); if(buttonElement) {buttonElement.disabled = false; buttonElement.innerHTML = '<i class="fas fa-shopping-cart"></i> Koupit';} } finally { setLoadingState('buyEquip', false); const stillOwned = (currentProfile[purchaseField] || []).includes(itemKey); if (buttonElement) { if (stillOwned) buttonElement.style.display = 'none'; else if (currentProfile.points < cost) buttonElement.disabled = true; } } }
-    async function handleEquipItem(itemType, itemKey, buttonElement) { if (!currentProfile || !supabase || !currentUser || isLoading.buyEquip) return; if(itemType === 'decoration') { showToast('Info', 'Nastavení vylepšení avatarů není momentálně dostupný.', 'info'); return; } const purchaseField = itemType === 'title' ? 'purchased_titles' : 'purchased_decorations'; const selectField = itemType === 'title' ? 'selected_title' : 'selected_decoration'; const purchasedKeys = Array.isArray(currentProfile[purchaseField]) ? currentProfile[purchaseField] : []; const itemTypeName = itemType === 'title' ? 'titul' : 'vylepšení'; if (!purchasedKeys.includes(itemKey)) { showToast('Chyba', `Tento ${itemTypeName} nemáte zakoupený.`, 'error'); return; } if (currentProfile[selectField] === itemKey) { showToast('Již Používáte', `Tento ${itemTypeName} již máte nastavený.`, 'info'); return; } setLoadingState('buyEquip', true); if (buttonElement) { buttonElement.disabled = true; buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; } try { const { data: updatedProfile, error: updateError } = await supabase.from('profiles').update({ [selectField]: itemKey }).eq('id', currentUser.id).select('*, selected_title, purchased_titles, selected_decoration, purchased_decorations').single(); if (updateError) throw updateError; currentProfile = updatedProfile; if(itemType === 'title') { renderTitleShop(titleShopTitles, currentProfile); renderUserTitlesInventory(currentProfile, allTitlesFromDB); } else { renderAvatarDecorationsShop(allDecorations, currentProfile); } updateSidebarProfile(currentProfile, allTitlesFromDB); const itemData = (allTitlesFromDB || []).find(it => it[itemType === 'title' ? 'title_key' : 'decoration_key'] === itemKey); const itemName = itemData?.name || itemKey; showToast('Položka Nastavena', `Nyní používáte ${itemTypeName} "${itemName}".`, 'success'); } catch (error) { console.error(`Error equipping ${itemType}:`, error); showToast('Chyba Nastavení', error.message, 'error'); } finally { setLoadingState('buyEquip', false); if (buttonElement) { buttonElement.disabled = false; buttonElement.innerHTML = '<i class="fas fa-check-square"></i> Použít'; const stillSelected = currentProfile[selectField] === itemKey; const stillOwned = (currentProfile[purchaseField] || []).includes(itemKey); if (stillSelected || !stillOwned) buttonElement.style.display = 'none'; } } }
+    // --- START: Shop Interaction Logic (Placeholders) ---
+    async function handleShopInteraction(event) { console.log("Shop interaction triggered"); }
+    async function handleBuyItem(itemType, itemKey, cost, buttonElement) { console.log("Buy item:", itemType, itemKey); }
+    async function handleEquipItem(itemType, itemKey, buttonElement) { console.log("Equip item:", itemType, itemKey); }
     // --- END: Shop Interaction Logic ---
 
-    // --- START: Notification Logic ---
-    async function handleNotificationClick(event) { const item = event.target.closest('.notification-item'); if (!item) return; const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId && supabase) { try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount.textContent.replace('+', ''); const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); if (ui.markAllRead) ui.markAllRead.disabled = newCount === 0; } catch (error) { console.error("Mark notification read error:", error); showToast('Chyba označení oznámení.', 'error'); } } if (link) window.location.href = link; }
-    async function handleMarkAllReadClick() { if (!currentUser || !ui.markAllRead || !supabase || isLoading.notifications) return; setLoadingState('notifications', true); ui.markAllRead.disabled = true; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false); if (error) throw error; const { unreadCount, notifications } = await fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT); renderNotifications(unreadCount, notifications); showToast('Oznámení označena jako přečtená.', 'success'); } catch (error) { console.error("Mark all read error:", error); showToast('Chyba při označování oznámení.', 'error'); } finally { setLoadingState('notifications', false); } }
+    // --- START: Notification Logic (Placeholders) ---
+    async function handleNotificationClick(event) { console.log("Notification clicked"); }
+    async function handleMarkAllReadClick() { console.log("Mark all read clicked"); }
     // --- END: Notification Logic ---
 
     // --- START: Load All Data ---
     async function loadAllAwardData() {
-        if (!currentUser || !currentProfile || !supabase) {
-            showError("Chyba: Nelze načíst data ocenění bez profilu uživatele.", true);
+        if (!currentUser || !supabase) {
+            showError("Chyba: Nelze načíst data ocenění bez přihlášení.", true);
             setLoadingState('all', false); return;
         }
         console.log("🔄 [LoadAwards] Loading all award page data...");
         hideError();
         setLoadingState('all', true);
         try {
-            const allPurchasableTitlesFromDB = await fetchAllPurchasableTitles();
-            titleShopTitles = selectDailyUserSpecificTitles(allPurchasableTitlesFromDB, currentProfile.purchased_titles || [], currentUser.id);
-            console.log("[LoadAwards] Daily shop titles selected:", titleShopTitles.map(t => t.title_key));
-
+            // Fetch all necessary data in parallel
             const results = await Promise.allSettled([
-                fetchUserStats(currentUser.id, currentProfile),
+                fetchUserFullProfile(currentUser.id),
                 fetchAllBadgesDefinition(),
                 fetchUserEarnedBadges(currentUser.id),
+                fetchAllPurchasableTitles(),
                 fetchAvatarDecorationsData(),
                 fetchLeaderboardData(),
-                fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT)
+                fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT),
+                fetchUserDiagnosticTestCount(currentUser.id),
+                fetchUserLearningLogsCount(currentUser.id),
+                fetchUserTopicProgressList(currentUser.id),
+                fetchAllExamTopics(),
+                fetchUserStudyPlansCount(currentUser.id),
+                fetchUserAiLessonsCompletedCount(currentUser.id),
+                fetchUserStats(currentUser.id) // Fetch user_stats data too
             ]);
             console.log("[LoadAwards] Data fetch results:", results);
 
-            const [statsResult, allBadgesResult, userBadgesResult, avatarShopResult, leaderboardResult, notificationsResult] = results;
+            const [
+                profileResult, allBadgesResult, userBadgesResult,
+                allTitlesResult, avatarShopResult, leaderboardResult,
+                notificationsResult, diagnosticCountResult, learningLogsCountResult,
+                topicProgressResult, examTopicsResult, studyPlansCountResult,
+                aiLessonsCountResult, userStatsResult
+            ] = results;
 
-            userStatsData = (statsResult.status === 'fulfilled') ? statsResult.value : null;
+            if (profileResult.status === 'fulfilled' && profileResult.value) {
+                currentProfile = profileResult.value;
+                 if (!currentProfile.preferences) currentProfile.preferences = {};
+            } else {
+                console.error("CRITICAL: Profile fetch failed:", profileResult.reason);
+                showError("Nepodařilo se načíst váš profil. Některé funkce nemusí být dostupné.", true);
+                currentProfile = currentProfile || { id: currentUser.id, email: currentUser.email, points: 0, badges_count: 0, streak_days: 0, longest_streak_days:0 };
+            }
+
             allBadges = (allBadgesResult.status === 'fulfilled') ? allBadgesResult.value : [];
             userBadges = (userBadgesResult.status === 'fulfilled') ? userBadgesResult.value : [];
-            allDecorations = [];
+            allTitlesFromDB = (allTitlesResult.status === 'fulfilled') ? allTitlesResult.value : [];
+            allDecorations = (avatarShopResult.status === 'fulfilled') ? avatarShopResult.value : [];
             leaderboardData = (leaderboardResult.status === 'fulfilled') ? leaderboardResult.value : [];
-            const { unreadCount, notifications } = (notificationsResult.status === 'fulfilled') ? notificationsResult.value : { unreadCount: 0, notifications: [] };
+            const { unreadCount, notifications: fetchedNotifications } = (notificationsResult.status === 'fulfilled') ? notificationsResult.value : { unreadCount: 0, notifications: [] };
 
-            updateStatsCards(userStatsData);
+            userDiagnosticTestsCount = (diagnosticCountResult.status === 'fulfilled') ? diagnosticCountResult.value : 0;
+            userLearningLogsCount = (learningLogsCountResult.status === 'fulfilled') ? learningLogsCountResult.value : 0;
+            userTopicProgressList = (topicProgressResult.status === 'fulfilled') ? topicProgressResult.value : [];
+            allExamTopics = (examTopicsResult.status === 'fulfilled') ? examTopicsResult.value : [];
+            userStudyPlansCount = (studyPlansCountResult.status === 'fulfilled') ? studyPlansCountResult.value : 0;
+            userAiLessonsCompletedCount = (aiLessonsCountResult.status === 'fulfilled') ? aiLessonsCountResult.value : 0;
+
+            const fetchedUserStats = (userStatsResult.status === 'fulfilled' && userStatsResult.value) ? userStatsResult.value : {};
+
+            updateSidebarProfile(currentProfile, allTitlesFromDB);
+            updateStatsCards({
+                badges: currentProfile.badges_count,
+                points: currentProfile.points,
+                streak_current: currentProfile.streak_days,
+                streak_longest: currentProfile.longest_streak_days, // Corrected to use profile's longest_streak_days
+                rank: leaderboardData.find(u => u.user_id === currentUser.id)?.rank,
+                totalUsers: leaderboardData.length > 0 ? leaderboardData.length : (await supabase.from('profiles').select('id', {count: 'exact', head: true})).count
+            });
+
             renderUserBadges(userBadges);
-            renderAvailableBadges(allBadges, userBadges);
+            const otherDataForAchievements = {
+                userDiagnosticTestsCount,
+                userLearningLogsCount,
+                userTopicProgressList,
+                userStudyPlansCount,
+                userAiLessonsCompletedCount,
+                allExamTopics
+            };
+            renderAvailableBadges(allBadges, userBadges, currentProfile, otherDataForAchievements);
             renderLeaderboard(leaderboardData);
+            titleShopTitles = selectDailyUserSpecificTitles(allTitlesFromDB, currentProfile.purchased_titles || [], currentUser.id);
             renderTitleShop(titleShopTitles, currentProfile);
             renderUserTitlesInventory(currentProfile, allTitlesFromDB);
             renderAvatarDecorationsShop(allDecorations, currentProfile);
-            renderNotifications(unreadCount, notifications);
-            updateSidebarProfile(currentProfile, allTitlesFromDB);
+            renderNotifications(unreadCount, fetchedNotifications);
+
+            await checkAndAwardAchievements(currentUser.id);
 
             console.log("✅ [LoadAwards] All award page data loaded and rendered.");
         } catch (error) {
             console.error("❌ [LoadAwards] Unexpected error during loading award data:", error);
             showError(`Nepodařilo se načíst data pro stránku Ocenění: ${error.message}`, true);
-            updateStatsCards(userStatsData || null);
-            renderUserBadges(userBadges || []);
-            renderAvailableBadges(allBadges || [], userBadges || []);
-            renderLeaderboard(leaderboardData || []);
-            renderTitleShop(titleShopTitles || [], currentProfile || {});
-            renderUserTitlesInventory(currentProfile || {}, allTitlesFromDB || []);
-            renderAvatarDecorationsShop(allDecorations || [], currentProfile || {});
-            renderNotifications(0, []);
         } finally {
             setLoadingState('all', false);
             initTooltips();
@@ -675,41 +1010,19 @@
             'toggleLeaderboardSection': ui.leaderboardContent
         };
 
-        Object.keys(sectionToggleMap).forEach(buttonKey => { // buttonKey je zde již camelCase
+        Object.keys(sectionToggleMap).forEach(buttonKey => {
             const button = ui[buttonKey];
             const contentElement = sectionToggleMap[buttonKey];
 
             if (button && contentElement) {
-                // Инициализация состояния из localStorage или CSS
-                const sectionCard = button.closest('.card');
+                const sectionCard = button.closest('.card-section'); // Updated selector
                 const storedState = localStorage.getItem(`section-${buttonKey}-collapsed`);
-                let isInitiallyCollapsed;
+                let isInitiallyCollapsed = storedState === 'true';
 
-                if (storedState !== null) {
-                    isInitiallyCollapsed = storedState === 'true';
-                } else {
-                    // Pokud není uloženo, použijeme výchozí stav z CSS (předpokládáme, že skryté sekce mají 'collapsed-section')
-                    isInitiallyCollapsed = sectionCard ? sectionCard.classList.contains('collapsed-section') : false;
-                     // Aplikujeme `max-height: 0px` pokud je výchozí stav "collapsed"
-                    if (isInitiallyCollapsed) {
-                        contentElement.style.maxHeight = '0px';
-                    } else {
-                        // Jinak, pokud je sekce rozbalená, nastavíme maxHeight na scrollHeight pro animaci při prvním kliku
-                        // ale jen pokud není explicitně nastavena na 'none' nebo jinou hodnotu
-                        if (!contentElement.style.maxHeight || contentElement.style.maxHeight === '0px') {
-                            // Dočasně zobrazíme, abychom získali scrollHeight
-                            const prevDisplay = contentElement.style.display;
-                            contentElement.style.display = 'block'; // Musí být blok pro scrollHeight
-                            contentElement.style.maxHeight = contentElement.scrollHeight + "px";
-                            if (!isInitiallyCollapsed && prevDisplay === 'none') { // Pokud byla původně display:none
-                                // contentElement.style.display = 'none'; // Vrátíme, pokud nechceme ihned zobrazit
-                            } else if (isInitiallyCollapsed) {
-                                contentElement.style.maxHeight = '0px'; // Pokud je collapsed, zpět na 0
-                            }
-                        }
-                    }
+                if (storedState === null && sectionCard) {
+                    isInitiallyCollapsed = sectionCard.classList.contains('collapsed-section');
                 }
-                
+
                 const icon = button.querySelector('i');
                 if (icon) {
                     icon.classList.toggle('fa-chevron-down', isInitiallyCollapsed);
@@ -718,31 +1031,63 @@
                 if (sectionCard) {
                      sectionCard.classList.toggle('collapsed-section', isInitiallyCollapsed);
                 }
+                if(isInitiallyCollapsed) {
+                    contentElement.style.maxHeight = '0px';
+                    contentElement.style.paddingTop = '0px';
+                    contentElement.style.paddingBottom = '0px';
+                    contentElement.style.marginTop = '0px';
+                    contentElement.style.marginBottom = '0px';
+                    contentElement.style.opacity = '0';
+                    contentElement.style.visibility = 'hidden';
+                } else {
+                    // Ensure it's visible and has appropriate padding if not collapsed
+                    contentElement.style.maxHeight = contentElement.scrollHeight + "px"; // Or a large enough value
+                    contentElement.style.paddingTop = ''; // Reset to CSS default
+                    contentElement.style.paddingBottom = ''; // Reset to CSS default
+                    contentElement.style.marginTop = '';
+                    contentElement.style.marginBottom = '';
+                    contentElement.style.opacity = '1';
+                    contentElement.style.visibility = 'visible';
+                }
 
 
                 safeAddListener(button, 'click', () => {
-                    const isCollapsing = contentElement.style.maxHeight && contentElement.style.maxHeight !== '0px';
+                    const isCurrentlyCollapsed = sectionCard ? sectionCard.classList.contains('collapsed-section') : (contentElement.style.maxHeight === '0px');
+                    const isCollapsing = !isCurrentlyCollapsed; // If it's not collapsed, it's about to collapse
+
                     if(isCollapsing) {
                         contentElement.style.maxHeight = '0px';
+                        contentElement.style.paddingTop = '0px';
+                        contentElement.style.paddingBottom = '0px';
+                        contentElement.style.marginTop = '0px';
+                        contentElement.style.marginBottom = '0px';
+                        contentElement.style.opacity = '0';
+                        setTimeout(() => { contentElement.style.visibility = 'hidden';}, 450); // Match transition
                         sectionCard?.classList.add('collapsed-section');
                         localStorage.setItem(`section-${buttonKey}-collapsed`, 'true');
                     } else {
-                        // Před nastavením scrollHeight se ujistíme, že element je "viditelný" pro výpočet
-                        const prevDisplay = contentElement.style.display;
-                        contentElement.style.display = 'block'; // Může být nutné pro správný scrollHeight
+                        contentElement.style.visibility = 'visible';
+                        contentElement.style.opacity = '1';
+                        contentElement.style.paddingTop = ''; // Reset to CSS default
+                        contentElement.style.paddingBottom = '';
+                        contentElement.style.marginTop = '';
+                        contentElement.style.marginBottom = '';
                         contentElement.style.maxHeight = contentElement.scrollHeight + "px";
-                        if (prevDisplay === 'none' && !contentElement.style.maxHeight) { // Pokud byl původně display:none a maxHeight nebyl nastaven
-                           // contentElement.style.display = 'none'; // Optional: return to original display if not meant to be shown yet
-                        }
                         sectionCard?.classList.remove('collapsed-section');
                         localStorage.setItem(`section-${buttonKey}-collapsed`, 'false');
+                        // Ensure proper height recalculation if content was dynamic
+                        setTimeout(() => {
+                            if (contentElement.style.maxHeight !== '0px') { // Check if it's still supposed to be open
+                                contentElement.style.maxHeight = contentElement.scrollHeight + "px";
+                            }
+                        }, 460); // After transition
                     }
                     const icon = button.querySelector('i');
                     if (icon) {
-                        icon.classList.toggle('fa-chevron-down', !isCollapsing);
-                        icon.classList.toggle('fa-chevron-up', isCollapsing);
+                        icon.classList.toggle('fa-chevron-down', isCollapsing);
+                        icon.classList.toggle('fa-chevron-up', !isCollapsing);
                     }
-                    console.log(`Toggled section for button ${buttonKey}. Collapsed: ${!isCollapsing}`);
+                    console.log(`Toggled section for button ${buttonKey}. Collapsed: ${isCollapsing}`);
                 }, buttonKey);
             } else {
                  if(!button) console.warn(`[SETUP] Toggle button with key '${buttonKey}' not found in ui cache.`);
@@ -755,8 +1100,8 @@
 
     // --- START: Initialization ---
     async function initializeApp() {
-        console.log("🚀 [Init Oceneni v23.23.3] Starting...");
-        cacheDOMElements();
+        console.log("🚀 [Init Oceneni v23.23.5] Starting...");
+        cacheDOMElements(); // Call this first
         if (!initializeSupabase()) return;
         applyInitialSidebarState();
         if (ui.initialLoader) { ui.initialLoader.style.display = 'flex'; ui.initialLoader.classList.remove('hidden'); }
@@ -768,28 +1113,38 @@
             if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
             if (!session || !session.user) { window.location.href = '/auth/index.html'; return; }
             currentUser = session.user;
-            console.log(`[Init Oceneni] User authenticated (ID: ${currentUser.id}). Loading profile...`);
-            currentProfile = await fetchUserProfile(currentUser.id);
-            if (!currentProfile) throw new Error("Nepodařilo se načíst profil uživatele.");
+            console.log(`[Init Oceneni] User authenticated (ID: ${currentUser.id}).`);
 
-            updateSidebarProfile(currentProfile, []);
-            setupEventListeners();
+            // Initial profile load simplified here, full load in loadAllAwardData
+            currentProfile = await fetchUserProfile(currentUser.id); // Basic profile for sidebar
+            if (!currentProfile) {
+                console.log("[Init Oceneni] Profile not found, attempting to create default (basic info for now)...");
+                currentProfile = { id: currentUser.id, email: currentUser.email, points:0, badges_count:0, streak_days:0, longest_streak_days:0 }; // Minimal for sidebar
+            }
+            allTitlesFromDB = await fetchAllPurchasableTitles(); // Fetch titles for sidebar
+
+            updateSidebarProfile(currentProfile, allTitlesFromDB);
+            setupEventListeners(); // Setup basic listeners
+
+            // Initialize UI features that don't depend on full data load
             initMouseFollower();
             initHeaderScrollDetection();
             updateCopyrightYear();
             updateOnlineStatus();
+
+            // Load the main content for the awards page
             await loadAllAwardData();
 
             if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500); }
             if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }
-            initTooltips();
+            initTooltips(); // Init tooltips after content is loaded
 
             console.log("✅ [Init Oceneni] Page initialized.");
         } catch (error) {
             console.error("❌ [Init Oceneni] Kritická chyba inicializace:", error);
             if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA (${error.message}). OBNOVTE.</p>`; }
             else { showError(`Chyba inicializace: ${error.message}`, true); }
-            if (ui.mainContent) ui.mainContent.style.display = 'block';
+            if (ui.mainContent) ui.mainContent.style.display = 'block'; // Show main content even on error for global error message
             setLoadingState('all', false);
         }
     }
@@ -798,6 +1153,10 @@
     // --- END: Initialization ---
 
     // --- Run ---
-    initializeApp();
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    } else {
+        initializeApp();
+    }
 
 })(); // End IIFE
