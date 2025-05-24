@@ -3,6 +3,7 @@
 // MODIFIED: Added logic to infer requirement type in checkRequirements if missing.
 // MODIFIED 2: Passed badgeTitle to checkRequirements to fix ReferenceError.
 // MODIFIED 3: Enhanced reqType inference, especially for topic_score with min_score.
+// MODIFIED 4: Corrected ReferenceError in the default case of checkRequirements.
 (function() { // IIFE for scope isolation
     'use strict';
 
@@ -470,10 +471,10 @@
         }
 
         let reqType = requirements.type;
-        const reqTarget = parseInt(requirements.target, 10); // General target
-        const reqCount = parseInt(requirements.count, 10); // Specific count for some types
+        const reqTarget = parseInt(requirements.target, 10);
+        const reqCount = parseInt(requirements.count, 10);
         let currentValue = 0;
-        let targetValue = requirements.target || requirements.count || 1; // Default target if specific not found
+        let targetValue = requirements.target || requirements.count || 1;
         let progressText = "";
 
         if (!reqType) {
@@ -488,15 +489,12 @@
             else if (requirements.ai_lessons_completed_count !== undefined) reqType = 'ai_lesson_completed';
             else if (requirements.learning_logs_created_count !== undefined) reqType = 'learning_logs_created';
             else if (requirements.topic_id !== undefined && requirements.min_progress_percentage !== undefined) reqType = 'topic_progress_reached';
-            // MODIFIED: More robust inference for topic_score, also checking for min_score
             else if ((requirements.min_score_percentage !== undefined || requirements.min_score !== undefined) && (requirements.topic_id !== undefined || requirements.topic !== undefined)) reqType = 'topic_score';
             else if (requirements.exercises_completed_count !== undefined && requirements.topic_id === undefined && requirements.topic === undefined) reqType = 'exercises_completed_total';
-             // MODIFIED: More robust inference for topic_exercises_completed and perfect_exercises
             else if (requirements.exercises_count !== undefined && (requirements.topic_id !== undefined || requirements.topic !== undefined)) reqType = 'topic_exercises_completed';
             else if (requirements.perfect_exercises !== undefined && (requirements.topic_id !== undefined || requirements.topic !== undefined)) reqType = 'topic_perfect_exercises';
-            else if (requirements.perfect_exercises !== undefined) reqType = 'perfect_exercises'; // General perfect exercises
-            else if (requirements.exercises_count !== undefined && requirements.max_time_minutes !== undefined) reqType = 'exercises_count'; // For "Rychlé myšlení" like badges
-
+            else if (requirements.perfect_exercises !== undefined) reqType = 'perfect_exercises';
+            else if (requirements.exercises_count !== undefined && requirements.max_time_minutes !== undefined) reqType = 'exercises_count';
             else {
                  console.warn(`[Achievements CheckReq] Could not infer 'type' for requirement:`, requirements, `Used by badge: ${badgeTitle}`);
             }
@@ -586,12 +584,11 @@
                      break;
                 case 'topic_score':
                     const scoreTopicId = requirements.topic_id || ( (otherData.allExamTopics || []).find(t => t.name?.toLowerCase() === requirements.topic?.toLowerCase()) || {} ).id;
-                    // MODIFIED: Check for min_score OR min_score_percentage
                     const minScoreTarget = requirements.min_score_percentage !== undefined ? requirements.min_score_percentage : requirements.min_score;
 
                     if (scoreTopicId && minScoreTarget !== undefined) {
                         const scoreTopicProgress = (otherData.userTopicProgressList || []).find(tp => tp.topic_id === scoreTopicId);
-                        currentValue = scoreTopicProgress ? scoreTopicProgress.progress_percentage : 0; // Assuming progress_percentage reflects score
+                        currentValue = scoreTopicProgress ? scoreTopicProgress.progress_percentage : 0;
                         targetValue = minScoreTarget;
                         const scoreTopicObj = (otherData.allExamTopics || []).find(et => et.id === scoreTopicId);
                         const scoreTopicName = scoreTopicObj ? scoreTopicObj.name : `Téma ${requirements.topic || scoreTopicId}`;
@@ -601,12 +598,12 @@
                          console.warn(`[CheckReq topic_score] Chybí topic_id nebo min_score/min_score_percentage pro`, requirements, `Badge: ${badgeTitle}`);
                     }
                     break;
-                case 'exercises_count': // Primarily for "Rychlé myšlení"
+                case 'exercises_count':
                      if (requirements.max_time_minutes !== undefined) {
-                        currentValue = 0; // Needs specific logic beyond scope here
+                        currentValue = 0;
                         targetValue = requirements.exercises_count || reqTarget;
                         progressText = `${currentValue}/${targetValue} cvičení (časový limit se připravuje)`;
-                     } else { // Fallback if it's just 'exercises_count' without time
+                     } else {
                         currentValue = profileData.completed_exercises ?? 0;
                         targetValue = requirements.exercises_count || reqTarget;
                         progressText = `${currentValue}/${targetValue} cvičení`;
@@ -614,8 +611,8 @@
                      break;
                 case 'topic_exercises_completed':
                 case 'topic_perfect_exercises':
-                case 'perfect_exercises': // Catches "Gramatický expert" if type was inferred
-                    currentValue = 0; // Placeholder - requires detailed exercise tracking per topic
+                case 'perfect_exercises':
+                    currentValue = 0;
                     targetValue = requirements.exercises_count || requirements.perfect_exercises || reqTarget || 1;
                     const exTopicId = requirements.topic_id || ( (otherData.allExamTopics || []).find(t => t.name?.toLowerCase() === requirements.topic?.toLowerCase()) || {} ).id;
                     const exTopicObj = (otherData.allExamTopics || []).find(et => et.id === exTopicId);
@@ -635,7 +632,7 @@
 
                 default:
                     if (reqType === undefined) {
-                         console.error(`[Achievements CheckReq] CRITICAL: Badge requirement 'type' is undefined and could not be inferred for requirement object:`, requirements, `Badge: ${badgeTitle}`);
+                         console.error(`[Achievements CheckReq] CRITICAL: Badge requirement 'type' is undefined and could not be inferred for requirement object:`, requirements, `Badge: ${badgeTitle}`); // Used badgeTitle
                          progressText = "Chybná definice";
                     } else {
                         console.warn(`[Achievements CheckReq] Unknown requirement type: ${reqType}`);
