@@ -4,6 +4,7 @@
 // Версия v12.1: Исправлена синтаксическая ошибка 'Unexpected token )' в initializeTest.
 // Обновлено для поддержки answer_prefix, answer_suffix и многочастных ответов.
 // Версия v12.2 (интеграция с main.js): Добавлена функциональность боковой панели и загрузка заголовка пользователя.
+// Версия v12.3: Opraveno ID tlačítka pro označení všech oznámení jako přečtených.
 
 // Используем IIFE для изоляции области видимости
 (function() {
@@ -23,9 +24,9 @@
     let testResultsData = null;
     let diagnosticId = null;
     let selectedTestType = null;
-    let isLoading = { page: true, test: false, results: false, notifications: false, titles: false }; // Added titles
-    let allTitles = []; // Added from main.js
-		const SIDEBAR_STATE_KEY = 'sidebarCollapsedState'; // Added from main.js
+    let isLoading = { page: true, test: false, results: false, notifications: false, titles: false };
+    let allTitles = [];
+		const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
 
 
     const testTypeConfig = {
@@ -42,7 +43,7 @@
     const ui = {
         sidebarAvatar: document.getElementById('sidebar-avatar'),
         sidebarName: document.getElementById('sidebar-name'),
-        sidebarUserTitle: document.getElementById('sidebar-user-title'), // Added from main.js
+        sidebarUserTitle: document.getElementById('sidebar-user-title'),
         initialLoader: document.getElementById('initial-loader'),
         sidebarOverlay: document.getElementById('sidebar-overlay'),
         geminiOverlay: document.getElementById('gemini-checking-overlay'),
@@ -50,7 +51,7 @@
         sidebar: document.getElementById('sidebar'),
         mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
         sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
-        sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'), // Added from main.js
+        sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'),
         dashboardHeader: document.querySelector('.dashboard-header'),
         testSubject: document.getElementById('test-subject'),
         testLevel: document.getElementById('test-level'),
@@ -61,7 +62,7 @@
         notificationsDropdown: document.getElementById('notifications-dropdown'),
         notificationsList: document.getElementById('notifications-list'),
         noNotificationsMsg: document.getElementById('no-notifications-msg'),
-        markAllReadBtn: document.getElementById('mark-all-read'),
+        markAllReadBtn: document.getElementById('mark-all-read-btn'), // <<< ZMĚNA ZDE
         testSelector: document.getElementById('test-selector'),
         testLoader: document.getElementById('test-loader'),
         loaderSubtext: document.getElementById('loader-subtext'),
@@ -105,13 +106,13 @@
     function showError(message, isGlobal = false) { console.error("Došlo k chybě:", message); if (isGlobal && ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" onclick="location.reload()">Zkusit Znovu</button></div>`; ui.globalError.style.display = 'block'; } else { showToast('CHYBA SYSTÉMU', message, 'error', 6000); } }
     function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
     function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
-    function getInitials(profileData) { // Updated to match main.js (profileData instead of currentUser)
+    function getInitials(profileData) {
         if (!profileData) return '?';
         const f = profileData.first_name?.[0] || '';
         const l = profileData.last_name?.[0] || '';
         const nameInitial = (f + l).toUpperCase();
         const usernameInitial = profileData.username?.[0].toUpperCase() || '';
-        const emailInitial = profileData.email?.[0].toUpperCase() || ''; // Assuming profile might have email
+        const emailInitial = profileData.email?.[0].toUpperCase() || '';
         return nameInitial || usernameInitial || emailInitial || '?';
     }
     function formatDate(dateString) { if (!dateString) return '-'; try { const d = new Date(dateString); if (isNaN(d.getTime())) return '-'; return d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { return '-'; } }
@@ -119,7 +120,7 @@
     function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { document.body.classList.remove('sidebar-collapsed'); ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
     function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
 
-    function updateUserInfoUI() { // Modified to include sidebarUserTitle from main.js
+    function updateUserInfoUI() {
         if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) {
             console.warn("[UI Sidebar] Sidebar profile elements missing for full update.");
             return;
@@ -127,7 +128,7 @@
         if (currentUser && currentProfile) {
             const displayName = `${currentProfile.first_name || ''} ${currentProfile.last_name || ''}`.trim() || currentProfile.username || currentUser.email?.split('@')[0] || 'Pilot';
             ui.sidebarName.textContent = sanitizeHTML(displayName);
-            const initials = getInitials(currentProfile); // Pass currentProfile
+            const initials = getInitials(currentProfile);
             ui.sidebarAvatar.innerHTML = currentProfile.avatar_url ? `<img src="${sanitizeHTML(currentProfile.avatar_url)}?t=${Date.now()}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
 
             const img = ui.sidebarAvatar.querySelector('img');
@@ -138,9 +139,8 @@
                 };
             }
 
-            // Logic for user title from main.js
             const selectedTitleKey = currentProfile.selected_title;
-            let displayTitle = 'Pilot'; // Default title
+            let displayTitle = 'Pilot';
 
             if (selectedTitleKey && allTitles && allTitles.length > 0) {
                 const foundTitle = allTitles.find(t => t.title_key === selectedTitleKey);
@@ -176,7 +176,6 @@
     function updateOnlineStatus() { if (ui.offlineBanner) { ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; } if (!navigator.onLine) { showToast('Offline', 'Spojení bylo ztraceno. Některé funkce nemusí být dostupné.', 'warning'); } }
     function setLoadingState(section, isLoadingFlag) { if (isLoading[section] === isLoadingFlag && section !== 'all') return; if (section === 'all') { Object.keys(isLoading).forEach(key => isLoading[key] = isLoadingFlag); } else { isLoading[section] = isLoadingFlag; } console.log(`[SetLoading] Section: ${section}, isLoading: ${isLoadingFlag}`); if (section === 'test') { if (ui.testLoader) ui.testLoader.style.display = isLoadingFlag ? 'flex' : 'none'; if (ui.testContainer) ui.testContainer.style.display = isLoadingFlag ? 'none' : (selectedTestType ? 'block' : 'none'); } else if (section === 'results') { /* UI для загрузки результатов, если нужно */ } else if (section === 'notifications') { if(ui.notificationBell) ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1; if (ui.markAllReadBtn) { const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); ui.markAllReadBtn.disabled = isLoadingFlag || currentUnreadCount === 0; } } }
 
-		// Sidebar functions from main.js
 		function applyInitialSidebarState() {
 			try {
 					const state = localStorage.getItem(SIDEBAR_STATE_KEY);
@@ -217,22 +216,22 @@
     // --- END: Helper Functions ---
 
     // --- START: Data Fetching Wrappers (using TestLogic) ---
-    async function fetchUserProfile(userId) { // This was already in test1.js, ensuring it's complete
+    async function fetchUserProfile(userId) {
         if (!supabase || !userId) return null;
         console.log(`[Profile] Fetching profile for user ID: ${userId}`);
-        setLoadingState('titles', true); // For fetching titles if needed later
+        setLoadingState('titles', true);
         try {
             const { data: profile, error } = await supabase
                 .from('profiles')
-                .select('*, selected_title, preferences, longest_streak_days') // Ensure all necessary fields are selected
+                .select('*, selected_title, preferences, longest_streak_days')
                 .eq('id', userId)
                 .single();
-            if (error && error.code !== 'PGRST116') throw error; // PGRST116 means no rows found, not necessarily an error here
+            if (error && error.code !== 'PGRST116') throw error;
             if (!profile) {
                 console.warn(`[Profile] Profile not found for user ${userId}.`);
                 return null;
             }
-            if (!profile.preferences) profile.preferences = {}; // Ensure preferences object exists
+            if (!profile.preferences) profile.preferences = {};
             console.log("[Profile] Profile data fetched successfully:", profile);
             return profile;
         } catch (error) {
@@ -244,7 +243,7 @@
         }
     }
 
-		async function fetchTitles() { // Added from main.js
+		async function fetchTitles() {
         if (!supabase) return [];
         console.log("[Titles] Fetching available titles...");
         setLoadingState('titles', true);
@@ -570,7 +569,7 @@
         if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
         if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
         if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
-        if (ui.sidebarToggleBtn) ui.sidebarToggleBtn.addEventListener('click', toggleSidebar); // Added from main.js
+        if (ui.sidebarToggleBtn) ui.sidebarToggleBtn.addEventListener('click', toggleSidebar);
 
         document.querySelectorAll('.sidebar-link').forEach(link => {
             link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); });
@@ -646,9 +645,9 @@
 
     // --- START: App Initialization ---
     async function initializeApp() {
-        console.log("🚀 [Init Test1 UI - Kyber v12.2] Starting...");
+        console.log("🚀 [Init Test1 UI - Kyber v12.3] Starting...");
         if (!initializeSupabase()) return;
-        applyInitialSidebarState(); // Added from main.js
+        applyInitialSidebarState();
 
         if (typeof window.TestLogic === 'undefined') {
             showErrorMessagePage("Kritická chyba: Chybí základní logika testu (test1-logic.js). Obnovte stránku.");
@@ -662,29 +661,27 @@
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
             if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
 
-            if (!session || !session.user) { console.log('[Init Test1 UI - Kyber v12.2] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; }
+            if (!session || !session.user) { console.log('[Init Test1 UI - Kyber v12.3] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; }
             currentUser = session.user;
 
-            // Fetch profile and titles concurrently
             const [profileResult, titlesResult] = await Promise.allSettled([
                 fetchUserProfile(currentUser.id),
-                fetchTitles() // Added from main.js
+                fetchTitles()
             ]);
 
             if (profileResult.status === 'fulfilled' && profileResult.value) {
                 currentProfile = profileResult.value;
             } else {
                 console.error("[INIT] Profile fetch failed or no data:", profileResult.reason);
-                // Attempt to create a default profile or handle error
                 showError("Nepodařilo se načíst profil. Zkuste obnovit stránku.", true);
                 if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => {if(ui.initialLoader) ui.initialLoader.style.display = 'none';}, 300); }
-                return; // Stop initialization if profile is crucial and missing
+                return;
             }
 
-            allTitles = (titlesResult.status === 'fulfilled' && titlesResult.value) ? titlesResult.value : []; // Added from main.js
+            allTitles = (titlesResult.status === 'fulfilled' && titlesResult.value) ? titlesResult.value : [];
             console.log(`[INIT] Loaded ${allTitles.length} titles.`);
 
-            updateUserInfoUI(); // Now includes title logic
+            updateUserInfoUI();
 
             if (!currentProfile) { showError("Profil nenalezen. Test nelze spustit.", true); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => {if(ui.initialLoader) ui.initialLoader.style.display = 'none';}, 300); } if (ui.mainContent) ui.mainContent.style.display = 'block'; return; }
 
@@ -721,7 +718,7 @@
             setLoadingState('test', false);
 
             if (hasCompletedPrijimacky && userLearningGoal !== 'math_review') {
-                 console.log("[Init v12.2] Test 'prijimacky' již dokončen, zobrazuji zprávu.");
+                 console.log("[Init v12.3] Test 'prijimacky' již dokončen, zobrazuji zprávu.");
                  if(ui.testSelector) {
                     ui.testSelector.innerHTML = `<div class="section card" data-animate style="--animation-order: 0;"><h2 class="section-title"><i class="fas fa-check-circle" style="color: var(--accent-lime);"></i> Test již dokončen</h2><p>Tento diagnostický test (pro přípravu na přijímačky) jste již absolvoval/a. <strong>Nelze jej opakovat.</strong> Vaše výsledky byly použity pro studijní plán.</p><div style="margin-top:1.5rem; display:flex; gap:1rem; flex-wrap:wrap;"><a href="plan.html" class="btn btn-primary"><i class="fas fa-tasks"></i> Zobrazit plán</a><a href="main.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Zpět</a></div></div>`;
                     ui.testSelector.style.display = 'block';
@@ -729,7 +726,7 @@
                  if(ui.testLoader) ui.testLoader.style.display = 'none';
                  if(ui.testLevel) ui.testLevel.textContent = 'Dokončeno';
             } else if (autoStartType) {
-                 console.log(`[Init v12.2] Cíl je '${userLearningGoal}'. Automaticky spouštím test typu '${autoStartType}'.`);
+                 console.log(`[Init v12.3] Cíl je '${userLearningGoal}'. Automaticky spouštím test typu '${autoStartType}'.`);
                  selectedTestType = autoStartType;
                  const config = testTypeConfig[selectedTestType];
                  if (!config) { throw new Error(`Konfigurace pro autostart testu '${selectedTestType}' nenalezena.`); }
@@ -743,7 +740,7 @@
                  history.pushState({ state: 'testInProgress' }, document.title, window.location.href);
                  await loadTestQuestions(selectedTestType);
             } else {
-                 console.warn("[Init v12.2] Neočekávaný stav. Zobrazuji výběr (fallback).");
+                 console.warn("[Init v12.3] Neočekávaný stav. Zobrazuji výběr (fallback).");
                  if(ui.testSelector) { ui.testSelector.style.display = 'block'; }
                  if(ui.testLoader) ui.testLoader.style.display = 'none';
                  if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu';
@@ -753,10 +750,10 @@
             if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }
 
 
-            console.log("✅ [Init Test1 UI - Kyber v12.2] Page initialized.");
+            console.log("✅ [Init Test1 UI - Kyber v12.3] Page initialized.");
 
         } catch (error) {
-            console.error("❌ [Init Test1 UI - Kyber v12.2] Error:", error);
+            console.error("❌ [Init Test1 UI - Kyber v12.3] Error:", error);
             if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">Chyba (${error.message}). Obnovte.</p>`; }
             else { showError(`Chyba inicializace: ${error.message}`, true); }
             if (ui.mainContent) ui.mainContent.style.display = 'block';
