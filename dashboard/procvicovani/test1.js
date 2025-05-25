@@ -10,6 +10,7 @@
 // VERZE 12.7 (UŽIVATELSKÉ POŽADAVKY): Automatické spouštění testu, kontrola dokončení, zobrazení titulu, formát skóre u přeskočených.
 // VERZE 12.8 (UŽIVATELSKÉ POŽADAVKY): Rozšíření o 4 typy testů, dva zatím neaktivní.
 // VERZE 12.9 (OPRAVY A VYLEPŠENÍ): Oprava zobrazení titulu, logika pro zvýraznění doporučeného testu.
+// VERZE 12.10 (MANDATORY TEST): Test je nyní povinný na základě cíle uživatele. Ostatní testy jsou neaktivní.
 
 // Используем IIFE для изоляции области видимости
 (function() {
@@ -28,52 +29,52 @@
     let testEndTime = null;
     let testResultsData = null;
     let diagnosticId = null;
-    let selectedTestType = null;
+    let selectedTestType = null; // Bude nastaveno automaticky
     let isLoading = { page: true, test: false, results: false, notifications: false, titles: false, reevaluation: {} };
-    let allTitles = []; // <--- PŘIDÁNO: Pro uchování všech titulů
+    let allTitles = [];
 		const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
 
 
     const testTypeConfig = {
-        full: { // Odpovídá cíli 'exam_prep'
-            questionsCount: 20, // Může být dynamické z TestLogic
+        full: {
+            questionsCount: 20,
             title: 'Příprava na Přijímačky',
             description: 'Podrobné hodnocení <strong>všech oblastí přijímaček</strong>, podobné reálnému testu. Poskytuje solidní základ pro studijní plán.',
             multiplier: 1.5,
-            isCoreDiagnostic: true, // Označení, že tento test je klíčový pro 'exam_prep'
-            identifier: 'exam_prep_full', // Unikátní identifikátor
-            recommendedForGoal: 'exam_prep', // <--- PŘIDÁNO: Propojení s cílem
+            isCoreDiagnostic: true,
+            identifier: 'exam_prep_full',
+            recommendedForGoal: 'exam_prep',
             isActive: true
         },
-        math_review: { // Odpovídá cíli 'math_review'
-            questionsCount: 19, // Může být dynamické z TestLogic
+        math_review: {
+            questionsCount: 19,
             title: 'Opakování Matematiky',
             description: 'Test zaměřený na <strong>doplnění mezer v základních tématech</strong> a upevnění znalostí z matematiky ZŠ.',
             multiplier: 1.0,
-            isCoreDiagnostic: true, // Může být také považován za klíčový pro svůj cíl
-            identifier: 'math_review_standard', // Unikátní identifikátor
-            recommendedForGoal: 'math_review', // <--- PŘIDÁNO: Propojení s cílem
+            isCoreDiagnostic: true,
+            identifier: 'math_review_standard',
+            recommendedForGoal: 'math_review',
             isActive: true
         },
-        math_accelerate: { // Odpovídá cíli 'math_accelerate' - zatím placeholder
-            questionsCount: 15, // Příklad
+        math_accelerate: {
+            questionsCount: 15,
             title: 'Učení Napřed',
-            description: 'Otestujte své znalosti v <strong>pokročilejších tématech</strong> a připravte se na budoucí výzvy. Tento test zatím není aktivní.',
+            description: 'Otestujte své znalosti v <strong>pokročilejších tématech</strong> a připravte se na budoucí výzvy.', // Popis aktualizován
             multiplier: 1.2,
             isCoreDiagnostic: false,
-            isActive: false, // Označení, že test zatím není aktivní
+            isActive: false, // Test je zatím neaktivní
             identifier: 'math_accelerate_preview',
-            recommendedForGoal: 'math_accelerate' // <--- PŘIDÁNO: Propojení s cílem
+            recommendedForGoal: 'math_accelerate'
         },
-        math_explore: { // Odpovídá cíli 'math_explore' - zatím placeholder
-            questionsCount: 10, // Příklad
+        math_explore: {
+            questionsCount: 10,
             title: 'Volné Prozkoumávání',
-            description: 'Test zaměřený na <strong>různorodá témata dle vašeho výběru</strong> pro rozšíření obzorů. Tento test zatím není aktivní.',
+            description: 'Test zaměřený na <strong>různorodá témata dle vašeho výběru</strong> pro rozšíření obzorů.', // Popis aktualizován
             multiplier: 1.0,
             isCoreDiagnostic: false,
-            isActive: false, // Označení, že test zatím není aktivní
+            isActive: false, // Test je zatím neaktivní
             identifier: 'math_explore_sampler',
-            recommendedForGoal: 'math_explore' // <--- PŘIDÁNO: Propojení s cílem
+            recommendedForGoal: 'math_explore'
         }
     };
 
@@ -132,7 +133,8 @@
         reviewContent: document.getElementById('review-content'),
         backToResultsBtn: document.getElementById('back-to-results-btn'),
         testTypeCards: document.querySelectorAll('.test-type-card'),
-        selectTestBtns: document.querySelectorAll('.select-test-btn'),
+        // selectTestBtns: document.querySelectorAll('.select-test-btn'), // Starý selektor, nyní budeme používat .btn-start-test-in-card
+        startSelectedTestBtnGlobal: document.getElementById('start-selected-test-btn'), // Globální tlačítko
         toastContainer: document.getElementById('toast-container'),
         globalError: document.getElementById('global-error'),
         offlineBanner: document.getElementById('offline-banner'),
@@ -162,7 +164,6 @@
     function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { document.body.classList.remove('sidebar-collapsed'); ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
     function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
 
-    // --- ZMĚNĚNO: updateUserInfoUI ---
     function updateUserInfoUI() {
         if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) {
             console.warn("[UI Sidebar] Sidebar profile elements missing for full update.");
@@ -174,7 +175,6 @@
             const initials = getInitials(currentProfile);
             let avatarUrl = currentProfile.avatar_url;
 
-            // Přidání časové značky pro obnovení obrázku, pokud je to validní URL
             if (avatarUrl && (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://'))) {
                  avatarUrl += `?t=${new Date().getTime()}`;
             }
@@ -190,7 +190,7 @@
             }
 
             const selectedTitleKey = currentProfile.selected_title;
-            let displayTitle = 'Pilot'; // Výchozí titul
+            let displayTitle = 'Pilot';
 
             if (selectedTitleKey && allTitles && allTitles.length > 0) {
                 const foundTitle = allTitles.find(t => t.title_key === selectedTitleKey);
@@ -212,7 +212,6 @@
             ui.sidebarUserTitle.removeAttribute('title');
         }
     }
-    // --- KONEC ZMĚNY: updateUserInfoUI ---
 
     function handleScroll() { if (!ui.mainContent || !ui.dashboardHeader) return; document.body.classList.toggle('scrolled', ui.mainContent.scrollTop > 10); }
     function indexToLetter(index){ return String.fromCharCode(65 + index); }
@@ -323,11 +322,10 @@
     // --- END: Helper Functions ---
 
     // --- START: Data Fetching Wrappers (using TestLogic) ---
-    // --- ZMĚNĚNO: fetchUserProfile a fetchTitles ---
     async function fetchUserProfile(userId) {
         if (!supabase || !userId) return null;
         console.log(`[Profile] Fetching profile for user ID: ${userId}`);
-        setLoadingState('titles', true); // Use a general loader state for initial data
+        setLoadingState('titles', true);
         try {
             const { data: profile, error } = await supabase
                 .from('profiles')
@@ -371,7 +369,6 @@
             return [];
         }
     }
-    // --- KONEC ZMĚNY: fetchUserProfile a fetchTitles ---
 
     async function checkSpecificTestCompleted(userId, testIdentifier) {
         setLoadingState('test', true);
@@ -395,27 +392,24 @@
             }
 
             if (existingTests && existingTests.length > 0) {
-                // Pro cíl 'exam_prep', jakýkoliv nalezený test se počítá jako splněný "full" test.
-                if (testIdentifier === 'exam_prep_full' && currentProfile?.learning_goal === 'exam_prep') {
-                    console.log(`[checkSpecificTestCompleted] Nalezen existující diagnostický test pro cíl 'exam_prep'. Počítáno jako splněný 'full' test.`);
-                    return true;
+                const mandatoryTestConfigKey = Object.keys(testTypeConfig).find(key => testTypeConfig[key].recommendedForGoal === currentProfile?.learning_goal);
+                if (!mandatoryTestConfigKey) {
+                     console.warn(`[checkSpecificTestCompleted] Nebyla nalezena konfigurace testu pro cíl: ${currentProfile?.learning_goal}`);
+                     return false; // Pokud cíl není nastaven nebo pro něj není test, považujeme za nedokončený
                 }
-                // Pro cíl 'math_review', jakýkoliv nalezený test se počítá jako splněný "math_review" test.
-                if (testIdentifier === 'math_review_standard' && currentProfile?.learning_goal === 'math_review') {
-                    console.log(`[checkSpecificTestCompleted] Nalezen existující diagnostický test pro cíl 'math_review'.`);
-                    return true;
-                }
-                // Kontrola, zda některý z existujících testů v `analysis` obsahuje `test_type_identifier`
-                const completedTestWithType = existingTests.find(test =>
+                const mandatoryTestIdentifier = testTypeConfig[mandatoryTestConfigKey].identifier;
+
+                const completedMandatoryTest = existingTests.find(test =>
                     test.analysis &&
-                    test.analysis.summary && // Přidáno pro jistotu
-                    test.analysis.summary.test_type_identifier === testIdentifier
+                    test.analysis.summary &&
+                    test.analysis.summary.test_type_identifier === mandatoryTestIdentifier
                 );
-                if (completedTestWithType) {
-                    console.log(`[checkSpecificTestCompleted] Nalezen existující test s identifikátorem '${testIdentifier}'.`);
+
+                if (completedMandatoryTest) {
+                    console.log(`[checkSpecificTestCompleted] Nalezen dokončený povinný test s identifikátorem '${mandatoryTestIdentifier}'.`);
                     return true;
                 }
-                console.log(`[checkSpecificTestCompleted] Nalezeny testy (${existingTests.length}), ale žádný neodpovídá identifikátoru '${testIdentifier}' v analýze.`);
+                console.log(`[checkSpecificTestCompleted] Nalezeny testy (${existingTests.length}), ale žádný neodpovídá povinnému identifikátoru '${mandatoryTestIdentifier}' v analýze.`);
             }
             return false;
 
@@ -436,9 +430,12 @@
             if (!currentProfile) {
                 throw new Error("Profil uživatele není načtený. Nelze určit typ otázek.");
             }
-            console.log(`[UI LoadQ v12.9] Volání TestLogic.loadTestQuestions s profilem (Goal: ${currentProfile.learning_goal}, TestType: ${testType})`);
-            questions = await window.TestLogic.loadTestQuestions(supabase, currentProfile, testTypeConfig);
-            console.log(`[UI LoadQ v12.9] Obdrženo ${questions.length} otázek z logiky.`);
+            console.log(`[UI LoadQ v12.10] Volání TestLogic.loadTestQuestions s profilem (Goal: ${currentProfile.learning_goal}, TestType: ${testType})`);
+            questions = await window.TestLogic.loadTestQuestions(supabase, currentProfile, testTypeConfig); // TestLogic by měl použít testType pro konfiguraci otázek
+            console.log(`[UI LoadQ v12.10] Obdrženo ${questions.length} otázek z logiky.`);
+            if (questions.length === 0) {
+                throw new Error("Nebyly načteny žádné otázky pro tento typ testu.");
+            }
             initializeTest();
         } catch (error) {
             console.error('[UI] Error loading questions:', error);
@@ -758,7 +755,7 @@
             let scoreStatusText = '';
             let scoreValueText = `(${answer.scoreAwarded ?? 0} / ${answer.maxScore} b.)`;
             if (answer.correctness === "skipped") {
-                scoreValueText = `(0 / ${answer.maxScore} b.)`; // Vždy 0 z X, pokud je přeskočeno
+                scoreValueText = `(0 / ${answer.maxScore} b.)`;
             }
 
 
@@ -833,7 +830,7 @@
             const explanationToShow = (answer.reasoning && answer.reasoning.trim() !== "" && answer.correctness !== "skipped") ? answer.reasoning : q.solution_explanation;
 
             if (explanationToShow && explanationToShow.trim() !== "" && explanationToShow !== "Oficiální postup není k dispozici.") {
-                solutionExplanationEl.innerHTML = sanitizeHTML(explanationToShow);
+                solutionExplanationEl.innerHTML = sanitizeHTML(explanationToShow); // Používáme sanitizeHTML pro jistotu, i když Gemini by měl vracet Markdown
                 solutionContainer.style.display = 'block';
             } else {
                 solutionContainer.style.display = 'none';
@@ -929,7 +926,7 @@
             testResultsData.timeSpent = testTime;
             const testConfig = testTypeConfig[selectedTestType];
             if (testConfig && testConfig.identifier) {
-                if (!testResultsData.summary) testResultsData.summary = {}; // Zajistíme, že summary existuje
+                if (!testResultsData.summary) testResultsData.summary = {};
                 testResultsData.summary.test_type_identifier = testConfig.identifier;
                  console.log(`[finishTest] Added test_type_identifier: ${testConfig.identifier} to results.summary`);
             } else {
@@ -998,7 +995,7 @@
 
     // --- START: Event Listeners Setup ---
     function setupEventListeners() {
-        console.log("[SETUP] Nastavování posluchačů událostí...");
+        console.log("[SETUP v12.10] Nastavování posluchačů událostí...");
         if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
         if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
         if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
@@ -1027,17 +1024,14 @@
                 ui.reviewContainer.style.display = 'none';
                 if (ui.testSelector) ui.testSelector.style.display = 'block';
                 questions = []; userAnswers = []; testResultsData = {}; diagnosticId = null; selectedTestType = null;
-                ui.testTypeCards.forEach(c => {
-                     c.classList.remove('selected', 'recommended-test', 'disabled-test');
-                     const btn = c.querySelector('.select-test-btn');
-                     if(btn) btn.disabled = !(testTypeConfig[c.dataset.testType]?.isActive !== false); // Povolit aktivní
-                });
                 if(ui.lowScoreMessageContainer) ui.lowScoreMessageContainer.innerHTML = '';
                 if (ui.continueBtn) { ui.continueBtn.disabled = true; ui.continueBtn.removeAttribute('data-save-error'); }
                 if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu';
-                // --- PŘIDÁNO: Znovu aplikovat logiku pro zvýraznění doporučeného testu ---
-                applyTestHighlightingAndSelection();
-                // --- KONEC PŘIDÁNÍ ---
+                applyTestHighlightingAndSelection(); // Znovu aplikuje logiku povinného testu
+                if (ui.startSelectedTestBtnGlobal) { // Reset globálního tlačítka
+                    ui.startSelectedTestBtnGlobal.disabled = true;
+                    ui.startSelectedTestBtnGlobal.innerHTML = '<i class="fas fa-play-circle"></i> Vyberte Test';
+                }
                 history.replaceState({ state: 'testSelection' }, document.title, window.location.href);
             });
         }
@@ -1047,66 +1041,68 @@
         if (ui.reviewAnswersBtn) ui.reviewAnswersBtn.addEventListener('click', displayReview);
         if (ui.backToResultsBtn) ui.backToResultsBtn.addEventListener('click', () => { if(ui.reviewContainer) ui.reviewContainer.style.display = 'none'; if(ui.resultsContainer) ui.resultsContainer.style.display = 'block'; if(ui.mainContent) ui.mainContent.scrollTo({ top: 0, behavior: 'smooth' }); });
 
+        // Odebrání starých listenerů z .test-type-card, pokud existovaly
         if (ui.testTypeCards && ui.testTypeCards.length > 0) {
             ui.testTypeCards.forEach(card => {
-                card.addEventListener('click', function(event) {
-                    if (this.classList.contains('disabled-test')) { // Pokud je karta neaktivní, nic nedělat
-                        showToast("Test není aktivní", "Tento typ testu není momentálně dostupný nebo není doporučen pro váš cíl.", "info");
-                        return;
-                    }
-                    const testType = this.dataset.testType;
-                    const config = testTypeConfig[testType];
-
-                    if (config && config.isActive === false) {
-                        showToast("Již brzy!", "Tento typ testu bude brzy dostupný.", "info");
-                        return;
-                    }
-
-                    const isButtonClicked = event.target.closest('.select-test-btn');
-                    // Pouze pokud je karta doporučená nebo pokud není žádná doporučená (fallback)
-                    if (this.classList.contains('recommended-test') || !document.querySelector('.test-type-card.recommended-test')) {
-                        ui.testTypeCards.forEach(c => c.classList.remove('selected'));
-                        this.classList.add('selected');
-                        selectedTestType = testType;
-                        if (isButtonClicked && !this.querySelector('.select-test-btn').disabled) {
-                            event.stopPropagation();
-                            startSelectedTest();
-                        }
-                    } else if (isButtonClicked && !this.querySelector('.select-test-btn').disabled) {
-                         // Pokud uživatel klikne na tlačítko na nedoporučené, ale aktivní kartě
-                         ui.testTypeCards.forEach(c => c.classList.remove('selected'));
-                         this.classList.add('selected');
-                         selectedTestType = testType;
-                         event.stopPropagation();
-                         startSelectedTest();
-                    }
-                });
+                // Karta samotná již nespouští test
+                const oldListener = card._cardClickListener;
+                if (oldListener) {
+                    card.removeEventListener('click', oldListener);
+                    delete card._cardClickListener;
+                }
             });
         }
-        if (ui.selectTestBtns && ui.selectTestBtns.length > 0) {
-            ui.selectTestBtns.forEach(button => {
-                button.addEventListener('click', function(event) {
-                    event.stopPropagation();
-                     const card = this.closest('.test-type-card');
-                     if (card.classList.contains('disabled-test') || this.disabled) {
-                         showToast("Test není aktivní", "Tento typ testu není momentálně dostupný nebo není doporučen pro váš cíl.", "info");
-                         return;
+
+        // Nové listenery pro tlačítka .btn-start-test-in-card
+        document.querySelectorAll('.btn-start-test-in-card').forEach(button => {
+            const oldListener = button._startTestInCardListener;
+            if (oldListener) {
+                button.removeEventListener('click', oldListener);
+            }
+            const newListener = function(event) {
+                event.stopPropagation();
+                const card = this.closest('.test-type-card');
+                if (card.classList.contains('disabled-test') || this.disabled) {
+                    showToast("Test není určen pro váš cíl", "Tento typ testu není určen pro váš aktuální studijní cíl nebo je dočasně nedostupný.", "info");
+                    return;
+                }
+                const testType = this.dataset.testType; // Získání testType z tlačítka
+                const config = testTypeConfig[testType];
+
+                if (config && config.isActive === false) {
+                    showToast("Již brzy!", `Test "${config.title}" bude brzy dostupný.`, "info");
+                    return;
+                }
+                selectedTestType = testType; // Nastavíme selectedTestType zde
+                startSelectedTest();
+            };
+            button.addEventListener('click', newListener);
+            button._startTestInCardListener = newListener;
+        });
+
+        // Listener pro globální tlačítko
+        if (ui.startSelectedTestBtnGlobal) {
+             const oldListener = ui.startSelectedTestBtnGlobal._globalStartListener;
+             if (oldListener) {
+                 ui.startSelectedTestBtnGlobal.removeEventListener('click', oldListener);
+             }
+             const newListener = () => {
+                 if (selectedTestType && !ui.startSelectedTestBtnGlobal.disabled) {
+                     startSelectedTest();
+                 } else if (!selectedTestType) {
+                     showToast('Chyba', 'Povinný test nebyl správně určen.', 'error');
+                 } else {
+                     // Tlačítko je disabled, pravděpodobně test "brzy"
+                     const config = testTypeConfig[selectedTestType];
+                     if (config && config.isActive === false) {
+                         showToast("Již brzy!", `Test "${config.title}" bude brzy dostupný.`, "info");
                      }
-                    const testType = card.dataset.testType;
-                    const config = testTypeConfig[testType];
-
-                    if (config && config.isActive === false) {
-                        showToast("Již brzy!", "Tento typ testu bude brzy dostupný.", "info");
-                        return;
-                    }
-
-                    ui.testTypeCards.forEach(c => c.classList.remove('selected'));
-                    card.classList.add('selected');
-                    selectedTestType = testType;
-                    startSelectedTest();
-                });
-            });
+                 }
+             };
+             ui.startSelectedTestBtnGlobal.addEventListener('click', newListener);
+             ui.startSelectedTestBtnGlobal._globalStartListener = newListener;
         }
+
 
         window.addEventListener('popstate', handleBackButton);
         window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) closeMenu(); });
@@ -1116,86 +1112,113 @@
         document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } });
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
-        console.log("[SETUP] Posluchači událostí nastaveni.");
+        console.log("[SETUP v12.10] Posluchači událostí nastaveni.");
     }
     // --- END: Event Listeners Setup ---
 
     // --- START: Test Flow & Back Button ---
-    // --- PŘIDÁNO: applyTestHighlightingAndSelection ---
     function applyTestHighlightingAndSelection() {
         const userLearningGoal = currentProfile?.learning_goal;
-        let recommendedTestKey = null;
+        let mandatoryTestKey = null;
 
         if (userLearningGoal) {
             for (const key in testTypeConfig) {
-                if (testTypeConfig[key].recommendedForGoal === userLearningGoal && testTypeConfig[key].isActive !== false) {
-                    recommendedTestKey = key;
+                if (testTypeConfig[key].recommendedForGoal === userLearningGoal) { // Nyní hledáme přesný klíč pro cíl
+                    mandatoryTestKey = key;
                     break;
                 }
             }
         }
 
+        if (!mandatoryTestKey) {
+            console.warn(`[Highlight v12.10] Pro cíl '${userLearningGoal}' nebyl nalezen žádný povinný test. Zobrazuji výchozí stav.`);
+            // Můžete zde nastavit výchozí chování, např. zobrazit všechny jako neaktivní nebo zobrazit chybovou hlášku
+        }
+
+        selectedTestType = mandatoryTestKey; // Automaticky nastavíme vybraný typ testu
+
         ui.testTypeCards.forEach(card => {
             const testType = card.dataset.testType;
             const config = testTypeConfig[testType];
-            const button = card.querySelector('.select-test-btn');
+            const buttonInCard = card.querySelector('.btn-start-test-in-card');
+            const recommendedBadge = card.querySelector('.recommended-badge');
 
             card.classList.remove('recommended-test', 'disabled-test', 'selected');
-            if (button) button.disabled = true; // Nejprve všechna tlačítka deaktivujeme
+            if (buttonInCard) buttonInCard.disabled = true;
+            if (recommendedBadge) recommendedBadge.style.display = 'none';
 
-            if (config && config.isActive !== false) { // Test je obecně aktivní
-                if (recommendedTestKey === testType) {
+            if (config) { // Pokud konfigurace pro tento typ testu existuje
+                if (mandatoryTestKey === testType) { // Toto je povinný test
                     card.classList.add('recommended-test');
-                    card.classList.add('selected'); // Automaticky vybereme doporučený
-                    selectedTestType = testType; // Nastavíme jako vybraný
-                    if (button) button.disabled = false; // Povolíme tlačítko pro doporučený
-                    console.log(`[Highlight] Doporučený test: ${config.title} pro cíl ${userLearningGoal}`);
-                } else if (recommendedTestKey) { // Pokud existuje doporučený test, ostatní aktivní jsou "disabled"
-                    card.classList.add('disabled-test');
-                    if (button) {
-                        button.innerHTML = '<i class="fas fa-times-circle"></i> Není doporučeno';
-                        button.disabled = true;
+                    card.classList.add('selected');
+                    if (recommendedBadge) recommendedBadge.style.display = 'block';
+
+                    if (buttonInCard) {
+                        if (config.isActive === false) {
+                            buttonInCard.innerHTML = '<i class="fas fa-hourglass-half"></i> Spustit Test (Brzy!)';
+                            buttonInCard.disabled = false; // Ponecháme aktivní vzhled, ale startSelectedTest() to odchytí
+                            buttonInCard.classList.remove('btn-primary');
+                            buttonInCard.classList.add('btn-secondary', 'btn-tooltip');
+                            buttonInCard.title = `Test "${config.title}" bude brzy dostupný.`;
+                        } else {
+                            buttonInCard.innerHTML = `<i class="fas fa-play"></i> Spustit Test`;
+                            buttonInCard.disabled = false;
+                            buttonInCard.classList.remove('btn-secondary');
+                            buttonInCard.classList.add('btn-primary');
+                            buttonInCard.title = `Spustit test: ${config.title}`;
+                        }
                     }
-                } else { // Pokud není žádný doporučený (např. cíl není nastaven), všechny aktivní jsou volitelné
-                    if (button) {
-                         button.disabled = false;
-                         button.innerHTML = `<i class="fas fa-play"></i> Spustit ${config.title.split(' ')[0]} Test`; // Obnovíme původní text
+                    console.log(`[Highlight v12.10] Povinný test: ${config.title} pro cíl ${userLearningGoal}`);
+                    if (ui.currentTestTitle) ui.currentTestTitle.textContent = config.title;
+                    if (ui.testLevel) ui.testLevel.textContent = config.description.split('.')[0];
+
+                } else { // Toto NENÍ povinný test
+                    card.classList.add('disabled-test');
+                    if (buttonInCard) {
+                        buttonInCard.innerHTML = '<i class="fas fa-times-circle"></i> Není určeno pro váš cíl';
+                        buttonInCard.disabled = true;
+                        buttonInCard.classList.remove('btn-primary');
+                        buttonInCard.classList.add('btn-secondary');
+                        buttonInCard.title = 'Tento test není určen pro váš aktuální studijní cíl.';
                     }
                 }
-            } else { // Test není aktivní (isActive: false)
+            } else { // Pokud konfigurace pro tento typ karty neexistuje
                 card.classList.add('disabled-test');
-                if (button) {
-                     button.innerHTML = '<i class="fas fa-hourglass-half"></i> Již brzy';
-                     button.disabled = true;
+                if (buttonInCard) {
+                    buttonInCard.innerHTML = '<i class="fas fa-ban"></i> Test nedostupný';
+                    buttonInCard.disabled = true;
                 }
             }
         });
 
-        // Aktualizace hlavního titulku a podtitulku na základě doporučeného/vybraného testu
-        const currentConfig = testTypeConfig[selectedTestType];
-        if (currentConfig && ui.currentTestTitle) {
-            ui.currentTestTitle.textContent = currentConfig.title;
+        // Aktualizace globálního tlačítka
+        if (ui.startSelectedTestBtnGlobal) {
+            if (selectedTestType && testTypeConfig[selectedTestType]) {
+                const config = testTypeConfig[selectedTestType];
+                ui.startSelectedTestBtnGlobal.innerHTML = `<i class="fas fa-play-circle"></i> Spustit: ${config.title}`;
+                if (config.isActive === false) {
+                    ui.startSelectedTestBtnGlobal.disabled = true; // Deaktivujeme i globální, pokud je test "brzy"
+                    ui.startSelectedTestBtnGlobal.title = `Test "${config.title}" bude brzy dostupný.`;
+                } else {
+                    ui.startSelectedTestBtnGlobal.disabled = false;
+                    ui.startSelectedTestBtnGlobal.title = `Spustit test: ${config.title}`;
+                }
+            } else {
+                ui.startSelectedTestBtnGlobal.innerHTML = `<i class="fas fa-play-circle"></i> Vyberte Test`;
+                ui.startSelectedTestBtnGlobal.disabled = true;
+                 ui.startSelectedTestBtnGlobal.title = `Nejprve musí být určen povinný test.`;
+            }
         }
-        if (currentConfig && ui.testLevel) {
-            ui.testLevel.textContent = currentConfig.description.split('.')[0]; // První věta popisu
-        } else if (ui.testLevel) {
-            ui.testLevel.textContent = "Výběr typu testu";
-        }
+        initTooltips(); // Reinicializace tooltipů po změně textu/stavu
     }
-    // --- KONEC PŘIDÁNÍ: applyTestHighlightingAndSelection ---
 
     function startSelectedTest() {
         if (!selectedTestType) {
-            // Pokud nic není selected (což by se po applyTestHighlightingAndSelection nemělo stát, pokud je profil)
-            // Zkusíme znovu aplikovat highlight, kdyby náhodou
-            applyTestHighlightingAndSelection();
-            if (!selectedTestType) { // Pokud stále nic, zobrazíme chybu
-                showToast('Vyberte prosím typ testu.', 'warning');
-                 if (ui.testSelector && getComputedStyle(ui.testSelector).display === 'none') {
-                    ui.testSelector.style.display = 'block';
-                }
-                return;
+            showToast('Chyba', 'Povinný test nebyl správně určen. Zkontrolujte svůj studijní cíl.', 'error');
+            if (ui.testSelector && getComputedStyle(ui.testSelector).display === 'none') {
+                ui.testSelector.style.display = 'block'; // Zobrazíme výběr, pokud je skrytý
             }
+            return;
         }
 
         const config = testTypeConfig[selectedTestType];
@@ -1204,7 +1227,8 @@
             return;
         }
         if (config.isActive === false) {
-            showToast("Funkce ve vývoji", `Test typu "${config.title}" bude brzy dostupný.`, "info");
+            showToast("Již brzy!", `Test typu "${config.title}" bude brzy dostupný.`, "info");
+            // Necháme uživatele na stránce s výběrem, ale test se nespustí
             if (ui.testSelector) ui.testSelector.style.display = 'block';
             if (ui.testLoader) ui.testLoader.style.display = 'none';
             return;
@@ -1227,7 +1251,7 @@
 
     // --- START: App Initialization ---
     async function initializeApp() {
-        console.log("🚀 [Init Test1 UI - Kyber v12.9] Starting...");
+        console.log("🚀 [Init Test1 UI - Kyber v12.10] Starting...");
         if (!initializeSupabase()) return;
         applyInitialSidebarState();
 
@@ -1243,19 +1267,18 @@
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
             if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
 
-            if (!session || !session.user) { console.log('[Init Test1 UI - Kyber v12.9] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; }
+            if (!session || !session.user) { console.log('[Init Test1 UI - Kyber v12.10] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; }
             currentUser = session.user;
 
-            // --- ZMĚNĚNO: Fetch titles first, then profile ---
             const titlesFetchResult = await fetchTitles();
-            allTitles = titlesFetchResult || []; // Ensure allTitles is an array
-            console.log(`[INIT v12.9] Loaded ${allTitles.length} titles.`);
+            allTitles = titlesFetchResult || [];
+            console.log(`[INIT v12.10] Loaded ${allTitles.length} titles.`);
 
             const profileResult = await fetchUserProfile(currentUser.id);
             if (profileResult) {
                 currentProfile = profileResult;
             } else {
-                console.error("[INIT v12.9] Profile fetch failed or no data.");
+                console.error("[INIT v12.10] Profile fetch failed or no data.");
                 currentProfile = await createDefaultProfileIfNeeded(currentUser.id, currentUser.email);
                 if (!currentProfile) {
                     showError("Nepodařilo se načíst nebo vytvořit profil. Zkuste obnovit stránku.", true);
@@ -1263,14 +1286,13 @@
                     return;
                 }
             }
-            // --- KONEC ZMĚNY ---
-            updateUserInfoUI(); // Nyní by měl mít přístup k allTitles
+            updateUserInfoUI();
 
             const userLearningGoal = currentProfile.learning_goal;
-            console.log(`[Init v12.9] Cíl uživatele z profilu: '${userLearningGoal}'`);
+            console.log(`[Init v12.10] Cíl uživatele z profilu: '${userLearningGoal}'`);
 
-            let testMainTitle = "Diagnostický test";
-            let testSubtitle = "Výběr testu";
+            let testMainTitle = "Diagnostický test"; // Výchozí
+            let testSubtitle = "Automatický výběr testu";
 
             setupEventListeners();
             initTooltips();
@@ -1282,35 +1304,43 @@
 
             setLoadingState('test', true);
 
-            let autoStartTestKey = null;
-            let specificTestIdentifier = null;
-
+            let mandatoryTestKey = null;
             if (userLearningGoal) {
-                for (const key in testTypeConfig) {
-                    if (testTypeConfig[key].recommendedForGoal === userLearningGoal && testTypeConfig[key].isActive !== false) {
-                        autoStartTestKey = key;
-                        specificTestIdentifier = testTypeConfig[key].identifier;
-                        testMainTitle = testTypeConfig[key].title;
-                        testSubtitle = testTypeConfig[key].description.split('.')[0]; // První věta
-                        break;
-                    }
-                }
+                mandatoryTestKey = Object.keys(testTypeConfig).find(key => testTypeConfig[key].recommendedForGoal === userLearningGoal);
+            }
+
+            if (mandatoryTestKey) {
+                const config = testTypeConfig[mandatoryTestKey];
+                testMainTitle = config.title;
+                testSubtitle = config.description.split('.')[0];
+                selectedTestType = mandatoryTestKey; // Nastavení povinného testu
+            } else {
+                 console.warn(`[Init v12.10] Pro cíl '${userLearningGoal}' nebyl nalezen žádný odpovídající test v konfiguraci. Uživatel bude muset vybrat, nebo se zobrazí chybová stránka, pokud není cíl.`);
+                 // Zde by mohla být logika pro zobrazení chyby nebo přesměrování na výběr cíle, pokud není nastaven.
+                 // Prozatím, pokud není cíl, zobrazíme výběr testů, i když by to nemělo nastat, pokud je cíl povinný pro přístup sem.
+                 if (!userLearningGoal) {
+                    showErrorMessagePage("Nejprve si prosím nastavte studijní cíl ve svém profilu.", false);
+                    if (ui.testSelector) ui.testSelector.style.display = 'none'; // Skryjeme výběr, pokud není cíl
+                    setLoadingState('test', false);
+                    if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
+                    if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }
+                    return;
+                 }
             }
 
             if (ui.testLevel) ui.testLevel.textContent = testSubtitle;
             const h1TitleElem = document.querySelector('.dashboard-header h1');
             if (h1TitleElem) h1TitleElem.innerHTML = `<i class="fas fa-vial"></i> ${sanitizeHTML(testMainTitle)}`;
 
-            // Aplikace zvýraznění a deaktivace karet
-            applyTestHighlightingAndSelection();
+            applyTestHighlightingAndSelection(); // Aplikuje zvýraznění a deaktivaci
 
-            if (autoStartTestKey && specificTestIdentifier) {
-                const hasCompletedSpecificTest = await checkSpecificTestCompleted(currentUser.id, specificTestIdentifier);
+            if (selectedTestType) { // Pokud byl povinný test určen
+                const hasCompletedMandatoryTest = await checkSpecificTestCompleted(currentUser.id, testTypeConfig[selectedTestType].identifier);
                 setLoadingState('test', false);
 
-                if (hasCompletedSpecificTest) {
-                    console.log(`[Init v12.9] Cíl '${userLearningGoal}' a test '${specificTestIdentifier}' již byl dokončen.`);
-                    showErrorMessagePage(`Test "${testTypeConfig[autoStartTestKey].title}" jste již absolvoval/a. Nelze jej opakovat. Vaše výsledky byly použity pro studijní plán.`, false);
+                if (hasCompletedMandatoryTest) {
+                    console.log(`[Init v12.10] Cíl '${userLearningGoal}' a povinný test '${testTypeConfig[selectedTestType].title}' již byl dokončen.`);
+                    showErrorMessagePage(`Test "${testTypeConfig[selectedTestType].title}" jste již absolvoval/a. Nelze jej opakovat. Vaše výsledky byly použity pro studijní plán.`, false);
                     const errorContainer = ui.globalError || ui.mainContent.querySelector('.error-message-container');
                     if(errorContainer){
                         const actionsDiv = document.createElement('div');
@@ -1325,31 +1355,33 @@
                         `;
                         errorContainer.appendChild(actionsDiv);
                     }
-                    if(ui.testLevel) ui.testLevel.textContent = `Dokončeno (${testTypeConfig[autoStartTestKey].title})`;
+                    if(ui.testLevel) ui.testLevel.textContent = `Dokončeno (${testTypeConfig[selectedTestType].title})`;
+                    if (ui.testSelector) ui.testSelector.style.display = 'block'; // Zobrazíme karty, i když je test dokončen, ale neaktivní
                 } else {
-                    console.log(`[Init v12.9] Cíl '${userLearningGoal}', test '${specificTestIdentifier}' ještě nebyl dokončen. Spouštím.`);
-                    selectedTestType = autoStartTestKey; // selectedTestType je již nastaven v applyTestHighlightingAndSelection
-                    startSelectedTest();
+                    console.log(`[Init v12.10] Cíl '${userLearningGoal}', povinný test '${testTypeConfig[selectedTestType].title}' ještě nebyl dokončen. Spouštím.`);
+                    startSelectedTest(); // Spustí se automaticky, pokud není dokončen
                 }
-            } else {
+            } else { // Pokud nebyl určen povinný test (např. cíl není platný)
                 setLoadingState('test', false);
-                console.warn(`[Init v12.9] Cíl uživatele ('${userLearningGoal}') nevyžaduje automatické spuštění testu, nebo cíl není podporován pro auto-start, nebo není žádný doporučený test. Zobrazuji výběr testu.`);
-                if(ui.testSelector) {
-                    ui.testSelector.style.display = 'block';
-                }
+                console.warn(`[Init v12.10] Povinný test nebyl určen. Zobrazuji výběr testů (ale všechny budou disabled).`);
+                if(ui.testSelector) { ui.testSelector.style.display = 'block'; } // Zobrazíme karty
                 if(ui.testLoader) ui.testLoader.style.display = 'none';
                 if(ui.testContainer) ui.testContainer.style.display = 'none';
                 if (h1TitleElem) h1TitleElem.innerHTML = `<i class="fas fa-vial"></i> Testování // DIAGNOSTIKA`;
-                if (ui.testLevel) ui.testLevel.textContent = "Výběr typu testu";
+                if (ui.testLevel) ui.testLevel.textContent = "Výběr typu testu (Chyba konfigurace cíle)";
+                if (ui.startSelectedTestBtnGlobal) {
+                    ui.startSelectedTestBtnGlobal.disabled = true;
+                    ui.startSelectedTestBtnGlobal.innerHTML = '<i class="fas fa-times-circle"></i> Nastavte cíl';
+                }
             }
 
             if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
             if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }
 
-            console.log("✅ [Init Test1 UI - Kyber v12.9] Page initialized.");
+            console.log("✅ [Init Test1 UI - Kyber v12.10] Page initialized.");
 
         } catch (error) {
-            console.error("❌ [Init Test1 UI - Kyber v12.9] Error:", error);
+            console.error("❌ [Init Test1 UI - Kyber v12.10] Error:", error);
             if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">Chyba (${error.message}). Obnovte.</p>`; }
             else { showErrorMessagePage(`Chyba inicializace: ${error.message}`, true); }
             if (ui.mainContent) ui.mainContent.style.display = 'block';
@@ -1363,17 +1395,17 @@
         try {
             let { data: existingProfile, error: fetchError } = await supabase
                 .from('profiles')
-                .select('*') // Načteme všechny sloupce pro jistotu
+                .select('*')
                 .eq('id', userId)
                 .single();
 
-            if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = 0 rows, což je OK
+            if (fetchError && fetchError.code !== 'PGRST116') {
                 throw fetchError;
             }
 
             if (existingProfile) {
                 console.log("[Profile] Default profile already exists.");
-                if (!existingProfile.preferences) existingProfile.preferences = {}; // Zajistíme, že preferences existuje
+                if (!existingProfile.preferences) existingProfile.preferences = {};
                 return existingProfile;
             }
 
@@ -1384,14 +1416,14 @@
                 username: defaultUsername,
                 email: email,
                 updated_at: new Date().toISOString(),
-                learning_goal: null, // Výchozí cíl bude null, uživatel si ho vybere jinde
+                learning_goal: null,
                 preferences: {},
                 points: 0,
                 level: 1,
                 completed_exercises: 0,
                 streak_days: 0,
                 longest_streak_days: 0,
-                selected_title: null, // Výchozí titul
+                selected_title: null,
                 avatar_url: null,
                 first_name: null,
                 last_name: null,
@@ -1400,14 +1432,14 @@
             const { data: newProfile, error: insertError } = await supabase
                 .from('profiles')
                 .insert(defaultProfileData)
-                .select('*') // Načteme všechny sloupce nového profilu
+                .select('*')
                 .single();
 
             if (insertError) {
                 throw insertError;
             }
             console.log("[Profile] Default profile created successfully:", newProfile);
-            if (!newProfile.preferences) newProfile.preferences = {}; // Zajistíme, že preferences existuje
+            if (!newProfile.preferences) newProfile.preferences = {};
             return newProfile;
 
         } catch (error) {
@@ -1418,10 +1450,8 @@
     }
 
 
-    // --- Initialize Supabase and App ---
     function initializeSupabase() { try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not loaded."); } supabase = window.supabase.createClient('https://qcimhjjwvsbgjsitmvuh.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10'); if (!supabase) throw new Error("Supabase client creation failed."); console.log('[Supabase] Client initialized.'); return true; } catch (error) { console.error('[Supabase] Initialization failed:', error); showErrorMessagePage("Kritická chyba: Nelze se připojit k databázi."); return false; } }
 
-    // --- Run Application ---
     initializeApp();
 
-})(); // End IIFE
+})();
