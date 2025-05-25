@@ -2,15 +2,16 @@
  * JUSTAX Landing Page Script
  * Handles UI interactions, animations, infinite testimonial slider,
  * Hero text mask reveal, interactive gradient, and enhanced visual effects.
- * Version: v2.33 (Hero Text Fix, AI Demo Stability, New Testimonials, Smoother Load)
+ * Version: v2.32 (AI Demo Fix, Smooth Load, Header Refinement)
  * Author: Gemini Modification
- * Date: 2025-05-25
+ * Date: 2025-05-25 // Focused on AI Demo visibility and page load transitions
  *
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Ready. Initializing JUSTAX Interface v2.33...");
+    console.log("DOM Ready. Initializing JUSTAX Interface v2.32 (AI Demo Fix, Smooth Load)...");
 
+    // --- Global Variables & DOM References ---
     const body = document.body;
     const header = document.getElementById('header');
     const hamburger = document.getElementById('hamburger');
@@ -18,27 +19,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuOverlay = document.getElementById('menuOverlay');
     const follower = document.getElementById('mouse-follower');
     const yearSpan = document.getElementById('currentYear');
-    const demoSection = document.getElementById('ai-demo');
-    const aiOutput = document.getElementById('ai-demo-output');
-    const aiProgressBar = document.getElementById('ai-progress-bar');
-    const aiProgressLabel = document.getElementById('ai-progress-label');
-    const aiFakeInput = document.getElementById('ai-fake-input');
-    const aiStatusIndicator = document.getElementById('ai-status');
+    const demoSection = document.getElementById('ai-demo'); //
+    const aiOutput = document.getElementById('ai-demo-output'); //
+    const aiProgressBar = document.getElementById('ai-progress-bar'); //
+    const aiProgressLabel = document.getElementById('ai-progress-label'); //
+    const aiFakeInput = document.getElementById('ai-fake-input'); //
+    const aiStatusIndicator = document.getElementById('ai-status'); //
 
-    const sliderContainer = document.getElementById('testimonialSliderContainer');
-    const sliderTrack = document.getElementById('testimonialSliderTrack');
-    const prevBtn = document.getElementById('prevTestimonialBtn');
-    const nextBtn = document.getElementById('nextTestimonialBtn');
+    const sliderContainer = document.getElementById('testimonialSliderContainer'); //
+    const sliderTrack = document.getElementById('testimonialSliderTrack'); //
+    const prevBtn = document.getElementById('prevTestimonialBtn'); //
+    const nextBtn = document.getElementById('nextTestimonialBtn'); //
 
-    const heroSection = document.querySelector('.hero');
-    let heroHighlightSpan = null; // Will be set during setupLetterAnimation
-    const heroHeading = document.getElementById('hero-heading');
+    const heroSection = document.querySelector('.hero'); //
+    let heroHighlightSpan = null;
+    const heroHeading = document.getElementById('hero-heading'); //
     let rafIdGradient = null;
 
     const config = {
         mouseFollower: { enabled: true, followSpeed: 0.12, clickScale: 0.7, hoverScale: 1.5, textHoverScale: 1.3 },
-        animations: { scrollThreshold: 0.1, staggerDelay: 110, letterMaskRevealDelay: 55, heroElementEntryDelay: 180 }, // Slightly adjusted timings
-        aiDemo: { enabled: true, typingSpeed: 40, stepBaseDelay: 200, stepRandomDelay: 420, observerThreshold: 0.5 }, // Threshold for AI demo visibility
+        animations: { scrollThreshold: 0.05, staggerDelay: 100, letterMaskRevealDelay: 50, heroElementEntryDelay: 150 },
+        aiDemo: { enabled: true, typingSpeed: 35, stepBaseDelay: 180, stepRandomDelay: 400 },
         testimonials: { placeholderAvatarBaseUrl: 'https://placehold.co/100x100/', visibleCardsDesktop: 3, bufferCards: 2, slideDuration: 550 }
     };
 
@@ -53,41 +54,117 @@ document.addEventListener('DOMContentLoaded', () => {
     const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
     // --- Smooth Page Load ---
+    // Initially hide body, then fade it in. CSS will handle the transition.
     body.classList.add('page-loading');
-    window.addEventListener('load', () => {
-        setTimeout(() => {
+    window.addEventListener('load', () => { // Use window.load to ensure all assets are loaded
+        setTimeout(() => { // Small delay to ensure rendering engine is ready
             body.classList.remove('page-loading');
             body.classList.add('page-loaded');
-            console.log("Page fully loaded, class 'page-loaded' added to body.");
-        }, 250); // Increased delay for a more noticeable smooth load
+        }, 100); // Adjust delay if needed
     });
 
-    // --- NEW Testimonials Data ---
+
     localTestimonials = [
-        // Focusing on site features
-        { name: "Markéta V.", role: "Studentka", rating: 5, text: "Adaptivní učení je naprosto úžasné! Systém poznal, kde mám mezery, a zaměřil se přesně na to. Ušetřila jsem tolik času." },
-        { name: "Tomáš P.", role: "Student", rating: 4.5, text: "Interaktivní cvičení jsou skvělá. Okamžitá zpětná vazba a podrobná vysvětlení mi pomohly konečně pochopit složitější témata." },
-        { name: "Lucie N.", role: "Rodič", rating: 5, text: "Sledování pokroku mé dcery je tak jednoduché! Vidím její výsledky a oblasti, na které se Justax zaměřuje. Doporučuji!" },
-        { name: "Jakub S.", role: "Student", rating: 5, text: "AI Tutor je jako mít osobního učitele 24/7. Kdykoliv jsem si nevěděl rady s úkolem, dostal jsem rychlou a srozumitelnou pomoc." },
-        { name: "Eva K.", role: "Studentka", rating: 4.5, text: "Chytré plánování mi vytvořilo studijní plán na míru mým cílům a časovým možnostem. Konečně mám ve studiu systém!" },
-        { name: "Petr L.", role: "Student", rating: 5, text: "Nové inovativní nástroje, jako je generátor testů a pokročilá analytika, posunuly mé učení na úplně novou úroveň. Super!" },
-        { name: "Aneta B.", role: "Studentka", rating: 4, text: "Databanka materiálů je sice obsáhlá, ale někdy mi chvíli trvá, než najdu přesně to, co hledám. Adaptivní učení to ale kompenzuje." },
-        { name: "Filip M.", role: "Student", rating: 5, text: "AI asistent mi nejen pomáhá s učením, ale i s organizací času. Funkce chytrého plánování je top!" },
-        { name: "Karolína D.", role: "Studentka", rating: 4.5, text: "Díky Justaxu a jeho interaktivním cvičením jsem si zlepšila známky o dva stupně. A sledování pokroku mě motivuje!" },
-        { name: "Martin Č.", role: "Rodič", rating: 5, text: "AI Tutor vysvětlil synovi látku, se kterou bojoval ve škole, mnohem lépe. Investice, která se opravdu vyplatila." },
-        { name: "Veronika Z.", role: "Studentka", rating: 5, text: "Adaptivní učení a personalizované plány jsou přesně to, co jsem potřebovala pro přípravu na maturitu. Cítím se mnohem jistější." },
-        { name: "Ondřej H.", role: "Student", rating: 4.5, text: "Líbí se mi, jak AI analyzuje můj pokrok a navrhuje další kroky. Nové nástroje pro psaní esejí jsou taky super přídavek." },
-        { name: "Tereza J.", role: "Studentka", rating: 5, text: "Interaktivní cvičení s okamžitou zpětnou vazbou jsou návyková! Učení mě konečně baví." },
-        { name: "David K.", role: "Student", rating: 4, text: "Platforma je super, i když občas bych ocenil více typů interaktivních úkolů. AI Tutor je ale vždycky k dispozici." },
-        { name: "Nikola P.", role: "Studentka", rating: 5, text: "Chytré plánování mi pomohlo skloubit školu, brigádu a přípravu na zkoušky. Bez Justaxu bych to nezvládla!" },
-        // Add more testimonials as needed, linking them to features
-        { name: "Jana Nová", role: "Rodič", rating: 4.5, text: "Sledování pokroku syna je přehledné. Adaptivní učení mu evidentně pomáhá v matematice." },
-        { name: "Pavel Malý", role: "Student", rating: 5, text: "AI Tutor mi vysvětlil komplexní algoritmy lépe než kdokoliv jiný. Inovativní nástroje pro programování jsou plus." },
-        { name: "Simona Krátká", role: "Studentka", rating: 4.5, text: "Díky chytrému plánování a interaktivním cvičením jsem se naučila na zkoušku z fyziky za poloviční čas!" },
-        { name: "Robert Dlouhý", role: "Student", rating: 5, text: "Adaptivní učení je geniální. Žádné zbytečné opakování toho, co už umím. A nové nástroje na generování kvízů jsou super!" },
-        { name: "Lenka Bílá", role: "Studentka", rating: 4, text: "AI asistent je skvělý pomocník, i když někdy bych uvítala více detailů ve vysvětleních. Sledování pokroku je motivující." }
+        // Truncated for brevity, assume full list is present as before
+        { name: "Petra N.", role: "Studentka", rating: 5, text: "Skvělá příprava na přijímačky! AI mi přesně ukázala, co potřebuju dohnat. Doporučuji!" },
+        { name: "Tomáš 'Vory' V.", role: "Student", rating: 4.5, text: "Adaptivní učení je super. Nemusím procházet to, co už umím. Ušetřilo mi to spoustu času." },
+        { name: "Aneta", role: "Studentka", rating: 5, text: "Konečně chápu zlomky! Interaktivní cvičení jsou zábavná a vysvětlení jasná." },
+        { name: "Kuba P.", role: "Student", rating: 4, text: "AI Tutor je fajn, když si nevím rady. Odpovídá rychle a srozumitelně." },
+        { name: "Eliška M.", role: "Studentka", rating: 5, text: "Díky Justaxu jsem si výrazně zlepšila známky z matiky. Ten studijní plán na míru fakt funguje." },
+        { name: "Matěj", role: "Student", rating: 4.5, text: "Platforma je přehledná a dobře se ovládá. Líbí se mi sledování pokroku." },
+        { name: "Verča S.", role: "Studentka", rating: 5, text: "Ta databáze materiálů je nekonečná. Vždycky najdu, co hledám." },
+        { name: "Filip H.", role: "Student", rating: 4, text: "Simulace testů mi pomohly zbavit se stresu před skutečnými zkouškami." },
+        { name: "Kája J.", role: "Studentka", rating: 5, text: "Nejlepší investice do vzdělání. Učení mě teď mnohem víc baví." },
+        { name: "Adam R.", role: "Student", rating: 4.5, text: "Oceňuji okamžitou zpětnou vazbu u cvičení. Hned vím, kde dělám chybu." },
+        { name: "Natka B.", role: "Studentka", rating: 5, text: "Perfektní nástroj pro samostudium. AI mi pomáhá udržet motivaci." },
+        { name: "David Z.", role: "Student", rating: 4, text: "Některá témata by mohla být vysvětlena podrobněji, ale celkově super." },
+        { name: "Klára T.", role: "Studentka", rating: 5, text: "Příprava na maturitu z matematiky byla s Justaxem hračka. Doporučuji všem!" },
+        { name: "Martin L.", role: "Student", rating: 4.5, text: "Flexibilita platformy je úžasná. Můžu se učit kdykoliv a kdekoliv." },
+        { name: "Lucka P.", role: "Studentka", rating: 5, text: "AI mi pomohla najít slabiny, o kterých jsem ani nevěděla. Teď se cítím mnohem jistější." },
+        { name: "Štěpán 'Štěpa' K.", role: "Student", rating: 4, text: "Grafické znázornění pokroku je motivující. Vidím, jak se zlepšuji." },
+        { name: "Bára V.", role: "Studentka", rating: 5, text: "Justax mi změnil pohled na matematiku. Už to není strašák." },
+        { name: "Ondra N.", role: "Student", rating: 4.5, text: "Super je, že můžu procvičovat konkrétní typy příkladů, které mi nejdou." },
+        { name: "Terka F.", role: "Studentka", rating: 5, text: "AI tutor mi vysvětlil složitou látku lépe než ve škole. Neuvěřitelné!" },
+        { name: "Dan H.", role: "Student", rating: 4, text: "Občas narazím na drobnou chybičku v zadání, ale podpora reaguje rychle." },
+        { name: "Míša J.", role: "Studentka", rating: 5, text: "Přijímačky jsem zvládla na jedničku, a to hlavně díky Justaxu!" },
+        { name: "Patrik M.", role: "Student", rating: 4.5, text: "Líbí se mi gamifikační prvky, odznaky a žebříčky." },
+        { name: "Zuzka P.", role: "Studentka", rating: 5, text: "Konečně platforma, která se přizpůsobí mému tempu. Žádný stres." },
+        { name: "Vojta R.", role: "Student", rating: 4, text: "Mohlo by být více videí s vysvětlením, ale texty jsou kvalitní." },
+        { name: "Anna S.", role: "Studentka", rating: 5, text: "Neocenitelná pomoc při přípravě na olympiádu. AI našla i pokročilá témata." },
+        { name: "Lukáš T.", role: "Student", rating: 4.5, text: "Systém doporučení dalších cvičení je velmi efektivní." },
+        { name: "Kristýna 'Týna' V.", role: "Studentka", rating: 5, text: "Měla jsem strach z přijímaček, ale s Justaxem jsem to dala s přehledem." },
+        { name: "Dominik Z.", role: "Student", rating: 4, text: "Uvítal bych možnost vytvářet si vlastní testy z vybraných okruhů." },
+        { name: "Niky B.", role: "Studentka", rating: 5, text: "Intuitivní ovládání a moderní design. Radost používat." },
+        { name: "Jirka D.", role: "Student", rating: 4.5, text: "AI mi pomohla pochopit geometrii, se kterou jsem vždycky bojoval." },
+        { name: "Honza", role: "Student", rating: 4.5, text: "Používám na opakování základů před zkouškou. Efektivní." },
+        { name: "Market", role: "Studentka", rating: 5, text: "Zachránilo mi to krk u maturity z matiky. Doporučuju kudy chodím!" },
+        { name: "Pepa Novák", role: "Student", rating: 4, text: "Funguje to dobře, jen by to chtělo víc příkladů ze života." },
+        { name: "Lenka", role: "Studentka", rating: 4.5, text: "Konečně jsem pochopila derivace. Vysvětlení od AI bylo super." },
+        { name: "CyberMike77", role: "Student", rating: 5, text: "Optimalizace učení na maximum! AI ví, co dělá." },
+        { name: "Katka", role: "Studentka", rating: 4.5, text: "Skvělé pro přípravu na CERMAT testy. Hodně podobné příklady." },
+        { name: "Radek S.", role: "Student", rating: 4, text: "Někdy mi AI přijde až moc 'chytrá', ale většinou poradí dobře." },
+        { name: "Adriana", role: "Studentka", rating: 5, text: "Ušetřilo mi to hodiny hledání materiálů na internetu. Všechno na jednom místě." },
+        { name: "Michal K.", role: "Student", rating: 4.5, text: "Dobrá platforma na procvičení před zápočtem. Rychlé a efektivní." },
+        { name: "Jana 'Janička' P.", role: "Studentka", rating: 5, text: "Zábavná forma učení, která mě fakt chytla. Palec nahoru!" },
+        { name: "Eva H.", role: "Studentka", rating: 4.5, text: "Konečně způsob, jak se učit matiku bez nudných učebnic. Interaktivita je klíč!" },
+        { name: "Adéla N.", role: "Studentka", rating: 5, text: "Přehledné statistiky mi ukázaly, kde přesně ztrácím body. Super!" },
+        { name: "Tomáš J.", role: "Student", rating: 4, text: "Někdy AI navrhne příliš těžké úkoly, ale dá se to přeskočit." },
+        { name: "Filip K.", role: "Student", rating: 4.5, text: "Líbí se mi, jak AI vysvětluje postupy řešení krok za krokem." },
+        { name: "Denisa M.", role: "Studentka", rating: 5, text: "Učení na maturitu bylo mnohem méně stresující díky plánu od Justaxu." },
+        { name: "Simona P.", role: "Studentka", rating: 5, text: "Díky procvičování na Justaxu se nebojím žádného testu z matiky." },
+        { name: "Marek H.", role: "Student", rating: 4, text: "Design je cool, moderní. Příjemné prostředí pro učení." },
+        { name: "Rostislav D.", role: "Student", rating: 4.5, text: "AI mi pomohla pochopit i velmi abstraktní matematické koncepty." },
+        { name: "Lenka F.", role: "Studentka", rating: 5, text: "Systém odznaků a odměn mě motivuje pokračovat dál." },
+        { name: "Beáta J.", role: "Studentka", rating: 5, text: "Skvělé vysvětlení funkcí a grafů, konečně tomu rozumím!" },
+        { name: "Alexandr V.", role: "Student", rating: 4, text: "Trochu mi chybí možnost soutěžit s kamarády." },
+        { name: "Richard N.", role: "Student", rating: 4.5, text: "Platforma funguje spolehlivě, bez technických problémů." },
+        { name: "Vendula M.", role: "Studentka", rating: 5, text: "Díky Justaxu jsem si opravila známku z matematiky z trojky na jedničku!" },
+        { name: "Sára T.", role: "Studentka", rating: 5, text: "Justax je můj hlavní nástroj pro přípravu na matematickou olympiádu." },
+        { name: "Bohumil S.", role: "Student", rating: 4, text: "Občas bych uvítal více textových alternativ k videím." },
+        { name: "Viktorie H.", role: "Studentka", rating: 5, text: "Neuměla jsem si představit, že mě matika může bavit. Justax to dokázal." },
+        { name: "Hedvika D.", role: "Studentka", rating: 5, text: "Platforma mi pomohla zorganizovat si učení a dodržovat studijní plán." },
+        { name: "Radim J.", role: "Student", rating: 4.5, text: "AI je skvělá v identifikaci mých slabých míst a doporučení cvičení." },
+        { name: "Alice K.", role: "Studentka", rating: 5, text: "Stoprocentně doporučuji všem, kdo bojují s matematikou!" },
+        // Parents (Role always 'Rodič')
+        { name: "Jana K.", role: "Rodič", rating: 5, text: "Syn se výrazně zlepšil v matematice. Platforma ho baví a motivuje." },
+        { name: "Petr S.", role: "Rodič", rating: 4.5, text: "Oceňuji přehled o pokroku dcery. Vidím, na čem pracuje a jak jí to jde." },
+        { name: "Lenka P.", role: "Rodič", rating: 5, text: "Investice, která se vyplatila. Dcera zvládla přijímačky bez stresu a doučování." },
+        { name: "Miroslav H.", role: "Rodič", rating: 4, text: "Syn si občas stěžuje na přílišnou obtížnost některých úkolů, ale zlepšení je vidět." },
+        { name: "Eva Novotná", role: "Rodič", rating: 5, text: "Konečně smysluplně strávený čas u počítače. Syn se u toho fakt učí." },
+        { name: "Karel V.", role: "Rodič", rating: 4.5, text: "Líbí se mi, že platforma pokrývá látku pro ZŠ i SŠ. Využijeme ji déle." },
+        { name: "Alena M.", role: "Rodič", rating: 5, text: "Dcera se učí samostatnosti a zodpovědnosti. Platforma ji vede krok za krokem." },
+        { name: "Roman J.", role: "Rodič", rating: 4, text: "Cena je přiměřená kvalitě a rozsahu obsahu. Jsme spokojeni." },
+        { name: "Martina R.", role: "Rodič", rating: 5, text: "Doporučila jsem Justax i dalším rodičům. Skvělý pomocník pro přípravu dětí." },
+        { name: "Zdeněk T.", role: "Rodič", rating: 4.5, text: "Adaptivní systém je skvělý. Syn neplýtvá časem na to, co už umí." },
+        { name: "Ivana L.", role: "Rodič", rating: 5, text: "Máme jistotu, že se syn připravuje systematicky a efektivně." },
+        { name: "Pavel K.", role: "Rodič", rating: 4, text: "Uvítali bychom více možností pro komunikaci s podporou přímo v platformě." },
+        { name: "Simona D.", role: "Rodič", rating: 5, text: "Dcera si zlepšila průměr o celý stupeň! Jsme nadšení!" },
+        { name: "Josef B.", role: "Rodič", rating: 4.5, text: "Sledování času stráveného učením je užitečná funkce." },
+        { name: "Hana F.", role: "Rodič", rating: 5, text: "Justax nám ušetřil peníze za drahé doučování. Výsledky jsou skvělé." },
+        { name: "Vladimír P.", role: "Rodič", rating: 4, text: "Někdy je těžké syna od platformy odtrhnout, jak ho to baví :)" },
+        { name: "Dagmar S.", role: "Rodič", rating: 5, text: "Perfektní kombinace moderní technologie a efektivního vzdělávání." },
+        { name: "Aleš Z.", role: "Rodič", rating: 4.5, text: "Platforma pomohla dceři objevit zájem o matematiku." },
+        { name: "Monika V.", role: "Rodič", rating: 5, text: "Bezpečná a kontrolovaná online aktivita pro naše dítě." },
+        { name: "Radek N.", role: "Rodič", rating: 4, text: "Mohla by být i mobilní aplikace, ale webová verze funguje dobře i na tabletu." },
+        { name: "Robert P.", role: "Rodič", rating: 5, text: "Syn si oblíbil AI tutora, ptá se ho na věci, na které se stydí zeptat ve škole." },
+        { name: "Jitka V.", role: "Rodič", rating: 5, text: "Dcera se připravovala na přijímačky jen s Justaxem a dostala se na vysněnou školu." },
+        { name: "Václav S.", role: "Rodič", rating: 4.5, text: "Vidím, že syn tráví na platformě čas efektivně, ne jen prokrastinací." },
+        { name: "Gabriela T.", role: "Rodič", rating: 5, text: "Nejlepší online vzdělávací nástroj, jaký jsme pro dceru našli." },
+        { name: "Stanislav R.", role: "Rodič", rating: 4.5, text: "Syn používá Justax denně a jeho výsledky ve škole jdou nahoru." },
+        { name: "Iveta K.", role: "Rodič", rating: 5, text: "Justax nám ušetřil spoustu času a nervů s domácími úkoly." },
+        { name: "Dalibor P.", role: "Rodič", rating: 4.5, text: "Líbí se nám podrobná analýza chyb, kterou AI poskytuje." },
+        { name: "Luděk R.", role: "Rodič", rating: 4.5, text: "Cena za roční předplatné je velmi rozumná vzhledem k možnostem." },
+        { name: "Helena", role: "Rodič", rating: 4.5, text: "Syn si konečně věří v matice. Platforma mu dodala sebevědomí." },
+        { name: "Ludmila K.", role: "Rodič", rating: 5, text: "Koupila jsem vnukovi k Vánocům a je nadšený. Pomáhá mu to." },
+        { name: "Věra", role: "Rodič", rating: 5, text: "Klidnější rána před písemkou. Dcera je lépe připravená." },
+        { name: "Oldřich P.", role: "Rodič", rating: 4, text: "Dobrá investice do budoucnosti dítěte." },
+        { name: "Božena M.", role: "Rodič", rating: 4.5, text: "Syn se učí rychleji a efektivněji než s učebnicí." }
     ];
-    console.log(`Loaded ${localTestimonials.length} NEW testimonials focused on features.`);
+    if (localTestimonials.length > 0) {
+        console.log(`Loaded ${localTestimonials.length} local testimonials.`);
+    } else {
+        console.warn("Local testimonials array is empty after initialization attempt.");
+    }
 
 
     // --- Utility Functions & Core Logic ---
@@ -142,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!localTestimonials || localTestimonials.length === 0) return { name: "Chyba", text: "Žádné recenze.", rating: 0, role: "Systém" };
         const currentCacheNames = new Set(testimonialDataCache.map(item => item?.name).filter(Boolean));
         let availableTestimonials = localTestimonials.filter(item => !currentCacheNames.has(item.name));
-        if (availableTestimonials.length === 0) availableTestimonials = localTestimonials; // Reuse if all unique are used
+        if (availableTestimonials.length === 0) availableTestimonials = localTestimonials;
         return availableTestimonials[Math.floor(Math.random() * availableTestimonials.length)];
     };
 
@@ -195,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const initializeInfiniteSlider = async () => {
-        console.log("Starting infinite slider initialization v2.33...");
+        console.log("Starting infinite slider initialization v2.32...");
         if (!sliderTrack || !prevBtn || !nextBtn) { console.error("Slider init fail: core elements missing."); return; }
         isSliding = true; sliderInitialLoadComplete = false; prevBtn.disabled = true; nextBtn.disabled = true;
         sliderTrack.innerHTML = ''; testimonialDataCache = []; cardsInTrack = []; cardWidthAndMargin = 0; stableVisibleStartIndex = config.testimonials.bufferCards;
@@ -280,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- AI Demo Simulation ---
     const aiDemoSteps = [
-        { type: 'status', text: 'AI jádro v2.33 aktivní. Připraven na analýzu...', progress: 5 },
+        { type: 'status', text: 'AI jádro v2.32 aktivní. Připraven na analýzu...', progress: 5 },
         { type: 'status', text: 'Probíhá skenování interakcí uživatele ID: 734B...', delay: 700 },
         { type: 'input', text: 'ANALYZE_USER_PERFORMANCE --id=734B --subject=algebra --level=intermediate' },
         { type: 'process', text: 'Zpracování dotazu na výkon...', duration: 900, progress: 20 },
@@ -296,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
         { type: 'process', text: 'Synchronizace s cloudovým modulem Justax...', duration: 700, progress: 95 },
         { type: 'status', text: 'AI připravena. Čekám na další interakci.', progress: 100 }
     ];
-    let currentAiStep = 0; let isAiDemoRunning = false; let aiDemoTimeout; let aiDemoHasRunOnce = false;
+    let currentAiStep = 0; let isAiDemoRunning = false; let aiDemoTimeout;
 
     const addAiLogLine = (text, type) => {
         if (!aiOutput) return; const line = document.createElement('div'); line.className = `ai-log-line ${type}`;
@@ -317,9 +394,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (aiProgressLabel && label) aiProgressLabel.textContent = label;
         else if (aiProgressLabel && percentage === 100) aiProgressLabel.textContent = "Systém připraven";
     };
-
     const runAiDemoStep = () => {
-        if (currentAiStep >= aiDemoSteps.length || !aiOutput || !isAiDemoRunning) { // Added !isAiDemoRunning check
+        if (currentAiStep >= aiDemoSteps.length || !aiOutput) {
             isAiDemoRunning = false; if(aiStatusIndicator) aiStatusIndicator.textContent = 'IDLE'; updateAiProgress(100, "AI Idle / Čekání na vstup..."); return;
         }
         const step = aiDemoSteps[currentAiStep]; const baseDelay = step.delay || config.aiDemo.stepBaseDelay;
@@ -327,7 +403,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (step.type === 'input') {
             if(aiProgressLabel) aiProgressLabel.textContent = "Očekávám vstup...";
             simulateTyping(step.text, () => {
-                if (!isAiDemoRunning) return; // Check again if demo was paused during typing
                 addAiLogLine(`> ${step.text}`, step.type); if (step.progress) updateAiProgress(step.progress, step.text); currentAiStep++; aiDemoTimeout = setTimeout(runAiDemoStep, totalDelay / 2);
             });
         } else {
@@ -341,30 +416,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const aiDemoObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             try {
-                if (entry.isIntersecting && !aiDemoHasRunOnce && config.aiDemo.enabled && demoSection) { // Run only once when it becomes visible enough
-                    if (aiOutput && aiFakeInput && aiProgressLabel && aiProgressBar && aiStatusIndicator) {
-                        console.log("AI Demo section sufficiently visible and elements found, starting simulation ONCE.");
-                        isAiDemoRunning = true;
-                        aiDemoHasRunOnce = true; // Set flag to prevent re-runs from observer
-                        currentAiStep = 0;
+                if (config.aiDemo.enabled && demoSection && entry.isIntersecting && !isAiDemoRunning) {
+                    if (aiOutput && aiFakeInput && aiProgressLabel && aiProgressBar && aiStatusIndicator) { // Ensure all elements are present
+                        console.log("AI Demo visible and all elements found, starting."); isAiDemoRunning = true; currentAiStep = 0;
                         aiOutput.innerHTML = ''; updateAiProgress(0, 'Inicializace AI...'); aiFakeInput.textContent = '';
                         runAiDemoStep();
-                        // observer.unobserve(demoSection); // Optionally unobserve after first run
                     } else {
                         console.warn("AI Demo cannot start: one or more required elements are missing.");
-                        if(aiStatusIndicator) aiStatusIndicator.textContent = 'CHYBA INIT';
+                        if(aiStatusIndicator) aiStatusIndicator.textContent = 'CHYBA';
                     }
                 } else if (!entry.isIntersecting && isAiDemoRunning) {
-                    // This part might still be problematic if scrolling away quickly during the demo's async steps
-                    // For now, we won't pause it via observer to avoid the flickering, it will run to completion once started.
-                    // If pausing is desired, a more robust state management for the demo steps is needed.
-                    // console.log("AI Demo section no longer sufficiently visible. Current run will continue but not restart via observer.");
+                    console.log("AI Demo not visible, pausing."); clearTimeout(aiDemoTimeout); isAiDemoRunning = false; if(aiStatusIndicator) aiStatusIndicator.textContent = 'POZASTAVENO';
                 }
-            } catch (error) { console.error("Error in AI Demo observer:", error); isAiDemoRunning = false; if(aiStatusIndicator) aiStatusIndicator.textContent = 'CHYBA OBSERVERU';}
+            } catch (error) { console.error("Error in AI Demo observer:", error); isAiDemoRunning = false; if(aiStatusIndicator) aiStatusIndicator.textContent = 'CHYBA SYSTÉMU';}
         });
-    }, { threshold: config.aiDemo.observerThreshold }); // Use configured threshold
+    }, { threshold: 0.3 }); // Trigger when 30% visible
 
     if (demoSection && config.aiDemo.enabled) {
+        // Check if all necessary child elements for AI demo exist
         if (aiOutput && aiFakeInput && aiProgressLabel && aiProgressBar && aiStatusIndicator) {
              aiDemoObserver.observe(demoSection);
         } else {
@@ -372,77 +441,51 @@ document.addEventListener('DOMContentLoaded', () => {
             if(aiStatusIndicator) aiStatusIndicator.textContent = 'CHYBA ELEMENTŮ';
         }
     } else if (aiStatusIndicator) {
-        aiStatusIndicator.textContent = config.aiDemo.enabled ? 'NEAKTIVNÍ' : 'OFFLINE';
+        aiStatusIndicator.textContent = config.aiDemo.enabled ? 'NEVIDITELNÉ' : 'OFFLINE';
     }
 
 
-    // --- Scroll Animations & Hero Letter Animation ---
+    // --- Scroll Animations ---
     const animatedElements = document.querySelectorAll('[data-animate], [data-animate-letters]');
     const observerOptions = { root: null, rootMargin: '0px 0px -50px 0px', threshold: config.animations.scrollThreshold };
 
     const setupLetterAnimation = (element) => {
         try {
-            const textContent = element.textContent || ''; // Get current text content
-            const originalHighlightHTML = element.querySelector('.highlight')?.innerHTML || ''; // Get innerHTML to preserve spans
-            const originalHighlightDataText = element.querySelector('.highlight')?.dataset.text || '';
+            const textContent = element.dataset.text || element.textContent || '';
+            const originalHighlightElement = element.querySelector('.highlight'); // Query inside the current element
+            const originalHighlightDataText = originalHighlightElement ? (originalHighlightElement.dataset.text || originalHighlightElement.textContent || '') : '';
 
             element.innerHTML = ''; element.style.setProperty('--letter-count', textContent.length.toString());
-            let charIndexGlobal = 0;
-            let currentWordWrapper = document.createElement('span'); currentWordWrapper.className = 'word-wrapper'; element.appendChild(currentWordWrapper);
-            let isInHighlight = false;
-            let tempHighlightContent = '';
+            let charIndexGlobal = 0; let currentWordWrapper = document.createElement('span'); currentWordWrapper.className = 'word-wrapper'; element.appendChild(currentWordWrapper);
 
-            // Split by highlight boundaries if highlight exists
-            const parts = [];
-            if (originalHighlightHTML && textContent.includes(originalHighlightHTML.replace(/<[^>]+>/g, ''))) { // Use stripped text for matching
-                const highlightStripped = originalHighlightHTML.replace(/<[^>]+>/g, '');
-                let lastIndex = 0;
-                let pos = textContent.indexOf(highlightStripped, lastIndex);
-                while(pos > -1){
-                    if(pos > lastIndex) parts.push({text: textContent.substring(lastIndex, pos), isHighlight: false});
-                    parts.push({text: highlightStripped, isHighlight: true, originalHTML: originalHighlightHTML, dataText: originalHighlightDataText});
-                    lastIndex = pos + highlightStripped.length;
-                    pos = textContent.indexOf(highlightStripped, lastIndex);
+            textContent.split('').forEach(char => {
+                const span = document.createElement('span'); span.className = 'letter-span'; span.textContent = char === ' ' ? '\u00A0' : char; span.style.setProperty('--letter-index', charIndexGlobal.toString());
+                let isHighlightChar = false;
+                if (originalHighlightDataText && textContent.includes(originalHighlightDataText)) {
+                    const highlightStartIndex = textContent.indexOf(originalHighlightDataText);
+                    if (charIndexGlobal >= highlightStartIndex && charIndexGlobal < highlightStartIndex + originalHighlightDataText.length) isHighlightChar = true;
                 }
-                if(lastIndex < textContent.length) parts.push({text: textContent.substring(lastIndex), isHighlight: false});
-            } else {
-                parts.push({text: textContent, isHighlight: false});
-            }
 
-            parts.forEach(part => {
-                part.text.split('').forEach(char => {
-                    const span = document.createElement('span'); span.className = 'letter-span'; span.textContent = char === ' ' ? '\u00A0' : char; span.style.setProperty('--letter-index', charIndexGlobal.toString());
-
-                    if (part.isHighlight) {
-                        let highlightContainerInWord = currentWordWrapper.querySelector('.highlight');
-                        if (!highlightContainerInWord) {
-                            highlightContainerInWord = document.createElement('span');
-                            highlightContainerInWord.className = 'highlight';
-                            if(part.dataText) highlightContainerInWord.dataset.text = part.dataText;
-                            currentWordWrapper.appendChild(highlightContainerInWord);
-                            if (element === heroHeading) {
-                                heroHighlightSpan = highlightContainerInWord; // Assign to global var
-                                console.log("GLOBAL heroHighlightSpan set during setupLetterAnimation for heroHeading.");
-                            }
+                if (isHighlightChar) {
+                    let highlightContainerInWord = currentWordWrapper.querySelector('.highlight');
+                    if (!highlightContainerInWord) {
+                        highlightContainerInWord = document.createElement('span'); highlightContainerInWord.className = 'highlight'; // Use class from original
+                        if(originalHighlightDataText) highlightContainerInWord.dataset.text = originalHighlightDataText; // Preserve data-text
+                        currentWordWrapper.appendChild(highlightContainerInWord);
+                        if (element === heroHeading) { // This is the main hero heading
+                            heroHighlightSpan = highlightContainerInWord; // Update the global reference for gradient
+                            console.log("Global heroHighlightSpan (for gradient) updated in setupLetterAnimation.");
                         }
-                        highlightContainerInWord.appendChild(span);
-                    } else {
-                        currentWordWrapper.appendChild(span);
                     }
-                    if (char === ' ') { currentWordWrapper = document.createElement('span'); currentWordWrapper.className = 'word-wrapper'; element.appendChild(currentWordWrapper); }
-                    charIndexGlobal++;
-                });
+                    highlightContainerInWord.appendChild(span);
+                } else {
+                    currentWordWrapper.appendChild(span);
+                }
+                if (char === ' ') { currentWordWrapper = document.createElement('span'); currentWordWrapper.className = 'word-wrapper'; element.appendChild(currentWordWrapper); }
+                charIndexGlobal++;
             });
-
-            // Ensure heroHighlightSpan is set if it's the hero heading and highlight exists
-            if (element === heroHeading && !heroHighlightSpan) {
-                heroHighlightSpan = element.querySelector('.highlight'); // Try to find it again
-                if (heroHighlightSpan) console.log("GLOBAL heroHighlightSpan (fallback) set for heroHeading.");
-            }
-
         } catch (error) { console.error("Error in setupLetterAnimation for element:", element, error); }
     };
-
 
     const animationObserver = new IntersectionObserver((entries, observerInstance) => {
         entries.forEach((entry) => {
@@ -451,39 +494,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const animationOrder = parseInt(element.style.getPropertyValue('--animation-order') || '0');
                     const baseDelay = animationOrder * config.animations.staggerDelay;
-                    element.style.opacity = '0'; // Ensure it's hidden before animation starts
 
                     if (element.dataset.animateLetters !== undefined) {
                         if (!element.classList.contains('letters-setup-complete')) {
-                            setupLetterAnimation(element); // Sets up spans, potentially updates heroHighlightSpan
+                            setupLetterAnimation(element);
                             element.classList.add('letters-setup-complete');
-
-                            // Use rAF for triggering class to ensure DOM update
-                            requestAnimationFrame(() => {
-                                element.style.opacity = '1'; // Make parent visible
-                                element.classList.add('is-revealing'); // Trigger letter animation
-
+                            setTimeout(() => {
+                                element.classList.add('is-revealing');
+                                element.style.opacity = '1'; // Ensure parent container is visible
                                 if (element === heroHeading) {
                                     const letterCount = parseInt(element.style.getPropertyValue('--letter-count') || '10');
-                                    const h1AnimationDuration = (letterCount * config.animations.letterMaskRevealDelay) + 700; // Increased base for full reveal
+                                    const h1AnimationDuration = (letterCount * config.animations.letterMaskRevealDelay) + 500;
                                     document.querySelectorAll('.hero p[data-animate], .hero .hero-buttons[data-animate]').forEach(el => {
                                         if (el) {
-                                            el.style.opacity = '0'; // Ensure these are hidden initially
                                             const heroElOrder = parseInt(el.style.getPropertyValue('--animation-order') || '0');
                                             el.style.transitionDelay = `${h1AnimationDuration + (heroElOrder * config.animations.heroElementEntryDelay)}ms`;
-                                            el.classList.add('animated'); // This class should set opacity to 1
+                                            el.classList.add('animated');
+                                            el.style.opacity = '1';
                                         }
                                     });
                                 }
-                            });
+                            }, 100);
                         }
                     } else {
                         element.style.transitionDelay = `${baseDelay}ms`;
-                        element.classList.add('animated'); // This class should set opacity to 1
+                        element.classList.add('animated');
+                        element.style.opacity = '1';
                     }
                 } catch (error) {
                     console.error("Error processing animation for element:", element, error);
-                    if(element) element.style.opacity = '1'; // Fallback to visible if animation setup fails
+                    if(element) element.style.opacity = '1';
                 }
                 observerInstance.unobserve(element);
             }
@@ -493,10 +533,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (animatedElements.length > 0) {
         animatedElements.forEach(el => {
             if (el) {
-                 el.style.opacity = '0'; // Initially hide all elements to be animated by observer
+                 el.style.opacity = '0'; // Keep this to prevent FOUC
                  animationObserver.observe(el);
             }
         });
+        // For hero H1, its direct opacity can be 1 as children (letters) handle their own animation.
+        if (heroHeading) heroHeading.style.opacity = '1';
         console.log(`Observing ${animatedElements.length} elements for scroll animations.`);
     } else {
         console.warn("No elements found for scroll animation.");
@@ -505,9 +547,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Interactive Gradient for Hero ---
     const handleHeroMouseMove = (event) => {
         if (!heroSection || isTouchDevice) return;
-        if (!heroHighlightSpan || !document.contains(heroHighlightSpan)) { // Ensure heroHighlightSpan is valid
-             if (heroHeading) heroHighlightSpan = heroHeading.querySelector('.highlight'); // Attempt to re-query
-             if (!heroHighlightSpan || !document.contains(heroHighlightSpan)) return; // Exit if still not valid
+        // heroHighlightSpan is now reliably set by setupLetterAnimation if heroHeading is processed
+        if (!heroHighlightSpan || !document.contains(heroHighlightSpan)) {
+            // Attempt to re-query if it was missed or DOM changed unexpectedly
+            const currentHeroHighlight = heroHeading ? heroHeading.querySelector('.highlight') : null;
+            if (currentHeroHighlight) heroHighlightSpan = currentHeroHighlight;
+            else return; // Still not found
         }
 
         if (rafIdGradient) cancelAnimationFrame(rafIdGradient);
@@ -544,24 +589,30 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     } else if (isTouchDevice) {
-        // Delay setting static gradient until after letter animation might have run and set heroHighlightSpan
-        setTimeout(() => {
-            let targetSpan = heroHighlightSpan;
-            if (!targetSpan && heroHeading) targetSpan = heroHeading.querySelector('.highlight');
-
-            if (targetSpan && document.contains(targetSpan)) {
-                targetSpan.style.setProperty('--mouse-x', 0.5);
-                targetSpan.style.setProperty('--mouse-y', 0.3);
+        // For touch devices, set a static gradient after a delay to ensure heroHighlightSpan is created by setupLetterAnimation
+        const setStaticGradientForTouch = () => {
+            if (heroHighlightSpan && document.contains(heroHighlightSpan)) {
+                heroHighlightSpan.style.setProperty('--mouse-x', 0.5);
+                heroHighlightSpan.style.setProperty('--mouse-y', 0.3);
                 console.log("Touch device: Hero gradient set to static.");
-            } else {
-                console.warn("Touch device: heroHighlightSpan could not be found to set static gradient.");
+            } else if (heroHeading) { // Fallback: try to find it again if not set globally
+                const currentHeroHighlight = heroHeading.querySelector('.highlight');
+                if(currentHeroHighlight){
+                    currentHeroHighlight.style.setProperty('--mouse-x', 0.5);
+                    currentHeroHighlight.style.setProperty('--mouse-y', 0.3);
+                    console.log("Touch device: Hero gradient (fallback) set to static.");
+                } else {
+                     console.warn("Touch device: heroHighlightSpan still not found for static gradient.");
+                }
             }
-        }, 2000); // Increased delay to ensure letter animation completes
+        };
+        // Wait a bit for letter animation to potentially create the span
+        setTimeout(setStaticGradientForTouch, 1500);
     }
 
 
-    // --- Event Listeners & Final Initializations ---
-    window.addEventListener('scroll', debounce(handleScroll, 50)); // Increased debounce for scroll
+    // --- Event Listeners ---
+    window.addEventListener('scroll', debounce(handleScroll, 30));
     if (prevBtn) prevBtn.addEventListener('click', () => moveSlider(-1)); else console.warn("Prev button not found for slider.");
     if (nextBtn) nextBtn.addEventListener('click', () => moveSlider(1)); else console.warn("Next button not found for slider.");
 
@@ -571,18 +622,27 @@ document.addEventListener('DOMContentLoaded', () => {
             if (calculateCardWidthAndMargin() > 0) setTrackPositionInstantly("resize adjustment");
             else console.error("Card width recalc failed on resize.");
         }
-    }, 250)); // Increased debounce for resize
+    }, 200));
 
+    // --- Initialize Components ---
     try {
         handleScroll(); // Initial states
-        // Defer slider init slightly more to ensure layout is stable for calculations
-        setTimeout(() => {
-            initializeInfiniteSlider().catch(err => console.error("Error initializing slider:", err));
-        }, 300);
+        initializeInfiniteSlider();
     } catch (error) {
         console.error("Error during final initializations:", error);
     }
 
-    // The main "Initialization Complete" log was moved to the end of window.load
-    // to better reflect when the page is visually ready.
+    // Defer non-critical initializations slightly to ensure main content renders
+    setTimeout(() => {
+        if (demoSection && config.aiDemo.enabled && aiDemoObserver) {
+            // The observer will take care of starting it when visible.
+            // Just ensure it's properly set up if conditions are met.
+            if (!(aiOutput && aiFakeInput && aiProgressLabel && aiProgressBar && aiStatusIndicator)) {
+                 console.warn("AI Demo deferred init: elements missing, AI Demo might not work.");
+            }
+        }
+    }, 500); // Delay AI demo init slightly
+
+
+    console.log("JUSTAX Interface v2.32 (AI Demo Fix, Smooth Load) Initialization Complete.");
 });
