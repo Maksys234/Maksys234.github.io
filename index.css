@@ -15,6 +15,8 @@
 	--clr-bg-card: rgba(30, 28, 58, 0.8); /* Slightly more opaque card background */
     --clr-bg-card-hover: rgba(40, 38, 70, 0.9);
 	--clr-bg-crt: #0a0915;       /* Darker CRT screen background */
+    --clr-bg-crt-header: rgba(170, 108, 255, 0.08); /* Specific for CRT header */
+    --clr-bg-crt-log: rgba(0,0,0, 0.7); /* Darker log window */
 	--clr-text-primary: #f0f0f5; /* Brighter light grey for main text */
 	--clr-text-secondary: #b0b0c0;/* Softer medium grey for subtitles */
 	--clr-text-highlight: #ffffff;/* Pure white */
@@ -36,6 +38,8 @@
 	--shadow-card-hover: 0 14px 45px rgba(0, 0, 0, 0.7);
     --shadow-interactive: 0 4px 15px rgba(0,0,0,0.3);
     --shadow-interactive-hover: 0 6px 20px rgba(0,0,0,0.4);
+    --shadow-crt: 0 0 35px rgba(170, 108, 255, 0.3), 0 0 18px rgba(0, 242, 255, 0.15) inset, 0 5px 15px rgba(0,0,0,0.4); /* Specific CRT shadow */
+
 
 	/* --- Typography --- */
 	--font-primary: 'Poppins', sans-serif;
@@ -56,6 +60,8 @@
 	--layout-border-radius-sm: 6px;
 	--layout-border-radius-md: 12px;
 	--layout-border-radius-lg: 18px;
+    --layout-crt-border-radius: 18px / 30px; /* For consistent CRT curve */
+
 
     /* --- Variables for Interactive Gradient --- */
     --mouse-x: 0.5;
@@ -153,7 +159,7 @@ a:hover, a:focus {
 /* --- Section Styling --- */
 section {
 	padding-block: clamp(70px, 12vh, 110px); /* Increased padding */
-	overflow: hidden;
+	overflow: hidden; /* Changed from visible to hidden to prevent scrollbars from animations */
 }
 .section-title {
 	text-align: center;
@@ -470,7 +476,6 @@ section:has(.section-title.animated) .section-title span::after,
     100% { background-position: 0% 50%; }
 }
 .hero {
-    /* Re-using placeholder but with a pan animation for a bit more dynamism */
     animation: heroBgPan 40s linear infinite alternate;
 }
 
@@ -512,7 +517,6 @@ section:has(.section-title.animated) .section-title span::after,
 	display: inline-block;
     background-position: calc(var(--mouse-x, 0.5) * 100%) calc(var(--mouse-y, 0.5) * 100%);
     transition: background-position 0.15s linear; /* Smoother transition for gradient */
-    /* Adding a subtle pulse animation to the highlight */
     animation: highlightPulse 5s infinite ease-in-out;
 }
 
@@ -521,21 +525,30 @@ section:has(.section-title.animated) .section-title span::after,
     50% { filter: brightness(1.15) saturate(1.1); }
 }
 
+/* Word wrapper for better control if needed, though not strictly used for animation here yet */
+.word-wrapper {
+    display: inline-block; /* Important for transform context if words were animated */
+    margin-right: 0.25em; /* Adjust spacing between words if letter-spacing is too tight */
+}
+.word-wrapper:last-child {
+    margin-right: 0;
+}
+
 .letter-span {
 	display: inline-block;
-	opacity: 1;
+	opacity: 1; /* Will be set to 0 by JS if [data-animate-letters].is-revealing is not yet applied */
 	clip-path: inset(0 100% 0 0);
-	transition: clip-path 0.8s cubic-bezier(0.77, 0, 0.175, 1); /* Slower, smoother reveal */
-	transition-delay: calc(var(--letter-index, 0) * 55ms); /* Adjusted timing */
-    /* Adding subtle rotation and perspective for a more 3D feel */
+	transition: clip-path 0.8s cubic-bezier(0.77, 0, 0.175, 1), transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+	transition-delay: calc(var(--letter-index, 0) * 55ms);
     transform-style: preserve-3d;
     perspective: 500px;
-    transform: translateY(20px) rotateX(-25deg) rotateY(5deg) scale(0.9);
-    transition: clip-path 0.8s cubic-bezier(0.77, 0, 0.175, 1), transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+    /* Initial state for letters: slightly down, rotated, and scaled down */
+    transform: translateY(30px) rotateX(-35deg) rotateY(10deg) scale(0.8);
 }
 
 [data-animate-letters].is-revealing .letter-span {
-	clip-path: inset(0 0 0 0);
+	clip-path: inset(0 0 0 0); /* Reveal the letter */
+    /* Final state for letters: normal position and orientation */
     transform: translateY(0) rotateX(0deg) rotateY(0deg) scale(1);
 }
 
@@ -571,10 +584,12 @@ section:has(.section-title.animated) .section-title span::after,
 
 .hero p[data-animate],
 .hero .hero-buttons[data-animate] {
-	opacity: 0;
-	filter: blur(8px); /* Stronger initial blur */
+	opacity: 0; /* Initially hidden by JS or this rule if JS fails */
+	filter: blur(8px);
 	transform: translateY(35px) scale(0.97);
-	transition: opacity 0.9s var(--transition-slow), transform 0.9s var(--transition-slow), filter 0.9s var(--transition-slow); /* Slower transition */
+	transition-property: opacity, filter, transform; /* Explicitly state transitioned properties */
+    transition-duration: 0.9s;
+    transition-timing-function: var(--transition-slow);
 }
 .hero p[data-animate].animated,
 .hero .hero-buttons[data-animate].animated {
@@ -582,8 +597,7 @@ section:has(.section-title.animated) .section-title span::after,
 	filter: blur(0);
 	transform: translateY(0) scale(1);
 }
-.hero p[data-animate].animated { transition-delay: calc( (var(--letter-count, 10) * 55ms) + 0.25s ); }
-.hero .hero-buttons[data-animate].animated { transition-delay: calc( (var(--letter-count, 10) * 55ms) + 0.45s ); }
+/* Delays are set by JS based on H1 animation completion */
 
 
 /* ==========================================================================
@@ -617,7 +631,7 @@ section:has(.section-title.animated) .section-title span::after,
 	content: '';
 	position: absolute;
 	inset: 0;
-	background-image: linear-gradient(rgba(170, 108, 255, 0.1), transparent 1px), linear-gradient(90deg, rgba(0, 242, 255, 0.1) 1px, transparent 1px); /* More defined pattern */
+	background-image: linear-gradient(rgba(170, 108, 255, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 242, 255, 0.1) 1px, transparent 1px); /* More defined pattern */
 	background-size: 60px 60px; /* Larger pattern */
 	opacity: 0;
 	transition: opacity var(--transition-smooth);
@@ -648,7 +662,6 @@ section:has(.section-title.animated) .section-title span::after,
 	display: inline-block;
 	transition: transform var(--transition-smooth), filter var(--transition-smooth), color var(--transition-smooth); /* Added color transition */
 	filter: drop-shadow(0 0 8px var(--clr-accent-cyan)); /* Enhanced icon shadow */
-    /* Adding a subtle breathing animation to icons */
     animation: iconBreathe 4s infinite ease-in-out;
 }
 
@@ -676,213 +689,231 @@ section:has(.section-title.animated) .section-title span::after,
 }
 
 /* ==========================================================================
-   AI Interface Section (CRT Effect)
+   AI Interface Section (CRT Effect) - REVISED
    ========================================================================== */
 .ai-interface-section {
-	background-color: var(--clr-bg-secondary);
-	border-block: 1.5px solid rgba(170, 108, 255, 0.2); /* Thicker border */
-    /* Adding a subtle scanline overlay to the whole section for more CRT feel */
+	background-color: var(--clr-bg-secondary); /* Keep a distinct background */
+	border-block: 1px solid rgba(170, 108, 255, 0.15);
     position: relative;
 }
+/* Remove the global scanline for this section, will apply to wrapper */
 .ai-interface-section::before {
+    display: none;
+}
+
+/* --- CRT Wrapper --- */
+.ai-interface-wrapper {
+	background-color: var(--clr-bg-crt); /* Base CRT background */
+	border: 2px solid var(--clr-accent-purple);
+	border-radius: var(--layout-crt-border-radius); /* Consistent curve */
+	box-shadow: var(--shadow-crt);
+	transform: perspective(800px) rotateX(1deg) rotateY(-0.5deg); /* Subtle 3D tilt */
+	animation: crt-flicker 0.22s infinite alternate linear; /* Slightly adjusted flicker */
+    position: relative; /* For pseudo-elements */
+    max-width: 900px; /* Limit width for better appearance */
+    margin: 0 auto; /* Center the wrapper */
+    overflow: hidden; /* Important for inner effects */
+}
+
+/* CRT Scanlines Overlay */
+.ai-interface-wrapper::before {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(transparent 50%, rgba(0,0,0,0.15) 50%);
-    background-size: 100% 3px;
-    opacity: 0.1;
+    background: linear-gradient(transparent 50%, rgba(0,0,0,0.25) 50%);
+    background-size: 100% 4px; /* Scanline thickness */
+    opacity: 0.15;
     pointer-events: none;
-    z-index: 0;
-    animation: scanline-move-bg 15s linear infinite alternate;
-}
-@keyframes scanline-move-bg {
-    0% { background-position-y: 0; }
-    100% { background-position-y: 100%; }
+    z-index: 2; /* Above background, below content */
+    animation: scanline-move-bg 12s linear infinite alternate;
 }
 
-@keyframes crt-flicker {
-  0%, 100% { opacity: 1; filter: brightness(1) contrast(1) hue-rotate(0deg); }
-  20% { opacity: 0.96; filter: brightness(1.05) contrast(1.03) hue-rotate(-1deg); }
-  40% { opacity: 0.98; filter: brightness(0.97) contrast(0.98) hue-rotate(0.5deg); }
-  60% { opacity: 1; filter: brightness(1.02) contrast(1.01) hue-rotate(0deg); }
-  80% { opacity: 0.95; filter: brightness(1.06) contrast(1.04) hue-rotate(1deg); }
-}
-.ai-interface-wrapper {
-	background-color: var(--clr-bg-crt);
-	border: 2.5px solid var(--clr-accent-purple); /* Thicker border */
-	border-radius: 15px / 30px; /* More pronounced curve */
-	overflow: hidden;
-	box-shadow: 0 0 30px rgba(170, 108, 255, 0.4), 0 0 15px rgba(0, 242, 255, 0.2) inset, 0 0 10px rgba(0,0,0,0.5); /* Enhanced shadow */
-	transform: perspective(700px) rotateX(1.5deg) rotateY(-0.5deg); /* Slightly more tilt */
-	animation: crt-flicker 0.18s infinite alternate linear; /* Faster flicker */
-    position: relative; /* For inner glow */
-    z-index: 1; /* Above section's pseudo-element */
-}
-/* Inner glow for CRT screen */
+/* CRT Inner Glow */
 .ai-interface-wrapper::after {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    border-radius: inherit;
-    box-shadow: inset 0 0 25px rgba(0, 255, 179, 0.1), inset 0 0 10px rgba(0,0,0,0.4);
+    border-radius: inherit; /* Match wrapper's curve */
+    box-shadow: inset 0 0 30px rgba(0, 255, 179, 0.12), /* Subtle green inner glow */
+                inset 0 0 15px rgba(170, 108, 255, 0.1), /* Subtle purple inner glow */
+                inset 0 0 10px rgba(0,0,0,0.5); /* Darkens edges */
     pointer-events: none;
-    opacity: 0.8;
+    z-index: 1; /* Behind scanlines if they are too prominent */
 }
 
+@keyframes crt-flicker { /* Adjusted for subtlety */
+  0%, 100% { opacity: 1; filter: brightness(1) contrast(1) hue-rotate(0deg); }
+  25% { opacity: 0.97; filter: brightness(1.03) contrast(1.01) hue-rotate(-0.5deg); }
+  50% { opacity: 0.99; filter: brightness(0.98) contrast(0.99) hue-rotate(0.2deg); }
+  75% { opacity: 1; filter: brightness(1.01) contrast(1) hue-rotate(0deg); }
+}
+
+/* --- CRT Header --- */
 .ai-interface-header {
-	background-color: rgba(170, 108, 255, 0.12); /* Slightly darker */
-	padding: 14px 22px; /* Increased padding */
+	background-color: var(--clr-bg-crt-header); /* Use specific variable */
+	padding: 12px 20px;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	border-bottom: 1.5px solid rgba(170, 108, 255, 0.45); /* Thicker border */
-    text-shadow: 0 0 3px rgba(170, 108, 255, 0.3);
+	border-bottom: 1px solid rgba(170, 108, 255, 0.35);
+    text-shadow: 0 0 2px rgba(170, 108, 255, 0.2);
+    position: relative; /* For z-index */
+    z-index: 3; /* Above overlays */
 }
 .ai-interface-title {
 	font-family: var(--font-mono);
-	font-size: 0.95rem; /* Slightly larger */
+	font-size: 0.9rem;
 	color: var(--clr-text-highlight);
 	display: flex;
 	align-items: center;
-	gap: 10px; /* Increased gap */
+	gap: 8px;
 }
 @keyframes pulse-icon-crt {
-	0%, 100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 4px var(--clr-accent-green)); }
-	50% { opacity: 0.75; transform: scale(1.08); filter: drop-shadow(0 0 8px var(--clr-accent-green)); }
+	0%, 100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 3px var(--clr-accent-green)); }
+	50% { opacity: 0.8; transform: scale(1.06); filter: drop-shadow(0 0 6px var(--clr-accent-green)); }
 }
 .ai-interface-title i {
 	color: var(--clr-accent-green);
-	animation: pulse-icon-crt 1.6s infinite ease-in-out; /* Slightly faster pulse */
-    font-size: 1.1em;
+	animation: pulse-icon-crt 1.7s infinite ease-in-out;
+    font-size: 1.05em;
 }
-
 .ai-status-indicator {
 	font-family: var(--font-mono);
-	font-size: 0.8rem; /* Slightly larger */
+	font-size: 0.75rem;
 	color: var(--clr-accent-green);
 	text-transform: uppercase;
-	padding: 5px 12px; /* Increased padding */
-	background-color: rgba(0, 255, 170, 0.18); /* More defined background */
+	padding: 4px 10px;
+	background-color: rgba(0, 255, 170, 0.15);
 	border-radius: var(--layout-border-radius-sm);
-	border: 1px solid rgba(0, 255, 170, 0.35); /* More defined border */
-	letter-spacing: 0.7px; /* Increased letter spacing */
-    box-shadow: 0 0 5px rgba(0, 255, 170, 0.2);
-}
-.ai-content-area {
-	padding: clamp(25px, 4.5vw, 35px); /* Increased padding */
+	border: 1px solid rgba(0, 255, 170, 0.3);
+	letter-spacing: 0.5px;
+    box-shadow: 0 0 4px rgba(0, 255, 170, 0.15);
 }
 
-@keyframes scanline-move {
-	0% { transform: translateY(-15%); }
-	100% { transform: translateY(15%); }
+/* --- CRT Content Area (holds log, input, progress) --- */
+.ai-content-area {
+	padding: clamp(20px, 3.5vw, 30px); /* Responsive padding */
+    position: relative; /* For z-index */
+    z-index: 3; /* Above overlays */
 }
+
+/* --- CRT Log Window --- */
 .ai-log-window {
-	height: clamp(300px, 42vh, 400px); /* Increased height */
+	height: clamp(280px, 38vh, 350px); /* Adjusted height */
 	overflow-y: auto;
-	background-color: rgba(0, 0, 0, 0.6); /* Darker background */
-	border: 1.5px solid rgba(170, 108, 255, 0.35); /* Thicker border */
-	border-radius: var(--layout-border-radius-sm);
-	padding: 22px; /* Increased padding */
-	margin-bottom: 22px; /* Increased margin */
+	background-color: var(--clr-bg-crt-log); /* Use specific variable */
+	border: 1px solid rgba(170, 108, 255, 0.25); /* Softer border */
+	border-radius: var(--layout-border-radius-md); /* Softer radius */
+	padding: 18px; /* Adjusted padding */
+	margin-bottom: 18px;
 	font-family: var(--font-mono);
-	font-size: 0.92rem; /* Slightly larger font */
-	position: relative;
-	overflow-x: hidden;
+	font-size: 0.9rem; /* Base font size for logs */
+	color: var(--clr-text-primary); /* Default text color for logs */
 	scrollbar-width: thin;
-	scrollbar-color: var(--clr-accent-green) rgba(0,0,0,0.5); /* Darker track */
-	box-shadow: inset 0 0 18px rgba(0,0,0,0.65); /* Stronger inset shadow */
+	scrollbar-color: var(--clr-accent-green) rgba(0,0,0,0.6); /* Darker track for better contrast */
+	box-shadow: inset 0 0 15px rgba(0,0,0,0.7); /* Stronger inset shadow */
+    line-height: 1.6;
 }
-.ai-log-window::before {
-	content: '';
-	position: absolute;
-	inset: 0;
-	background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%); /* More defined scanlines */
-	background-size: 100% 3.5px; /* Thicker lines */
-	z-index: 2;
-	pointer-events: none;
-	animation: scanline-move 9s linear infinite alternate; /* Slower scanline movement */
-	opacity: 0.3; /* More visible scanlines */
+/* Ensure scrollbar thumb is visible */
+.ai-log-window::-webkit-scrollbar { width: 10px; }
+.ai-log-window::-webkit-scrollbar-track { background: rgba(0,0,0,0.6); border-radius: 5px; }
+.ai-log-window::-webkit-scrollbar-thumb { background-color: var(--clr-accent-green); border-radius: 5px; border: 2px solid rgba(0,0,0,0.6); }
+.ai-log-window::-webkit-scrollbar-thumb:hover { background-color: color-mix(in srgb, var(--clr-accent-green), white 20%); }
+
+/* Timestamp for log lines */
+.ai-log-line .ai-log-timestamp {
+    color: var(--clr-text-secondary);
+    margin-right: 0.75em;
+    font-size: 0.85em; /* Smaller timestamp */
+    opacity: 0.7;
 }
-.ai-log-window::-webkit-scrollbar { width: 9px; } /* Wider scrollbar */
-.ai-log-window::-webkit-scrollbar-track { background: rgba(0,0,0,0.5); border-radius: 5px; }
-.ai-log-window::-webkit-scrollbar-thumb { background-color: var(--clr-accent-green); border-radius: 5px; border: 2.5px solid rgba(0,0,0,0.5); }
-.ai-log-window::-webkit-scrollbar-thumb:hover { background-color: color-mix(in srgb, var(--clr-accent-green), white 25%); }
+.ai-log-line .ai-log-text {
+    /* Text color will be set by specific log line type */
+}
 
 .ai-log-line {
-	margin-bottom: 9px; /* Increased margin */
-	line-height: 1.65; /* Increased line height */
-	position: relative;
-	z-index: 1;
-	text-shadow: 0 0 5px rgba(0, 255, 170, 0.35); /* Brighter default glow */
+	margin-bottom: 8px;
 	word-break: break-word;
-    /* Adding a subtle flicker to new lines */
-    animation: logLineFlicker 0.5s ease-out;
+    /* Default text shadow, can be overridden by specific types */
+	text-shadow: 0 0 3px rgba(var(--clr-accent-green-rgb, 0, 255, 179), 0.2);
+    animation: logLineFlicker 0.4s ease-out; /* Re-enable subtle flicker for new lines */
 }
-@keyframes logLineFlicker {
-    0% { opacity: 0.3; transform: translateY(3px); }
-    100% { opacity: 1; transform: translateY(0); }
+@keyframes logLineFlicker { /* Subtle flicker for newly added lines */
+    0% { opacity: 0.5; }
+    100% { opacity: 1; }
 }
+/* Color definitions for log types */
+.ai-log-line.status { color: var(--clr-text-secondary); text-shadow: none; }
+.ai-log-line.input { color: var(--clr-accent-cyan); text-shadow: 0 0 5px var(--clr-accent-cyan); }
+.ai-log-line.process { color: var(--clr-text-primary); text-shadow: none; }
+.ai-log-line.analysis { color: var(--clr-accent-purple); text-shadow: 0 0 5px var(--clr-accent-purple); }
+.ai-log-line.warning { color: var(--clr-accent-yellow); font-weight: 500; text-shadow: 0 0 6px var(--clr-accent-yellow); }
+.ai-log-line.error { color: var(--clr-accent-red); font-weight: 500; text-shadow: 0 0 6px var(--clr-accent-red); }
+.ai-log-line.output { color: var(--clr-accent-green); text-shadow: 0 0 5px var(--clr-accent-green); }
 
-.ai-log-line.status { color: #c0c8d8; text-shadow: none; }
-.ai-log-line.input { color: var(--clr-accent-cyan); text-shadow: 0 0 6px var(--clr-accent-cyan); }
-.ai-log-line.process { color: #e8eaf8; text-shadow: none; }
-.ai-log-line.analysis { color: var(--clr-accent-purple); text-shadow: 0 0 6px var(--clr-accent-purple); }
-.ai-log-line.warning { color: var(--clr-accent-yellow); font-weight: 600; text-shadow: 0 0 7px var(--clr-accent-yellow); }
-.ai-log-line.error { color: var(--clr-accent-red); font-weight: 600; text-shadow: 0 0 7px var(--clr-accent-red); }
-.ai-log-line.output { color: var(--clr-accent-green); text-shadow: 0 0 6px var(--clr-accent-green); }
 
+/* --- CRT Input Area --- */
 .ai-input-area {
 	font-family: var(--font-mono);
 	color: var(--clr-accent-cyan);
-	margin-bottom: 18px; /* Increased margin */
-	min-height: 1.6em; /* Increased min height */
+	margin-bottom: 15px;
+	min-height: 1.5em; /* Ensure space for cursor */
 	display: flex;
 	align-items: center;
-	flex-wrap: wrap;
+	flex-wrap: nowrap; /* Prevent wrapping of fake input and cursor */
+    overflow: hidden; /* Hide overflow if text is too long for demo */
+    white-space: nowrap;
+    padding: 5px 0; /* Add a little vertical padding */
 }
-@keyframes blink-cursor {
-	from, to { background-color: transparent; box-shadow: none; opacity: 0.8; }
-	50% { background-color: var(--clr-accent-cyan); box-shadow: var(--glow-cyan); opacity: 1; }
+#ai-fake-input {
+    display: inline; /* Keep it inline */
+    text-shadow: 0 0 4px var(--clr-accent-cyan);
 }
 .fake-input-cursor {
 	display: inline-block;
-	width: 10px; /* Wider cursor */
-	height: 1.3em; /* Taller cursor */
+	width: 9px;
+	height: 1.2em;
 	background-color: var(--clr-accent-cyan);
-	margin-left: 5px;
+	margin-left: 4px;
 	vertical-align: text-bottom;
-	animation: blink-cursor 1s step-end infinite; /* Slower blink */
+	animation: blink-cursor 1.0s step-end infinite;
 	box-shadow: var(--glow-cyan);
 }
+@keyframes blink-cursor {
+	from, to { background-color: transparent; box-shadow: none; opacity: 0.7; }
+	50% { background-color: var(--clr-accent-cyan); box-shadow: var(--glow-cyan); opacity: 1; }
+}
 
+/* --- CRT Progress Bar --- */
 .ai-progress-bar-container {
-	margin-top: 22px; /* Increased margin */
+	margin-top: 20px;
 }
 .ai-progress-bar-label {
 	font-family: var(--font-mono);
-	font-size: 0.8rem; /* Slightly larger */
+	font-size: 0.75rem;
 	color: var(--clr-text-secondary);
-	margin-bottom: 9px; /* Increased margin */
+	margin-bottom: 8px;
 	text-transform: uppercase;
-	letter-spacing: 0.6px; /* Increased letter spacing */
+	letter-spacing: 0.5px;
 }
 .ai-progress-bar {
 	width: 100%;
-	height: 16px; /* Thicker progress bar */
-	background-color: rgba(170, 108, 255, 0.18); /* More defined background */
-	border-radius: 8px; /* Softer radius */
+	height: 14px;
+	background-color: rgba(170, 108, 255, 0.12); /* Darker background */
+	border-radius: 7px;
 	overflow: hidden;
-	border: 1.5px solid rgba(170, 108, 255, 0.3); /* More defined border */
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+	border: 1px solid rgba(170, 108, 255, 0.2); /* Softer border */
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.25);
 }
 .ai-progress-bar-inner {
-	width: 0;
+	width: 0%; /* Animated by JS */
 	height: 100%;
-	background: linear-gradient(90deg, var(--clr-accent-purple), var(--clr-accent-cyan), var(--clr-accent-green)); /* Added green */
-	border-radius: 7px; /* Ensure inner radius matches */
-	transition: width 0.45s cubic-bezier(0.65, 0, 0.35, 1); /* Slightly faster transition */
-	box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.55), 0 0 8px var(--clr-accent-cyan), 0 0 5px var(--clr-accent-green); /* Enhanced glow */
+	background: linear-gradient(90deg, var(--clr-accent-purple), var(--clr-accent-cyan), var(--clr-accent-green));
+	border-radius: 6px; /* Ensure inner radius fits */
+	transition: width 0.4s cubic-bezier(0.65, 0, 0.35, 1);
+	box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.4), 0 0 6px var(--clr-accent-cyan), 0 0 4px var(--clr-accent-green);
 }
+
 
 /* ==========================================================================
    How It Works Section (NEW DESIGN)
@@ -1035,7 +1066,6 @@ section:has(.section-title.animated) .section-title span::after,
     overflow: hidden;
     width: 100%;
     position: relative;
-    /* Adding a subtle inner shadow to the container for depth */
     box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
     border-radius: var(--layout-border-radius-md);
 }
@@ -1068,6 +1098,16 @@ section:has(.section-title.animated) .section-title span::after,
     width: clamp(290px, 29vw, 350px); /* Adjusted card width */
     margin-right: clamp(28px, 4.2vw, 42px); /* Adjusted margin */
 }
+
+/* Card entrance animation */
+.testimonial-card.card-content-updated {
+    animation: cardEntry 0.6s var(--transition-bounce) forwards;
+}
+@keyframes cardEntry {
+    0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 
 .testimonial-card.is-loading {
     display: flex;
@@ -1215,7 +1255,7 @@ section:has(.section-title.animated) .section-title span::after,
 .slider-btn.prev-btn { left: -5px; } /* Adjusted positioning */
 .slider-btn.next-btn { right: -5px; } /* Adjusted positioning */
 
-.testimonial-note { /* Style for the (now removed) note if you re-add it */
+.testimonial-note {
     text-align: center;
     margin-top: 2.5rem; /* Increased margin */
     font-size: 0.92em;
@@ -1408,32 +1448,41 @@ section:has(.section-title.animated) .section-title span::after,
 	pointer-events: none;
 	z-index: 9999;
 	transform: translate(-50%, -50%) scale(1);
-	mix-blend-mode: screen;
-	transition: transform 0.12s ease-out, background 0.18s ease, width 0.18s ease, height 0.18s ease, box-shadow 0.18s ease, opacity 0.25s ease; /* Faster transitions */
+	mix-blend-mode: screen; /* Changed from lighten to screen for more vibrant effect */
+	transition: transform 0.12s ease-out, background 0.18s ease, width 0.18s ease, height 0.18s ease, box-shadow 0.18s ease, opacity 0.25s ease, mix-blend-mode 0.2s ease; /* Faster transitions */
 	box-shadow: 0 0 20px 7px var(--clr-accent-cyan), 0 0 35px 20px rgba(0, 242, 255, 0.45); /* Enhanced glow */
-	opacity: 0.65; /* Slightly more subtle base opacity */
-	will-change: left, top, transform, box-shadow, background, opacity;
+	opacity: 0; /* Start hidden, JS will make it visible */
+	will-change: left, top, transform, box-shadow, background, opacity, mix-blend-mode;
 }
+.mouse-follower-glow.is-hovering { /* Class added by JS */
+    mix-blend-mode: normal; /* Normal blend for better visibility on some backgrounds when hovering interactables */
+}
+
 @media (hover: none) {
     .mouse-follower-glow {
-        display: none;
+        display: none !important; /* Ensure it's hidden on touch */
     }
 }
 body:active .mouse-follower-glow {
 	transform: translate(-50%, -50%) scale(0.65); /* Smaller click scale */
 	background: var(--clr-accent-pink);
 	box-shadow: 0 0 25px 12px var(--clr-accent-pink), 0 0 40px 25px rgba(255, 64, 191, 0.5); /* Enhanced click glow */
-	opacity: 0.85; /* Brighter click opacity */
+	opacity: 0.85 !important; /* Brighter click opacity, ensure it overrides */
+    mix-blend-mode: normal;
 }
+/* Specific hover for links/buttons handled by JS adding .is-hovering and adjusting scale via JS */
 a:hover ~ .mouse-follower-glow,
 button:hover ~ .mouse-follower-glow,
 .btn:hover ~ .mouse-follower-glow,
-.slider-btn:hover ~ .mouse-follower-glow {
-     width: 48px; height: 48px; /* Larger hover size */
-     background: rgba(255, 64, 191, 0.75); /* Brighter pink */
-     box-shadow: 0 0 22px 9px var(--clr-accent-pink), 0 0 33px 22px rgba(255, 64, 191, 0.35); /* Enhanced hover glow */
-     mix-blend-mode: normal;
-     opacity: 0.95; /* Brighter hover opacity */
+.slider-btn:hover ~ .mouse-follower-glow,
+.feature-card:hover ~ .mouse-follower-glow, /* Added more interactive elements */
+.how-it-works-step:hover ~ .mouse-follower-glow,
+.yuki-card:hover ~ .mouse-follower-glow {
+     /* JS now controls size and color for .is-hovering state, this is a fallback */
+     /* width: 48px; height: 48px; */
+     /* background: rgba(255, 64, 191, 0.75); */
+     /* box-shadow: 0 0 22px 9px var(--clr-accent-pink), 0 0 33px 22px rgba(255, 64, 191, 0.35); */
+     /* opacity: 0.95 !important; */
 }
 
 
@@ -1442,22 +1491,24 @@ button:hover ~ .mouse-follower-glow,
    ========================================================================== */
 
 [data-animate]:not([data-animate-letters]) {
-	opacity: 0;
-	filter: blur(6px); /* Stronger initial blur */
-	transform: perspective(1300px) translateY(45px) rotateY(12deg) scale(0.93); /* More pronounced initial transform */
+	opacity: 0; /* Initial state set by JS */
+	filter: blur(6px);
+	transform: perspective(1300px) translateY(45px) rotateY(12deg) scale(0.93);
 	transform-origin: center center;
-	transition: opacity 0.8s var(--transition-slow), transform 0.8s var(--transition-slow), filter 0.8s var(--transition-slow); /* Slower, smoother transition */
+	transition-property: opacity, filter, transform;
+    transition-duration: 0.8s; /* Duration for the animation */
+    transition-timing-function: var(--transition-slow); /* Easing */
+    /* transition-delay will be set by JS */
 }
-[data-animate]:not([data-animate-letters]).animated {
+[data-animate]:not([data-animate-letters]).animated { /* Class added by JS when element is in view */
 	opacity: 1;
 	filter: blur(0);
 	transform: perspective(1300px) translateY(0) rotateY(0) scale(1);
-	transition-delay: calc(var(--animation-order, 0) * 130ms); /* Slightly increased stagger */
 }
 
 .how-it-works-step[data-animate] {
-    transform: perspective(900px) translateY(35px) scale(0.88); /* More pronounced initial transform */
-    filter: blur(5px); /* Stronger initial blur */
+    transform: perspective(900px) translateY(35px) scale(0.88);
+    filter: blur(5px);
 }
 .how-it-works-step[data-animate].animated {
     transform: perspective(900px) translateY(0) scale(1);
@@ -1472,7 +1523,6 @@ button:hover ~ .mouse-follower-glow,
     background-color: var(--clr-bg-secondary);
     border-block: 1.5px solid rgba(255, 64, 191, 0.25); /* Thicker border */
     text-align: center;
-    /* Adding a subtle pattern to this section's background */
     background-image: linear-gradient(45deg, rgba(255,255,255,0.02) 25%, transparent 25%),
                       linear-gradient(-45deg, rgba(255,255,255,0.02) 25%, transparent 25%),
                       linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.02) 75%),
@@ -1578,6 +1628,8 @@ button:hover ~ .mouse-follower-glow,
     .testimonial-slider-wrapper { max-width: 780px; padding: 0 40px; } /* Wider for 2 cards */
     .testimonial-card { width: clamp(280px, 39vw, 330px); margin-right: clamp(22px, 3.2vw, 32px); }
     .slider-btn { width: 45px; height: 45px; font-size: 1.1rem; }
+    .ai-interface-wrapper { transform: perspective(700px) rotateX(0.5deg); } /* Less tilt on tablet */
+
 }
 
 @media (max-width: 768px) {
@@ -1666,6 +1718,10 @@ button:hover ~ .mouse-follower-glow,
         width: 130px; /* Slightly larger on mobile */
         height: 130px;
     }
+    .ai-interface-wrapper { transform: perspective(600px) rotateX(0deg); } /* No tilt on mobile */
+    .ai-log-window { height: 250px; font-size: 0.85rem; }
+    .ai-interface-header { padding: 10px 15px;}
+    .ai-content-area { padding: 15px; }
 }
 
 @media (max-width: 480px) {
@@ -1691,6 +1747,9 @@ button:hover ~ .mouse-follower-glow,
         height: 105px;
         border-width: 3.5px; /* Thicker border */
     }
+    .ai-log-window { height: 220px; font-size: 0.8rem; padding: 12px;}
+    .ai-interface-title {font-size: 0.85rem;}
+    .ai-status-indicator {font-size: 0.7rem; padding: 3px 8px;}
 }
 
 /* --- Print Styles --- */
