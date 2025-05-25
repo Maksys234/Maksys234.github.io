@@ -1,8 +1,5 @@
 /* dashboard/oceneni.css */
-/* Версия: 23.23.8 - Исправлен supabaseClient на supabase в fetchLeaderboardData. Улучшена логика сворачивания/разворачивания. */
-/* MODIFIED: Added more explicit checks and logging in updateSidebarProfile. */
-/* MODIFIED: Ensured renderAvatarDecorationsShop handles empty data gracefully. */
-/* ADDED: Fixes for badge icons and collapsible panel appearance. */
+/* Версия: 23.23.10 - Улучшены стили для сворачивающихся панелей, отступы и переходы. */
 
 /* --- START: Киберпанк CSS Тема (Адаптировано для oceneni.html v12 - NOVÝ VZHLED SBALENÝCH SEKCÍ) --- */
 /* --- Глобальные Настройки и Переменные (Синхронизировано с dashboard.css) --- */
@@ -277,15 +274,162 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* --- Main Content Wrapper & Sections --- */
-.main-content-wrapper { padding: var(--section-padding-y) 0; } /* Only vertical padding */
-.main-content-grid { display: grid; gap: 2rem; } /* Gap between sections */
-.section-title { font-size: 1.5rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-heading); padding-bottom: 0.8rem; position: relative; display: flex; align-items: center; gap: 0.7rem; }
+/* --- Основной контент дашборда --- */
+.main-content-wrapper { padding: var(--section-padding-y) 0; }
+#achievements-content { /* Container for all sections */ }
+
+/* General Section Title - for non-card sections if any, or general use */
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem; /* Default for non-card titles */
+    color: var(--text-heading);
+    padding-bottom: 0.8rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* For title text and button */
+    gap: 0.7rem;
+}
+.section-title .section-title-text { /* Wrapper for icon and text */
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
 .section-title i { font-size: 1.1em; color: var(--accent-secondary); text-shadow: 0 0 8px var(--accent-secondary-glow); }
 .section-title::after { content: ''; position: absolute; bottom: 0; left: 0; width: 60px; height: 3px; background: var(--gradient-border-anim); background-size: 300% 100%; animation: gradient-move 4s linear infinite; border-radius: 1.5px; filter: drop-shadow(0 0 5px var(--accent-primary)); }
 @keyframes gradient-move { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 
-/* Oceneni Specific: Section Styles */
+/* Section Collapsing Styles (Improved for Oceneni) */
+.card-section {
+    margin-bottom: 1.5rem; /* Default margin for expanded sections */
+    background: var(--card-bg);
+    border-radius: var(--card-radius);
+    border: 1px solid var(--border-color-light);
+    box-shadow: var(--shadow-hud);
+    padding: 0;
+    position: relative;
+    overflow: visible; /* Allow overflow for box-shadows from title bar */
+    transition: margin-bottom 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-section > .section-title {
+    padding: 1.1rem 1.5rem;
+    margin-bottom: 0;
+    border-bottom: 1px solid transparent;
+    background: rgba(var(--dark-purple-accent-rgb), 0.25);
+    cursor: pointer;
+    transition: border-bottom-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+    border-radius: var(--card-radius) var(--card-radius) 0 0; /* Rounded top corners */
+    position: relative; /* For z-index to be above content */
+    z-index: 2;
+}
+.card-section:not(.collapsed-section) > .section-title {
+    border-bottom-color: var(--border-color-medium);
+    background: rgba(var(--dark-purple-accent-rgb), 0.35);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtle shadow for expanded title */
+}
+.card-section .section-title::after { display: none; }
+
+.card-section > .section-title .btn-icon-only { /* Style for toggle button */
+    width: 30px; height: 30px; font-size: 0.8rem;
+    background-color: rgba(var(--accent-primary-rgb), 0.1);
+    border-color: rgba(var(--accent-primary-rgb), 0.25);
+    color: var(--accent-primary);
+    box-shadow: none;
+}
+.card-section > .section-title .btn-icon-only:hover:not(:disabled) {
+    background-color: rgba(var(--accent-primary-rgb), 0.2);
+    box-shadow: 0 0 6px rgba(var(--accent-primary-rgb), 0.35);
+}
+.card-section > .section-title .btn-icon-only i {
+    transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1.5);
+}
+.card-section:not(.collapsed-section) > .section-title .btn-icon-only i {
+    transform: rotate(0deg); /* Chevron up when expanded */
+}
+.card-section.collapsed-section > .section-title .btn-icon-only i {
+    transform: rotate(-180deg); /* Chevron down when collapsed */
+}
+
+
+.section-collapsible-content {
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), /* Softer easing */
+                padding-top 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                padding-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s ease-out 0.05s, /* Opacity fades slightly after height */
+                visibility 0s 0.4s; /* Hide after transition */
+    overflow: hidden;
+    max-height: 3000px; /* Sufficiently large */
+    opacity: 1;
+    padding: 1.5rem; /* Standard padding when expanded */
+    visibility: visible;
+    background-color: transparent; /* Content takes parent's background */
+    border-top: none; /* Ensure no top border when expanded after title */
+    position: relative; /* For potential internal absolute positioning */
+    z-index: 1; /* Below title */
+}
+
+.card-section.collapsed-section {
+    margin-bottom: 0.8rem; /* Tighter spacing when collapsed */
+    background-color: var(--card-solid);
+    border: 1px solid var(--border-color-medium);
+    border-left: 4px solid var(--accent-primary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2),
+                inset 3px 0 8px -2px rgba(var(--accent-primary-rgb), 0.15);
+    cursor: pointer;
+    overflow: hidden; /* Crucial for collapsed state */
+    border-radius: var(--card-radius); /* Ensure radius is applied to the whole collapsed bar */
+}
+
+.card-section.collapsed-section > .section-title {
+    background: transparent; /* Title bar itself is transparent */
+    padding: 0.8rem 1.2rem; /* More compact title bar */
+    border-bottom-color: transparent !important;
+    border-radius: var(--card-radius); /* Match parent radius if it's the only visible part */
+    min-height: auto; /* Let content determine height */
+}
+
+.card-section.collapsed-section > .section-title .section-title-text {
+    color: var(--text-light);
+    font-weight: 500; /* Slightly less emphasis */
+    font-size: 1rem;
+}
+.card-section.collapsed-section > .section-title .section-title-text i {
+    color: var(--accent-primary); /* Icon matches accent bar */
+}
+.card-section.collapsed-section > .section-title .btn-icon-only {
+    transform: scale(0.85); /* Smaller button */
+}
+.card-section.collapsed-section:hover {
+    border-left-color: var(--accent-pink);
+    background-color: rgba(var(--card-solid-rgb), 0.97);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25),
+                inset 0 0 15px rgba(var(--accent-pink-rgb), 0.15),
+                0 0 20px rgba(var(--accent-pink-rgb), 0.3);
+    transform: translateY(0); /* No lift on hover for collapsed */
+}
+.card-section.collapsed-section:hover > .section-title .section-title-text { color: var(--accent-pink); }
+.card-section.collapsed-section:hover > .section-title .section-title-text i { color: var(--accent-pink); }
+.card-section.collapsed-section:hover > .section-title .btn-icon-only {
+    background-color: rgba(var(--accent-pink-rgb), 0.1);
+    border-color: var(--accent-pink);
+    color: var(--accent-pink);
+}
+
+.card-section.collapsed-section .section-collapsible-content {
+    max-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    opacity: 0;
+    visibility: hidden;
+    transition-delay: 0s, 0s, 0s, 0s, 0s, 0s, 0s; /* Apply immediately */
+}
+
+
+/* --- Specific styles for Oceneni page content --- */
 .achievement-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.8rem; margin-bottom: 2.5rem; }
 .stat-card { min-height: 170px; position: relative; display: flex; flex-direction: column; padding: 1.5rem; }
 .stat-card .loading-skeleton { display: none; padding: 1.5rem; align-items: flex-start; justify-content: space-between; width: 100%; position: absolute; inset: 0; background: var(--card-bg); z-index: 5; backdrop-filter: blur(2px); }
@@ -296,10 +440,10 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .stat-card-info { flex-grow: 1; z-index: 1; }
 .stat-card-title { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5em; text-transform: uppercase; letter-spacing: 0.8px; }
 .stat-card-title i { font-size: 1em; }
-.stat-card[data-type="progress"] .stat-card-title i { color: var(--accent-primary); } /* Example */
-.stat-card[data-type="points"] .stat-card-title i { color: var(--accent-orange); }
-.stat-card[data-type="streak"] .stat-card-title i { color: var(--accent-pink); }
-.stat-card[data-type="exercises"] .stat-card-title i { color: var(--accent-lime); }
+.stat-card#badges-card .stat-card-title i { color: var(--accent-secondary); } /* Badges specific */
+.stat-card#points-card .stat-card-title i { color: var(--accent-orange); }
+.stat-card#streak-card .stat-card-title i { color: var(--accent-pink); }
+.stat-card#rank-card .stat-card-title i { color: var(--accent-primary); } /* Rank specific */
 .stat-card-value { font-size: 2.3rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.5rem; min-height: 38px; line-height: 1.2; text-shadow: 0 0 8px rgba(var(--white-rgb, 255,255,255), 0.3); }
 .stat-card-change { font-size: 0.88rem; color: var(--text-muted); min-height: 20px; display: inline-flex; align-items: center; gap: 0.4em; font-weight: 500; }
 .stat-card-change.positive { color: var(--accent-lime); }
@@ -322,13 +466,15 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .badge-card { flex-direction: column; align-items: center; text-align: center; padding: 1.8rem 1.2rem; }
 .achievement-card { align-items: flex-start; gap: 1.5rem; padding: 1.5rem; opacity: 0.75; border-color: var(--border-color-light); }
 .achievement-card:hover { opacity: 1; border-color: var(--border-color-medium); }
-.badge-icon { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 1.2rem; color: var(--white); position: relative; background: var(--gradient-locked); box-shadow: 0 5px 15px rgba(0,0,0,0.3); border: 2px solid rgba(var(--white-rgb), 0.1); }
+.badge-icon { width: 70px; height: 70px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 1.2rem; color: var(--white); position: relative; background: var(--gradient-locked); box-shadow: 0 5px 15px rgba(0,0,0,0.3); border: 2px solid rgba(var(--white-rgb), 0.1); }
+.badge-icon i { font-size: inherit; vertical-align: middle; line-height: 1;} /* Fix for icon alignment */
 .badge-icon.math { background: var(--gradient-math); } .badge-icon.language { background: var(--gradient-lang); } .badge-icon.special { background: var(--gradient-special); } .badge-icon.streak { background: var(--gradient-streak); } .badge-icon.points { background: var(--gradient-warning); } .badge-icon.exercises { background: var(--gradient-success); } .badge-icon.test { background: var(--gradient-info); }
 .badge-title { font-size: 1.05rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.4rem; }
 .badge-desc { font-size: 0.85rem; color: var(--text-medium); margin-bottom: 0.8rem; flex-grow: 1; line-height: 1.5; }
 .badge-date { font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; margin-top: auto; }
 .badge-date i { font-size: 0.85em; }
-.achievement-icon { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.7rem; color: var(--white); flex-shrink: 0; background: var(--gradient-locked); box-shadow: 0 4px 10px rgba(0,0,0,0.25); border: 1px solid rgba(var(--white-rgb), 0.08); }
+.achievement-icon { width: 60px; height: 60px; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.7rem; color: var(--white); flex-shrink: 0; background: var(--gradient-locked); box-shadow: 0 4px 10px rgba(0,0,0,0.25); border: 1px solid rgba(var(--white-rgb), 0.08); }
+.achievement-icon i { font-size: inherit; vertical-align: middle; line-height: 1;} /* Fix for icon alignment */
 .achievement-icon.math { background: var(--gradient-math); } .achievement-icon.language { background: var(--gradient-lang); } .achievement-icon.special { background: var(--gradient-special); } .achievement-icon.streak { background: var(--gradient-streak); } .achievement-icon.points { background: var(--gradient-warning); } .achievement-icon.exercises { background: var(--gradient-success); } .achievement-icon.test { background: var(--gradient-info); }
 .achievement-content { flex-grow: 1; }
 .achievement-title { font-size: 1.1rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.4rem; }
@@ -405,6 +551,26 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .skeleton.value-lg { height: 40px; width: 45%; margin-bottom: 0.5rem; border-radius: 6px; }
 .skeleton.text-md { height: 18px; width: 85%; margin-bottom: 0.4rem; }
 .skeleton.text-sm { height: 15px; width: 75%; }
+.skeleton.badge-icon-placeholder { width: 70px; height: 70px; border-radius: 50%; margin-bottom: 1.2rem; }
+.skeleton.badge-title-placeholder { height: 16px; width: 70%; margin-bottom: 0.5rem; }
+.skeleton.badge-desc-placeholder { height: 12px; width: 90%; margin-bottom: 0.4rem; }
+.skeleton.badge-date-placeholder { height: 12px; width: 50%; margin-top: auto; }
+.skeleton.achievement-icon-placeholder { width: 60px; height: 60px; border-radius: 16px; flex-shrink: 0; }
+.skeleton.achievement-content-placeholder { flex-grow: 1; }
+.skeleton.achievement-title-placeholder { height: 18px; width: 60%; margin-bottom: 0.6rem; }
+.skeleton.achievement-desc-placeholder { height: 14px; width: 95%; margin-bottom: 0.4rem; }
+.skeleton.achievement-progress-placeholder { height: 20px; width: 100%; }
+.leaderboard-skeleton { padding: 1.5rem; display: none; }
+.leaderboard-header-skeleton { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.leaderboard-table-skeleton { display: flex; flex-direction: column; gap: 1rem; }
+.skeleton-row { display: flex; align-items: center; gap: 1rem; padding: 0.8rem 0; border-bottom: 1px solid var(--border-color-light); }
+.skeleton-row:last-child { border-bottom: none; }
+.skeleton.rank-placeholder { width: 30px; height: 20px; border-radius: 4px; }
+.skeleton.avatar-placeholder { width: 36px; height: 36px; border-radius: 50%; }
+.skeleton.name-placeholder { height: 18px; width: 120px; border-radius: 4px; }
+.skeleton.score-placeholder { height: 18px; width: 60px; border-radius: 4px; margin-left: auto; }
+.skeleton.badges-placeholder, .skeleton.streak-placeholder { height: 18px; width: 40px; border-radius: 4px; }
+
 .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; display: flex; flex-direction: column; gap: 0.8rem; max-width: 380px; pointer-events: none; }
 .toast { padding: 1rem 1.3rem; border-radius: 12px; background: var(--interface-bg); box-shadow: var(--shadow-card); display: flex; align-items: flex-start; color: var(--text-light); animation: toast-in 0.45s cubic-bezier(0.215, 0.610, 0.355, 1) forwards; pointer-events: auto; border: 1px solid var(--border-color-medium); border-left-width: 5px; opacity: 0; transform: translateX(110%); backdrop-filter: blur(4px); }
 .toast.show { opacity: 1; transform: translateX(0); }
@@ -433,92 +599,110 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .tooltipster-shadow { border-radius: 8px; background: var(--interface-bg); color: var(--text-light); box-shadow: var(--shadow-card); border: 1px solid var(--border-color-medium); }
 .tooltipster-shadow .tooltipster-content { padding: 8px 14px; font-size: 0.88rem; font-family: var(--font-primary); }
 
-/* Section Collapsing (NEW STYLES - v12) */
-.card-section > .section-title {
-    padding: 1.1rem 1.5rem; /* Compact padding */
+.user-titles-inventory-section .section-title,
+.avatar-decorations-shop .section-title {
+    padding: 1.2rem 1.5rem;
     margin-bottom: 0;
-    border-bottom: 1px solid transparent; /* No border when potentially collapsed */
-    background: rgba(var(--dark-purple-accent-rgb), 0.25);
-    cursor: pointer; /* Indicate clickable */
-    transition: border-bottom-color var(--transition-medium) ease, background-color var(--transition-medium) ease;
+    border-bottom: 1px solid var(--border-color-light);
+    background: rgba(var(--dark-purple-accent-rgb), 0.3);
+}
+.user-titles-inventory-section .section-title::after,
+.avatar-decorations-shop .section-title::after { display: none; }
+
+.user-titles-inventory-section .section-collapsible-content,
+.avatar-decorations-shop .section-collapsible-content {
+    padding: 1.5rem;
 }
 
-.card-section:not(.collapsed-section) > .section-title {
-    border-bottom-color: var(--border-color-light); /* Border only when expanded */
-    background: rgba(var(--dark-purple-accent-rgb), 0.35);
+.title-shop-section .current-credits,
+.avatar-decorations-shop .current-credits {
+    text-align: right;
+    margin-bottom: 1.5rem;
+    margin-top:0;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    padding: 0 1.5rem;
+}
+.title-shop-section .section-collapsible-content {
+     padding-top: 0.5rem;
 }
 
-.card-section .section-title::after { display: none; } /* No decorative line for card titles */
+#user-titles-inventory-grid, #avatar-decorations-grid {
+    padding: 0;
+}
+#user-titles-inventory-empty, #avatar-decorations-empty {
+    margin: 0;
+    border-style: solid;
+    border-color: var(--border-color-light);
+    background-color: rgba(var(--card-solid-rgb), 0.5);
+    padding: 2rem;
+}
+#user-titles-inventory-empty .empty-state-icon, #avatar-decorations-empty .empty-state-icon {
+    color: var(--accent-secondary);
+}
+#user-titles-inventory-loading, #avatar-decorations-loading {
+    min-height: 150px;
+}
+/* --- END: Киберпанк CSS Тема --- */
 
-.section-collapsible-content {
-    transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1), padding-top 0.45s ease, padding-bottom 0.45s ease, margin-top 0.45s ease, margin-bottom 0.45s ease, opacity 0.3s ease-out 0.1s;
-    overflow: hidden;
-    max-height: 3000px; /* Large enough default */
-    opacity: 1;
-    padding: 1.5rem; /* Default padding for content */
-    visibility: visible; /* Visible by default */
+/* --- CSS Fixes for Collapsible Panels --- */
+.card-section {
+    /* ... (Vaše existující styly pro .card-section) ... */
+    transition: margin-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.3s ease,
+                background-color 0.3s ease,
+                border-color 0.3s ease;
 }
 
 .card-section.collapsed-section {
-    margin-bottom: 0.75rem; /* Tighter spacing */
-    background-color: var(--card-solid);
-    border: 1px solid var(--border-color-medium);
-    border-left: 5px solid var(--accent-primary);
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25), inset 4px 0 10px -3px rgba(var(--accent-primary-rgb), 0.2);
-    cursor: pointer;
-    transition: margin-bottom var(--transition-medium) ease,
-                box-shadow var(--transition-medium) ease,
-                background-color var(--transition-medium) ease,
-                border-color var(--transition-medium) ease,
-                transform var(--transition-fast) ease;
+    /* ... (Vaše existující styly pro .card-section.collapsed-section) ... */
+    margin-bottom: 1rem; /* Zajištění dostatečné mezery mezi sbalenými panely */
+    overflow: hidden;    /* Přidáno pro oříznutí jakéhokoli obsahu, který by mohl "vykounout" během animace */
 }
-.card-section.collapsed-section > .section-title {
-    background: transparent;
-    padding: 0.9rem 1.2rem;
-    border-bottom-color: transparent !important;
-    min-height: 52px;
-    transition: background-color var(--transition-medium) ease;
+
+.section-collapsible-content {
+    /* ... (Vaše existující styly pro .section-collapsible-content) ... */
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                padding-top 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                padding-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                margin-top 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                margin-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s ease-out 0.05s, /* Zpoždění opacity, aby se obsah skryl až po zmenšení */
+                visibility 0s 0.4s; /* Okamžité skrytí visibility po dokončení transition */
+    overflow: hidden; /* Zůstává klíčové */
 }
-.card-section.collapsed-section > .section-title .section-title-text { color: var(--text-light); font-weight: 600; font-size: 1.05rem; transition: color 0.2s ease; }
-.card-section.collapsed-section > .section-title .section-title-text i { color: var(--accent-primary); font-size: 1.15em; text-shadow: 0 0 5px var(--accent-glow); transition: color 0.2s ease, text-shadow 0.2s ease; }
-.card-section.collapsed-section > .section-title .btn-icon-only { background-color: rgba(var(--accent-primary-rgb), 0.08); border-color: rgba(var(--accent-primary-rgb), 0.2); color: var(--accent-primary); transform: scale(0.9); transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease; }
-.card-section.collapsed-section > .section-title .btn-icon-only i { transform: rotate(-90deg) scale(1.05); transition: transform 0.35s var(--transition-bounce); } /* Ensure it points down */
-.card-section.collapsed-section:hover { border-left-color: var(--accent-pink); background-color: rgba(var(--card-solid-rgb), 0.98); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3), inset 0 0 18px rgba(var(--accent-pink-rgb), 0.18), 0 0 25px rgba(var(--accent-pink-rgb), 0.35); transform: translateY(-2px); }
-.card-section.collapsed-section:hover > .section-title .section-title-text { color: var(--accent-pink); }
-.card-section.collapsed-section:hover > .section-title .section-title-text i { color: var(--accent-pink); text-shadow: 0 0 8px var(--accent-pink-glow); }
-.card-section.collapsed-section:hover > .section-title .btn-icon-only { background-color: rgba(var(--accent-pink-rgb), 0.12); border-color: var(--accent-pink); color: var(--accent-pink); transform: scale(0.95); } /* No rotation on hover */
-.card-section.collapsed-section:hover > .section-title .btn-icon-only i { transform: rotate(-90deg) scale(1.15); } /* Keep pointing down but larger */
 
 .card-section.collapsed-section .section-collapsible-content {
+    /* ... (Vaše existující styly) ... */
     max-height: 0 !important;
-    padding-top: 0 !important; padding-bottom: 0 !important;
-    margin-top: 0 !important; margin-bottom: 0 !important;
-    opacity: 0; visibility: hidden;
-    border-top: none; /* Ensure no residual borders */
-    transition-delay: 0s, 0s, 0s, 0s, 0s, 0s, 0s; /* Apply immediately */
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    opacity: 0;
+    visibility: hidden;
+    /* Následující transition-delay zajišťuje, že vlastnosti se aplikují okamžitě při sbalování,
+       ale pro rozbalování se použijí hodnoty z .section-collapsible-content */
+    transition-delay: 0s, 0s, 0s, 0s, 0s, 0s, 0s; /* Pro všechny animované vlastnosti */
+    border-top: none; /* Ujistit se, že není žádný horní okraj */
 }
 
-.skeleton { background-color: var(--skeleton-bg); border-radius: 4px; position: relative; overflow: hidden; }
-.skeleton::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); animation: skeleton-loading 1.5s infinite linear; }
-@keyframes skeleton-loading { 0% { left: -150%; } 100% { left: 150%; } }
-.skeleton.badge-icon-placeholder { width: 70px; height: 70px; border-radius: 50%; margin-bottom: 1.2rem; }
-.skeleton.badge-title-placeholder { height: 16px; width: 70%; margin-bottom: 0.5rem; }
-.skeleton.badge-desc-placeholder { height: 12px; width: 90%; margin-bottom: 0.4rem; }
-.skeleton.badge-date-placeholder { height: 12px; width: 50%; margin-top: auto; }
-.skeleton.achievement-icon-placeholder { width: 60px; height: 60px; border-radius: 16px; flex-shrink: 0; }
-.skeleton.achievement-content-placeholder { flex-grow: 1; }
-.skeleton.achievement-title-placeholder { height: 18px; width: 60%; margin-bottom: 0.6rem; }
-.skeleton.achievement-desc-placeholder { height: 14px; width: 95%; margin-bottom: 0.4rem; }
-.skeleton.achievement-progress-placeholder { height: 20px; width: 100%; }
-.leaderboard-skeleton { padding: 1.5rem; display: none; }
-.leaderboard-header-skeleton { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-.leaderboard-table-skeleton { display: flex; flex-direction: column; gap: 1rem; }
-.skeleton-row { display: flex; align-items: center; gap: 1rem; padding: 0.8rem 0; border-bottom: 1px solid var(--border-color-light); }
-.skeleton-row:last-child { border-bottom: none; }
-.skeleton.rank-placeholder { width: 30px; height: 20px; border-radius: 4px; }
-.skeleton.avatar-placeholder { width: 36px; height: 36px; border-radius: 50%; }
-.skeleton.name-placeholder { height: 18px; width: 120px; border-radius: 4px; }
-.skeleton.score-placeholder { height: 18px; width: 60px; border-radius: 4px; margin-left: auto; }
-.skeleton.badges-placeholder, .skeleton.streak-placeholder { height: 18px; width: 40px; border-radius: 4px; }
+/* Specific fix for always expanded sections - remove bottom margin from title if content is visible */
+.card-section:not(.collapsed-section) > .section-title {
+    /* ... (Vaše existující styly) ... */
+    /* Můžeme ponechat border-bottom-color, pokud chceme oddělovač */
+}
 
-/* --- END: Киберпанк CSS Тема --- */
+/* Ensure that sections that are *not* collapsible (button is hidden) don't get affected by collapse styles */
+.card-section:not([data-collapsible="true"]) .section-collapsible-content { /* Assuming you'd add data-collapsible="true" to collapsible ones via JS */
+    max-height: none !important; /* Or a very large value if needed */
+    opacity: 1 !important;
+    visibility: visible !important;
+    padding-top: 1.5rem !important; /* Or your default */
+    padding-bottom: 1.5rem !important; /* Or your default */
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+/* If you don't use data-attribute, and JS just hides buttons, this CSS rule might not be needed.
+   The primary fix is ensuring that `.collapsed-section .section-collapsible-content` fully hides content. */
