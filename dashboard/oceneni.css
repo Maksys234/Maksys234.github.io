@@ -1,5 +1,5 @@
 /* dashboard/oceneni.css */
-/* Версия: 23.23.13 - Улучшены стили для сворачивающихся панелей (Cyberpunk Design v3 - Sleek & Tech) */
+/* Версия: 23.23.14 - Улучшены стили для сворачивающихся панелей (Cyberpunk Design v4 - High-Tech Datapad) */
 
 /* --- START: Киберпанк CSS Тема --- */
 /* --- Глобальные Настройки и Переменные (Синхронизировано с dashboard.css) --- */
@@ -74,6 +74,8 @@
 	 --gradient-warning: linear-gradient(135deg, var(--accent-orange), #f3722c);
 	 --gradient-danger: linear-gradient(135deg, var(--accent-pink), #b5179e);
 	 --gradient-info: linear-gradient(135deg, var(--accent-cyan), var(--accent-primary));
+	 --gradient-default-badge: linear-gradient(135deg, #4b5563, #1f2937); /* For default badge icon */
+
 
 	 /* Шрифты */
 	 --font-primary: 'Inter', sans-serif;
@@ -299,32 +301,32 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .section-title::after { content: ''; position: absolute; bottom: 0; left: 0; width: 60px; height: 3px; background: var(--gradient-border-anim); background-size: 300% 100%; animation: gradient-move 4s linear infinite; border-radius: 1.5px; filter: drop-shadow(0 0 5px var(--accent-primary)); }
 @keyframes gradient-move { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 
-/* === START: Section Collapsing Styles (Enhanced for Oceneni v13) === */
+/* === START: Section Collapsing Styles (Cyberpunk Design v4 - High-Tech Datapad) === */
 .card-section {
 	margin-bottom: 1.5rem;
 	background: var(--card-bg);
 	border-radius: var(--card-radius);
 	border: 1px solid var(--border-color-light);
 	box-shadow: var(--shadow-hud);
-	padding: 0; /* No padding on the card itself, title and content will have it */
+	padding: 0;
 	position: relative;
-	overflow: visible; /* Allow box-shadows from title bar */
+	overflow: visible;
 	transition: margin-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1),
 							box-shadow 0.3s ease,
-							background 0.3s ease, /* Added background transition */
+							background 0.3s ease,
 							border-color 0.3s ease,
-							border-left-color 0.3s ease; /* Added border-left-color transition */
+							border-left-color 0.3s ease;
 }
 
-.card-section > .section-title { /* Title bar of a collapsible section */
+.card-section > .section-title {
 	padding: 1.1rem 1.5rem;
-	margin-bottom: 0; /* Remove default margin */
-	border-bottom: 1px solid transparent; /* Only visible when expanded */
+	margin-bottom: 0;
+	border-bottom: 1px solid transparent;
 	background: rgba(var(--dark-purple-accent-rgb), 0.25);
 	cursor: pointer;
 	transition: border-bottom-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease, border-radius 0.3s ease;
-	border-radius: var(--card-radius) var(--card-radius) 0 0; /* Rounded top corners when expanded */
-	position: relative; /* For z-index */
+	border-radius: var(--card-radius) var(--card-radius) 0 0;
+	position: relative;
 	z-index: 2;
 }
 .card-section:not(.collapsed-section) > .section-title {
@@ -332,9 +334,9 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 	background: rgba(var(--dark-purple-accent-rgb), 0.35);
 	box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
-.card-section .section-title::after { display: none; } /* Remove general underline for card titles */
+.card-section .section-title::after { display: none; }
 
-.card-section > .section-title .btn-icon-only { /* Toggle button */
+.card-section > .section-title .btn-icon-only {
 	width: 32px; height: 32px; font-size: 0.85rem;
 	background-color: rgba(var(--accent-primary-rgb), 0.12);
 	border-color: rgba(var(--accent-primary-rgb), 0.3);
@@ -346,13 +348,13 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 	box-shadow: 0 0 8px rgba(var(--accent-primary-rgb), 0.4);
 }
 .card-section > .section-title .btn-icon-only i {
-	transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy transition */
+	transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .card-section:not(.collapsed-section) > .section-title .btn-icon-only i {
-	transform: rotate(0deg); /* Chevron up for expanded */
+	transform: rotate(0deg);
 }
 .card-section.collapsed-section > .section-title .btn-icon-only i {
-	transform: rotate(-180deg); /* Chevron down for collapsed */
+	transform: rotate(-180deg);
 }
 
 .section-collapsible-content {
@@ -364,7 +366,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 							opacity 0.3s ease-out 0.05s,
 							visibility 0s 0.4s;
 	overflow: hidden;
-	max-height: 3000px; /* Large enough for any content */
+	max-height: 3000px;
 	opacity: 1;
 	padding: 1.5rem;
 	visibility: visible;
@@ -374,67 +376,69 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 	z-index: 1;
 }
 
+/* New Collapsed Styles - v4 High-Tech */
 .card-section.collapsed-section {
-	margin-bottom: 1rem;
-	background: linear-gradient(145deg, rgba(var(--dark-purple-accent-rgb), 0.9) 0%, rgba(var(--bg-secondary-rgb), 0.95) 100%); /* Darker, more solid gradient */
-	border: 1px solid var(--border-color-strong); /* More defined border */
-	border-left: 6px solid var(--accent-primary); /* Thicker accent bar */
-	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4), /* Slightly stronger shadow */
-							inset 5px 0 12px -3px rgba(var(--accent-primary-rgb), 0.25), /* Deeper inner glow from accent */
-							0 0 25px rgba(var(--accent-primary-rgb), 0.15) inset; /* Full inset glow */
-	cursor: pointer;
-	overflow: hidden;
-	border-radius: var(--card-radius);
+    margin-bottom: 1.2rem; /* Slightly more distinct spacing */
+    background: var(--card-solid); /* Darker, solid background */
+    border: 1px solid var(--border-color-medium); /* Overall border */
+    border-left: 4px solid var(--accent-primary); /* Accent still good */
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3), /* Softer general shadow */
+                inset 0 0 10px rgba(var(--bg-color), 0.5), /* Inner depth */
+                0 0 15px -5px var(--accent-primary-glow); /* Subtle outer glow from accent */
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: calc(var(--card-radius) - 4px); /* Slightly sharper radius */
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Smooth all transitions */
 }
 
 .card-section.collapsed-section > .section-title {
-	background: transparent; /* Title bar is transparent within the collapsed card */
-	padding: 1rem 1.4rem; /* Adjust padding for new look */
-	border-bottom-color: transparent !important;
-	border-radius: 0; /* Radius handled by parent .card-section */
-	min-height: auto;
-	box-shadow: none; /* No separate shadow for title bar when collapsed */
+    background: transparent;
+    padding: 0.85rem 1.2rem; /* Adjusted padding */
+    border-bottom-color: transparent !important;
+    border-radius: 0;
+    min-height: auto;
+    box-shadow: none;
 }
 
 .card-section.collapsed-section > .section-title .section-title-text {
-	color: var(--text-light);
-	font-weight: 600; /* More prominent title text */
-	font-size: 1.15rem; /* Slightly larger for impact */
-	text-shadow: 0 1px 4px rgba(0,0,0,0.7), 0 0 8px var(--accent-glow); /* Enhanced text glow */
+    color: var(--text-heading); /* Brighter text */
+    font-weight: 600;
+    font-size: 1.05rem; /* Consistent size */
+    text-shadow: 0 0 6px var(--accent-glow); /* Brighter glow */
 }
 .card-section.collapsed-section > .section-title .section-title-text i {
-	color: var(--accent-primary);
-	text-shadow: 0 0 10px var(--accent-glow); /* More icon glow */
+    color: var(--accent-primary);
+    text-shadow: 0 0 8px var(--accent-glow);
 }
 .card-section.collapsed-section > .section-title .btn-icon-only {
-	transform: scale(1); /* Full size button */
-	background-color: rgba(var(--accent-primary-rgb), 0.2);
-	border-color: rgba(var(--accent-primary-rgb), 0.4);
-	color: var(--accent-primary);
+    transform: scale(0.9);
+    background-color: rgba(var(--accent-primary-rgb), 0.15);
+    border: 1px solid rgba(var(--accent-primary-rgb), 0.3);
+    color: var(--accent-primary);
 }
 
 .card-section.collapsed-section:hover {
-	border-left-color: var(--accent-pink); /* Change accent color on hover */
-	background: linear-gradient(145deg, rgba(var(--accent-pink-rgb), 0.3) 0%, rgba(var(--dark-purple-accent-rgb), 1) 100%); /* Hover gradient */
-	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45),
-							inset 0 0 25px rgba(var(--accent-pink-rgb), 0.3),
-							0 0 35px rgba(var(--accent-pink-rgb), 0.5);
-	transform: translateY(-4px) scale(1.015); /* More noticeable lift */
+    border-left-color: var(--accent-lime); /* Dynamic hover color */
+    border-color: var(--accent-lime-rgb, 0.4);
+    background: var(--dark-purple-accent); /* Slightly lighter on hover */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35),
+                inset 0 0 15px rgba(var(--bg-color), 0.4),
+                0 0 25px -5px rgba(var(--accent-lime-rgb), 0.7); /* Glow with hover accent */
+    transform: translateY(-3px) scale(1.005); /* More subtle lift */
 }
-.card-section.collapsed-section:hover > .section-title .section-title-text {
-	color: var(--accent-pink);
-	text-shadow: 0 1px 3px rgba(0,0,0,0.6), 0 0 10px var(--accent-pink-glow);
-}
+.card-section.collapsed-section:hover > .section-title .section-title-text,
 .card-section.collapsed-section:hover > .section-title .section-title-text i {
-	color: var(--accent-pink);
-	text-shadow: 0 0 10px var(--accent-pink-glow);
+    color: var(--accent-lime); /* Match hover accent */
+    text-shadow: 0 0 10px var(--accent-lime-glow);
 }
 .card-section.collapsed-section:hover > .section-title .btn-icon-only {
-	background-color: rgba(var(--accent-pink-rgb), 0.25);
-	border-color: var(--accent-pink);
-	color: var(--accent-pink);
-	transform: scale(1.05) rotate(10deg); /* Icon button animation */
+    background-color: rgba(var(--accent-lime-rgb), 0.2);
+    border-color: rgba(var(--accent-lime-rgb), 0.5);
+    color: var(--accent-lime);
+    transform: scale(0.95) rotate(5deg); /* Subtle button animation */
 }
+/* End New Collapsed Styles */
+
 
 .card-section.collapsed-section .section-collapsible-content {
 	max-height: 0 !important;
