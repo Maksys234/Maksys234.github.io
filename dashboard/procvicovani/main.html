@@ -19,6 +19,86 @@
 
     <link rel="stylesheet" href="../dashboard.css"> <link rel="stylesheet" href="main.css"> <style>
         /* Inline styles specific to this page can go here */
+        .rating-stars {
+            display: flex;
+            justify-content: center; /* Or flex-start if aligned with label */
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .rating-stars .star {
+            font-size: 1.6rem; /* Larger stars */
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+        }
+        .rating-stars .star:hover,
+        .rating-stars .star.rated {
+            color: var(--accent-orange); /* Or --accent-primary */
+            transform: scale(1.15);
+        }
+        .topic-rating-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid var(--border-color-light);
+        }
+        .topic-rating-item:last-child {
+            border-bottom: none;
+        }
+        .topic-rating-item label {
+            margin-bottom: 0; /* Override general label margin */
+            flex-grow: 1;
+            color: var(--text-light);
+        }
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background-color: var(--input-bg-color, var(--bg-secondary));
+            color: var(--text-light);
+            border: 1px solid var(--border-color-medium);
+            border-radius: var(--form-element-radius);
+            font-size: 1rem;
+            appearance: none; /* Remove default arrow */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23a05cff'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E"); /* Custom arrow */
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.2em;
+            cursor: pointer;
+        }
+        .form-group select:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(var(--accent-primary-rgb), 0.3);
+        }
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background-color: var(--input-bg-color, var(--bg-secondary));
+            color: var(--text-light);
+            border: 1px solid var(--border-color-medium);
+            border-radius: var(--form-element-radius);
+            font-size: 1rem;
+            min-height: 80px;
+            resize: vertical;
+        }
+         .form-group textarea:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(var(--accent-primary-rgb), 0.3);
+        }
+        .form-group-compact legend {
+            font-size: 1.2rem; /* Slightly smaller legend for compact groups */
+            margin-bottom: 1rem;
+        }
+        .form-group-compact label {
+            font-size: 0.95rem; /* Slightly smaller label */
+            padding: 0.6rem 0.8rem;
+        }
+        .form-group-compact input[type="radio"],
+        .form-group-compact input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+
     </style>
 </head>
 <body class="dark">
@@ -235,10 +315,12 @@
         </div>
     </main>
 
-    <div class="modal" id="goal-selection-modal" style="display: none;"> <div class="modal-content card"> <div class="modal-step active" id="goal-step-1">
+    <div class="modal" id="goal-selection-modal" style="display: none;">
+        <div class="modal-content card">
+            <div class="modal-step active" id="goal-step-1">
                 <div class="modal-header">
                     <h2 class="modal-title"><i class="fas fa-bullseye"></i> Jaký je Váš hlavní cíl?</h2>
-                    </div>
+                </div>
                 <div class="modal-body">
                     <p>Vyberte si, na co se chcete v sekci Procvičování primárně zaměřit.</p>
                     <div class="goal-list-scroll-container">
@@ -283,12 +365,12 @@
                                     </div>
                                  </div>
                             </label>
-                             </div>
+                        </div>
                     </div>
-                    </div>
+                </div>
                 <div class="modal-footer">
                     <small>Svůj cíl můžete později změnit v <a href="../profile.html">nastavení profilu</a>.</small>
-                    </div>
+                </div>
             </div>
 
             <div class="modal-step" id="goal-step-accelerate">
@@ -297,8 +379,31 @@
                      <h2 class="modal-title"><i class="fas fa-rocket"></i> Učení napřed: Podrobnosti</h2>
                  </div>
                  <div class="modal-body">
-                     <div class="form-group" id="accelerate-areas-group">
-                         <legend>Které oblasti matematiky vás primárně zajímají?</legend>
+                    <div class="form-group">
+                        <legend>V jakém jsi ročníku?</legend>
+                        <select id="accelerate-grade" name="accelerate_grade">
+                            <option value="" disabled selected>Vyberte ročník...</option>
+                            <option value="zs5">5. třída ZŠ</option>
+                            <option value="zs6">6. třída ZŠ</option>
+                            <option value="zs7">7. třída ZŠ</option>
+                            <option value="zs8">8. třída ZŠ</option>
+                            <option value="zs9">9. třída ZŠ</option>
+                            <option value="ss1">1. ročník SŠ</option>
+                            <option value="ss2">2. ročník SŠ</option>
+                            <option value="ss3">3. ročník SŠ</option>
+                            <option value="ss4">4. ročník SŠ</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <legend>Jaká je preferovaná intenzita učení?</legend>
+                        <select id="accelerate-intensity" name="accelerate_intensity">
+                            <option value="" disabled selected>Vyberte intenzitu...</option>
+                            <option value="low">Nízká (volnější tempo)</option>
+                            <option value="medium">Střední (pravidelné studium)</option>
+                            <option value="high">Vysoká (intenzivní příprava)</option>
+                        </select>
+                    </div>
+                     <div class="form-group" id="accelerate-areas-group"> <legend>Které oblasti matematiky vás primárně zajímají? (Volitelné)</legend>
                          <label><input type="checkbox" name="accelerate_area" value="algebra"> Algebra</label>
                          <label><input type="checkbox" name="accelerate_area" value="geometry"> Geometrie</label>
                          <label><input type="checkbox" name="accelerate_area" value="functions"> Funkce</label>
@@ -310,7 +415,11 @@
                          <label><input type="radio" name="accelerate_reason" value="school_ahead"> Chci být napřed ve škole</label>
                          <label><input type="radio" name="accelerate_reason" value="university_prep"> Příprava na VŠ/Olympiády</label>
                          <label><input type="radio" name="accelerate_reason" value="personal_interest"> Osobní zájem</label>
-                         <label><input type="radio" name="accelerate_reason" value="professional"> Profesní potřeby</label>
+                         <label><input type="radio" name="accelerate_reason" value="professional_needs"> Profesní potřeby</label>
+                     </div>
+                     <div class="form-group" id="accelerate-profession-group" style="display: none;">
+                        <legend>Jaká je Vaše profese/oblast zájmu? (Volitelné)</legend>
+                        <textarea id="accelerate-profession" name="accelerate_profession" placeholder="Např. programátor, datový analytik, příprava na rekvalifikaci..."></textarea>
                      </div>
                  </div>
                  <div class="modal-footer">
@@ -321,18 +430,43 @@
             <div class="modal-step" id="goal-step-review">
                  <div class="modal-header">
                      <button type="button" class="btn btn-sm btn-secondary modal-back-btn" data-target-step="goal-step-1"><i class="fas fa-arrow-left"></i> Zpět</button>
-                     <h2 class="modal-title"><i class="fas fa-sync-alt"></i> Doplnění mezer: Oblasti</h2>
+                     <h2 class="modal-title"><i class="fas fa-sync-alt"></i> Doplnění mezer: Podrobnosti</h2>
                  </div>
                  <div class="modal-body">
+                    <div class="form-group">
+                        <legend>V jakém jsi ročníku?</legend>
+                        <select id="review-grade" name="review_grade">
+                            <option value="" disabled selected>Vyberte ročník...</option>
+                            <option value="zs5">5. třída ZŠ</option>
+                            <option value="zs6">6. třída ZŠ</option>
+                            <option value="zs7">7. třída ZŠ</option>
+                            <option value="zs8">8. třída ZŠ</option>
+                            <option value="zs9">9. třída ZŠ</option>
+                            <option value="ss1">1. ročník SŠ</option>
+                            <option value="ss2">2. ročník SŠ</option>
+                            <option value="ss3">3. ročník SŠ</option>
+                            <option value="ss4">4. ročník SŠ</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="review-topic-ratings-group">
+                        <legend>Jak dobře si myslíš, že ovládáš následující témata?</legend>
+                        <p><small>(1 hvězda = vůbec nerozumím, 5 hvězd = ovládám perfektně)</small></p>
+                        <div id="topic-ratings-container">
+                            <div class="loading-skeleton" style="padding: 1rem;"> <div class="skeleton" style="height: 30px; width: 80%; margin-bottom: 0.8rem;"></div>
+                                <div class="skeleton" style="height: 30px; width: 70%; margin-bottom: 0.8rem;"></div>
+                                <div class="skeleton" style="height: 30px; width: 90%;"></div>
+                            </div>
+                        </div>
+                    </div>
                      <div class="form-group" id="review-areas-group">
-                         <legend>Vyberte oblasti k opakování (nepovinné):</legend>
+                         <legend>Můžeš také rychle označit oblasti k opakování (volitelné):</legend>
                          <label><input type="checkbox" name="review_area" value="linear_equations"> Lineární rovnice</label>
                          <label><input type="checkbox" name="review_area" value="percentages"> Procenta</label>
                          <label><input type="checkbox" name="review_area" value="geometry_basics"> Základy geometrie</label>
                          <label><input type="checkbox" name="review_area" value="fractions"> Zlomky</label>
                          <label><input type="checkbox" name="review_area" value="expressions"> Algebraické výrazy</label>
                          <label><input type="checkbox" name="review_area" value="word_problems"> Slovní úlohy</label>
-                         </div>
+                     </div>
                      <p><small>Pokud nic nevyberete, systém navrhne témata na základě vaší historie nebo diagnostiky.</small></p>
                  </div>
                  <div class="modal-footer">
@@ -340,25 +474,41 @@
                  </div>
              </div>
 
-             <div class="modal-step" id="goal-step-explore">
+            <div class="modal-step" id="goal-step-explore">
                  <div class="modal-header">
                      <button type="button" class="btn btn-sm btn-secondary modal-back-btn" data-target-step="goal-step-1"><i class="fas fa-arrow-left"></i> Zpět</button>
                      <h2 class="modal-title"><i class="fas fa-compass"></i> Volné prozkoumávání</h2>
                  </div>
                  <div class="modal-body">
-                     <p>Pro tento cíl nejsou vyžadovány žádné další podrobnosti. Budete si moci volně vybírat témata.</p>
+                    <div class="form-group">
+                        <legend>V jakém jsi ročníku?</legend>
+                        <select id="explore-grade" name="explore_grade">
+                            <option value="" disabled selected>Vyberte ročník...</option>
+                            <option value="zs5">5. třída ZŠ</option>
+                            <option value="zs6">6. třída ZŠ</option>
+                            <option value="zs7">7. třída ZŠ</option>
+                            <option value="zs8">8. třída ZŠ</option>
+                            <option value="zs9">9. třída ZŠ</option>
+                            <option value="ss1">1. ročník SŠ</option>
+                            <option value="ss2">2. ročník SŠ</option>
+                            <option value="ss3">3. ročník SŠ</option>
+                            <option value="ss4">4. ročník SŠ</option>
+                            <option value="other">Jiný / Neurčeno</option>
+                        </select>
+                    </div>
+                     <p>Pro tento cíl můžete rovnou začít. Budete si moci volně vybírat témata k procvičování.</p>
                  </div>
                  <div class="modal-footer">
                      <button type="button" class="btn btn-primary modal-confirm-btn" data-goal="math_explore">Potvrdit a pokračovat</button>
                  </div>
              </div>
 
-             </div>
+        </div>
     </div>
 
     <div class="toast-container" id="toastContainer"></div>
     <div id="mouse-follower" class="mouse-follower-glow"></div>
 
     <script src="main.js" defer></script>
-    </body>
+</body>
 </html>
