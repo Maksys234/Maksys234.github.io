@@ -12,6 +12,7 @@
 // VERZE 12.9 (OPRAVY A VYLEPŠENÍ): Oprava zobrazení titulu, logika pro zvýraznění doporučeného testu.
 // VERZE 12.10 (MANDATORY TEST): Test je nyní povinný na základě cíle uživatele. Ostatní testy jsou neaktivní.
 // VERZE 12.11 (FIX INACTIVE TEST DISPLAY): Opraveno zobrazení UI pro neaktivní povinné testy.
+// VERZE 12.12 (NO AUTO-START): Uživatel musí vždy manuálně spustit povinný test z obrazovky výběru.
 
 // Используем IIFE для изоляции области видимости
 (function() {
@@ -256,7 +257,6 @@
 
         if (section === 'test') {
             if (ui.testLoader) ui.testLoader.style.display = isLoadingFlag ? 'flex' : 'none';
-            // Změna: testContainer se nyní zobrazuje/skrývá explicitně v initializeTest nebo startSelectedTest
         } else if (section === 'results') {
             /* Placeholder for results loading UI, if any */
         } else if (section === 'notifications') {
@@ -430,24 +430,21 @@
             if (!currentProfile) {
                 throw new Error("Profil uživatele není načtený. Nelze určit typ otázek.");
             }
-            console.log(`[UI LoadQ v12.11] Volání TestLogic.loadTestQuestions s profilem (Goal: ${currentProfile.learning_goal}, TestType: ${testType})`);
+            console.log(`[UI LoadQ v12.12] Volání TestLogic.loadTestQuestions s profilem (Goal: ${currentProfile.learning_goal}, TestType: ${testType})`);
             questions = await window.TestLogic.loadTestQuestions(supabase, currentProfile, testTypeConfig);
-            console.log(`[UI LoadQ v12.11] Obdrženo ${questions.length} otázek z logiky.`);
-            if (questions.length === 0) { // Důležité pro neaktivní testy, kde TestLogic může vrátit prázdné pole
-                console.warn(`[UI LoadQ v12.11] Nebyly načteny žádné otázky pro test typu: ${testType}. Toto je očekávané pro neaktivní testy.`);
-                // Zde nezobrazujeme chybu, startSelectedTest() by měl UI spravovat pro neaktivní testy
-                // Ale pokud se sem dostaneme pro aktivní test, je to chyba.
+            console.log(`[UI LoadQ v12.12] Obdrženo ${questions.length} otázek z logiky.`);
+            if (questions.length === 0) {
+                console.warn(`[UI LoadQ v12.12] Nebyly načteny žádné otázky pro test typu: ${testType}.`);
                 const config = testTypeConfig[testType];
-                if (config && config.isActive) {
-                    showErrorMessagePage(`Nepodařilo se načíst otázky pro aktivní test "${config.title}". Zkuste to prosím později.`);
-                } else {
-                    // Pro neaktivní testy by tato funkce neměla být volána, pokud startSelectedTest funguje správně.
-                    // Pokud se sem přesto dostane, je to logická chyba.
-                     console.error(`[UI LoadQ v12.11] loadTestQuestions byla volána pro neaktivní test ${testType}, což by se nemělo stát.`);
-                     if (ui.testContainer) ui.testContainer.style.display = 'none';
-                     if (ui.testSelector) ui.testSelector.style.display = 'block'; // Vrať zpět výběr
+                if (config && config.isActive) { // Pokud je test aktivní a nejsou otázky, je to chyba
+                    showErrorMessagePage(`Nepodařilo se načíst otázky pro test "${config.title}". Zkuste to prosím později.`);
+                } else if (config && !config.isActive) { // Pro neaktivní testy je to očekávané
+                    // UI by mělo být již spravováno funkcí startSelectedTest
+                    console.log(`[UI LoadQ v12.12] Test ${testType} je neaktivní, prázdné otázky jsou očekávané.`);
+                } else { // Neznámý testType nebo chybějící konfigurace
+                    showErrorMessagePage(`Chyba konfigurace pro test typu "${testType}".`);
                 }
-                return; // Ukončíme, pokud nejsou otázky
+                return;
             }
             initializeTest();
         } catch (error) {
@@ -462,10 +459,10 @@
     // --- START: Test Logic UI ---
     function initializeTest() {
         if (ui.testLoader) ui.testLoader.style.display = 'none';
-        if (ui.testContainer) ui.testContainer.style.display = 'block'; // Zobrazí kontejner testu
+        if (ui.testContainer) ui.testContainer.style.display = 'block';
         if (ui.resultsContainer) ui.resultsContainer.style.display = 'none';
         if (ui.reviewContainer) ui.reviewContainer.style.display = 'none';
-        if (ui.testSelector) ui.testSelector.style.display = 'none'; // Skryje výběr karet
+        if (ui.testSelector) ui.testSelector.style.display = 'none';
         if (ui.testTimer) ui.testTimer.style.display = 'flex';
         currentQuestionIndex = 0;
 
@@ -512,7 +509,7 @@
         if(ui.lowScoreMessageContainer) ui.lowScoreMessageContainer.innerHTML = '';
         createPagination();
         startTimer();
-        showQuestion(0); // Zobrazí první otázku
+        showQuestion(0);
         updateProgressBar();
         updateNavigationButtons();
         requestAnimationFrame(() => {
@@ -529,8 +526,7 @@
 
     function showQuestion(index) {
         if (index < 0 || index >= questions.length || !ui.questionContainer) {
-            // Toto by se nemělo stát, pokud questions.length === 0 je ošetřeno v loadTestQuestions
-             console.error(`[ShowQuestion v12.11] Pokus o zobrazení neplatné otázky (index: ${index}, počet otázek: ${questions.length})`);
+             console.error(`[ShowQuestion v12.12] Pokus o zobrazení neplatné otázky (index: ${index}, počet otázek: ${questions.length})`);
              if (ui.questionContainer) {
                 ui.questionContainer.innerHTML = `<div class="loading-placeholder" style="text-align:center; padding: 2rem; color: var(--text-muted);"><i class="fas fa-exclamation-triangle" style="font-size: 2em; margin-bottom: 1rem; color: var(--accent-orange);"></i><p>Chyba při načítání otázky. Zkuste obnovit stránku.</p></div>`;
              }
@@ -1015,7 +1011,7 @@
 
     // --- START: Event Listeners Setup ---
     function setupEventListeners() {
-        console.log("[SETUP v12.11] Nastavování posluchačů událostí...");
+        console.log("[SETUP v12.12] Nastavování posluchačů událostí...");
         if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
         if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
         if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
@@ -1069,7 +1065,6 @@
             const newListener = function(event) {
                 event.stopPropagation();
                 const card = this.closest('.test-type-card');
-                // Zkontrolujeme, zda je karta "disabled-test" (kromě případu, kdy je to povinný test "brzy")
                 if (card.classList.contains('disabled-test') && !card.classList.contains('recommended-test')) {
                     showToast("Test není určen pro váš cíl", "Tento typ testu není určen pro váš aktuální studijní cíl.", "info");
                     return;
@@ -1078,12 +1073,9 @@
                 const config = testTypeConfig[testType];
 
                 if (config && config.isActive === false) {
-                    // I když je tlačítko vizuálně aktivní pro "soon" doporučený test, zde to odchytíme
                     showToast("Již brzy!", `Test "${config.title}" bude brzy dostupný.`, "info");
                     return;
                 }
-                // Pokud se sem dostaneme, znamená to, že test je buď aktivní doporučený,
-                // nebo se jedná o chybu v logice (neměl by být klikatelný, pokud není doporučený a aktivní)
                 selectedTestType = testType;
                 startSelectedTest();
             };
@@ -1121,7 +1113,7 @@
         document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } });
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
-        console.log("[SETUP v12.11] Posluchači událostí nastaveni.");
+        console.log("[SETUP v12.12] Posluchači událostí nastaveni.");
     }
     // --- END: Event Listeners Setup ---
 
@@ -1135,11 +1127,10 @@
         }
 
         if (!mandatoryTestKey && userLearningGoal) {
-            console.warn(`[Highlight v12.11] Pro cíl '${userLearningGoal}' nebyl nalezen žádný povinný test. Uživatel by měl být přesměrován na výběr cíle nebo se zobrazí chyba.`);
+            console.warn(`[Highlight v12.12] Pro cíl '${userLearningGoal}' nebyl nalezen žádný povinný test. Uživatel by měl být přesměrován na výběr cíle nebo se zobrazí chyba.`);
         } else if (!userLearningGoal) {
-            console.warn(`[Highlight v12.11] Cíl uživatele není nastaven. Nelze určit povinný test.`);
+            console.warn(`[Highlight v12.12] Cíl uživatele není nastaven. Nelze určit povinný test.`);
         }
-
 
         selectedTestType = mandatoryTestKey;
 
@@ -1150,7 +1141,7 @@
             const recommendedBadge = card.querySelector('.recommended-badge');
 
             card.classList.remove('recommended-test', 'disabled-test', 'selected');
-            if (buttonInCard) buttonInCard.disabled = true; // Default to disabled
+            if (buttonInCard) buttonInCard.disabled = true;
             if (recommendedBadge) recommendedBadge.style.display = 'none';
 
             if (config) {
@@ -1162,9 +1153,9 @@
                     if (buttonInCard) {
                         if (config.isActive === false) {
                             buttonInCard.innerHTML = '<i class="fas fa-hourglass-half"></i> Spustit Test (Brzy!)';
-                            buttonInCard.disabled = false; // Ponecháme aktivní vzhled, ale startSelectedTest() to odchytí
+                            buttonInCard.disabled = false;
                             buttonInCard.classList.remove('btn-primary');
-                            buttonInCard.classList.add('btn-secondary', 'btn-tooltip'); // btn-secondary může lépe indikovat "ne zcela aktivní"
+                            buttonInCard.classList.add('btn-secondary', 'btn-tooltip');
                             buttonInCard.title = `Test "${config.title}" bude brzy dostupný.`;
                         } else {
                             buttonInCard.innerHTML = `<i class="fas fa-play"></i> Spustit Test`;
@@ -1174,11 +1165,11 @@
                              buttonInCard.title = `Spustit test: ${config.title}`;
                         }
                     }
-                    console.log(`[Highlight v12.11] Povinný test: ${config.title} pro cíl ${userLearningGoal || 'NENASTAVEN'}`);
+                    console.log(`[Highlight v12.12] Povinný test: ${config.title} pro cíl ${userLearningGoal || 'NENASTAVEN'}`);
                     if (ui.currentTestTitle) ui.currentTestTitle.textContent = config.title;
                     if (ui.testLevel) ui.testLevel.textContent = config.description.split('.')[0];
 
-                } else { // Toto NENÍ povinný test, nebo povinný test nebyl vůbec určen (např. chybí cíl)
+                } else {
                     card.classList.add('disabled-test');
                     if (buttonInCard) {
                         buttonInCard.innerHTML = '<i class="fas fa-times-circle"></i> Není určeno pro váš cíl';
@@ -1223,7 +1214,7 @@
             if (ui.testSelector && getComputedStyle(ui.testSelector).display === 'none') {
                 ui.testSelector.style.display = 'block';
             }
-            if (ui.testContainer) ui.testContainer.style.display = 'none'; // Skryjeme kontejner testu, pokud se sem dostaneme
+            if (ui.testContainer) ui.testContainer.style.display = 'none';
             if (ui.testLoader) ui.testLoader.style.display = 'none';
             if (ui.testTimer) ui.testTimer.style.display = 'none';
             return;
@@ -1235,56 +1226,41 @@
             return;
         }
 
-        // ZMĚNA ZDE: Přesun UI managementu pro neaktivní testy
         if (config.isActive === false) {
             showToast("Již brzy!", `Test typu "${config.title}" bude brzy dostupný.`, "info");
-            if (ui.testSelector) ui.testSelector.style.display = 'block';
+            // UI pro neaktivní test (již by mělo být nastaveno applyTestHighlightingAndSelection)
+            // Zde jen zajistíme, že se nepokračuje dál
+            if (ui.testSelector) ui.testSelector.style.display = 'block'; // Ujistíme se, že karty jsou vidět
             if (ui.testLoader) ui.testLoader.style.display = 'none';
-            if (ui.testContainer) {
-                ui.testContainer.style.display = 'block'; // Zobrazíme kontejner
-                // Vložíme zprávu o nedostupnosti do questionContainer
-                if (ui.questionContainer) {
-                     ui.questionContainer.innerHTML = `<div class="loading-placeholder" style="text-align:center; padding: 2rem; color: var(--text-muted);"><i class="fas fa-hourglass-half" style="font-size: 2em; margin-bottom: 1rem;"></i><p>Tento test ("${sanitizeHTML(config.title)}") ještě není připraven.</p><p>Zkuste to prosím později nebo zkontrolujte svůj studijní cíl.</p></div>`;
-                }
-            }
+            if (ui.testContainer) ui.testContainer.style.display = 'none'; // Test se nespouští
             if (ui.testTimer) ui.testTimer.style.display = 'none';
-            if (ui.pagination) ui.pagination.innerHTML = ''; // Vyčistit paginaci
-            if (ui.prevBtn) ui.prevBtn.style.display = 'none'; // Skrýt navigační tlačítka
-            if (ui.nextBtn) ui.nextBtn.style.display = 'none';
-            if (ui.finishBtn) ui.finishBtn.style.display = 'none';
-
-            // Nastavení titulků a meta informací, aby odpovídaly vybranému neaktivnímu testu
-            if (ui.currentTestTitle) ui.currentTestTitle.textContent = config.title;
-            if (ui.testLevel) ui.testLevel.textContent = config.description.split('.')[0];
-            if(ui.questionCountEl) ui.questionCountEl.textContent = `0 / ${config.questionsCount || 0}`;
-            if(ui.answeredCountEl) ui.answeredCountEl.textContent = '0';
-            if(ui.progressBar) ui.progressBar.style.width = '0%';
-            return; // Důležité: Ukončíme funkci zde
+            // Hlavní titulek a podtitulek stránky by už měly být nastaveny funkcí applyTestHighlightingAndSelection
+            console.log(`[StartSelectedTest v12.12] Test "${config.title}" je neaktivní. Zobrazuji panel výběru.`);
+            return;
         }
 
         // UI nastavení pro AKTIVNÍ test
         if(ui.currentTestTitle) ui.currentTestTitle.textContent = config.title;
         if(ui.testLevel) ui.testLevel.textContent = config.description.split('.')[0];
         if (ui.testSelector) ui.testSelector.style.display = 'none';
-        if (ui.testLoader) ui.testLoader.style.display = 'flex'; // Zobrazíme loader PŘED voláním loadTestQuestions
+        if (ui.testLoader) ui.testLoader.style.display = 'flex';
         if (ui.loaderSubtext) ui.loaderSubtext.textContent = 'Načítám otázky...';
-        if (ui.testContainer) ui.testContainer.style.display = 'none'; // Nejprve skryjeme, zobrazí se až v initializeTest
+        if (ui.testContainer) ui.testContainer.style.display = 'none';
         if (ui.resultsContainer) ui.resultsContainer.style.display = 'none';
         if (ui.reviewContainer) ui.reviewContainer.style.display = 'none';
         if (ui.testTimer) ui.testTimer.style.display = 'flex';
-        if (ui.prevBtn) ui.prevBtn.style.display = 'flex'; // Zobrazit navigační tlačítka
+        if (ui.prevBtn) ui.prevBtn.style.display = 'flex';
         if (ui.nextBtn) ui.nextBtn.style.display = 'flex';
-        // finishBtn se zobrazí až na poslední otázce
 
         history.pushState({ state: 'testInProgress' }, document.title, window.location.href);
-        loadTestQuestions(selectedTestType); // Voláme až po UI přípravě
+        loadTestQuestions(selectedTestType);
     }
     function handleBackButton(event) { const state = event.state ? event.state.state : null; const testIsRunning = ui.testContainer && ui.testContainer.style.display === 'block'; const resultsAreShown = ui.resultsContainer && ui.resultsContainer.style.display === 'block'; const reviewIsShown = ui.reviewContainer && ui.reviewContainer.style.display === 'block'; if (reviewIsShown) { ui.reviewContainer.style.display = 'none'; if (ui.resultsContainer) ui.resultsContainer.style.display = 'block'; } else if (testIsRunning) { if (!confirm('Opustit test? Postup nebude uložen.')) { history.pushState({ state: 'testInProgress' }, document.title, window.location.href); } else { stopTimer(); if (ui.testContainer) ui.testContainer.style.display = 'none'; if (ui.testLoader) ui.testLoader.style.display = 'none'; if (ui.testSelector) ui.testSelector.style.display = 'block'; if (ui.testTimer) ui.testTimer.style.display = 'none'; if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; applyTestHighlightingAndSelection(); } } else if (resultsAreShown) { if(ui.resultsContainer) ui.resultsContainer.style.display = 'none'; if (ui.testSelector) ui.testSelector.style.display = 'block'; if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; applyTestHighlightingAndSelection(); } else { console.log("Navigace zpět (výchozí chování)."); applyTestHighlightingAndSelection(); } }
     // --- END: Test Flow & Back Button ---
 
     // --- START: App Initialization ---
     async function initializeApp() {
-        console.log("🚀 [Init Test1 UI - Kyber v12.11] Starting...");
+        console.log("🚀 [Init Test1 UI - Kyber v12.12] Starting...");
         if (!initializeSupabase()) return;
         applyInitialSidebarState();
 
@@ -1300,18 +1276,18 @@
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
             if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
 
-            if (!session || !session.user) { console.log('[Init Test1 UI - Kyber v12.11] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; }
+            if (!session || !session.user) { console.log('[Init Test1 UI - Kyber v12.12] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; }
             currentUser = session.user;
 
             const titlesFetchResult = await fetchTitles();
             allTitles = titlesFetchResult || [];
-            console.log(`[INIT v12.11] Loaded ${allTitles.length} titles.`);
+            console.log(`[INIT v12.12] Loaded ${allTitles.length} titles.`);
 
             const profileResult = await fetchUserProfile(currentUser.id);
             if (profileResult) {
                 currentProfile = profileResult;
             } else {
-                console.error("[INIT v12.11] Profile fetch failed or no data.");
+                console.error("[INIT v12.12] Profile fetch failed or no data.");
                 currentProfile = await createDefaultProfileIfNeeded(currentUser.id, currentUser.email);
                 if (!currentProfile) {
                     showError("Nepodařilo se načíst nebo vytvořit profil. Zkuste obnovit stránku.", true);
@@ -1322,7 +1298,7 @@
             updateUserInfoUI();
 
             const userLearningGoal = currentProfile.learning_goal;
-            console.log(`[Init v12.11] Cíl uživatele z profilu: '${userLearningGoal}'`);
+            console.log(`[Init v12.12] Cíl uživatele z profilu: '${userLearningGoal}'`);
 
             let testMainTitle = "Diagnostický test";
             let testSubtitle = "Automatický výběr testu";
@@ -1344,83 +1320,69 @@
 
             if (!userLearningGoal) {
                  showErrorMessagePage("Pro pokračování si nejprve nastavte studijní cíl ve svém profilu nebo na hlavní stránce Procvičování.", false);
-                 if (ui.testSelector) ui.testSelector.style.display = 'block'; // Zobrazit karty, aby uživatel viděl, že něco chybí
-                 applyTestHighlightingAndSelection(); // Aplikuje (pravděpodobně všechny disabled)
+                 if (ui.testSelector) ui.testSelector.style.display = 'block';
+                 applyTestHighlightingAndSelection(); // Zobrazí všechny jako disabled
                  if (ui.startSelectedTestBtnGlobal) {
                     ui.startSelectedTestBtnGlobal.disabled = true;
                     ui.startSelectedTestBtnGlobal.innerHTML = '<i class="fas fa-times-circle"></i> Nastavte cíl';
                  }
                  setLoadingState('test', false);
-                 if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
-                 if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }
-                 return;
-            }
-
-
-            if (mandatoryTestKey) {
+            } else if (mandatoryTestKey) {
                 const config = testTypeConfig[mandatoryTestKey];
                 testMainTitle = config.title;
                 testSubtitle = config.description.split('.')[0];
                 selectedTestType = mandatoryTestKey;
-            } else {
-                 console.warn(`[Init v12.11] Pro cíl '${userLearningGoal}' nebyl nalezen žádný odpovídající test v konfiguraci. Zobrazuji výběr (všechny budou disabled).`);
-                 testSubtitle = "Chyba konfigurace cíle";
-            }
 
-            if (ui.testLevel) ui.testLevel.textContent = testSubtitle;
-            const h1TitleElem = document.querySelector('.dashboard-header h1');
-            if (h1TitleElem) h1TitleElem.innerHTML = `<i class="fas fa-vial"></i> ${sanitizeHTML(testMainTitle)}`;
+                applyTestHighlightingAndSelection(); // Aplikuje zvýraznění a deaktivaci
 
-            applyTestHighlightingAndSelection();
-
-            if (selectedTestType) {
-                const hasCompletedMandatoryTest = await checkSpecificTestCompleted(currentUser.id, testTypeConfig[selectedTestType].identifier);
+                const hasCompletedMandatoryTest = await checkSpecificTestCompleted(currentUser.id, config.identifier);
                 setLoadingState('test', false);
 
                 if (hasCompletedMandatoryTest) {
-                    console.log(`[Init v12.11] Cíl '${userLearningGoal}' a povinný test '${testTypeConfig[selectedTestType].title}' již byl dokončen.`);
-                    showErrorMessagePage(`Test "${testTypeConfig[selectedTestType].title}" jste již absolvoval/a. Nelze jej opakovat. Vaše výsledky byly použity pro studijní plán.`, false);
+                    console.log(`[Init v12.12] Cíl '${userLearningGoal}' a povinný test '${config.title}' již byl dokončen.`);
+                    showErrorMessagePage(`Test "${config.title}" jste již absolvoval/a. Nelze jej opakovat. Vaše výsledky byly použity pro studijní plán.`, false);
                     const errorContainer = ui.globalError || ui.mainContent.querySelector('.error-message-container');
                     if(errorContainer){
                         const actionsDiv = document.createElement('div');
-                        actionsDiv.style.marginTop = '1.5rem';
-                        actionsDiv.style.display = 'flex';
-                        actionsDiv.style.gap = '1rem';
-                        actionsDiv.style.flexWrap = 'wrap';
-                        actionsDiv.style.justifyContent = 'center';
-                        actionsDiv.innerHTML = `
-                            <a href="plan.html" class="btn btn-primary"><i class="fas fa-tasks"></i> Zobrazit plán</a>
-                            <a href="main.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Zpět na přehled</a>
-                        `;
+                        actionsDiv.style.marginTop = '1.5rem'; actionsDiv.style.display = 'flex'; actionsDiv.style.gap = '1rem'; actionsDiv.style.flexWrap = 'wrap'; actionsDiv.style.justifyContent = 'center';
+                        actionsDiv.innerHTML = `<a href="plan.html" class="btn btn-primary"><i class="fas fa-tasks"></i> Zobrazit plán</a><a href="main.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Zpět na přehled</a>`;
                         errorContainer.appendChild(actionsDiv);
                     }
-                    if(ui.testLevel) ui.testLevel.textContent = `Dokončeno (${testTypeConfig[selectedTestType].title})`;
-                    if (ui.testSelector) ui.testSelector.style.display = 'block';
+                    if(ui.testLevel) ui.testLevel.textContent = `Dokončeno (${config.title})`;
+                    if (ui.testSelector) ui.testSelector.style.display = 'block'; // Zobrazit karty
                 } else {
-                    console.log(`[Init v12.11] Cíl '${userLearningGoal}', povinný test '${testTypeConfig[selectedTestType].title}' ještě nebyl dokončen. Spouštím.`);
-                    startSelectedTest();
+                    console.log(`[Init v12.12] Cíl '${userLearningGoal}', povinný test '${config.title}' ještě nebyl dokončen. Zobrazuji panel výběru.`);
+                    if (ui.testSelector) ui.testSelector.style.display = 'block'; // VŽDY zobrazit panel výběru
+                    if (ui.testLoader) ui.testLoader.style.display = 'none';
+                    if (ui.testContainer) ui.testContainer.style.display = 'none';
                 }
-            } else {
+            } else { // Cíl je nastaven, ale neodpovídá žádnému testu
                 setLoadingState('test', false);
-                console.warn(`[Init v12.11] Povinný test nebyl určen. Zobrazuji výběr testů (ale všechny budou disabled, pokud není cíl).`);
+                console.warn(`[Init v12.12] Povinný test nebyl určen pro cíl '${userLearningGoal}'. Zobrazuji panel výběru (všechny budou disabled).`);
                 if(ui.testSelector) { ui.testSelector.style.display = 'block'; }
+                applyTestHighlightingAndSelection(); // Toto by mělo všechny označit jako disabled
                 if(ui.testLoader) ui.testLoader.style.display = 'none';
-                if(ui.testContainer) ui.testContainer.style.display = 'none'; // Explicitně skrýt, pokud není co spouštět
+                if(ui.testContainer) ui.testContainer.style.display = 'none';
                 if (h1TitleElem) h1TitleElem.innerHTML = `<i class="fas fa-vial"></i> Testování // DIAGNOSTIKA`;
-                if (ui.testLevel) ui.testLevel.textContent = userLearningGoal ? "Chyba konfigurace testu pro cíl" : "Vyberte si studijní cíl";
+                if (ui.testLevel) ui.testLevel.textContent = "Chyba konfigurace testu pro cíl";
                 if (ui.startSelectedTestBtnGlobal) {
                     ui.startSelectedTestBtnGlobal.disabled = true;
-                    ui.startSelectedTestBtnGlobal.innerHTML = '<i class="fas fa-times-circle"></i> Nastavte cíl';
+                    ui.startSelectedTestBtnGlobal.innerHTML = '<i class="fas fa-times-circle"></i> Chyba cíle';
                 }
             }
+
+            if (ui.testLevel) ui.testLevel.textContent = testSubtitle; // Aktualizujeme podtitulek
+            const h1TitleElem = document.querySelector('.dashboard-header h1');
+            if (h1TitleElem) h1TitleElem.innerHTML = `<i class="fas fa-vial"></i> ${sanitizeHTML(testMainTitle)}`;
+
 
             if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
             if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }
 
-            console.log("✅ [Init Test1 UI - Kyber v12.11] Page initialized.");
+            console.log("✅ [Init Test1 UI - Kyber v12.12] Page initialized.");
 
         } catch (error) {
-            console.error("❌ [Init Test1 UI - Kyber v12.11] Error:", error);
+            console.error("❌ [Init Test1 UI - Kyber v12.12] Error:", error);
             if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">Chyba (${error.message}). Obnovte.</p>`; }
             else { showErrorMessagePage(`Chyba inicializace: ${error.message}`, true); }
             if (ui.mainContent) ui.mainContent.style.display = 'block';
