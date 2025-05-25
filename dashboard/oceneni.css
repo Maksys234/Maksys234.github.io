@@ -1,7 +1,7 @@
 /* dashboard/oceneni.css */
-/* Версия: 23.23.12 - Улучшены стили для сворачивающихся панелей (Cyberpunk Design v2), отступы и переходы. */
+/* Версия: 23.23.13 - Улучшены стили для сворачивающихся панелей (Cyberpunk Design v3 - Sleek & Tech) */
 
-/* --- START: Киберпанк CSS Тема (Адаптировано для oceneni.html v13 - УЛУЧШЕННЫЙ ДИЗАЙН СВЕРНУТЫХ ПАНЕЛЕЙ) --- */
+/* --- START: Киберпанк CSS Тема --- */
 /* --- Глобальные Настройки и Переменные (Синхронизировано с dashboard.css) --- */
 :root {
 	 /* Основа */
@@ -17,13 +17,13 @@
 	 --dark-purple-accent-rgb: 26, 15, 74;
 
 	 /* Акценты */
-	 --accent-primary: #00f0ff; /* Циан - основной интерактивный */
+	 --accent-primary: #00f0ff;
 	 --accent-primary-rgb: 0, 240, 255;
-	 --accent-secondary: #a05cff; /* Фиолетовый */
+	 --accent-secondary: #a05cff;
 	 --accent-secondary-rgb: 160, 94, 255;
-	 --accent-pink: #ff33cc; /* Розовый - для Danger/Streak */
+	 --accent-pink: #ff33cc;
 	 --accent-pink-rgb: 255, 51, 204;
-	 --accent-lime: #7fff4d; /* Лайм - для Success */
+	 --accent-lime: #7fff4d;
 	 --accent-lime-rgb: 127, 255, 77;
 	 --accent-cyan: var(--accent-primary);
 	 --accent-cyan-rgb: var(--accent-primary-rgb);
@@ -33,7 +33,7 @@
 	 --accent-pink-glow: rgba(var(--accent-pink-rgb), 0.4);
 	 --accent-lime-glow: rgba(var(--accent-lime-rgb), 0.5);
 	 --accent-border-glow: rgba(var(--accent-primary-rgb), 0.7);
-	 --accent-orange: #f8961e; /* Оранжевый для Warning */
+	 --accent-orange: #f8961e;
 	 --accent-orange-rgb: 248, 150, 30;
 	 --accent-orange-glow: rgba(var(--accent-orange-rgb), 0.5);
 
@@ -277,20 +277,20 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .main-content-wrapper { padding: var(--section-padding-y) 0; }
 #achievements-content { /* Container for all sections */ }
 
-/* General Section Title */
+/* General Section Title - for non-card sections if any, or general use */
 .section-title {
 	font-size: 1.5rem;
 	font-weight: 600;
-	margin-bottom: 1.5rem;
+	margin-bottom: 1.5rem; /* Default for non-card titles */
 	color: var(--text-heading);
 	padding-bottom: 0.8rem;
 	position: relative;
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
+	justify-content: space-between; /* For title text and button */
 	gap: 0.7rem;
 }
-.section-title .section-title-text {
+.section-title .section-title-text { /* Wrapper for icon and text */
 	display: flex;
 	align-items: center;
 	gap: 0.7rem;
@@ -306,25 +306,25 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 	border-radius: var(--card-radius);
 	border: 1px solid var(--border-color-light);
 	box-shadow: var(--shadow-hud);
-	padding: 0;
+	padding: 0; /* No padding on the card itself, title and content will have it */
 	position: relative;
-	overflow: visible;
+	overflow: visible; /* Allow box-shadows from title bar */
 	transition: margin-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1),
 							box-shadow 0.3s ease,
-							background 0.3s ease,
+							background 0.3s ease, /* Added background transition */
 							border-color 0.3s ease,
-							border-left-color 0.3s ease;
+							border-left-color 0.3s ease; /* Added border-left-color transition */
 }
 
-.card-section > .section-title {
+.card-section > .section-title { /* Title bar of a collapsible section */
 	padding: 1.1rem 1.5rem;
-	margin-bottom: 0;
-	border-bottom: 1px solid transparent;
+	margin-bottom: 0; /* Remove default margin */
+	border-bottom: 1px solid transparent; /* Only visible when expanded */
 	background: rgba(var(--dark-purple-accent-rgb), 0.25);
 	cursor: pointer;
 	transition: border-bottom-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease, border-radius 0.3s ease;
-	border-radius: var(--card-radius) var(--card-radius) 0 0;
-	position: relative;
+	border-radius: var(--card-radius) var(--card-radius) 0 0; /* Rounded top corners when expanded */
+	position: relative; /* For z-index */
 	z-index: 2;
 }
 .card-section:not(.collapsed-section) > .section-title {
@@ -332,9 +332,9 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 	background: rgba(var(--dark-purple-accent-rgb), 0.35);
 	box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
-.card-section .section-title::after { display: none; }
+.card-section .section-title::after { display: none; } /* Remove general underline for card titles */
 
-.card-section > .section-title .btn-icon-only {
+.card-section > .section-title .btn-icon-only { /* Toggle button */
 	width: 32px; height: 32px; font-size: 0.85rem;
 	background-color: rgba(var(--accent-primary-rgb), 0.12);
 	border-color: rgba(var(--accent-primary-rgb), 0.3);
@@ -346,13 +346,13 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 	box-shadow: 0 0 8px rgba(var(--accent-primary-rgb), 0.4);
 }
 .card-section > .section-title .btn-icon-only i {
-	transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+	transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy transition */
 }
 .card-section:not(.collapsed-section) > .section-title .btn-icon-only i {
-	transform: rotate(0deg);
+	transform: rotate(0deg); /* Chevron up for expanded */
 }
 .card-section.collapsed-section > .section-title .btn-icon-only i {
-	transform: rotate(-180deg);
+	transform: rotate(-180deg); /* Chevron down for collapsed */
 }
 
 .section-collapsible-content {
@@ -364,7 +364,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 							opacity 0.3s ease-out 0.05s,
 							visibility 0s 0.4s;
 	overflow: hidden;
-	max-height: 3000px;
+	max-height: 3000px; /* Large enough for any content */
 	opacity: 1;
 	padding: 1.5rem;
 	visibility: visible;
@@ -376,29 +376,29 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 
 .card-section.collapsed-section {
 	margin-bottom: 1rem;
-	background: linear-gradient(145deg, rgba(var(--dark-purple-accent-rgb), 0.8) 0%, var(--bg-secondary) 100%); /* Darker, more solid gradient */
-	border: 1px solid var(--border-color-medium); /* Keep overall border for definition */
+	background: linear-gradient(145deg, rgba(var(--dark-purple-accent-rgb), 0.9) 0%, rgba(var(--bg-secondary-rgb), 0.95) 100%); /* Darker, more solid gradient */
+	border: 1px solid var(--border-color-strong); /* More defined border */
 	border-left: 6px solid var(--accent-primary); /* Thicker accent bar */
-	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.35), /* Slightly stronger shadow */
-							inset 4px 0 10px rgba(var(--accent-primary-rgb), 0.2), /* Deeper inner glow */
-							0 0 20px rgba(var(--accent-primary-rgb), 0.1) inset; /* Subtle full inset glow */
+	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4), /* Slightly stronger shadow */
+							inset 5px 0 12px -3px rgba(var(--accent-primary-rgb), 0.25), /* Deeper inner glow from accent */
+							0 0 25px rgba(var(--accent-primary-rgb), 0.15) inset; /* Full inset glow */
 	cursor: pointer;
 	overflow: hidden;
 	border-radius: var(--card-radius);
 }
 
 .card-section.collapsed-section > .section-title {
-	background: transparent;
+	background: transparent; /* Title bar is transparent within the collapsed card */
 	padding: 1rem 1.4rem; /* Adjust padding for new look */
 	border-bottom-color: transparent !important;
-	border-radius: 0;
+	border-radius: 0; /* Radius handled by parent .card-section */
 	min-height: auto;
-	box-shadow: none;
+	box-shadow: none; /* No separate shadow for title bar when collapsed */
 }
 
 .card-section.collapsed-section > .section-title .section-title-text {
 	color: var(--text-light);
-	font-weight: 600;
+	font-weight: 600; /* More prominent title text */
 	font-size: 1.15rem; /* Slightly larger for impact */
 	text-shadow: 0 1px 4px rgba(0,0,0,0.7), 0 0 8px var(--accent-glow); /* Enhanced text glow */
 }
@@ -414,25 +414,25 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 }
 
 .card-section.collapsed-section:hover {
-	border-left-color: var(--accent-lime); /* Change accent color on hover */
-	background: linear-gradient(145deg, rgba(var(--accent-lime-rgb), 0.2) 0%, rgba(var(--dark-purple-accent-rgb), 0.95) 100%);
-	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4),
-							inset 0 0 25px rgba(var(--accent-lime-rgb), 0.3),
-							0 0 35px rgba(var(--accent-lime-rgb), 0.45);
-	transform: translateY(-4px) scale(1.01); /* More noticeable lift */
+	border-left-color: var(--accent-pink); /* Change accent color on hover */
+	background: linear-gradient(145deg, rgba(var(--accent-pink-rgb), 0.3) 0%, rgba(var(--dark-purple-accent-rgb), 1) 100%); /* Hover gradient */
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45),
+							inset 0 0 25px rgba(var(--accent-pink-rgb), 0.3),
+							0 0 35px rgba(var(--accent-pink-rgb), 0.5);
+	transform: translateY(-4px) scale(1.015); /* More noticeable lift */
 }
 .card-section.collapsed-section:hover > .section-title .section-title-text {
-	color: var(--accent-lime);
-	text-shadow: 0 1px 3px rgba(0,0,0,0.6), 0 0 10px var(--accent-lime-glow);
+	color: var(--accent-pink);
+	text-shadow: 0 1px 3px rgba(0,0,0,0.6), 0 0 10px var(--accent-pink-glow);
 }
 .card-section.collapsed-section:hover > .section-title .section-title-text i {
-	color: var(--accent-lime);
-	text-shadow: 0 0 10px var(--accent-lime-glow);
+	color: var(--accent-pink);
+	text-shadow: 0 0 10px var(--accent-pink-glow);
 }
 .card-section.collapsed-section:hover > .section-title .btn-icon-only {
-	background-color: rgba(var(--accent-lime-rgb), 0.25);
-	border-color: var(--accent-lime);
-	color: var(--accent-lime);
+	background-color: rgba(var(--accent-pink-rgb), 0.25);
+	border-color: var(--accent-pink);
+	color: var(--accent-pink);
 	transform: scale(1.05) rotate(10deg); /* Icon button animation */
 }
 
@@ -499,7 +499,16 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .achievement-card:hover { opacity: 1; border-color: var(--border-color-medium); }
 .badge-icon { width: 70px; height: 70px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 1.2rem; color: var(--white); position: relative; background: var(--gradient-locked); box-shadow: 0 5px 15px rgba(0,0,0,0.3); border: 2px solid rgba(var(--white-rgb), 0.1); }
 .badge-icon i { font-size: inherit; vertical-align: middle; line-height: 1;} /* Fix for icon alignment */
+/* Fallback if specific type gradient is missing, for example: */
+.badge-icon.unknown-type-gradient { background: var(--gradient-default-badge, linear-gradient(135deg, #555, #333)); } /* Add to :root if needed */
 .badge-icon.math { background: var(--gradient-math); } .badge-icon.language { background: var(--gradient-lang); } .badge-icon.special { background: var(--gradient-special); } .badge-icon.streak { background: var(--gradient-streak); } .badge-icon.points { background: var(--gradient-warning); } .badge-icon.exercises { background: var(--gradient-success); } .badge-icon.test { background: var(--gradient-info); }
+.badge-icon.profile {background: var(--gradient-info);}
+.badge-icon.progress {background: var(--gradient-success);}
+.badge-icon.practice {background: var(--gradient-button);}
+.badge-icon.mastery {background: var(--gradient-level-up);}
+.badge-icon.customization {background: var(--gradient-cta);}
+.badge-icon.default { background: var(--gradient-locked); } /* Default if type not in badgeVisuals */
+
 .badge-title { font-size: 1.05rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.4rem; }
 .badge-desc { font-size: 0.85rem; color: var(--text-medium); margin-bottom: 0.8rem; flex-grow: 1; line-height: 1.5; }
 .badge-date { font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; margin-top: auto; }
@@ -507,6 +516,13 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb,
 .achievement-icon { width: 60px; height: 60px; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.7rem; color: var(--white); flex-shrink: 0; background: var(--gradient-locked); box-shadow: 0 4px 10px rgba(0,0,0,0.25); border: 1px solid rgba(var(--white-rgb), 0.08); }
 .achievement-icon i { font-size: inherit; vertical-align: middle; line-height: 1;} /* Fix for icon alignment */
 .achievement-icon.math { background: var(--gradient-math); } .achievement-icon.language { background: var(--gradient-lang); } .achievement-icon.special { background: var(--gradient-special); } .achievement-icon.streak { background: var(--gradient-streak); } .achievement-icon.points { background: var(--gradient-warning); } .achievement-icon.exercises { background: var(--gradient-success); } .achievement-icon.test { background: var(--gradient-info); }
+.achievement-icon.profile {background: var(--gradient-info);}
+.achievement-icon.progress {background: var(--gradient-success);}
+.achievement-icon.practice {background: var(--gradient-button);}
+.achievement-icon.mastery {background: var(--gradient-level-up);}
+.achievement-icon.customization {background: var(--gradient-cta);}
+.achievement-icon.default { background: var(--gradient-locked); }
+
 .achievement-content { flex-grow: 1; }
 .achievement-title { font-size: 1.1rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.4rem; }
 .achievement-desc { font-size: 0.9rem; color: var(--text-medium); margin-bottom: 0.8rem; line-height: 1.5; }
