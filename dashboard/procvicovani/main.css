@@ -1,5 +1,6 @@
 /* dashboard/procvicovani/main.css */
 /* Версия: 25.1.9-CSS - Absolutní priorita zachování původních stylů. Detailní revize a cílené vylepšení stylů pro modální okno výběru cíle + styly pro tabulku. */
+/* VERZE: 25.1.10-CSS - Přidány styly pro nová pole ve formuláři výběru cíle (select, textarea, hvězdičkové hodnocení). */
 
 /* --- START: Киберпанк CSS Тема (PŮVODNÍ KÓD UŽIVATELE) --- */
 /* --- Глобальные Настройки и Переменные --- */
@@ -25,6 +26,8 @@
 	--accent-pink-rgb: 255, 51, 204;
 	--accent-lime: #7fff4d;
 	--accent-lime-rgb: 127, 255, 77;
+    --accent-orange: #ff9933; /* Přidáno z main.html pro hvězdičky */
+	--accent-orange-rgb: 255, 153, 51; /* Přidáno z main.html pro hvězdičky */
 	--accent-cyan: var(--accent-primary);
 	--accent-cyan-rgb: var(--accent-primary-rgb);
 	--accent-cyan-glow: rgba(var(--accent-cyan-rgb), 0.75);
@@ -33,8 +36,8 @@
 	--accent-pink-glow: rgba(var(--accent-pink-rgb), 0.55);
 	--accent-lime-glow: rgba(var(--accent-lime-rgb), 0.65);
 	--accent-border-glow: rgba(var(--accent-primary-rgb), 0.85);
-	--accent-orange: #ff9933;
-	--accent-orange-rgb: 255, 153, 51;
+	/* --accent-orange: #ff9933; -- Již definováno výše */
+	/* --accent-orange-rgb: 255, 153, 51; -- Již definováno výše */
 	--accent-orange-glow: rgba(var(--accent-orange-rgb), 0.65);
 
 
@@ -73,6 +76,9 @@
 	--gradient-welcome: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.2), rgba(var(--accent-secondary-rgb), 0.25));
 	--gradient-claimed: linear-gradient(135deg, rgba(var(--text-muted-rgb, 128, 141, 176), 0.15), rgba(var(--card-solid-rgb, 15, 10, 45), 0.25));
 	--gradient-available: linear-gradient(135deg, rgba(var(--accent-primary-rgb), 0.2), rgba(var(--accent-lime-rgb), 0.15));
+
+    /* Input Background (pro select, textarea v modalu) */
+    --input-bg-color: var(--bg-secondary); /* Nebo jiná tmavá barva z palety */
 
 
 	/* Шрифты */
@@ -726,6 +732,104 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 	font-size: 12px; color: var(--text-fixed-dark);
 	transition: transform 0.25s var(--transition-bounce);
 }
+
+/* START: Styly pro nová pole ve formuláři v modálním okně */
+.modal-step .form-group select,
+.modal-step .form-group textarea {
+    width: 100%;
+    padding: 0.9rem 1.1rem;
+    background-color: var(--input-bg-color, var(--bg-secondary));
+    color: var(--text-light);
+    border: 1px solid var(--border-color-strong); /* Silnější ohraničení */
+    border-radius: var(--form-element-radius);
+    font-size: 1rem;
+    font-family: var(--font-primary);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    appearance: none; /* Odstranění výchozí šipky pro select */
+}
+
+.modal-step .form-group select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23a85eff'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E"); /* Vlastní šipka */
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.3em;
+    cursor: pointer;
+}
+
+.modal-step .form-group textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+
+.modal-step .form-group select:focus,
+.modal-step .form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 12px var(--accent-glow); /* Výraznější focus stín */
+}
+
+.modal-step .form-group-compact legend {
+    font-size: 1.25rem; /* Lehce menší legenda pro kompaktní skupiny */
+    margin-bottom: 1.2rem;
+}
+.modal-step .form-group-compact label {
+    font-size: 1rem; /* Menší popisky */
+    padding: 0.7rem 0.9rem;
+}
+.modal-step .form-group-compact input[type="radio"],
+.modal-step .form-group-compact input[type="checkbox"] {
+    width: 20px; /* Menší kolečka/čtverečky */
+    height: 20px;
+}
+
+/* Styly pro hvězdičkové hodnocení témat */
+#topic-ratings-container {
+    max-height: 250px; /* Omezení výšky, pokud je mnoho témat */
+    overflow-y: auto;
+    padding: 0.5rem; /* Vnitřní padding */
+    border: 1px solid var(--border-color-medium);
+    border-radius: var(--form-element-radius);
+    background-color: rgba(var(--bg-secondary-rgb), 0.5); /* Lehce průhledné pozadí */
+}
+.topic-rating-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.9rem 0.5rem; /* Upravený padding */
+    border-bottom: 1px solid var(--border-color-light);
+    transition: background-color 0.2s ease;
+}
+.topic-rating-item:hover {
+    background-color: rgba(var(--accent-primary-rgb), 0.08);
+}
+.topic-rating-item:last-child {
+    border-bottom: none;
+}
+.topic-rating-item .topic-name { /* Přidána třída pro název tématu */
+    flex-grow: 1;
+    color: var(--text-light);
+    font-size: 1rem;
+    margin-right: 1rem;
+}
+.rating-stars {
+    display: flex;
+    justify-content: flex-end; /* Hvězdičky vpravo */
+    align-items: center;
+    gap: 0.4rem; /* Mezery mezi hvězdami */
+}
+.rating-stars .star {
+    font-size: 1.7rem; /* Velikost hvězd */
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+.rating-stars .star:hover,
+.rating-stars .star.rated {
+    color: var(--accent-orange); /* Barva pro hodnocené/hover hvězdy */
+    transform: scale(1.18); /* Efekt při najetí/kliknutí */
+}
+/* END: Styly pro nová pole ve formuláři v modálním okně */
+
 /* --- END REFINED Modal Styles --- */
 
 /* Loading & Skeleton */
@@ -832,6 +936,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 	.dashboard-footer { padding: 1.5rem 0.75rem; }
 	.modal-content { max-height: calc(100vh - 2rem); }
 	.goal-list-scroll-container { max-height: 55vh; }
+    #topic-ratings-container { max-height: 150px; } /* Snížení výšky kontejneru hodnocení na mobilech */
 	.goal-radio-content { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
 	.goal-radio-content .goal-icon { margin-bottom: 0.5rem; }
     #topic-progress-table { font-size: 0.85rem; }
