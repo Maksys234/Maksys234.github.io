@@ -45,8 +45,8 @@
         <section class="hero" id="hero" aria-labelledby="hero-heading">
             <div id="particles-js" aria-hidden="true"></div>
             <div class="container hero-content">
-                <h1 id="hero-heading" data-animate-letters>
-                    <span>Váš <span class="highlight" data-text="Osobní AI Asistent">Osobní AI Asistent</span></span><br><span>Pro Vzdělávání a Rozvoj</span>
+                <h1 id="hero-heading">
+                    Váš Osobní AI Asistent<br>Pro Vzdělávání a Rozvoj
                 </h1>
                 <p data-animate style="--animation-order: 1;">
                     Objevte sílu umělé inteligence! Justax je nyní více než jen příprava na zkoušky. Získejte personalizovanou podporu, interaktivní nástroje a okamžitou zpětnou vazbu pro dosažení vašich cílů v učení i mimo něj.
@@ -200,7 +200,7 @@
                 <div class="yuki-card" data-animate style="--animation-order: 1;">
                     <img src="dashboard/assets/yuki.jpg" alt="Fotka Yuki" class="yuki-photo">
                     <h3>Pro Naši Inspiraci, Yuki!</h3>
-                    <p>Díky za tvou podporu a úsměv, který rozjasní každý den! Jsi naše sluníčko!</p>
+                    <p>"Díky za tvou podporu a úsměv, který rozjasní každý den! Jsi naše sluníčko!</p>
                     <p class="small-note">(Tento vzkaz je tu proto, že někdo prohrál sázku... ale my tě máme fakt rádi! 😉)</p>
                 </div>
             </div>
@@ -333,8 +333,7 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script src="index.js" defer></script>
-    <script>
+    <script src="index.js" defer></script> <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof particlesJS !== 'undefined' && document.getElementById('particles-js')) {
                 particlesJS('particles-js', {
@@ -363,6 +362,11 @@
             if (currentYearElement) {
                 currentYearElement.textContent = new Date().getFullYear();
             }
+
+            // Важно: Если скрипт index.js все еще ищет data-animate-letters для заголовка,
+            // это может вызывать ошибки в консоли или неожиданное поведение.
+            // Возможно, потребуется модифицировать index.js, чтобы он не трогал h1#hero-heading,
+            // или просто убедиться, что он не падает, если не находит этот атрибут.
         });
     </script>
 
