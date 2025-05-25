@@ -1,15 +1,15 @@
 /**
  * JUSTAX Landing Page Script
  * Handles UI interactions, animations, infinite testimonial slider,
- * NEW: Hero text mask reveal and interactive gradient.
- * Version: v2.20 (Hero Animation Update)
+ * Hero text mask reveal, interactive gradient, and enhanced visual effects.
+ * Version: v2.30 (Enhanced Animations & Interactivity)
  * Author: Gemini Modification
- * Date: 2025-05-03 // Added Mask Reveal + Interactive Gradient
+ * Date: 2025-05-25 // Added more dynamic animations and refined interactions
  *
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Ready. Initializing JUSTAX Interface v2.20 (Hero Animation Update)...");
+    console.log("DOM Ready. Initializing JUSTAX Interface v2.30 (Enhanced Animations)...");
 
     // --- Global Variables & DOM References ---
     const body = document.body;
@@ -32,42 +32,53 @@ document.addEventListener('DOMContentLoaded', () => {
     const prevBtn = document.getElementById('prevTestimonialBtn');
     const nextBtn = document.getElementById('nextTestimonialBtn');
 
-    // *** NEW: Hero Elements for Interactive Gradient ***
+    // Hero Elements for Interactive Gradient & Animation
     const heroSection = document.querySelector('.hero');
-    // Ensure we select the potentially re-created span later
-    let heroHighlightSpan = document.querySelector('.hero h1 .highlight');
-    let rafId = null; // requestAnimationFrame ID
+    let heroHighlightSpan = document.querySelector('.hero h1 .highlight'); // Will be updated
+    let heroHeading = document.getElementById('hero-heading'); // For letter animation
+    let rafId = null; // requestAnimationFrame ID for gradient
 
     // --- Configuration ---
     const config = {
-        mouseFollower: { enabled: true, followSpeed: 0.1, clickScale: 0.8, hoverScale: 1.6 },
-        animations: {
-            scrollThreshold: 0.15,
-            staggerDelay: 120, // General stagger delay for non-letter elements
-            letterMaskRevealDelay: 45 // Delay between each letter reveal (ms)
+        mouseFollower: {
+            enabled: true,
+            followSpeed: 0.12, // Slightly faster
+            clickScale: 0.7,   // More pronounced click
+            hoverScale: 1.5,   // Adjusted hover scale
+            textHoverScale: 1.3 // Scale for hovering over text elements
         },
-        aiDemo: { enabled: true, typingSpeed: 40, stepBaseDelay: 200, stepRandomDelay: 450 },
+        animations: {
+            scrollThreshold: 0.1, // Trigger animations a bit sooner
+            staggerDelay: 100,    // Faster stagger
+            letterMaskRevealDelay: 50, // Adjusted letter reveal delay
+            heroElementEntryDelay: 150 // Base delay for hero p and buttons after H1
+        },
+        aiDemo: {
+            enabled: true,
+            typingSpeed: 35,      // Faster typing
+            stepBaseDelay: 180,   // Faster base delay
+            stepRandomDelay: 400  // Adjusted random delay
+        },
         testimonials: {
             placeholderAvatarBaseUrl: 'https://placehold.co/100x100/',
             visibleCardsDesktop: 3,
-            bufferCards: 2,
-            slideDuration: 500
+            bufferCards: 2, // Keep 2 buffer cards on each side for smooth infinite scroll
+            slideDuration: 550 // CSS transition duration from var(--transition-smooth-slider)
         }
     };
 
     // --- Testimonial Slider State ---
     let localTestimonials = [];
-    let testimonialDataCache = [];
-    let cardsInTrack = [];
-    let stableVisibleStartIndex = config.testimonials.bufferCards;
+    let testimonialDataCache = []; // Holds the data for cards currently in the DOM or about to be shown
+    let cardsInTrack = []; // Holds the actual DOM elements of the cards
+    let stableVisibleStartIndex = config.testimonials.bufferCards; // Index of the first "truly" visible card in the ideal state
     let totalCardsInDOM = 0;
     let cardWidthAndMargin = 0;
     let isSliding = false;
-    let resizeTimeout;
     let initialLoadComplete = false;
-    let transitionEndCounter = 0;
+    // No resizeTimeout or transitionEndCounter needed if logic is robust
 
-    // --- REVISED Hardcoded Testimonial Data ---
+    // --- REVISED Hardcoded Testimonial Data (same as provided before) ---
     localTestimonials = [
         // Students (Mix of names, nicknames, initials) - Role always 'Student' or 'Studentka'
         { name: "Petra N.", role: "Studentka", rating: 5, text: "Skvělá příprava na přijímačky! AI mi přesně ukázala, co potřebuju dohnat. Doporučuji!" },
@@ -176,35 +187,47 @@ document.addEventListener('DOMContentLoaded', () => {
             timeout = setTimeout(later, wait);
         };
     };
+
     const getRandomColorPair = () => {
-        const colors = [ { bg: 'a05cff', text: 'FFFFFF' }, { bg: '00e0ff', text: '03020c' }, { bg: 'ff33a8', text: 'FFFFFF' }, { bg: 'f0e14a', text: '03020c' }, { bg: '00ffaa', text: '03020c' }, { bg: 'ff9a00', text: 'FFFFFF' } ];
+        const colors = [
+            { bg: 'a05cff', text: 'FFFFFF' }, { bg: '00e0ff', text: '03020c' },
+            { bg: 'ff33a8', text: 'FFFFFF' }, { bg: 'f0e14a', text: '03020c' },
+            { bg: '00ffaa', text: '03020c' }, { bg: 'ff9a00', text: 'FFFFFF' },
+            { bg: '7c4dff', text: 'FFFFFF' }, { bg: '00bcd4', text: '03020c' } // Added more pairs
+        ];
         return colors[Math.floor(Math.random() * colors.length)];
-     };
+    };
+
     const generateStarsHTML = (rating) => {
-         let starsHTML = '';
+        let starsHTML = '';
         const clampedRating = Math.max(0, Math.min(5, rating || 0));
         const fullStars = Math.floor(clampedRating);
-        const halfStar = clampedRating % 1 >= 0.45;
+        const halfStar = clampedRating % 1 >= 0.45; // Threshold for half star
         const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
         for (let i = 0; i < fullStars; i++) starsHTML += '<i class="fas fa-star" aria-hidden="true"></i>';
         if (halfStar) starsHTML += '<i class="fas fa-star-half-alt" aria-hidden="true"></i>';
         for (let i = 0; i < emptyStars; i++) starsHTML += '<i class="far fa-star" aria-hidden="true"></i>';
         return starsHTML;
-     };
+    };
+
     const createPlaceholderCard = () => {
         const card = document.createElement('article');
         card.className = 'testimonial-card is-loading';
         card.innerHTML = '<div class="spinner"></div>';
         card.setAttribute('aria-hidden', 'true');
         return card;
-     };
+    };
+
     const updateCardContent = (cardElement, testimonialData) => {
-         if (!cardElement) { console.warn("updateCardContent: null cardElement received"); return; }
-         const data = testimonialData && typeof testimonialData === 'object' ? testimonialData :
-             { name: "Chyba Dat", text: "Neplatná data pro kartu.", rating: 0, role: "Systém" };
+        if (!cardElement) { console.warn("updateCardContent: null cardElement received"); return; }
+        const data = testimonialData && typeof testimonialData === 'object' ? testimonialData :
+            { name: "Chyba Dat", text: "Neplatná data pro kartu.", rating: 0, role: "Systém" };
 
         cardElement.classList.remove('is-loading');
         cardElement.removeAttribute('aria-hidden');
+        // Adding a class to trigger entrance animation for new content
+        cardElement.classList.add('card-content-updated');
+
         cardElement.innerHTML = `
             <div class="testimonial-content">
                 <div class="testimonial-rating" aria-label="Hodnocení"></div>
@@ -225,10 +248,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const nameEl = cardElement.querySelector('.testimonial-name');
         const roleEl = cardElement.querySelector('.testimonial-role');
         const avatarEl = cardElement.querySelector('.testimonial-avatar');
+
         const name = data.name || 'Uživatel';
         const role = data.role || 'Neznámý';
         const rating = data.rating;
         const text = data.text || 'Chybí text recenze.';
+
         if (ratingEl) { ratingEl.innerHTML = generateStarsHTML(rating); ratingEl.setAttribute('aria-label', `Hodnocení: ${rating?.toFixed(1) || 0} z 5 hvězdiček`); }
         if (textEl) textEl.textContent = text;
         if (nameEl) nameEl.textContent = name;
@@ -236,284 +261,266 @@ document.addEventListener('DOMContentLoaded', () => {
         if (avatarEl) {
             const initials = name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() || '??';
             const colors = getRandomColorPair();
-            const avatarUrl = `${config.testimonials.placeholderAvatarBaseUrl}${colors.bg}/${colors.text}/png?text=${encodeURIComponent(initials)}&font=poppins`;
+            const avatarUrl = `${config.testimonials.placeholderAvatarBaseUrl}${colors.bg}/${colors.text}/png?text=${encodeURIComponent(initials)}&font=poppins&font-size=0.4`;
             avatarEl.style.backgroundImage = `url('${avatarUrl}')`;
             avatarEl.setAttribute('aria-label', `Avatar ${name}`);
         }
-     };
+        // Remove animation class after a short delay so it can be re-triggered
+        setTimeout(() => cardElement.classList.remove('card-content-updated'), 600);
+    };
+
 
     const getRandomLocalTestimonial = () => {
         if (!localTestimonials || localTestimonials.length === 0) {
             console.error("getRandomLocalTestimonial: localTestimonials array is empty or undefined.");
             return { name: "Chyba", text: "Žádné dostupné recenze.", rating: 0, role: "Systém" };
         }
+        // Get names of testimonials currently in the DOM cache to avoid immediate repetition
         const currentCacheNames = new Set(testimonialDataCache.map(item => item?.name).filter(Boolean));
         let availableTestimonials = localTestimonials.filter(item => !currentCacheNames.has(item.name));
+
         if (availableTestimonials.length === 0) {
+            // If all unique testimonials are used, allow reuse but try to pick one not *just* shown.
             console.warn("No unique testimonials available outside the current cache. Reusing testimonials.");
             availableTestimonials = localTestimonials;
-             if (availableTestimonials.length === 0) {
+             if (availableTestimonials.length === 0) { // Should not happen if localTestimonials is not empty
                  return { name: "Chyba", text: "Žádné dostupné recenze.", rating: 0, role: "Systém" };
              }
         }
         const randomIndex = Math.floor(Math.random() * availableTestimonials.length);
         return availableTestimonials[randomIndex];
-     };
+    };
+
 
     const calculateCardWidthAndMargin = () => {
-        if (!sliderTrack) {
-            console.error("calculateCardWidthAndMargin: sliderTrack element not found.");
+        if (!sliderTrack || !sliderTrack.firstChild) {
+            console.warn("calculateCardWidthAndMargin: Slider track or first card not found.");
             return 0;
         }
-        const firstCard = sliderTrack.querySelector('.testimonial-card:not(.is-loading)');
-        const cardElement = firstCard || sliderTrack.querySelector('.testimonial-card');
-        if (!cardElement) {
-            console.warn("calculateCardWidthAndMargin: No card elements found in the track.");
-            return 0;
+        const firstCard = sliderTrack.querySelector('.testimonial-card:not(.is-loading)') || sliderTrack.firstChild;
+        if (!firstCard || typeof firstCard.offsetWidth === 'undefined') {
+             console.warn("calculateCardWidthAndMargin: Invalid first card element.");
+             return 0;
         }
-        const style = window.getComputedStyle(cardElement);
-        const width = cardElement.offsetWidth;
+        const style = window.getComputedStyle(firstCard);
+        const width = firstCard.offsetWidth;
         const marginRight = parseFloat(style.marginRight) || 0;
+
         if (width <= 0) {
-            console.warn(`calculateCardWidthAndMargin: Card element has zero or negative width (${width}px). Check CSS.`);
-            if (!cardElement.dataset.recalcAttempted) {
-                cardElement.dataset.recalcAttempted = "true";
-                console.log("Attempting delayed recalculation...");
-                setTimeout(calculateCardWidthAndMargin, 150);
-            }
+            console.warn(`calculateCardWidthAndMargin: Card element has zero or negative width (${width}px). This might be a CSS issue or the element is not yet rendered.`);
             return 0;
         }
         cardWidthAndMargin = width + marginRight;
-        delete cardElement.dataset.recalcAttempted;
         return cardWidthAndMargin;
-     };
-
-    const setTrackPositionInstantly = (logReason = "default") => {
-        if (!initialLoadComplete) {
-            return;
-        }
-         if (!sliderTrack) {
-             console.error(`setTrackPositionInstantly (${logReason}): sliderTrack not found.`);
-             return;
-         }
-        if (cardWidthAndMargin <= 0) {
-             console.warn(`setTrackPositionInstantly (${logReason}): cardWidthAndMargin is invalid (${cardWidthAndMargin}). Attempting recalculation.`);
-             if (!calculateCardWidthAndMargin() || cardWidthAndMargin <= 0) {
-                 console.error(`setTrackPositionInstantly (${logReason}): Recalculation failed. Cannot set position.`);
-                 return;
-             }
-             console.log(`setTrackPositionInstantly (${logReason}): Recalculation successful.`);
-         }
-        sliderTrack.removeEventListener('transitionend', handleTransitionEnd);
-        sliderTrack.style.transition = 'none';
-        const position = -stableVisibleStartIndex * cardWidthAndMargin;
-        sliderTrack.style.transform = `translateX(${position}px)`;
-        void sliderTrack.offsetHeight;
-        sliderTrack.style.transition = `transform var(--transition-smooth-slider)`;
-        sliderTrack.addEventListener('transitionend', handleTransitionEnd);
     };
 
-    const handleTransitionEnd = (event) => {
-        if (event.target !== sliderTrack || event.propertyName !== 'transform' || !initialLoadComplete || !isSliding) {
+
+    const setTrackPositionInstantly = (logReason = "default operation") => {
+        if (!initialLoadComplete || !sliderTrack) {
+            console.warn(`setTrackPositionInstantly (${logReason}) blocked: initialLoadComplete=${initialLoadComplete}, sliderTrack exists=${!!sliderTrack}`);
             return;
         }
-        sliderTrack.removeEventListener('transitionend', handleTransitionEnd);
+        if (cardWidthAndMargin <= 0) {
+             console.warn(`setTrackPositionInstantly (${logReason}): cardWidthAndMargin is invalid (${cardWidthAndMargin}). Attempting recalculation.`);
+             if (!calculateCardWidthAndMargin() || cardWidthAndMargin <= 0) { // Recalculate if needed
+                 console.error(`setTrackPositionInstantly (${logReason}): Recalculation failed. Cannot set position accurately.`);
+                 return;
+             }
+         }
+
+        sliderTrack.style.transition = 'none'; // Disable transitions for instant jump
+        const position = -stableVisibleStartIndex * cardWidthAndMargin;
+        sliderTrack.style.transform = `translateX(${position}px)`;
+        // Force reflow/repaint to ensure the 'none' transition takes effect before re-enabling
+        void sliderTrack.offsetHeight;
+        // Re-enable transitions after the jump
+        sliderTrack.style.transition = `transform ${config.testimonials.slideDuration}ms cubic-bezier(0.65, 0, 0.35, 1)`;
+    };
+
+    // Enhanced handleTransitionEnd to be more robust
+    const handleTransitionEnd = () => {
+        if (!isSliding || !sliderTrack) return; // Only proceed if a slide was in progress
+
         const direction = parseInt(sliderTrack.dataset.slideDirection || "0");
-        transitionEndCounter++;
-        if (direction === 0) {
-            console.warn("handleTransitionEnd: Transition ended but direction was 0 (unexpected). Resetting state.");
-             isSliding = false;
-             prevBtn.disabled = false;
-             nextBtn.disabled = false;
-             sliderTrack.style.transition = `transform var(--transition-smooth-slider)`;
+        if (direction === 0) { // Should not happen if isSliding is true
+            console.warn("handleTransitionEnd called but no slide direction was set.");
+            isSliding = false;
+            prevBtn.disabled = false;
+            nextBtn.disabled = false;
             return;
         }
-        let cardToMove;
-        let newData;
-        try {
-             newData = getRandomLocalTestimonial();
-             if (!newData) throw new Error("Failed to get new testimonial data.");
-            if (direction > 0) {
-                cardToMove = cardsInTrack.shift();
-                if (!cardToMove) throw new Error("Failed to get first card element from cardsInTrack array.");
-                testimonialDataCache.shift();
-                testimonialDataCache.push(newData);
-            } else {
-                cardToMove = cardsInTrack.pop();
-                 if (!cardToMove) throw new Error("Failed to get last card element from cardsInTrack array.");
-                testimonialDataCache.pop();
-                testimonialDataCache.unshift(newData);
-            }
-             updateCardContent(cardToMove, newData);
-        } catch (error) {
-             console.error("Error during data/card selection in handleTransitionEnd:", error);
-             isSliding = false;
-             setTrackPositionInstantly("error recovery");
-             prevBtn.disabled = false;
-             nextBtn.disabled = false;
-             sliderTrack.style.transition = `transform var(--transition-smooth-slider)`;
-             return;
+
+        let cardToMoveElement, newCardData;
+
+        if (direction > 0) { // Sliding to next (left)
+            cardToMoveElement = cardsInTrack.shift(); // Get the first card (now off-screen left)
+            sliderTrack.removeChild(cardToMoveElement); // Remove it from DOM start
+            newCardData = getRandomLocalTestimonial();
+            updateCardContent(cardToMoveElement, newCardData);
+            sliderTrack.appendChild(cardToMoveElement); // Add it to DOM end
+            cardsInTrack.push(cardToMoveElement); // Add to JS array end
+
+            testimonialDataCache.shift();
+            testimonialDataCache.push(newCardData);
+        } else { // Sliding to previous (right)
+            cardToMoveElement = cardsInTrack.pop(); // Get the last card (now off-screen right)
+            sliderTrack.removeChild(cardToMoveElement); // Remove it from DOM end
+            newCardData = getRandomLocalTestimonial();
+            updateCardContent(cardToMoveElement, newCardData);
+            sliderTrack.insertBefore(cardToMoveElement, sliderTrack.firstChild); // Add it to DOM start
+            cardsInTrack.unshift(cardToMoveElement); // Add to JS array start
+
+            testimonialDataCache.pop();
+            testimonialDataCache.unshift(newCardData);
         }
-        sliderTrack.style.transition = 'none';
-        try {
-            if (direction > 0) {
-                sliderTrack.appendChild(cardToMove);
-                cardsInTrack.push(cardToMove);
-            } else {
-                sliderTrack.insertBefore(cardToMove, sliderTrack.firstChild);
-                cardsInTrack.unshift(cardToMove);
-            }
-        } catch (domError) {
-             console.error("Error during DOM manipulation (appendChild/insertBefore) in handleTransitionEnd:", domError);
-             isSliding = false;
-             setTrackPositionInstantly("dom error recovery");
-             prevBtn.disabled = false;
-             nextBtn.disabled = false;
-             sliderTrack.style.transition = `transform var(--transition-smooth-slider)`;
-             return;
-        }
-        setTrackPositionInstantly("transition end");
+
+        setTrackPositionInstantly("transition end adjustment"); // Reset track for seamless loop
+
         sliderTrack.dataset.slideDirection = "0";
         isSliding = false;
         prevBtn.disabled = false;
         nextBtn.disabled = false;
-     };
+    };
+
 
     const moveSlider = (direction) => {
-         if (isSliding || !initialLoadComplete) {
-             console.warn(`Slide attempt blocked: isSliding=${isSliding}, initialLoadComplete=${initialLoadComplete}`);
-             return;
+        if (isSliding || !initialLoadComplete || !sliderTrack) {
+            console.warn(`Slide attempt blocked: isSliding=${isSliding}, initialLoadComplete=${initialLoadComplete}, sliderTrack exists=${!!sliderTrack}`);
+            return;
         }
-        if (cardWidthAndMargin <= 0) {
-             console.warn("moveSlider: cardWidthAndMargin is invalid. Attempting recalculation.");
+         if (cardWidthAndMargin <= 0) { // Double check card dimensions
+             console.warn("moveSlider: cardWidthAndMargin is invalid. Attempting recalculation before slide.");
              if (!calculateCardWidthAndMargin() || cardWidthAndMargin <= 0) {
                  console.error("moveSlider: Recalculation failed. Cannot slide.");
+                 isSliding = false; // Release lock
                  return;
              }
-             console.log("moveSlider: Recalculation successful.");
-             setTrackPositionInstantly("pre-slide recalc");
+             setTrackPositionInstantly("pre-slide dimension recalc"); // Ensure track is correctly positioned if dimensions changed
          }
+
         isSliding = true;
         prevBtn.disabled = true;
         nextBtn.disabled = true;
-        sliderTrack.dataset.slideDirection = direction.toString();
-        sliderTrack.style.transition = `transform var(--transition-smooth-slider)`;
-        const currentTransform = window.getComputedStyle(sliderTrack).transform;
-        let currentTranslateX = 0;
-        if (currentTransform && currentTransform !== 'none') {
-            const matrix = new DOMMatrixReadOnly(currentTransform);
-            currentTranslateX = matrix.m41;
-        } else {
-             currentTranslateX = -stableVisibleStartIndex * cardWidthAndMargin;
-             console.warn("moveSlider: Could not get current transform, using stable index as base.");
-        }
-        const newTranslateX = currentTranslateX - (direction * cardWidthAndMargin);
+
+        sliderTrack.dataset.slideDirection = direction.toString(); // Store direction for transitionEnd
+
+        // Calculate current translate X. We don't rely on parsing transform if possible.
+        // The current position should effectively be -stableVisibleStartIndex * cardWidthAndMargin.
+        // The new position will be one card further in the given direction.
+        const newTranslateX = (-stableVisibleStartIndex - direction) * cardWidthAndMargin;
+
+        // Remove listener before new transition, add it back for this specific transition
         sliderTrack.removeEventListener('transitionend', handleTransitionEnd);
-        sliderTrack.addEventListener('transitionend', handleTransitionEnd);
+        sliderTrack.addEventListener('transitionend', handleTransitionEnd, { once: true }); // {once: true} is important
+
         sliderTrack.style.transform = `translateX(${newTranslateX}px)`;
-     };
+    };
 
     const initializeInfiniteSlider = async () => {
-         console.log("Starting infinite slider initialization v2.13 (Slider Fixes)...");
-        isSliding = true;
+        console.log("Starting infinite slider initialization v2.30 (Enhanced)...");
+        isSliding = true; // Lock during init
         initialLoadComplete = false;
-         if (!sliderTrack || !prevBtn || !nextBtn) {
-             console.error("Slider initialization failed: Essential DOM elements (track or buttons) not found.");
-             isSliding = false;
-             return;
-         }
+
+        if (!sliderTrack || !prevBtn || !nextBtn) {
+            console.error("Slider initialization failed: Essential DOM elements missing.");
+            isSliding = false;
+            return;
+        }
         prevBtn.disabled = true;
         nextBtn.disabled = true;
-        sliderTrack.innerHTML = '';
+        sliderTrack.innerHTML = ''; // Clear any existing placeholders
         testimonialDataCache = [];
         cardsInTrack = [];
-        cardWidthAndMargin = 0;
+        cardWidthAndMargin = 0; // Reset
         stableVisibleStartIndex = config.testimonials.bufferCards;
+
         if (!localTestimonials || localTestimonials.length === 0) {
             console.error("Local testimonial data is empty! Cannot initialize slider.");
             sliderTrack.innerHTML = `<p style="color: var(--clr-accent-red); padding: 20px; text-align: center;">Chyba: Chybí data pro recenze.</p>`;
             isSliding = false;
             return;
         }
-        const numVisible = config.testimonials.visibleCardsDesktop;
+
+        const numVisible = config.testimonials.visibleCardsDesktop; // Assuming this is the number of cards you want visible
         const numBuffer = config.testimonials.bufferCards;
         totalCardsInDOM = numVisible + 2 * numBuffer;
-        console.log(`Initial setup: Visible=${numVisible}, Buffer=${numBuffer}, TotalInDOM=${totalCardsInDOM}, StableStartIdx=${stableVisibleStartIndex}`);
+
         if (localTestimonials.length < totalCardsInDOM) {
-            console.warn(`Warning: Not enough unique testimonials (${localTestimonials.length}) to fill the initial track (${totalCardsInDOM}) without potential immediate reuse.`);
+            console.warn(`Warning: Not enough unique testimonials (${localTestimonials.length}) to fill the initial track (${totalCardsInDOM}) without immediate reuse. Some testimonials will be duplicated initially.`);
         }
+
+        // Populate initial cards (placeholders first)
         for (let i = 0; i < totalCardsInDOM; i++) {
             const cardElement = createPlaceholderCard();
             sliderTrack.appendChild(cardElement);
             cardsInTrack.push(cardElement);
         }
-        let attempt = 0;
-        const maxAttempts = localTestimonials.length * 2;
-        while (testimonialDataCache.length < totalCardsInDOM && attempt < maxAttempts && localTestimonials.length > 0) {
-             let randomIndex = Math.floor(Math.random() * localTestimonials.length);
-             let randomTestimonial = localTestimonials[randomIndex];
-             let retries = 0;
-             const maxRetries = 5;
-             while (testimonialDataCache.some(d => d && d.name === randomTestimonial.name) && retries < maxRetries && testimonialDataCache.length + (localTestimonials.length - testimonialDataCache.length) > totalCardsInDOM) {
-                 randomIndex = Math.floor(Math.random() * localTestimonials.length);
-                 randomTestimonial = localTestimonials[randomIndex];
-                 retries++;
-             }
-             testimonialDataCache.push(randomTestimonial);
-             attempt++;
-         }
-         while (testimonialDataCache.length < totalCardsInDOM && localTestimonials.length > 0) {
-              testimonialDataCache.push(localTestimonials[Math.floor(Math.random() * localTestimonials.length)]);
-         }
+
+        // Populate initial data cache, ensuring minimal immediate repeats if possible
+        let usedIndices = new Set();
+        for (let i = 0; i < totalCardsInDOM; i++) {
+            let testimonial;
+            let attempts = 0;
+            do {
+                testimonial = localTestimonials[Math.floor(Math.random() * localTestimonials.length)];
+                attempts++;
+            } while (testimonialDataCache.some(t => t.name === testimonial.name) && attempts < localTestimonials.length && localTestimonials.length > testimonialDataCache.length); // Try to avoid direct repeat if enough unique options
+            testimonialDataCache.push(testimonial);
+        }
+
+
+        // Update placeholders with actual content
         cardsInTrack.forEach((card, index) => {
-            const data = testimonialDataCache[index];
-            if (data) {
-                updateCardContent(card, data);
-            } else {
-                 console.warn(`Missing data for card index ${index} during initial population.`);
-                 updateCardContent(card, { name: "Chyba", text: "Data nenalezena.", rating: 0, role: "Systém" });
-             }
+            updateCardContent(card, testimonialDataCache[index]);
         });
-        console.log(`Created and populated ${cardsInTrack.length} initial cards from local data.`);
+
+        // Wait for layout to be calculated
         await new Promise(resolve => requestAnimationFrame(resolve));
+
         if (!calculateCardWidthAndMargin() || cardWidthAndMargin <= 0) {
-            console.error("Could not calculate card dimensions after initial population and layout. Aborting slider setup.");
+            console.error("Could not calculate card dimensions after initial population. Slider setup aborted.");
             sliderTrack.innerHTML = '<p style="color: var(--clr-accent-red); padding: 20px; text-align: center;">Chyba layoutu slideru.</p>';
             isSliding = false;
             return;
         }
+
         initialLoadComplete = true;
-        setTrackPositionInstantly("initialization");
-        console.log("Infinite slider initialized successfully (Local Data).");
-        isSliding = false;
+        setTrackPositionInstantly("initialization positioning"); // Set initial correct position
+
+        console.log(`Infinite slider initialized: ${cardsInTrack.length} cards in DOM, card width+margin: ${cardWidthAndMargin}px.`);
+        isSliding = false; // Release lock
         prevBtn.disabled = false;
         nextBtn.disabled = false;
-     };
+    };
+
 
     // --- Header Scroll Effect ---
     const handleScroll = () => {
         if (header) {
-            if (window.scrollY > 50) {
+            if (window.scrollY > 30) { // Reduced scroll threshold for quicker effect
                 header.classList.add('scrolled');
             } else {
                 header.classList.remove('scrolled');
             }
         }
-         const sections = document.querySelectorAll('main section[id]');
-         let currentSectionId = '';
-         sections.forEach(section => {
-             const sectionTop = section.offsetTop;
-             if (window.scrollY >= sectionTop - window.innerHeight / 2) {
-                 currentSectionId = section.getAttribute('id');
-             }
-         });
-         const navItems = navLinks.querySelectorAll('.nav-item');
-         navItems.forEach(item => {
-             item.classList.remove('active');
-             if (item.getAttribute('href')?.includes(`#${currentSectionId}`)) {
-                 item.classList.add('active');
-             }
-         });
+        // Active nav link highlighting
+        const sections = document.querySelectorAll('main section[id]');
+        let currentSectionId = '';
+        const scrollPosition = window.scrollY + header.offsetHeight + 20; // Offset by header height + a bit
+
+        sections.forEach(section => {
+            if (section.offsetTop <= scrollPosition && (section.offsetTop + section.offsetHeight) > scrollPosition) {
+                currentSectionId = section.getAttribute('id');
+            }
+        });
+
+        const navItems = navLinks.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.classList.remove('active');
+            if (item.getAttribute('href')?.includes(`#${currentSectionId}`)) {
+                item.classList.add('active');
+            }
+        });
     };
 
     // --- Mobile Menu Toggle ---
@@ -523,14 +530,13 @@ document.addEventListener('DOMContentLoaded', () => {
             navLinks.classList.toggle('active', isActive);
             menuOverlay.classList.toggle('active', isActive);
             body.classList.toggle('no-scroll', isActive);
-            header.classList.toggle('menu-open', isActive);
+            header.classList.toggle('menu-open', isActive); // Used for header styling when menu is open
             hamburger.setAttribute('aria-expanded', isActive ? 'true' : 'false');
         }
     };
-
-    const closeMenu = () => {
+    const closeMenu = () => { // Ensure this closes the menu fully
         if (hamburger && navLinks && menuOverlay && body && header) {
-            if (hamburger.classList.contains('active')) {
+             if (hamburger.classList.contains('active')) { // Only if active
                  hamburger.classList.remove('active');
                  navLinks.classList.remove('active');
                  menuOverlay.classList.remove('active');
@@ -544,219 +550,381 @@ document.addEventListener('DOMContentLoaded', () => {
     if (hamburger && navLinks && menuOverlay) {
         hamburger.addEventListener('click', toggleMenu);
         menuOverlay.addEventListener('click', closeMenu);
-        navLinks.addEventListener('click', (e) => {
+        navLinks.addEventListener('click', (e) => { // Close on nav item click
             if (e.target.matches('a.nav-item') || e.target.closest('a.mobile-auth-link')) {
                 closeMenu();
             }
         });
     }
 
-    // --- Mouse Follower ---
-    let mouseX = 0, mouseY = 0;
-    let followerX = 0, followerY = 0;
-    let isHoveringInteractable = false;
+
+    // --- Enhanced Mouse Follower ---
+    let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2; // Initial position center
+    let followerX = mouseX, followerY = mouseY;
+    let currentScale = 1;
+    let currentOpacity = 0.7; // Initial opacity
+    const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
     const updateFollower = () => {
-        if (!follower || !config.mouseFollower.enabled) return;
+        if (!follower || !config.mouseFollower.enabled || isTouchDevice) return;
+
         const dx = mouseX - followerX;
         const dy = mouseY - followerY;
         followerX += dx * config.mouseFollower.followSpeed;
         followerY += dy * config.mouseFollower.followSpeed;
-        follower.style.transform = `translate(${followerX - follower.offsetWidth / 2}px, ${followerY - follower.offsetHeight / 2}px) scale(${isHoveringInteractable ? config.mouseFollower.hoverScale : 1})`;
+
+        follower.style.transform = `translate(${followerX - follower.offsetWidth / 2}px, ${followerY - follower.offsetHeight / 2}px) scale(${currentScale})`;
+        follower.style.opacity = currentOpacity;
         requestAnimationFrame(updateFollower);
     };
-    const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
     if (!isTouchDevice && follower && config.mouseFollower.enabled) {
-        window.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; if(follower.style.opacity !== '1') follower.style.opacity = '1'; });
-        document.addEventListener('mouseleave', () => { if (follower) follower.style.opacity = '0'; });
-        document.addEventListener('mouseenter', () => { if (follower) follower.style.opacity = '0.7'; });
-        document.querySelectorAll('a, button, .btn, .slider-btn').forEach(el => {
-            el.addEventListener('mouseenter', () => isHoveringInteractable = true);
-            el.addEventListener('mouseleave', () => isHoveringInteractable = false);
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            if (follower.style.display === 'none') follower.style.display = ''; // Ensure visible
+            currentOpacity = 0.7; // Default opacity when moving
         });
+        document.addEventListener('mouseleave', () => { currentOpacity = 0; }); // Hide when mouse leaves window
+        document.addEventListener('mouseenter', () => { currentOpacity = 0.7; }); // Show on mouse enter
+
+        document.querySelectorAll('a, button, .btn, .slider-btn, .feature-card, .how-it-works-step, .yuki-card, input[type="text"], textarea')
+            .forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    currentScale = el.matches('input[type="text"], textarea') ? config.mouseFollower.textHoverScale : config.mouseFollower.hoverScale;
+                    follower.classList.add('is-hovering');
+                });
+                el.addEventListener('mouseleave', () => {
+                    currentScale = 1;
+                    follower.classList.remove('is-hovering');
+                });
+            });
+        document.body.addEventListener('mousedown', () => { currentScale = config.mouseFollower.clickScale; follower.classList.add('is-clicking'); });
+        document.body.addEventListener('mouseup', () => { currentScale = config.mouseFollower.hoverScale; follower.classList.remove('is-clicking'); });
+
+
         requestAnimationFrame(updateFollower);
     } else if (follower) {
-        follower.style.display = 'none';
+        follower.style.display = 'none'; // Hide follower on touch devices or if disabled
     }
+
 
     // --- Footer Year ---
     if (yearSpan) { yearSpan.textContent = new Date().getFullYear(); }
 
-    // --- AI Demo Simulation ---
-    const aiDemoSteps = [ { type: 'status', text: 'AI jádro aktivní. Monitoruji interakce...' }, { type: 'status', text: 'Detekováno načtení dat o výkonu studenta ID: 734B' }, { type: 'input', text: 'getUserPerformance("734B") --area=algebra --level=základní' }, { type: 'process', text: 'Zpracování požadavku...', duration: 800, progress: 15 }, { type: 'analysis', text: 'Analýza dat: Nalezeno 156 záznamů...' }, { type: 'analysis', text: 'Identifikace slabých míst: Zlomky (úspěšnost 45%), Rovnice (úspěšnost 58%)' }, { type: 'analysis', text: 'Silné stránky: Procenta (úspěšnost 92%)' }, { type: 'process', text: 'Generování doporučení...', duration: 1200, progress: 40 }, { type: 'output', text: 'Doporučení: 3x cvičení na sčítání zlomků, 2x cvičení na lineární rovnice.' }, { type: 'input', text: 'generateAdaptivePlan("734B", ["zlomky", "rovnice"])' }, { type: 'process', text: 'Vytváření personalizovaného plánu...', duration: 1500, progress: 75 }, { type: 'output', text: 'Plán vygenerován: 5 kroků, odhadovaná doba 45 minut.' }, { type: 'status', text: 'Aktualizace profilu studenta...' }, { type: 'process', text: 'Synchronizace s databází...', duration: 600, progress: 90 }, { type: 'status', text: 'Systém připraven pro další vstup.', progress: 100 } ];
+    // --- Enhanced AI Demo Simulation ---
+    const aiDemoSteps = [
+        { type: 'status', text: 'AI jádro v2.30 aktivní. Připraven na analýzu...', progress: 5 },
+        { type: 'status', text: 'Probíhá skenování interakcí uživatele ID: 734B...', delay: 700 },
+        { type: 'input', text: 'ANALYZE_USER_PERFORMANCE --id=734B --subject=algebra --level=intermediate' },
+        { type: 'process', text: 'Zpracování dotazu na výkon...', duration: 900, progress: 20 },
+        { type: 'analysis', text: 'Načteno 188 relevantních datových bodů...' },
+        { type: 'analysis', text: 'Identifikace vzorů: Problémy s kvadratickými rovnicemi (úspěšnost 38%), logaritmy (úspěšnost 55%).', delay: 600 },
+        { type: "analysis", text: "Silné stránky: Lineární nerovnice (úspěšnost 95%), procenta (91%)."},
+        { type: 'process', text: 'Generování personalizované strategie učení...', duration: 1300, progress: 50 },
+        { type: 'output', text: 'Strategie: 1. Revize základů logaritmů (video + 2 cvičení). 2. Interaktivní modul na kvadratické rovnice. 3. Souhrnný test.' },
+        { type: 'input', text: 'CREATE_ADAPTIVE_TASK_SEQUENCE --strategy_id=S734B_ALG --tasks=5' },
+        { type: 'process', text: 'Sestavování sekvence úkolů...', duration: 1600, progress: 80 },
+        { type: 'output', text: 'Sekvence vytvořena. Odhadovaný čas: 55 minut. První úkol: "Základy logaritmů - Interaktivní video".' },
+        { type: 'status', text: 'Profil studenta aktualizován s novým plánem.', delay: 500 },
+        { type: 'process', text: 'Synchronizace s cloudovým modulem Justax...', duration: 700, progress: 95 },
+        { type: 'status', text: 'AI připravena. Čekám na další interakci.', progress: 100 }
+    ];
     let currentAiStep = 0; let isAiDemoRunning = false; let aiDemoTimeout;
-    const addAiLogLine = (text, type) => { if (!aiOutput) return; const line = document.createElement('div'); line.className = `ai-log-line ${type}`; line.textContent = `[${new Date().toLocaleTimeString()}] ${text}`; aiOutput.appendChild(line); aiOutput.scrollTop = aiOutput.scrollHeight; };
-    const simulateTyping = (text, onComplete) => { if (!aiFakeInput) { onComplete?.(); return; } let index = 0; aiFakeInput.textContent = ''; const interval = setInterval(() => { if (index < text.length) { aiFakeInput.textContent += text.charAt(index); index++; } else { clearInterval(interval); if (onComplete) setTimeout(onComplete, 200); } }, config.aiDemo.typingSpeed); };
-    const updateAiProgress = (percentage) => { if (aiProgressBar && aiProgressLabel) { aiProgressBar.style.width = `${percentage}%`; aiProgressBar.setAttribute('aria-valuenow', percentage); } };
-    const runAiDemoStep = () => { if (currentAiStep >= aiDemoSteps.length || !aiOutput) { isAiDemoRunning = false; if(aiStatusIndicator) aiStatusIndicator.textContent = 'ČEKÁ'; return; } const step = aiDemoSteps[currentAiStep]; const delay = config.aiDemo.stepBaseDelay + Math.random() * config.aiDemo.stepRandomDelay; if (step.type === 'input') { simulateTyping(step.text, () => { addAiLogLine(`> ${step.text}`, step.type); if (step.progress) updateAiProgress(step.progress); if (aiProgressLabel) aiProgressLabel.textContent = step.text; currentAiStep++; aiDemoTimeout = setTimeout(runAiDemoStep, delay / 2); }); } else { addAiLogLine(step.text, step.type); if (step.progress) updateAiProgress(step.progress); if (aiProgressLabel && step.type !== 'status') aiProgressLabel.textContent = step.text; currentAiStep++; aiDemoTimeout = setTimeout(runAiDemoStep, delay + (step.duration || 0)); } if(aiStatusIndicator) aiStatusIndicator.textContent = 'ZPRACOVÁVÁ'; };
-    const aiDemoObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { if (config.aiDemo.enabled && entry.isIntersecting && !isAiDemoRunning) { isAiDemoRunning = true; currentAiStep = 0; if (aiOutput) aiOutput.innerHTML = ''; updateAiProgress(0); if (aiProgressLabel) aiProgressLabel.textContent = 'Inicializace...'; if (aiFakeInput) aiFakeInput.textContent = ''; runAiDemoStep(); } else if (!entry.isIntersecting && isAiDemoRunning) { clearTimeout(aiDemoTimeout); isAiDemoRunning = false; if(aiStatusIndicator) aiStatusIndicator.textContent = 'POZASTAVENO'; } }); }, { threshold: 0.5 });
-    if (demoSection && config.aiDemo.enabled) { aiDemoObserver.observe(demoSection); } else { if (aiProgressLabel) aiProgressLabel.textContent = 'AI Demo není aktivní'; if (aiOutput) addAiLogLine('AI Demo je momentálně neaktivní.', 'status'); }
 
-
-    // --- *** NEW/REVISED: Scroll Animations (Intersection Observer & Letter Animation) *** ---
-
-    const animatedElements = document.querySelectorAll('[data-animate], [data-animate-letters]');
-    const observerOptions = { root: null, rootMargin: '0px', threshold: config.animations.scrollThreshold };
-
-    // *** REVISED: Function to SET UP letters for mask animation ***
-    const setupLetterAnimation = (element) => {
-        const textContent = element.textContent || '';
-        // Use the globally scoped heroHighlightSpan initially
-        const originalHighlightElement = element.querySelector('.highlight');
-        const highlightText = originalHighlightElement ? (originalHighlightElement.dataset.text || originalHighlightElement.textContent || '') : '';
-        let currentHighlightSpan = null;
-        let letterIndex = 0;
-
-        element.innerHTML = ''; // Clear original content
-        element.style.setProperty('--letter-count', textContent.length); // Set total count for subsequent delays
-
-        textContent.split('').forEach(char => {
-            const span = document.createElement('span');
-            span.className = 'letter-span'; // Class for CSS targeting
-            span.textContent = char === ' ' ? '\u00A0' : char; // Handle spaces
-            span.style.setProperty('--letter-index', letterIndex); // Set index for staggered delay
-
-            const isHighlightChar = originalHighlightElement &&
-                                   highlightText &&
-                                   textContent.includes(highlightText) &&
-                                   charIndex >= textContent.indexOf(highlightText) &&
-                                   charIndex < textContent.indexOf(highlightText) + highlightText.length;
-
-            if (isHighlightChar) {
-                if (!currentHighlightSpan) {
-                    currentHighlightSpan = document.createElement('span');
-                    currentHighlightSpan.className = originalHighlightElement.className; // Copy classes
-                    if (originalHighlightElement.dataset.text) {
-                        currentHighlightSpan.dataset.text = originalHighlightElement.dataset.text; // Copy data-text
-                    }
-                    // Update the global reference *if* this is the hero highlight element
-                    if (originalHighlightElement === heroHighlightSpan) {
-                        heroHighlightSpan = currentHighlightSpan; // Update global reference
-                        console.log("Hero highlight span reference updated during setup.");
-                    }
-                    element.appendChild(currentHighlightSpan);
-                }
-                currentHighlightSpan.appendChild(span);
-            } else {
-                element.appendChild(span);
-                currentHighlightSpan = null;
-            }
-
-            letterIndex++;
-        });
-        console.log(`Setup letter animation for: ${element.id || element.tagName}`);
+    const addAiLogLine = (text, type) => {
+        if (!aiOutput) return;
+        const line = document.createElement('div');
+        line.className = `ai-log-line ${type}`;
+        // Add a timestamp with milliseconds for more "techy" feel
+        const now = new Date();
+        const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}.${now.getMilliseconds().toString().padStart(3, '0')}`;
+        line.innerHTML = `<span class="ai-log-timestamp">[${timeString}]</span> <span class="ai-log-text">${text}</span>`;
+        aiOutput.appendChild(line);
+        aiOutput.scrollTop = aiOutput.scrollHeight; // Auto-scroll
     };
 
-    // *** REVISED: Intersection Observer Callback ***
+    const simulateTyping = (text, onComplete) => {
+        if (!aiFakeInput) { onComplete?.(); return; }
+        let index = 0;
+        aiFakeInput.textContent = '';
+        const interval = setInterval(() => {
+            if (index < text.length) {
+                aiFakeInput.textContent += text.charAt(index);
+                index++;
+            } else {
+                clearInterval(interval);
+                if (onComplete) setTimeout(onComplete, 150 + Math.random() * 100); // Slight random delay after typing
+            }
+        }, config.aiDemo.typingSpeed - 5 + Math.random() * 10); // Vary typing speed slightly
+    };
+
+    const updateAiProgress = (percentage, label) => {
+        if (aiProgressBar) {
+            aiProgressBar.style.width = `${percentage}%`;
+            aiProgressBar.setAttribute('aria-valuenow', percentage);
+        }
+        if (aiProgressLabel && label) {
+            aiProgressLabel.textContent = label;
+        } else if (aiProgressLabel && percentage === 100) {
+            aiProgressLabel.textContent = "Systém připraven";
+        }
+    };
+
+    const runAiDemoStep = () => {
+        if (currentAiStep >= aiDemoSteps.length || !aiOutput) {
+            isAiDemoRunning = false;
+            if(aiStatusIndicator) aiStatusIndicator.textContent = 'IDLE';
+            updateAiProgress(100, "AI Idle / Čekání na vstup...");
+            return;
+        }
+        const step = aiDemoSteps[currentAiStep];
+        const baseDelay = step.delay || config.aiDemo.stepBaseDelay;
+        const randomDelayPart = Math.random() * config.aiDemo.stepRandomDelay;
+        const totalDelay = baseDelay + randomDelayPart;
+
+        if (step.type === 'input') {
+            aiProgressLabel.textContent = "Očekávám vstup...";
+            simulateTyping(step.text, () => {
+                addAiLogLine(`> ${step.text}`, step.type);
+                if (step.progress) updateAiProgress(step.progress, step.text);
+                currentAiStep++;
+                aiDemoTimeout = setTimeout(runAiDemoStep, totalDelay / 2); // Shorter delay after input
+            });
+        } else {
+            addAiLogLine(step.text, step.type);
+            if (step.progress) updateAiProgress(step.progress, step.text);
+            else if (step.type !== 'status') updateAiProgress( (currentAiStep / aiDemoSteps.length) * 100 , step.text);
+
+            currentAiStep++;
+            aiDemoTimeout = setTimeout(runAiDemoStep, totalDelay + (step.duration || 0));
+        }
+        if(aiStatusIndicator) aiStatusIndicator.textContent = step.type === 'process' ? 'ZPRACOVÁVÁM' : 'AKTIVNÍ';
+    };
+
+    const aiDemoObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (config.aiDemo.enabled && entry.isIntersecting && !isAiDemoRunning) {
+                console.log("AI Demo section visible, starting simulation.");
+                isAiDemoRunning = true;
+                currentAiStep = 0;
+                if (aiOutput) aiOutput.innerHTML = ''; // Clear previous logs
+                updateAiProgress(0, 'Inicializace AI jádra...');
+                if (aiFakeInput) aiFakeInput.textContent = '';
+                runAiDemoStep();
+            } else if (!entry.isIntersecting && isAiDemoRunning) {
+                console.log("AI Demo section not visible, pausing simulation.");
+                clearTimeout(aiDemoTimeout);
+                isAiDemoRunning = false;
+                if(aiStatusIndicator) aiStatusIndicator.textContent = 'POZASTAVENO';
+                // updateAiProgress might show last known progress or a paused state
+            }
+        });
+    }, { threshold: 0.4 }); // Trigger when 40% of the demo is visible
+
+    if (demoSection && config.aiDemo.enabled) {
+        aiDemoObserver.observe(demoSection);
+    } else {
+        if (aiProgressLabel) aiProgressLabel.textContent = 'AI Demo je neaktivní';
+        if (aiOutput) addAiLogLine('AI Demo je momentálně neaktivní.', 'status');
+        if(aiStatusIndicator) aiStatusIndicator.textContent = 'OFFLINE';
+    }
+
+    // --- Enhanced Scroll Animations (Intersection Observer & Letter Animation) ---
+    const animatedElements = document.querySelectorAll('[data-animate], [data-animate-letters]');
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px 0px -50px 0px', // Animate when element is 50px from bottom of viewport
+        threshold: config.animations.scrollThreshold
+    };
+
+    // --- Enhanced Letter Animation Setup ---
+    const setupLetterAnimation = (element) => {
+        const textContent = element.dataset.text || element.textContent || ''; // Prefer data-text for highlight preservation
+        const originalHighlightDataText = heroHighlightSpan ? (heroHighlightSpan.dataset.text || heroHighlightSpan.textContent) : '';
+        let charIndex = 0; // To track overall character position for highlight matching
+
+        element.innerHTML = ''; // Clear original content before adding spans
+        element.style.setProperty('--letter-count', textContent.length); // For staggering delays
+
+        let currentWordWrapper = document.createElement('span');
+        currentWordWrapper.className = 'word-wrapper';
+        element.appendChild(currentWordWrapper);
+
+        textContent.split('').forEach((char, localIndex) => {
+            const span = document.createElement('span');
+            span.className = 'letter-span';
+            span.textContent = char === ' ' ? '\u00A0' : char; // Non-breaking space for actual spaces
+            span.style.setProperty('--letter-index', charIndex); // Use charIndex for consistent delay
+
+            // Determine if this character is part of the highlight
+            let isHighlightChar = false;
+            if (originalHighlightDataText && textContent.includes(originalHighlightDataText)) {
+                const highlightStartIndex = textContent.indexOf(originalHighlightDataText);
+                const highlightEndIndex = highlightStartIndex + originalHighlightDataText.length;
+                if (charIndex >= highlightStartIndex && charIndex < highlightEndIndex) {
+                    isHighlightChar = true;
+                }
+            }
+
+            if (isHighlightChar) {
+                // If this is the first char of the highlight, or if heroHighlightSpan doesn't exist yet within the current word
+                if (!currentWordWrapper.querySelector('.highlight')) {
+                    const newHighlightSpan = document.createElement('span');
+                    newHighlightSpan.className = 'highlight'; // Keep original class for styling
+                    if(originalHighlightDataText) newHighlightSpan.dataset.text = originalHighlightDataText;
+                    currentWordWrapper.appendChild(newHighlightSpan);
+                    // Update the global heroHighlightSpan if this is the one in the hero section
+                    if (element === heroHeading) {
+                         heroHighlightSpan = newHighlightSpan;
+                         console.log("Hero highlight span reference updated during letter setup.");
+                    }
+                }
+                // Append the letter span to the highlight span
+                currentWordWrapper.querySelector('.highlight').appendChild(span);
+            } else {
+                currentWordWrapper.appendChild(span);
+            }
+
+            if (char === ' ') {
+                currentWordWrapper = document.createElement('span');
+                currentWordWrapper.className = 'word-wrapper';
+                element.appendChild(currentWordWrapper);
+            }
+            charIndex++;
+        });
+        console.log(`Letter animation setup for: ${element.id || element.tagName}, total letters: ${charIndex}`);
+    };
+
+
     const animationObserver = new IntersectionObserver((entries, observer) => {
         entries.forEach((entry) => {
             if (entry.isIntersecting) {
                 const element = entry.target;
-                // console.log(`Element intersecting: ${element.id || element.tagName}`);
+                const animationOrder = parseInt(element.style.getPropertyValue('--animation-order') || '0');
+                const baseDelay = animationOrder * config.animations.staggerDelay;
 
                 if (element.dataset.animateLetters !== undefined) {
-                    if (!element.classList.contains('letters-setup')) {
-                        setupLetterAnimation(element); // Prepare the spans
-                        element.classList.add('letters-setup');
+                    if (!element.classList.contains('letters-setup-complete')) {
+                        setupLetterAnimation(element);
+                        element.classList.add('letters-setup-complete');
+                        // Trigger reveal after a short delay to ensure setup is rendered
                         setTimeout(() => {
-                             element.classList.add('is-revealing'); // Trigger the reveal
-                             // console.log(`Added 'is-revealing' to ${element.id || element.tagName}`);
-                        }, 10);
+                            element.classList.add('is-revealing');
+                            // Animate subsequent hero elements (p, buttons) after H1 letters finish
+                            if (element === heroHeading) {
+                                const letterCount = parseInt(element.style.getPropertyValue('--letter-count') || 10);
+                                const h1AnimationDuration = (letterCount * config.animations.letterMaskRevealDelay) + 500; // Estimate H1 animation time
+                                document.querySelectorAll('.hero p[data-animate], .hero .hero-buttons[data-animate]').forEach(el => {
+                                    const heroElOrder = parseInt(el.style.getPropertyValue('--animation-order') || '0');
+                                    el.style.transitionDelay = `${h1AnimationDuration + (heroElOrder * config.animations.heroElementEntryDelay)}ms`;
+                                    el.classList.add('animated');
+                                });
+                            }
+                        }, 100); // Small delay for setup
                     }
                 } else {
-                     const delay = parseInt(element.style.getPropertyValue('--animation-order') || '0') * config.animations.staggerDelay;
-                     element.style.transitionDelay = `${delay}ms`;
+                    element.style.transitionDelay = `${baseDelay}ms`;
                     element.classList.add('animated');
-                    // console.log(`Added 'animated' to ${element.id || element.tagName}`);
                 }
-                observer.unobserve(element);
-                // console.log(`Unobserved: ${element.id || element.tagName}`);
+                observer.unobserve(element); // Animate only once
             }
         });
     }, observerOptions);
 
     if (animatedElements.length > 0) {
         animatedElements.forEach(el => {
+            // Initial hide for elements to be animated, to prevent flash of unstyled/unanimated content
+            el.style.opacity = '0';
             animationObserver.observe(el);
         });
-        console.log(`Observing ${animatedElements.length} elements for scroll animations.`);
+        // For hero H1, opacity is handled by letter spans, so ensure parent is visible for setup
+        if (heroHeading) heroHeading.style.opacity = '1';
+        console.log(`Observing ${animatedElements.length} elements for scroll-triggered animations.`);
     }
 
-    // --- *** NEW: Interactive Gradient Logic *** ---
-    const handleHeroMouseMove = (event) => {
-        // Make sure heroHighlightSpan is the correct, potentially recreated element
-        if (!heroSection || !heroHighlightSpan) {
-            // Attempt to re-select if it became null after setup
-             if(heroSection) heroHighlightSpan = heroSection.querySelector('.hero h1 .highlight');
-             if (!heroHighlightSpan) return; // Still not found, exit
-        }
 
-        if (rafId) {
-            cancelAnimationFrame(rafId);
+    // --- Enhanced Interactive Gradient for Hero ---
+    const handleHeroMouseMove = (event) => {
+        if (!heroSection || !heroHighlightSpan || isTouchDevice) {
+            return;
         }
+        if (rafId) cancelAnimationFrame(rafId); // Optimize rendering
 
         rafId = requestAnimationFrame(() => {
             const rect = heroSection.getBoundingClientRect();
+            // Calculate mouse position relative to the hero section, clamped between 0 and 1
             const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
             const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
 
-            heroHighlightSpan.style.setProperty('--mouse-x', x.toFixed(3));
-            heroHighlightSpan.style.setProperty('--mouse-y', y.toFixed(3));
+            // Update CSS variables used by the gradient
+            // Using a slight easing for smoother visual effect on the gradient itself
+            const currentX = parseFloat(heroHighlightSpan.style.getPropertyValue('--mouse-x') || "0.5");
+            const currentY = parseFloat(heroHighlightSpan.style.getPropertyValue('--mouse-y') || "0.5");
+            const targetX = currentX + (x - currentX) * 0.2; // Easing factor
+            const targetY = currentY + (y - currentY) * 0.2;
+
+            heroHighlightSpan.style.setProperty('--mouse-x', targetX.toFixed(3));
+            heroHighlightSpan.style.setProperty('--mouse-y', targetY.toFixed(3));
         });
     };
 
-    // Add listener only if the necessary elements exist AND not on touch device
-    if (heroSection && heroHighlightSpan && !isTouchDevice) {
-         console.log("Initializing interactive hero gradient.");
+    if (heroSection && !isTouchDevice) {
+        console.log("Initializing interactive hero gradient.");
         heroSection.addEventListener('mousemove', handleHeroMouseMove);
-         heroSection.addEventListener('mouseleave', () => {
-             if (rafId) cancelAnimationFrame(rafId);
-             rafId = requestAnimationFrame(() => {
-                // Ensure heroHighlightSpan is still valid
-                if(heroHighlightSpan) {
-                    heroHighlightSpan.style.setProperty('--mouse-x', 0.5);
-                    heroHighlightSpan.style.setProperty('--mouse-y', 0.5);
-                } else {
-                     // Attempt re-selection on mouseleave if needed
-                     const currentHighlight = heroSection?.querySelector('.hero h1 .highlight');
-                     if (currentHighlight) {
-                         currentHighlight.style.setProperty('--mouse-x', 0.5);
-                         currentHighlight.style.setProperty('--mouse-y', 0.5);
+        heroSection.addEventListener('mouseleave', () => { // Reset gradient to center on mouse leave
+            if (rafId) cancelAnimationFrame(rafId);
+            if (heroHighlightSpan) { // Check if span exists
+                 // Smoothly return to center
+                 let currentX = parseFloat(heroHighlightSpan.style.getPropertyValue('--mouse-x') || "0.5");
+                 let currentY = parseFloat(heroHighlightSpan.style.getPropertyValue('--mouse-y') || "0.5");
+                 const resetInterval = setInterval(() => {
+                     currentX += (0.5 - currentX) * 0.1;
+                     currentY += (0.5 - currentY) * 0.1;
+                     heroHighlightSpan.style.setProperty('--mouse-x', currentX.toFixed(3));
+                     heroHighlightSpan.style.setProperty('--mouse-y', currentY.toFixed(3));
+                     if (Math.abs(currentX - 0.5) < 0.01 && Math.abs(currentY - 0.5) < 0.01) {
+                         heroHighlightSpan.style.setProperty('--mouse-x', "0.5");
+                         heroHighlightSpan.style.setProperty('--mouse-y', "0.5");
+                         clearInterval(resetInterval);
                      }
-                }
-             });
-         });
-    } else if (!heroHighlightSpan) {
-         console.warn("Hero highlight span (.hero h1 .highlight) not found initially. Interactive gradient disabled.");
-    } else if (isTouchDevice) {
-         console.log("Touch device detected. Interactive hero gradient disabled.");
-         if (heroHighlightSpan) {
-            heroHighlightSpan.style.setProperty('--mouse-x', 0.5);
-            heroHighlightSpan.style.setProperty('--mouse-y', 0.2);
-         }
+                 }, 16);
+            }
+        });
+    } else if (heroHighlightSpan && isTouchDevice) { // Default static position for touch devices
+        heroHighlightSpan.style.setProperty('--mouse-x', 0.5);
+        heroHighlightSpan.style.setProperty('--mouse-y', 0.3); // Slightly offset for static visual appeal
+        console.log("Touch device detected. Interactive hero gradient set to static.");
     }
 
+
     // --- Event Listeners ---
-    window.addEventListener('scroll', debounce(handleScroll, 50));
+    window.addEventListener('scroll', debounce(handleScroll, 30)); // More responsive scroll handling
+
     if (prevBtn && nextBtn) {
         prevBtn.addEventListener('click', () => moveSlider(-1));
         nextBtn.addEventListener('click', () => moveSlider(1));
     } else {
-        console.error("Failed to attach listeners: Slider buttons not found.");
+        console.warn("Testimonial slider buttons not found. Slider navigation will not work.");
     }
+
     window.addEventListener('resize', debounce(() => {
         console.log("Window resized, recalculating slider dimensions...");
-        if (initialLoadComplete && calculateCardWidthAndMargin() > 0) {
-             setTrackPositionInstantly("resize");
-        } else if (initialLoadComplete) {
-             console.warn("Recalculation failed after resize.");
+        if (initialLoadComplete && sliderTrack) { // Ensure slider is initialized
+            if (calculateCardWidthAndMargin() > 0) {
+                 setTrackPositionInstantly("resize adjustment");
+            } else {
+                 console.error("Recalculation of card width failed on resize. Slider may not display correctly.");
+            }
         }
-    }, 250));
+    }, 200));
+
 
     // --- Initialize Components ---
-    handleScroll();
-    initializeInfiniteSlider();
+    handleScroll(); // Initial call to set header state and active nav link
+    initializeInfiniteSlider(); // Setup the testimonial slider
 
-    // --- Final Log ---
-    console.log("JUSTAX Interface v2.20 (Hero Animation Update) Initialization Complete.");
+    // Final Log
+    console.log("JUSTAX Interface v2.30 (Enhanced Animations) Initialization Complete.");
 
 }); // End DOMContentLoaded
