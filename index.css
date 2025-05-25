@@ -509,39 +509,42 @@ section:has(.section-title.animated) .section-title span::after,
 .hero h1 {
 	margin-bottom: 2.2rem;
 	font-weight: 800;
-	color: var(--clr-text-highlight); /* Базовый цвет для всего h1 */
-    text-shadow: 0px 2px 6px rgba(0, 0, 0, 0.85), 0px 0px 2px rgba(0,0,0,0.9); /* Убираем тень от букв для теста */
+	color: var(--clr-text-highlight); 
+    text-shadow: 0px 2px 6px rgba(0, 0, 0, 0.85), 0px 0px 2px rgba(0,0,0,0.9), 0 0 30px rgba(0, 242, 255, 0.2); /* Вернули основную тень для h1 */
     overflow: visible;
-    line-height: 1.3; /* ЕЩЕ УВЕЛИЧИМ */
-    padding-top: 0.3em; /* ЕЩЕ УВЕЛИЧИМ */
-    padding-bottom: 0.3em; /* ЕЩЕ УВЕЛИЧИМ */
+    line-height: 1.3; 
+    padding-top: 0.3em;
+    padding-bottom: 0.3em;
 }
 
-/* УПРОЩЕНИЕ ДЛЯ ДИАГНОСТИКИ */
+/* ВОЗВРАЩАЕМ СТИЛИ ДЛЯ .highlight */
 .hero h1 .highlight {
-    /* background: none; */ /* Убираем градиент */
-    /* -webkit-background-clip: initial; */ /* Сбрасываем обрезку по тексту */
-    /* background-clip: initial; */ /* Сбрасываем обрезку по тексту */
-    color: var(--clr-accent-pink) !important; /* ЯВНЫЙ ЦВЕТ ДЛЯ ДИАГНОСТИКИ - розовый */
-    text-shadow: none; /* Убираем тень */
-    /* Остальные стили для .highlight оставляем, т.к. они влияют на позиционирование */
+    background: linear-gradient(120deg,
+        var(--clr-accent-green),
+        var(--clr-accent-cyan),
+        var(--clr-accent-purple),
+        var(--clr-accent-pink),
+        var(--clr-accent-orange),
+        var(--clr-accent-green)
+    );
+	background-size: 400% 400%;
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent !important; /* Оставляем transparent с !important */
+    text-shadow: none; /* Тень для .highlight не нужна, если есть градиент */
     position: relative;
 	display: inline-block;
     background-position: calc(var(--mouse-x, 0.5) * 100%) calc(var(--mouse-y, 0.5) * 100%);
     transition: background-position 0.15s linear;
-    animation: none; /* Убираем анимацию highlightPulse для теста */
+    animation: highlightPulse 5s infinite ease-in-out; /* Возвращаем анимацию */
     overflow: visible;
     z-index: 1;
 }
 
-/* Возвращаем оригинальную анимацию, если диагностика не нужна */
- @keyframes highlightPulse {
+@keyframes highlightPulse {
     0%, 100% { filter: brightness(1); }
     50% { filter: brightness(1.15) saturate(1.1); }
 }
-/* Если после диагностики .highlight все еще не виден, можно вернуть анимацию:
-.hero h1 .highlight { animation: highlightPulse 5s infinite ease-in-out; }
-*/
 
 
 .word-wrapper {
@@ -553,32 +556,33 @@ section:has(.section-title.animated) .section-title span::after,
     margin-right: 0;
 }
 
-/* УПРОЩЕНИЕ ДЛЯ ДИАГНОСТИКИ */
+/* ЧАСТИЧНО ВОЗВРАЩАЕМ СТИЛИ ДЛЯ .letter-span И АНИМАЦИИ */
 .letter-span {
-	display: inline-block !important; /* Важно для отображения */
-	opacity: 1 !important; /* Максимальная видимость */
-	clip-path: none !important; /* Убираем обрезку */
-	transform: none !important; /* Убираем трансформации */
-    transition: none !important; /* Убираем переходы на время теста */
-	color: var(--clr-text-highlight); /* ЯВНЫЙ ЦВЕТ ДЛЯ ВСЕХ БУКВ - белый */
-    /* text-shadow: 0 0 5px yellow; /* Для теста можно добавить тень, чтобы видеть буквы */
+	display: inline-block; /* Убираем !important */
+	/* opacity: 1; /* Будет управляться анимацией */
+	/* clip-path: inset(0 0% 0 0); /* Будет управляться анимацией */
+	transition: clip-path 0.7s cubic-bezier(0.65, 0, 0.35, 1), transform 0.7s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.7s cubic-bezier(0.65, 0, 0.35, 1); /* Убираем !important */
+	transition-delay: calc(var(--letter-index, 0) * 50ms);
+    transform-style: preserve-3d; /* Возвращаем */
+    perspective: 700px; /* Возвращаем */
+    /* transform: none !important; /* Убираем */
+    will-change: clip-path, transform, opacity; /* Возвращаем */
     min-width: 1px;
-    perspective: none !important;
-    transform-style: flat !important;
-    /* Остальные свойства, такие как font-family, font-size, font-weight, letter-spacing наследуются от h1 */
+    color: inherit; /* Пусть наследует цвет: от .highlight (transparent) или от h1 (белый) */
 }
 
-/* Стили для анимации, если JS их использует (сейчас они не должны влиять из-за !important выше) */
+/* Начальное состояние для анимации (когда еще нет .is-revealing) */
 [data-animate-letters]:not(.is-revealing) .letter-span {
-    /* opacity: 0; */ /* Закомментировано для теста */
-	/* clip-path: inset(0 100% 0 0); */
-    /* transform: translateY(100%) rotateX(-90deg) scale(0.7); */
+    opacity: 0;
+	clip-path: inset(0 50% 0 50%); /* Менее агрессивное скрытие по горизонтали */
+    transform: translateY(60%) rotateX(-70deg) scale(0.8); /* Менее агрессивные трансформации */
 }
 
+/* Конечное состояние для анимации */
 [data-animate-letters].is-revealing .letter-span {
-	/* clip-path: inset(0 0 0 0); */
-    /* transform: translateY(0) rotateX(0deg) scale(1); */
-    /* opacity: 1; */
+	clip-path: inset(0 0 0 0);
+    transform: translateY(0) rotateX(0deg) scale(1);
+    opacity: 1;
 }
 
 
@@ -1671,7 +1675,7 @@ button:hover ~ .mouse-follower-glow,
 	.mobile-auth-link { display: inline-flex; margin-top: 28px; width: 100%; font-size: 1rem; }
 
 	.hero { min-height: 95vh; padding-top: calc(var(--layout-header-height) + 35px); }
-	.hero h1 { font-size: clamp(2.1rem, 8.5vw, 3.2rem); line-height: 1.3; } /* Увеличена высота строки для мобильных */
+	.hero h1 { font-size: clamp(2.1rem, 8.5vw, 3.2rem); line-height: 1.3; }
 	.hero p { font-size: 1.02rem; max-width: 92%; }
 	.hero-buttons { flex-direction: column; gap: 18px; align-items: center; }
 	.hero-buttons .btn { width: 90%; max-width: 340px; animation: none; }
@@ -1732,7 +1736,7 @@ button:hover ~ .mouse-follower-glow,
 	.testimonial-text { font-size: 0.98rem; }
 	.ai-content-area { padding: 18px; }
 	.ai-log-window { padding: 18px; font-size: 0.82rem; height: 260px; }
-    .hero h1 { line-height: 1.35; }  /* Увеличена высота строки для самых маленьких экранов */
+    .hero h1 { line-height: 1.35; }
 
 
     .yuki-card h3 {
