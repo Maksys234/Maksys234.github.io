@@ -1,5 +1,5 @@
 // dashboard/oceneni.js
-// Version: 23.23.9 - Client-side sort for leaderboard by level, updated stats card display, refined collapsible sections.
+// Version: 23.23.10 - Corrected badge count display, refined last transaction message, further prep for CSS panel fixes.
 (function() { // IIFE for scope isolation
 	'use strict';
 
@@ -7,7 +7,7 @@
 	const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
 	const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
 	const NOTIFICATION_FETCH_LIMIT = 5;
-	const LEADERBOARD_LIMIT = 10; // How many users to fetch for the points-based leaderboard
+	const LEADERBOARD_LIMIT = 10;
 	const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
 	const DAILY_TITLE_SHOP_COUNT = 6;
 	const PROFILE_COLUMNS_TO_SELECT_FOR_ACHIEVEMENTS = 'id, username, first_name, last_name, email, avatar_url, bio, school, grade, level, completed_exercises, streak_days, longest_streak_days, badges_count, points, experience, purchased_titles, selected_title, selected_decoration, purchased_decorations';
@@ -18,12 +18,12 @@
 	let supabase = null;
 	let currentUser = null;
 	let currentProfile = null;
-	let userBadges = [];
-	let allBadges = [];
+	let userBadges = []; // Stores objects { badge_id, earned_at, badge: {details} }
+	let allBadges = [];  // Stores all badge definitions { id, title, ... }
 	let allTitlesFromDB = [];
 	let titleShopTitles = [];
 	let allDecorations = [];
-	let leaderboardData = []; // This will store data primarily sorted by points from DB
+	let leaderboardData = [];
 	let currentLeaderboardPeriod = 'overall';
     let lastCreditTransaction = null;
 
@@ -319,15 +319,18 @@
 		return [];
 	}
 
-	async function fetchLeaderboardData(sortBy = 'points', limit = LEADERBOARD_LIMIT) { // Added sortBy
+	async function fetchLeaderboardData(sortBy = 'points', limit = LEADERBOARD_LIMIT) {
 		if (!supabase) return [];
-		let orderByField = 'points'; // Default sort by points
+		let orderByField = 'points';
+        let profileJoinSort = false;
 		if (sortBy === 'level') {
-			orderByField = 'profile.level'; // Need to sort by profile.level
+			orderByField = 'level'; // This will be used for client-side sort now
+            profileJoinSort = true; // Indicate we need profile level for sorting
 		}
 
-		console.log(`[Leaderboard] Fetching data, sortBy: ${orderByField}`);
+		console.log(`[Leaderboard] Fetching data, primary sort from DB by points (rank), client-side sort by: ${sortBy}`);
 		try {
+			// Always fetch by rank (points) from DB
 			let query = supabase
 				.from('leaderboard')
 				.select(`
@@ -340,17 +343,9 @@
 					)
 				`)
 				.eq('period', currentLeaderboardPeriod)
+                .order('rank', { ascending: true }) // This rank is based on points
 				.limit(limit);
 
-            // If sorting by level, we need to use the joined profile's level.
-            // Supabase JS v2 doesn't directly support ordering on joined columns in the primary .order() call.
-            // This might require a database view or a more complex query if strict server-side sorting by joined level is needed.
-            // For a client-side approximation (sorting the top N by points by level):
-            // We first fetch by points, then sort by level on client.
-            // OR, for a true top-N by level, we'd need a different query or server-side function.
-
-            // Sticking to points-based fetch from DB for now, client-side sort will be applied in renderLeaderboard
-            query = query.order('rank', { ascending: true }); // 'rank' is based on points
 
 			const { data, error } = await query;
 			if (error) throw error;
@@ -519,7 +514,7 @@
             if (error && error.code !== 'PGRST116') {
                 throw error;
             }
-            lastCreditTransaction = data; // Store it
+            lastCreditTransaction = data;
             return data;
         } catch (err) {
             console.error("Error fetching latest credit transaction:", err);
@@ -529,7 +524,7 @@
     }
 	// --- END: Data Fetching Functions ---
 
-	// --- START: Achievement Logic (Functions are assumed to be complete and correct from previous state) ---
+	// --- START: Achievement Logic ---
 	const badgeVisuals = {
         math: { icon: 'fa-square-root-alt', gradient: 'var(--gradient-math)' },
         language: { icon: 'fa-language', gradient: 'var(--gradient-lang)' },
@@ -801,8 +796,8 @@
 
 			const earnedBadgeIds = new Set((earnedBadgesData || []).map(b => b.badge_id));
 
-			allBadges = allBadgesData;
-			userBadges = earnedBadgesData.map(eb => ({
+			allBadges = allBadgesData; // Update global allBadges state
+			userBadges = earnedBadgesData.map(eb => ({ // Update global userBadges state
 				badge_id: eb.badge_id,
 				earned_at: eb.earned_at,
 				badge: allBadges.find(b => b.id === eb.badge_id) || {}
@@ -840,19 +835,19 @@
 				const updatedProfile = await fetchUserFullProfile(userId);
 				if(updatedProfile) currentProfile = updatedProfile;
 
-				userBadges = await fetchUserEarnedBadges(userId);
+				userBadges = await fetchUserEarnedBadges(userId); // Re-fetch to get updated list
 				userBadges.sort((a,b) => new Date(b.earned_at) - new Date(a.earned_at));
 
 				renderUserBadges(userBadges);
                 const totalUsersForStatsUpdate = (await supabase.from('profiles').select('id', { count: 'exact', head: true })).count || leaderboardData.length || 0;
 				updateSidebarProfile(currentProfile, allTitlesFromDB);
 				updateStatsCards({
-					badges: currentProfile.badges_count,
+					badges: currentProfile.badges_count, // This should be the accurate count from profile after awards
 					points: currentProfile.points,
 					streak_current: currentProfile.streak_days,
 					streak_longest: currentProfile.longest_streak_days,
 					rank: leaderboardData.find(u => u.user_id === currentUser.id)?.rank,
-					totalUsers: totalUsersForStatsUpdate
+					totalUsers: totalUsersForStatsUpdate // Use the fresh count
 				});
 			}
 			renderAvailableBadges(allBadges, userBadges, currentProfile, otherDataForAchievements);
@@ -938,12 +933,13 @@
 	    ui.rankCard?.classList.remove('loading');
 
 	    if (stats) {
-	        ui.badgesCount.textContent = stats.badges ?? 0;
+	        // Získané odznaky - userBadges.length by mělo být aktuální počet unikátních získaných odznaků
+	        const earnedBadgesCount = userBadges?.length || 0;
+	        ui.badgesCount.textContent = earnedBadgesCount;
 	        if (ui.badgesChange) {
-	            const totalPossibleBadges = allBadges?.length || 0; // Get total from global
-	            const userBadgesCount = stats.badges ?? 0;
+	            const totalPossibleBadges = allBadges?.length || 0;
 	            if (totalPossibleBadges > 0) {
-	                ui.badgesChange.innerHTML = `<i class="fas fa-trophy"></i> ${userBadgesCount} / ${totalPossibleBadges} celkem`;
+	                ui.badgesChange.innerHTML = `<i class="fas fa-trophy"></i> ${earnedBadgesCount} / ${totalPossibleBadges} celkem`;
 	            } else {
 	                 ui.badgesChange.innerHTML = `<i class="fas fa-info-circle"></i> Data nedostupná`;
 	            }
@@ -951,20 +947,37 @@
 
 	        ui.pointsCount.textContent = stats.points ?? 0;
 	        if (ui.pointsChange) {
-	            if (lastCreditTransaction) { // Check if data is available
+	            if (lastCreditTransaction && lastCreditTransaction.description) {
 	                const amount = lastCreditTransaction.amount;
-	                let description = lastCreditTransaction.description || 'Poslední transakce';
-	                if (description.length > 30) { // Truncate description
-	                    description = description.substring(0, 27) + "...";
+	                let description = lastCreditTransaction.description;
+	                // Zkrácení popisu, pokud je příliš dlouhý, ale jen pokud je to nutné
+                    // Max 20 znaků pro popis transakce samotné, zbytek pro částku
+                    const maxDescLength = 20;
+	                if (description.length > maxDescLength) {
+	                    description = description.substring(0, maxDescLength - 3) + "...";
 	                }
 	                const sign = amount > 0 ? '+' : (amount < 0 ? '' : '');
 	                const colorClass = amount > 0 ? 'positive' : (amount < 0 ? 'negative' : '');
 	                ui.pointsChange.className = `stat-card-change ${colorClass}`;
-	                ui.pointsChange.innerHTML = `<i class="fas ${amount > 0 ? 'fa-plus-circle' : (amount < 0 ? 'fa-minus-circle' : 'fa-exchange-alt')}"></i> <span title="${sanitizeHTML(lastCreditTransaction.description)}">${sign}${amount} kr. (${sanitizeHTML(description)})</span>`;
+	                // Zobrazíme jen popis a částku, bez "Odměna za sérii (X dní):"
+	                let displayTransactionText = `${sanitizeHTML(description)}: ${sign}${amount} kr.`;
+                     if (lastCreditTransaction.description.startsWith("Odměna za sérii") && lastCreditTransaction.description.includes("):")) {
+                        const actualRewardPart = lastCreditTransaction.description.split("):")[1]?.trim();
+                        if (actualRewardPart) {
+                           let shortActualReward = actualRewardPart;
+                           if (shortActualReward.length > maxDescLength -5) { // -5 for "kr. "
+                                shortActualReward = shortActualReward.substring(0, maxDescLength - 8) + "...";
+                           }
+                           displayTransactionText = `${sanitizeHTML(shortActualReward)}: ${sign}${amount} kr.`;
+                        }
+                    }
+
+	                ui.pointsChange.innerHTML = `<i class="fas ${amount > 0 ? 'fa-plus-circle' : (amount < 0 ? 'fa-minus-circle' : 'fa-exchange-alt')}"></i> <span title="${sanitizeHTML(lastCreditTransaction.description)}">${displayTransactionText}</span>`;
 	            } else {
 	                 ui.pointsChange.innerHTML = `<i class="fas fa-history"></i> Žádné nedávné transakce`;
 	            }
 	        }
+
 
 	        ui.streakDays.textContent = stats.streak_current ?? 0;
 	        if (ui.streakChange) ui.streakChange.textContent = `MAX: ${stats.streak_longest ?? 0} dní`;
@@ -973,7 +986,7 @@
 	        if (ui.totalUsers) ui.totalUsers.textContent = stats.totalUsers ?? '-';
 	        if (ui.rankChange) ui.rankChange.innerHTML = `<i class="fas fa-users"></i> z <span id="total-users">${stats.totalUsers ?? '-'}</span> pilotů`;
 
-	    } else { // Fallback if stats object is null/undefined
+	    } else {
 	        ui.badgesCount.textContent = '-';
 	        if (ui.badgesChange) ui.badgesChange.innerHTML = `<i class="fas fa-exclamation-circle"></i> Data nedostupná`;
 	        ui.pointsCount.textContent = '-';
@@ -1108,12 +1121,11 @@
 	            const levelA = a.profile?.level || 0;
 	            const levelB = b.profile?.level || 0;
 	            if (levelB !== levelA) {
-	                return levelB - levelA; // Higher level first
+	                return levelB - levelA;
 	            }
-	            // If levels are the same, sort by points (desc)
 	            const pointsA = a.points || 0;
 	            const pointsB = b.points || 0;
-	            return pointsB - pointsA; // Higher points first
+	            return pointsB - pointsA;
 	        });
 
 
@@ -1121,7 +1133,7 @@
 	        ui.leaderboardEmpty.style.display = 'none';
 	        ui.leaderboardBody.innerHTML = '';
 	        const fragment = document.createDocumentFragment();
-	        sortedDataByLevel.forEach((entry, index) => { // Use sortedDataByLevel
+	        sortedDataByLevel.forEach((entry, index) => {
 	            const tr = document.createElement('tr');
 	            const profileInfo = entry.profile || {};
 	            const isCurrentUser = entry.user_id === currentUser?.id;
@@ -1140,7 +1152,7 @@
 	                : getInitials(profileInfo);
 
 	            tr.innerHTML = `
-	                <td class="rank-cell">${index + 1}</td> {/* Use current index for rank after level sort */}
+	                <td class="rank-cell">${index + 1}</td>
 	                <td class="user-cell">
 	                    <div class="user-avatar-sm">${avatarHTML}</div>
 	                    <div class="user-info-sm">
@@ -1334,7 +1346,7 @@
 				item.innerHTML = `
 					${imagePreviewHTML}
 					<h4 class="decoration-name" style="font-size: 1rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.5rem;">${sanitizeHTML(decoration.name)}</h4>
-					${decoration.description ? `<p class="decoration-desc" style="font-size: 0.8rem; color: var(--text-medium); margin-bottom: 1rem; flex-grow: 1;">${sanitizeHTML(decoration.description)}</p>` : '<div style="flex-grow:1;"></div>'}
+					${decoration.description ? `<p class="decoration-desc" style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem; flex-grow: 1;">${sanitizeHTML(decoration.description)}</p>` : '<div style="flex-grow:1;"></div>'}
 					<div class="decoration-actions" style="margin-top: auto; padding-top:0.5rem; border-top: 1px solid var(--border-color-light); width:100%; text-align:center;">
 						${actionButtonHTML}
 					</div>
@@ -1455,7 +1467,7 @@
 
             const totalUsersForStatsUpdateAfterBuy = (await supabase.from('profiles').select('id', { count: 'exact', head: true })).count || leaderboardData.length || 0;
 			updateSidebarProfile(currentProfile, allTitlesFromDB);
-			updateStatsCards({ badges: currentProfile.badges_count, points: currentProfile.points, streak_current: currentProfile.streak_days, streak_longest: currentProfile.longest_streak_days, rank: leaderboardData.find(u=>u.user_id === currentUser.id)?.rank, totalUsers: totalUsersForStatsUpdateAfterBuy });
+			updateStatsCards({ badges: userBadges?.length || 0, points: currentProfile.points, streak_current: currentProfile.streak_days, streak_longest: currentProfile.longest_streak_days, rank: leaderboardData.find(u=>u.user_id === currentUser.id)?.rank, totalUsers: totalUsersForStatsUpdateAfterBuy });
 
 
 			if (itemType === 'title') {
@@ -1645,7 +1657,7 @@
 				fetchUserEarnedBadges(currentUser.id),
 				fetchAllPurchasableTitles(),
 				fetchAvatarDecorationsData(),
-				fetchLeaderboardData('points'), // Default fetch by points for initial leaderboard
+				fetchLeaderboardData('points'),
 				fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT),
 				fetchUserDiagnosticTestCount(currentUser.id),
 				fetchUserLearningLogsCount(currentUser.id),
@@ -1675,7 +1687,7 @@
 			}
 
 			allBadges = (allBadgesResult.status === 'fulfilled') ? allBadgesResult.value : [];
-			userBadges = (userBadgesResult.status === 'fulfilled') ? userBadgesResult.value : [];
+			userBadges = (userBadgesResult.status === 'fulfilled') ? userBadgesResult.value : []; // Already contains badge details
 			allTitlesFromDB = (allTitlesResult.status === 'fulfilled') ? allTitlesResult.value : [];
 			allDecorations = (avatarShopResult.status === 'fulfilled') ? avatarShopResult.value : [];
 			leaderboardData = (leaderboardResult.status === 'fulfilled') ? leaderboardResult.value : [];
@@ -1690,16 +1702,16 @@
             lastCreditTransaction = (lastCreditTransactionResult.status === 'fulfilled') ? lastCreditTransactionResult.value : null;
 
 			updateSidebarProfile(currentProfile, allTitlesFromDB);
-            const totalUsersCountForStats = (await supabase.from('profiles').select('id', { count: 'exact', head: true })).count || leaderboardData.length || 0;
+            const { count: totalProfilesCount } = await supabase.from('profiles').select('id', { count: 'exact', head: true });
 			const statsForCards = {
-				badges: currentProfile.badges_count,
+				badges: userBadges?.length || 0, // Use length of fetched userBadges array for actual earned unique badges
 				points: currentProfile.points,
 				streak_current: currentProfile.streak_days,
 				streak_longest: currentProfile.longest_streak_days,
 				rank: leaderboardData.find(u => u.user_id === currentUser.id)?.rank,
-				totalUsers: totalUsersCountForStats
+				totalUsers: totalProfilesCount || leaderboardData.length || 0 // Use the count of all profiles
 			};
-			updateStatsCards(statsForCards); // Pass allBadges to correctly display ratio
+			updateStatsCards(statsForCards);
 
 			renderUserBadges(userBadges);
 			const otherDataForAchievements = {
@@ -1711,7 +1723,7 @@
 				allExamTopics
 			};
 			renderAvailableBadges(allBadges, userBadges, currentProfile, otherDataForAchievements);
-			renderLeaderboard(leaderboardData); // Render initial leaderboard (sorted by points)
+			renderLeaderboard(leaderboardData);
 			titleShopTitles = selectDailyUserSpecificTitles(allTitlesFromDB, currentProfile.purchased_titles || [], currentUser.id);
 			renderTitleShop(titleShopTitles, currentProfile);
 			renderUserTitlesInventory(currentProfile, allTitlesFromDB);
@@ -1745,13 +1757,12 @@
 				if (!el._eventHandlers[key]) el._eventHandlers[key] = {};
 				el._eventHandlers[key][ev] = fn;
 			} else {
-                // Only warn for active toggle buttons, as other buttons might not always be present
 				if (key.startsWith('toggle') &&
                     (key === 'toggleUserBadgesSection' ||
-                     key === 'toggleUserTitlesSection' ||
-                     key === 'toggleAvailableBadgesSection' /* Added this one as per new requirement */)) {
+                     key === 'toggleUserTitlesSection' // Only these are actively collapsible
+                    )) {
 					console.warn(`[SETUP] Collapsible section toggle button not found: ${key}`);
-				} else if (!key.startsWith('toggle')) { // Don't warn for other non-critical non-toggle buttons
+				} else if (!key.startsWith('toggle')) {
                     console.warn(`[SETUP] Element not found for listener: ${key}`);
                 }
 			}
@@ -1781,14 +1792,13 @@
 		document.removeEventListener('click', handleOutsideNotificationClick);
 		document.addEventListener('click', handleOutsideNotificationClick);
 
-        // Updated Section Toggling Logic
         const sectionToggleMap = {
-            toggleUserBadgesSection: { content: ui.userBadgesContent, active: true }, // Collapsible
-            toggleAvailableBadgesSection: { content: ui.availableBadgesContent, active: false }, // NOT Collapsible
-            toggleUserTitlesSection: { content: ui.userTitlesInventoryContent, active: true }, // Collapsible
-            toggleTitleShopSection: { content: ui.titleShopContent, active: false }, // NOT Collapsible
-            toggleAvatarDecorationsSection: { content: ui.avatarDecorationsContent, active: false }, // NOT Collapsible
-            toggleLeaderboardSection: { content: ui.leaderboardContent, active: false } // NOT Collapsible
+            toggleUserBadgesSection: { content: ui.userBadgesContent, active: true },
+            toggleAvailableBadgesSection: { content: ui.availableBadgesContent, active: false }, // Not collapsible
+            toggleUserTitlesSection: { content: ui.userTitlesInventoryContent, active: true },
+            toggleTitleShopSection: { content: ui.titleShopContent, active: false }, // Not collapsible
+            toggleAvatarDecorationsSection: { content: ui.avatarDecorationsContent, active: false }, // Not collapsible
+            toggleLeaderboardSection: { content: ui.leaderboardContent, active: false } // Not collapsible
         };
 
 		Object.keys(sectionToggleMap).forEach(buttonKey => {
@@ -1823,8 +1833,8 @@
 
 				const applyCollapsedState = (collapsing) => {
 					if (icon) {
-						icon.classList.toggle('fa-chevron-down', collapsing); // Icon should point down when collapsed
-						icon.classList.toggle('fa-chevron-up', !collapsing); // Icon points up when expanded
+						icon.classList.toggle('fa-chevron-down', collapsing);
+						icon.classList.toggle('fa-chevron-up', !collapsing);
 						button.title = collapsing ? "Rozbalit sekci" : "Sbalit sekci";
 					}
 					if (sectionCard) {
@@ -1883,7 +1893,7 @@
 
 	// --- START: Initialization ---
 	async function initializeApp() {
-		console.log(`🚀 [Init Oceneni v23.23.9 - Client Sort, Panel Fix] Starting...`);
+		console.log(`🚀 [Init Oceneni v23.23.10] Starting...`);
 		cacheDOMElements();
 		if (!initializeSupabase()) return;
 
