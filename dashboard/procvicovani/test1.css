@@ -2,6 +2,7 @@
 /* Версия: 25.1.9-CSS - Absolutní priorita zachování původních stylů. Detailní revize a cílené vylepšení stylů pro modální okno výběru cíle + styly pro tabulku. */
 /* Doplněno o styly pro sklápěcí sidebar z main.css */
 /* Aktualizace stylů pro záhlaví oznámení, aby odpovídaly vyuka.css */
+/* VERZE 12.9.1 CSS: Přidány styly pro .recommended-test a .disabled-test */
 
 /* --- START: Киберпанк CSS Тема (PŮVODNÍ KÓD UŽIVATELE + Doplnění sidebar stylů + úpravy oznámení) --- */
 /* --- Глобальные Настройки и Переменные --- */
@@ -584,23 +585,11 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 /* .mark-all-read-btn.btn.btn-secondary.btn-sm will inherit styles from .btn, .btn-secondary, .btn-sm */
 /* Minimal specific overrides for .mark-all-read-btn if needed (from vyuka.css) */
 .mark-all-read-btn {
-    /* font-size and padding are handled by .btn-sm */
-    /* background and border are handled by .btn-secondary */
-    /* color is handled by .btn-secondary */
-    /* cursor and font-weight are handled by .btn */
-    opacity: 0.8; /* Keep opacity from vyuka.css if not fully covered by disabled state */
-    transition: opacity 0.2s, color 0.2s; /* Keep transition from vyuka.css */
+    opacity: 0.8;
+    transition: opacity 0.2s, color 0.2s;
 }
 .mark-all-read-btn:hover:not(:disabled) {
-    /* text-decoration: underline; - .btn classes don't usually have this */
     opacity: 1;
-    /* color: var(--white); - .btn-secondary hover handles color */
-}
-.mark-all-read-btn:disabled {
-    /* .btn:disabled handles this well */
-    /* opacity: 0.4; */ /* .btn:disabled already has opacity */
-    /* cursor: not-allowed; */
-    /* text-decoration: none !important; */
 }
 #notifications-list { max-height: 360px; overflow-y: auto; padding: 0.5rem 0; }
 #notifications-list::-webkit-scrollbar { width: 7px; }
@@ -628,9 +617,6 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 
 
 /* --- Ostatní styly z test1.css (zůstávají, pokud nejsou v konfliktu) --- */
-/* ... (zde by byly původní styly pro .test-types-container, .test-container-outer, atd.) ... */
-/* Ujistěte se, že následující styly z test1.css jsou zachovány nebo přizpůsobeny, pokud je to nutné */
-
 #test-selector { display: block; }
 .test-types-container { display: flex; gap: 1.8rem; flex-wrap: wrap; margin-top: 1.5rem; justify-content: center; }
 .test-type-card { padding: 1.75rem; flex: 1; min-width: 280px; max-width: 350px; cursor: pointer; display: flex; flex-direction: column; border-color: var(--border-color-medium); }
@@ -829,7 +815,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 }
 @media (max-width: 576px) {
     :root { --sidebar-width: 0; --sidebar-collapsed-width: 0;}
-    main#main-content { margin-left: 0; width: 100%; padding: 0.75rem; }
+    main#main-content { margin-left: 0; width: 100%; }
     body.scrolled .dashboard-header { margin: 0; padding: 0.75rem 1rem; }
     .sidebar { transform: translateX(-100%); width: 280px; z-index: 1100; }
     .sidebar.active { transform: translateX(0); }
@@ -871,3 +857,87 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 /* --- MATHJAX STYLES --- */
 mjx-container { text-align: left !important; overflow-x: auto; overflow-y: hidden; max-width: 100%; }
 .MathJax { font-size: 1.05em !important; }
+
+/* --- START: NOVÉ CSS STYLY pro zvýraznění a deaktivaci karet testů --- */
+.test-type-card.recommended-test {
+    border-color: var(--accent-lime); /* Jasnější ohraničení pro doporučený test */
+    box-shadow: 0 0 25px var(--accent-lime-glow), var(--shadow-card-hover-enhanced); /* Výraznější stín a záře */
+    background: linear-gradient(rgba(var(--card-solid-rgb), 0.98), rgba(var(--accent-lime-rgb), 0.12)); /* Lehký gradient pozadí */
+    transform: scale(1.03); /* Mírné zvětšení */
+}
+
+.test-type-card.recommended-test .test-type-header i {
+    color: var(--accent-lime);
+    background: rgba(var(--accent-lime-rgb), 0.25);
+    box-shadow: 0 4px 15px rgba(var(--accent-lime-rgb), 0.4);
+}
+
+.test-type-card.recommended-test .test-type-header h3 {
+    color: var(--accent-lime);
+    text-shadow: 0 0 8px var(--accent-lime-glow);
+}
+
+.test-type-card.recommended-test .select-test-btn {
+    background: var(--gradient-success); /* Zelené tlačítko */
+    border-color: transparent;
+    color: var(--text-fixed-dark);
+    box-shadow: 0 0 20px var(--accent-lime-glow);
+}
+.test-type-card.recommended-test .select-test-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, var(--accent-lime), #3aa03d); /* Trochu tmavší zelená na hover */
+    box-shadow: 0 0 28px var(--accent-lime-glow);
+}
+
+.test-type-card.disabled-test {
+    opacity: 0.55; /* Snížená opacita */
+    cursor: not-allowed; /* Změna kurzoru */
+    filter: grayscale(60%); /* Lehce šedý nádech */
+    pointer-events: none; /* Znemožní interakci, ale tlačítko zůstane "viditelné" */
+}
+
+.test-type-card.disabled-test:hover {
+    transform: none; /* Zrušení hover efektu pro transformaci */
+    box-shadow: var(--shadow-hud); /* Základní stín bez vylepšení */
+    border-color: var(--border-color-medium);
+    background-color: var(--card-bg); /* Základní pozadí */
+}
+
+.test-type-card.disabled-test .test-type-header i,
+.test-type-card.disabled-test .test-type-header h3,
+.test-type-card.disabled-test .recommended-badge {
+    filter: grayscale(80%);
+    opacity: 0.7;
+}
+
+.test-type-card.disabled-test .select-test-btn {
+    background: var(--text-muted) !important; /* Změna pozadí tlačítka na šedou */
+    border-color: var(--text-muted) !important;
+    color: var(--bg-secondary) !important;
+    cursor: not-allowed;
+    pointer-events: all; /* Ponecháme pointer-events, aby tooltip (pokud je) mohl fungovat, ale tlačítko je disabled přes JS */
+    box-shadow: none !important;
+    opacity: 0.8 !important; /* Tlačítko může být mírně viditelnější než zbytek karty */
+}
+
+.test-type-card .select-test-btn:disabled { /* Obecné styly pro deaktivované tlačítko, pokud je použito i jinde */
+    background: var(--text-muted) !important;
+    border-color: var(--text-muted) !important;
+    color: var(--bg-secondary) !important;
+    opacity: 0.6 !important;
+    cursor: not-allowed;
+}
+
+.soon-badge { /* Badge pro "Již brzy" */
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: var(--accent-orange);
+    color: var(--text-fixed-dark);
+    font-size: 0.7rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: 15px;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(var(--accent-orange-rgb), 0.4);
+    transform: rotate(10deg);
+}
+/* --- END: NOVÉ CSS STYLY --- */
