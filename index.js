@@ -2,14 +2,14 @@
  * JUSTAX Landing Page Script
  * Handles UI interactions, animations, infinite testimonial slider,
  * Hero text mask reveal, interactive gradient, and enhanced visual effects.
- * Version: v2.31 (Robustness and Rendering Fixes)
+ * Version: v2.32 (AI Demo Fix, Smooth Load, Header Refinement)
  * Author: Gemini Modification
- * Date: 2025-05-25 // Added error handling, refined initializations
+ * Date: 2025-05-25 // Focused on AI Demo visibility and page load transitions
  *
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Ready. Initializing JUSTAX Interface v2.31 (Robustness Fixes)...");
+    console.log("DOM Ready. Initializing JUSTAX Interface v2.32 (AI Demo Fix, Smooth Load)...");
 
     // --- Global Variables & DOM References ---
     const body = document.body;
@@ -19,26 +19,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuOverlay = document.getElementById('menuOverlay');
     const follower = document.getElementById('mouse-follower');
     const yearSpan = document.getElementById('currentYear');
-    const demoSection = document.getElementById('ai-demo');
-    const aiOutput = document.getElementById('ai-demo-output');
-    const aiProgressBar = document.getElementById('ai-progress-bar');
-    const aiProgressLabel = document.getElementById('ai-progress-label');
-    const aiFakeInput = document.getElementById('ai-fake-input');
-    const aiStatusIndicator = document.getElementById('ai-status');
+    const demoSection = document.getElementById('ai-demo'); //
+    const aiOutput = document.getElementById('ai-demo-output'); //
+    const aiProgressBar = document.getElementById('ai-progress-bar'); //
+    const aiProgressLabel = document.getElementById('ai-progress-label'); //
+    const aiFakeInput = document.getElementById('ai-fake-input'); //
+    const aiStatusIndicator = document.getElementById('ai-status'); //
 
-    const sliderContainer = document.getElementById('testimonialSliderContainer');
-    const sliderTrack = document.getElementById('testimonialSliderTrack');
-    const prevBtn = document.getElementById('prevTestimonialBtn');
-    const nextBtn = document.getElementById('nextTestimonialBtn');
+    const sliderContainer = document.getElementById('testimonialSliderContainer'); //
+    const sliderTrack = document.getElementById('testimonialSliderTrack'); //
+    const prevBtn = document.getElementById('prevTestimonialBtn'); //
+    const nextBtn = document.getElementById('nextTestimonialBtn'); //
 
-    const heroSection = document.querySelector('.hero');
-    let heroHighlightSpan = null; // Will be queried after letter animation setup if needed for gradient
-    const heroHeading = document.getElementById('hero-heading');
+    const heroSection = document.querySelector('.hero'); //
+    let heroHighlightSpan = null;
+    const heroHeading = document.getElementById('hero-heading'); //
     let rafIdGradient = null;
 
     const config = {
         mouseFollower: { enabled: true, followSpeed: 0.12, clickScale: 0.7, hoverScale: 1.5, textHoverScale: 1.3 },
-        animations: { scrollThreshold: 0.05, staggerDelay: 100, letterMaskRevealDelay: 50, heroElementEntryDelay: 150 }, // Lowered threshold a bit
+        animations: { scrollThreshold: 0.05, staggerDelay: 100, letterMaskRevealDelay: 50, heroElementEntryDelay: 150 },
         aiDemo: { enabled: true, typingSpeed: 35, stepBaseDelay: 180, stepRandomDelay: 400 },
         testimonials: { placeholderAvatarBaseUrl: 'https://placehold.co/100x100/', visibleCardsDesktop: 3, bufferCards: 2, slideDuration: 550 }
     };
@@ -50,11 +50,22 @@ document.addEventListener('DOMContentLoaded', () => {
     let totalCardsInDOM = 0;
     let cardWidthAndMargin = 0;
     let isSliding = false;
-    let sliderInitialLoadComplete = false; // Renamed for clarity
+    let sliderInitialLoadComplete = false;
     const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
+    // --- Smooth Page Load ---
+    // Initially hide body, then fade it in. CSS will handle the transition.
+    body.classList.add('page-loading');
+    window.addEventListener('load', () => { // Use window.load to ensure all assets are loaded
+        setTimeout(() => { // Small delay to ensure rendering engine is ready
+            body.classList.remove('page-loading');
+            body.classList.add('page-loaded');
+        }, 100); // Adjust delay if needed
+    });
+
+
     localTestimonials = [
-        // Students (Mix of names, nicknames, initials) - Role always 'Student' or 'Studentka'
+        // Truncated for brevity, assume full list is present as before
         { name: "Petra N.", role: "Studentka", rating: 5, text: "Skvělá příprava na přijímačky! AI mi přesně ukázala, co potřebuju dohnat. Doporučuji!" },
         { name: "Tomáš 'Vory' V.", role: "Student", rating: 4.5, text: "Adaptivní učení je super. Nemusím procházet to, co už umím. Ušetřilo mi to spoustu času." },
         { name: "Aneta", role: "Studentka", rating: 5, text: "Konečně chápu zlomky! Interaktivní cvičení jsou zábavná a vysvětlení jasná." },
@@ -229,22 +240,21 @@ document.addEventListener('DOMContentLoaded', () => {
         void sliderTrack.offsetHeight; sliderTrack.style.transition = `transform ${config.testimonials.slideDuration}ms cubic-bezier(0.65, 0, 0.35, 1)`;
     };
 
-    const handleSliderTransitionEnd = () => { // Renamed for clarity
+    const handleSliderTransitionEnd = () => {
         if (!isSliding || !sliderTrack) return;
         try {
             const direction = parseInt(sliderTrack.dataset.slideDirection || "0"); if (direction === 0) { throw new Error("No slide direction."); }
             let cardToMoveElement, newCardData;
-            if (direction > 0) { // Next
+            if (direction > 0) {
                 cardToMoveElement = cardsInTrack.shift(); sliderTrack.removeChild(cardToMoveElement); newCardData = getRandomLocalTestimonial(); updateCardContent(cardToMoveElement, newCardData); sliderTrack.appendChild(cardToMoveElement); cardsInTrack.push(cardToMoveElement);
                 testimonialDataCache.shift(); testimonialDataCache.push(newCardData);
-            } else { // Prev
+            } else {
                 cardToMoveElement = cardsInTrack.pop(); sliderTrack.removeChild(cardToMoveElement); newCardData = getRandomLocalTestimonial(); updateCardContent(cardToMoveElement, newCardData); sliderTrack.insertBefore(cardToMoveElement, sliderTrack.firstChild); cardsInTrack.unshift(cardToMoveElement);
                 testimonialDataCache.pop(); testimonialDataCache.unshift(newCardData);
             }
             setTrackPositionInstantly("transition end adjustment");
         } catch (error) {
             console.error("Error in handleSliderTransitionEnd:", error);
-            // Attempt to recover by resetting position
             setTrackPositionInstantly("error recovery in transition end");
         } finally {
             sliderTrack.dataset.slideDirection = "0"; isSliding = false; if(prevBtn) prevBtn.disabled = false; if(nextBtn) nextBtn.disabled = false;
@@ -262,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const initializeInfiniteSlider = async () => {
-        console.log("Starting infinite slider initialization v2.31...");
+        console.log("Starting infinite slider initialization v2.32...");
         if (!sliderTrack || !prevBtn || !nextBtn) { console.error("Slider init fail: core elements missing."); return; }
         isSliding = true; sliderInitialLoadComplete = false; prevBtn.disabled = true; nextBtn.disabled = true;
         sliderTrack.innerHTML = ''; testimonialDataCache = []; cardsInTrack = []; cardWidthAndMargin = 0; stableVisibleStartIndex = config.testimonials.bufferCards;
@@ -279,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
             testimonialDataCache.push(testimonial);
         }
         cardsInTrack.forEach((card, index) => updateCardContent(card, testimonialDataCache[index]));
-        await new Promise(resolve => requestAnimationFrame(resolve)); // Wait for layout
+        await new Promise(resolve => requestAnimationFrame(resolve));
 
         if (!calculateCardWidthAndMargin() || cardWidthAndMargin <= 0) {
             console.error("Card dimensions calc failed post-population. Slider abort."); sliderTrack.innerHTML = '<p>Chyba layoutu.</p>'; isSliding = false; return;
@@ -289,19 +299,17 @@ document.addEventListener('DOMContentLoaded', () => {
         isSliding = false; prevBtn.disabled = false; nextBtn.disabled = false;
     };
 
-    // --- Header Scroll & Nav Active State ---
     const handleScroll = () => {
         try {
             if (header) header.classList.toggle('scrolled', window.scrollY > 30);
             const sections = document.querySelectorAll('main section[id]');
             let currentSectionId = '';
-            const scrollPosition = window.scrollY + (header ? header.offsetHeight : 70) + 40; // Increased offset
+            const scrollPosition = window.scrollY + (header ? header.offsetHeight : 70) + 40;
             sections.forEach(section => { if (section.offsetTop <= scrollPosition && (section.offsetTop + section.offsetHeight) > scrollPosition) currentSectionId = section.id; });
             if (navLinks) navLinks.querySelectorAll('.nav-item').forEach(item => { item.classList.remove('active'); if (item.getAttribute('href')?.includes(`#${currentSectionId}`)) item.classList.add('active'); });
         } catch (error) { console.error("Error in handleScroll:", error); }
     };
 
-    // --- Mobile Menu ---
     const toggleMenu = () => {
         if (!hamburger || !navLinks || !menuOverlay || !body || !header) return;
         const isActive = hamburger.classList.toggle('active');
@@ -317,10 +325,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (menuOverlay) menuOverlay.addEventListener('click', closeMenu);
     if (navLinks) navLinks.addEventListener('click', (e) => { if (e.target.matches('a.nav-item') || e.target.closest('a.mobile-auth-link')) closeMenu(); });
 
-    // --- Mouse Follower ---
     let mouseX = window.innerWidth / 2, mouseY = window.innerHeight / 2;
     let followerX = mouseX, followerY = mouseY;
-    let currentScale = 1, currentOpacity = 0; // Start hidden
+    let currentScale = 1, currentOpacity = 0;
 
     const updateFollower = () => {
         if (!follower || !config.mouseFollower.enabled || isTouchDevice) return;
@@ -346,37 +353,96 @@ document.addEventListener('DOMContentLoaded', () => {
         follower.style.display = 'none';
     }
 
-    // --- Footer Year ---
     if (yearSpan) yearSpan.textContent = new Date().getFullYear().toString();
 
-    // --- AI Demo ---
-    const aiDemoSteps = [ /* (same as before, truncated for brevity in thought process) */ { type: 'status', text: 'AI jádro v2.31 aktivní.', progress: 5 }, { type: 'input', text: 'ANALYZE_USER_PERFORMANCE --id=734B' }, { type: 'process', text: 'Zpracování...', duration: 900, progress: 20 }, { type: 'analysis', text: 'Data načtena.' }, { type: 'status', text: 'AI připravena.', progress: 100 } ]; // Simplified for this example
+    // --- AI Demo Simulation ---
+    const aiDemoSteps = [
+        { type: 'status', text: 'AI jádro v2.32 aktivní. Připraven na analýzu...', progress: 5 },
+        { type: 'status', text: 'Probíhá skenování interakcí uživatele ID: 734B...', delay: 700 },
+        { type: 'input', text: 'ANALYZE_USER_PERFORMANCE --id=734B --subject=algebra --level=intermediate' },
+        { type: 'process', text: 'Zpracování dotazu na výkon...', duration: 900, progress: 20 },
+        { type: 'analysis', text: 'Načteno 188 relevantních datových bodů...' },
+        { type: 'analysis', text: 'Identifikace vzorů: Problémy s kvadratickými rovnicemi (úspěšnost 38%), logaritmy (úspěšnost 55%).', delay: 600 },
+        { type: "analysis", text: "Silné stránky: Lineární nerovnice (úspěšnost 95%), procenta (91%)."},
+        { type: 'process', text: 'Generování personalizované strategie učení...', duration: 1300, progress: 50 },
+        { type: 'output', text: 'Strategie: 1. Revize základů logaritmů (video + 2 cvičení). 2. Interaktivní modul na kvadratické rovnice. 3. Souhrnný test.' },
+        { type: 'input', text: 'CREATE_ADAPTIVE_TASK_SEQUENCE --strategy_id=S734B_ALG --tasks=5' },
+        { type: 'process', text: 'Sestavování sekvence úkolů...', duration: 1600, progress: 80 },
+        { type: 'output', text: 'Sekvence vytvořena. Odhadovaný čas: 55 minut. První úkol: "Základy logaritmů - Interaktivní video".' },
+        { type: 'status', text: 'Profil studenta aktualizován s novým plánem.', delay: 500 },
+        { type: 'process', text: 'Synchronizace s cloudovým modulem Justax...', duration: 700, progress: 95 },
+        { type: 'status', text: 'AI připravena. Čekám na další interakci.', progress: 100 }
+    ];
     let currentAiStep = 0; let isAiDemoRunning = false; let aiDemoTimeout;
+
     const addAiLogLine = (text, type) => {
         if (!aiOutput) return; const line = document.createElement('div'); line.className = `ai-log-line ${type}`;
         const now = new Date(); const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}.${now.getMilliseconds().toString().padStart(3, '0')}`;
         line.innerHTML = `<span class="ai-log-timestamp">[${timeString}]</span> <span class="ai-log-text">${text}</span>`;
         aiOutput.appendChild(line); aiOutput.scrollTop = aiOutput.scrollHeight;
     };
-    const simulateTyping = (text, onComplete) => { /* ... */ }; // Assume it's robust
-    const updateAiProgress = (percentage, label) => { /* ... */ }; // Assume it's robust
-    const runAiDemoStep = () => { /* ... */ }; // Assume it's robust
+    const simulateTyping = (text, onComplete) => {
+        if (!aiFakeInput) { if(onComplete) onComplete(); return; }
+        let index = 0; aiFakeInput.textContent = '';
+        const interval = setInterval(() => {
+            if (index < text.length) { aiFakeInput.textContent += text.charAt(index); index++; }
+            else { clearInterval(interval); if (onComplete) setTimeout(onComplete, 150 + Math.random() * 100); }
+        }, config.aiDemo.typingSpeed - 5 + Math.random() * 10);
+    };
+    const updateAiProgress = (percentage, label) => {
+        if (aiProgressBar) { aiProgressBar.style.width = `${percentage}%`; aiProgressBar.setAttribute('aria-valuenow', percentage.toString());}
+        if (aiProgressLabel && label) aiProgressLabel.textContent = label;
+        else if (aiProgressLabel && percentage === 100) aiProgressLabel.textContent = "Systém připraven";
+    };
+    const runAiDemoStep = () => {
+        if (currentAiStep >= aiDemoSteps.length || !aiOutput) {
+            isAiDemoRunning = false; if(aiStatusIndicator) aiStatusIndicator.textContent = 'IDLE'; updateAiProgress(100, "AI Idle / Čekání na vstup..."); return;
+        }
+        const step = aiDemoSteps[currentAiStep]; const baseDelay = step.delay || config.aiDemo.stepBaseDelay;
+        const randomDelayPart = Math.random() * config.aiDemo.stepRandomDelay; const totalDelay = baseDelay + randomDelayPart;
+        if (step.type === 'input') {
+            if(aiProgressLabel) aiProgressLabel.textContent = "Očekávám vstup...";
+            simulateTyping(step.text, () => {
+                addAiLogLine(`> ${step.text}`, step.type); if (step.progress) updateAiProgress(step.progress, step.text); currentAiStep++; aiDemoTimeout = setTimeout(runAiDemoStep, totalDelay / 2);
+            });
+        } else {
+            addAiLogLine(step.text, step.type);
+            if (step.progress) updateAiProgress(step.progress, step.text); else if (step.type !== 'status' && aiProgressLabel) updateAiProgress( (currentAiStep / aiDemoSteps.length) * 100 , step.text);
+            currentAiStep++; aiDemoTimeout = setTimeout(runAiDemoStep, totalDelay + (step.duration || 0));
+        }
+        if(aiStatusIndicator) aiStatusIndicator.textContent = step.type === 'process' ? 'ZPRACOVÁVÁM' : 'AKTIVNÍ';
+    };
 
     const aiDemoObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             try {
                 if (config.aiDemo.enabled && demoSection && entry.isIntersecting && !isAiDemoRunning) {
-                    console.log("AI Demo visible, starting."); isAiDemoRunning = true; currentAiStep = 0;
-                    if (aiOutput) aiOutput.innerHTML = ''; updateAiProgress(0, 'Inicializace AI...'); if (aiFakeInput) aiFakeInput.textContent = '';
-                    runAiDemoStep(); // Start the simulation
+                    if (aiOutput && aiFakeInput && aiProgressLabel && aiProgressBar && aiStatusIndicator) { // Ensure all elements are present
+                        console.log("AI Demo visible and all elements found, starting."); isAiDemoRunning = true; currentAiStep = 0;
+                        aiOutput.innerHTML = ''; updateAiProgress(0, 'Inicializace AI...'); aiFakeInput.textContent = '';
+                        runAiDemoStep();
+                    } else {
+                        console.warn("AI Demo cannot start: one or more required elements are missing.");
+                        if(aiStatusIndicator) aiStatusIndicator.textContent = 'CHYBA';
+                    }
                 } else if (!entry.isIntersecting && isAiDemoRunning) {
                     console.log("AI Demo not visible, pausing."); clearTimeout(aiDemoTimeout); isAiDemoRunning = false; if(aiStatusIndicator) aiStatusIndicator.textContent = 'POZASTAVENO';
                 }
-            } catch (error) { console.error("Error in AI Demo observer:", error); isAiDemoRunning = false; }
+            } catch (error) { console.error("Error in AI Demo observer:", error); isAiDemoRunning = false; if(aiStatusIndicator) aiStatusIndicator.textContent = 'CHYBA SYSTÉMU';}
         });
-    }, { threshold: 0.4 });
-    if (demoSection && config.aiDemo.enabled) aiDemoObserver.observe(demoSection);
-    else if (aiStatusIndicator) aiStatusIndicator.textContent = 'OFFLINE';
+    }, { threshold: 0.3 }); // Trigger when 30% visible
+
+    if (demoSection && config.aiDemo.enabled) {
+        // Check if all necessary child elements for AI demo exist
+        if (aiOutput && aiFakeInput && aiProgressLabel && aiProgressBar && aiStatusIndicator) {
+             aiDemoObserver.observe(demoSection);
+        } else {
+            console.error("AI Demo section found, but some child elements are missing. AI Demo will not run.");
+            if(aiStatusIndicator) aiStatusIndicator.textContent = 'CHYBA ELEMENTŮ';
+        }
+    } else if (aiStatusIndicator) {
+        aiStatusIndicator.textContent = config.aiDemo.enabled ? 'NEVIDITELNÉ' : 'OFFLINE';
+    }
 
 
     // --- Scroll Animations ---
@@ -386,8 +452,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const setupLetterAnimation = (element) => {
         try {
             const textContent = element.dataset.text || element.textContent || '';
-            // Safely attempt to get original highlight text IF heroHeading is the current element.
-            const originalHighlightDataText = (element === heroHeading && heroSection) ? (heroSection.querySelector('.hero h1 .highlight')?.dataset.text || heroSection.querySelector('.hero h1 .highlight')?.textContent || '') : '';
+            const originalHighlightElement = element.querySelector('.highlight'); // Query inside the current element
+            const originalHighlightDataText = originalHighlightElement ? (originalHighlightElement.dataset.text || originalHighlightElement.textContent || '') : '';
 
             element.innerHTML = ''; element.style.setProperty('--letter-count', textContent.length.toString());
             let charIndexGlobal = 0; let currentWordWrapper = document.createElement('span'); currentWordWrapper.className = 'word-wrapper'; element.appendChild(currentWordWrapper);
@@ -403,12 +469,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isHighlightChar) {
                     let highlightContainerInWord = currentWordWrapper.querySelector('.highlight');
                     if (!highlightContainerInWord) {
-                        highlightContainerInWord = document.createElement('span'); highlightContainerInWord.className = 'highlight';
-                        if(originalHighlightDataText) highlightContainerInWord.dataset.text = originalHighlightDataText;
+                        highlightContainerInWord = document.createElement('span'); highlightContainerInWord.className = 'highlight'; // Use class from original
+                        if(originalHighlightDataText) highlightContainerInWord.dataset.text = originalHighlightDataText; // Preserve data-text
                         currentWordWrapper.appendChild(highlightContainerInWord);
-                        if (element === heroHeading) { // This is where heroHighlightSpan for gradient gets assigned
-                            heroHighlightSpan = highlightContainerInWord;
-                            // console.log("Global heroHighlightSpan (for gradient) updated in setupLetterAnimation.");
+                        if (element === heroHeading) { // This is the main hero heading
+                            heroHighlightSpan = highlightContainerInWord; // Update the global reference for gradient
+                            console.log("Global heroHighlightSpan (for gradient) updated in setupLetterAnimation.");
                         }
                     }
                     highlightContainerInWord.appendChild(span);
@@ -418,7 +484,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (char === ' ') { currentWordWrapper = document.createElement('span'); currentWordWrapper.className = 'word-wrapper'; element.appendChild(currentWordWrapper); }
                 charIndexGlobal++;
             });
-            // console.log(`Letter animation setup for: ${element.id || element.tagName}, letters: ${charIndexGlobal}`);
         } catch (error) { console.error("Error in setupLetterAnimation for element:", element, error); }
     };
 
@@ -432,11 +497,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (element.dataset.animateLetters !== undefined) {
                         if (!element.classList.contains('letters-setup-complete')) {
-                            setupLetterAnimation(element); // This will set/update heroHighlightSpan if element is heroHeading
+                            setupLetterAnimation(element);
                             element.classList.add('letters-setup-complete');
                             setTimeout(() => {
                                 element.classList.add('is-revealing');
-                                if (element === heroHeading) { // Specific logic for hero heading's subsequent elements
+                                element.style.opacity = '1'; // Ensure parent container is visible
+                                if (element === heroHeading) {
                                     const letterCount = parseInt(element.style.getPropertyValue('--letter-count') || '10');
                                     const h1AnimationDuration = (letterCount * config.animations.letterMaskRevealDelay) + 500;
                                     document.querySelectorAll('.hero p[data-animate], .hero .hero-buttons[data-animate]').forEach(el => {
@@ -444,20 +510,20 @@ document.addEventListener('DOMContentLoaded', () => {
                                             const heroElOrder = parseInt(el.style.getPropertyValue('--animation-order') || '0');
                                             el.style.transitionDelay = `${h1AnimationDuration + (heroElOrder * config.animations.heroElementEntryDelay)}ms`;
                                             el.classList.add('animated');
-                                            el.style.opacity = '1'; // Ensure visibility after delay
+                                            el.style.opacity = '1';
                                         }
                                     });
                                 }
-                            }, 100); // Brief delay for DOM update
+                            }, 100);
                         }
                     } else {
                         element.style.transitionDelay = `${baseDelay}ms`;
                         element.classList.add('animated');
-                        element.style.opacity = '1'; // Ensure general animated elements become visible
+                        element.style.opacity = '1';
                     }
                 } catch (error) {
                     console.error("Error processing animation for element:", element, error);
-                    if(element) element.style.opacity = '1'; // Make sure it's visible if animation fails
+                    if(element) element.style.opacity = '1';
                 }
                 observerInstance.unobserve(element);
             }
@@ -466,12 +532,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (animatedElements.length > 0) {
         animatedElements.forEach(el => {
-            if (el) { // Ensure element exists
-                 el.style.opacity = '0'; // Initially hide elements to be animated
+            if (el) {
+                 el.style.opacity = '0'; // Keep this to prevent FOUC
                  animationObserver.observe(el);
             }
         });
-        if (heroHeading) heroHeading.style.opacity = '1'; // Hero H1 itself should be visible for letter spans
+        // For hero H1, its direct opacity can be 1 as children (letters) handle their own animation.
+        if (heroHeading) heroHeading.style.opacity = '1';
         console.log(`Observing ${animatedElements.length} elements for scroll animations.`);
     } else {
         console.warn("No elements found for scroll animation.");
@@ -479,7 +546,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Interactive Gradient for Hero ---
     const handleHeroMouseMove = (event) => {
-        if (!heroSection || !heroHighlightSpan || isTouchDevice || !document.contains(heroHighlightSpan)) return; // Check if span is still in DOM
+        if (!heroSection || isTouchDevice) return;
+        // heroHighlightSpan is now reliably set by setupLetterAnimation if heroHeading is processed
+        if (!heroHighlightSpan || !document.contains(heroHighlightSpan)) {
+            // Attempt to re-query if it was missed or DOM changed unexpectedly
+            const currentHeroHighlight = heroHeading ? heroHeading.querySelector('.highlight') : null;
+            if (currentHeroHighlight) heroHighlightSpan = currentHeroHighlight;
+            else return; // Still not found
+        }
+
         if (rafIdGradient) cancelAnimationFrame(rafIdGradient);
         rafIdGradient = requestAnimationFrame(() => {
             try {
@@ -499,7 +574,7 @@ document.addEventListener('DOMContentLoaded', () => {
         heroSection.addEventListener('mousemove', handleHeroMouseMove);
         heroSection.addEventListener('mouseleave', () => {
             if (rafIdGradient) cancelAnimationFrame(rafIdGradient);
-            if (heroHighlightSpan && document.contains(heroHighlightSpan)) { // Check if span is still valid
+            if (heroHighlightSpan && document.contains(heroHighlightSpan)) {
                 let currentX = parseFloat(heroHighlightSpan.style.getPropertyValue('--mouse-x') || "0.5");
                 let currentY = parseFloat(heroHighlightSpan.style.getPropertyValue('--mouse-y') || "0.5");
                 const resetIntervalId = setInterval(() => {
@@ -513,17 +588,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, 16);
             }
         });
-    } else if (isTouchDevice && heroHeading) { // Static for touch, ensure heroHighlightSpan is set after letter animation
-        // For touch, we apply the static gradient after letter animation ensures heroHighlightSpan exists
-        setTimeout(() => {
-            if(heroHighlightSpan && document.contains(heroHighlightSpan)) {
+    } else if (isTouchDevice) {
+        // For touch devices, set a static gradient after a delay to ensure heroHighlightSpan is created by setupLetterAnimation
+        const setStaticGradientForTouch = () => {
+            if (heroHighlightSpan && document.contains(heroHighlightSpan)) {
                 heroHighlightSpan.style.setProperty('--mouse-x', 0.5);
                 heroHighlightSpan.style.setProperty('--mouse-y', 0.3);
-                console.log("Touch device: Hero gradient set to static after letter animation.");
-            } else {
-                console.warn("Touch device: heroHighlightSpan not found after delay to set static gradient.");
+                console.log("Touch device: Hero gradient set to static.");
+            } else if (heroHeading) { // Fallback: try to find it again if not set globally
+                const currentHeroHighlight = heroHeading.querySelector('.highlight');
+                if(currentHeroHighlight){
+                    currentHeroHighlight.style.setProperty('--mouse-x', 0.5);
+                    currentHeroHighlight.style.setProperty('--mouse-y', 0.3);
+                    console.log("Touch device: Hero gradient (fallback) set to static.");
+                } else {
+                     console.warn("Touch device: heroHighlightSpan still not found for static gradient.");
+                }
             }
-        }, (parseInt(heroHeading.style.getPropertyValue('--letter-count') || '10') * config.animations.letterMaskRevealDelay) + 600); // Delay until after letters are likely done
+        };
+        // Wait a bit for letter animation to potentially create the span
+        setTimeout(setStaticGradientForTouch, 1500);
     }
 
 
@@ -548,5 +632,17 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Error during final initializations:", error);
     }
 
-    console.log("JUSTAX Interface v2.31 (Robustness Fixes) Initialization Complete.");
+    // Defer non-critical initializations slightly to ensure main content renders
+    setTimeout(() => {
+        if (demoSection && config.aiDemo.enabled && aiDemoObserver) {
+            // The observer will take care of starting it when visible.
+            // Just ensure it's properly set up if conditions are met.
+            if (!(aiOutput && aiFakeInput && aiProgressLabel && aiProgressBar && aiStatusIndicator)) {
+                 console.warn("AI Demo deferred init: elements missing, AI Demo might not work.");
+            }
+        }
+    }, 500); // Delay AI demo init slightly
+
+
+    console.log("JUSTAX Interface v2.32 (AI Demo Fix, Smooth Load) Initialization Complete.");
 });
