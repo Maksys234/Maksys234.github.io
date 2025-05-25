@@ -1,9 +1,5 @@
 // dashboard/oceneni.js
-// Version: 23.23.8 - Improved sidebar update logging and robust handling of missing avatar decorations.
-// MODIFIED: Added more explicit checks and logging in updateSidebarProfile.
-// MODIFIED: Ensured renderAvatarDecorationsShop handles empty data gracefully.
-// ADDED: Fixes for stats cards display logic (total users, last transaction, badge ratio).
-// ADDED: Refinement for collapsible sections - will be completed with CSS and HTML updates.
+// Version: 23.23.9 - Client-side sort for leaderboard by level, updated stats card display, refined collapsible sections.
 (function() { // IIFE for scope isolation
 	'use strict';
 
@@ -11,7 +7,7 @@
 	const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
 	const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
 	const NOTIFICATION_FETCH_LIMIT = 5;
-	const LEADERBOARD_LIMIT = 10;
+	const LEADERBOARD_LIMIT = 10; // How many users to fetch for the points-based leaderboard
 	const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
 	const DAILY_TITLE_SHOP_COUNT = 6;
 	const PROFILE_COLUMNS_TO_SELECT_FOR_ACHIEVEMENTS = 'id, username, first_name, last_name, email, avatar_url, bio, school, grade, level, completed_exercises, streak_days, longest_streak_days, badges_count, points, experience, purchased_titles, selected_title, selected_decoration, purchased_decorations';
@@ -27,8 +23,9 @@
 	let allTitlesFromDB = [];
 	let titleShopTitles = [];
 	let allDecorations = [];
-	let leaderboardData = [];
+	let leaderboardData = []; // This will store data primarily sorted by points from DB
 	let currentLeaderboardPeriod = 'overall';
+    let lastCreditTransaction = null;
 
 	let userDiagnosticTestsCount = 0;
 	let userLearningLogsCount = 0;
@@ -36,7 +33,6 @@
 	let allExamTopics = [];
 	let userStudyPlansCount = 0;
 	let userAiLessonsCompletedCount = 0;
-    let lastCreditTransaction = null; // Store last credit transaction
 
 
 	let isLoading = {
@@ -89,11 +85,10 @@
 				ui[key] = element;
 			} else {
 				notFound.push(id);
-				ui[key] = null; // Explicitly set to null if not found
+				ui[key] = null;
 			}
 		});
 
-		// Explicitly cache content elements for collapsible sections
 		ui.userBadgesContent = ui.userBadgesContainer?.querySelector('.section-collapsible-content');
 		ui.availableBadgesContent = ui.availableBadgesContainer?.querySelector('.section-collapsible-content');
 		ui.userTitlesInventoryContent = ui.userTitlesInventoryContainer?.querySelector('.section-collapsible-content');
@@ -102,8 +97,8 @@
 		ui.leaderboardContent = ui.leaderboardContainer?.querySelector('.section-collapsible-content');
 
 
-		if (!ui.sidebarUserTitle) { // Check if sidebarUserTitle was found by its specific ID
-			const roleEl = document.getElementById('sidebar-user-role'); // Attempt fallback for potential alternative ID
+		if (!ui.sidebarUserTitle) {
+			const roleEl = document.getElementById('sidebar-user-role');
 			if (roleEl) {
 				ui.sidebarUserTitle = roleEl;
 				console.warn("[Oceneni Cache DOM] Used fallback ID 'sidebar-user-role' for sidebarUserTitle.");
@@ -229,10 +224,10 @@
 		try {
 			const { data: profile, error } = await supabase
 				.from('profiles')
-				.select(PROFILE_COLUMNS_TO_SELECT_FOR_ACHIEVEMENTS) // Uses the defined constant
+				.select(PROFILE_COLUMNS_TO_SELECT_FOR_ACHIEVEMENTS)
 				.eq('id', userId)
 				.single();
-			if (error && error.code !== 'PGRST116') throw error; // PGRST116 means no rows found, which is okay for new users
+			if (error && error.code !== 'PGRST116') throw error;
 			if (!profile) {
 				console.warn(`[Profile Full] Profile for ${userId} not found. Returning null.`);
 				return null;
@@ -245,20 +240,20 @@
 		}
 	}
 
-	async function fetchUserStats(userId) { // This function is mainly for user_stats table, profile data is richer
-		if (!supabase || !userId ) return {}; // Return empty object if no profile
+	async function fetchUserStats(userId) {
+		if (!supabase || !userId ) return {};
 		console.log(`[UserStats] Fetching user_stats for user ${userId}`);
 		try {
 			const { data: stats, error} = await supabase
 				.from('user_stats')
 				.select('progress, progress_weekly, points_weekly, streak_longest, completed_tests')
 				.eq('user_id', userId)
-				.maybeSingle(); // Use maybeSingle to handle cases where no user_stats record exists yet
+				.maybeSingle();
 			if (error) {
 				console.warn("[UserStats] Error fetching user_stats from DB:", error.message);
-				return {}; // Return empty object on error, rely on profile data
+				return {};
 			}
-			return stats || {}; // Return fetched stats or empty object if null
+			return stats || {};
 		} catch (e) {
 			console.error("[UserStats] Exception fetching user_stats:", e);
 			return {};
@@ -324,10 +319,16 @@
 		return [];
 	}
 
-	async function fetchLeaderboardData() {
+	async function fetchLeaderboardData(sortBy = 'points', limit = LEADERBOARD_LIMIT) { // Added sortBy
 		if (!supabase) return [];
+		let orderByField = 'points'; // Default sort by points
+		if (sortBy === 'level') {
+			orderByField = 'profile.level'; // Need to sort by profile.level
+		}
+
+		console.log(`[Leaderboard] Fetching data, sortBy: ${orderByField}`);
 		try {
-			const { data, error } = await supabase
+			let query = supabase
 				.from('leaderboard')
 				.select(`
 					rank,
@@ -339,9 +340,21 @@
 					)
 				`)
 				.eq('period', currentLeaderboardPeriod)
-				.order('rank', { ascending: true })
-				.limit(LEADERBOARD_LIMIT);
+				.limit(limit);
+
+            // If sorting by level, we need to use the joined profile's level.
+            // Supabase JS v2 doesn't directly support ordering on joined columns in the primary .order() call.
+            // This might require a database view or a more complex query if strict server-side sorting by joined level is needed.
+            // For a client-side approximation (sorting the top N by points by level):
+            // We first fetch by points, then sort by level on client.
+            // OR, for a true top-N by level, we'd need a different query or server-side function.
+
+            // Sticking to points-based fetch from DB for now, client-side sort will be applied in renderLeaderboard
+            query = query.order('rank', { ascending: true }); // 'rank' is based on points
+
+			const { data, error } = await query;
 			if (error) throw error;
+
 			const rankedData = (data || []).map((entry, index) => ({
 				...entry,
 				calculated_rank: entry.rank ?? (index + 1)
@@ -501,20 +514,22 @@
                 .eq('user_id', userId)
                 .order('created_at', { ascending: false })
                 .limit(1)
-                .single(); // Expect one or zero rows
+                .single();
 
-            if (error && error.code !== 'PGRST116') { // PGRST116: No rows found, not an error
+            if (error && error.code !== 'PGRST116') {
                 throw error;
             }
-            return data; // Returns null if no transaction found
+            lastCreditTransaction = data; // Store it
+            return data;
         } catch (err) {
             console.error("Error fetching latest credit transaction:", err);
+            lastCreditTransaction = null;
             return null;
         }
     }
 	// --- END: Data Fetching Functions ---
 
-	// --- START: Achievement Logic ---
+	// --- START: Achievement Logic (Functions are assumed to be complete and correct from previous state) ---
 	const badgeVisuals = {
         math: { icon: 'fa-square-root-alt', gradient: 'var(--gradient-math)' },
         language: { icon: 'fa-language', gradient: 'var(--gradient-lang)' },
@@ -829,7 +844,7 @@
 				userBadges.sort((a,b) => new Date(b.earned_at) - new Date(a.earned_at));
 
 				renderUserBadges(userBadges);
-                const totalUsers = (await supabase.from('profiles').select('id', { count: 'exact', head: true })).count || 0;
+                const totalUsersForStatsUpdate = (await supabase.from('profiles').select('id', { count: 'exact', head: true })).count || leaderboardData.length || 0;
 				updateSidebarProfile(currentProfile, allTitlesFromDB);
 				updateStatsCards({
 					badges: currentProfile.badges_count,
@@ -837,7 +852,7 @@
 					streak_current: currentProfile.streak_days,
 					streak_longest: currentProfile.longest_streak_days,
 					rank: leaderboardData.find(u => u.user_id === currentUser.id)?.rank,
-					totalUsers: totalUsers
+					totalUsers: totalUsersForStatsUpdate
 				});
 			}
 			renderAvailableBadges(allBadges, userBadges, currentProfile, otherDataForAchievements);
@@ -910,66 +925,66 @@
 		}
 	}
 
-	async function updateStatsCards(stats) { // Modified to accept totalUsers and handle lastTransaction
-		console.log("[StatsCards Update] Updating stats cards. Data:", stats);
-		if (!ui.badgesCount || !ui.pointsCount || !ui.streakDays || !ui.rankValue || !ui.totalUsers) {
-			console.warn("[StatsCards Update] One or more stat card UI elements are missing. Skipping update.");
-			return;
-		}
+	async function updateStatsCards(stats) {
+	    console.log("[StatsCards Update] Updating stats cards. Data:", stats);
+	    if (!ui.badgesCount || !ui.pointsCount || !ui.streakDays || !ui.rankValue || !ui.totalUsers) {
+	        console.warn("[StatsCards Update] One or more stat card UI elements are missing. Skipping update.");
+	        return;
+	    }
 
-		ui.badgesCard?.classList.remove('loading');
-		ui.pointsCard?.classList.remove('loading');
-		ui.streakCard?.classList.remove('loading');
-		ui.rankCard?.classList.remove('loading');
+	    ui.badgesCard?.classList.remove('loading');
+	    ui.pointsCard?.classList.remove('loading');
+	    ui.streakCard?.classList.remove('loading');
+	    ui.rankCard?.classList.remove('loading');
 
+	    if (stats) {
+	        ui.badgesCount.textContent = stats.badges ?? 0;
+	        if (ui.badgesChange) {
+	            const totalPossibleBadges = allBadges?.length || 0; // Get total from global
+	            const userBadgesCount = stats.badges ?? 0;
+	            if (totalPossibleBadges > 0) {
+	                ui.badgesChange.innerHTML = `<i class="fas fa-trophy"></i> ${userBadgesCount} / ${totalPossibleBadges} celkem`;
+	            } else {
+	                 ui.badgesChange.innerHTML = `<i class="fas fa-info-circle"></i> Data nedostupná`;
+	            }
+	        }
 
-		if (stats) {
-			ui.badgesCount.textContent = stats.badges ?? 0;
-            // Badges change - new logic
-            if (ui.badgesChange) {
-                const totalPossibleBadges = allBadges?.length || 0;
-                if (totalPossibleBadges > 0) {
-                    ui.badgesChange.innerHTML = `<i class="fas fa-trophy"></i> ${stats.badges ?? 0} / ${totalPossibleBadges} celkem`;
-                } else {
-                     ui.badgesChange.innerHTML = `<i class="fas fa-info-circle"></i> Data nedostupná`;
-                }
-            }
+	        ui.pointsCount.textContent = stats.points ?? 0;
+	        if (ui.pointsChange) {
+	            if (lastCreditTransaction) { // Check if data is available
+	                const amount = lastCreditTransaction.amount;
+	                let description = lastCreditTransaction.description || 'Poslední transakce';
+	                if (description.length > 30) { // Truncate description
+	                    description = description.substring(0, 27) + "...";
+	                }
+	                const sign = amount > 0 ? '+' : (amount < 0 ? '' : '');
+	                const colorClass = amount > 0 ? 'positive' : (amount < 0 ? 'negative' : '');
+	                ui.pointsChange.className = `stat-card-change ${colorClass}`;
+	                ui.pointsChange.innerHTML = `<i class="fas ${amount > 0 ? 'fa-plus-circle' : (amount < 0 ? 'fa-minus-circle' : 'fa-exchange-alt')}"></i> <span title="${sanitizeHTML(lastCreditTransaction.description)}">${sign}${amount} kr. (${sanitizeHTML(description)})</span>`;
+	            } else {
+	                 ui.pointsChange.innerHTML = `<i class="fas fa-history"></i> Žádné nedávné transakce`;
+	            }
+	        }
 
-			ui.pointsCount.textContent = stats.points ?? 0;
-            // Points change - use lastCreditTransaction
-            if (ui.pointsChange && lastCreditTransaction) {
-                const amount = lastCreditTransaction.amount;
-                const description = lastCreditTransaction.description || 'Poslední transakce';
-                const sign = amount > 0 ? '+' : (amount < 0 ? '' : ''); // No sign for 0
-                const colorClass = amount > 0 ? 'positive' : (amount < 0 ? 'negative' : '');
-                ui.pointsChange.className = `stat-card-change ${colorClass}`;
-                ui.pointsChange.innerHTML = `<i class="fas ${amount > 0 ? 'fa-plus-circle' : (amount < 0 ? 'fa-minus-circle' : 'fa-exchange-alt')}"></i> ${sign}${amount} kr. (${sanitizeHTML(description)})`;
-            } else if (ui.pointsChange) {
-                 ui.pointsChange.innerHTML = `<i class="fas fa-history"></i> Žádné nedávné transakce`;
-            }
+	        ui.streakDays.textContent = stats.streak_current ?? 0;
+	        if (ui.streakChange) ui.streakChange.textContent = `MAX: ${stats.streak_longest ?? 0} dní`;
 
+	        ui.rankValue.textContent = stats.rank ?? '-';
+	        if (ui.totalUsers) ui.totalUsers.textContent = stats.totalUsers ?? '-';
+	        if (ui.rankChange) ui.rankChange.innerHTML = `<i class="fas fa-users"></i> z <span id="total-users">${stats.totalUsers ?? '-'}</span> pilotů`;
 
-			ui.streakDays.textContent = stats.streak_current ?? 0;
-			if (ui.streakChange) ui.streakChange.textContent = `MAX: ${stats.streak_longest ?? 0} dní`;
-
-			ui.rankValue.textContent = stats.rank ?? '-';
-            // Total users for rank
-            if (ui.totalUsers) ui.totalUsers.textContent = stats.totalUsers ?? '-'; // Directly use totalUsers from stats
-			if (ui.rankChange) ui.rankChange.innerHTML = `<i class="fas fa-users"></i> z <span id="total-users">${stats.totalUsers ?? '-'}</span> pilotů`;
-
-
-		} else { // Fallback if stats object is null/undefined
-			ui.badgesCount.textContent = '-';
-			if (ui.badgesChange) ui.badgesChange.innerHTML = `<i class="fas fa-exclamation-circle"></i> Data nedostupná`;
-			ui.pointsCount.textContent = '-';
-			if (ui.pointsChange) ui.pointsChange.innerHTML = `<i class="fas fa-exclamation-circle"></i> Data nedostupná`;
-			ui.streakDays.textContent = '-';
-			if (ui.streakChange) ui.streakChange.textContent = `MAX: - dní`;
-			ui.rankValue.textContent = '-';
-			if (ui.totalUsers) ui.totalUsers.textContent = '-';
-			if (ui.rankChange) ui.rankChange.innerHTML = `<i class="fas fa-users"></i> z <span id="total-users">-</span> pilotů`;
-		}
-		console.log("[StatsCards Update] Stats cards updated.");
+	    } else { // Fallback if stats object is null/undefined
+	        ui.badgesCount.textContent = '-';
+	        if (ui.badgesChange) ui.badgesChange.innerHTML = `<i class="fas fa-exclamation-circle"></i> Data nedostupná`;
+	        ui.pointsCount.textContent = '-';
+	        if (ui.pointsChange) ui.pointsChange.innerHTML = `<i class="fas fa-exclamation-circle"></i> Data nedostupná`;
+	        ui.streakDays.textContent = '-';
+	        if (ui.streakChange) ui.streakChange.textContent = `MAX: - dní`;
+	        ui.rankValue.textContent = '-';
+	        if (ui.totalUsers) ui.totalUsers.textContent = '-';
+	        if (ui.rankChange) ui.rankChange.innerHTML = `<i class="fas fa-users"></i> z <span id="total-users">-</span> pilotů`;
+	    }
+	    console.log("[StatsCards Update] Stats cards updated.");
 	}
 
 	function renderUserBadges(earnedBadges) {
@@ -1000,8 +1015,7 @@
 				card.style.setProperty('--animation-order', index);
 
 				const visual = badgeVisuals[badge.type?.toLowerCase()] || badgeVisuals.default;
-                // Ensure the icon is correctly chosen, fallback to default if badge.icon is undefined
-                const iconClass = badge.icon || visual.icon || 'fa-medal'; // Added fallback
+                const iconClass = badge.icon || visual.icon || 'fa-medal';
 
 				card.innerHTML = `
 					<div class="badge-icon" style="background: ${visual.gradient};">
@@ -1048,8 +1062,7 @@
 
 				const visual = badgeVisuals[badge.type?.toLowerCase()] || badgeVisuals.default;
 				const progress = badge.requirements ? checkRequirements(profile, badge.requirements, otherData, badge.title) : { met: false, current: 0, target: 1, progressText: "N/A" };
-                // Ensure the icon is correctly chosen, fallback to default if badge.icon is undefined
-                const iconClass = badge.icon || visual.icon || 'fa-medal'; // Added fallback
+                const iconClass = badge.icon || visual.icon || 'fa-medal';
 
 				card.innerHTML = `
 					<div class="achievement-icon" style="background: ${visual.gradient}; opacity: ${progress.met ? 1 : 0.6};">
@@ -1076,61 +1089,75 @@
 	}
 
 	function renderLeaderboard(data) {
-		console.log("[Leaderboard Render] Rendering leaderboard. Data rows:", data?.length);
-		if (!ui.leaderboardBody || !ui.leaderboardEmpty || !ui.leaderboardTableContainer || !ui.leaderboardHeader || !ui.leaderboardSkeleton) {
-			console.warn("[Leaderboard Render] Leaderboard UI elements missing.");
-			setLoadingState('leaderboard', false);
-			return;
-		}
+	    console.log("[Leaderboard Render] Rendering leaderboard. Data rows:", data?.length);
+	    if (!ui.leaderboardBody || !ui.leaderboardEmpty || !ui.leaderboardTableContainer || !ui.leaderboardHeader || !ui.leaderboardSkeleton) {
+	        console.warn("[Leaderboard Render] Leaderboard UI elements missing.");
+	        setLoadingState('leaderboard', false);
+	        return;
+	    }
 
-		ui.leaderboardSkeleton.style.display = 'none';
-		ui.leaderboardHeader.style.visibility = 'visible';
+	    ui.leaderboardSkeleton.style.display = 'none';
+	    ui.leaderboardHeader.style.visibility = 'visible';
 
-		if (!data || data.length === 0) {
-			ui.leaderboardTableContainer.style.display = 'none';
-			ui.leaderboardEmpty.style.display = 'flex';
-		} else {
-			ui.leaderboardTableContainer.style.display = 'block';
-			ui.leaderboardEmpty.style.display = 'none';
-			ui.leaderboardBody.innerHTML = '';
-			const fragment = document.createDocumentFragment();
-			data.forEach((entry, index) => {
-				const tr = document.createElement('tr');
-				const profileInfo = entry.profile || {};
-				const isCurrentUser = entry.user_id === currentUser?.id;
-				if (isCurrentUser) tr.classList.add('highlight-row');
+	    if (!data || data.length === 0) {
+	        ui.leaderboardTableContainer.style.display = 'none';
+	        ui.leaderboardEmpty.style.display = 'flex';
+	    } else {
+	        // Client-side sort by level (desc), then by points (desc) for tie-breaking
+	        const sortedDataByLevel = [...data].sort((a, b) => {
+	            const levelA = a.profile?.level || 0;
+	            const levelB = b.profile?.level || 0;
+	            if (levelB !== levelA) {
+	                return levelB - levelA; // Higher level first
+	            }
+	            // If levels are the same, sort by points (desc)
+	            const pointsA = a.points || 0;
+	            const pointsB = b.points || 0;
+	            return pointsB - pointsA; // Higher points first
+	        });
 
-				const avatarUrl = profileInfo.avatar_url;
-				let finalAvatarUrl = avatarUrl;
-				if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl.includes('/')) {
-					finalAvatarUrl = sanitizeHTML(avatarUrl);
-				} else if (avatarUrl) {
-					finalAvatarUrl = `${sanitizeHTML(avatarUrl)}?t=${new Date().getTime()}`;
-				}
 
-				const avatarHTML = finalAvatarUrl
-					? `<img src="${finalAvatarUrl}" alt="Avatar">`
-					: getInitials(profileInfo);
+	        ui.leaderboardTableContainer.style.display = 'block';
+	        ui.leaderboardEmpty.style.display = 'none';
+	        ui.leaderboardBody.innerHTML = '';
+	        const fragment = document.createDocumentFragment();
+	        sortedDataByLevel.forEach((entry, index) => { // Use sortedDataByLevel
+	            const tr = document.createElement('tr');
+	            const profileInfo = entry.profile || {};
+	            const isCurrentUser = entry.user_id === currentUser?.id;
+	            if (isCurrentUser) tr.classList.add('highlight-row');
 
-				tr.innerHTML = `
-					<td class="rank-cell">${entry.calculated_rank ?? (index + 1)}</td>
-					<td class="user-cell">
-						<div class="user-avatar-sm">${avatarHTML}</div>
-						<div class="user-info-sm">
-							<span class="user-name-sm">${sanitizeHTML(profileInfo.first_name || profileInfo.username || 'Pilot ' + (index + 1))}</span>
-							<span class="user-level">Úroveň ${profileInfo.level || 1}</span>
-						</div>
-					</td>
-					<td class="score-cell">${entry.points ?? 0}</td>
-					<td class="badge-count-cell">${entry.badges_count ?? 0}</td>
-					<td class="streak-cell">${profileInfo.streak_days ?? 0}</td>
-				`;
-				fragment.appendChild(tr);
-			});
-			ui.leaderboardBody.appendChild(fragment);
-		}
-		setLoadingState('leaderboard', false);
-		console.log("[Leaderboard Render] Leaderboard rendering complete.");
+	            const avatarUrl = profileInfo.avatar_url;
+	            let finalAvatarUrl = avatarUrl;
+	            if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl.includes('/')) {
+	                finalAvatarUrl = sanitizeHTML(avatarUrl);
+	            } else if (avatarUrl) {
+	                finalAvatarUrl = `${sanitizeHTML(avatarUrl)}?t=${new Date().getTime()}`;
+	            }
+
+	            const avatarHTML = finalAvatarUrl
+	                ? `<img src="${finalAvatarUrl}" alt="Avatar">`
+	                : getInitials(profileInfo);
+
+	            tr.innerHTML = `
+	                <td class="rank-cell">${index + 1}</td> {/* Use current index for rank after level sort */}
+	                <td class="user-cell">
+	                    <div class="user-avatar-sm">${avatarHTML}</div>
+	                    <div class="user-info-sm">
+	                        <span class="user-name-sm">${sanitizeHTML(profileInfo.first_name || profileInfo.username || 'Pilot ' + (index + 1))}</span>
+	                        <span class="user-level">Úroveň ${profileInfo.level || 1}</span>
+	                    </div>
+	                </td>
+	                <td class="score-cell">${entry.points ?? 0}</td>
+	                <td class="badge-count-cell">${entry.badges_count ?? 0}</td>
+	                <td class="streak-cell">${profileInfo.streak_days ?? 0}</td>
+	            `;
+	            fragment.appendChild(tr);
+	        });
+	        ui.leaderboardBody.appendChild(fragment);
+	    }
+	    setLoadingState('leaderboard', false);
+	    console.log("[Leaderboard Render] Leaderboard rendering complete (sorted by level).");
 	}
 
 	function selectDailyUserSpecificTitles(allPurchasable, purchasedKeys = [], userId) {
@@ -1426,10 +1453,9 @@
 			showToast("Nákup úspěšný", successMessage, "success");
             await logActivity(currentUser.id, `purchase_${itemType}`, `Zakoupena položka: ${itemName}`, `Cena: ${cost} kreditů. Nový zůstatek: ${newPoints}.`, { item_key: itemKey, cost: cost, type: itemType });
 
-
+            const totalUsersForStatsUpdateAfterBuy = (await supabase.from('profiles').select('id', { count: 'exact', head: true })).count || leaderboardData.length || 0;
 			updateSidebarProfile(currentProfile, allTitlesFromDB);
-            const totalUsersForStats = (await supabase.from('profiles').select('id', { count: 'exact', head: true })).count || 0;
-			updateStatsCards({ badges: currentProfile.badges_count, points: currentProfile.points, streak_current: currentProfile.streak_days, streak_longest: currentProfile.longest_streak_days, rank: leaderboardData.find(u=>u.user_id === currentUser.id)?.rank, totalUsers: totalUsersForStats });
+			updateStatsCards({ badges: currentProfile.badges_count, points: currentProfile.points, streak_current: currentProfile.streak_days, streak_longest: currentProfile.longest_streak_days, rank: leaderboardData.find(u=>u.user_id === currentUser.id)?.rank, totalUsers: totalUsersForStatsUpdateAfterBuy });
 
 
 			if (itemType === 'title') {
@@ -1438,7 +1464,7 @@
 			} else if (itemType === 'avatar_decoration') {
 				renderAvatarDecorationsShop(allDecorations, currentProfile);
 			}
-			await checkAndAwardAchievements(currentUser.id); // Zkontrolujeme odznaky po nákupu
+			await checkAndAwardAchievements(currentUser.id);
 
 		} catch (error) {
 			console.error(`Chyba při nákupu ${itemType} "${itemKey}":`, error);
@@ -1470,20 +1496,20 @@
 			if (itemType === 'title') {
 				previousItemKey = currentProfile.selected_title;
 				itemName = allTitlesFromDB.find(t => t.title_key === itemKey)?.name || itemKey;
-				if (previousItemKey === itemKey) { // Odzbrojení
+				if (previousItemKey === itemKey) {
 					updates.selected_title = null;
 					successMessage = `Titul "${itemName}" byl odstraněn.`;
-				} else { // Vyzbrojení
+				} else {
 					updates.selected_title = itemKey;
 					successMessage = `Titul "${itemName}" byl úspěšně vyzbrojen!`;
 				}
 			} else if (itemType === 'avatar_decoration') {
 				previousItemKey = currentProfile.selected_decoration;
 				itemName = allDecorations.find(d => d.decoration_key === itemKey)?.name || itemKey;
-				if (previousItemKey === itemKey) { // Odzbrojení
+				if (previousItemKey === itemKey) {
 					updates.selected_decoration = null;
 					successMessage = `Dekorace "${itemName}" byla odstraněna.`;
-				} else { // Vyzbrojení
+				} else {
 					updates.selected_decoration = itemKey;
 					successMessage = `Dekorace "${itemName}" byla úspěšně použita!`;
 				}
@@ -1511,7 +1537,7 @@
 			} else if (itemType === 'avatar_decoration') {
 				renderAvatarDecorationsShop(allDecorations, currentProfile);
 			}
-            await checkAndAwardAchievements(currentUser.id); // Zkontrolujeme odznaky po vyzbrojení
+            await checkAndAwardAchievements(currentUser.id);
 
 		} catch (error) {
 			console.error(`Chyba při vyzbrojování ${itemType} "${itemKey}":`, error);
@@ -1619,7 +1645,7 @@
 				fetchUserEarnedBadges(currentUser.id),
 				fetchAllPurchasableTitles(),
 				fetchAvatarDecorationsData(),
-				fetchLeaderboardData(),
+				fetchLeaderboardData('points'), // Default fetch by points for initial leaderboard
 				fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT),
 				fetchUserDiagnosticTestCount(currentUser.id),
 				fetchUserLearningLogsCount(currentUser.id),
@@ -1627,7 +1653,7 @@
 				fetchAllExamTopics(),
 				fetchUserStudyPlansCount(currentUser.id),
 				fetchUserAiLessonsCompletedCount(currentUser.id),
-                fetchLatestCreditTransaction(currentUser.id) // Fetch latest transaction
+                fetchLatestCreditTransaction(currentUser.id)
 			]);
 			console.log("[LoadAwards] Data fetch results:", results);
 
@@ -1673,7 +1699,7 @@
 				rank: leaderboardData.find(u => u.user_id === currentUser.id)?.rank,
 				totalUsers: totalUsersCountForStats
 			};
-			updateStatsCards(statsForCards);
+			updateStatsCards(statsForCards); // Pass allBadges to correctly display ratio
 
 			renderUserBadges(userBadges);
 			const otherDataForAchievements = {
@@ -1685,7 +1711,7 @@
 				allExamTopics
 			};
 			renderAvailableBadges(allBadges, userBadges, currentProfile, otherDataForAchievements);
-			renderLeaderboard(leaderboardData);
+			renderLeaderboard(leaderboardData); // Render initial leaderboard (sorted by points)
 			titleShopTitles = selectDailyUserSpecificTitles(allTitlesFromDB, currentProfile.purchased_titles || [], currentUser.id);
 			renderTitleShop(titleShopTitles, currentProfile);
 			renderUserTitlesInventory(currentProfile, allTitlesFromDB);
@@ -1719,8 +1745,15 @@
 				if (!el._eventHandlers[key]) el._eventHandlers[key] = {};
 				el._eventHandlers[key][ev] = fn;
 			} else {
-				if (key.startsWith('toggle')) console.warn(`[SETUP] Non-critical toggle button element not found: ${key}`);
-				else console.warn(`[SETUP] Element not found for listener: ${key}`);
+                // Only warn for active toggle buttons, as other buttons might not always be present
+				if (key.startsWith('toggle') &&
+                    (key === 'toggleUserBadgesSection' ||
+                     key === 'toggleUserTitlesSection' ||
+                     key === 'toggleAvailableBadgesSection' /* Added this one as per new requirement */)) {
+					console.warn(`[SETUP] Collapsible section toggle button not found: ${key}`);
+				} else if (!key.startsWith('toggle')) { // Don't warn for other non-critical non-toggle buttons
+                    console.warn(`[SETUP] Element not found for listener: ${key}`);
+                }
 			}
 		};
 		safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle');
@@ -1748,15 +1781,14 @@
 		document.removeEventListener('click', handleOutsideNotificationClick);
 		document.addEventListener('click', handleOutsideNotificationClick);
 
-
-		const sectionToggleMap = {
-            toggleUserBadgesSection: { content: ui.userBadgesContent, active: true },
-            toggleAvailableBadgesSection: { content: ui.availableBadgesContent, active: true },
-            toggleUserTitlesSection: { content: ui.userTitlesInventoryContent, active: true },
-            // Sections that should NOT be collapsible
-            toggleTitleShopSection: { content: ui.titleShopContent, active: false },
-            toggleAvatarDecorationsSection: { content: ui.avatarDecorationsContent, active: false },
-            toggleLeaderboardSection: { content: ui.leaderboardContent, active: false }
+        // Updated Section Toggling Logic
+        const sectionToggleMap = {
+            toggleUserBadgesSection: { content: ui.userBadgesContent, active: true }, // Collapsible
+            toggleAvailableBadgesSection: { content: ui.availableBadgesContent, active: false }, // NOT Collapsible
+            toggleUserTitlesSection: { content: ui.userTitlesInventoryContent, active: true }, // Collapsible
+            toggleTitleShopSection: { content: ui.titleShopContent, active: false }, // NOT Collapsible
+            toggleAvatarDecorationsSection: { content: ui.avatarDecorationsContent, active: false }, // NOT Collapsible
+            toggleLeaderboardSection: { content: ui.leaderboardContent, active: false } // NOT Collapsible
         };
 
 		Object.keys(sectionToggleMap).forEach(buttonKey => {
@@ -1765,9 +1797,8 @@
             const contentElement = config.content;
 
 			if (button && contentElement) {
-                if (!config.active) { // If section should not be collapsible
-                    button.style.display = 'none'; // Hide the toggle button
-                    // Ensure content is always visible and not affected by collapse logic
+                if (!config.active) {
+                    button.style.display = 'none';
                     contentElement.style.maxHeight = '';
                     contentElement.style.opacity = '1';
                     contentElement.style.visibility = 'visible';
@@ -1777,8 +1808,8 @@
                     contentElement.style.marginBottom = '';
                     const sectionCard = button.closest('.card-section');
                     if (sectionCard) sectionCard.classList.remove('collapsed-section');
-                    console.log(`[SETUP] Section ${buttonKey} is not collapsible. Button hidden, content forced visible.`);
-                    return; // Skip adding collapse listener
+                    console.log(`[SETUP] Section ${buttonKey} is NOT collapsible. Button hidden, content forced visible.`);
+                    return;
                 }
 
 				const sectionCard = button.closest('.card-section');
@@ -1792,8 +1823,8 @@
 
 				const applyCollapsedState = (collapsing) => {
 					if (icon) {
-						icon.classList.toggle('fa-chevron-down', collapsing);
-						icon.classList.toggle('fa-chevron-up', !collapsing);
+						icon.classList.toggle('fa-chevron-down', collapsing); // Icon should point down when collapsed
+						icon.classList.toggle('fa-chevron-up', !collapsing); // Icon points up when expanded
 						button.title = collapsing ? "Rozbalit sekci" : "Sbalit sekci";
 					}
 					if (sectionCard) {
@@ -1852,7 +1883,7 @@
 
 	// --- START: Initialization ---
 	async function initializeApp() {
-		console.log(`🚀 [Init Oceneni v23.23.8] Starting...`);
+		console.log(`🚀 [Init Oceneni v23.23.9 - Client Sort, Panel Fix] Starting...`);
 		cacheDOMElements();
 		if (!initializeSupabase()) return;
 
@@ -1886,7 +1917,7 @@
 				if (!currentProfile.preferences) currentProfile.preferences = {};
 			} else {
 				console.error("CRITICAL: Profile fetch failed in initializeApp:", profileResult.reason);
-				showError("Nepodařilo se načíst váš profil. Zkuste obnovit stránku.", true);
+				showError("Nepodařilo se načíst váš profil. Některé funkce nemusí být dostupné.", true);
 				currentProfile = currentProfile || { id: currentUser.id, email: currentUser.email, points: 0, badges_count: 0, streak_days: 0, longest_streak_days:0, purchased_titles: [], selected_title: null, selected_decoration: null, purchased_decorations: [] };
 			}
 
