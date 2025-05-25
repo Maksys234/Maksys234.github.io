@@ -9,6 +9,7 @@
 // VERZE 12.6: Zpřísnění logiky pro jednorázové spuštění diagnostického testu 'exam_prep' a explicitní logování cíle.
 // VERZE 12.7 (UŽIVATELSKÉ POŽADAVKY): Automatické spouštění testu, kontrola dokončení, zobrazení titulu, formát skóre u přeskočených.
 // VERZE 12.8 (UŽIVATELSKÉ POŽADAVKY): Rozšíření o 4 typy testů, dva zatím neaktivní.
+// VERZE 12.9 (OPRAVY A VYLEPŠENÍ): Oprava zobrazení titulu, logika pro zvýraznění doporučeného testu.
 
 // Используем IIFE для изоляции области видимости
 (function() {
@@ -29,7 +30,7 @@
     let diagnosticId = null;
     let selectedTestType = null;
     let isLoading = { page: true, test: false, results: false, notifications: false, titles: false, reevaluation: {} };
-    let allTitles = [];
+    let allTitles = []; // <--- PŘIDÁNO: Pro uchování všech titulů
 		const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
 
 
@@ -37,42 +38,43 @@
         full: { // Odpovídá cíli 'exam_prep'
             questionsCount: 20, // Může být dynamické z TestLogic
             title: 'Příprava na Přijímačky',
-            description: 'Kompletní diagnostický test pro přípravu na přijímací zkoušky.',
+            description: 'Podrobné hodnocení <strong>všech oblastí přijímaček</strong>, podobné reálnému testu. Poskytuje solidní základ pro studijní plán.',
             multiplier: 1.5,
             isCoreDiagnostic: true, // Označení, že tento test je klíčový pro 'exam_prep'
-            identifier: 'exam_prep_full' // Unikátní identifikátor
+            identifier: 'exam_prep_full', // Unikátní identifikátor
+            recommendedForGoal: 'exam_prep', // <--- PŘIDÁNO: Propojení s cílem
+            isActive: true
         },
         math_review: { // Odpovídá cíli 'math_review'
             questionsCount: 19, // Může být dynamické z TestLogic
             title: 'Opakování Matematiky',
-            description: 'Test zaměřený na doplnění mezer v základních tématech.',
+            description: 'Test zaměřený na <strong>doplnění mezer v základních tématech</strong> a upevnění znalostí z matematiky ZŠ.',
             multiplier: 1.0,
             isCoreDiagnostic: true, // Může být také považován za klíčový pro svůj cíl
-            identifier: 'math_review_standard' // Unikátní identifikátor
+            identifier: 'math_review_standard', // Unikátní identifikátor
+            recommendedForGoal: 'math_review', // <--- PŘIDÁNO: Propojení s cílem
+            isActive: true
         },
         math_accelerate: { // Odpovídá cíli 'math_accelerate' - zatím placeholder
             questionsCount: 15, // Příklad
             title: 'Učení Napřed',
-            description: 'Otestujte své znalosti v pokročilejších tématech. (Ve vývoji)',
+            description: 'Otestujte své znalosti v <strong>pokročilejších tématech</strong> a připravte se na budoucí výzvy. Tento test zatím není aktivní.',
             multiplier: 1.2,
             isCoreDiagnostic: false,
             isActive: false, // Označení, že test zatím není aktivní
-            identifier: 'math_accelerate_preview'
+            identifier: 'math_accelerate_preview',
+            recommendedForGoal: 'math_accelerate' // <--- PŘIDÁNO: Propojení s cílem
         },
         math_explore: { // Odpovídá cíli 'math_explore' - zatím placeholder
             questionsCount: 10, // Příklad
             title: 'Volné Prozkoumávání',
-            description: 'Test zaměřený na různorodá témata dle vašeho výběru. (Ve vývoji)',
+            description: 'Test zaměřený na <strong>různorodá témata dle vašeho výběru</strong> pro rozšíření obzorů. Tento test zatím není aktivní.',
             multiplier: 1.0,
             isCoreDiagnostic: false,
             isActive: false, // Označení, že test zatím není aktivní
-            identifier: 'math_explore_sampler'
+            identifier: 'math_explore_sampler',
+            recommendedForGoal: 'math_explore' // <--- PŘIDÁNO: Propojení s cílem
         }
-        // Původní "quick" a "absolute" můžeme ponechat, pokud je chceme stále nabízet jako obecné testy
-        // nebo je odstranit, pokud nyní máme dedikované testy pro každý cíl.
-        // Prozatím je ponecháme, ale nebudou automaticky spouštěny.
-        // quick: { questionsCount: 10, title: 'Rychlý diagnostický test', description: 'Základní prověření', multiplier: 1.0 },
-        // absolute: { questionsCount: 30, title: 'Absolutní test znalostí', description: 'Důkladná prověrka', multiplier: 2.0 }
     };
 
 
@@ -160,6 +162,7 @@
     function openMenu() { if (ui.sidebar && ui.sidebarOverlay) { document.body.classList.remove('sidebar-collapsed'); ui.sidebar.classList.add('active'); ui.sidebarOverlay.classList.add('active'); } }
     function closeMenu() { if (ui.sidebar && ui.sidebarOverlay) { ui.sidebar.classList.remove('active'); ui.sidebarOverlay.classList.remove('active'); } }
 
+    // --- ZMĚNĚNO: updateUserInfoUI ---
     function updateUserInfoUI() {
         if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) {
             console.warn("[UI Sidebar] Sidebar profile elements missing for full update.");
@@ -169,7 +172,14 @@
             const displayName = `${currentProfile.first_name || ''} ${currentProfile.last_name || ''}`.trim() || currentProfile.username || currentUser.email?.split('@')[0] || 'Pilot';
             ui.sidebarName.textContent = sanitizeHTML(displayName);
             const initials = getInitials(currentProfile);
-            ui.sidebarAvatar.innerHTML = currentProfile.avatar_url ? `<img src="${sanitizeHTML(currentProfile.avatar_url)}?t=${Date.now()}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
+            let avatarUrl = currentProfile.avatar_url;
+
+            // Přidání časové značky pro obnovení obrázku, pokud je to validní URL
+            if (avatarUrl && (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://'))) {
+                 avatarUrl += `?t=${new Date().getTime()}`;
+            }
+
+            ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
 
             const img = ui.sidebarAvatar.querySelector('img');
             if (img) {
@@ -202,6 +212,7 @@
             ui.sidebarUserTitle.removeAttribute('title');
         }
     }
+    // --- KONEC ZMĚNY: updateUserInfoUI ---
 
     function handleScroll() { if (!ui.mainContent || !ui.dashboardHeader) return; document.body.classList.toggle('scrolled', ui.mainContent.scrollTop > 10); }
     function indexToLetter(index){ return String.fromCharCode(65 + index); }
@@ -217,7 +228,6 @@
         const retryButtonHTML = showRetryButton ? `<button class="btn btn-primary" style="margin-top:1.5rem;" onclick="location.reload()"><i class="fas fa-redo"></i> Zkusit znovu</button>` : '';
 
         if (ui.globalError) {
-            // `showError` může mít vlastní logiku pro retry, takže necháme ji, aby se postarala o globální error
              ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div>${retryButtonHTML}</div>`;
              ui.globalError.style.display = 'block';
         } else if (ui.mainContent) {
@@ -313,28 +323,29 @@
     // --- END: Helper Functions ---
 
     // --- START: Data Fetching Wrappers (using TestLogic) ---
+    // --- ZMĚNĚNO: fetchUserProfile a fetchTitles ---
     async function fetchUserProfile(userId) {
         if (!supabase || !userId) return null;
         console.log(`[Profile] Fetching profile for user ID: ${userId}`);
-        setLoadingState('titles', true); // Použijeme 'titles' jako obecný loader pro profil a tituly
+        setLoadingState('titles', true); // Use a general loader state for initial data
         try {
             const { data: profile, error } = await supabase
                 .from('profiles')
-                .select('*, selected_title, preferences, longest_streak_days') // Načteme i preferences a longest_streak_days
+                .select('*, selected_title, preferences, longest_streak_days')
                 .eq('id', userId)
                 .single();
-            if (error && error.code !== 'PGRST116') throw error; // PGRST116 = 0 rows, což je OK pro nový profil
+            if (error && error.code !== 'PGRST116') throw error;
             if (!profile) {
-                console.warn(`[Profile] Profile not found for user ${userId}. This might be a new user.`);
-                return null; // Vrátíme null, pokud profil neexistuje, `initializeApp` se o to postará
+                console.warn(`[Profile] Profile not found for user ${userId}.`);
+                return null;
             }
-            if (!profile.preferences) profile.preferences = {}; // Zajistíme, že preferences existuje
+            if (!profile.preferences) profile.preferences = {};
             console.log("[Profile] Profile data fetched successfully:", profile);
             return profile;
         } catch (error) {
             console.error('[Profile] Exception fetching profile:', error);
             showToast('Chyba Profilu', 'Nepodařilo se načíst data profilu.', 'error');
-            return null; // V případě chyby vrátíme null
+            return null;
         } finally {
             setLoadingState('titles', false);
         }
@@ -343,24 +354,24 @@
 		async function fetchTitles() {
         if (!supabase) return [];
         console.log("[Titles] Fetching available titles...");
-        // Není třeba explicitně setLoadingState('titles', true) zde, pokud je voláno v rámci fetchUserProfile
         try {
             const { data, error } = await supabase
-                .from('title_shop') // Název tabulky s tituly
-                .select('title_key, name'); // Klíč a název titulu
+                .from('title_shop')
+                .select('title_key, name');
 
             if (error) {
                 console.error("[Titles] Error from Supabase:", error);
                 throw error;
             }
             console.log("[Titles] Fetched titles:", data);
-            return data || []; // Vrátí pole titulů nebo prázdné pole
+            return data || [];
         } catch (error) {
             console.error("[Titles] Catch block error fetching titles:", error.message);
             showToast("Chyba", "Nepodařilo se načíst dostupné tituly.", "error");
-            return []; // V případě chyby vrátíme prázdné pole
+            return [];
         }
     }
+    // --- KONEC ZMĚNY: fetchUserProfile a fetchTitles ---
 
     async function checkSpecificTestCompleted(userId, testIdentifier) {
         setLoadingState('test', true);
@@ -370,21 +381,12 @@
                 console.warn("[checkSpecificTestCompleted] Chybí ID uživatele nebo Supabase klient.");
                 return false;
             }
-            // Upravený dotaz, který hledá existující diagnostický test, který by mohl odpovídat identifikátoru.
-            // V 'analysis' JSONB sloupci bychom mohli ukládat 'test_type_identifier' při uložení testu.
-            // Toto je zjednodušený přístup, protože nemáme přímý sloupec pro typ testu v 'user_diagnostics'.
             console.log(`[checkSpecificTestCompleted] Hledám test pro user: ${userId} s potenciálním identifikátorem (nebo obecně pro cíl): ${testIdentifier}`);
 
-            // Pro 'exam_prep_full', hledáme jakýkoliv záznam v user_diagnostics (předpoklad, že exam_prep test je jen jeden)
-            // Pro 'math_review_standard', hledáme jakýkoliv záznam (opět předpoklad jednoho typu testu pro tento cíl)
-            // Tato logika by se musela zpřesnit, pokud by pro jeden cíl mohlo být více typů "klíčových" diagnostických testů.
             const { data: existingTests, error } = await supabase
                 .from('user_diagnostics')
-                .select('id, analysis') // Načteme i analýzu pro případnou budoucí kontrolu typu
+                .select('id, analysis')
                 .eq('user_id', userId)
-                // Zde bychom filtrovali podle test_identifier, KDYBY existoval v DB.
-                // Např.: .eq('test_identifier', testIdentifier)
-                // Nebo .like('analysis->>summary->>test_type_config_key', `%${testIdentifier}%`) pokud bychom to tam ukládali
                 .order('completed_at', { ascending: false });
 
             if (error) {
@@ -403,9 +405,17 @@
                     console.log(`[checkSpecificTestCompleted] Nalezen existující diagnostický test pro cíl 'math_review'.`);
                     return true;
                 }
-                // Zde bychom mohli přidat logiku pro porovnání `testIdentifier` s daty v `existingTests.analysis`,
-                // pokud bychom tam ukládali identifikátor testu.
-                console.log(`[checkSpecificTestCompleted] Nalezeny testy (${existingTests.length}), ale neodpovídají aktuálnímu scénáři automatického spuštění nebo kontroly unikátnosti.`);
+                // Kontrola, zda některý z existujících testů v `analysis` obsahuje `test_type_identifier`
+                const completedTestWithType = existingTests.find(test =>
+                    test.analysis &&
+                    test.analysis.summary && // Přidáno pro jistotu
+                    test.analysis.summary.test_type_identifier === testIdentifier
+                );
+                if (completedTestWithType) {
+                    console.log(`[checkSpecificTestCompleted] Nalezen existující test s identifikátorem '${testIdentifier}'.`);
+                    return true;
+                }
+                console.log(`[checkSpecificTestCompleted] Nalezeny testy (${existingTests.length}), ale žádný neodpovídá identifikátoru '${testIdentifier}' v analýze.`);
             }
             return false;
 
@@ -426,9 +436,9 @@
             if (!currentProfile) {
                 throw new Error("Profil uživatele není načtený. Nelze určit typ otázek.");
             }
-            console.log(`[UI LoadQ v12.8] Volání TestLogic.loadTestQuestions s profilem (Goal: ${currentProfile.learning_goal}, TestType: ${testType})`);
-            questions = await window.TestLogic.loadTestQuestions(supabase, currentProfile, testTypeConfig); // Předáváme celou testTypeConfig
-            console.log(`[UI LoadQ v12.8] Obdrženo ${questions.length} otázek z logiky.`);
+            console.log(`[UI LoadQ v12.9] Volání TestLogic.loadTestQuestions s profilem (Goal: ${currentProfile.learning_goal}, TestType: ${testType})`);
+            questions = await window.TestLogic.loadTestQuestions(supabase, currentProfile, testTypeConfig);
+            console.log(`[UI LoadQ v12.9] Obdrženo ${questions.length} otázek z logiky.`);
             initializeTest();
         } catch (error) {
             console.error('[UI] Error loading questions:', error);
@@ -917,11 +927,15 @@
             await evaluateAnswersUI();
             testResultsData = window.TestLogic.calculateFinalResults(userAnswers, questions);
             testResultsData.timeSpent = testTime;
-            // Ukládáme i identifikátor testu, pokud je definován v testTypeConfig
             const testConfig = testTypeConfig[selectedTestType];
             if (testConfig && testConfig.identifier) {
-                testResultsData.test_type_identifier = testConfig.identifier; // Přidáme identifikátor do výsledků
+                if (!testResultsData.summary) testResultsData.summary = {}; // Zajistíme, že summary existuje
+                testResultsData.summary.test_type_identifier = testConfig.identifier;
+                 console.log(`[finishTest] Added test_type_identifier: ${testConfig.identifier} to results.summary`);
+            } else {
+                console.warn(`[finishTest] Missing testConfig or identifier for selectedTestType: ${selectedTestType}`);
             }
+
 
             saveResult = await window.TestLogic.saveTestResults(supabase, currentUser, testResultsData, userAnswers, questions, testEndTime);
             diagnosticId = saveResult.diagnosticId || null;
@@ -1013,10 +1027,17 @@
                 ui.reviewContainer.style.display = 'none';
                 if (ui.testSelector) ui.testSelector.style.display = 'block';
                 questions = []; userAnswers = []; testResultsData = {}; diagnosticId = null; selectedTestType = null;
-                ui.testTypeCards.forEach(c => c.classList.remove('selected'));
+                ui.testTypeCards.forEach(c => {
+                     c.classList.remove('selected', 'recommended-test', 'disabled-test');
+                     const btn = c.querySelector('.select-test-btn');
+                     if(btn) btn.disabled = !(testTypeConfig[c.dataset.testType]?.isActive !== false); // Povolit aktivní
+                });
                 if(ui.lowScoreMessageContainer) ui.lowScoreMessageContainer.innerHTML = '';
                 if (ui.continueBtn) { ui.continueBtn.disabled = true; ui.continueBtn.removeAttribute('data-save-error'); }
                 if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu';
+                // --- PŘIDÁNO: Znovu aplikovat logiku pro zvýraznění doporučeného testu ---
+                applyTestHighlightingAndSelection();
+                // --- KONEC PŘIDÁNÍ ---
                 history.replaceState({ state: 'testSelection' }, document.title, window.location.href);
             });
         }
@@ -1029,22 +1050,35 @@
         if (ui.testTypeCards && ui.testTypeCards.length > 0) {
             ui.testTypeCards.forEach(card => {
                 card.addEventListener('click', function(event) {
+                    if (this.classList.contains('disabled-test')) { // Pokud je karta neaktivní, nic nedělat
+                        showToast("Test není aktivní", "Tento typ testu není momentálně dostupný nebo není doporučen pro váš cíl.", "info");
+                        return;
+                    }
                     const testType = this.dataset.testType;
                     const config = testTypeConfig[testType];
 
-                    // Zabráníme výběru, pokud test není aktivní (pro placeholdery)
                     if (config && config.isActive === false) {
                         showToast("Již brzy!", "Tento typ testu bude brzy dostupný.", "info");
                         return;
                     }
 
                     const isButtonClicked = event.target.closest('.select-test-btn');
-                    ui.testTypeCards.forEach(c => c.classList.remove('selected'));
-                    this.classList.add('selected');
-                    selectedTestType = testType;
-                    if (isButtonClicked) {
-                        event.stopPropagation();
-                        startSelectedTest();
+                    // Pouze pokud je karta doporučená nebo pokud není žádná doporučená (fallback)
+                    if (this.classList.contains('recommended-test') || !document.querySelector('.test-type-card.recommended-test')) {
+                        ui.testTypeCards.forEach(c => c.classList.remove('selected'));
+                        this.classList.add('selected');
+                        selectedTestType = testType;
+                        if (isButtonClicked && !this.querySelector('.select-test-btn').disabled) {
+                            event.stopPropagation();
+                            startSelectedTest();
+                        }
+                    } else if (isButtonClicked && !this.querySelector('.select-test-btn').disabled) {
+                         // Pokud uživatel klikne na tlačítko na nedoporučené, ale aktivní kartě
+                         ui.testTypeCards.forEach(c => c.classList.remove('selected'));
+                         this.classList.add('selected');
+                         selectedTestType = testType;
+                         event.stopPropagation();
+                         startSelectedTest();
                     }
                 });
             });
@@ -1054,6 +1088,10 @@
                 button.addEventListener('click', function(event) {
                     event.stopPropagation();
                      const card = this.closest('.test-type-card');
+                     if (card.classList.contains('disabled-test') || this.disabled) {
+                         showToast("Test není aktivní", "Tento typ testu není momentálně dostupný nebo není doporučen pro váš cíl.", "info");
+                         return;
+                     }
                     const testType = card.dataset.testType;
                     const config = testTypeConfig[testType];
 
@@ -1061,7 +1099,6 @@
                         showToast("Již brzy!", "Tento typ testu bude brzy dostupný.", "info");
                         return;
                     }
-                    if (button.disabled) return; // Pokud je tlačítko disabled
 
                     ui.testTypeCards.forEach(c => c.classList.remove('selected'));
                     card.classList.add('selected');
@@ -1084,30 +1121,97 @@
     // --- END: Event Listeners Setup ---
 
     // --- START: Test Flow & Back Button ---
+    // --- PŘIDÁNO: applyTestHighlightingAndSelection ---
+    function applyTestHighlightingAndSelection() {
+        const userLearningGoal = currentProfile?.learning_goal;
+        let recommendedTestKey = null;
+
+        if (userLearningGoal) {
+            for (const key in testTypeConfig) {
+                if (testTypeConfig[key].recommendedForGoal === userLearningGoal && testTypeConfig[key].isActive !== false) {
+                    recommendedTestKey = key;
+                    break;
+                }
+            }
+        }
+
+        ui.testTypeCards.forEach(card => {
+            const testType = card.dataset.testType;
+            const config = testTypeConfig[testType];
+            const button = card.querySelector('.select-test-btn');
+
+            card.classList.remove('recommended-test', 'disabled-test', 'selected');
+            if (button) button.disabled = true; // Nejprve všechna tlačítka deaktivujeme
+
+            if (config && config.isActive !== false) { // Test je obecně aktivní
+                if (recommendedTestKey === testType) {
+                    card.classList.add('recommended-test');
+                    card.classList.add('selected'); // Automaticky vybereme doporučený
+                    selectedTestType = testType; // Nastavíme jako vybraný
+                    if (button) button.disabled = false; // Povolíme tlačítko pro doporučený
+                    console.log(`[Highlight] Doporučený test: ${config.title} pro cíl ${userLearningGoal}`);
+                } else if (recommendedTestKey) { // Pokud existuje doporučený test, ostatní aktivní jsou "disabled"
+                    card.classList.add('disabled-test');
+                    if (button) {
+                        button.innerHTML = '<i class="fas fa-times-circle"></i> Není doporučeno';
+                        button.disabled = true;
+                    }
+                } else { // Pokud není žádný doporučený (např. cíl není nastaven), všechny aktivní jsou volitelné
+                    if (button) {
+                         button.disabled = false;
+                         button.innerHTML = `<i class="fas fa-play"></i> Spustit ${config.title.split(' ')[0]} Test`; // Obnovíme původní text
+                    }
+                }
+            } else { // Test není aktivní (isActive: false)
+                card.classList.add('disabled-test');
+                if (button) {
+                     button.innerHTML = '<i class="fas fa-hourglass-half"></i> Již brzy';
+                     button.disabled = true;
+                }
+            }
+        });
+
+        // Aktualizace hlavního titulku a podtitulku na základě doporučeného/vybraného testu
+        const currentConfig = testTypeConfig[selectedTestType];
+        if (currentConfig && ui.currentTestTitle) {
+            ui.currentTestTitle.textContent = currentConfig.title;
+        }
+        if (currentConfig && ui.testLevel) {
+            ui.testLevel.textContent = currentConfig.description.split('.')[0]; // První věta popisu
+        } else if (ui.testLevel) {
+            ui.testLevel.textContent = "Výběr typu testu";
+        }
+    }
+    // --- KONEC PŘIDÁNÍ: applyTestHighlightingAndSelection ---
+
     function startSelectedTest() {
         if (!selectedTestType) {
-            showToast('Vyberte prosím typ testu.', 'warning');
-            if (ui.testSelector && getComputedStyle(ui.testSelector).display === 'none') {
-                ui.testSelector.style.display = 'block';
+            // Pokud nic není selected (což by se po applyTestHighlightingAndSelection nemělo stát, pokud je profil)
+            // Zkusíme znovu aplikovat highlight, kdyby náhodou
+            applyTestHighlightingAndSelection();
+            if (!selectedTestType) { // Pokud stále nic, zobrazíme chybu
+                showToast('Vyberte prosím typ testu.', 'warning');
+                 if (ui.testSelector && getComputedStyle(ui.testSelector).display === 'none') {
+                    ui.testSelector.style.display = 'block';
+                }
+                return;
             }
-            return;
         }
+
         const config = testTypeConfig[selectedTestType];
         if (!config) {
             showErrorMessagePage(`Neznámý typ testu: ${selectedTestType}`);
             return;
         }
-        // Kontrola, zda je test aktivní (pro nové placeholdery)
         if (config.isActive === false) {
             showToast("Funkce ve vývoji", `Test typu "${config.title}" bude brzy dostupný.`, "info");
-            // Ponecháme uživatele na výběru testu
             if (ui.testSelector) ui.testSelector.style.display = 'block';
             if (ui.testLoader) ui.testLoader.style.display = 'none';
             return;
         }
 
         if(ui.currentTestTitle) ui.currentTestTitle.textContent = config.title;
-        if(ui.testLevel) ui.testLevel.textContent = config.description;
+        if(ui.testLevel) ui.testLevel.textContent = config.description.split('.')[0];
         if (ui.testSelector) ui.testSelector.style.display = 'none';
         if (ui.testLoader) ui.testLoader.style.display = 'flex';
         if (ui.loaderSubtext) ui.loaderSubtext.textContent = 'Načítám otázky...';
@@ -1118,12 +1222,12 @@
         history.pushState({ state: 'testInProgress' }, document.title, window.location.href);
         loadTestQuestions(selectedTestType);
     }
-    function handleBackButton(event) { const state = event.state ? event.state.state : null; const testIsRunning = ui.testContainer && ui.testContainer.style.display === 'block'; const resultsAreShown = ui.resultsContainer && ui.resultsContainer.style.display === 'block'; const reviewIsShown = ui.reviewContainer && ui.reviewContainer.style.display === 'block'; if (reviewIsShown) { ui.reviewContainer.style.display = 'none'; if (ui.resultsContainer) ui.resultsContainer.style.display = 'block'; } else if (testIsRunning) { if (!confirm('Opustit test? Postup nebude uložen.')) { history.pushState({ state: 'testInProgress' }, document.title, window.location.href); } else { stopTimer(); if (ui.testContainer) ui.testContainer.style.display = 'none'; if (ui.testLoader) ui.testLoader.style.display = 'none'; if (ui.testSelector) ui.testSelector.style.display = 'block'; if (ui.testTimer) ui.testTimer.style.display = 'none'; if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; } } else if (resultsAreShown) { if(ui.resultsContainer) ui.resultsContainer.style.display = 'none'; if (ui.testSelector) ui.testSelector.style.display = 'block'; if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; } else { console.log("Navigace zpět (výchozí chování)."); } }
+    function handleBackButton(event) { const state = event.state ? event.state.state : null; const testIsRunning = ui.testContainer && ui.testContainer.style.display === 'block'; const resultsAreShown = ui.resultsContainer && ui.resultsContainer.style.display === 'block'; const reviewIsShown = ui.reviewContainer && ui.reviewContainer.style.display === 'block'; if (reviewIsShown) { ui.reviewContainer.style.display = 'none'; if (ui.resultsContainer) ui.resultsContainer.style.display = 'block'; } else if (testIsRunning) { if (!confirm('Opustit test? Postup nebude uložen.')) { history.pushState({ state: 'testInProgress' }, document.title, window.location.href); } else { stopTimer(); if (ui.testContainer) ui.testContainer.style.display = 'none'; if (ui.testLoader) ui.testLoader.style.display = 'none'; if (ui.testSelector) ui.testSelector.style.display = 'block'; if (ui.testTimer) ui.testTimer.style.display = 'none'; if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; applyTestHighlightingAndSelection(); } } else if (resultsAreShown) { if(ui.resultsContainer) ui.resultsContainer.style.display = 'none'; if (ui.testSelector) ui.testSelector.style.display = 'block'; if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; applyTestHighlightingAndSelection(); } else { console.log("Navigace zpět (výchozí chování)."); applyTestHighlightingAndSelection(); } }
     // --- END: Test Flow & Back Button ---
 
     // --- START: App Initialization ---
     async function initializeApp() {
-        console.log("🚀 [Init Test1 UI - Kyber v12.8] Starting...");
+        console.log("🚀 [Init Test1 UI - Kyber v12.9] Starting...");
         if (!initializeSupabase()) return;
         applyInitialSidebarState();
 
@@ -1139,18 +1243,19 @@
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
             if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
 
-            if (!session || !session.user) { console.log('[Init Test1 UI - Kyber v12.8] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; }
+            if (!session || !session.user) { console.log('[Init Test1 UI - Kyber v12.9] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; }
             currentUser = session.user;
 
-            const [profileResult, titlesResult] = await Promise.allSettled([
-                fetchUserProfile(currentUser.id),
-                fetchTitles()
-            ]);
+            // --- ZMĚNĚNO: Fetch titles first, then profile ---
+            const titlesFetchResult = await fetchTitles();
+            allTitles = titlesFetchResult || []; // Ensure allTitles is an array
+            console.log(`[INIT v12.9] Loaded ${allTitles.length} titles.`);
 
-            if (profileResult.status === 'fulfilled' && profileResult.value) {
-                currentProfile = profileResult.value;
+            const profileResult = await fetchUserProfile(currentUser.id);
+            if (profileResult) {
+                currentProfile = profileResult;
             } else {
-                console.error("[INIT] Profile fetch failed or no data:", profileResult.reason);
+                console.error("[INIT v12.9] Profile fetch failed or no data.");
                 currentProfile = await createDefaultProfileIfNeeded(currentUser.id, currentUser.email);
                 if (!currentProfile) {
                     showError("Nepodařilo se načíst nebo vytvořit profil. Zkuste obnovit stránku.", true);
@@ -1158,13 +1263,11 @@
                     return;
                 }
             }
-
-            allTitles = (titlesResult.status === 'fulfilled' && titlesResult.value) ? titlesResult.value : [];
-            console.log(`[INIT] Loaded ${allTitles.length} titles.`);
-            updateUserInfoUI();
+            // --- KONEC ZMĚNY ---
+            updateUserInfoUI(); // Nyní by měl mít přístup k allTitles
 
             const userLearningGoal = currentProfile.learning_goal;
-            console.log(`[Init v12.8] Cíl uživatele z profilu: '${userLearningGoal}'`);
+            console.log(`[Init v12.9] Cíl uživatele z profilu: '${userLearningGoal}'`);
 
             let testMainTitle = "Diagnostický test";
             let testSubtitle = "Výběr testu";
@@ -1182,30 +1285,31 @@
             let autoStartTestKey = null;
             let specificTestIdentifier = null;
 
-            if (userLearningGoal === 'exam_prep') {
-                autoStartTestKey = 'full';
-                specificTestIdentifier = testTypeConfig.full.identifier;
-                testMainTitle = testTypeConfig.full.title;
-                testSubtitle = testTypeConfig.full.description;
-            } else if (userLearningGoal === 'math_review') {
-                autoStartTestKey = 'math_review';
-                specificTestIdentifier = testTypeConfig.math_review.identifier;
-                testMainTitle = testTypeConfig.math_review.title;
-                testSubtitle = testTypeConfig.math_review.description;
+            if (userLearningGoal) {
+                for (const key in testTypeConfig) {
+                    if (testTypeConfig[key].recommendedForGoal === userLearningGoal && testTypeConfig[key].isActive !== false) {
+                        autoStartTestKey = key;
+                        specificTestIdentifier = testTypeConfig[key].identifier;
+                        testMainTitle = testTypeConfig[key].title;
+                        testSubtitle = testTypeConfig[key].description.split('.')[0]; // První věta
+                        break;
+                    }
+                }
             }
-            // Pro math_accelerate a math_explore se test nespouští automaticky, zobrazí se výběr.
 
             if (ui.testLevel) ui.testLevel.textContent = testSubtitle;
             const h1TitleElem = document.querySelector('.dashboard-header h1');
             if (h1TitleElem) h1TitleElem.innerHTML = `<i class="fas fa-vial"></i> ${sanitizeHTML(testMainTitle)}`;
 
+            // Aplikace zvýraznění a deaktivace karet
+            applyTestHighlightingAndSelection();
 
             if (autoStartTestKey && specificTestIdentifier) {
                 const hasCompletedSpecificTest = await checkSpecificTestCompleted(currentUser.id, specificTestIdentifier);
                 setLoadingState('test', false);
 
                 if (hasCompletedSpecificTest) {
-                    console.log(`[Init v12.8] Cíl '${userLearningGoal}' a test '${specificTestIdentifier}' již byl dokončen.`);
+                    console.log(`[Init v12.9] Cíl '${userLearningGoal}' a test '${specificTestIdentifier}' již byl dokončen.`);
                     showErrorMessagePage(`Test "${testTypeConfig[autoStartTestKey].title}" jste již absolvoval/a. Nelze jej opakovat. Vaše výsledky byly použity pro studijní plán.`, false);
                     const errorContainer = ui.globalError || ui.mainContent.querySelector('.error-message-container');
                     if(errorContainer){
@@ -1223,20 +1327,18 @@
                     }
                     if(ui.testLevel) ui.testLevel.textContent = `Dokončeno (${testTypeConfig[autoStartTestKey].title})`;
                 } else {
-                    console.log(`[Init v12.8] Cíl '${userLearningGoal}', test '${specificTestIdentifier}' ještě nebyl dokončen. Spouštím.`);
-                    selectedTestType = autoStartTestKey;
+                    console.log(`[Init v12.9] Cíl '${userLearningGoal}', test '${specificTestIdentifier}' ještě nebyl dokončen. Spouštím.`);
+                    selectedTestType = autoStartTestKey; // selectedTestType je již nastaven v applyTestHighlightingAndSelection
                     startSelectedTest();
                 }
             } else {
-                // Zobrazit výběr testů, pokud není automatické spuštění
                 setLoadingState('test', false);
-                console.warn(`[Init v12.8] Cíl uživatele ('${userLearningGoal}') nevyžaduje automatické spuštění testu, nebo cíl není podporován pro auto-start. Zobrazuji výběr testu.`);
+                console.warn(`[Init v12.9] Cíl uživatele ('${userLearningGoal}') nevyžaduje automatické spuštění testu, nebo cíl není podporován pro auto-start, nebo není žádný doporučený test. Zobrazuji výběr testu.`);
                 if(ui.testSelector) {
                     ui.testSelector.style.display = 'block';
                 }
                 if(ui.testLoader) ui.testLoader.style.display = 'none';
                 if(ui.testContainer) ui.testContainer.style.display = 'none';
-                 // Aktualizujeme texty v hlavičce i pro obecný výběr
                 if (h1TitleElem) h1TitleElem.innerHTML = `<i class="fas fa-vial"></i> Testování // DIAGNOSTIKA`;
                 if (ui.testLevel) ui.testLevel.textContent = "Výběr typu testu";
             }
@@ -1244,10 +1346,10 @@
             if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
             if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }
 
-            console.log("✅ [Init Test1 UI - Kyber v12.8] Page initialized.");
+            console.log("✅ [Init Test1 UI - Kyber v12.9] Page initialized.");
 
         } catch (error) {
-            console.error("❌ [Init Test1 UI - Kyber v12.8] Error:", error);
+            console.error("❌ [Init Test1 UI - Kyber v12.9] Error:", error);
             if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">Chyba (${error.message}). Obnovte.</p>`; }
             else { showErrorMessagePage(`Chyba inicializace: ${error.message}`, true); }
             if (ui.mainContent) ui.mainContent.style.display = 'block';
@@ -1261,17 +1363,17 @@
         try {
             let { data: existingProfile, error: fetchError } = await supabase
                 .from('profiles')
-                .select('*')
+                .select('*') // Načteme všechny sloupce pro jistotu
                 .eq('id', userId)
                 .single();
 
-            if (fetchError && fetchError.code !== 'PGRST116') {
+            if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = 0 rows, což je OK
                 throw fetchError;
             }
 
             if (existingProfile) {
                 console.log("[Profile] Default profile already exists.");
-                if (!existingProfile.preferences) existingProfile.preferences = {};
+                if (!existingProfile.preferences) existingProfile.preferences = {}; // Zajistíme, že preferences existuje
                 return existingProfile;
             }
 
@@ -1282,14 +1384,14 @@
                 username: defaultUsername,
                 email: email,
                 updated_at: new Date().toISOString(),
-                learning_goal: null,
+                learning_goal: null, // Výchozí cíl bude null, uživatel si ho vybere jinde
                 preferences: {},
                 points: 0,
                 level: 1,
                 completed_exercises: 0,
                 streak_days: 0,
                 longest_streak_days: 0,
-                selected_title: null,
+                selected_title: null, // Výchozí titul
                 avatar_url: null,
                 first_name: null,
                 last_name: null,
@@ -1298,14 +1400,14 @@
             const { data: newProfile, error: insertError } = await supabase
                 .from('profiles')
                 .insert(defaultProfileData)
-                .select('*')
+                .select('*') // Načteme všechny sloupce nového profilu
                 .single();
 
             if (insertError) {
                 throw insertError;
             }
             console.log("[Profile] Default profile created successfully:", newProfile);
-            if (!newProfile.preferences) newProfile.preferences = {};
+            if (!newProfile.preferences) newProfile.preferences = {}; // Zajistíme, že preferences existuje
             return newProfile;
 
         } catch (error) {
