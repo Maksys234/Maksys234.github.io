@@ -476,7 +476,7 @@ section:has(.section-title.animated) .section-title span::after,
 	opacity: 1;
 }
 
-.hero { /* */
+.hero {
 	min-height: 100vh;
 	display: flex;
 	align-items: center;
@@ -485,7 +485,7 @@ section:has(.section-title.animated) .section-title span::after,
 	padding-top: calc(var(--layout-header-height) + 60px);
 	padding-bottom: 80px;
 	position: relative;
-	overflow: visible; /* CHANGED from hidden to visible to prevent clipping of animated letters if they exceed bounds slightly */
+	overflow: visible; /* ИЗМЕНЕНО: было hidden, чтобы предотвратить обрезку контента */
 	background: linear-gradient(rgba(5, 4, 15, 0.92), rgba(5, 4, 15, 1)),
 				url('https://placehold.co/1920x1080/05040F/121023/png?text=Cosmic+Network') no-repeat center center / cover;
     border-bottom: 2px solid transparent;
@@ -506,17 +506,16 @@ section:has(.section-title.animated) .section-title span::after,
     width: 100%; /* Ensure hero content takes full width for text centering */
 }
 
-.hero h1 { /* */
+.hero h1 {
 	margin-bottom: 2.2rem;
 	font-weight: 800;
 	color: var(--clr-text-highlight);
     text-shadow: 0px 2px 6px rgba(0, 0, 0, 0.85), 0px 0px 2px rgba(0,0,0,0.9), 0 0 30px rgba(0, 242, 255, 0.2);
-    /* Ensure h1 itself doesn't clip its children if transforms are aggressive */
-    overflow: visible;
-    line-height: 1.2; /* Adjust line height for potentially larger text or multi-line highlights */
+    overflow: visible; /* ИЗМЕНЕНО: Добавлено, чтобы сам h1 не обрезал дочерние элементы */
+    line-height: 1.2; /* ИЗМЕНЕНО: Немного увеличена высота строки */
 }
 
-.hero h1 .highlight { /* */
+.hero h1 .highlight {
     background: linear-gradient(120deg,
         var(--clr-accent-green),
         var(--clr-accent-cyan),
@@ -535,8 +534,7 @@ section:has(.section-title.animated) .section-title span::after,
     background-position: calc(var(--mouse-x, 0.5) * 100%) calc(var(--mouse-y, 0.5) * 100%);
     transition: background-position 0.15s linear;
     animation: highlightPulse 5s infinite ease-in-out;
-    /* Ensure highlight span doesn't get clipped if its content is larger due to transforms */
-    overflow: visible;
+    overflow: visible; /* ИЗМЕНЕНО: Добавлено, чтобы .highlight не обрезал свое содержимое */
 }
 
 @keyframes highlightPulse {
@@ -560,18 +558,18 @@ section:has(.section-title.animated) .section-title span::after,
 	transition: clip-path 0.7s cubic-bezier(0.65, 0, 0.35, 1), transform 0.7s cubic-bezier(0.65, 0, 0.35, 1); /* Smoother easing */
 	transition-delay: calc(var(--letter-index, 0) * 50ms); /* Adjusted delay for smoother reveal */
     transform-style: preserve-3d;
-    perspective: 600px; /* Increased perspective */
+    perspective: 600px; /* ИЗМЕНЕНО: Увеличена перспектива */
     /* Initial state: slightly off-screen and rotated for a more dynamic entry */
-    transform: translateY(100%) rotateX(-90deg) scale(0.7);
+    transform: translateY(100%) rotateX(-90deg) scale(0.7); /* ИЗМЕНЕНО: Начальная трансформация */
     will-change: clip-path, transform;
     /* Add a minimum width to prevent very thin letters from disappearing with transforms */
-    min-width: 1px;
+    min-width: 1px; /* ИЗМЕНЕНО: Добавлена минимальная ширина */
 }
 
 [data-animate-letters].is-revealing .letter-span {
 	clip-path: inset(0 0 0 0);
     /* Final state: fully visible and in place */
-    transform: translateY(0) rotateX(0deg) scale(1);
+    transform: translateY(0) rotateX(0deg) scale(1); /* ИЗМЕНЕНО: Конечная трансформация */
 }
 
 
@@ -706,7 +704,7 @@ section:has(.section-title.animated) .section-title span::after,
 	margin-bottom: 0;
 }
 
-.ai-interface-section { /* */
+.ai-interface-section {
 	background-color: var(--clr-bg-secondary);
 	border-block: 1px solid rgba(170, 108, 255, 0.15);
     position: relative;
@@ -716,7 +714,7 @@ section:has(.section-title.animated) .section-title span::after,
     display: none;
 }
 
-.ai-interface-wrapper { /* */
+.ai-interface-wrapper {
 	background-color: var(--clr-bg-crt);
 	border: 2px solid var(--clr-accent-purple);
 	border-radius: var(--layout-crt-border-radius);
@@ -764,7 +762,7 @@ section:has(.section-title.animated) .section-title span::after,
   75% { opacity: 1; filter: brightness(1.01) contrast(1) hue-rotate(0deg); }
 }
 
-.ai-interface-header { /* */
+.ai-interface-header {
 	background-color: var(--clr-bg-crt-header);
 	padding: 12px 20px;
 	display: flex;
@@ -775,7 +773,7 @@ section:has(.section-title.animated) .section-title span::after,
     position: relative;
     z-index: 3;
 }
-.ai-interface-title { /* */
+.ai-interface-title {
 	font-family: var(--font-mono);
 	font-size: 0.9rem;
 	color: var(--clr-text-highlight);
@@ -792,7 +790,7 @@ section:has(.section-title.animated) .section-title span::after,
 	animation: pulse-icon-crt 1.7s infinite ease-in-out;
     font-size: 1.05em;
 }
-.ai-status-indicator { /* */
+.ai-status-indicator {
 	font-family: var(--font-mono);
 	font-size: 0.75rem;
 	color: var(--clr-accent-green);
@@ -805,13 +803,13 @@ section:has(.section-title.animated) .section-title span::after,
     box-shadow: 0 0 4px rgba(0, 255, 170, 0.15);
 }
 
-.ai-content-area { /* */
+.ai-content-area {
 	padding: clamp(20px, 3.5vw, 30px);
     position: relative;
     z-index: 3;
 }
 
-.ai-log-window { /* */
+.ai-log-window {
 	height: clamp(280px, 38vh, 350px);
 	overflow-y: auto;
 	background-color: var(--clr-bg-crt-log);
@@ -839,7 +837,7 @@ section:has(.section-title.animated) .section-title span::after,
     opacity: 0.7;
 }
 
-.ai-log-line { /* */
+.ai-log-line {
 	margin-bottom: 8px;
 	word-break: break-word;
 	text-shadow: 0 0 3px rgba(var(--clr-accent-green-rgb, 0, 255, 179), 0.2);
@@ -849,7 +847,7 @@ section:has(.section-title.animated) .section-title span::after,
     0% { opacity: 0.5; }
     100% { opacity: 1; }
 }
-.ai-log-line.status { color: var(--clr-text-secondary); text-shadow: none; } /* */
+.ai-log-line.status { color: var(--clr-text-secondary); text-shadow: none; }
 .ai-log-line.input { color: var(--clr-accent-cyan); text-shadow: 0 0 5px var(--clr-accent-cyan); }
 .ai-log-line.process { color: var(--clr-text-primary); text-shadow: none; }
 .ai-log-line.analysis { color: var(--clr-accent-purple); text-shadow: 0 0 5px var(--clr-accent-purple); }
@@ -858,7 +856,7 @@ section:has(.section-title.animated) .section-title span::after,
 .ai-log-line.output { color: var(--clr-accent-green); text-shadow: 0 0 5px var(--clr-accent-green); }
 
 
-.ai-input-area { /* */
+.ai-input-area {
 	font-family: var(--font-mono);
 	color: var(--clr-accent-cyan);
 	margin-bottom: 15px;
@@ -870,11 +868,11 @@ section:has(.section-title.animated) .section-title span::after,
     white-space: nowrap;
     padding: 5px 0;
 }
-#ai-fake-input { /* */
+#ai-fake-input {
     display: inline;
     text-shadow: 0 0 4px var(--clr-accent-cyan);
 }
-.fake-input-cursor { /* */
+.fake-input-cursor {
 	display: inline-block;
 	width: 9px;
 	height: 1.2em;
@@ -889,10 +887,10 @@ section:has(.section-title.animated) .section-title span::after,
 	50% { background-color: var(--clr-accent-cyan); box-shadow: var(--glow-cyan); opacity: 1; }
 }
 
-.ai-progress-bar-container { /* */
+.ai-progress-bar-container {
 	margin-top: 20px;
 }
-.ai-progress-bar-label { /* */
+.ai-progress-bar-label {
 	font-family: var(--font-mono);
 	font-size: 0.75rem;
 	color: var(--clr-text-secondary);
@@ -900,7 +898,7 @@ section:has(.section-title.animated) .section-title span::after,
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
 }
-.ai-progress-bar { /* */
+.ai-progress-bar {
 	width: 100%;
 	height: 14px;
 	background-color: rgba(170, 108, 255, 0.12);
@@ -909,7 +907,7 @@ section:has(.section-title.animated) .section-title span::after,
 	border: 1px solid rgba(170, 108, 255, 0.2);
     box-shadow: inset 0 1px 2px rgba(0,0,0,0.25);
 }
-.ai-progress-bar-inner { /* */
+.ai-progress-bar-inner {
 	width: 0%;
 	height: 100%;
 	background: linear-gradient(90deg, var(--clr-accent-purple), var(--clr-accent-cyan), var(--clr-accent-green));
