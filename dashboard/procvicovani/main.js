@@ -1,6 +1,7 @@
 // dashboard/procvicovani/main.js
 // Version: 25.1.6 - Přidáno vytváření výchozích 0% záznamů v user_topic_progress po výběru cíle.
 // MODIFIED: Přidána tabulka s pokrokem v tématech.
+// VERSION: 25.1.10 - Rozšířená logika pro výběr cíle (ročník, intenzita, profese, hodnocení témat).
 
 (function() { // Start IIFE
 	'use strict';
@@ -33,13 +34,15 @@
 		'practice-tab': false,
 		'study-plan-tab': false,
 		'vyuka-tab': false,
-		topicProgressTable: false
+		topicProgressTable: false,
+        topicRatings: false // Nový stav pro načítání témat pro hodnocení
 	};
 	let goalSelectionInProgress = false;
 	let pendingGoal = null;
 	let isInitialPageLoadComplete = false;
 	let currentlyLoadingTabId = null;
 	let performanceTimers = {};
+    let allExamTopicsAndSubtopics = []; // Pro uložení načtených témat a podtmat
 	// --- END: State Variables ---
 
 	// --- START: UI Elements Cache ---
@@ -184,14 +187,27 @@
         const emptyState = ui.topicProgressEmptyState;
         if(emptyState) emptyState.style.display = 'none';
     }
+    function renderTopicRatingsSkeleton(container) {
+        if (!container) { console.warn("[Skeletons] Topic ratings container not found."); return; }
+        console.log("[Skeletons] Rendering topic ratings skeletons...");
+        let skeletonHTML = '';
+        for (let i = 0; i < 5; i++) { // Render 5 skeleton items
+            skeletonHTML += `
+                <div class="topic-rating-item skeleton-row" style="padding: 0.9rem 0.5rem;">
+                    <div class="topic-name skeleton text-sm" style="height: 16px; width: 60%; background-color: var(--skeleton-bg);"></div>
+                    <div class="rating-stars skeleton" style="height: 24px; width: 30%; background-color: var(--skeleton-bg);"></div>
+                </div>`;
+        }
+        container.innerHTML = skeletonHTML;
+    }
 	// --- END: Skeleton Rendering Functions ---
 
 	// --- START: Loading State Management ---
 	function setLoadingState(sectionKey, isLoadingFlag) {
         startPerformanceTimer(`setLoadingState_${sectionKey}_${isLoadingFlag}`);
-        console.log(`[SetLoadingState v3] Called for section: ${sectionKey}, isLoading: ${isLoadingFlag}`);
+        console.log(`[SetLoadingState v3.1] Called for section: ${sectionKey}, isLoading: ${isLoadingFlag}`);
         if (isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') {
-            console.log(`[SetLoadingState v3] State for ${sectionKey} already ${isLoadingFlag}. Skipping DOM changes.`);
+            console.log(`[SetLoadingState v3.1] State for ${sectionKey} already ${isLoadingFlag}. Skipping DOM changes.`);
             stopPerformanceTimer(`setLoadingState_${sectionKey}_${isLoadingFlag}`);
             return;
         }
@@ -202,30 +218,35 @@
             shortcuts: ui.shortcutsGrid,
             plan: ui.studyPlanContainer,
             notifications: ui.notificationsList,
-            topicProgressTable: ui.topicProgressTable
+            topicProgressTable: ui.topicProgressTable,
+            topicRatings: ui.topicRatingsContainer // Nový loader pro hodnocení témat
         };
         const contentMap = {
             plan: ui.studyPlanContent,
-            topicProgressTable: ui.topicProgressBody
+            topicProgressTable: ui.topicProgressBody,
+            topicRatings: ui.topicRatingsContainer // Kontejner, kde se zobrazí skutečná data
         };
         const emptyMap = {
             plan: ui.studyPlanEmpty,
             notifications: ui.noNotificationsMsg,
             topicProgressTable: ui.topicProgressEmptyState
+            // Pro topicRatings není explicitní empty state, skryje se loader a zobrazí se obsah
         };
         const skeletonFnMap = {
             stats: renderStatsSkeletons,
             shortcuts: renderShortcutSkeletons,
             plan: renderPlanSkeletons,
             notifications: renderNotificationSkeletons,
-            topicProgressTable: (container) => renderTopicProgressTableSkeletons(ui.topicProgressBody, 5)
+            topicProgressTable: (container) => renderTopicProgressTableSkeletons(ui.topicProgressBody, 5),
+            topicRatings: renderTopicRatingsSkeleton // Nová skeleton funkce
         };
         const displayTypeMap = {
             stats: 'grid',
             shortcuts: 'grid',
             plan: 'block',
             notifications: 'block',
-            topicProgressTable: 'table'
+            topicProgressTable: 'table',
+            topicRatings: 'block' // Nebo 'flex' podle layoutu
         };
 
         let container = null;
@@ -245,11 +266,11 @@
             stopPerformanceTimer(`setLoadingState_${sectionKey}_${isLoadingFlag}`);
             return;
         } else if (sectionKey === 'vyuka-tab') {
-            console.log("[SetLoadingState v3] Vyuka tab state (static).");
+            console.log("[SetLoadingState v3.1] Vyuka tab state (static).");
             stopPerformanceTimer(`setLoadingState_${sectionKey}_${isLoadingFlag}`);
             return;
         } else if(sectionKey === 'goalSelection') {
-            console.log("[SetLoadingState v3] Goal selection state:", isLoadingFlag);
+            console.log("[SetLoadingState v3.1] Goal selection state:", isLoadingFlag);
             stopPerformanceTimer(`setLoadingState_${sectionKey}_${isLoadingFlag}`);
             return;
         } else if (loaderMap[sectionKey] !== undefined) {
@@ -259,7 +280,7 @@
             contentEl = contentMap[sectionKey];
             displayType = displayTypeMap[sectionKey] || 'block';
         } else {
-            console.warn(`[SetLoadingState v3] Unknown section key or no UI mapping: '${sectionKey}'`);
+            console.warn(`[SetLoadingState v3.1] Unknown section key or no UI mapping: '${sectionKey}'`);
             stopPerformanceTimer(`setLoadingState_${sectionKey}_${isLoadingFlag}`);
             return;
         }
@@ -267,21 +288,21 @@
         const primaryElement = sectionKey === 'topicProgressTable' ? container : (contentEl || container);
 
         if (isLoadingFlag) {
-            console.log(`[SetLoadingState v3] Applying loading state for ${sectionKey}.`);
+            console.log(`[SetLoadingState v3.1] Applying loading state for ${sectionKey}.`);
             if (emptyStateEl) emptyStateEl.style.display = 'none';
             if (primaryElement) {
                 if (sectionKey !== 'topicProgressTable' && (!primaryElement.querySelector('.loading-skeleton') && !primaryElement.querySelector('.item-card-skeleton') && !primaryElement.querySelector('.skeleton-row')) ) {
-                    primaryElement.innerHTML = '';
+                   if (sectionKey !== 'topicRatings') primaryElement.innerHTML = ''; // Pro topicRatings chceme, aby skeleton funkce naplnila kontejner
                 }
                 if (sectionKey === 'topicProgressTable' && container) {
                     container.style.display = 'table';
                     if (ui.topicProgressTableLoadingOverlay) ui.topicProgressTableLoadingOverlay.classList.remove('hidden');
                 } else if (primaryElement && sectionKey !== 'topicProgressTable') {
-                    primaryElement.style.display = 'none';
+                    primaryElement.style.display = 'none'; // Skryjeme skutečný obsah, zobrazíme skeleton
                 }
 
                 if (skeletonFn) {
-                    skeletonFn(primaryElement);
+                    skeletonFn(sectionKey === 'topicRatings' ? contentEl : primaryElement); // Předáváme správný kontejner pro skeleton
                     if (primaryElement && sectionKey !== 'topicProgressTable') {
                          primaryElement.style.display = displayType;
                     }
@@ -294,11 +315,13 @@
             }
 
         } else {
-            console.log(`[SetLoadingState v3 Cleanup] Clearing loading state for ${sectionKey}.`);
+            console.log(`[SetLoadingState v3.1 Cleanup] Clearing loading state for ${sectionKey}.`);
             if (container) container.classList.remove('loading');
             if (sectionKey === 'topicProgressTable' && ui.topicProgressTableLoadingOverlay) {
                 ui.topicProgressTableLoadingOverlay.classList.add('hidden');
             }
+            // Po dokončení načítání dat pro topicRatings (isLoadingFlag = false), skeleton by měl být nahrazen skutečným obsahem.
+            // Funkce renderTopicRatings se o to postará.
         }
         stopPerformanceTimer(`setLoadingState_${sectionKey}_${isLoadingFlag}`);
     }
@@ -553,14 +576,157 @@
 	async function markAllNotificationsRead() { startPerformanceTimer('markAllNotificationsRead'); console.log(`[Notifications Stub] markAllNotificationsRead.`); setLoadingState('notifications', true); await new Promise(resolve => setTimeout(resolve, 300)); renderNotifications(0, []); stopPerformanceTimer('markAllNotificationsRead'); }
 	// --- END: Notification ---
 
-	// --- START: Goal Selection Logic ---
+	// --- START: Goal Selection Logic (Rozšířená) ---
 	function checkUserGoalAndDiagnostic() { startPerformanceTimer('checkUserGoalAndDiagnostic'); console.log("[Goal Check] Checking user goal and diagnostic status..."); try { if (!currentProfile) { console.warn("[Goal Check] Profile not loaded yet."); if (ui.goalSelectionModal) ui.goalSelectionModal.style.display = 'none'; stopPerformanceTimer('checkUserGoalAndDiagnostic'); return; } if (!currentProfile.learning_goal) { if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'none'; console.log("[Goal Check] No learning_goal. Showing modal."); showGoalSelectionModal(); stopPerformanceTimer('checkUserGoalAndDiagnostic'); return; } const goal = currentProfile.learning_goal; console.log(`[Goal Check] User goal: ${goal}`); if (!ui.diagnosticPrompt) { console.warn("[Goal Check] ui.diagnosticPrompt not found."); stopPerformanceTimer('checkUserGoalAndDiagnostic'); return; } if (goal === 'exam_prep') { console.log("[Goal Check] Goal is exam_prep. Checking diagnosticResultsData."); if (diagnosticResultsData && diagnosticResultsData.length > 0) { const latestResult = diagnosticResultsData[0]; const score = latestResult.total_score ?? 0; console.log(`[Goal Check] Latest diagnostic score: ${score}`); if (score < 20) { ui.diagnosticPrompt.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: var(--accent-orange);"></i><p>Vaše skóre v posledním diagnostickém testu (${score}/50) bylo nízké. Pro optimální přípravu doporučujeme absolvovat test znovu nebo se zaměřit na slabší oblasti.</p><a href="test1.html" class="btn btn-primary" id="start-test-btn-prompt-lowscore"><i class="fas fa-play"></i> Opakovat test</a>`; ui.diagnosticPrompt.style.display = 'flex'; } else { ui.diagnosticPrompt.style.display = 'none'; console.log("[Goal Check] Diagnostic score good."); } } else { ui.diagnosticPrompt.innerHTML = `<i class="fas fa-exclamation-circle"></i><p>Pro odemčení personalizovaného obsahu a studijního plánu je potřeba absolvovat <strong>diagnostický test</strong>.</p><a href="test1.html" class="btn btn-primary" id="start-test-btn-prompt"><i class="fas fa-play"></i> Spustit test</a>`; ui.diagnosticPrompt.style.display = 'flex'; console.log("[Goal Check] No diagnostic results for exam_prep."); } } else { ui.diagnosticPrompt.style.display = 'none'; console.log("[Goal Check] Goal not exam_prep, hiding diagnostic prompt."); } } catch (error) { console.error("[Goal Check] Error:", error); if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'none'; } stopPerformanceTimer('checkUserGoalAndDiagnostic'); }
-	function showGoalSelectionModal() { startPerformanceTimer('showGoalSelectionModal'); if (!ui.goalSelectionModal || !ui.goalStep1) { console.error("[GoalModal] Critical modal elements missing."); showError("Chyba zobrazení výběru cíle.", true); stopPerformanceTimer('showGoalSelectionModal'); return; } console.log("[GoalModal] Showing goal selection modal."); ui.goalSelectionModal.querySelectorAll('.modal-step').forEach(step => { step.classList.remove('active'); step.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(input => input.checked = false); }); ui.goalStep1.classList.add('active'); ui.goalSelectionModal.style.display = 'flex'; document.body.classList.add('modal-open'); requestAnimationFrame(() => ui.goalSelectionModal.classList.add('active')); const radioListContainer = ui.goalStep1.querySelector('.goal-radio-list'); if (radioListContainer) { if (radioListContainer._goalChangeHandler) { radioListContainer.removeEventListener('change', radioListContainer._goalChangeHandler); } const newHandler = (event) => { if (event.target.type === 'radio' && event.target.name === 'learningGoal') { const selectedGoal = event.target.value; console.log(`Goal selected via radio: ${selectedGoal}`); radioListContainer.querySelectorAll('.goal-radio-label').forEach(label => { label.classList.remove('selected-goal'); }); event.target.closest('.goal-radio-label')?.classList.add('selected-goal'); handleInitialGoalSelection(selectedGoal); } }; radioListContainer.addEventListener('change', newHandler); radioListContainer._goalChangeHandler = newHandler; } else { console.error("[GoalModal] .goal-radio-list container not found!"); } stopPerformanceTimer('showGoalSelectionModal'); }
+	async function showGoalSelectionModal() {
+        startPerformanceTimer('showGoalSelectionModal');
+        if (!ui.goalSelectionModal || !ui.goalStep1) { console.error("[GoalModal] Critical modal elements missing."); showError("Chyba zobrazení výběru cíle.", true); stopPerformanceTimer('showGoalSelectionModal'); return; }
+        console.log("[GoalModal] Showing goal selection modal.");
+        ui.goalSelectionModal.querySelectorAll('.modal-step').forEach(step => { step.classList.remove('active'); step.querySelectorAll('input[type="radio"], input[type="checkbox"], select, textarea').forEach(input => { if(input.type === 'radio' || input.type === 'checkbox') input.checked = false; else input.value = ''; }); });
+        ui.goalStep1.classList.add('active');
+        ui.goalSelectionModal.style.display = 'flex';
+        document.body.classList.add('modal-open');
+        requestAnimationFrame(() => ui.goalSelectionModal.classList.add('active'));
+
+        const radioListContainer = ui.goalStep1.querySelector('.goal-radio-list');
+        if (radioListContainer) {
+            if (radioListContainer._goalChangeHandler) radioListContainer.removeEventListener('change', radioListContainer._goalChangeHandler);
+            const newHandler = (event) => { if (event.target.type === 'radio' && event.target.name === 'learningGoal') { const selectedGoal = event.target.value; console.log(`Goal selected via radio: ${selectedGoal}`); radioListContainer.querySelectorAll('.goal-radio-label').forEach(label => { label.classList.remove('selected-goal'); }); event.target.closest('.goal-radio-label')?.classList.add('selected-goal'); handleInitialGoalSelection(selectedGoal); } };
+            radioListContainer.addEventListener('change', newHandler);
+            radioListContainer._goalChangeHandler = newHandler;
+        } else { console.error("[GoalModal] .goal-radio-list container not found!"); }
+        stopPerformanceTimer('showGoalSelectionModal');
+    }
 	function hideGoalSelectionModal() { startPerformanceTimer('hideGoalSelectionModal'); if (!ui.goalSelectionModal) { stopPerformanceTimer('hideGoalSelectionModal'); return; } ui.goalSelectionModal.classList.remove('active'); document.body.classList.remove('modal-open'); setTimeout(() => { if (ui.goalSelectionModal) ui.goalSelectionModal.style.display = 'none'; }, 300); stopPerformanceTimer('hideGoalSelectionModal'); }
-	function handleInitialGoalSelection(selectedGoal) { startPerformanceTimer('handleInitialGoalSelection'); if (goalSelectionInProgress) { stopPerformanceTimer('handleInitialGoalSelection'); return; } console.log(`[GoalModal] Initial goal selected: ${selectedGoal}`); pendingGoal = selectedGoal; if (selectedGoal === 'exam_prep' || selectedGoal === 'math_explore') { saveGoalAndProceed(selectedGoal); } else { showStep2(selectedGoal); } stopPerformanceTimer('handleInitialGoalSelection'); }
-	function showStep2(goalType) { startPerformanceTimer('showStep2'); const step2Id = `goal-step-${goalType.replace('math_', '')}`; const step2Element = document.getElementById(step2Id); if (!ui.goalSelectionModal || !ui.goalStep1 || !step2Element) { console.error(`[GoalModal] Cannot show step 2 for ${goalType}: Missing elements.`); showError("Chyba zobrazení kroku 2.", true); stopPerformanceTimer('showStep2'); return; } console.log(`[GoalModal] Showing step 2: #${step2Id}`); ui.goalSelectionModal.querySelectorAll('.modal-step').forEach(step => step.classList.remove('active')); step2Element.classList.add('active'); const backBtn = step2Element.querySelector('.modal-back-btn'); if (backBtn) { const oldHandler = backBtn._backHandler; if (oldHandler) backBtn.removeEventListener('click', oldHandler); const newHandler = () => handleBackToStep1(ui.goalStep1, step2Element); backBtn.addEventListener('click', newHandler); backBtn._backHandler = newHandler; } const confirmBtn = step2Element.querySelector('.modal-confirm-btn'); if (confirmBtn) { const oldHandler = confirmBtn._confirmHandler; if (oldHandler) confirmBtn.removeEventListener('click', oldHandler); const newHandler = () => handleStep2Confirm(goalType); confirmBtn.addEventListener('click', newHandler); confirmBtn._confirmHandler = newHandler; confirmBtn.disabled = false; confirmBtn.innerHTML = 'Potvrdit a pokračovat'; } stopPerformanceTimer('showStep2'); }
+	async function handleInitialGoalSelection(selectedGoal) {
+        startPerformanceTimer('handleInitialGoalSelection');
+        if (goalSelectionInProgress) { stopPerformanceTimer('handleInitialGoalSelection'); return; }
+        console.log(`[GoalModal] Initial goal selected: ${selectedGoal}`);
+        pendingGoal = selectedGoal;
+
+        const accelerateProfessionGroup = document.getElementById('accelerate-profession-group');
+        if (accelerateProfessionGroup) accelerateProfessionGroup.style.display = 'none';
+
+
+        if (selectedGoal === 'exam_prep' || selectedGoal === 'math_explore') {
+            saveGoalAndProceed(selectedGoal); // Přímo uložit a pokračovat
+        } else if (selectedGoal === 'math_review') {
+            await showStep2(selectedGoal); // Zobrazí krok 2 a načte témata
+        } else {
+            showStep2(selectedGoal); // Zobrazí krok 2 pro ostatní cíle
+        }
+        stopPerformanceTimer('handleInitialGoalSelection');
+    }
+	async function showStep2(goalType) {
+        startPerformanceTimer('showStep2');
+        const step2Id = `goal-step-${goalType.replace('math_', '')}`;
+        const step2Element = document.getElementById(step2Id);
+
+        if (!ui.goalSelectionModal || !ui.goalStep1 || !step2Element) { console.error(`[GoalModal] Cannot show step 2 for ${goalType}: Missing elements.`); showError("Chyba zobrazení kroku 2.", true); stopPerformanceTimer('showStep2'); return; }
+        console.log(`[GoalModal] Showing step 2: #${step2Id}`);
+        ui.goalSelectionModal.querySelectorAll('.modal-step').forEach(step => step.classList.remove('active'));
+        step2Element.classList.add('active');
+
+        // Event listener pro profesní potřeby u "Učení napřed"
+        if (goalType === 'math_accelerate') {
+            const reasonRadios = step2Element.querySelectorAll('input[name="accelerate_reason"]');
+            const professionGroup = document.getElementById('accelerate-profession-group');
+            reasonRadios.forEach(radio => {
+                if (radio._reasonChangeHandler) radio.removeEventListener('change', radio._reasonChangeHandler);
+                const newHandler = (event) => {
+                    if (professionGroup) professionGroup.style.display = (event.target.value === 'professional_needs') ? 'block' : 'none';
+                };
+                radio.addEventListener('change', newHandler);
+                radio._reasonChangeHandler = newHandler;
+            });
+             // Resetovat zobrazení při ukázání kroku
+            const checkedReason = step2Element.querySelector('input[name="accelerate_reason"]:checked');
+            if (professionGroup) professionGroup.style.display = (checkedReason && checkedReason.value === 'professional_needs') ? 'block' : 'none';
+        }
+
+        // Načtení a zobrazení témat pro "Doplnění mezer"
+        if (goalType === 'math_review') {
+            const ratingsContainer = document.getElementById('topic-ratings-container');
+            if (ratingsContainer) {
+                setLoadingState('topicRatings', true);
+                try {
+                    if (allExamTopicsAndSubtopics.length === 0) { // Načteme pouze jednou
+                        console.log("[GoalModal Review] Fetching topics and subtopics for rating...");
+                        const { data: topics, error: topicsErr } = await supabase.from('exam_topics').select('id, name');
+                        if (topicsErr) throw topicsErr;
+                        const { data: subtopics, error: subtopicsErr } = await supabase.from('exam_subtopics').select('id, name, topic_id');
+                        if (subtopicsErr) throw subtopicsErr;
+                        allExamTopicsAndSubtopics = topics.map(t => ({ ...t, type: 'topic', subtopics: subtopics.filter(st => st.topic_id === t.id) }));
+                        console.log("[GoalModal Review] Fetched topics and subtopics:", allExamTopicsAndSubtopics);
+                    }
+                    renderTopicRatings(ratingsContainer, allExamTopicsAndSubtopics);
+                } catch (error) {
+                    console.error("[GoalModal Review] Error loading topics for rating:", error);
+                    ratingsContainer.innerHTML = '<p style="color: var(--accent-pink);">Nepodařilo se načíst témata pro hodnocení.</p>';
+                } finally {
+                    setLoadingState('topicRatings', false);
+                }
+            }
+        }
+
+        const backBtn = step2Element.querySelector('.modal-back-btn');
+        if (backBtn) { const oldHandler = backBtn._backHandler; if (oldHandler) backBtn.removeEventListener('click', oldHandler); const newHandler = () => handleBackToStep1(ui.goalStep1, step2Element); backBtn.addEventListener('click', newHandler); backBtn._backHandler = newHandler; }
+        const confirmBtn = step2Element.querySelector('.modal-confirm-btn');
+        if (confirmBtn) { const oldHandler = confirmBtn._confirmHandler; if (oldHandler) confirmBtn.removeEventListener('click', oldHandler); const newHandler = () => handleStep2Confirm(goalType); confirmBtn.addEventListener('click', newHandler); confirmBtn._confirmHandler = newHandler; confirmBtn.disabled = false; confirmBtn.innerHTML = 'Potvrdit a pokračovat'; }
+        stopPerformanceTimer('showStep2');
+    }
 	function handleBackToStep1(step1Element, currentStep2Element) { startPerformanceTimer('handleBackToStep1'); console.log("[GoalModal] Back to step 1..."); if(currentStep2Element) currentStep2Element.classList.remove('active'); if(step1Element) step1Element.classList.add('active'); pendingGoal = null; stopPerformanceTimer('handleBackToStep1'); }
-	function handleStep2Confirm(goalType) { startPerformanceTimer('handleStep2Confirm'); if (goalSelectionInProgress) { stopPerformanceTimer('handleStep2Confirm'); return; } const step2Id = `goal-step-${goalType.replace('math_', '')}`; const step2Element = document.getElementById(step2Id); if (!step2Element) { console.error(`[GoalModal] Step 2 element ${step2Id} not found.`); stopPerformanceTimer('handleStep2Confirm'); return; } const details = {}; let isValid = true; try { if (goalType === 'math_accelerate') { details.accelerate_areas = Array.from(step2Element.querySelectorAll('input[name="accelerate_area"]:checked')).map(cb => cb.value); const reasonRadio = step2Element.querySelector('input[name="accelerate_reason"]:checked'); details.accelerate_reason = reasonRadio ? reasonRadio.value : null; if(details.accelerate_areas.length === 0) { showToast("Chyba", "Vyberte alespoň jednu oblast zájmu.", "warning"); isValid = false; } if(!details.accelerate_reason) { showToast("Chyba", "Vyberte důvod pro učení napřed.", "warning"); isValid = false; } } else if (goalType === 'math_review') { details.review_areas = Array.from(step2Element.querySelectorAll('input[name="review_area"]:checked')).map(cb => cb.value); } } catch (e) { console.error("[GoalModal] Error getting step 2 details:", e); isValid = false; showToast("Chyba", "Chyba zpracování výběru.", "error"); } if (isValid) { console.log(`[GoalModal] Step 2 details for ${goalType}:`, details); saveGoalAndProceed(pendingGoal, details); } stopPerformanceTimer('handleStep2Confirm'); }
+	function handleStep2Confirm(goalType) {
+        startPerformanceTimer('handleStep2Confirm');
+        if (goalSelectionInProgress) { stopPerformanceTimer('handleStep2Confirm'); return; }
+        const step2Id = `goal-step-${goalType.replace('math_', '')}`;
+        const step2Element = document.getElementById(step2Id);
+        if (!step2Element) { console.error(`[GoalModal] Step 2 element ${step2Id} not found.`); stopPerformanceTimer('handleStep2Confirm'); return; }
+
+        const details = {};
+        let isValid = true;
+        try {
+            if (goalType === 'math_accelerate') {
+                details.grade = step2Element.querySelector('#accelerate-grade')?.value || null;
+                details.intensity = step2Element.querySelector('#accelerate-intensity')?.value || null;
+                details.accelerate_areas = Array.from(step2Element.querySelectorAll('input[name="accelerate_area"]:checked')).map(cb => cb.value);
+                const reasonRadio = step2Element.querySelector('input[name="accelerate_reason"]:checked');
+                details.accelerate_reason = reasonRadio ? reasonRadio.value : null;
+                if (details.accelerate_reason === 'professional_needs') {
+                    details.profession = step2Element.querySelector('#accelerate-profession')?.value.trim() || null;
+                }
+                if(!details.grade) { showToast("Chyba", "Vyberte prosím Váš ročník.", "warning"); isValid = false; }
+                if(!details.intensity) { showToast("Chyba", "Vyberte prosím intenzitu učení.", "warning"); isValid = false; }
+                // accelerate_areas a accelerate_reason mohou být volitelné nebo mít výchozí hodnoty
+            } else if (goalType === 'math_review') {
+                details.grade = step2Element.querySelector('#review-grade')?.value || null;
+                details.review_areas = Array.from(step2Element.querySelectorAll('input[name="review_area"]:checked')).map(cb => cb.value);
+                details.topic_ratings = {};
+                const ratingItems = step2Element.querySelectorAll('.topic-rating-item');
+                ratingItems.forEach(item => {
+                    const topicId = item.dataset.topicId;
+                    const subtopicId = item.dataset.subtopicId;
+                    const rating = parseInt(item.dataset.currentRating || '0', 10);
+                    if (topicId) {
+                        if (subtopicId) {
+                            if (!details.topic_ratings[topicId]) details.topic_ratings[topicId] = { subtopics: {} };
+                            details.topic_ratings[topicId].subtopics[subtopicId] = rating;
+                        } else {
+                             if (!details.topic_ratings[topicId]) details.topic_ratings[topicId] = {};
+                            details.topic_ratings[topicId].overall = rating;
+                        }
+                    }
+                });
+                if(!details.grade) { showToast("Chyba", "Vyberte prosím Váš ročník.", "warning"); isValid = false; }
+            } else if (goalType === 'math_explore') {
+                details.grade = step2Element.querySelector('#explore-grade')?.value || null;
+                 if(!details.grade) { showToast("Chyba", "Vyberte prosím Váš ročník.", "warning"); isValid = false; }
+            }
+        } catch (e) { console.error("[GoalModal] Error getting step 2 details:", e); isValid = false; showToast("Chyba", "Chyba zpracování výběru.", "error"); }
+
+        if (isValid) { console.log(`[GoalModal] Step 2 details for ${goalType}:`, details); saveGoalAndProceed(pendingGoal, details); }
+        stopPerformanceTimer('handleStep2Confirm');
+    }
 	async function saveGoalAndProceed(goal, details = null) {
         startPerformanceTimer('saveGoalAndProceed');
         if (goalSelectionInProgress || !goal) {
@@ -664,6 +830,119 @@
         }
         stopPerformanceTimer('saveGoalAndProceed');
     }
+
+    function renderTopicRatings(container, topicsAndSubtopics) {
+        startPerformanceTimer('renderTopicRatings');
+        if (!container) {
+            console.error("[RenderTopicRatings] Container not found.");
+            stopPerformanceTimer('renderTopicRatings');
+            return;
+        }
+        container.innerHTML = ''; // Clear previous content/skeleton
+
+        if (!topicsAndSubtopics || topicsAndSubtopics.length === 0) {
+            container.innerHTML = '<p>Nebyly nalezeny žádné témata k hodnocení.</p>';
+            stopPerformanceTimer('renderTopicRatings');
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+
+        topicsAndSubtopics.forEach(topic => {
+            // Hlavní téma
+            const topicItem = document.createElement('div');
+            topicItem.className = 'topic-rating-item';
+            topicItem.dataset.topicId = topic.id;
+            topicItem.dataset.currentRating = '0';
+
+            const topicNameEl = document.createElement('span');
+            topicNameEl.className = 'topic-name';
+            topicNameEl.textContent = topic.name;
+            topicItem.appendChild(topicNameEl);
+
+            const topicStarsEl = document.createElement('div');
+            topicStarsEl.className = 'rating-stars';
+            for (let i = 1; i <= 5; i++) {
+                const star = document.createElement('i');
+                star.className = 'fas fa-star star';
+                star.dataset.value = i;
+                topicStarsEl.appendChild(star);
+            }
+            topicItem.appendChild(topicStarsEl);
+            fragment.appendChild(topicItem);
+
+            // Podtémata
+            if (topic.subtopics && topic.subtopics.length > 0) {
+                topic.subtopics.forEach(subtopic => {
+                    const subtopicItem = document.createElement('div');
+                    subtopicItem.className = 'topic-rating-item';
+                    subtopicItem.style.paddingLeft = '2rem'; // Odsazení pro podtémata
+                    subtopicItem.dataset.topicId = topic.id;
+                    subtopicItem.dataset.subtopicId = subtopic.id;
+                    subtopicItem.dataset.currentRating = '0';
+
+
+                    const subtopicNameEl = document.createElement('span');
+                    subtopicNameEl.className = 'topic-name';
+                    subtopicNameEl.textContent = subtopic.name;
+                    subtopicItem.appendChild(subtopicNameEl);
+
+                    const subtopicStarsEl = document.createElement('div');
+                    subtopicStarsEl.className = 'rating-stars';
+                    for (let i = 1; i <= 5; i++) {
+                        const star = document.createElement('i');
+                        star.className = 'fas fa-star star';
+                        star.dataset.value = i;
+                        subtopicStarsEl.appendChild(star);
+                    }
+                    subtopicItem.appendChild(subtopicStarsEl);
+                    fragment.appendChild(subtopicItem);
+                });
+            }
+        });
+
+        container.appendChild(fragment);
+
+        // Přidání event listenerů na hvězdičky
+        container.querySelectorAll('.rating-stars .star').forEach(star => {
+            star.addEventListener('click', handleStarRating);
+            star.addEventListener('mouseover', handleStarMouseOver);
+            star.addEventListener('mouseout', handleStarMouseOut);
+        });
+        stopPerformanceTimer('renderTopicRatings');
+    }
+
+    function handleStarRating(event) {
+        const clickedStar = event.currentTarget;
+        const ratingContainer = clickedStar.closest('.topic-rating-item');
+        const stars = ratingContainer.querySelectorAll('.rating-stars .star');
+        const ratingValue = parseInt(clickedStar.dataset.value, 10);
+
+        ratingContainer.dataset.currentRating = ratingValue;
+
+        stars.forEach(star => {
+            star.classList.toggle('rated', parseInt(star.dataset.value, 10) <= ratingValue);
+        });
+    }
+
+    function handleStarMouseOver(event) {
+        const hoveredStar = event.currentTarget;
+        const stars = hoveredStar.parentElement.querySelectorAll('.star');
+        const hoverValue = parseInt(hoveredStar.dataset.value, 10);
+
+        stars.forEach(star => {
+            star.classList.toggle('hovered', parseInt(star.dataset.value, 10) <= hoverValue);
+        });
+    }
+
+    function handleStarMouseOut(event) {
+        const stars = event.currentTarget.parentElement.querySelectorAll('.star');
+        stars.forEach(star => {
+            star.classList.remove('hovered');
+        });
+    }
+
+
 	// --- END: Goal Selection Logic ---
 
 	// --- START: UI Configuration and Data Loading ---
@@ -1027,6 +1306,8 @@
             { key: 'topicProgressTable', id: 'topic-progress-table', critical: true},
             { key: 'topicProgressBody', id: 'topic-progress-body', critical: true},
             { key: 'topicProgressEmptyState', id: 'topic-progress-empty-state', critical: true},
+            // Nové elementy pro hodnocení témat
+            { key: 'topicRatingsContainer', id: 'topic-ratings-container', critical: false }
         ];
         const notFoundCritical = []; const notFoundNonCritical = [];
         elementDefinitions.forEach(def => { const element = def.id ? document.getElementById(def.id) : document.querySelector(def.query); if (element) { ui[def.key] = element; } else { ui[def.key] = null; if (def.critical) notFoundCritical.push(`${def.key} (${def.id || def.query})`); else notFoundNonCritical.push(`${def.key} (${def.id || def.query})`); } });
