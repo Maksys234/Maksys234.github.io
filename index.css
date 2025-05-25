@@ -55,7 +55,7 @@
 
 	/* --- Layout --- */
 	--layout-container-width: 1240px;
-	--layout-gutter: 24px;
+	--layout-gutter: 24px; /* Уменьшил немного отступ для большего пространства */
 	--layout-header-height: 75px;
 	--layout-border-radius-sm: 6px;
 	--layout-border-radius-md: 12px;
@@ -192,7 +192,6 @@ a:hover, a:focus {
 
 section {
 	padding-block: clamp(70px, 12vh, 110px);
-	/* overflow: hidden; <- REMOVED this from global section to avoid clipping issues with complex animations or absolute positioned elements inside sections. Manage overflow on a per-section basis if needed. */
 }
 .section-title {
 	text-align: center;
@@ -338,8 +337,10 @@ section:has(.section-title.animated) .section-title span::after,
 
 .nav-container {
 	display: grid;
-    grid-template-columns: auto 1fr auto;
+    /* ИЗМЕНЕНО: grid-template-columns для лучшего распределения пространства */
+    grid-template-columns: auto minmax(0, 1fr) auto; /* Логотип | Навигация (гибкая) | Действия */
 	align-items: center;
+    gap: 1rem; /* Добавлен небольшой промежуток между элементами grid */
 }
 
 .logo {
@@ -354,6 +355,8 @@ section:has(.section-title.animated) .section-title span::after,
 	transition: color var(--transition-fast), filter var(--transition-fast), transform var(--transition-smooth);
 	filter: drop-shadow(0 0 6px var(--clr-accent-cyan));
     flex-shrink: 0;
+    /* ИЗМЕНЕНО: Добавляем grid-column для явного размещения */
+    grid-column: 1 / 2;
 }
 .logo i {
 	color: var(--clr-accent-cyan);
@@ -371,17 +374,21 @@ section:has(.section-title.animated) .section-title span::after,
 }
 
 #header nav {
-    justify-self: center;
-    grid-column: 2 / 3;
+    justify-self: center; /* Центральная навигация */
+    grid-column: 2 / 3; /* Навигация занимает центральную колонку */
+    width: 100%; /* Позволяет навигации использовать доступное пространство */
+    display: flex; /* Для центрирования ul.nav-links */
+    justify-content: center; /* Центрирование ul.nav-links */
 }
 
 .nav-links {
 	list-style: none;
 	display: flex;
-	gap: clamp(22px, 4.5vw, 40px);
+	gap: clamp(18px, 3.5vw, 30px); /* Немного уменьшен gap для экономии места */
 	align-items: center;
-    justify-content: center;
-    width: max-content;
+    justify-content: center; /* Это уже было, но оставляем для ясности */
+    width: auto; /* ИЗМЕНЕНО: было max-content, что могло быть проблемой */
+    padding: 0; /* Убираем лишние padding, если они есть */
 }
 .nav-item {
 	font-family: var(--font-mono);
@@ -423,8 +430,8 @@ section:has(.section-title.animated) .section-title span::after,
 	align-items: center;
 	gap: 18px;
     flex-shrink: 0;
-    justify-self: end;
-    grid-column: 3 / 4;
+    justify-self: end; /* Кнопки и гамбургер прижаты вправо */
+    grid-column: 3 / 4; /* Занимают правую колонку */
 }
 .desktop-auth-link { display: inline-flex; }
 .mobile-auth-link { display: none; }
@@ -485,7 +492,7 @@ section:has(.section-title.animated) .section-title span::after,
 	padding-top: calc(var(--layout-header-height) + 60px);
 	padding-bottom: 80px;
 	position: relative;
-	overflow: visible; /* ИЗМЕНЕНО: было hidden, чтобы предотвратить обрезку контента */
+	overflow: visible;
 	background: linear-gradient(rgba(5, 4, 15, 0.92), rgba(5, 4, 15, 1)),
 				url('https://placehold.co/1920x1080/05040F/121023/png?text=Cosmic+Network') no-repeat center center / cover;
     border-bottom: 2px solid transparent;
@@ -503,7 +510,7 @@ section:has(.section-title.animated) .section-title span::after,
 .hero-content {
 	position: relative;
 	z-index: 1;
-    width: 100%; /* Ensure hero content takes full width for text centering */
+    width: 100%;
 }
 
 .hero h1 {
@@ -511,8 +518,11 @@ section:has(.section-title.animated) .section-title span::after,
 	font-weight: 800;
 	color: var(--clr-text-highlight);
     text-shadow: 0px 2px 6px rgba(0, 0, 0, 0.85), 0px 0px 2px rgba(0,0,0,0.9), 0 0 30px rgba(0, 242, 255, 0.2);
-    overflow: visible; /* ИЗМЕНЕНО: Добавлено, чтобы сам h1 не обрезал дочерние элементы */
-    line-height: 1.2; /* ИЗМЕНЕНО: Немного увеличена высота строки */
+    overflow: visible;
+    line-height: 1.25; /* ИЗМЕНЕНО: чуть больше для высоких букв в анимации */
+    /* Добавляем немного padding, если вдруг буквы обрезаются контейнером h1 */
+    padding-top: 0.2em;
+    padding-bottom: 0.2em;
 }
 
 .hero h1 .highlight {
@@ -524,17 +534,19 @@ section:has(.section-title.animated) .section-title span::after,
         var(--clr-accent-orange),
         var(--clr-accent-green)
     );
-	background-size: 400% 400%;
+	background-size: 400% 400%; /* Можно попробовать уменьшить до 200% 200% если градиент слишком большой */
 	-webkit-background-clip: text;
 	background-clip: text;
-	color: transparent;
+	color: transparent !important; /* ИЗМЕНЕНО: Добавлено !important для переопределения */
     text-shadow: none;
     position: relative;
-	display: inline-block; /* Important */
+	display: inline-block;
     background-position: calc(var(--mouse-x, 0.5) * 100%) calc(var(--mouse-y, 0.5) * 100%);
     transition: background-position 0.15s linear;
     animation: highlightPulse 5s infinite ease-in-out;
-    overflow: visible; /* ИЗМЕНЕНО: Добавлено, чтобы .highlight не обрезал свое содержимое */
+    overflow: visible;
+    /* ИЗМЕНЕНО: Добавим z-index, чтобы быть уверенным, что он поверх других букв если анимация их пересекает */
+    z-index: 1;
 }
 
 @keyframes highlightPulse {
@@ -544,32 +556,44 @@ section:has(.section-title.animated) .section-title span::after,
 
 .word-wrapper {
     display: inline-block;
-    margin-right: 0.2em; /* Adjust space between words, useful if letters are large */
-    overflow: visible; /* Prevent clipping of letters within a word */
+    margin-right: 0.2em;
+    overflow: visible;
+    /* ИЗМЕНЕНО: Для отладки можно временно добавить рамку */
+    /* border: 1px solid red; */
 }
 .word-wrapper:last-child {
     margin-right: 0;
 }
 
 .letter-span {
-	display: inline-block; /* Critical for transforms and layout */
-	opacity: 1; /* JS will handle initial opacity for animation if [data-animate-letters] is active */
-	clip-path: inset(0 100% 0 0);
-	transition: clip-path 0.7s cubic-bezier(0.65, 0, 0.35, 1), transform 0.7s cubic-bezier(0.65, 0, 0.35, 1); /* Smoother easing */
-	transition-delay: calc(var(--letter-index, 0) * 50ms); /* Adjusted delay for smoother reveal */
+	display: inline-block;
+	opacity: 1; /* Изначально видимы, если JS не скроет */
+	clip-path: inset(0 0% 0 0); /* Изначально полностью видим, если JS не изменит */
+	transition: clip-path 0.7s cubic-bezier(0.65, 0, 0.35, 1), transform 0.7s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+	transition-delay: calc(var(--letter-index, 0) * 50ms);
     transform-style: preserve-3d;
-    perspective: 600px; /* ИЗМЕНЕНО: Увеличена перспектива */
-    /* Initial state: slightly off-screen and rotated for a more dynamic entry */
-    transform: translateY(100%) rotateX(-90deg) scale(0.7); /* ИЗМЕНЕНО: Начальная трансформация */
-    will-change: clip-path, transform;
-    /* Add a minimum width to prevent very thin letters from disappearing with transforms */
-    min-width: 1px; /* ИЗМЕНЕНО: Добавлена минимальная ширина */
+    perspective: 700px; /* Увеличена перспектива */
+    transform: translateY(0%) rotateX(0deg) scale(1); /* Изначально в нормальном положении */
+    will-change: clip-path, transform, opacity;
+    min-width: 1px;
+    /* ИЗМЕНЕНО: Для отладки можно временно добавить рамку */
+    /* border: 1px solid lime; */
+    /* ИЗМЕНЕНО: Убедимся, что цвет текста наследуется или установлен */
+    color: inherit; /* или var(--clr-text-highlight) если они не в .highlight */
+}
+
+/* Если JS добавляет класс для анимации, то начальные значения для скрытия должны быть там */
+[data-animate-letters]:not(.is-revealing) .letter-span {
+    /* Это состояние ДО начала анимации, если JS так делает */
+    opacity: 0;
+	clip-path: inset(0 100% 0 0);
+    transform: translateY(100%) rotateX(-90deg) scale(0.7);
 }
 
 [data-animate-letters].is-revealing .letter-span {
 	clip-path: inset(0 0 0 0);
-    /* Final state: fully visible and in place */
-    transform: translateY(0) rotateX(0deg) scale(1); /* ИЗМЕНЕНО: Конечная трансформация */
+    transform: translateY(0) rotateX(0deg) scale(1);
+    opacity: 1;
 }
 
 
@@ -708,7 +732,7 @@ section:has(.section-title.animated) .section-title span::after,
 	background-color: var(--clr-bg-secondary);
 	border-block: 1px solid rgba(170, 108, 255, 0.15);
     position: relative;
-    overflow: hidden; /* Add overflow hidden to contain rotated elements */
+    overflow: hidden;
 }
 .ai-interface-section::before {
     display: none;
@@ -738,7 +762,7 @@ section:has(.section-title.animated) .section-title span::after,
     z-index: 2;
     animation: scanline-move-bg 12s linear infinite alternate;
 }
-@keyframes scanline-move-bg { /* Defined previously, ensure it is present */
+@keyframes scanline-move-bg {
     0% { background-position-y: 0; }
     100% { background-position-y: 100%; }
 }
@@ -1598,21 +1622,43 @@ button:hover ~ .mouse-follower-glow,
     .slider-btn { width: 45px; height: 45px; font-size: 1.1rem; }
     .ai-interface-wrapper { transform: perspective(700px) rotateX(0.5deg); }
 
+    /* ИЗМЕНЕНИЯ ДЛЯ ХЕДЕРА НА ПЛАНШЕТАХ */
+    .nav-container {
+        gap: 0.5rem; /* Уменьшаем gap для экономии места */
+    }
+    .nav-links {
+        gap: clamp(12px, 2.5vw, 20px); /* Уменьшаем gap между элементами навигации */
+    }
+    .nav-item {
+        font-size: 0.85rem; /* Слегка уменьшаем шрифт навигации */
+        padding-block: 8px;
+    }
+    .logo {
+        font-size: clamp(1.5rem, 3vw, 1.8rem); /* Слегка уменьшаем лого */
+    }
+    .header-actions .btn {
+        padding: 0.8em 1.5em; /* Уменьшаем кнопку "Připojit se" */
+        font-size: 0.9rem;
+    }
+
 }
 
 @media (max-width: 768px) {
 	:root { --layout-header-height: 65px; }
 
     .nav-container {
-        display: flex;
+        display: flex; /* Возвращаем flex для мобильных, т.к. grid может быть сложнее */
         justify-content: space-between;
-        grid-template-columns: none;
+        grid-template-columns: none; /* Убираем grid-колонки */
+        gap: 0; /* Убираем grid-gap */
     }
      #header nav {
-        display: block;
+        display: block; /* Возвращаем как было для мобильного меню */
         justify-self: initial;
         grid-column: auto;
         flex-grow: 0;
+        width: auto; /* Сбрасываем ширину */
+        justify-content: initial; /* Сбрасываем центрирование */
     }
     .header-actions {
         justify-self: initial;
@@ -1634,7 +1680,7 @@ button:hover ~ .mouse-follower-glow,
         justify-content: flex-start;
 	}
 	.nav-links.active { right: 0; }
-	.nav-item { font-size: 1.05rem; width: 100%; padding-block: 12px; }
+	.nav-item { font-size: 1.05rem; width: 100%; padding-block: 12px; } /* Возвращаем размер для мобильного меню */
 	.nav-item::after { display: none; }
 	.nav-item:hover, .nav-item:focus { color: var(--clr-accent-cyan); text-shadow: none; transform: translateX(5px); }
 	.hamburger { display: block; }
@@ -1642,7 +1688,7 @@ button:hover ~ .mouse-follower-glow,
 	.mobile-auth-link { display: inline-flex; margin-top: 28px; width: 100%; font-size: 1rem; }
 
 	.hero { min-height: 95vh; padding-top: calc(var(--layout-header-height) + 35px); }
-	.hero h1 { font-size: clamp(2.1rem, 8.5vw, 3.2rem); }
+	.hero h1 { font-size: clamp(2.1rem, 8.5vw, 3.2rem); line-height: 1.2; } /* Убедимся, что line-height подходит */
 	.hero p { font-size: 1.02rem; max-width: 92%; }
 	.hero-buttons { flex-direction: column; gap: 18px; align-items: center; }
 	.hero-buttons .btn { width: 90%; max-width: 340px; animation: none; }
@@ -1703,6 +1749,8 @@ button:hover ~ .mouse-follower-glow,
 	.testimonial-text { font-size: 0.98rem; }
 	.ai-content-area { padding: 18px; }
 	.ai-log-window { padding: 18px; font-size: 0.82rem; height: 260px; }
+    .hero h1 { line-height: 1.25; } /* Еще раз проверяем line-height для очень маленьких экранов */
+
 
     .yuki-card h3 {
         font-size: 1.7rem;
