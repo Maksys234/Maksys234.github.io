@@ -2,6 +2,7 @@
 // Version: 25.1.6 - Přidáno vytváření výchozích 0% záznamů v user_topic_progress po výběru cíle.
 // MODIFIED: Přidána tabulka s pokrokem v tématech.
 // VERSION: 25.1.10 - Rozšířená logika pro výběr cíle (ročník, intenzita, profese, hodnocení témat).
+// VERSION: 25.1.11 - Oprava chyby při ukládání hodnocení témat, odstranění redundantní sekce z HTML.
 
 (function() { // Start IIFE
 	'use strict';
@@ -35,14 +36,14 @@
 		'study-plan-tab': false,
 		'vyuka-tab': false,
 		topicProgressTable: false,
-        topicRatings: false // Nový stav pro načítání témat pro hodnocení
+        topicRatings: false
 	};
 	let goalSelectionInProgress = false;
 	let pendingGoal = null;
 	let isInitialPageLoadComplete = false;
 	let currentlyLoadingTabId = null;
 	let performanceTimers = {};
-    let allExamTopicsAndSubtopics = []; // Pro uložení načtených témat a podtmat
+    let allExamTopicsAndSubtopics = [];
 	// --- END: State Variables ---
 
 	// --- START: UI Elements Cache ---
@@ -697,22 +698,27 @@
                 }
                 if(!details.grade) { showToast("Chyba", "Vyberte prosím Váš ročník.", "warning"); isValid = false; }
                 if(!details.intensity) { showToast("Chyba", "Vyberte prosím intenzitu učení.", "warning"); isValid = false; }
-                // accelerate_areas a accelerate_reason mohou být volitelné nebo mít výchozí hodnoty
             } else if (goalType === 'math_review') {
                 details.grade = step2Element.querySelector('#review-grade')?.value || null;
-                details.review_areas = Array.from(step2Element.querySelectorAll('input[name="review_area"]:checked')).map(cb => cb.value);
+                // Odebráno: details.review_areas = Array.from(step2Element.querySelectorAll('input[name="review_area"]:checked')).map(cb => cb.value);
                 details.topic_ratings = {};
                 const ratingItems = step2Element.querySelectorAll('.topic-rating-item');
                 ratingItems.forEach(item => {
                     const topicId = item.dataset.topicId;
-                    const subtopicId = item.dataset.subtopicId;
+                    const subtopicId = item.dataset.subtopicId; // Může být undefined pro hlavní témata
                     const rating = parseInt(item.dataset.currentRating || '0', 10);
+
                     if (topicId) {
+                        if (!details.topic_ratings[topicId]) { // Inicializujeme objekt pro hlavní téma, pokud neexistuje
+                             details.topic_ratings[topicId] = { overall: 0, subtopics: {} }; // Default overall rating
+                        }
                         if (subtopicId) {
-                            if (!details.topic_ratings[topicId]) details.topic_ratings[topicId] = { subtopics: {} };
+                            if (!details.topic_ratings[topicId].subtopics) { // Ujistíme se, že subtopics existuje
+                                details.topic_ratings[topicId].subtopics = {};
+                            }
                             details.topic_ratings[topicId].subtopics[subtopicId] = rating;
                         } else {
-                             if (!details.topic_ratings[topicId]) details.topic_ratings[topicId] = {};
+                            // Toto je hlavní téma
                             details.topic_ratings[topicId].overall = rating;
                         }
                     }
@@ -877,7 +883,7 @@
                     const subtopicItem = document.createElement('div');
                     subtopicItem.className = 'topic-rating-item';
                     subtopicItem.style.paddingLeft = '2rem'; // Odsazení pro podtémata
-                    subtopicItem.dataset.topicId = topic.id;
+                    subtopicItem.dataset.topicId = topic.id; // Přidáme i ID hlavního tématu pro snazší seskupení
                     subtopicItem.dataset.subtopicId = subtopic.id;
                     subtopicItem.dataset.currentRating = '0';
 
@@ -1124,7 +1130,7 @@
 
 	async function initializeApp() {
 		startPerformanceTimer('initializeApp_Total');
-		console.log(`[INIT Procvičování] App Init Start v25.1.6...`);
+		console.log(`[INIT Procvičování] App Init Start v25.1.11...`); // Updated version
 		try {
 			startPerformanceTimer('initializeApp_cacheDOM');
 			cacheDOMElements();
@@ -1209,7 +1215,7 @@
 
 				setupTabEventListeners();
 				initDeferredUIFeatures();
-				console.log("✅ [INIT Procvičování] Verze v25.1.6 Initialized.");
+				console.log("✅ [INIT Procvičování] Verze v25.1.11 Initialized."); // Updated version
 
 			} else {
 				console.log('[INIT Procvičování] Uživatel není přihlášen, přesměrování...');
@@ -1299,7 +1305,7 @@
             { key: 'accelerateAreasGroup', id: 'accelerate-areas-group', critical: false },
             { key: 'accelerateReasonGroup', id: 'accelerate-reason-group', critical: false },
             { key: 'goalStepReview', id: 'goal-step-review', critical: false },
-            { key: 'reviewAreasGroup', id: 'review-areas-group', critical: false },
+            // { key: 'reviewAreasGroup', id: 'review-areas-group', critical: false }, // Odebráno na žádost uživatele
             { key: 'goalStepExplore', id: 'goal-step-explore', critical: false },
             { key: 'topicProgressSection', id: 'topic-progress-section', critical: true},
             { key: 'topicProgressTableLoadingOverlay', id: 'topic-progress-table-loading-overlay', critical: true},
