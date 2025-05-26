@@ -1,15 +1,16 @@
 /**
  * JUSTAX Landing Page Script
  * Handles UI interactions, animations, infinite testimonial slider,
- * Hero text mask reveal, interactive gradient, and enhanced visual effects.
- * Version: v2.32 (AI Demo Fix, Smooth Load, Header Refinement)
+ * Hero text mask reveal, interactive gradient, enhanced visual effects,
+ * and Cookie Consent Banner.
+ * Version: v2.33 (Cookie Consent Implementation)
  * Author: Gemini Modification
- * Date: 2025-05-25 // Focused on AI Demo visibility and page load transitions
+ * Date: 2025-05-26
  *
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Ready. Initializing JUSTAX Interface v2.32 (AI Demo Fix, Smooth Load)...");
+    console.log("DOM Ready. Initializing JUSTAX Interface v2.33 (Cookie Consent)...");
 
     // --- Global Variables & DOM References ---
     const body = document.body;
@@ -19,28 +20,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuOverlay = document.getElementById('menuOverlay');
     const follower = document.getElementById('mouse-follower');
     const yearSpan = document.getElementById('currentYear');
-    const demoSection = document.getElementById('ai-demo'); //
-    const aiOutput = document.getElementById('ai-demo-output'); //
-    const aiProgressBar = document.getElementById('ai-progress-bar'); //
-    const aiProgressLabel = document.getElementById('ai-progress-label'); //
-    const aiFakeInput = document.getElementById('ai-fake-input'); //
-    const aiStatusIndicator = document.getElementById('ai-status'); //
+    const demoSection = document.getElementById('ai-demo');
+    const aiOutput = document.getElementById('ai-demo-output');
+    const aiProgressBar = document.getElementById('ai-progress-bar');
+    const aiProgressLabel = document.getElementById('ai-progress-label');
+    const aiFakeInput = document.getElementById('ai-fake-input');
+    const aiStatusIndicator = document.getElementById('ai-status');
 
-    const sliderContainer = document.getElementById('testimonialSliderContainer'); //
-    const sliderTrack = document.getElementById('testimonialSliderTrack'); //
-    const prevBtn = document.getElementById('prevTestimonialBtn'); //
-    const nextBtn = document.getElementById('nextTestimonialBtn'); //
+    const sliderContainer = document.getElementById('testimonialSliderContainer');
+    const sliderTrack = document.getElementById('testimonialSliderTrack');
+    const prevBtn = document.getElementById('prevTestimonialBtn');
+    const nextBtn = document.getElementById('nextTestimonialBtn');
 
-    const heroSection = document.querySelector('.hero'); //
+    const heroSection = document.querySelector('.hero');
     let heroHighlightSpan = null;
-    const heroHeading = document.getElementById('hero-heading'); //
+    const heroHeading = document.getElementById('hero-heading');
     let rafIdGradient = null;
+
+    // Cookie Consent Elements
+    const cookieConsentBanner = document.getElementById('cookie-consent-banner');
+    const cookieConsentAcceptBtn = document.getElementById('cookie-consent-accept');
+    const cookieSettingsLinkFooter = document.getElementById('cookie-settings-link'); // From index.html footer script
 
     const config = {
         mouseFollower: { enabled: true, followSpeed: 0.12, clickScale: 0.7, hoverScale: 1.5, textHoverScale: 1.3 },
         animations: { scrollThreshold: 0.05, staggerDelay: 100, letterMaskRevealDelay: 50, heroElementEntryDelay: 150 },
         aiDemo: { enabled: true, typingSpeed: 35, stepBaseDelay: 180, stepRandomDelay: 400 },
-        testimonials: { placeholderAvatarBaseUrl: 'https://placehold.co/100x100/', visibleCardsDesktop: 3, bufferCards: 2, slideDuration: 550 }
+        testimonials: { placeholderAvatarBaseUrl: 'https://placehold.co/100x100/', visibleCardsDesktop: 3, bufferCards: 2, slideDuration: 550 },
+        cookies: { consentCookieName: 'justax_cookie_consent', consentCookieExpirationDays: 365 }
     };
 
     let localTestimonials = [];
@@ -54,13 +61,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
     // --- Smooth Page Load ---
-    // Initially hide body, then fade it in. CSS will handle the transition.
     body.classList.add('page-loading');
-    window.addEventListener('load', () => { // Use window.load to ensure all assets are loaded
-        setTimeout(() => { // Small delay to ensure rendering engine is ready
+    window.addEventListener('load', () => {
+        setTimeout(() => {
             body.classList.remove('page-loading');
             body.classList.add('page-loaded');
-        }, 100); // Adjust delay if needed
+        }, 100);
     });
 
 
@@ -245,12 +251,26 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const direction = parseInt(sliderTrack.dataset.slideDirection || "0"); if (direction === 0) { throw new Error("No slide direction."); }
             let cardToMoveElement, newCardData;
-            if (direction > 0) {
-                cardToMoveElement = cardsInTrack.shift(); sliderTrack.removeChild(cardToMoveElement); newCardData = getRandomLocalTestimonial(); updateCardContent(cardToMoveElement, newCardData); sliderTrack.appendChild(cardToMoveElement); cardsInTrack.push(cardToMoveElement);
-                testimonialDataCache.shift(); testimonialDataCache.push(newCardData);
-            } else {
-                cardToMoveElement = cardsInTrack.pop(); sliderTrack.removeChild(cardToMoveElement); newCardData = getRandomLocalTestimonial(); updateCardContent(cardToMoveElement, newCardData); sliderTrack.insertBefore(cardToMoveElement, sliderTrack.firstChild); cardsInTrack.unshift(cardToMoveElement);
-                testimonialDataCache.pop(); testimonialDataCache.unshift(newCardData);
+            if (direction > 0) { // Sliding left (next)
+                cardToMoveElement = cardsInTrack.shift(); // Take from beginning
+                sliderTrack.removeChild(cardToMoveElement);
+                newCardData = getRandomLocalTestimonial();
+                updateCardContent(cardToMoveElement, newCardData);
+                sliderTrack.appendChild(cardToMoveElement); // Add to end
+                cardsInTrack.push(cardToMoveElement);
+
+                testimonialDataCache.shift();
+                testimonialDataCache.push(newCardData);
+            } else { // Sliding right (prev)
+                cardToMoveElement = cardsInTrack.pop(); // Take from end
+                sliderTrack.removeChild(cardToMoveElement);
+                newCardData = getRandomLocalTestimonial();
+                updateCardContent(cardToMoveElement, newCardData);
+                sliderTrack.insertBefore(cardToMoveElement, sliderTrack.firstChild); // Add to beginning
+                cardsInTrack.unshift(cardToMoveElement);
+
+                testimonialDataCache.pop();
+                testimonialDataCache.unshift(newCardData);
             }
             setTrackPositionInstantly("transition end adjustment");
         } catch (error) {
@@ -272,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const initializeInfiniteSlider = async () => {
-        console.log("Starting infinite slider initialization v2.32...");
+        console.log("Starting infinite slider initialization v2.33...");
         if (!sliderTrack || !prevBtn || !nextBtn) { console.error("Slider init fail: core elements missing."); return; }
         isSliding = true; sliderInitialLoadComplete = false; prevBtn.disabled = true; nextBtn.disabled = true;
         sliderTrack.innerHTML = ''; testimonialDataCache = []; cardsInTrack = []; cardWidthAndMargin = 0; stableVisibleStartIndex = config.testimonials.bufferCards;
@@ -357,7 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- AI Demo Simulation ---
     const aiDemoSteps = [
-        { type: 'status', text: 'AI jádro v2.32 aktivní. Připraven na analýzu...', progress: 5 },
+        { type: 'status', text: 'AI jádro v2.33 aktivní. Připraven na analýzu...', progress: 5 },
         { type: 'status', text: 'Probíhá skenování interakcí uživatele ID: 734B...', delay: 700 },
         { type: 'input', text: 'ANALYZE_USER_PERFORMANCE --id=734B --subject=algebra --level=intermediate' },
         { type: 'process', text: 'Zpracování dotazu na výkon...', duration: 900, progress: 20 },
@@ -377,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const addAiLogLine = (text, type) => {
         if (!aiOutput) return; const line = document.createElement('div'); line.className = `ai-log-line ${type}`;
-        const now = new Date(); const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}.${now.getMilliseconds().toString().padStart(3, '0')}`;
+        const now = new Date(); const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(3, '0')}.${now.getMilliseconds().toString().padStart(3, '0')}`;
         line.innerHTML = `<span class="ai-log-timestamp">[${timeString}]</span> <span class="ai-log-text">${text}</span>`;
         aiOutput.appendChild(line); aiOutput.scrollTop = aiOutput.scrollHeight;
     };
@@ -417,7 +437,7 @@ document.addEventListener('DOMContentLoaded', () => {
         entries.forEach(entry => {
             try {
                 if (config.aiDemo.enabled && demoSection && entry.isIntersecting && !isAiDemoRunning) {
-                    if (aiOutput && aiFakeInput && aiProgressLabel && aiProgressBar && aiStatusIndicator) { // Ensure all elements are present
+                    if (aiOutput && aiFakeInput && aiProgressLabel && aiProgressBar && aiStatusIndicator) {
                         console.log("AI Demo visible and all elements found, starting."); isAiDemoRunning = true; currentAiStep = 0;
                         aiOutput.innerHTML = ''; updateAiProgress(0, 'Inicializace AI...'); aiFakeInput.textContent = '';
                         runAiDemoStep();
@@ -430,10 +450,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (error) { console.error("Error in AI Demo observer:", error); isAiDemoRunning = false; if(aiStatusIndicator) aiStatusIndicator.textContent = 'CHYBA SYSTÉMU';}
         });
-    }, { threshold: 0.3 }); // Trigger when 30% visible
+    }, { threshold: 0.3 });
 
     if (demoSection && config.aiDemo.enabled) {
-        // Check if all necessary child elements for AI demo exist
         if (aiOutput && aiFakeInput && aiProgressLabel && aiProgressBar && aiStatusIndicator) {
              aiDemoObserver.observe(demoSection);
         } else {
@@ -452,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const setupLetterAnimation = (element) => {
         try {
             const textContent = element.dataset.text || element.textContent || '';
-            const originalHighlightElement = element.querySelector('.highlight'); // Query inside the current element
+            const originalHighlightElement = element.querySelector('.highlight');
             const originalHighlightDataText = originalHighlightElement ? (originalHighlightElement.dataset.text || originalHighlightElement.textContent || '') : '';
 
             element.innerHTML = ''; element.style.setProperty('--letter-count', textContent.length.toString());
@@ -469,11 +488,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isHighlightChar) {
                     let highlightContainerInWord = currentWordWrapper.querySelector('.highlight');
                     if (!highlightContainerInWord) {
-                        highlightContainerInWord = document.createElement('span'); highlightContainerInWord.className = 'highlight'; // Use class from original
-                        if(originalHighlightDataText) highlightContainerInWord.dataset.text = originalHighlightDataText; // Preserve data-text
+                        highlightContainerInWord = document.createElement('span'); highlightContainerInWord.className = 'highlight';
+                        if(originalHighlightDataText) highlightContainerInWord.dataset.text = originalHighlightDataText;
                         currentWordWrapper.appendChild(highlightContainerInWord);
-                        if (element === heroHeading) { // This is the main hero heading
-                            heroHighlightSpan = highlightContainerInWord; // Update the global reference for gradient
+                        if (element === heroHeading) {
+                            heroHighlightSpan = highlightContainerInWord;
                             console.log("Global heroHighlightSpan (for gradient) updated in setupLetterAnimation.");
                         }
                     }
@@ -501,7 +520,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             element.classList.add('letters-setup-complete');
                             setTimeout(() => {
                                 element.classList.add('is-revealing');
-                                element.style.opacity = '1'; // Ensure parent container is visible
+                                element.style.opacity = '1';
                                 if (element === heroHeading) {
                                     const letterCount = parseInt(element.style.getPropertyValue('--letter-count') || '10');
                                     const h1AnimationDuration = (letterCount * config.animations.letterMaskRevealDelay) + 500;
@@ -533,11 +552,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (animatedElements.length > 0) {
         animatedElements.forEach(el => {
             if (el) {
-                 el.style.opacity = '0'; // Keep this to prevent FOUC
+                 el.style.opacity = '0';
                  animationObserver.observe(el);
             }
         });
-        // For hero H1, its direct opacity can be 1 as children (letters) handle their own animation.
         if (heroHeading) heroHeading.style.opacity = '1';
         console.log(`Observing ${animatedElements.length} elements for scroll animations.`);
     } else {
@@ -547,12 +565,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Interactive Gradient for Hero ---
     const handleHeroMouseMove = (event) => {
         if (!heroSection || isTouchDevice) return;
-        // heroHighlightSpan is now reliably set by setupLetterAnimation if heroHeading is processed
         if (!heroHighlightSpan || !document.contains(heroHighlightSpan)) {
-            // Attempt to re-query if it was missed or DOM changed unexpectedly
             const currentHeroHighlight = heroHeading ? heroHeading.querySelector('.highlight') : null;
             if (currentHeroHighlight) heroHighlightSpan = currentHeroHighlight;
-            else return; // Still not found
+            else return;
         }
 
         if (rafIdGradient) cancelAnimationFrame(rafIdGradient);
@@ -589,13 +605,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     } else if (isTouchDevice) {
-        // For touch devices, set a static gradient after a delay to ensure heroHighlightSpan is created by setupLetterAnimation
         const setStaticGradientForTouch = () => {
             if (heroHighlightSpan && document.contains(heroHighlightSpan)) {
                 heroHighlightSpan.style.setProperty('--mouse-x', 0.5);
                 heroHighlightSpan.style.setProperty('--mouse-y', 0.3);
                 console.log("Touch device: Hero gradient set to static.");
-            } else if (heroHeading) { // Fallback: try to find it again if not set globally
+            } else if (heroHeading) {
                 const currentHeroHighlight = heroHeading.querySelector('.highlight');
                 if(currentHeroHighlight){
                     currentHeroHighlight.style.setProperty('--mouse-x', 0.5);
@@ -606,7 +621,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         };
-        // Wait a bit for letter animation to potentially create the span
         setTimeout(setStaticGradientForTouch, 1500);
     }
 
@@ -624,10 +638,78 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 200));
 
+    // --- Cookie Consent Logic ---
+    const getCookie = (name) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+    };
+
+    const setCookie = (name, value, days) => {
+        let expires = "";
+        if (days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = `; expires=${date.toUTCString()}`;
+        }
+        document.cookie = `${name}=${value || ""}${expires}; path=/; SameSite=Lax`; // Added SameSite=Lax for security
+        console.log(`Cookie set: ${name}=${value}`);
+    };
+
+    const handleAcceptCookies = () => {
+        setCookie(config.cookies.consentCookieName, 'all_accepted', config.cookies.consentCookieExpirationDays);
+        if (cookieConsentBanner) {
+            cookieConsentBanner.style.display = 'none';
+        }
+        console.log("All cookies accepted by user.");
+        // Here you could trigger functions that depend on cookie consent, e.g., load analytics scripts
+        // For now, gtag.js is loaded directly in HTML head, so this mainly hides the banner and sets the flag.
+    };
+
+    const checkCookieConsent = () => {
+        const consentGiven = getCookie(config.cookies.consentCookieName);
+        if (!consentGiven) {
+            if (cookieConsentBanner) {
+                cookieConsentBanner.style.display = 'block'; // Show banner if no consent cookie
+                console.log("Cookie consent not found, showing banner.");
+            } else {
+                console.warn("Cookie consent banner element not found.");
+            }
+        } else {
+            console.log(`Cookie consent already given: ${consentGiven}. Banner remains hidden.`);
+             if (cookieConsentBanner) { // Ensure banner is hidden if consent was previously given
+                cookieConsentBanner.style.display = 'none';
+            }
+        }
+    };
+
+    if (cookieConsentBanner && cookieConsentAcceptBtn) {
+        cookieConsentAcceptBtn.addEventListener('click', handleAcceptCookies);
+    } else {
+        console.warn("Cookie consent banner or accept button not found. Consent logic might not work.");
+    }
+
+    // Also re-check the footer link logic from index.html's inline script as it's now part of this main script
+    if (cookieSettingsLinkFooter && cookieConsentBanner) {
+        cookieSettingsLinkFooter.addEventListener('click', function(event) {
+            event.preventDefault();
+            // This could open a settings modal in the future
+            // For now, it can re-show the banner or clear consent to test
+            cookieConsentBanner.style.display = 'block';
+            console.log("Cookie settings link clicked, showing banner.");
+            // To test consent flow again:
+            // setCookie(config.cookies.consentCookieName, '', -1); // Delete the cookie
+            // checkCookieConsent(); // Re-check to show banner
+        });
+    }
+
+
     // --- Initialize Components ---
     try {
         handleScroll(); // Initial states
         initializeInfiniteSlider();
+        checkCookieConsent(); // Check and display cookie banner if needed
     } catch (error) {
         console.error("Error during final initializations:", error);
     }
@@ -635,14 +717,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Defer non-critical initializations slightly to ensure main content renders
     setTimeout(() => {
         if (demoSection && config.aiDemo.enabled && aiDemoObserver) {
-            // The observer will take care of starting it when visible.
-            // Just ensure it's properly set up if conditions are met.
             if (!(aiOutput && aiFakeInput && aiProgressLabel && aiProgressBar && aiStatusIndicator)) {
                  console.warn("AI Demo deferred init: elements missing, AI Demo might not work.");
             }
         }
-    }, 500); // Delay AI demo init slightly
+    }, 500);
 
 
-    console.log("JUSTAX Interface v2.32 (AI Demo Fix, Smooth Load) Initialization Complete.");
+    console.log("JUSTAX Interface v2.33 (Cookie Consent) Initialization Complete.");
 });
