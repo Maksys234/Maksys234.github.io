@@ -13,6 +13,7 @@
 // VERZE 12.10 (MANDATORY TEST): Test je nyní povinný na základě cíle uživatele. Ostatní testy jsou neaktivní.
 // VERZE 12.11 (FIX INACTIVE TEST DISPLAY): Opraveno zobrazení UI pro neaktivní povinné testy.
 // VERZE 12.12 (NO AUTO-START): Uživatel musí vždy manuálně spustit povinný test z obrazovky výběru.
+// VERZE 12.13 (ERROR HANDLING): Přidáno ošetření pro případ nedostatku otázek.
 
 // Используем IIFE для изоляции области видимости
 (function() {
@@ -430,21 +431,27 @@
             if (!currentProfile) {
                 throw new Error("Profil uživatele není načtený. Nelze určit typ otázek.");
             }
-            console.log(`[UI LoadQ v12.12] Volání TestLogic.loadTestQuestions s profilem (Goal: ${currentProfile.learning_goal}, TestType: ${testType})`);
-            questions = await window.TestLogic.loadTestQuestions(supabase, currentProfile, testTypeConfig);
-            console.log(`[UI LoadQ v12.12] Obdrženo ${questions.length} otázek z logiky.`);
+            if (!window.TestLogic || typeof window.TestLogic.loadTestQuestions !== 'function') {
+                throw new Error("Chybí logika pro načítání otázek (TestLogic.loadTestQuestions).");
+            }
+            console.log(`[UI LoadQ v12.13] Volání TestLogic.loadTestQuestions s profilem (Cíl: ${currentProfile.learning_goal}, TestTyp: ${testType})`);
+            questions = await window.TestLogic.loadTestQuestions(supabase, currentProfile, testTypeConfig); // Používáme globální `testTypeConfig`
+            console.log(`[UI LoadQ v12.13] Obdrženo ${questions.length} otázek z logiky.`);
+
             if (questions.length === 0) {
-                console.warn(`[UI LoadQ v12.12] Nebyly načteny žádné otázky pro test typu: ${testType}.`);
+                console.warn(`[UI LoadQ v12.13] Nebyly načteny žádné otázky pro test typu: ${testType}.`);
                 const config = testTypeConfig[testType];
-                if (config && config.isActive) { // Pokud je test aktivní a nejsou otázky, je to chyba
-                    showErrorMessagePage(`Nepodařilo se načíst otázky pro test "${config.title}". Zkuste to prosím později.`);
-                } else if (config && !config.isActive) { // Pro neaktivní testy je to očekávané
-                    // UI by mělo být již spravováno funkcí startSelectedTest
-                    console.log(`[UI LoadQ v12.12] Test ${testType} je neaktivní, prázdné otázky jsou očekávané.`);
-                } else { // Neznámý testType nebo chybějící konfigurace
-                    showErrorMessagePage(`Chyba konfigurace pro test typu "${testType}".`);
+                let userMessage = "Pro Váš aktuální cíl, ročník a preference nejsou momentálně k dispozici žádné vhodné otázky.";
+                if (config && !config.isActive) {
+                    userMessage = `Test "${config.title}" bude brzy dostupný. Otázky se připravují.`;
+                } else if (config && config.isActive) { // Aktivní test, ale žádné otázky
+                    userMessage = `Nepodařilo se načíst otázky pro test "${config.title}". Zkuste to prosím později nebo kontaktujte podporu, pokud problém přetrvává.`;
                 }
-                return;
+                showErrorMessagePage(userMessage, true); // Zobrazit zprávu
+                if(ui.testSelector) ui.testSelector.style.display = 'block'; // Vrátit na výběr testů
+                if(ui.testTimer) ui.testTimer.style.display = 'none';
+                applyTestHighlightingAndSelection();
+                return; // Ukončit, aby se nespustil test bez otázek
             }
             initializeTest();
         } catch (error) {
@@ -458,6 +465,17 @@
 
     // --- START: Test Logic UI ---
     function initializeTest() {
+        if (!questions || questions.length === 0) { // Přidána kontrola
+            console.error("[InitializeTest v12.13] Žádné otázky k inicializaci testu.");
+            showErrorMessagePage("Test nelze spustit, protože nebyly nalezeny žádné otázky.", false);
+            if (ui.testContainer) ui.testContainer.style.display = 'none';
+            if (ui.testLoader) ui.testLoader.style.display = 'none';
+            if (ui.testTimer) ui.testTimer.style.display = 'none';
+            if (ui.testSelector) ui.testSelector.style.display = 'block'; // Zpět na výběr
+            applyTestHighlightingAndSelection();
+            return;
+        }
+
         if (ui.testLoader) ui.testLoader.style.display = 'none';
         if (ui.testContainer) ui.testContainer.style.display = 'block';
         if (ui.resultsContainer) ui.resultsContainer.style.display = 'none';
@@ -1153,7 +1171,7 @@
                     if (buttonInCard) {
                         if (config.isActive === false) {
                             buttonInCard.innerHTML = '<i class="fas fa-hourglass-half"></i> Spustit Test (Brzy!)';
-                            buttonInCard.disabled = false;
+                            buttonInCard.disabled = false; // Ponecháme aktivní, aby se zobrazil toast
                             buttonInCard.classList.remove('btn-primary');
                             buttonInCard.classList.add('btn-secondary', 'btn-tooltip');
                             buttonInCard.title = `Test "${config.title}" bude brzy dostupný.`;
@@ -1260,7 +1278,7 @@
 
     // --- START: App Initialization ---
     async function initializeApp() {
-        console.log("🚀 [Init Test1 UI - Kyber v12.12] Starting...");
+        console.log("🚀 [Init Test1 UI - Kyber v12.13] Starting..."); // Updated version log
         if (!initializeSupabase()) return;
         applyInitialSidebarState();
 
@@ -1363,6 +1381,7 @@
                 applyTestHighlightingAndSelection(); // Toto by mělo všechny označit jako disabled
                 if(ui.testLoader) ui.testLoader.style.display = 'none';
                 if(ui.testContainer) ui.testContainer.style.display = 'none';
+                const h1TitleElem = document.querySelector('.dashboard-header h1');
                 if (h1TitleElem) h1TitleElem.innerHTML = `<i class="fas fa-vial"></i> Testování // DIAGNOSTIKA`;
                 if (ui.testLevel) ui.testLevel.textContent = "Chyba konfigurace testu pro cíl";
                 if (ui.startSelectedTestBtnGlobal) {
@@ -1379,7 +1398,7 @@
             if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
             if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }
 
-            console.log("✅ [Init Test1 UI - Kyber v12.12] Page initialized.");
+            console.log("✅ [Init Test1 UI - Kyber v12.13] Page initialized."); // Updated version log
 
         } catch (error) {
             console.error("❌ [Init Test1 UI - Kyber v12.12] Error:", error);
