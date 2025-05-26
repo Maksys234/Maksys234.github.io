@@ -1,6 +1,6 @@
 /* ==========================================================================
-   Imports & Variables
-   ========================================================================== */
+    Imports & Variables
+    ========================================================================== */
 
 /* --- Fonts --- */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap');
@@ -74,8 +74,8 @@
 }
 
 /* ==========================================================================
-   Base & Global Styles
-   ========================================================================== */
+    Base & Global Styles
+    ========================================================================== */
 
 /* Smooth Page Load Styles */
 body.page-loading {
@@ -302,6 +302,26 @@ section:has(.section-title.animated) .section-title span::after,
 	text-shadow: 0 0 10px var(--clr-accent-pink);
 	transform: translateY(-4px) scale(1.03);
 }
+/* Added for Cookie Modal Link button */
+.btn.btn-link {
+    background: none;
+    border: none;
+    color: var(--clr-text-secondary);
+    padding: 0.5em;
+    text-decoration: underline;
+    text-transform: none; /* Override .btn uppercase */
+    letter-spacing: normal; /* Override .btn letter-spacing */
+    font-family: var(--font-secondary); /* Use secondary font for links */
+    font-weight: 500;
+}
+.btn.btn-link:hover, .btn.btn-link:focus {
+    color: var(--clr-accent-cyan);
+    text-shadow: var(--glow-cyan);
+    transform: none;
+    box-shadow: none;
+}
+.btn.btn-link::before { display: none; } /* No shine effect for link buttons */
+
 
 #header {
 	position: fixed;
@@ -485,13 +505,19 @@ section:has(.section-title.animated) .section-title span::after,
 	padding-top: calc(var(--layout-header-height) + 60px);
 	padding-bottom: 80px;
 	position: relative;
-	overflow: visible;
+	overflow: visible; /* Changed from hidden to allow glow effects to spill */
 	background: linear-gradient(rgba(5, 4, 15, 0.92), rgba(5, 4, 15, 1)),
-				url('https://placehold.co/1920x1080/05040F/121023/png?text=Cosmic+Network') no-repeat center center / cover;
+				url('https://placehold.co/1920x1080/05040F/121023/png?text=Cosmic+Network') no-repeat center center / cover; /* Replace with actual image if available */
     border-bottom: 2px solid transparent;
     border-image: linear-gradient(90deg, var(--clr-accent-cyan) 0%, var(--clr-accent-purple) 50%, var(--clr-accent-pink) 100%) 1;
     animation: heroBgPan 40s linear infinite alternate;
 }
+
+@keyframes heroBgPan {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
 
 #particles-js {
 	position: absolute;
@@ -506,31 +532,49 @@ section:has(.section-title.animated) .section-title span::after,
     width: 100%;
 }
 
-/* СТИЛИ ДЛЯ УПРОЩЕННОГО ЗАГОЛОВКА */
 .hero h1 {
 	margin-bottom: 2.2rem;
 	font-weight: 800;
-	color: var(--clr-text-highlight); 
-    text-shadow: 0px 2px 6px rgba(0, 0, 0, 0.85), 0px 0px 2px rgba(0,0,0,0.9), 0 0 20px rgba(0, 242, 255, 0.15); /* Мягкая тень для читаемости */
+	color: var(--clr-text-highlight);
+    text-shadow: 0px 2px 6px rgba(0, 0, 0, 0.85), 0px 0px 2px rgba(0,0,0,0.9), 0 0 20px rgba(0, 242, 255, 0.15), 0 0 30px var(--clr-accent-purple); /* Added purple glow */
     overflow: visible;
-    line-height: 1.35; /* Подбираем высоту строки для двухстрочного заголовка */
-    padding-top: 0.1em; /* Небольшой отступ сверху */
-    padding-bottom: 0.1em; /* Небольшой отступ снизу */
-    text-align: center; /* Явное центрирование */
+    line-height: 1.35;
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
+    text-align: center;
+    /* For letter animation, if data-animate-letters is added back */
+    opacity: 0; /* Set by JS data-animate */
 }
 
-/* Удаляем или комментируем стили, связанные с .highlight, .letter-span, .word-wrapper, 
-   так как атрибут data-animate-letters удален из h1 и эти классы не будут применяться скриптом к h1.
-   Если эти классы используются в других местах сайта с анимацией, их стили должны остаться.
-   Я предполагаю, что для h1#hero-heading они больше не нужны.
-*/
-
-/* .hero h1 .highlight { ... были стили ... } */
-/* @keyframes highlightPulse { ... } */
-/* .word-wrapper { ... были стили ... } */
-/* .letter-span { ... были стили ... } */
-/* [data-animate-letters]:not(.is-revealing) .letter-span { ... были стили ... } */
-/* [data-animate-letters].is-revealing .letter-span { ... были стили ... } */
+/* Styles for letter animation (if re-enabled on h1) */
+.hero h1[data-animate-letters] .letter-span {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(25px) scale(0.7) rotateX(-40deg);
+    transition-property: opacity, transform;
+    transition-timing-function: var(--transition-bounce);
+    transition-duration: 0.7s;
+}
+.hero h1[data-animate-letters].is-revealing .letter-span {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateX(0deg);
+    /* transition-delay calculation is handled by JS config.animations.letterMaskRevealDelay */
+}
+/* Interactive gradient for highlighted part, if .highlight is used */
+.hero h1 .highlight {
+    display: inline-block;
+    background-image: radial-gradient(circle at calc(var(--mouse-x, 0.5) * 100%) calc(var(--mouse-y, 0.5) * 100%),
+                       var(--clr-accent-cyan) 0%, var(--clr-accent-pink) 45%, var(--clr-accent-purple) 95%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+    filter: drop-shadow(0 0 10px var(--clr-accent-cyan)) drop-shadow(0 0 6px var(--clr-accent-pink));
+    transition: --mouse-x 0.1s linear, --mouse-y 0.1s linear;
+}
+.hero h1 .highlight .letter-span {
+     color: transparent !important;
+}
 
 
 .hero p {
@@ -670,7 +714,7 @@ section:has(.section-title.animated) .section-title span::after,
     position: relative;
     overflow: hidden;
 }
-.ai-interface-section::before {
+.ai-interface-section::before { /* Removed body::after style for this section */
     display: none;
 }
 
@@ -800,7 +844,7 @@ section:has(.section-title.animated) .section-title span::after,
 .ai-log-line {
 	margin-bottom: 8px;
 	word-break: break-word;
-	text-shadow: 0 0 3px rgba(var(--clr-accent-green-rgb, 0, 255, 179), 0.2);
+	text-shadow: 0 0 3px rgba(var(--clr-accent-green-rgb, 0, 255, 179), 0.2); /* Define --clr-accent-green-rgb if needed or remove rgb part */
     animation: logLineFlicker 0.4s ease-out;
 }
 @keyframes logLineFlicker {
@@ -892,14 +936,14 @@ section:has(.section-title.animated) .section-title span::after,
 .how-it-works-grid::before {
     content: '';
     position: absolute;
-    top: calc(40px + 0.9rem);
+    top: calc(40px + 0.9rem); /* Adjust based on icon size and desired position */
     left: 12%;
     right: 12%;
     height: 3.5px;
     background: linear-gradient(90deg, rgba(170, 108, 255, 0.15), rgba(0, 242, 255, 0.35), rgba(170, 108, 255, 0.15));
     z-index: 0;
     border-radius: 2.5px;
-    display: none;
+    display: none; /* Controlled by media query */
     filter: blur(1px);
 }
 
@@ -927,7 +971,7 @@ section:has(.section-title.animated) .section-title span::after,
 .how-it-works-icon {
     width: 80px;
     height: 80px;
-    line-height: 74px;
+    line-height: 74px; /* Center icon */
     border-radius: 50%;
     background: linear-gradient(45deg, var(--clr-accent-purple), var(--clr-accent-pink), var(--clr-accent-cyan));
     color: var(--clr-text-highlight);
@@ -983,7 +1027,7 @@ section:has(.section-title.animated) .section-title span::after,
 
 @media (min-width: 992px) {
     .how-it-works-grid::before {
-        display: block;
+        display: block; /* Show line on larger screens */
     }
 }
 @media (max-width: 991px) {
@@ -993,11 +1037,11 @@ section:has(.section-title.animated) .section-title span::after,
 }
 @media (max-width: 767px) {
      .how-it-works-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr; /* Stack on smaller screens */
         gap: 45px;
     }
     .how-it-works-step {
-         max-width: 420px;
+         max-width: 420px; /* Limit width when stacked */
          margin-inline: auto;
      }
 }
@@ -1012,16 +1056,16 @@ section:has(.section-title.animated) .section-title span::after,
 .testimonial-slider-wrapper {
     position: relative;
     width: 100%;
-    max-width: 1150px;
+    max-width: 1150px; /* Adjust as needed for your design */
     margin: 0 auto;
-    padding: 0 45px;
+    padding: 0 45px; /* Space for prev/next buttons */
 }
 
 .testimonial-slider-container {
     overflow: hidden;
     width: 100%;
     position: relative;
-    box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.2); /* Optional inner shadow */
     border-radius: var(--layout-border-radius-md);
 }
 
@@ -1029,12 +1073,12 @@ section:has(.section-title.animated) .section-title span::after,
     display: flex;
     transition: transform var(--transition-smooth-slider);
     will-change: transform;
-    position: relative;
-    padding-inline: 10px;
+    position: relative; /* For z-index or pseudo-elements if needed */
+    padding-inline: 10px; /* Small padding if cards have their own margins */
 }
 
 .testimonial-card {
-	background: rgba(28, 26, 52, 0.75);
+	background: rgba(28, 26, 52, 0.75); /* Slightly darker than feature-card for variety */
 	backdrop-filter: blur(8px) saturate(1.1);
 	border: 1.5px solid transparent;
 	border-image: linear-gradient(135deg, rgba(0, 242, 255, 0.35), rgba(255, 64, 191, 0.35)) 1;
@@ -1043,15 +1087,15 @@ section:has(.section-title.animated) .section-title span::after,
 	transition: all var(--transition-slow);
 	box-shadow: var(--shadow-card);
 	position: relative;
-	overflow: hidden;
+	overflow: hidden; /* Important for ::before pseudo-element */
 	transform-style: preserve-3d;
 	will-change: transform, box-shadow, border-image, background;
-	display: flex;
-	flex-direction: column;
-    min-height: 340px;
-    flex: 0 0 auto;
-    width: clamp(290px, 29vw, 350px);
-    margin-right: clamp(28px, 4.2vw, 42px);
+	display: flex; /* For flex layout inside card */
+	flex-direction: column; /* Stack content vertically */
+    min-height: 340px; /* Ensure consistent height */
+    flex: 0 0 auto; /* Prevent shrinking/growing in flex container */
+    width: clamp(290px, 29vw, 350px); /* Responsive width */
+    margin-right: clamp(28px, 4.2vw, 42px); /* Gap between cards */
 }
 
 .testimonial-card.card-content-updated {
@@ -1072,7 +1116,7 @@ section:has(.section-title.animated) .section-title span::after,
     box-shadow: none;
     backdrop-filter: none;
 }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } /* Re-declare if not global */
 .testimonial-card.is-loading .spinner {
     width: 45px;
     height: 45px;
@@ -1082,36 +1126,36 @@ section:has(.section-title.animated) .section-title span::after,
     animation: spin 0.9s linear infinite;
 }
 
-.testimonial-card::before {
+.testimonial-card::before { /* Pattern overlay similar to feature-card */
 	content: '';
 	position: absolute;
 	inset: 0;
 	background-image: linear-gradient(rgba(0, 242, 255, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 64, 191, 0.08) 1px, transparent 1px);
-	background-size: 50px 50px;
+	background-size: 50px 50px; /* Different pattern size for variety */
 	opacity: 0;
 	transition: opacity var(--transition-smooth);
 	z-index: 0;
-	animation: pattern-scroll-card 4.5s linear infinite paused;
+	animation: pattern-scroll-card 4.5s linear infinite paused; /* Use same animation or new one */
 }
 
 .testimonial-card:hover {
 	transform: perspective(1300px) rotateY(-6deg) rotateX(4deg) scale(1.035) translateY(-14px);
 	box-shadow: var(--shadow-card-hover), 0 0 35px rgba(0, 242, 255, 0.45), 0 0 20px rgba(255,64,191,0.3) inset;
 	border-image: linear-gradient(135deg, var(--clr-accent-cyan), var(--clr-accent-pink), var(--clr-accent-orange), var(--clr-accent-purple)) 1;
-    background: rgba(40, 38, 70, 0.85);
+    background: rgba(40, 38, 70, 0.85); /* Slightly different hover bg */
 }
 .testimonial-card:hover::before {
 	opacity: 0.7;
 	animation-play-state: running;
 }
 
-.testimonial-content, .testimonial-author {
+.testimonial-content, .testimonial-author { /* Apply transform to children */
 	position: relative;
 	z-index: 1;
-	transform: translateZ(28px);
+	transform: translateZ(28px); /* Lift content from background */
 }
 .testimonial-content {
-    flex-grow: 1;
+    flex-grow: 1; /* Allows text to fill space before author */
     margin-bottom: 1.8rem;
 }
 
@@ -1124,10 +1168,10 @@ section:has(.section-title.animated) .section-title span::after,
 .testimonial-rating i { margin-right: 5px; }
 
 .testimonial-text {
-	font-size: 1.02rem;
+	font-size: 1.02rem; /* Slightly larger for readability */
 	line-height: 1.85;
 	font-style: italic;
-	color: var(--clr-text-primary);
+	color: var(--clr-text-primary); /* Brighter than secondary for emphasis */
     font-weight: 400;
 }
 .testimonial-text::before { content: '“'; margin-right: 6px; font-size: 1.9em; color: var(--clr-accent-cyan); line-height: 0; display: inline-block; vertical-align: bottom; opacity: 0.85; filter: drop-shadow(0 0 3px var(--clr-accent-cyan)); }
@@ -1137,12 +1181,12 @@ section:has(.section-title.animated) .section-title span::after,
 	display: flex;
 	align-items: center;
 	gap: 18px;
-	margin-top: auto;
+	margin-top: auto; /* Pushes author to bottom */
     padding-top: 1rem;
-    border-top: 1px solid rgba(255,255,255,0.08);
+    border-top: 1px solid rgba(255,255,255,0.08); /* Subtle separator */
 }
 .testimonial-avatar {
-	width: 70px;
+	width: 70px; /* Larger avatar */
 	height: 70px;
 	border-radius: 50%;
 	background-size: cover;
@@ -1176,12 +1220,12 @@ section:has(.section-title.animated) .section-title span::after,
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background-color: rgba(30, 28, 58, 0.7);
+    background-color: rgba(30, 28, 58, 0.7); /* Semi-transparent card bg */
     backdrop-filter: blur(6px);
     color: var(--clr-accent-cyan);
-    border: 1.5px solid rgba(0, 242, 255, 0.45);
+    border: 1.5px solid rgba(0, 242, 255, 0.45); /* Cyan border */
     border-radius: 50%;
-    width: 50px;
+    width: 50px; /* Slightly larger */
     height: 50px;
     font-size: 1.3rem;
     cursor: pointer;
@@ -1193,7 +1237,7 @@ section:has(.section-title.animated) .section-title span::after,
     box-shadow: var(--shadow-interactive);
 }
 .slider-btn:hover, .slider-btn:focus {
-    background-color: rgba(0, 242, 255, 0.25);
+    background-color: rgba(0, 242, 255, 0.25); /* Cyan translucent bg */
     color: var(--clr-text-highlight);
     border-color: var(--clr-accent-pink);
     box-shadow: var(--glow-pink), var(--shadow-interactive-hover);
@@ -1202,12 +1246,12 @@ section:has(.section-title.animated) .section-title span::after,
 .slider-btn:disabled {
     opacity: 0.35;
     cursor: not-allowed;
-    pointer-events: none;
+    pointer-events: none; /* Important for disabled state */
     box-shadow: none;
-    transform: translateY(-50%) scale(1);
+    transform: translateY(-50%) scale(1); /* Reset hover transform */
 }
-.slider-btn.prev-btn { left: -5px; }
-.slider-btn.next-btn { right: -5px; }
+.slider-btn.prev-btn { left: -5px; } /* Adjusted position */
+.slider-btn.next-btn { right: -5px; } /* Adjusted position */
 
 .testimonial-note {
     text-align: center;
@@ -1228,24 +1272,24 @@ section:has(.section-title.animated) .section-title span::after,
     border-top: 2px solid rgba(255,255,255,0.2);
     border-bottom: 2px solid rgba(255,255,255,0.2);
 }
-.cta::before {
+.cta::before { /* Animated radial glows */
 	content: "";
 	position: absolute;
 	top: -70%; left: -70%;
 	width: 240%; height: 240%;
 	background: radial-gradient(circle, rgba(255,255,255,0.12) 12%, transparent 40%),
 				radial-gradient(circle, rgba(255,255,255,0.09) 12%, transparent 30%);
-	background-size: 35% 35%, 20% 20%;
+	background-size: 35% 35%, 20% 20%; /* Different sizes for variety */
 	animation: move-glow-cta 13s linear infinite alternate;
 	z-index: 0;
 	opacity: 0.6;
 }
-@keyframes move-glow-cta {
+@keyframes move-glow-cta { /* Keyframes for glow animation */
 	from { transform: translate(0, 0) rotate(0deg) scale(1); }
 	to { transform: translate(25px, -20px) rotate(220deg) scale(1.1); }
 }
 .cta .container {
-	position: relative;
+	position: relative; /* Ensure content is above ::before pseudo-element */
 	z-index: 1;
 }
 .cta h2 {
@@ -1255,38 +1299,38 @@ section:has(.section-title.animated) .section-title span::after,
 	margin-bottom: 1.8rem;
 }
 .cta p {
-	color: rgba(255, 255, 255, 0.98);
+	color: rgba(255, 255, 255, 0.98); /* Slightly off-white for depth */
 	margin-bottom: 2.8rem;
 	font-size: clamp(1.05rem, 2.1vw, 1.2rem);
 	max-width: 700px;
     margin-inline: auto;
     font-weight: 400;
 }
-.cta .btn.auth-link {
-	background: var(--clr-text-highlight);
-	color: var(--clr-accent-pink);
+.cta .btn.auth-link { /* Button specific to CTA */
+	background: var(--clr-text-highlight); /* White background */
+	color: var(--clr-accent-pink); /* Pink text */
 	border-color: var(--clr-text-highlight);
 	box-shadow: 0 6px 25px rgba(0, 0, 0, 0.35);
 	font-size: 1.05rem;
 	padding: 1.05em 2.3em;
-    transition: all var(--transition-bounce);
+    transition: all var(--transition-bounce); /* Bouncy transition */
 }
 .cta .btn.auth-link:hover {
-	background: var(--clr-bg-primary);
-	color: var(--clr-text-highlight);
+	background: var(--clr-bg-primary); /* Dark bg on hover */
+	color: var(--clr-text-highlight); /* White text */
 	border-color: var(--clr-bg-primary);
-	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 15px var(--clr-accent-pink);
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 15px var(--clr-accent-pink); /* Add pink glow on hover */
 	transform: translateY(-6px) scale(1.06);
 }
 
-#contact {
+#contact { /* Footer */
 	background-color: var(--clr-bg-primary);
-	border-top: 4px solid transparent;
+	border-top: 4px solid transparent; /* Thicker, gradient border */
 	border-image: linear-gradient(90deg, var(--clr-accent-purple), var(--clr-accent-cyan), var(--clr-accent-pink), var(--clr-accent-green)) 1;
 	padding: 80px 0 35px 0;
 	font-size: 0.92rem;
 	position: relative;
-    box-shadow: 0 -5px 20px rgba(0,0,0,0.3);
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.3); /* Top shadow for depth */
 }
 .footer-grid {
 	display: grid;
@@ -1304,10 +1348,10 @@ section:has(.section-title.animated) .section-title span::after,
 	opacity: 0.95;
     text-shadow: 0 0 5px var(--clr-accent-purple);
 }
-.footer-column .logo {
-	font-size: 1.6rem;
+.footer-column .logo { /* Ensure footer logo is styled */
+	font-size: 1.6rem; /* Match existing */
 	margin-bottom: 18px;
-	display: inline-flex;
+	display: inline-flex; /* Changed from flex to inline-flex for better flow */
 }
 .footer-column p {
 	font-size: 0.92rem;
@@ -1316,7 +1360,7 @@ section:has(.section-title.animated) .section-title span::after,
 	line-height: 1.65;
 }
 .footer-links {
-	list-style: none;
+	list-style: none; /* Reset default */
 }
 .footer-links li {
 	margin-bottom: 14px;
@@ -1324,17 +1368,17 @@ section:has(.section-title.animated) .section-title span::after,
 .footer-links a {
 	color: var(--clr-text-secondary);
 	transition: color var(--transition-fast), padding-left var(--transition-fast), filter var(--transition-fast), letter-spacing var(--transition-fast);
-	display: inline-block;
+	display: inline-block; /* Ensure padding-left works */
 }
 .footer-links a:hover, .footer-links a:focus {
 	color: var(--clr-accent-cyan);
-	padding-left: 10px;
+	padding-left: 10px; /* Indent on hover */
 	filter: drop-shadow(0 0 4px var(--clr-accent-cyan));
-    letter-spacing: 0.5px;
+    letter-spacing: 0.5px; /* Slight letter spacing expansion */
 }
-.footer-column ul li i {
+.footer-column ul li i { /* Ensure icons in lists are styled */
 	margin-right: 10px;
-    width: 1.3em;
+    width: 1.3em; /* Consistent width for alignment */
     text-align: center;
     color: var(--clr-accent-purple);
     opacity: 0.85;
@@ -1347,20 +1391,21 @@ section:has(.section-title.animated) .section-title span::after,
 
 .social-links {
 	display: flex;
-	gap: 20px;
+	gap: 20px; /* Spacing between social icons */
 	margin-top: 22px;
 }
 .social-link {
 	color: var(--clr-text-secondary);
 	font-size: 1.6rem;
 	transition: color var(--transition-fast), transform var(--transition-bounce), filter var(--transition-fast);
-	display: inline-block;
+	display: inline-block; /* Ensures transform works */
 }
 .social-link:hover, .social-link:focus {
-	color: var(--clr-accent-cyan);
-	transform: scale(1.2) translateY(-4px);
+	color: var(--clr-accent-cyan); /* Default hover color */
+	transform: scale(1.2) translateY(-4px); /* Pop effect */
 	filter: drop-shadow(0 0 6px var(--clr-accent-cyan));
 }
+/* Specific social icon hover colors */
 .social-link[aria-label="Telegram"]:hover { color: #2AABEE; filter: drop-shadow(0 0 6px #2AABEE); }
 .social-link[aria-label="Instagram"]:hover { color: #E4405F; filter: drop-shadow(0 0 6px #E4405F); }
 .social-link[aria-label="Email"]:hover { color: var(--clr-accent-pink); filter: drop-shadow(0 0 6px var(--clr-accent-pink); }
@@ -1368,10 +1413,10 @@ section:has(.section-title.animated) .section-title span::after,
 .copyright {
 	text-align: center;
 	padding-top: 45px;
-	border-top: 1.5px solid rgba(170, 108, 255, 0.15);
+	border-top: 1.5px solid rgba(170, 108, 255, 0.15); /* Subtle top border */
 	font-size: 0.88rem;
 	color: var(--clr-text-secondary);
-	font-family: var(--font-mono);
+	font-family: var(--font-mono); /* Monospaced for techy feel */
 	opacity: 0.85;
 }
 .copyright i.fa-heart {
@@ -1380,11 +1425,12 @@ section:has(.section-title.animated) .section-title span::after,
 	font-size: 0.95em;
     animation: heartbeat 1.5s infinite ease-in-out;
 }
-@keyframes heartbeat {
+@keyframes heartbeat { /* Heartbeat animation */
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.2); }
 }
 
+/* Mouse Follower - Already well-styled, ensure it is not displayed on touch */
 .mouse-follower-glow {
 	position: fixed;
 	width: 30px; height: 30px;
@@ -1393,28 +1439,29 @@ section:has(.section-title.animated) .section-title span::after,
 	pointer-events: none;
 	z-index: 9999;
 	transform: translate(-50%, -50%) scale(1);
-	mix-blend-mode: screen;
+	mix-blend-mode: screen; /* Cool blend effect */
 	transition: transform 0.12s ease-out, background 0.18s ease, width 0.18s ease, height 0.18s ease, box-shadow 0.18s ease, opacity 0.25s ease, mix-blend-mode 0.2s ease;
 	box-shadow: 0 0 20px 7px var(--clr-accent-cyan), 0 0 35px 20px rgba(0, 242, 255, 0.45);
-	opacity: 0;
-	will-change: left, top, transform, box-shadow, background, opacity, mix-blend-mode;
+	opacity: 0; /* Initially hidden, JS controls */
+	will-change: left, top, transform, box-shadow, background, opacity, mix-blend-mode; /* Performance hint */
 }
-.mouse-follower-glow.is-hovering {
-    mix-blend-mode: normal;
+.mouse-follower-glow.is-hovering { /* Class added by JS on hover */
+    mix-blend-mode: normal; /* Switch blend mode on hover for clarity */
 }
 
-@media (hover: none) {
+@media (hover: none) { /* Hide on touch devices */
     .mouse-follower-glow {
         display: none !important;
     }
 }
-body:active .mouse-follower-glow {
+body:active .mouse-follower-glow { /* Style on mouse click */
 	transform: translate(-50%, -50%) scale(0.65);
 	background: var(--clr-accent-pink);
 	box-shadow: 0 0 25px 12px var(--clr-accent-pink), 0 0 40px 25px rgba(255, 64, 191, 0.5);
-	opacity: 0.85 !important;
+	opacity: 0.85 !important; /* Ensure visibility on click */
     mix-blend-mode: normal;
 }
+/* JS will handle specific hover states by adding/removing .is-hovering and adjusting scale/color */
 a:hover ~ .mouse-follower-glow,
 button:hover ~ .mouse-follower-glow,
 .btn:hover ~ .mouse-follower-glow,
@@ -1422,44 +1469,46 @@ button:hover ~ .mouse-follower-glow,
 .feature-card:hover ~ .mouse-follower-glow,
 .how-it-works-step:hover ~ .mouse-follower-glow,
 .yuki-card:hover ~ .mouse-follower-glow {
-    /* Styles for these are primarily controlled by JS adding .is-hovering and adjusting scale/color */
+    /* Styles are primarily managed by JS setting scale and the .is-hovering class which changes mix-blend-mode */
 }
 
 
+/* General Animation for elements with data-animate (non-letter ones) */
 [data-animate]:not([data-animate-letters]) {
 	opacity: 0;
 	filter: blur(6px);
-	transform: perspective(1300px) translateY(45px) rotateY(12deg) scale(0.93);
+	transform: perspective(1300px) translateY(45px) rotateY(12deg) scale(0.93); /* 3D pop-in effect */
 	transform-origin: center center;
 	transition-property: opacity, filter, transform;
-    transition-duration: 0.8s;
-    transition-timing-function: var(--transition-slow);
+    transition-duration: 0.8s; /* Default from existing */
+    transition-timing-function: var(--transition-slow); /* Use variable */
 }
 [data-animate]:not([data-animate-letters]).animated {
 	opacity: 1;
 	filter: blur(0);
-	transform: perspective(1300px) translateY(0) rotateY(0) scale(1);
+	transform: perspective(1300px) translateY(0) rotateY(0) scale(1); /* Reset to normal */
 }
 
+/* Specific animation for how-it-works steps if needed to override general */
 .how-it-works-step[data-animate] {
-    transform: perspective(900px) translateY(35px) scale(0.88);
+    transform: perspective(900px) translateY(35px) scale(0.88); /* Existing specialized transform */
     filter: blur(5px);
 }
 .how-it-works-step[data-animate].animated {
-    transform: perspective(900px) translateY(0) scale(1);
+    transform: perspective(900px) translateY(0) scale(1); /* Reset to normal */
     filter: blur(0);
 }
 
 
-.yuki-special-section {
+.yuki-special-section { /* Yuki section styling */
     background-color: var(--clr-bg-secondary);
-    border-block: 1.5px solid rgba(255, 64, 191, 0.25);
+    border-block: 1.5px solid rgba(255, 64, 191, 0.25); /* Pink border */
     text-align: center;
     background-image: linear-gradient(45deg, rgba(255,255,255,0.02) 25%, transparent 25%),
                       linear-gradient(-45deg, rgba(255,255,255,0.02) 25%, transparent 25%),
                       linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.02) 75%),
                       linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.02) 75%);
-    background-size: 30px 30px;
+    background-size: 30px 30px; /* Subtle pattern */
     background-position: 0 0, 0 15px, 15px -15px, -15px 0px;
 }
 
@@ -1467,10 +1516,10 @@ button:hover ~ .mouse-follower-glow,
     background: var(--clr-bg-card);
     backdrop-filter: blur(12px) saturate(1.25);
     border: 1.5px solid transparent;
-    border-image: linear-gradient(135deg, var(--clr-accent-pink), var(--clr-accent-purple), var(--clr-accent-cyan), var(--clr-accent-green)) 1;
+    border-image: linear-gradient(135deg, var(--clr-accent-pink), var(--clr-accent-purple), var(--clr-accent-cyan), var(--clr-accent-green)) 1; /* Full spectrum border */
     padding: clamp(35px, 6.5vw, 55px);
     border-radius: var(--layout-border-radius-lg);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), var(--glow-pink), var(--glow-purple);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), var(--glow-pink), var(--glow-purple); /* Pink and purple glow */
     max-width: 700px;
     margin: 2.5rem auto 0 auto;
     display: flex;
@@ -1478,15 +1527,15 @@ button:hover ~ .mouse-follower-glow,
     align-items: center;
     text-align: center;
     position: relative;
-    overflow: hidden;
+    overflow: hidden; /* For ::before */
     transition: transform var(--transition-bounce), box-shadow var(--transition-smooth);
 }
 .yuki-card:hover {
-    transform: scale(1.02) rotate(1deg);
-    box-shadow: 0 15px 50px rgba(0,0,0,0.6), var(--glow-pink), var(--glow-purple), var(--glow-cyan);
+    transform: scale(1.02) rotate(1deg); /* Playful hover */
+    box-shadow: 0 15px 50px rgba(0,0,0,0.6), var(--glow-pink), var(--glow-purple), var(--glow-cyan); /* Add cyan glow on hover */
 }
 
-.yuki-card::before {
+.yuki-card::before { /* Pattern overlay */
     content: '';
     position: absolute;
     inset: 0;
@@ -1495,10 +1544,10 @@ button:hover ~ .mouse-follower-glow,
     opacity: 0.6;
     z-index: 0;
     pointer-events: none;
-    animation: pattern-scroll-card 5s linear infinite;
+    animation: pattern-scroll-card 5s linear infinite; /* Re-use animation */
 }
 
-.yuki-card > * {
+.yuki-card > * { /* Ensure content is above ::before */
     position: relative;
     z-index: 1;
 }
@@ -1509,29 +1558,29 @@ button:hover ~ .mouse-follower-glow,
     border-radius: 50%;
     object-fit: cover;
     margin-bottom: 2rem;
-    border: 5px solid var(--clr-accent-pink);
-    box-shadow: 0 0 25px var(--clr-accent-pink), 0 0 35px rgba(255, 64, 191, 0.35), inset 0 0 10px rgba(0,0,0,0.3);
+    border: 5px solid var(--clr-accent-pink); /* Pink border */
+    box-shadow: 0 0 25px var(--clr-accent-pink), 0 0 35px rgba(255, 64, 191, 0.35), inset 0 0 10px rgba(0,0,0,0.3); /* Enhanced shadow */
     transition: transform var(--transition-bounce), box-shadow var(--transition-smooth), border-color var(--transition-smooth);
 }
 
 .yuki-card:hover .yuki-photo {
-    transform: scale(1.08) rotate(-4deg) translateY(-5px);
+    transform: scale(1.08) rotate(-4deg) translateY(-5px); /* More dynamic hover for photo */
     box-shadow: 0 0 30px var(--clr-accent-pink), 0 0 45px rgba(255, 64, 191, 0.55), 0 0 18px var(--clr-accent-cyan) inset, 0 0 10px var(--clr-accent-purple);
-    border-color: var(--clr-accent-cyan);
+    border-color: var(--clr-accent-cyan); /* Change border color on hover */
 }
 
 .yuki-card h3 {
     color: var(--clr-text-highlight);
     font-size: clamp(1.6rem, 4.2vw, 2.2rem);
     margin-bottom: 1.2rem;
-    text-shadow: 0 0 10px var(--clr-accent-pink), 0 0 5px var(--clr-accent-purple);
+    text-shadow: 0 0 10px var(--clr-accent-pink), 0 0 5px var(--clr-accent-purple); /* Pink and purple text glow */
 }
 
 .yuki-card p {
     color: var(--clr-text-primary);
     font-size: clamp(1.02rem, 2.1vw, 1.2rem);
     line-height: 1.75;
-    max-width: 90%;
+    max-width: 90%; /* Limit text width */
     margin-bottom: 1.8rem;
 }
 
@@ -1543,12 +1592,13 @@ button:hover ~ .mouse-follower-glow,
     margin-top: 1.2rem;
     margin-bottom: 0;
 }
-.yuki-card .small-note i {
+.yuki-card .small-note i { /* Icon in small note */
     color: var(--clr-accent-cyan);
     margin-right: 6px;
 }
 
 
+/* Responsive adjustments from original */
 @media (max-width: 992px) {
 	h1 { font-size: clamp(2.4rem, 7.5vw, 3.8rem); }
 	h2 { font-size: clamp(1.9rem, 6.5vw, 2.7rem); }
@@ -1580,63 +1630,63 @@ button:hover ~ .mouse-follower-glow,
 @media (max-width: 768px) {
 	:root { --layout-header-height: 65px; }
 
-    .nav-container {
+    .nav-container { /* Revert to flex for mobile nav simplicity */
         display: flex;
         justify-content: space-between;
-        grid-template-columns: none;
+        grid-template-columns: none; /* Disable grid for simple flex */
         gap: 0;
     }
-     #header nav {
-        display: block;
+     #header nav { /* Adjust nav for mobile when it's part of flex */
+        display: block; /* Or none if hamburger handles all */
         justify-self: initial;
         grid-column: auto;
         flex-grow: 0;
         width: auto;
         justify-content: initial;
     }
-    .header-actions {
+    .header-actions { /* Adjust actions for mobile */
         justify-self: initial;
         grid-column: auto;
     }
 
 	.nav-links {
-		position: fixed; top: 0; right: -100%;
-        width: min(80vw, 320px);
+		position: fixed; top: 0; right: -100%; /* Start off-screen */
+        width: min(80vw, 320px); /* Responsive width */
         height: 100vh;
-		background-color: color-mix(in srgb, var(--clr-bg-secondary), black 15%);
+		background-color: color-mix(in srgb, var(--clr-bg-secondary), black 15%); /* Darker, blended bg */
 		flex-direction: column; padding: calc(var(--layout-header-height) + 35px) 35px 35px 35px;
-        gap: 22px; align-items: flex-start;
+        gap: 22px; align-items: flex-start; /* Align items to start */
 		transition: right var(--transition-smooth);
-        box-shadow: -6px 0 25px rgba(0, 0, 0, 0.55);
+        box-shadow: -6px 0 25px rgba(0, 0, 0, 0.55); /* Stronger shadow */
 		z-index: 999;
-        border-left: 1.5px solid rgba(170, 108, 255, 0.2);
-        display: flex;
-        justify-content: flex-start;
+        border-left: 1.5px solid rgba(170, 108, 255, 0.2); /* Subtle border */
+        display: flex; /* Ensure flex properties apply */
+        justify-content: flex-start; /* Align content to top */
 	}
-	.nav-links.active { right: 0; }
+	.nav-links.active { right: 0; } /* Slide in from right */
 	.nav-item { font-size: 1.05rem; width: 100%; padding-block: 12px; }
-	.nav-item::after { display: none; }
+	.nav-item::after { display: none; } /* No underline effect in mobile nav */
 	.nav-item:hover, .nav-item:focus { color: var(--clr-accent-cyan); text-shadow: none; transform: translateX(5px); }
-	.hamburger { display: block; }
-	.desktop-auth-link { display: none; }
-	.mobile-auth-link { display: inline-flex; margin-top: 28px; width: 100%; font-size: 1rem; }
+	.hamburger { display: block; } /* Show hamburger */
+	.desktop-auth-link { display: none; } /* Hide desktop auth button */
+	.mobile-auth-link { display: inline-flex; margin-top: 28px; width: 100%; font-size: 1rem; } /* Show mobile auth button */
 
 	.hero { min-height: 95vh; padding-top: calc(var(--layout-header-height) + 35px); }
-	.hero h1 { font-size: clamp(2.1rem, 8.5vw, 3.2rem); line-height: 1.35; } /* Увеличена высота строки для мобильных */
+	.hero h1 { font-size: clamp(2.1rem, 8.5vw, 3.2rem); line-height: 1.35; }
 	.hero p { font-size: 1.02rem; max-width: 92%; }
 	.hero-buttons { flex-direction: column; gap: 18px; align-items: center; }
-	.hero-buttons .btn { width: 90%; max-width: 340px; animation: none; }
+	.hero-buttons .btn { width: 90%; max-width: 340px; animation: none; } /* Disable pulse on mobile */
 
 	section { padding-block: clamp(55px, 8.5vh, 75px); }
 	.section-subtitle { margin-bottom: 3.2rem; max-width: 92%; }
 
-    .testimonial-slider-wrapper { max-width: 420px; padding: 0 50px; }
-    .testimonial-card { width: clamp(270px, 72vw, 330px); margin-right: 0; }
+    .testimonial-slider-wrapper { max-width: 420px; padding: 0 50px; } /* Adjust for centered single card */
+    .testimonial-card { width: clamp(270px, 72vw, 330px); margin-right: 0; } /* Ensure single card view */
     .slider-btn { width: 40px; height: 40px; }
-    .slider-btn.prev-btn { left: 8px; }
-    .slider-btn.next-btn { right: 8px; }
+    .slider-btn.prev-btn { left: 8px; } /* Closer for smaller wrapper */
+    .slider-btn.next-btn { right: 8px; } /* Closer for smaller wrapper */
 
-	.feature-card:hover, .testimonial-card:hover {
+	.feature-card:hover, .testimonial-card:hover { /* Simpler hover for mobile */
 		transform: translateY(-8px) scale(1.015);
 		box-shadow: var(--shadow-card-hover), var(--glow-purple);
 		border-image: linear-gradient(45deg, var(--clr-accent-cyan), var(--clr-accent-pink), var(--clr-accent-purple)) 1;
@@ -1646,18 +1696,18 @@ button:hover ~ .mouse-follower-glow,
 		 animation-play-state: running;
 	}
 
-	[data-animate]:not([data-animate-letters]).animated {
+	[data-animate]:not([data-animate-letters]).animated { /* Simpler animation for mobile */
 		transform: translateY(0) scale(1); filter: blur(0); opacity: 1;
 	}
-    [data-animate]:not([data-animate-letters]) {
+    [data-animate]:not([data-animate-letters]) { /* Simpler initial state */
 		transform: translateY(28px); filter: blur(4px); opacity: 0;
 		transform-origin: center center;
 	}
 
 	.footer-grid { grid-template-columns: 1fr; text-align: center; gap: 38px; }
 	.social-links { justify-content: center; }
-	.footer-column .logo { justify-content: center; display: flex; }
-    .footer-column ul li i { display: none; }
+	.footer-column .logo { justify-content: center; display: flex; } /* Center logo in footer */
+    .footer-column ul li i { display: none; } /* Hide icons in footer links on mobile */
 
     .yuki-card {
         padding: 30px 22px;
@@ -1666,25 +1716,24 @@ button:hover ~ .mouse-follower-glow,
         width: 130px;
         height: 130px;
     }
-    .ai-interface-wrapper { transform: perspective(600px) rotateX(0deg); }
+    .ai-interface-wrapper { transform: perspective(600px) rotateX(0deg); } /* Simpler transform */
     .ai-log-window { height: 250px; font-size: 0.85rem; }
     .ai-interface-header { padding: 10px 15px;}
     .ai-content-area { padding: 15px; }
 }
 
 @media (max-width: 480px) {
-	html { font-size: 94%; }
+	html { font-size: 94%; } /* Slightly smaller base font */
 	body { line-height: 1.7; }
 	.container { width: 94%; padding-inline: 12px; }
 	.btn { padding: 0.85em 1.7em; font-size: 0.92rem; }
-	.features-grid { grid-template-columns: 1fr; gap: 30px; }
+	.features-grid { grid-template-columns: 1fr; gap: 30px; } /* Ensure single column */
 	.testimonial-card { padding: 28px; min-height: auto; width: clamp(250px, 78vw, 290px); }
     .testimonial-slider-wrapper { padding: 0 45px; }
 	.testimonial-text { font-size: 0.98rem; }
 	.ai-content-area { padding: 18px; }
 	.ai-log-window { padding: 18px; font-size: 0.82rem; height: 260px; }
-    .hero h1 { line-height: 1.4; }  /* Еще немного увеличена высота строки для самых маленьких экранов */
-
+    .hero h1 { line-height: 1.4; }
 
     .yuki-card h3 {
         font-size: 1.7rem;
@@ -1702,9 +1751,9 @@ button:hover ~ .mouse-follower-glow,
     .ai-status-indicator {font-size: 0.7rem; padding: 3px 8px;}
 }
 
-@media print {
+@media print { /* Print styles remain largely the same */
 	body { background: #fff; color: #000; font-size: 10pt; }
-	#header, #footer, .hero #particles-js, .mouse-follower-glow, .cta, .ai-interface-section, .testimonial-slider-wrapper .slider-btn, .yuki-special-section .yuki-card::before, body::after, .hero::before { display: none !important; }
+	#header, #contact, .hero #particles-js, .mouse-follower-glow, .cta, .ai-interface-section, .testimonial-slider-wrapper .slider-btn, .yuki-special-section .yuki-card::before, body::after, .hero::before { display: none !important; }
 	.container { width: 100%; max-width: none; margin: 0; padding: 0 1cm; }
 	a { color: #000 !important; text-decoration: underline !important; filter: none !important; }
     a[href^="/"]:after { content: " (" attr(href) ")"; }
@@ -1715,113 +1764,365 @@ button:hover ~ .mouse-follower-glow,
     .testimonial-slider-container { overflow: visible !important; box-shadow: none !important; }
     .testimonial-slider-track { display: block !important; transform: none !important; }
     .testimonial-card { border: 1px solid #ccc !important; box-shadow: none !important; backdrop-filter: none !important; background: #f9f9f9 !important; padding: 1cm !important; break-inside: avoid !important; width: 100% !important; margin-bottom: 1cm !important; margin-right: 0 !important; page-break-inside: avoid !important; }
-    /* .hero h1 .highlight { background: none !important; color: #000 !important; display: inline !important; } */ /* Это правило больше не нужно */
+    /* .hero h1 .highlight rule from original not needed if h1 structure changes */
     .hero p, .hero .hero-buttons, .section-subtitle, .ai-explanation { display: none !important; }
     .logo span, .logo i { color: #000 !important; filter: none !important; }
     .yuki-photo { border: 2px solid #666 !important; box-shadow: none !important; float: right; margin-left: 1cm; width: 3cm !important; height: 3cm !important; }
     .feature-icon, .how-it-works-icon { display: none !important; }
     img { max-width: 100% !important; height: auto !important; }
 }
-/* Existing styles in index.css should remain above this line */
 
-/* Cookie Consent Banner Styles */
+/* ==========================================================================
+   NEW Cookie Consent Banner & Modal Styles (Replaces previous cookie styles)
+   ========================================================================== */
+
 #cookie-consent-banner {
     position: fixed;
     bottom: 0;
     left: 0;
-    right: 0;
-    background-color: var(--bg-darker, #1a1a2e); /* Fallback if CSS var is not defined */
-    color: var(--text-light, #e0e0e0);
-    padding: 20px;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
-    z-index: 1000; /* Ensure it's above other content */
-    display: none; /* Initially hidden, JS will show it */
-    border-top: 1px solid var(--interface-border, #3a3a5e);
-    font-size: 0.95rem;
-    line-height: 1.6;
+    width: 100%;
+    z-index: 10000;
+    box-sizing: border-box;
+    background-color: var(--clr-bg-tertiary); /* Using a slightly lighter bg from your palette */
+    color: var(--clr-text-primary);
+    padding: 15px 25px; /* Adjusted padding */
+    box-shadow: 0 -3px 15px rgba(0, 0, 0, 0.4);
+    border-top: 1.5px solid var(--clr-accent-purple); /* Use an accent for border */
+    display: flex; /* For JavaScript to toggle via .visible */
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    transition: transform 0.45s var(--transition-bounce), opacity 0.4s ease-out; /* Use your bounce transition */
+    transform: translateY(100%);
+    opacity: 0;
+}
+
+#cookie-consent-banner.visible {
+    transform: translateY(0);
+    opacity: 1;
 }
 
 #cookie-consent-banner p {
-    margin: 0 0 15px 0;
-    color: var(--text-medium, #c0c0c0);
+    margin: 0;
+    flex-grow: 1;
+    font-size: 0.9rem; /* Slightly smaller text */
+    line-height: 1.55;
+    color: var(--clr-text-secondary);
+    padding-right: 20px; /* Space before buttons if they don't wrap */
 }
 
-#cookie-consent-banner a {
-    color: var(--accent-primary, #00e0ff);
+#cookie-consent-banner p a {
+    color: var(--clr-accent-cyan); /* Use your cyan accent */
     text-decoration: underline;
+    font-weight: 500;
+}
+#cookie-consent-banner p a:hover {
+    color: var(--clr-accent-pink); /* Pink on hover */
+    filter: drop-shadow(0 0 4px var(--clr-accent-pink));
 }
 
-#cookie-consent-banner a:hover {
-    color: var(--white, #ffffff);
-    text-decoration: none;
-}
-
-.cookie-consent-actions {
+#cookie-consent-banner .cookie-consent-actions {
     display: flex;
-    gap: 15px;
     align-items: center;
-    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+    flex-shrink: 0;
+    gap: 12px; /* Space between buttons */
 }
 
+/* Style buttons within banner using your .btn class structure */
 #cookie-consent-banner .btn {
-    padding: 10px 20px;
-    font-size: 0.9rem;
-    min-width: 120px; /* Give buttons some minimum width */
+    padding: 0.7em 1.6em; /* Slightly smaller padding for banner buttons */
+    font-size: 0.85rem; /* Slightly smaller font */
+    min-width: auto; /* Allow buttons to be smaller */
+    letter-spacing: 1px; /* Adjust letter spacing if needed */
+}
+/* Specific override for primary accept button in banner */
+#cookie-consent-banner .btn#cookie-consent-accept-all {
+    background: linear-gradient(45deg, var(--clr-accent-green), var(--clr-accent-cyan)); /* Green/Cyan gradient */
+    color: var(--clr-bg-primary);
+    box-shadow: 0 0 15px rgba(0, 255, 179, 0.4), 0 0 15px rgba(0, 242, 255, 0.3);
+}
+#cookie-consent-banner .btn#cookie-consent-accept-all:hover {
+    background: linear-gradient(45deg, var(--clr-accent-cyan), var(--clr-accent-green));
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.5), 0 0 20px rgba(0, 255, 179, 0.4);
+    transform: translateY(-3px) scale(1.03);
+}
+/* Style for reject and customize (as outline) */
+#cookie-consent-banner .btn.btn-outline {
+    color: var(--clr-accent-purple);
+    border-color: var(--clr-accent-purple);
+    text-shadow: 0 0 6px var(--clr-accent-purple);
+}
+#cookie-consent-banner .btn.btn-outline:hover {
+    background-color: rgba(170, 108, 255, 0.12);
+    color: var(--clr-text-highlight);
+    border-color: var(--clr-accent-pink);
+    box-shadow: var(--glow-pink), 0 0 0 2.5px rgba(255, 64, 191, 0.15);
+    text-shadow: 0 0 8px var(--clr-accent-pink);
+}
+/* Link style button for customize if preferred over outline */
+#cookie-consent-banner .btn.btn-link {
+    color: var(--clr-text-secondary);
+    font-family: var(--font-secondary); /* Match main text font */
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: 0.85rem;
+    padding: 0.7em 0.5em; /* Small padding */
+}
+#cookie-consent-banner .btn.btn-link:hover {
+    color: var(--clr-accent-cyan);
+    text-shadow: 0 0 5px var(--clr-accent-cyan);
 }
 
-/* Ensure banner buttons inherit global button styles but can be overridden */
-#cookie-consent-banner #cookie-consent-accept {
-    background-color: var(--accent-primary, #00e0ff);
-    color: var(--bg-dark, #03020c); /* Text color for primary button */
-    border: 1px solid var(--accent-primary, #00e0ff);
+
+/* Cookie Settings Modal */
+.cookie-modal {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(5, 4, 15, 0.75); /* Darker overlay from your palette */
+    backdrop-filter: blur(8px) saturate(0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10001; /* Higher than banner */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-smooth), visibility 0s linear var(--transition-smooth);
 }
 
-#cookie-consent-banner #cookie-consent-accept:hover {
-    background-color: var(--accent-primary-darker, #00b8d4); /* Slightly darker on hover */
-    border-color: var(--accent-primary-darker, #00b8d4);
+.cookie-modal.visible {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
 }
 
-#cookie-consent-banner .btn-outline {
-    background-color: transparent;
-    color: var(--accent-secondary, #a05cff);
-    border: 1px solid var(--accent-secondary, #a05cff);
+.cookie-modal-content {
+    background: var(--clr-bg-card); /* Use your card background */
+    backdrop-filter: blur(15px) saturate(1.2);
+    padding: clamp(25px, 4vw, 40px);
+    border-radius: var(--layout-border-radius-lg); /* Use your large border radius */
+    border: 1.5px solid var(--clr-accent-purple); /* Accent border */
+    box-shadow: var(--shadow-card-hover), var(--glow-purple); /* Use your hover shadow and glow */
+    width: 90%;
+    max-width: 700px; /* Max width for modal */
+    max-height: 88vh;
+    overflow-y: auto;
+    color: var(--clr-text-primary);
+    transform: scale(0.92) translateY(15px);
+    transition: transform var(--transition-bounce) 0.1s, opacity var(--transition-smooth) 0.1s; /* Staggered entry */
+    opacity: 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--clr-accent-cyan) var(--clr-bg-crt-log);
 }
-
-#cookie-consent-banner .btn-outline:hover {
-    background-color: var(--accent-secondary-transparent, rgba(160, 92, 255, 0.1));
-    color: var(--white, #ffffff);
+.cookie-modal.visible .cookie-modal-content {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    transition-delay: 0s; /* Override stagger for visible state */
 }
+.cookie-modal-content::-webkit-scrollbar { width: 10px; }
+.cookie-modal-content::-webkit-scrollbar-track { background: var(--clr-bg-crt-log); border-radius: var(--layout-border-radius-sm); }
+.cookie-modal-content::-webkit-scrollbar-thumb { background-color: var(--clr-accent-cyan); border-radius: var(--layout-border-radius-sm); border: 2px solid var(--clr-bg-crt-log); }
+.cookie-modal-content::-webkit-scrollbar-thumb:hover { background-color: var(--clr-accent-pink); }
 
-#cookie-consent-banner .btn-link {
-    background-color: transparent;
-    color: var(--text-muted, #888);
+
+.cookie-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(170, 108, 255, 0.25); /* Subtle purple border */
+}
+.cookie-modal-header h3 {
+    margin: 0;
+    font-size: clamp(1.4rem, 3vw, 1.8rem);
+    color: var(--clr-text-highlight);
+    text-shadow: 0 0 8px var(--clr-accent-purple);
+}
+.cookie-modal-close-btn {
+    background: none;
     border: none;
-    text-decoration: underline;
-    padding: 10px 0; /* Adjust padding for link-style button */
+    color: var(--clr-text-secondary);
+    font-size: 2.2rem; /* Larger close icon */
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    transition: color var(--transition-fast), transform var(--transition-fast);
+}
+.cookie-modal-close-btn:hover {
+    color: var(--clr-accent-pink);
+    transform: rotate(90deg) scale(1.1);
 }
 
-#cookie-consent-banner .btn-link:hover {
-    color: var(--text-light, #e0e0e0);
+.cookie-modal-body > p {
+    margin-bottom: 25px;
+    font-size: 0.95rem;
+    color: var(--clr-text-secondary);
+    line-height: 1.7;
 }
 
-/* Responsive adjustments for smaller screens if needed */
+.cookie-category {
+    padding: 18px 0;
+    border-bottom: 1px solid rgba(170, 108, 255, 0.15);
+}
+.cookie-category:last-child {
+    border-bottom: none;
+    padding-bottom: 0; /* Remove bottom padding for last item */
+}
+.cookie-category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.cookie-category-header h4 {
+    margin: 0;
+    font-size: 1.15rem; /* Slightly larger category titles */
+    font-weight: 600; /* Bolder */
+    color: var(--clr-text-highlight);
+}
+.cookie-category-description {
+    font-size: 0.88rem; /* Consistent small text */
+    color: var(--clr-text-secondary);
+    line-height: 1.6;
+    margin: 0;
+    opacity: 0.9;
+}
+
+/* Switch for Cookie Settings */
+.cookie-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px; /* Adjusted size */
+    height: 26px;
+    flex-shrink: 0;
+}
+.cookie-switch input { display: none; } /* Visually hide checkbox */
+
+.cookie-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--clr-bg-tertiary); /* Darker switch bg */
+    border: 1.5px solid var(--clr-accent-purple); /* Purple border */
+    transition: var(--transition-fast);
+    border-radius: 26px; /* Fully rounded */
+}
+.cookie-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px; /* Knob size */
+    width: 18px;
+    left: 3px; /* Knob position */
+    bottom: 3px;
+    background-color: var(--clr-text-secondary); /* Knob color */
+    transition: var(--transition-fast);
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.cookie-switch input:checked + .cookie-slider {
+    background-color: var(--clr-accent-cyan); /* Cyan when active */
+    border-color: var(--clr-accent-cyan);
+    box-shadow: var(--glow-cyan);
+}
+.cookie-switch input:focus + .cookie-slider { /* Focus outline */
+    box-shadow: 0 0 0 2.5px rgba(0, 242, 255, 0.3), var(--glow-cyan);
+}
+.cookie-switch input:checked + .cookie-slider:before {
+    transform: translateX(22px); /* Move knob */
+    background-color: var(--clr-bg-primary); /* Dark knob on active */
+}
+/* Styles for always-on (necessary) switch */
+.cookie-switch.always-on .cookie-slider {
+    background-color: var(--clr-accent-green); /* Green for necessary */
+    border-color: var(--clr-accent-green);
+    cursor: default;
+    box-shadow: var(--glow-green);
+}
+.cookie-switch.always-on input:checked + .cookie-slider:before {
+    background-color: var(--clr-bg-primary); /* Dark knob */
+}
+
+
+.cookie-modal-footer {
+    margin-top: 30px;
+    padding-top: 25px;
+    border-top: 1px solid rgba(170, 108, 255, 0.25);
+    display: flex;
+    justify-content: flex-end; /* Align buttons to right */
+    gap: 15px;
+    flex-wrap: wrap;
+}
+/* Ensure modal buttons use the global .btn styles correctly */
+.cookie-modal-footer .btn {
+    padding: 0.85em 1.8em; /* Standardize modal button padding */
+    font-size: 0.9rem;
+}
+.cookie-modal-footer .btn#cookie-settings-save { /* Primary save button */
+    background: linear-gradient(45deg, var(--clr-accent-purple), var(--clr-accent-pink));
+    color: var(--clr-text-highlight);
+    box-shadow: 0 0 15px rgba(170, 108, 255, 0.4), 0 0 15px rgba(255, 64, 191, 0.3);
+}
+.cookie-modal-footer .btn#cookie-settings-save:hover {
+    background: linear-gradient(45deg, var(--clr-accent-pink), var(--clr-accent-purple));
+    box-shadow: 0 0 20px rgba(255, 64, 191, 0.5), 0 0 20px rgba(170, 108, 255, 0.4);
+}
+
+
+/* Responsive adjustments for cookie UI on smaller screens */
+@media (max-width: 768px) {
+    .cookie-modal-content {
+        padding: 25px 20px; /* Adjust padding for smaller modals */
+        max-height: 90vh;
+    }
+    .cookie-modal-header h3 {
+        font-size: 1.35rem;
+    }
+}
+
 @media (max-width: 600px) {
-    .cookie-consent-actions {
+    #cookie-consent-banner { /* Stack banner items vertically */
         flex-direction: column;
-        align-items: stretch;
+        padding: 20px 15px;
+        text-align: center;
     }
-
-    #cookie-consent-banner .btn {
-        width: 100%; /* Make buttons full width on small screens */
-        margin-bottom: 10px;
+    #cookie-consent-banner p {
+        padding-right: 0;
+        margin-bottom: 18px;
     }
-
-    .cookie-consent-actions .btn:last-child {
+    #cookie-consent-banner .cookie-consent-actions {
+        justify-content: center;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+     #cookie-consent-banner .cookie-consent-actions .btn {
+        flex-grow: 1; /* Allow buttons to take space */
+        min-width: 130px; /* Ensure buttons are tappable */
+        margin-bottom: 8px; /* Space if they wrap */
+    }
+    #cookie-consent-banner .cookie-consent-actions .btn:last-child {
         margin-bottom: 0;
     }
 
-    #cookie-consent-banner {
-        padding: 15px;
-        font-size: 0.9rem;
+    .cookie-modal-footer { /* Stack modal footer buttons */
+        flex-direction: column;
+        gap: 12px;
+    }
+    .cookie-modal-footer .btn {
+        width: 100%; /* Full width buttons in modal footer */
+    }
+    .cookie-category-header { /* Stack category header on small screens if needed */
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .cookie-category-header h4 {
+        font-size: 1.05rem;
+    }
+    .cookie-switch { /* Ensure switch isn't too small */
+        transform: scale(0.95);
     }
 }
