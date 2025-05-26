@@ -1,5 +1,5 @@
 // dashboard/oceneni.js
-// Version: 23.23.11 - Rank consistency, Achievement Icons Fix, Irrelevant achievements review (none removed)
+// Version: 23.23.12 - Rank consistency, Achievement Icons Fix, Non-collapsible sections fix
 (function() { // IIFE for scope isolation
 	'use strict';
 
@@ -7,7 +7,7 @@
 	const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
 	const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
 	const NOTIFICATION_FETCH_LIMIT = 5;
-	const LEADERBOARD_LIMIT = 10; // Increased for better rank accuracy if user is outside top 10, but card will show specific rank
+	const LEADERBOARD_LIMIT = 10;
 	const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
 	const DAILY_TITLE_SHOP_COUNT = 6;
 	const PROFILE_COLUMNS_TO_SELECT_FOR_ACHIEVEMENTS = 'id, username, first_name, last_name, email, avatar_url, bio, school, grade, level, completed_exercises, streak_days, longest_streak_days, badges_count, points, experience, purchased_titles, selected_title, selected_decoration, purchased_decorations';
@@ -188,9 +188,9 @@
 			}
 			if (key === 'notifications' && ui.notificationBell) {
 				ui.notificationBell.style.opacity = loading ? 0.5 : 1;
-				if (ui.markAllRead) {
+				if (ui.markAllRead) { // Změna z ui.markAllReadBtn na ui.markAllRead
 					const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
-					ui.markAllRead.disabled = loading || currentUnreadCount === 0;
+					ui.markAllRead.disabled = loading || currentUnreadCount === 0; // Změna z ui.markAllReadBtn na ui.markAllRead
 				}
 			}
 		};
@@ -336,10 +336,10 @@
 	async function fetchLeaderboardData(sortBy = 'points', limit = LEADERBOARD_LIMIT) {
 		if (!supabase) return [];
 		let orderByField = 'points';
-		let profileJoinSort = false;
+        let profileJoinSort = false;
 		if (sortBy === 'level') {
-			orderByField = 'level'; // This will be used for client-side sort now
-			profileJoinSort = true; // Indicate we need profile level for sorting
+			orderByField = 'level';
+            profileJoinSort = true;
 		}
 
 		console.log(`[Leaderboard] Fetching data, primary sort from DB by points (rank), client-side sort by: ${sortBy}`);
@@ -356,7 +356,7 @@
 					)
 				`)
 				.eq('period', currentLeaderboardPeriod)
-				.order('rank', { ascending: true }) // This rank is based on points
+                .order('rank', { ascending: true })
 				.limit(limit);
 
 
@@ -365,7 +365,7 @@
 
 			const rankedData = (data || []).map((entry, index) => ({
 				...entry,
-				calculated_rank: entry.rank ?? (index + 1)
+				calculated_rank: entry.rank ?? (index + 1) // Použijeme DB rank pokud je, jinak vypočteme z pořadí
 			}));
 			return rankedData;
 		} catch (e) {
@@ -415,8 +415,8 @@
 		setLoadingState('userLearningLogs', true);
 		try {
 			const { data: logs, error } = await supabase
-				.from('learning_logs_detailed')
-				.select('id')
+				.from('learning_logs_detailed') // Používáme nově vytvořený view
+				.select('id') // Stačí nám ID pro počítání
 				.eq('user_id', userId);
 
 			if (error) throw error;
@@ -495,10 +495,10 @@
 		setLoadingState('userAiLessons', true);
 		try {
 			const { data: lessons, error } = await supabase
-				.from('ai_sessions')
+				.from('ai_sessions') // Předpokládáme, že tabulka AI lekcí se jmenuje 'ai_sessions'
 				.select('id')
 				.eq('user_id', userId)
-				.eq('status', 'ended');
+				.eq('status', 'ended'); // Nebo jiný stav označující dokončení
 
 			if (error) throw error;
 			const count = lessons ? lessons.length : 0;
@@ -522,9 +522,9 @@
                 .eq('user_id', userId)
                 .order('created_at', { ascending: false })
                 .limit(1)
-                .single();
+                .single(); // Očekáváme jeden záznam nebo žádný
 
-            if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found, which is not an error for "latest"
+            if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found, which is okay for "latest"
                 throw error;
             }
             lastCreditTransaction = data; // Store it globally for stats card
@@ -538,24 +538,23 @@
 	// --- END: Data Fetching Functions ---
 
 	// --- START: Achievement Logic ---
-	// Updated badgeVisuals to map badge types to specific icons and gradients
 	const badgeVisuals = {
-		math: { icon: 'fa-calculator', gradient: 'var(--gradient-math)' }, // Example, use actual icon from badge.icon
+		math: { icon: 'fa-calculator', gradient: 'var(--gradient-math)' },
 		language: { icon: 'fa-language', gradient: 'var(--gradient-lang)' },
 		streak: { icon: 'fa-fire', gradient: 'var(--gradient-streak)' },
 		special: { icon: 'fa-star', gradient: 'var(--gradient-special)' },
 		points: { icon: 'fa-coins', gradient: 'var(--gradient-warning)' },
-		exercises: { icon: 'fa-pencil-ruler', gradient: 'var(--gradient-success)' }, // Changed icon
+		exercises: { icon: 'fa-pencil-ruler', gradient: 'var(--gradient-success)' },
 		test: { icon: 'fa-vial', gradient: 'var(--gradient-info)' },
 		profile: { icon: 'fa-id-card', gradient: 'var(--gradient-info)' },
 		progress: { icon: 'fa-chart-line', gradient: 'var(--gradient-success)' },
 		practice: { icon: 'fa-dumbbell', gradient: 'var(--gradient-button)' },
-		learning_habit: { icon: 'fa-book-reader', gradient: 'var(--gradient-info)' }, // New
+		learning_habit: { icon: 'fa-book-reader', gradient: 'var(--gradient-info)' },
 		mastery: { icon: 'fa-brain', gradient: 'var(--gradient-level-up)' },
-		customization: { icon: 'fa-paint-brush', gradient: 'var(--gradient-cta)' }, // Changed icon
+		customization: { icon: 'fa-paint-brush', gradient: 'var(--gradient-cta)' },
 		default: { icon: 'fa-medal', gradient: 'var(--gradient-locked)' }
 	};
-
+	// ... (checkRequirements, awardBadge, checkAndAwardAchievements functions remain the same as in the previous response) ...
 	function checkRequirements(profileData, requirements, otherData = {}, badgeTitle = 'Unknown Badge') {
 		if (!profileData || !requirements || typeof requirements !== 'object') {
 			console.warn("[Achievements CheckReq] Invalid input for checking requirements.", profileData, requirements);
@@ -661,14 +660,14 @@
 					const topicName = topicObj ? topicObj.name : `Téma ID ${requirements.topic_id}`;
 					progressText = `${currentValue}% v "${sanitizeHTML(topicName)}" (Cíl: ${targetValue}%)`;
 					break;
-				case 'avatar_decoration_equipped': // Podmínka pro "Stylový Pilot"
+				case 'avatar_decoration_equipped':
 					currentValue = (profileData.selected_decoration && profileData.selected_decoration.trim() !== '') ? 1 : 0;
-					targetValue = 1; // Potřeba mít alespoň jednu dekoraci vybavenou
+					targetValue = 1;
 					progressText = currentValue >= targetValue ? "Dekorace použita" : "Žádná dekorace";
 					break;
-				case 'title_equipped': // Podmínka pro "Nositel Titulu"
+				case 'title_equipped':
 					currentValue = (profileData.selected_title && profileData.selected_title.trim() !== '') ? 1 : 0;
-					targetValue = 1; // Potřeba mít alespoň jeden titul vybavený
+					targetValue = 1;
 					progressText = currentValue >= targetValue ? "Titul použit" : "Žádný titul";
 					break;
 				case 'exercises_completed_total':
@@ -686,15 +685,12 @@
                     targetValue = requirements.purchased_decorations_count || reqTarget;
                     progressText = `${currentValue}/${targetValue} dekorací`;
                     break;
-				case 'topic_score': // Použito např. pro 'Algebraický mistr'
-				case 'exercises_count': // Použito např. pro 'Geometr', 'Čtenář', 'Rychlé myšlení'
+				case 'topic_score':
+				case 'exercises_count':
 				case 'topic_exercises_completed':
-				case 'topic_perfect_exercises': // Použito např. pro 'Gramatický expert'
+				case 'topic_perfect_exercises':
 				case 'perfect_exercises':
-					// Tyto achievementy vyžadují komplexnější logiku, která pravděpodobně zahrnuje agregaci
-					// dat z 'user_exercises' nebo 'test_results' a jejich porovnání s podmínkami v 'requirements'.
-					// Prozatím je necháme jako "Implementace se připravuje", dokud nebudou specifikovány přesné tabulky a pole.
-					currentValue = 0; // Default
+					currentValue = 0;
 					targetValue = requirements.target || requirements.count || requirements.exercises_count || requirements.perfect_exercises || 1;
 					const genericTopic = requirements.topic_id || requirements.topic || 'N/A';
 					progressText = `(Splnění: ${badgeTitle} - implementace se připravuje)`;
@@ -759,9 +755,10 @@
 				if (updateProfileError) { console.error("[AwardBadge] Error updating profile stats:", updateProfileError); }
 				else {
 					console.log(`[AwardBadge] Profile stats updated for user ${userId}: badges_count=${updates.badges_count}` + (updates.points ? `, points=${updates.points}` : ''));
-					if (currentProfile && currentProfile.id === userId) {
+					if (currentProfile && currentProfile.id === userId) { // Update local profile state
 						currentProfile.badges_count = updates.badges_count;
 						if (updates.points !== undefined) currentProfile.points = updates.points;
+						// It's better to re-fetch or rely on a global profile update mechanism if stats card needs this immediately
 					}
 				}
 			}
@@ -797,31 +794,31 @@
 		console.log(`[Achievements Check] Starting check for user ${userId}...`);
 		setLoadingState('availableBadges', true);
 		try {
-			const profileDataForCheck = currentProfile;
+			const profileDataForCheck = currentProfile; // Use the already fetched full profile
 
-			const { data: allBadgesData, error: badgesError } = await supabaseInstance
-				.from('badges')
-				.select('id, title, description, type, icon, requirements, points') // Přidán icon pro dostupná ocenění
-				.order('id');
-			if (badgesError) throw badgesError;
-			if (!allBadgesData || allBadgesData.length === 0) { console.log("[Achievements Check] No badge definitions found."); setLoadingState('availableBadges', false); return; }
+			// Fetch all badge definitions if not already loaded (or if we want fresh ones)
+			if (!allBadges || allBadges.length === 0) {
+				const { data: allBadgesData, error: badgesError } = await supabaseInstance
+					.from('badges')
+					.select('id, title, description, type, icon, requirements, points') // Ensure 'icon' is selected
+					.order('id');
+				if (badgesError) throw badgesError;
+				if (!allBadgesData || allBadgesData.length === 0) { console.log("[Achievements Check] No badge definitions found."); setLoadingState('availableBadges', false); return; }
+				allBadges = allBadgesData;
+			}
 
-			const { data: earnedBadgesData, error: earnedError } = await supabaseInstance
-				.from('user_badges')
-				.select('badge_id, earned_at')
-				.eq('user_id', userId);
-			if (earnedError) throw earnedError;
+			// Fetch earned badges if not already loaded (or if we want fresh ones)
+			if (!userBadges || userBadges.length === 0 || !userBadges[0]?.badge) { // Check if badge details are missing
+				const { data: earnedBadgesData, error: earnedError } = await supabaseInstance
+					.from('user_badges')
+					.select('badge_id, earned_at, badge:badges!inner(id, title, description, type, icon, requirements, points)')
+					.eq('user_id', userId)
+					.order('earned_at', { ascending: false });
+				if (earnedError) throw earnedError;
+				userBadges = earnedBadgesData || [];
+			}
 
-			const earnedBadgeIds = new Set((earnedBadgesData || []).map(b => b.badge_id));
-
-			allBadges = allBadgesData;
-			userBadges = earnedBadgesData.map(eb => ({
-				badge_id: eb.badge_id,
-				earned_at: eb.earned_at,
-				badge: allBadges.find(b => b.id === eb.badge_id) || {}
-			})).sort((a,b) => new Date(b.earned_at) - new Date(a.earned_at));
-
-
+			const earnedBadgeIds = new Set(userBadges.map(b => b.badge_id));
 			const unearnedBadges = allBadges.filter(b => !earnedBadgeIds.has(b.id));
 			console.log(`[Achievements Check] Found ${unearnedBadges.length} unearned badges to check.`);
 
@@ -850,17 +847,16 @@
 			console.log(`[Achievements Check] Finished checking for user ${userId}. New badges awarded this session: ${newBadgeAwardedThisSession}`);
 
 			if (newBadgeAwardedThisSession) {
-				const updatedProfile = await fetchUserFullProfile(userId); // Znovu načteme plný profil
+				const updatedProfile = await fetchUserFullProfile(userId); // Re-fetch the full profile after awards
 				if(updatedProfile) currentProfile = updatedProfile;
 
-				userBadges = await fetchUserEarnedBadges(userId); // Znovu načteme získané odznaky
-				userBadges.sort((a,b) => new Date(b.earned_at) - new Date(a.earned_at));
+				userBadges = await fetchUserEarnedBadges(userId); // Re-fetch to get updated list with full badge details
 
-				renderUserBadges(userBadges); // Znovu vykreslíme odznaky uživatele
+				renderUserBadges(userBadges); // Re-render user's earned badges
                 const totalUsersForStatsUpdate = (await supabase.from('profiles').select('id', { count: 'exact', head: true })).count || leaderboardData.length || 0;
 				updateSidebarProfile(currentProfile, allTitlesFromDB);
-				updateStatsCards({
-					badges: currentProfile.badges_count,
+				updateStatsCards({ // Update stats cards with fresh data
+					badges: currentProfile.badges_count, // Use the accurate count from the profile
 					points: currentProfile.points,
 					streak_current: currentProfile.streak_days,
 					streak_longest: currentProfile.longest_streak_days,
@@ -868,7 +864,7 @@
 					totalUsers: totalUsersForStatsUpdate
 				});
 			}
-			// Vždy znovu vykreslíme dostupné výzvy, aby se aktualizoval jejich postup
+			// Always re-render available badges to update their progress
 			renderAvailableBadges(allBadges, userBadges, currentProfile, otherDataForAchievements);
 
 		} catch (error) {
@@ -896,10 +892,10 @@
 			const avatarUrl = profile.avatar_url;
 			let finalAvatarUrl = avatarUrl;
 
-			if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl.includes('/')) {
+			if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl.includes('/')) { // Pokud je to interní cesta
 				finalAvatarUrl = sanitizeHTML(avatarUrl);
 				console.log(`[Sidebar Update] Using direct avatar URL: ${finalAvatarUrl}`);
-			} else if (avatarUrl) {
+			} else if (avatarUrl) { // Pokud je to externí URL, přidáme timestamp
 				finalAvatarUrl = `${sanitizeHTML(avatarUrl)}?t=${new Date().getTime()}`;
 				console.log(`[Sidebar Update] Using cache-busted avatar URL: ${finalAvatarUrl}`);
 			}
@@ -915,7 +911,7 @@
 			console.log(`[Sidebar Update] Avatar set. URL: ${finalAvatarUrl || 'Initials'}`);
 
 			const selectedTitleKey = profile.selected_title;
-			let displayTitle = 'Pilot';
+			let displayTitle = 'Pilot'; // Výchozí titul
 			if (selectedTitleKey && titlesData && titlesData.length > 0) {
 				const foundTitle = titlesData.find(t => t.title_key === selectedTitleKey);
 				if (foundTitle && foundTitle.name) {
@@ -924,16 +920,16 @@
 					console.warn(`[Sidebar Update] Title key "${selectedTitleKey}" not found in titles list.`);
 				}
 			} else if (selectedTitleKey) {
-				console.warn(`[Sidebar Update] Selected title key present, but titles list is empty or not loaded.`);
+				 console.warn(`[Sidebar Update] Selected title key present, but titles list is empty or not loaded.`);
 			}
 			ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle);
-			ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle));
+			ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle)); // Přidání tooltipu pro titul
 			console.log(`[Sidebar Update] Title set to: ${displayTitle}`);
 
 		} else {
 			ui.sidebarName.textContent = "Nepřihlášen";
 			ui.sidebarAvatar.textContent = '?';
-			ui.sidebarUserTitle.textContent = 'Pilot';
+			ui.sidebarUserTitle.textContent = 'Pilot'; // Výchozí titul
 			ui.sidebarUserTitle.removeAttribute('title');
 			console.log("[Sidebar Update] User not logged in or profile missing, sidebar set to defaults.");
 		}
@@ -952,11 +948,10 @@
 	    ui.rankCard?.classList.remove('loading');
 
 	    if (stats) {
-	        // Získané odznaky
-	        const earnedBadgesCount = userBadges?.length || 0; // Použijeme délku pole userBadges
+	        const earnedBadgesCount = stats.badges ?? 0; // Používáme přímo hodnotu z `stats` objektu
 	        ui.badgesCount.textContent = earnedBadgesCount;
 	        if (ui.badgesChange) {
-	            const totalPossibleBadges = allBadges?.length || 0; // Celkový počet definovaných odznaků
+	            const totalPossibleBadges = allBadges?.length || 0;
 	            if (totalPossibleBadges > 0) {
 	                ui.badgesChange.innerHTML = `<i class="fas fa-trophy"></i> ${earnedBadgesCount} / ${totalPossibleBadges} celkem`;
 	            } else {
@@ -964,7 +959,6 @@
 	            }
 	        }
 
-	        // Bodový zisk
 	        ui.pointsCount.textContent = stats.points ?? 0;
 	        if (ui.pointsChange) {
 	            if (lastCreditTransaction && lastCreditTransaction.description) {
@@ -982,7 +976,7 @@
                         const actualRewardPart = lastCreditTransaction.description.split("):")[1]?.trim();
                         if (actualRewardPart) {
                            let shortActualReward = actualRewardPart;
-                           if (shortActualReward.length > maxDescLength -5) { // -5 for "kr. "
+                           if (shortActualReward.length > maxDescLength -5) {
                                 shortActualReward = shortActualReward.substring(0, maxDescLength - 8) + "...";
                            }
                            displayTransactionText = `${sanitizeHTML(shortActualReward)}: ${sign}${amount} kr.`;
@@ -994,19 +988,17 @@
 	            }
 	        }
 
-	        // Studijní série
 	        ui.streakDays.textContent = stats.streak_current ?? 0;
 	        if (ui.streakChange) ui.streakChange.textContent = `MAX: ${stats.streak_longest ?? 0} dní`;
 
-	        // Pořadí v žebříčku
-            const currentUserRankData = leaderboardData.find(u => u.user_id === currentUser?.id);
-            const currentUserRank = currentUserRankData ? currentUserRankData.rank : '-';
-            const totalUsersInLeaderboard = leaderboardData.length > 0 ? leaderboardData.length : (stats.totalUsers || '-'); // Fallback
-	        ui.rankValue.textContent = currentUserRank;
-	        if (ui.totalUsers) ui.totalUsers.textContent = totalUsersInLeaderboard; // Použijeme počet uživatelů z žebříčku, pokud je dostupný
-	        if (ui.rankChange) ui.rankChange.innerHTML = `<i class="fas fa-users"></i> z <span id="total-users">${totalUsersInLeaderboard}</span> pilotů`;
+            // Použijeme přímo rank a totalUsers z předaného 'stats' objektu
+            const displayRank = stats.rank ?? '-';
+            const displayTotalUsers = stats.totalUsers ?? '-';
+	        ui.rankValue.textContent = displayRank;
+	        if (ui.totalUsers) ui.totalUsers.textContent = displayTotalUsers;
+	        if (ui.rankChange) ui.rankChange.innerHTML = `<i class="fas fa-users"></i> z <span id="total-users">${displayTotalUsers}</span> pilotů`;
 
-	    } else { // Fallback, pokud stats nejsou k dispozici
+	    } else {
 	        ui.badgesCount.textContent = '-';
 	        if (ui.badgesChange) ui.badgesChange.innerHTML = `<i class="fas fa-exclamation-circle"></i> Data nedostupná`;
 	        ui.pointsCount.textContent = '-';
@@ -1037,7 +1029,7 @@
 			ui.emptyBadges.style.display = 'none';
 			const fragment = document.createDocumentFragment();
 			earnedBadges.forEach((earnedBadge, index) => {
-				const badge = earnedBadge.badge; // Nyní badge obsahuje všechny detaily z tabulky `badges`
+				const badge = earnedBadge.badge;
 				if (!badge) {
 					console.warn(`[UserBadges Render] Missing badge details for earned badge_id: ${earnedBadge.badge_id}`);
 					return;
@@ -1049,7 +1041,7 @@
 				card.style.setProperty('--animation-order', index);
 
 				const visual = badgeVisuals[badge.type?.toLowerCase()] || badgeVisuals.default;
-                const iconClass = badge.icon || visual.icon || 'fa-medal'; // Použijeme badge.icon, pokud existuje
+                const iconClass = badge.icon || visual.icon || 'fa-medal';
 
 				card.innerHTML = `
 					<div class="badge-icon ${badge.type?.toLowerCase() || 'default'}" style="background: ${visual.gradient};">
@@ -1100,7 +1092,7 @@
 
 				card.innerHTML = `
 					<div class="achievement-icon ${badge.type?.toLowerCase() || 'default'}" style="background: ${visual.gradient}; opacity: ${progress.met ? 1 : 0.6};">
-						<i class="fas ${iconClass}"></i>
+						<i class="fas ${iconClass}"></i> {/* Použijeme iconClass */}
 					</div>
 					<div class="achievement-content">
 						<h3 class="achievement-title">${sanitizeHTML(badge.title)}</h3>
@@ -1137,24 +1129,13 @@
 	        ui.leaderboardTableContainer.style.display = 'none';
 	        ui.leaderboardEmpty.style.display = 'flex';
 	    } else {
-	        // Client-side sort by level (desc), then by points (desc) for tie-breaking
-	        const sortedDataByLevel = [...data].sort((a, b) => {
-	            const levelA = a.profile?.level || 0;
-	            const levelB = b.profile?.level || 0;
-	            if (levelB !== levelA) {
-	                return levelB - levelA;
-	            }
-	            const pointsA = a.points || 0;
-	            const pointsB = b.points || 0;
-	            return pointsB - pointsA;
-	        });
-
+	        const sortedDataByRank = [...data].sort((a, b) => (a.calculated_rank || Infinity) - (b.calculated_rank || Infinity));
 
 	        ui.leaderboardTableContainer.style.display = 'block';
 	        ui.leaderboardEmpty.style.display = 'none';
 	        ui.leaderboardBody.innerHTML = '';
 	        const fragment = document.createDocumentFragment();
-	        sortedDataByLevel.forEach((entry, index) => {
+	        sortedDataByRank.forEach((entry, index) => { // Index zde již není potřeba pro rank, bereme z entry.calculated_rank
 	            const tr = document.createElement('tr');
 	            const profileInfo = entry.profile || {};
 	            const isCurrentUser = entry.user_id === currentUser?.id;
@@ -1173,7 +1154,7 @@
 	                : getInitials(profileInfo);
 
 	            tr.innerHTML = `
-	                <td class="rank-cell">${entry.calculated_rank}</td>
+	                <td class="rank-cell">${entry.calculated_rank}</td> {/* Použijeme calculated_rank */}
 	                <td class="user-cell">
 	                    <div class="user-avatar-sm">${avatarHTML}</div>
 	                    <div class="user-info-sm">
@@ -1190,8 +1171,9 @@
 	        ui.leaderboardBody.appendChild(fragment);
 	    }
 	    setLoadingState('leaderboard', false);
-	    console.log("[Leaderboard Render] Leaderboard rendering complete (sorted by level).");
+	    console.log("[Leaderboard Render] Leaderboard rendering complete.");
 	}
+
 
 	function selectDailyUserSpecificTitles(allPurchasable, purchasedKeys = [], userId) {
 		if (!Array.isArray(allPurchasable) || allPurchasable.length === 0) return [];
@@ -1382,7 +1364,7 @@
 
 	function renderNotifications(count, notifications) {
 		console.log("[Notifications Render] Rendering notifications. Count:", count);
-		if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllRead) { // Změna ui.markAllReadBtn na ui.markAllRead
+		if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllRead) {
 			console.warn("[Notifications Render] Notification UI elements missing.");
 			setLoadingState('notifications', false);
 			return;
@@ -1417,13 +1399,14 @@
 			ui.noNotificationsMsg.style.display = 'block';
 			ui.notificationsList.style.display = 'none';
 		}
-		ui.markAllRead.disabled = count === 0; // Změna ui.markAllReadBtn na ui.markAllRead
+		ui.markAllRead.disabled = count === 0;
 		setLoadingState('notifications', false);
 		console.log("[Notifications Render] Notifications rendering complete.");
 	}
 	// --- END: Data Rendering Functions ---
 
-	// --- START: Shop Interaction Logic ---
+	// --- START: Shop Interaction Logic (already provided and seems fine) ---
+	// ... (handleShopInteraction, handleBuyItem, handleEquipItem remain the same) ...
 	async function handleShopInteraction(event) {
 		const button = event.target.closest('.buy-title-btn, .equip-title-btn, .buy-decoration-btn, .equip-decoration-btn');
 		if (!button || button.disabled) return;
@@ -1497,7 +1480,7 @@
 			} else if (itemType === 'avatar_decoration') {
 				renderAvatarDecorationsShop(allDecorations, currentProfile);
 			}
-			await checkAndAwardAchievements(currentUser.id); // Znovu zkontrolujeme achievementy (např. za nákup)
+			await checkAndAwardAchievements(currentUser.id);
 
 		} catch (error) {
 			console.error(`Chyba při nákupu ${itemType} "${itemKey}":`, error);
@@ -1506,17 +1489,16 @@
 			setLoadingState('buyEquip', false);
 			if (buttonElement) {
 				buttonElement.innerHTML = originalButtonHTML;
-				// Aktualizace stavu tlačítka po nákupu (např. pokud uživatel nemá dostatek kreditů pro další nákup stejné položky)
 				const stillAffordable = (currentProfile?.points ?? 0) >= cost;
 				const isPurchased = itemType === 'title' ? (currentProfile?.purchased_titles || []).includes(itemKey) : (currentProfile?.purchased_decorations || []).includes(itemKey);
-				buttonElement.disabled = isLoading.buyEquip || !stillAffordable || isPurchased; // Tlačítko bude deaktivované, pokud je položka zakoupena nebo není dostatek kreditů
+				buttonElement.disabled = isLoading.buyEquip || !stillAffordable || isPurchased;
 			}
 		}
 	}
 
 	async function handleEquipItem(itemType, itemKey, buttonElement) {
 		if (!currentUser || !currentProfile || !supabase) return;
-		if (isLoading.buyEquip) return; // Použijeme stejný isLoading flag
+		if (isLoading.buyEquip) return;
 		setLoadingState('buyEquip', true);
 		buttonElement.disabled = true;
 		const originalButtonHTML = buttonElement.innerHTML;
@@ -1530,7 +1512,7 @@
 			if (itemType === 'title') {
 				previousItemKey = currentProfile.selected_title;
 				itemName = allTitlesFromDB.find(t => t.title_key === itemKey)?.name || itemKey;
-				if (previousItemKey === itemKey) { // Pokud je titul již vybaven, odzbrojíme ho
+				if (previousItemKey === itemKey) {
 					updates.selected_title = null;
 					successMessage = `Titul "${itemName}" byl odstraněn.`;
 				} else {
@@ -1540,7 +1522,7 @@
 			} else if (itemType === 'avatar_decoration') {
 				previousItemKey = currentProfile.selected_decoration;
 				itemName = allDecorations.find(d => d.decoration_key === itemKey)?.name || itemKey;
-				if (previousItemKey === itemKey) { // Pokud je dekorace již vybavena, odzbrojíme ji
+				if (previousItemKey === itemKey) {
 					updates.selected_decoration = null;
 					successMessage = `Dekorace "${itemName}" byla odstraněna.`;
 				} else {
@@ -1556,7 +1538,7 @@
 				.from('profiles')
 				.update(updates)
 				.eq('id', currentUser.id)
-				.select(PROFILE_COLUMNS_TO_SELECT_FOR_ACHIEVEMENTS) // Načteme relevantní sloupce
+				.select(PROFILE_COLUMNS_TO_SELECT_FOR_ACHIEVEMENTS)
 				.single();
 
 			if (error) throw error;
@@ -1565,20 +1547,19 @@
             await logActivity(currentUser.id, `equip_${itemType}`, `Vyzbrojena položka: ${itemName}`, `Klíč: ${updates.selected_title || updates.selected_decoration || 'Odebráno'}`, { item_key: itemKey, equipped: !!(updates.selected_title || updates.selected_decoration), type: itemType });
 
 
-			updateSidebarProfile(currentProfile, allTitlesFromDB); // Znovu vykreslíme sidebar
+			updateSidebarProfile(currentProfile, allTitlesFromDB);
 			if (itemType === 'title') {
 				renderUserTitlesInventory(currentProfile, allTitlesFromDB);
 			} else if (itemType === 'avatar_decoration') {
 				renderAvatarDecorationsShop(allDecorations, currentProfile);
 			}
-            await checkAndAwardAchievements(currentUser.id); // Zkontrolujeme, zda použití titulu/dekorace neodemyká achievement
+            await checkAndAwardAchievements(currentUser.id);
 
 		} catch (error) {
 			console.error(`Chyba při vyzbrojování ${itemType} "${itemKey}":`, error);
 			showToast("Chyba akce", `Při pokusu o akci nastala chyba: ${error.message}`, "error");
 		} finally {
 			setLoadingState('buyEquip', false);
-			// Znovu vykreslíme relevantní sekce, aby se aktualizovala tlačítka
 			if (itemType === 'title') {
 				renderUserTitlesInventory(currentProfile, allTitlesFromDB);
 			} else if (itemType === 'avatar_decoration') {
@@ -1611,7 +1592,7 @@
 
 				ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : '');
 				ui.notificationCount.classList.toggle('visible', newCount > 0);
-				ui.markAllRead.disabled = newCount === 0; // Změna ui.markAllReadBtn na ui.markAllRead
+				if (ui.markAllRead) ui.markAllRead.disabled = newCount === 0; // Změna z ui.markAllReadBtn
 			}
 			setLoadingState('notifications', false);
 		}
@@ -1621,9 +1602,9 @@
 	}
 
 	async function handleMarkAllReadClick() {
-		if (!currentUser || !ui.markAllRead || ui.markAllRead.disabled) return; // Změna ui.markAllReadBtn na ui.markAllRead
+		if (!currentUser || !ui.markAllRead || ui.markAllRead.disabled) return; // Změna z ui.markAllReadBtn
 		setLoadingState('notifications', true);
-		ui.markAllRead.disabled = true; // Změna ui.markAllReadBtn na ui.markAllRead
+		if (ui.markAllRead) ui.markAllRead.disabled = true; // Změna z ui.markAllReadBtn
 
 		try {
 			const { error } = await supabase
@@ -1641,7 +1622,7 @@
 			console.error("Chyba při označování všech oznámení jako přečtených:", error);
 			showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení jako přečtená.', 'error');
 			const currentCount = parseInt(ui.notificationCount.textContent.replace('+', '') || '0');
-			ui.markAllRead.disabled = currentCount === 0; // Změna ui.markAllReadBtn na ui.markAllRead
+			if (ui.markAllRead) ui.markAllRead.disabled = currentCount === 0; // Změna z ui.markAllReadBtn
 		} finally {
 			setLoadingState('notifications', false);
 		}
@@ -1703,12 +1684,12 @@
 		setLoadingState('all', true);
 		try {
 			const results = await Promise.allSettled([
-				fetchUserFullProfile(currentUser.id), // Načte plný profil
+				fetchUserFullProfile(currentUser.id),
 				fetchAllBadgesDefinition(),
 				fetchUserEarnedBadges(currentUser.id),
 				fetchAllPurchasableTitles(),
 				fetchAvatarDecorationsData(),
-				fetchLeaderboardData('points', LEADERBOARD_LIMIT + 10), // Načteme více pro případ, že uživatel není v top 10
+				fetchLeaderboardData('points', LEADERBOARD_LIMIT + 10), // Load more for rank
 				fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT),
 				fetchUserDiagnosticTestCount(currentUser.id),
 				fetchUserLearningLogsCount(currentUser.id),
@@ -1738,7 +1719,7 @@
 			}
 
 			allBadges = (allBadgesResult.status === 'fulfilled') ? allBadgesResult.value : [];
-			userBadges = (userBadgesResult.status === 'fulfilled') ? userBadgesResult.value : []; // Nyní obsahuje i detaily odznaku
+			userBadges = (userBadgesResult.status === 'fulfilled') ? userBadgesResult.value : [];
 			allTitlesFromDB = (allTitlesResult.status === 'fulfilled') ? allTitlesResult.value : [];
 			allDecorations = (avatarShopResult.status === 'fulfilled') ? avatarShopResult.value : [];
 			leaderboardData = (leaderboardResult.status === 'fulfilled') ? leaderboardResult.value : [];
@@ -1752,19 +1733,19 @@
 			userAiLessonsCompletedCount = (aiLessonsCountResult.status === 'fulfilled') ? aiLessonsCountResult.value : 0;
             lastCreditTransaction = (lastCreditTransactionResult.status === 'fulfilled') ? lastCreditTransactionResult.value : null;
 
-			updateSidebarProfile(currentProfile, allTitlesFromDB); // Aktualizujeme sidebar
+			updateSidebarProfile(currentProfile, allTitlesFromDB);
             const { count: totalProfilesCount } = await supabase.from('profiles').select('id', { count: 'exact', head: true });
 			const statsForCards = {
-				badges: currentProfile.badges_count || userBadges?.length || 0, // Použijeme aktuální počet odznaků z profilu
+				badges: currentProfile.badges_count || 0, // Directly from profile after potential updates
 				points: currentProfile.points,
 				streak_current: currentProfile.streak_days,
 				streak_longest: currentProfile.longest_streak_days,
-				rank: leaderboardData.find(u => u.user_id === currentUser.id)?.rank,
+				rank: leaderboardData.find(u => u.user_id === currentUser.id)?.calculated_rank, // Use calculated_rank
 				totalUsers: totalProfilesCount || leaderboardData.length || 0
 			};
 			updateStatsCards(statsForCards);
 
-			renderUserBadges(userBadges); // userBadges již obsahuje detaily
+			renderUserBadges(userBadges);
 			const otherDataForAchievements = {
 				userDiagnosticTestsCount,
 				userLearningLogsCount,
@@ -1808,13 +1789,11 @@
 				if (!el._eventHandlers[key]) el._eventHandlers[key] = {};
 				el._eventHandlers[key][ev] = fn;
 			} else {
-				if (key.startsWith('toggle') &&
-                    (key === 'toggleUserBadgesSection' ||
-                     key === 'toggleUserTitlesSection' // Only these are actively collapsible
-                    )) {
-					console.warn(`[SETUP] Collapsible section toggle button not found: ${key}`);
-				} else if (!key.startsWith('toggle')) {
-                    console.warn(`[SETUP] Element not found for listener: ${key}`);
+                // Log only if it's not one of the intentionally non-collapsible sections' toggle buttons
+                if (!key.startsWith('toggle') ||
+                    (key === 'toggleUserBadgesSection' || key === 'toggleUserTitlesSection' || key === 'toggleAvatarDecorationsSection')
+                   ) {
+					console.warn(`[SETUP] Element not found for listener: ${key}`);
                 }
 			}
 		};
@@ -1825,7 +1804,7 @@
 		safeAddListener(ui.refreshDataBtn, 'click', loadAllAwardData, 'refreshDataBtn');
 
 		safeAddListener(ui.notificationBell, 'click', (e) => { e.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell');
-		safeAddListener(ui.markAllRead, 'click', handleMarkAllReadClick, 'markAllRead'); // Změna ui.markAllReadBtn na ui.markAllRead
+		safeAddListener(ui.markAllRead, 'click', handleMarkAllReadClick, 'markAllRead');
 		safeAddListener(ui.notificationsList, 'click', handleNotificationClick, 'notificationsList');
 
 		safeAddListener(ui.titleShopGrid, 'click', handleShopInteraction, 'titleShopGrid');
@@ -1845,105 +1824,89 @@
 
         const sectionToggleMap = {
             toggleUserBadgesSection: { content: ui.userBadgesContent, active: true },
-            toggleAvailableBadgesSection: { content: ui.availableBadgesContent, active: true }, // Aktivní pro sklápění
+            toggleAvailableBadgesSection: { content: ui.availableBadgesContent, active: false }, // User wants this non-collapsible
             toggleUserTitlesSection: { content: ui.userTitlesInventoryContent, active: true },
-            toggleTitleShopSection: { content: ui.titleShopContent, active: true }, // Aktivní pro sklápění
-            toggleAvatarDecorationsSection: { content: ui.avatarDecorationsContent, active: true }, // Aktivní pro sklápění
-            toggleLeaderboardSection: { content: ui.leaderboardContent, active: true } // Aktivní pro sklápění
+            toggleTitleShopSection: { content: ui.titleShopContent, active: false },      // User wants this non-collapsible
+            toggleAvatarDecorationsSection: { content: ui.avatarDecorationsContent, active: true }, // Keep as collapsible
+            toggleLeaderboardSection: { content: ui.leaderboardContent, active: false }    // User wants this non-collapsible
         };
 
 		Object.keys(sectionToggleMap).forEach(buttonKey => {
 			const button = ui[buttonKey];
 			const config = sectionToggleMap[buttonKey];
             const contentElement = config.content;
+            const sectionCard = button?.closest('.card-section'); // Button might be null for non-active
 
-			if (button && contentElement) {
-                if (!config.active) { // Pokud není aktivní, skryjeme tlačítko a zajistíme, že obsah je viditelný
-                    button.style.display = 'none';
-                    contentElement.style.maxHeight = '';
+			if (contentElement) { // Ensure content element exists
+                if (!config.active) {
+                    if (button) button.style.display = 'none'; // Hide button if section is not active for collapsing
+                    contentElement.style.maxHeight = ''; // Ensure it's expanded
                     contentElement.style.opacity = '1';
                     contentElement.style.visibility = 'visible';
-                    contentElement.style.paddingTop = '';
+                    contentElement.style.paddingTop = ''; // Reset to CSS default
                     contentElement.style.paddingBottom = '';
                     contentElement.style.marginTop = '';
                     contentElement.style.marginBottom = '';
-                    const sectionCard = button.closest('.card-section');
+                    contentElement.removeAttribute('aria-hidden');
                     if (sectionCard) sectionCard.classList.remove('collapsed-section');
-                    console.log(`[SETUP] Section ${buttonKey} is NOT collapsible. Button hidden, content forced visible.`);
-                    return;
+                    console.log(`[SETUP] Section ${buttonKey || contentElement.id} is NOT collapsible. Button hidden, content forced visible.`);
+                } else if (button) { // Only proceed if button exists and section is active for collapsing
+				    const localStorageKey = `section-${buttonKey}-collapsed`;
+				    let isInitiallyCollapsed = localStorage.getItem(localStorageKey) === 'true';
+
+				    if (localStorage.getItem(localStorageKey) === null && sectionCard) {
+					    isInitiallyCollapsed = sectionCard.classList.contains('collapsed-section');
+				    }
+
+				    const icon = button.querySelector('i');
+
+				    const applyCollapsedState = (collapsing) => {
+					    if (icon) {
+						    icon.classList.toggle('fa-chevron-down', collapsing);
+						    icon.classList.toggle('fa-chevron-up', !collapsing);
+						    button.title = collapsing ? "Rozbalit sekci" : "Sbalit sekci";
+					    }
+					    if (sectionCard) {
+						    sectionCard.classList.toggle('collapsed-section', collapsing);
+					    }
+					    if (collapsing) {
+						    contentElement.style.maxHeight = '0px';
+						    contentElement.style.paddingTop = '0px';
+						    contentElement.style.paddingBottom = '0px';
+						    contentElement.style.marginTop = '0px';
+						    contentElement.style.marginBottom = '0px';
+						    contentElement.style.opacity = '0';
+						    contentElement.setAttribute('aria-hidden', 'true');
+						    setTimeout(() => { if(contentElement.style.maxHeight === '0px') contentElement.style.visibility = 'hidden'; }, 450);
+					    } else {
+						    contentElement.style.visibility = 'visible';
+						    contentElement.style.opacity = '1';
+                            contentElement.style.paddingTop = '';
+                            contentElement.style.paddingBottom = '';
+                            contentElement.style.marginTop = '';
+                            contentElement.style.marginBottom = '';
+						    contentElement.style.maxHeight = contentElement.scrollHeight + "px";
+						    contentElement.removeAttribute('aria-hidden');
+						    setTimeout(() => {
+							    if (contentElement.style.maxHeight !== '0px') {
+								    contentElement.style.maxHeight = '';
+							    }
+						    }, 460);
+					    }
+				    };
+				    applyCollapsedState(isInitiallyCollapsed);
+				    safeAddListener(button, 'click', () => {
+					    const isCurrentlyCollapsed = sectionCard ? sectionCard.classList.contains('collapsed-section') : (contentElement.style.maxHeight === '0px');
+					    const isCollapsing = !isCurrentlyCollapsed;
+					    applyCollapsedState(isCollapsing);
+					    localStorage.setItem(localStorageKey, isCollapsing ? 'true' : 'false');
+					    console.log(`Toggled section for button ${buttonKey}. Collapsed: ${isCollapsing}`);
+				    }, buttonKey);
+                } else if (!button && config.active) {
+                     console.warn(`[SETUP] Toggle button with key '${buttonKey}' not found in ui cache but section is marked active.`);
                 }
-
-				const sectionCard = button.closest('.card-section');
-				const localStorageKey = `section-${buttonKey}-collapsed`;
-				let isInitiallyCollapsed = localStorage.getItem(localStorageKey) === 'true';
-
-				// Pokud není stav v localStorage, použijeme výchozí stav z HTML (pokud je sekce již sbalená)
-				if (localStorage.getItem(localStorageKey) === null && sectionCard) {
-					isInitiallyCollapsed = sectionCard.classList.contains('collapsed-section');
-				}
-
-				const icon = button.querySelector('i');
-
-				const applyCollapsedState = (collapsing) => {
-					if (icon) {
-						icon.classList.toggle('fa-chevron-down', collapsing); // Šipka dolů pro sbaleno
-						icon.classList.toggle('fa-chevron-up', !collapsing); // Šipka nahoru pro rozbaleno
-						button.title = collapsing ? "Rozbalit sekci" : "Sbalit sekci";
-					}
-					if (sectionCard) {
-						sectionCard.classList.toggle('collapsed-section', collapsing);
-					}
-
-					// Přímá manipulace se styly pro animaci
-					if (collapsing) {
-						contentElement.style.maxHeight = '0px';
-						contentElement.style.paddingTop = '0px';
-						contentElement.style.paddingBottom = '0px';
-						contentElement.style.marginTop = '0px';
-						contentElement.style.marginBottom = '0px';
-						contentElement.style.opacity = '0';
-						contentElement.setAttribute('aria-hidden', 'true');
-						// Nastavíme visibility po dokončení přechodu
-						setTimeout(() => {
-							// Zkontrolujeme, zda se stav mezitím nezměnil
-							if(contentElement.style.maxHeight === '0px') contentElement.style.visibility = 'hidden';
-						}, 450); // Doba přechodu + malá rezerva
-					} else {
-						contentElement.style.visibility = 'visible';
-						contentElement.style.opacity = '1';
-						// Nejprve nastavíme paddingTop/Bottom/Margin na požadované hodnoty
-                        contentElement.style.paddingTop = ''; // Vrátí na hodnotu z CSS
-                        contentElement.style.paddingBottom = '';
-                        contentElement.style.marginTop = '';
-                        contentElement.style.marginBottom = '';
-						// Pak nastavíme maxHeight na scrollHeight pro animaci otevření
-						contentElement.style.maxHeight = contentElement.scrollHeight + "px";
-						contentElement.removeAttribute('aria-hidden');
-
-						// Po dokončení animace můžeme odstranit maxHeight, aby se obsah mohl dynamicky měnit
-						setTimeout(() => {
-							// Zkontrolujeme, zda se stav mezitím nezměnil
-							if (contentElement.style.maxHeight !== '0px') {
-								contentElement.style.maxHeight = ''; // Umožní přirozenou výšku
-							}
-						}, 460); // Doba přechodu + malá rezerva
-					}
-				};
-
-				// Aplikujeme počáteční stav
-				applyCollapsedState(isInitiallyCollapsed);
-
-				safeAddListener(button, 'click', () => {
-					const isCurrentlyCollapsed = sectionCard ? sectionCard.classList.contains('collapsed-section') : (contentElement.style.maxHeight === '0px');
-					const isCollapsing = !isCurrentlyCollapsed; // Pokud je sbalená, budeme rozbalovat (isCollapsing = false)
-					applyCollapsedState(isCollapsing);
-					localStorage.setItem(localStorageKey, isCollapsing ? 'true' : 'false');
-					console.log(`Toggled section for button ${buttonKey}. Collapsed: ${isCollapsing}`);
-				}, buttonKey);
-
 			} else {
-				if (!button && config.active) console.warn(`[SETUP] Toggle button with key '${buttonKey}' not found in ui cache.`);
-				if (!contentElement && button && config.active) console.warn(`[SETUP] Content element for toggle button '${buttonKey}' not found.`);
+				console.warn(`[SETUP] Content element for toggle button '${buttonKey}' or button itself not found.`);
 			}
 		});
 		console.log("[Oceneni SETUP] Event listeners setup complete.");
@@ -1960,7 +1923,7 @@
 
 	// --- START: Initialization ---
 	async function initializeApp() {
-		console.log(`🚀 [Init Oceneni v23.23.11] Starting...`);
+		console.log(`🚀 [Init Oceneni v23.23.12] Starting...`);
 		cacheDOMElements();
 		if (!initializeSupabase()) return;
 
@@ -1985,8 +1948,8 @@
 			console.log(`[Init Oceneni] User authenticated (ID: ${currentUser.id}).`);
 
 			const [profileResult, titlesResultInitial] = await Promise.allSettled([
-				fetchUserFullProfile(currentUser.id), // Načteme plný profil
-				fetchAllPurchasableTitles() // Načteme všechny tituly z DB pro sidebar a obchod
+				fetchUserFullProfile(currentUser.id),
+				fetchAllPurchasableTitles()
 			]);
 
 			if (profileResult.status === 'fulfilled' && profileResult.value) {
@@ -2001,8 +1964,8 @@
 			allTitlesFromDB = (titlesResultInitial.status === 'fulfilled' && titlesResultInitial.value) ? titlesResultInitial.value : [];
 			console.log(`[Init Oceneni] All DB titles loaded: ${allTitlesFromDB.length}`);
 
-			updateSidebarProfile(currentProfile, allTitlesFromDB); // Předáme načtené tituly
-			setupEventListeners();
+			updateSidebarProfile(currentProfile, allTitlesFromDB);
+			setupEventListeners(); // This will now correctly set up non-collapsible sections
 			initMouseFollower();
 			initHeaderScrollDetection();
 			updateCopyrightYear();
@@ -2040,7 +2003,7 @@
 			} else {
 				showError(`Chyba inicializace: ${error.message}`, true);
 			}
-			if (ui.mainContent) ui.mainContent.style.display = 'block'; // Zobrazíme obsah i při chybě, aby bylo vidět chybové hlášení
+			if (ui.mainContent) ui.mainContent.style.display = 'block';
 			setLoadingState('all', false);
 		}
 	}
