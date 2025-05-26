@@ -2,15 +2,15 @@
  * JUSTAX Landing Page Script
  * Handles UI interactions, animations, infinite testimonial slider,
  * Hero text mask reveal, interactive gradient, enhanced visual effects,
- * and Cookie Consent Banner.
- * Version: v2.33 (Cookie Consent Implementation)
- * Author: Gemini Modification
- * Date: 2025-05-26
+ * and Advanced Cookie Consent Banner with gtag.js integration.
+ * Version: v2.34 (Advanced Cookie Consent & Gtag Integration)
+ * Author: Gemini Modification (enhanced from v2.33)
+ * Date: 2025-05-26 // Assuming current date for update
  *
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Ready. Initializing JUSTAX Interface v2.33 (Cookie Consent)...");
+    console.log("DOM Ready. Initializing JUSTAX Interface v2.34 (Advanced Cookie Consent)...");
 
     // --- Global Variables & DOM References ---
     const body = document.body;
@@ -37,18 +37,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const heroHeading = document.getElementById('hero-heading');
     let rafIdGradient = null;
 
-    // Cookie Consent Elements
-    const cookieConsentBanner = document.getElementById('cookie-consent-banner');
-    const cookieConsentAcceptBtn = document.getElementById('cookie-consent-accept');
-    const cookieSettingsLinkFooter = document.getElementById('cookie-settings-link'); // From index.html footer script
-
+    // --- Configuration Object ---
     const config = {
         mouseFollower: { enabled: true, followSpeed: 0.12, clickScale: 0.7, hoverScale: 1.5, textHoverScale: 1.3 },
         animations: { scrollThreshold: 0.05, staggerDelay: 100, letterMaskRevealDelay: 50, heroElementEntryDelay: 150 },
         aiDemo: { enabled: true, typingSpeed: 35, stepBaseDelay: 180, stepRandomDelay: 400 },
         testimonials: { placeholderAvatarBaseUrl: 'https://placehold.co/100x100/', visibleCardsDesktop: 3, bufferCards: 2, slideDuration: 550 },
-        cookies: { consentCookieName: 'justax_cookie_consent', consentCookieExpirationDays: 365 }
+        cookies: {
+            consentProcessedCookieName: 'justax_consent_processed_v2', // Cookie to indicate user has made a choice
+            consentPreferencesKey: 'justax_consent_preferences_v2',    // localStorage key for detailed consent object
+            consentCookieExpirationDays: 365,
+            defaultConsentState: { // Default state for each category if not explicitly set by user
+                'analytics_storage': 'denied',
+                'functionality_storage': 'denied',
+                'personalization_storage': 'denied',
+                'ad_storage': 'denied',
+                'ad_user_data': 'denied',
+                'ad_personalization': 'denied',
+                // 'security_storage' is handled by gtag default in HTML and is always 'granted'
+            }
+        }
     };
+
+    // --- Cookie Consent Elements ---
+    const cookieConsentBanner = document.getElementById('cookie-consent-banner');
+    const cookieConsentAcceptAllBtn = document.getElementById('cookie-consent-accept-all'); // Updated ID
+    const cookieConsentRejectAllBtn = document.getElementById('cookie-consent-reject-all'); // New ID
+    const cookieConsentCustomizeBtn = document.getElementById('cookie-consent-customize');   // New ID
+
+    const cookieSettingsModal = document.getElementById('cookie-settings-modal');
+    const cookieModalCloseBtn = document.getElementById('cookie-modal-close');
+    const cookieSettingsSaveBtn = document.getElementById('cookie-settings-save');
+    const cookieSettingsAcceptAllModalBtn = document.getElementById('cookie-settings-accept-all-modal');
+    const cookieSettingsTriggerFooter = document.getElementById('cookie-settings-trigger'); // Updated ID from 'cookie-settings-link'
+
+    // All consent toggle inputs within the modal
+    const cookieSettingToggles = cookieSettingsModal ? Array.from(cookieSettingsModal.querySelectorAll('.cookie-switch input[type="checkbox"][data-consent-type]')) : [];
+
 
     let localTestimonials = [];
     let testimonialDataCache = [];
@@ -68,7 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
             body.classList.add('page-loaded');
         }, 100);
     });
-
 
     localTestimonials = [
         // Truncated for brevity, assume full list is present as before
@@ -131,7 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "Hedvika D.", role: "Studentka", rating: 5, text: "Platforma mi pomohla zorganizovat si učení a dodržovat studijní plán." },
         { name: "Radim J.", role: "Student", rating: 4.5, text: "AI je skvělá v identifikaci mých slabých míst a doporučení cvičení." },
         { name: "Alice K.", role: "Studentka", rating: 5, text: "Stoprocentně doporučuji všem, kdo bojují s matematikou!" },
-        // Parents (Role always 'Rodič')
         { name: "Jana K.", role: "Rodič", rating: 5, text: "Syn se výrazně zlepšil v matematice. Platforma ho baví a motivuje." },
         { name: "Petr S.", role: "Rodič", rating: 4.5, text: "Oceňuji přehled o pokroku dcery. Vidím, na čem pracuje a jak jí to jde." },
         { name: "Lenka P.", role: "Rodič", rating: 5, text: "Investice, která se vyplatila. Dcera zvládla přijímačky bez stresu a doučování." },
@@ -172,8 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn("Local testimonials array is empty after initialization attempt.");
     }
 
-
-    // --- Utility Functions & Core Logic ---
+    // --- Utility Functions & Core Logic (Existing functions like debounce, getRandomColorPair, etc. remain unchanged) ---
     const debounce = (func, wait) => {
         let timeout;
         return function executedFunction(...args) {
@@ -252,23 +274,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const direction = parseInt(sliderTrack.dataset.slideDirection || "0"); if (direction === 0) { throw new Error("No slide direction."); }
             let cardToMoveElement, newCardData;
             if (direction > 0) { // Sliding left (next)
-                cardToMoveElement = cardsInTrack.shift(); // Take from beginning
+                cardToMoveElement = cardsInTrack.shift(); 
                 sliderTrack.removeChild(cardToMoveElement);
                 newCardData = getRandomLocalTestimonial();
                 updateCardContent(cardToMoveElement, newCardData);
-                sliderTrack.appendChild(cardToMoveElement); // Add to end
+                sliderTrack.appendChild(cardToMoveElement); 
                 cardsInTrack.push(cardToMoveElement);
-
                 testimonialDataCache.shift();
                 testimonialDataCache.push(newCardData);
             } else { // Sliding right (prev)
-                cardToMoveElement = cardsInTrack.pop(); // Take from end
+                cardToMoveElement = cardsInTrack.pop(); 
                 sliderTrack.removeChild(cardToMoveElement);
                 newCardData = getRandomLocalTestimonial();
                 updateCardContent(cardToMoveElement, newCardData);
-                sliderTrack.insertBefore(cardToMoveElement, sliderTrack.firstChild); // Add to beginning
+                sliderTrack.insertBefore(cardToMoveElement, sliderTrack.firstChild); 
                 cardsInTrack.unshift(cardToMoveElement);
-
                 testimonialDataCache.pop();
                 testimonialDataCache.unshift(newCardData);
             }
@@ -292,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const initializeInfiniteSlider = async () => {
-        console.log("Starting infinite slider initialization v2.33...");
+        console.log("Starting infinite slider initialization v2.34...");
         if (!sliderTrack || !prevBtn || !nextBtn) { console.error("Slider init fail: core elements missing."); return; }
         isSliding = true; sliderInitialLoadComplete = false; prevBtn.disabled = true; nextBtn.disabled = true;
         sliderTrack.innerHTML = ''; testimonialDataCache = []; cardsInTrack = []; cardWidthAndMargin = 0; stableVisibleStartIndex = config.testimonials.bufferCards;
@@ -375,9 +395,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (yearSpan) yearSpan.textContent = new Date().getFullYear().toString();
 
-    // --- AI Demo Simulation ---
+    // --- AI Demo Simulation (Existing code remains unchanged) ---
     const aiDemoSteps = [
-        { type: 'status', text: 'AI jádro v2.33 aktivní. Připraven na analýzu...', progress: 5 },
+        { type: 'status', text: 'AI jádro v2.34 aktivní. Připraven na analýzu...', progress: 5 },
         { type: 'status', text: 'Probíhá skenování interakcí uživatele ID: 734B...', delay: 700 },
         { type: 'input', text: 'ANALYZE_USER_PERFORMANCE --id=734B --subject=algebra --level=intermediate' },
         { type: 'process', text: 'Zpracování dotazu na výkon...', duration: 900, progress: 20 },
@@ -463,8 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
         aiStatusIndicator.textContent = config.aiDemo.enabled ? 'NEVIDITELNÉ' : 'OFFLINE';
     }
 
-
-    // --- Scroll Animations ---
+    // --- Scroll Animations (Existing code remains unchanged) ---
     const animatedElements = document.querySelectorAll('[data-animate], [data-animate-letters]');
     const observerOptions = { root: null, rootMargin: '0px 0px -50px 0px', threshold: config.animations.scrollThreshold };
 
@@ -493,7 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         currentWordWrapper.appendChild(highlightContainerInWord);
                         if (element === heroHeading) {
                             heroHighlightSpan = highlightContainerInWord;
-                            console.log("Global heroHighlightSpan (for gradient) updated in setupLetterAnimation.");
+                            // console.log("Global heroHighlightSpan (for gradient) updated in setupLetterAnimation."); // Less verbose
                         }
                     }
                     highlightContainerInWord.appendChild(span);
@@ -552,17 +571,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (animatedElements.length > 0) {
         animatedElements.forEach(el => {
             if (el) {
-                 el.style.opacity = '0';
+                 el.style.opacity = '0'; // Ensure initial state for animation
                  animationObserver.observe(el);
             }
         });
-        if (heroHeading) heroHeading.style.opacity = '1';
+        if (heroHeading && heroHeading.dataset.animateLetters !== undefined) {
+            // heroHeading opacity will be handled by its own animation logic after letter setup
+        } else if (heroHeading) {
+             heroHeading.style.opacity = '1'; // Default visible if not letter animated
+        }
         console.log(`Observing ${animatedElements.length} elements for scroll animations.`);
     } else {
         console.warn("No elements found for scroll animation.");
     }
 
-    // --- Interactive Gradient for Hero ---
+    // --- Interactive Gradient for Hero (Existing code remains unchanged) ---
     const handleHeroMouseMove = (event) => {
         if (!heroSection || isTouchDevice) return;
         if (!heroHighlightSpan || !document.contains(heroHighlightSpan)) {
@@ -606,26 +629,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     } else if (isTouchDevice) {
         const setStaticGradientForTouch = () => {
+            // Try to find heroHighlightSpan again in case letter animation was slow
+            if (!heroHighlightSpan || !document.contains(heroHighlightSpan)) {
+                 const currentHeroHighlight = heroHeading ? heroHeading.querySelector('.highlight') : null;
+                 if (currentHeroHighlight) heroHighlightSpan = currentHeroHighlight;
+            }
+
             if (heroHighlightSpan && document.contains(heroHighlightSpan)) {
-                heroHighlightSpan.style.setProperty('--mouse-x', 0.5);
-                heroHighlightSpan.style.setProperty('--mouse-y', 0.3);
+                heroHighlightSpan.style.setProperty('--mouse-x', "0.5");
+                heroHighlightSpan.style.setProperty('--mouse-y', "0.3");
                 console.log("Touch device: Hero gradient set to static.");
-            } else if (heroHeading) {
-                const currentHeroHighlight = heroHeading.querySelector('.highlight');
-                if(currentHeroHighlight){
-                    currentHeroHighlight.style.setProperty('--mouse-x', 0.5);
-                    currentHeroHighlight.style.setProperty('--mouse-y', 0.3);
-                    console.log("Touch device: Hero gradient (fallback) set to static.");
-                } else {
-                     console.warn("Touch device: heroHighlightSpan still not found for static gradient.");
-                }
+            } else {
+                 console.warn("Touch device: heroHighlightSpan still not found for static gradient after delay.");
             }
         };
+        // Delay this slightly to ensure letter animation might have run and populated heroHighlightSpan
         setTimeout(setStaticGradientForTouch, 1500);
     }
 
-
-    // --- Event Listeners ---
+    // --- Event Listeners (Existing listeners remain) ---
     window.addEventListener('scroll', debounce(handleScroll, 30));
     if (prevBtn) prevBtn.addEventListener('click', () => moveSlider(-1)); else console.warn("Prev button not found for slider.");
     if (nextBtn) nextBtn.addEventListener('click', () => moveSlider(1)); else console.warn("Next button not found for slider.");
@@ -638,91 +660,197 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 200));
 
-    // --- Cookie Consent Logic ---
-    const getCookie = (name) => {
+    // --- ADVANCED COOKIE CONSENT LOGIC ---
+
+    const getProcessedCookie = (name) => {
         const value = `; ${document.cookie}`;
         const parts = value.split(`; ${name}=`);
         if (parts.length === 2) return parts.pop().split(';').shift();
         return null;
     };
 
-    const setCookie = (name, value, days) => {
+    const setProcessedCookie = (name, value, days) => {
         let expires = "";
         if (days) {
             const date = new Date();
             date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
             expires = `; expires=${date.toUTCString()}`;
         }
-        document.cookie = `${name}=${value || ""}${expires}; path=/; SameSite=Lax`; // Added SameSite=Lax for security
-        console.log(`Cookie set: ${name}=${value}`);
+        document.cookie = `${name}=${value || ""}${expires}; path=/; SameSite=Lax; Secure`; // Added Secure
+        console.log(`Processed Cookie set: ${name}=${value}`);
     };
 
-    const handleAcceptCookies = () => {
-        setCookie(config.cookies.consentCookieName, 'all_accepted', config.cookies.consentCookieExpirationDays);
-        if (cookieConsentBanner) {
-            cookieConsentBanner.style.display = 'none';
-        }
-        console.log("All cookies accepted by user.");
-        // Here you could trigger functions that depend on cookie consent, e.g., load analytics scripts
-        // For now, gtag.js is loaded directly in HTML head, so this mainly hides the banner and sets the flag.
-    };
-
-    const checkCookieConsent = () => {
-        const consentGiven = getCookie(config.cookies.consentCookieName);
-        if (!consentGiven) {
-            if (cookieConsentBanner) {
-                cookieConsentBanner.style.display = 'block'; // Show banner if no consent cookie
-                console.log("Cookie consent not found, showing banner.");
-            } else {
-                console.warn("Cookie consent banner element not found.");
+    const getConsentPreferences = () => {
+        try {
+            const prefsString = localStorage.getItem(config.cookies.consentPreferencesKey);
+            if (prefsString) {
+                const prefs = JSON.parse(prefsString);
+                // Ensure all defined keys in defaultConsentState are present
+                const completePrefs = { ...config.cookies.defaultConsentState, ...prefs };
+                return completePrefs;
             }
+        } catch (e) {
+            console.error("Error reading consent preferences from localStorage:", e);
+        }
+        return { ...config.cookies.defaultConsentState }; // Return a copy of defaults if nothing found or error
+    };
+
+    const saveConsentPreferences = (preferences) => {
+        try {
+            localStorage.setItem(config.cookies.consentPreferencesKey, JSON.stringify(preferences));
+            console.log("Consent preferences saved to localStorage:", preferences);
+        } catch (e) {
+            console.error("Error saving consent preferences to localStorage:", e);
+        }
+    };
+
+    const updateGtagConsent = (preferences) => {
+        if (typeof gtag === 'function') {
+            const gtagPrefs = { ...preferences }; // Clone to avoid modifying original if needed
+            // security_storage is managed by default Gtag config and not user-changeable here.
+            // It's 'granted' by default in HTML. If you needed to change it, it would be here.
+            // delete gtagPrefs.security_storage; // Example if it was part of prefs but shouldn't be sent to update
+
+            gtag('consent', 'update', gtagPrefs);
+            console.log("gtag consent updated:", gtagPrefs);
         } else {
-            console.log(`Cookie consent already given: ${consentGiven}. Banner remains hidden.`);
-             if (cookieConsentBanner) { // Ensure banner is hidden if consent was previously given
-                cookieConsentBanner.style.display = 'none';
-            }
+            console.warn("gtag function not found. Consent update skipped.");
         }
     };
 
-    if (cookieConsentBanner && cookieConsentAcceptBtn) {
-        cookieConsentAcceptBtn.addEventListener('click', handleAcceptCookies);
-    } else {
-        console.warn("Cookie consent banner or accept button not found. Consent logic might not work.");
-    }
+    const applyConsentDecision = (preferences) => {
+        updateGtagConsent(preferences);
+        saveConsentPreferences(preferences);
+        setProcessedCookie(config.cookies.consentProcessedCookieName, 'true', config.cookies.consentCookieExpirationDays);
+        if (cookieConsentBanner) cookieConsentBanner.style.display = 'none';
+        if (cookieSettingsModal) cookieSettingsModal.classList.remove('visible');
+    };
 
-    // Also re-check the footer link logic from index.html's inline script as it's now part of this main script
-    if (cookieSettingsLinkFooter && cookieConsentBanner) {
-        cookieSettingsLinkFooter.addEventListener('click', function(event) {
-            event.preventDefault();
-            // This could open a settings modal in the future
-            // For now, it can re-show the banner or clear consent to test
-            cookieConsentBanner.style.display = 'block';
-            console.log("Cookie settings link clicked, showing banner.");
-            // To test consent flow again:
-            // setCookie(config.cookies.consentCookieName, '', -1); // Delete the cookie
-            // checkCookieConsent(); // Re-check to show banner
+    const handleAcceptAll = () => {
+        console.log("User clicked Accept All.");
+        const allGrantedPrefs = {};
+        for (const key in config.cookies.defaultConsentState) {
+            allGrantedPrefs[key] = 'granted';
+        }
+        applyConsentDecision(allGrantedPrefs);
+    };
+
+    const handleRejectAll = () => {
+        console.log("User clicked Reject All.");
+        const allDeniedPrefs = {};
+        for (const key in config.cookies.defaultConsentState) {
+            allDeniedPrefs[key] = 'denied';
+        }
+        // 'security_storage' must remain 'granted' as per gtag default in HTML,
+        // and is not part of config.cookies.defaultConsentState for user toggling.
+        // Gtag default already set security_storage: 'granted'.
+        applyConsentDecision(allDeniedPrefs);
+    };
+
+    const showCookieSettingsModal = () => {
+        if (!cookieSettingsModal) {
+            console.error("Cookie settings modal not found.");
+            return;
+        }
+        const currentPrefs = getConsentPreferences();
+        cookieSettingToggles.forEach(toggle => {
+            const consentType = toggle.dataset.consentType;
+            if (consentType && currentPrefs.hasOwnProperty(consentType)) {
+                toggle.checked = currentPrefs[consentType] === 'granted';
+            } else if (consentType) {
+                // If a new type was added to HTML but not in defaults/localStorage yet
+                toggle.checked = config.cookies.defaultConsentState[consentType] === 'granted';
+            }
         });
-    }
+        cookieSettingsModal.classList.add('visible');
+        if (cookieConsentBanner) cookieConsentBanner.style.display = 'none'; // Hide banner when modal is open
+    };
 
+    const hideCookieSettingsModal = () => {
+        if (cookieSettingsModal) cookieSettingsModal.classList.remove('visible');
+    };
+
+    const handleSaveCookieSettings = () => {
+        if (!cookieSettingsModal) return;
+        const newPrefs = {};
+        cookieSettingToggles.forEach(toggle => {
+            const consentType = toggle.dataset.consentType;
+            if (consentType) {
+                newPrefs[consentType] = toggle.checked ? 'granted' : 'denied';
+            }
+        });
+        console.log("User saved custom cookie settings:", newPrefs);
+        applyConsentDecision(newPrefs);
+    };
+
+
+    const initializeCookieConsentFramework = () => {
+        console.log("Initializing Cookie Consent Framework v2.34...");
+        const consentProcessed = getProcessedCookie(config.cookies.consentProcessedCookieName) === 'true';
+        const currentPreferences = getConsentPreferences(); // Get stored or default
+
+        // Always update Gtag with stored/default preferences on page load
+        updateGtagConsent(currentPreferences);
+
+        if (consentProcessed) {
+            console.log("Cookie consent already processed. Banner remains hidden.");
+            if (cookieConsentBanner) cookieConsentBanner.style.display = 'none';
+        } else {
+            console.log("Cookie consent not processed. Displaying banner.");
+            if (cookieConsentBanner) cookieConsentBanner.style.display = 'block';
+            else console.warn("Cookie consent banner element not found.");
+        }
+
+        // Setup Event Listeners for new buttons
+        if (cookieConsentAcceptAllBtn) {
+            cookieConsentAcceptAllBtn.addEventListener('click', handleAcceptAll);
+        } else { console.warn("#cookie-consent-accept-all button not found."); }
+
+        if (cookieConsentRejectAllBtn) {
+            cookieConsentRejectAllBtn.addEventListener('click', handleRejectAll);
+        } else { console.warn("#cookie-consent-reject-all button not found."); }
+
+        if (cookieConsentCustomizeBtn) {
+            cookieConsentCustomizeBtn.addEventListener('click', showCookieSettingsModal);
+        } else { console.warn("#cookie-consent-customize button not found."); }
+
+        if (cookieModalCloseBtn) {
+            cookieModalCloseBtn.addEventListener('click', hideCookieSettingsModal);
+        } else { console.warn("#cookie-modal-close button not found."); }
+
+        if (cookieSettingsSaveBtn) {
+            cookieSettingsSaveBtn.addEventListener('click', handleSaveCookieSettings);
+        } else { console.warn("#cookie-settings-save button not found."); }
+
+        if (cookieSettingsAcceptAllModalBtn) {
+            cookieSettingsAcceptAllModalBtn.addEventListener('click', handleAcceptAll);
+        } else { console.warn("#cookie-settings-accept-all-modal button not found."); }
+        
+        if (cookieSettingsTriggerFooter) {
+            cookieSettingsTriggerFooter.addEventListener('click', (event) => {
+                event.preventDefault();
+                showCookieSettingsModal();
+            });
+        } else { console.warn("#cookie-settings-trigger (footer link) not found."); }
+    };
 
     // --- Initialize Components ---
     try {
         handleScroll(); // Initial states
         initializeInfiniteSlider();
-        checkCookieConsent(); // Check and display cookie banner if needed
+        initializeCookieConsentFramework(); // Initialize new cookie consent logic
     } catch (error) {
         console.error("Error during final initializations:", error);
     }
 
-    // Defer non-critical initializations slightly to ensure main content renders
+    // Defer non-critical initializations slightly
     setTimeout(() => {
         if (demoSection && config.aiDemo.enabled && aiDemoObserver) {
             if (!(aiOutput && aiFakeInput && aiProgressLabel && aiProgressBar && aiStatusIndicator)) {
-                 console.warn("AI Demo deferred init: elements missing, AI Demo might not work.");
+                console.warn("AI Demo deferred init: elements missing, AI Demo might not work.");
             }
         }
     }, 500);
 
-
-    console.log("JUSTAX Interface v2.33 (Cookie Consent) Initialization Complete.");
+    console.log("JUSTAX Interface v2.34 (Advanced Cookie Consent) Initialization Complete.");
 });
