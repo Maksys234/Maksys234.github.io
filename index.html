@@ -14,8 +14,19 @@
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
 
+      // Default consent state - deny all categories initially
+      gtag('consent', 'default', {
+        'ad_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied',
+        'analytics_storage': 'denied',
+        'functionality_storage': 'denied', // Keep denied by default, can be granted by user
+        'personalization_storage': 'denied',// Keep denied by default
+        'security_storage': 'granted' // Security cookies are often essential
+      });
+
+      gtag('js', new Date());
       gtag('config', 'G-L16EL1V2WV');
     </script>
 </head>
@@ -328,8 +339,7 @@
                     <ul class="footer-links">
                         <li><a href="/privacy-policy.html">Ochrana Údajů</a></li>
                         <li><a href="/terms.html">Podmínky Použití</a></li>
-                        <li><a href="#" id="cookie-settings-link">Nastavení Cookies</a></li>
-                        <li><i class="fas fa-envelope" aria-hidden="true"></i> <a href="mailto:admin@justax.space">admin@justax.space</a></li>
+                        <li><a href="#" id="cookie-settings-trigger">Nastavení Cookies</a></li> <li><i class="fas fa-envelope" aria-hidden="true"></i> <a href="mailto:admin@justax.space">admin@justax.space</a></li>
                         <li><i class="fas fa-map-marker-alt" aria-hidden="true"></i>Centrála: Praha, CZ</li>
                     </ul>
                 </div>
@@ -341,21 +351,76 @@
         </div>
     </footer>
 
-    <div id="cookie-consent-banner">
-        <p>
-            Používáme cookies, abychom vám poskytli co nejlepší zážitek z našich webových stránek. Některé cookies jsou nezbytné pro fungování webu, zatímco jiné nám pomáhají tento web a váš zážitek vylepšovat. Více informací o cookies a o tom, jak chráníme vaše údaje, naleznete v našich <a href="/privacy-policy.html#cookies-section">Zásadách ochrany osobních údajů</a>.
-        </p>
-        <div class="cookie-consent-actions">
-            <button id="cookie-consent-accept" class="btn">Přijmout vše</button>
+    <div id="cookie-consent-banner" class="cookie-consent-container">
+        <div class="cookie-consent-content">
+            <p>
+                Používáme cookies, abychom vám poskytli co nejlepší zážitek. Některé jsou nezbytné, jiné nám pomáhají web vylepšovat. Vaše soukromí je pro nás důležité. Více informací naleznete v <a href="/privacy-policy.html#cookies-section" target="_blank">Zásadách ochrany osobních údajů</a>.
+            </p>
+            <div class="cookie-consent-actions">
+                <button id="cookie-consent-accept-all" class="btn">Přijmout vše</button>
+                <button id="cookie-consent-reject-all" class="btn btn-outline">Odmítnout vše</button>
+                <button id="cookie-consent-customize" class="btn btn-link">Nastavení</button>
             </div>
+        </div>
     </div>
+
+    <div id="cookie-settings-modal" class="cookie-modal">
+        <div class="cookie-modal-content">
+            <div class="cookie-modal-header">
+                <h3>Nastavení Cookies</h3>
+                <button id="cookie-modal-close" class="cookie-modal-close-btn" aria-label="Zavřít">&times;</button>
+            </div>
+            <div class="cookie-modal-body">
+                <p>Spravujte svá nastavení cookies. Některé cookies jsou nezbytné pro fungování webu a nelze je vypnout.</p>
+
+                <div class="cookie-category">
+                    <div class="cookie-category-header">
+                        <h4>Nezbytně nutné cookies</h4>
+                        <label class="cookie-switch always-on">
+                            <input type="checkbox" name="necessary" checked disabled>
+                            <span class="cookie-slider round"></span>
+                        </label>
+                    </div>
+                    <p class="cookie-category-description">Tyto cookies jsou vyžadovány pro základní funkčnost webu, jako je zabezpečení, správa sítě a dostupnost. Nelze je vypnout.</p>
+                </div>
+
+                <div class="cookie-category">
+                    <div class="cookie-category-header">
+                        <h4>Analytické cookies</h4>
+                        <label class="cookie-switch">
+                            <input type="checkbox" name="analytics_storage" data-consent-type="analytics_storage">
+                            <span class="cookie-slider round"></span>
+                        </label>
+                    </div>
+                    <p class="cookie-category-description">Tyto cookies nám pomáhají pochopit, jak návštěvníci interagují s webem, shromažďováním a hlášením informací anonymně (např. Google Analytics).</p>
+                </div>
+
+                <div class="cookie-category">
+                    <div class="cookie-category-header">
+                        <h4>Funkční cookies</h4>
+                        <label class="cookie-switch">
+                            <input type="checkbox" name="functionality_storage" data-consent-type="functionality_storage">
+                            <span class="cookie-slider round"></span>
+                        </label>
+                    </div>
+                    <p class="cookie-category-description">Tyto cookies umožňují webu pamatovat si vaše volby (např. uživatelské jméno, jazyk) a poskytovat vylepšené, personalizovanější funkce.</p>
+                </div>
+                
+                </div>
+            <div class="cookie-modal-footer">
+                <button id="cookie-settings-save" class="btn">Uložit nastavení</button>
+                <button id="cookie-settings-accept-all-modal" class="btn btn-outline">Přijmout vše</button>
+            </div>
+        </div>
+    </div>
+
 
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script src="index.js" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof particlesJS !== 'undefined' && document.getElementById('particles-js')) {
-                particlesJS('particles-js', {
+                particlesJS('particles-js', { /* ... particles.js config remains the same ... */
                     "particles": {
                         "number": { "value": 90, "density": { "enable": true, "value_area": 700 } },
                         "color": { "value": ["#00e0ff", "#a05cff", "#ff33a8", "#ffffff"] },
@@ -382,27 +447,8 @@
                 currentYearElement.textContent = new Date().getFullYear();
             }
 
-            // Важно: Если скрипт index.js все еще ищет data-animate-letters для заголовка,
-            // это может вызывать ошибки в консоли или неожиданное поведение.
-            // Возможно, потребуется модифицировать index.js, чтобы он не трогал h1#hero-heading,
-            // или просто убедиться, что он не падает, если не находит этот атрибут.
-
-            // Cookie consent link in footer
-            const cookieSettingsLink = document.getElementById('cookie-settings-link');
-            if (cookieSettingsLink) {
-                cookieSettingsLink.addEventListener('click', function(event) {
-                    event.preventDefault();
-                    // This could open a settings modal in the future
-                    // For now, it can re-show the banner or clear consent to test
-                    const banner = document.getElementById('cookie-consent-banner');
-                    if (banner) {
-                        banner.style.display = 'block';
-                    }
-                     // Example: clear consent for testing
-                    // document.cookie = "cookie_consent_given=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                    // alert("Cookie settings would open here. Consent cleared for testing if implemented.");
-                });
-            }
+            // Link "Nastavení Cookies" in footer functionality will be handled by index.js
+            // The #cookie-settings-trigger ID is now on the link.
         });
     </script>
 
