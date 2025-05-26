@@ -41,7 +41,7 @@
 
     const testTypeConfig = {
         full: {
-            questionsCount: 20,
+            questionsCount: 30,
             title: 'Příprava na Přijímačky',
             description: 'Podrobné hodnocení <strong>všech oblastí přijímaček</strong>, podobné reálnému testu. Poskytuje solidní základ pro studijní plán.',
             multiplier: 1.5,
