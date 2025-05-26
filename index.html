@@ -9,6 +9,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="index.css">
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-L16EL1V2WV"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-L16EL1V2WV');
+    </script>
 </head>
 <body class="dark">
 
@@ -332,8 +341,18 @@
         </div>
     </footer>
 
+    <div id="cookie-consent-banner">
+        <p>
+            Používáme cookies, abychom vám poskytli co nejlepší zážitek z našich webových stránek. Některé cookies jsou nezbytné pro fungování webu, zatímco jiné nám pomáhají tento web a váš zážitek vylepšovat. Více informací o cookies a o tom, jak chráníme vaše údaje, naleznete v našich <a href="/privacy-policy.html#cookies-section">Zásadách ochrany osobních údajů</a>.
+        </p>
+        <div class="cookie-consent-actions">
+            <button id="cookie-consent-accept" class="btn">Přijmout vše</button>
+            </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-    <script src="index.js" defer></script> <script>
+    <script src="index.js" defer></script>
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof particlesJS !== 'undefined' && document.getElementById('particles-js')) {
                 particlesJS('particles-js', {
@@ -367,6 +386,23 @@
             // это может вызывать ошибки в консоли или неожиданное поведение.
             // Возможно, потребуется модифицировать index.js, чтобы он не трогал h1#hero-heading,
             // или просто убедиться, что он не падает, если не находит этот атрибут.
+
+            // Cookie consent link in footer
+            const cookieSettingsLink = document.getElementById('cookie-settings-link');
+            if (cookieSettingsLink) {
+                cookieSettingsLink.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    // This could open a settings modal in the future
+                    // For now, it can re-show the banner or clear consent to test
+                    const banner = document.getElementById('cookie-consent-banner');
+                    if (banner) {
+                        banner.style.display = 'block';
+                    }
+                     // Example: clear consent for testing
+                    // document.cookie = "cookie_consent_given=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    // alert("Cookie settings would open here. Consent cleared for testing if implemented.");
+                });
+            }
         });
     </script>
 
