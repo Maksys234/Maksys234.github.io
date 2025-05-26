@@ -51,7 +51,7 @@
             isActive: true
         },
         math_review: {
-            questionsCount: 19,
+            questionsCount: 30,
             title: 'Opakování Matematiky',
             description: 'Test zaměřený na <strong>doplnění mezer v základních tématech</strong> a upevnění znalostí z matematiky ZŠ.',
             multiplier: 1.0,
@@ -61,7 +61,7 @@
             isActive: true
         },
         math_accelerate: {
-            questionsCount: 15,
+            questionsCount: 30,
             title: 'Učení Napřed',
             description: 'Otestujte své znalosti v <strong>pokročilejších tématech</strong> a připravte se na budoucí výzvy.',
             multiplier: 1.2,
@@ -71,7 +71,7 @@
             recommendedForGoal: 'math_accelerate'
         },
         math_explore: {
-            questionsCount: 10,
+            questionsCount: 30,
             title: 'Volné Prozkoumávání',
             description: 'Test zaměřený na <strong>různorodá témata dle vašeho výběru</strong> pro rozšíření obzorů.',
             multiplier: 1.0,
