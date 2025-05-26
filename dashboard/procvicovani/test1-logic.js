@@ -5,6 +5,7 @@
 // VERZE 10.2: Vylepšený Gemini prompt pro lepší rozpoznávání ekvivalentních odpovědí.
 // VERZE 10.3 (POŽADAVEK UŽIVATELE): Přidána logika pro výběr otázek dle ročníku a sebehodnocení témat.
 // VERZE 10.4 (POŽADAVEK UŽIVATELE): Upraveno vracení prázdného pole místo chyby při nedostatku otázek.
+// VERZE 10.5 (POŽADAVEK UŽIVATELE): Test se spustí i s 0 otázkami; MINIMUM_QUESTIONS_THRESHOLD se použije pro logiku "smysluplnosti" testu, nikoliv pro jeho spuštění.
 
 // Используем IIFE для изоляции области видимости
 (function(global) {
@@ -20,9 +21,9 @@
     const NUMERIC_TOLERANCE = 0.001;
     const BASE_POINTS_FOR_100_PERCENT = 30;
     const NOTIFICATION_FETCH_LIMIT = 5;
-    const DEFAULT_QUESTIONS_PER_TOPIC = 3; // Kolik otázek na téma, pokud není specifikováno jinak
-    const TOTAL_QUESTIONS_IN_TEST = 30; // Celkový počet otázek v testu
-    const MINIMUM_QUESTIONS_THRESHOLD = 5; // Minimální počet otázek pro spuštění testu
+    const DEFAULT_QUESTIONS_PER_TOPIC = 3;
+    const TOTAL_QUESTIONS_IN_TEST = 30;
+    const MINIMUM_QUESTIONS_THRESHOLD = 1; // Minimální počet otázek, aby byl test považován za "spustitelný" pro zobrazení, i když s 0 otázkami to také půjde.
 
     // --- START: Вспомогательные функции ---
     function shuffleArray(array) {
@@ -44,11 +45,9 @@
             if (typeof inputValue !== 'string') { return NaN; }
             let processedString = inputValue.trim()
                 .replace(/\s+/g, '')
-                // Odstranění běžných jednotek a symbolů, které by mohly rušit parsování ČISTĚ numerické hodnoty
-                // Toto by se nemělo aplikovat na algebraické výrazy, ty řeší Gemini
                 .replace(/(kč|czk|korun|eur|usd|cm|m|km|mm|l|ml|kg|g|%|stupňů|manažerů|způsobů|lidí|ks|stran|cm2|cm3|hodin|minut)$/gi, '')
-                .replace(/[\.,]+$/, '') // Odstranění teček/čárek na konci
-                .replace(',', '.'); // Nahrazení čárky tečkou pro parseFloat
+                .replace(/[\.,]+$/, '')
+                .replace(',', '.');
 
             const fractionRegex = /^(-?)(\d+)\/(\d+)$/;
             const fractionMatch = processedString.match(fractionRegex);
@@ -66,7 +65,6 @@
                 console.log(`[compareNumeric v10.2] Parsuji float: '${processedString}' -> ${floatValue}`);
                 return floatValue;
             }
-            // Agresivnější čištění pro komplexní případy (ale opatrně, aby se nezměnil význam)
             let aggressiveProcessedString = inputValue.trim().replace(/\s+/g, '').replace(',', '.');
             aggressiveProcessedString = aggressiveProcessedString.replace(/[^\d.\-+eE]/g, (match, offset, original) => {
                 if ((match.toLowerCase() === 'e') && (offset > 0 && /\d/.test(original[offset-1])) && (offset < original.length - 1 && /[\-+]?\d/.test(original.substring(offset+1)))) {
@@ -111,15 +109,12 @@
         const normalizeString = (inputValue) => {
             if (typeof inputValue !== 'string' && typeof inputValue !== 'number') { return null; }
             let processedString = String(inputValue).toLowerCase().trim();
-            processedString = processedString.replace(/\s+/g, ' '); // Sjednocení více mezer na jednu
-            processedString = processedString.replace(/[\.,;:!?]+$/, ''); // Odstranění interpunkce na konci
-            // Normalizace ano/ne
+            processedString = processedString.replace(/\s+/g, ' ');
+            processedString = processedString.replace(/[\.,;:!?]+$/, '');
             if (/\b(ano|áno|a)\b/.test(processedString) || processedString === 'a') return 'ano';
-            if (/\b(ne|n)\b/.test(processedString) || processedString === 'n') return 'ne'; // Přidáno 'n'
-            // Normalizace matematických výrazů - odstranění mezer kolem operátorů
+            if (/\b(ne|n)\b/.test(processedString) || processedString === 'n') return 'ne';
             processedString = processedString.replace(/\s*([+\-*/=()^])\s*/g, '$1');
-            // Nahrazení a2 za a^2 pro konzistenci, pokud AI očekává ^. Gemini by to mělo zvládnout, ale pro jistotu.
-            processedString = processedString.replace(/([a-zA-Z])([0-9]+)(?![\^a-zA-Z0-9.])/g, '$1^$2'); // Např. a2 -> a^2, ale x10 zůstane x10
+            processedString = processedString.replace(/([a-zA-Z])([0-9]+)(?![\^a-zA-Z0-9.])/g, '$1^$2');
 
             console.log(`[compareText v10.2] Normalizováno na: '${processedString}'`);
             return processedString;
@@ -136,18 +131,18 @@
     }
     // --- END: Вспомогательные функции ---
 
-    // --- START: Логика загрузки вопросов (UPRAVENO pro v10.4) ---
+    // --- START: Логика загрузки вопросов (UPRAVENO pro v10.5) ---
     async function loadTestQuestionsLogic(supabase, profileData, testTypeConfig) {
         if (!supabase) { throw new Error("Supabase client není inicializován."); }
 
         const userGrade = profileData?.preferences?.goal_details?.grade;
         const topicRatings = profileData?.preferences?.goal_details?.topic_ratings || {};
-        const learningGoal = profileData?.learning_goal || 'exam_prep'; // Výchozí cíl
+        const learningGoal = profileData?.learning_goal || 'exam_prep';
 
-        console.log(`[Logic LoadQ v10.4] Načítání otázek pro: Cíl=${learningGoal}, Ročník=${userGrade || 'N/A'}, Sebehodnocení témat:`, topicRatings);
+        console.log(`[Logic LoadQ v10.5] Načítání otázek pro: Cíl=${learningGoal}, Ročník=${userGrade || 'N/A'}, Sebehodnocení témat:`, topicRatings);
 
         if (!userGrade) {
-            console.warn("[Logic LoadQ v10.4] Ročník uživatele (userGrade) není definován v profileData.preferences.goal_details. Načítání otázek může selhat nebo vrátit obecný set.");
+            console.warn("[Logic LoadQ v10.5] Ročník uživatele (userGrade) není definován. Budou se načítat otázky bez filtru ročníku, což může vést k nevhodným otázkám.");
         }
 
         let sourceExamTypeFilter = 'prijimacky';
@@ -170,26 +165,27 @@
 
         if (userGrade) {
             query = query.eq('target_grade', userGrade);
-            console.log(`[Logic LoadQ v10.4] Filtruji otázky pro ročník: ${userGrade}`);
+            console.log(`[Logic LoadQ v10.5] Filtruji otázky pro ročník: ${userGrade}`);
         } else {
-            console.warn(`[Logic LoadQ v10.4] Nebyl zadán ročník uživatele, načítám otázky pro '${sourceExamTypeFilter}' bez filtru ročníku.`);
+            console.warn(`[Logic LoadQ v10.5] Nebyl zadán ročník uživatele, načítám otázky pro '${sourceExamTypeFilter}' bez filtru ročníku.`);
         }
 
         const { data: allQuestionsForGrade, error: fetchError } = await query;
 
         if (fetchError) {
-            console.error("[Logic LoadQ v10.4] Chyba při načítání otázek z DB:", fetchError);
-            throw fetchError; // Předáme chybu dál
+            console.error("[Logic LoadQ v10.5] Chyba při načítání otázek z DB:", fetchError);
+            // Nevyhazujeme chybu, ale vrátíme prázdné pole, aby UI mohlo zobrazit zprávu
+            return [];
         }
 
         if (!allQuestionsForGrade || allQuestionsForGrade.length === 0) {
             const warningMessage = userGrade
                 ? `V databázi nejsou žádné otázky pro typ '${sourceExamTypeFilter}' a ročník '${userGrade}' (kromě konstrukčních).`
                 : `V databázi nejsou žádné otázky pro typ '${sourceExamTypeFilter}' (kromě konstrukčních).`;
-            console.warn(`[Logic LoadQ v10.4] ${warningMessage}`);
-            return []; // Vracíme prázdné pole místo vyhození chyby
+            console.warn(`[Logic LoadQ v10.5] ${warningMessage}`);
+            return []; // Vracíme prázdné pole
         }
-        console.log(`[Logic LoadQ v10.4] Načteno ${allQuestionsForGrade.length} otázek odpovídajících filtru ročníku (pokud byl aplikován).`);
+        console.log(`[Logic LoadQ v10.5] Načteno ${allQuestionsForGrade.length} otázek odpovídajících filtru ročníku (pokud byl aplikován).`);
 
         const questionsByTopic = allQuestionsForGrade.reduce((acc, q) => {
             const topicId = q.topic_id || 'unknown';
@@ -206,18 +202,18 @@
         const numTopicsWithRatings = Object.keys(topicRatings).length;
         const questionsPerRatedTopic = numTopicsWithRatings > 0 ? Math.max(1, Math.floor(TOTAL_QUESTIONS_IN_TEST / numTopicsWithRatings)) : DEFAULT_QUESTIONS_PER_TOPIC;
 
-        console.log(`[Logic LoadQ v10.4] Počet témat s hodnocením: ${numTopicsWithRatings}, otázek na téma: ~${questionsPerRatedTopic}`);
+        console.log(`[Logic LoadQ v10.5] Počet témat s hodnocením: ${numTopicsWithRatings}, otázek na téma: ~${questionsPerRatedTopic}`);
 
         for (const topicIdStr in topicRatings) {
             const topicId = parseInt(topicIdStr, 10);
             if (isNaN(topicId) || !questionsByTopic[topicId]) {
-                console.warn(`[Logic LoadQ v10.4] Téma s ID ${topicIdStr} nemá otázky nebo je neplatné ID.`);
+                console.warn(`[Logic LoadQ v10.5] Téma s ID ${topicIdStr} nemá otázky nebo je neplatné ID.`);
                 continue;
             }
 
             const selfRating = topicRatings[topicIdStr]?.overall;
             if (typeof selfRating !== 'number' || selfRating < 1 || selfRating > 5) {
-                console.warn(`[Logic LoadQ v10.4] Neplatné sebehodnocení pro téma ${topicId}: ${selfRating}. Používám výchozí rozsah.`);
+                console.warn(`[Logic LoadQ v10.5] Neplatné sebehodnocení pro téma ${topicId}: ${selfRating}. Používám výchozí rozsah.`);
             }
 
             let difficultyRanges = [];
@@ -230,7 +226,7 @@
                 default: difficultyRanges = [{d:1, p:0.2}, {d:2, p:0.2}, {d:3, p:0.2}, {d:4, p:0.2}, {d:5, p:0.2}];
             }
 
-            console.log(`[Logic LoadQ v10.4] Téma ${topicId}, Hodnocení: ${selfRating}, Rozsahy obtížnosti:`, difficultyRanges);
+            console.log(`[Logic LoadQ v10.5] Téma ${topicId}, Hodnocení: ${selfRating}, Rozsahy obtížnosti:`, difficultyRanges);
 
             let questionsForThisTopic = questionsByTopic[topicId];
             shuffleArray(questionsForThisTopic);
@@ -240,7 +236,7 @@
 
             for (const range of difficultyRanges) {
                 if (selectedQuestions.length >= TOTAL_QUESTIONS_IN_TEST) break;
-                const numQuestionsFromRange = Math.ceil(targetCountForTopic * range.p); // Použijeme Math.ceil pro případ malého počtu
+                const numQuestionsFromRange = Math.ceil(targetCountForTopic * range.p);
                 const questionsInDifficulty = questionsForThisTopic.filter(q => q.difficulty === range.d && !selectedQuestionIds.has(q.id));
 
                 const questionsToAdd = questionsInDifficulty.slice(0, numQuestionsFromRange);
@@ -264,11 +260,11 @@
                      }
                 });
             }
-             if (selectedQuestions.length >= TOTAL_QUESTIONS_IN_TEST) break; // Kontrola po každém tématu
+             if (selectedQuestions.length >= TOTAL_QUESTIONS_IN_TEST) break;
         }
 
         if (selectedQuestions.length < TOTAL_QUESTIONS_IN_TEST) {
-            console.log(`[Logic LoadQ v10.4] Doplňování otázek. Aktuálně: ${selectedQuestions.length}/${TOTAL_QUESTIONS_IN_TEST}`);
+            console.log(`[Logic LoadQ v10.5] Doplňování otázek. Aktuálně: ${selectedQuestions.length}/${TOTAL_QUESTIONS_IN_TEST}`);
             const remainingQuestionsNeeded = TOTAL_QUESTIONS_IN_TEST - selectedQuestions.length;
             let allAvailableQuestionsFlat = Object.values(questionsByTopic).flat();
             shuffleArray(allAvailableQuestionsFlat);
@@ -287,12 +283,14 @@
             selectedQuestions = selectedQuestions.slice(0, TOTAL_QUESTIONS_IN_TEST);
         }
 
-        if (selectedQuestions.length < MINIMUM_QUESTIONS_THRESHOLD) {
-            console.warn(`[Logic LoadQ v10.4] Po všech krocích bylo vybráno pouze ${selectedQuestions.length} otázek, což je méně než minimum (${MINIMUM_QUESTIONS_THRESHOLD}). Test nemusí být reprezentativní. Vracím prázdné pole.`);
-            return []; // Vracíme prázdné pole, UI to ošetří
+        // Odstraněna podmínka pro MINIMUM_QUESTIONS_THRESHOLD zde,
+        // vrátíme vždy pole, i když je prázdné. UI se o to postará.
+        if (selectedQuestions.length === 0) {
+            console.warn(`[Logic LoadQ v10.5] Po všech krocích nebyly vybrány žádné otázky. Vracím prázdné pole.`);
+            return [];
         }
 
-        console.log(`[Logic LoadQ v10.4] Finálně vybráno ${selectedQuestions.length} otázek.`);
+        console.log(`[Logic LoadQ v10.5] Finálně vybráno ${selectedQuestions.length} otázek.`);
 
         const formattedQuestions = selectedQuestions.map((question, index) => ({
             id: question.id,
@@ -319,12 +317,12 @@
             acc[q.difficulty] = (acc[q.difficulty] || 0) + 1;
             return acc;
         }, {});
-        console.log("[Logic LoadQ v10.4] Distribuce obtížností ve finálním testu:", difficultyDistribution);
+        console.log("[Logic LoadQ v10.5] Distribuce obtížností ve finálním testu:", difficultyDistribution);
         const topicDistribution = formattedQuestions.reduce((acc, q) => {
             acc[q.topic_name] = (acc[q.topic_name] || 0) + 1;
             return acc;
         }, {});
-        console.log("[Logic LoadQ v10.4] Distribuce témat ve finálním testu:", topicDistribution);
+        console.log("[Logic LoadQ v10.5] Distribuce témat ve finálním testu:", topicDistribution);
 
         return formattedQuestions;
     }
@@ -550,10 +548,10 @@ Pro textové odpovědi (včetně ano/ne) buď tolerantní k velkým/malým písm
         checkExistingDiagnostic: checkExistingDiagnosticLogic,
         fetchNotifications: fetchNotificationsLogic,
         SCORE_THRESHOLD_FOR_SAVING: SCORE_THRESHOLD_FOR_SAVING,
-        compareNumericAdvanced: compareNumericAdvanced, // Exposed for potential direct use or testing
-        compareTextAdvanced: compareTextAdvanced,     // Exposed for potential direct use or testing
+        compareNumericAdvanced: compareNumericAdvanced,
+        compareTextAdvanced: compareTextAdvanced,
     };
-    console.log("test1-logic.js loaded and TestLogic exposed (v10.4 - Empty array on no questions).");
+    console.log("test1-logic.js loaded and TestLogic exposed (v10.5 - Graceful handling of zero questions).");
     // --- END: Глобальный Экспорт ---
 
-})(window); // Передаем глобальный объект (window в браузере)
+})(window);
