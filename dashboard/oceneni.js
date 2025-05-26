@@ -1,5 +1,5 @@
 // dashboard/oceneni.js
-// Version: 23.23.12 - Rank consistency, Achievement Icons Fix, Non-collapsible sections fix
+// Version: 23.23.13 - Badge count fix, Icon fix for available badges, Non-collapsible sections enforced
 (function() { // IIFE for scope isolation
 	'use strict';
 
@@ -188,9 +188,9 @@
 			}
 			if (key === 'notifications' && ui.notificationBell) {
 				ui.notificationBell.style.opacity = loading ? 0.5 : 1;
-				if (ui.markAllRead) { // Změna z ui.markAllReadBtn na ui.markAllRead
+				if (ui.markAllRead) {
 					const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
-					ui.markAllRead.disabled = loading || currentUnreadCount === 0; // Změna z ui.markAllReadBtn na ui.markAllRead
+					ui.markAllRead.disabled = loading || currentUnreadCount === 0;
 				}
 			}
 		};
@@ -365,7 +365,7 @@
 
 			const rankedData = (data || []).map((entry, index) => ({
 				...entry,
-				calculated_rank: entry.rank ?? (index + 1) // Použijeme DB rank pokud je, jinak vypočteme z pořadí
+				calculated_rank: entry.rank ?? (index + 1)
 			}));
 			return rankedData;
 		} catch (e) {
@@ -415,8 +415,8 @@
 		setLoadingState('userLearningLogs', true);
 		try {
 			const { data: logs, error } = await supabase
-				.from('learning_logs_detailed') // Používáme nově vytvořený view
-				.select('id') // Stačí nám ID pro počítání
+				.from('learning_logs_detailed')
+				.select('id')
 				.eq('user_id', userId);
 
 			if (error) throw error;
@@ -495,10 +495,10 @@
 		setLoadingState('userAiLessons', true);
 		try {
 			const { data: lessons, error } = await supabase
-				.from('ai_sessions') // Předpokládáme, že tabulka AI lekcí se jmenuje 'ai_sessions'
+				.from('ai_sessions')
 				.select('id')
 				.eq('user_id', userId)
-				.eq('status', 'ended'); // Nebo jiný stav označující dokončení
+				.eq('status', 'ended');
 
 			if (error) throw error;
 			const count = lessons ? lessons.length : 0;
@@ -522,16 +522,16 @@
                 .eq('user_id', userId)
                 .order('created_at', { ascending: false })
                 .limit(1)
-                .single(); // Očekáváme jeden záznam nebo žádný
+                .single();
 
-            if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found, which is okay for "latest"
+            if (error && error.code !== 'PGRST116') {
                 throw error;
             }
-            lastCreditTransaction = data; // Store it globally for stats card
-            return data; // Return it for immediate use if needed
+            lastCreditTransaction = data;
+            return data;
         } catch (err) {
             console.error("Error fetching latest credit transaction:", err);
-            lastCreditTransaction = null; // Clear on error
+            lastCreditTransaction = null;
             return null;
         }
     }
@@ -554,7 +554,7 @@
 		customization: { icon: 'fa-paint-brush', gradient: 'var(--gradient-cta)' },
 		default: { icon: 'fa-medal', gradient: 'var(--gradient-locked)' }
 	};
-	// ... (checkRequirements, awardBadge, checkAndAwardAchievements functions remain the same as in the previous response) ...
+
 	function checkRequirements(profileData, requirements, otherData = {}, badgeTitle = 'Unknown Badge') {
 		if (!profileData || !requirements || typeof requirements !== 'object') {
 			console.warn("[Achievements CheckReq] Invalid input for checking requirements.", profileData, requirements);
@@ -856,7 +856,7 @@
                 const totalUsersForStatsUpdate = (await supabase.from('profiles').select('id', { count: 'exact', head: true })).count || leaderboardData.length || 0;
 				updateSidebarProfile(currentProfile, allTitlesFromDB);
 				updateStatsCards({ // Update stats cards with fresh data
-					badges: currentProfile.badges_count, // Use the accurate count from the profile
+					badges: currentProfile.badges_count,
 					points: currentProfile.points,
 					streak_current: currentProfile.streak_days,
 					streak_longest: currentProfile.longest_streak_days,
@@ -948,7 +948,7 @@
 	    ui.rankCard?.classList.remove('loading');
 
 	    if (stats) {
-	        const earnedBadgesCount = stats.badges ?? 0; // Používáme přímo hodnotu z `stats` objektu
+	        const earnedBadgesCount = userBadges?.length || 0; // Použijeme aktuální délku pole userBadges
 	        ui.badgesCount.textContent = earnedBadgesCount;
 	        if (ui.badgesChange) {
 	            const totalPossibleBadges = allBadges?.length || 0;
@@ -991,12 +991,12 @@
 	        ui.streakDays.textContent = stats.streak_current ?? 0;
 	        if (ui.streakChange) ui.streakChange.textContent = `MAX: ${stats.streak_longest ?? 0} dní`;
 
-            // Použijeme přímo rank a totalUsers z předaného 'stats' objektu
-            const displayRank = stats.rank ?? '-';
-            const displayTotalUsers = stats.totalUsers ?? '-';
-	        ui.rankValue.textContent = displayRank;
-	        if (ui.totalUsers) ui.totalUsers.textContent = displayTotalUsers;
-	        if (ui.rankChange) ui.rankChange.innerHTML = `<i class="fas fa-users"></i> z <span id="total-users">${displayTotalUsers}</span> pilotů`;
+            const currentUserRankData = leaderboardData.find(u => u.user_id === currentUser?.id);
+            const currentUserRank = currentUserRankData ? currentUserRankData.calculated_rank : '-'; // Použijeme calculated_rank
+            const totalUsersInLeaderboard = stats.totalUsers || leaderboardData.length || '-';
+	        ui.rankValue.textContent = currentUserRank;
+	        if (ui.totalUsers) ui.totalUsers.textContent = totalUsersInLeaderboard;
+	        if (ui.rankChange) ui.rankChange.innerHTML = `<i class="fas fa-users"></i> z <span id="total-users">${totalUsersInLeaderboard}</span> pilotů`;
 
 	    } else {
 	        ui.badgesCount.textContent = '-';
@@ -1041,11 +1041,11 @@
 				card.style.setProperty('--animation-order', index);
 
 				const visual = badgeVisuals[badge.type?.toLowerCase()] || badgeVisuals.default;
-                const iconClass = badge.icon || visual.icon || 'fa-medal';
+                const iconClass = badge.icon && badge.icon.startsWith('fa-') ? badge.icon : (visual.icon || 'fa-medal');
 
 				card.innerHTML = `
 					<div class="badge-icon ${badge.type?.toLowerCase() || 'default'}" style="background: ${visual.gradient};">
-						<i class="fas ${iconClass}"></i>
+						<i class="fas ${iconClass.replace(/^fa[srbd]?\s+/, '')}"></i>
 					</div>
 					<h3 class="badge-title">${sanitizeHTML(badge.title)}</h3>
 					<p class="badge-desc">${sanitizeHTML(badge.description)}</p>
@@ -1088,11 +1088,11 @@
 
 				const visual = badgeVisuals[badge.type?.toLowerCase()] || badgeVisuals.default;
 				const progress = badge.requirements ? checkRequirements(profile, badge.requirements, otherData, badge.title) : { met: false, current: 0, target: 1, progressText: "N/A" };
-                const iconClass = badge.icon || visual.icon || 'fa-medal'; // Použijeme badge.icon, pokud existuje
+                const iconClass = badge.icon && badge.icon.startsWith('fa-') ? badge.icon : (visual.icon || 'fa-medal');
 
 				card.innerHTML = `
 					<div class="achievement-icon ${badge.type?.toLowerCase() || 'default'}" style="background: ${visual.gradient}; opacity: ${progress.met ? 1 : 0.6};">
-						<i class="fas ${iconClass}"></i> {/* Použijeme iconClass */}
+						<i class="fas ${iconClass.replace(/^fa[srbd]?\s+/, '')}"></i>
 					</div>
 					<div class="achievement-content">
 						<h3 class="achievement-title">${sanitizeHTML(badge.title)}</h3>
@@ -1135,7 +1135,7 @@
 	        ui.leaderboardEmpty.style.display = 'none';
 	        ui.leaderboardBody.innerHTML = '';
 	        const fragment = document.createDocumentFragment();
-	        sortedDataByRank.forEach((entry, index) => { // Index zde již není potřeba pro rank, bereme z entry.calculated_rank
+	        sortedDataByRank.forEach((entry) => {
 	            const tr = document.createElement('tr');
 	            const profileInfo = entry.profile || {};
 	            const isCurrentUser = entry.user_id === currentUser?.id;
@@ -1154,7 +1154,7 @@
 	                : getInitials(profileInfo);
 
 	            tr.innerHTML = `
-	                <td class="rank-cell">${entry.calculated_rank}</td> {/* Použijeme calculated_rank */}
+	                <td class="rank-cell">${entry.calculated_rank}</td>
 	                <td class="user-cell">
 	                    <div class="user-avatar-sm">${avatarHTML}</div>
 	                    <div class="user-info-sm">
@@ -1375,15 +1375,16 @@
 
 		if (notifications && notifications.length > 0) {
 			ui.notificationsList.innerHTML = notifications.map(n => {
-				const visual = badgeVisuals[n.type?.toLowerCase()] || badgeVisuals.default;
+				const visual = badgeVisuals[n.type?.toLowerCase()] || badgeVisuals.default; // Použijeme badgeVisuals pro konzistenci s ostatními ikonami
 				const isReadClass = n.is_read ? 'is-read' : '';
 				const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : '';
+				const iconClass = n.icon || visual.icon || 'fa-info-circle'; // Použijeme n.icon pokud je, jinak z badgeVisuals
 
 				return `
 					<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>
 						${!n.is_read ? '<span class="unread-dot"></span>' : ''}
-						<div class="notification-icon ${visual.class || n.type || 'default'}" style="${visual.gradient ? `background: ${visual.gradient};` : ''}">
-							<i class="fas ${n.icon || visual.icon || 'fa-info-circle'}"></i>
+						<div class="notification-icon ${n.type || 'default'}" style="${visual.gradient ? `background: ${visual.gradient};` : ''}"> {/* Použijeme typ z DB pro třídu, pokud není, tak default */}
+							<i class="fas ${iconClass.replace(/^fa[srbd]?\s+/, '')}"></i> {/* Odstraníme prefix, pokud je již v iconClass */}
 						</div>
 						<div class="notification-content">
 							<div class="notification-title">${sanitizeHTML(n.title)}</div>
@@ -1406,7 +1407,6 @@
 	// --- END: Data Rendering Functions ---
 
 	// --- START: Shop Interaction Logic (already provided and seems fine) ---
-	// ... (handleShopInteraction, handleBuyItem, handleEquipItem remain the same) ...
 	async function handleShopInteraction(event) {
 		const button = event.target.closest('.buy-title-btn, .equip-title-btn, .buy-decoration-btn, .equip-decoration-btn');
 		if (!button || button.disabled) return;
@@ -1471,7 +1471,7 @@
 
             const totalUsersForStatsUpdateAfterBuy = (await supabase.from('profiles').select('id', { count: 'exact', head: true })).count || leaderboardData.length || 0;
 			updateSidebarProfile(currentProfile, allTitlesFromDB);
-			updateStatsCards({ badges: userBadges?.length || 0, points: currentProfile.points, streak_current: currentProfile.streak_days, streak_longest: currentProfile.longest_streak_days, rank: leaderboardData.find(u=>u.user_id === currentUser.id)?.rank, totalUsers: totalUsersForStatsUpdateAfterBuy });
+			updateStatsCards({ badges: userBadges?.length || 0, points: currentProfile.points, streak_current: currentProfile.streak_days, streak_longest: currentProfile.longest_streak_days, rank: leaderboardData.find(u=>u.user_id === currentUser.id)?.calculated_rank, totalUsers: totalUsersForStatsUpdateAfterBuy });
 
 
 			if (itemType === 'title') {
@@ -1592,7 +1592,7 @@
 
 				ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : '');
 				ui.notificationCount.classList.toggle('visible', newCount > 0);
-				if (ui.markAllRead) ui.markAllRead.disabled = newCount === 0; // Změna z ui.markAllReadBtn
+				ui.markAllRead.disabled = newCount === 0;
 			}
 			setLoadingState('notifications', false);
 		}
@@ -1602,9 +1602,9 @@
 	}
 
 	async function handleMarkAllReadClick() {
-		if (!currentUser || !ui.markAllRead || ui.markAllRead.disabled) return; // Změna z ui.markAllReadBtn
+		if (!currentUser || !ui.markAllRead || ui.markAllRead.disabled) return;
 		setLoadingState('notifications', true);
-		if (ui.markAllRead) ui.markAllRead.disabled = true; // Změna z ui.markAllReadBtn
+		ui.markAllRead.disabled = true;
 
 		try {
 			const { error } = await supabase
@@ -1622,7 +1622,7 @@
 			console.error("Chyba při označování všech oznámení jako přečtených:", error);
 			showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení jako přečtená.', 'error');
 			const currentCount = parseInt(ui.notificationCount.textContent.replace('+', '') || '0');
-			if (ui.markAllRead) ui.markAllRead.disabled = currentCount === 0; // Změna z ui.markAllReadBtn
+			ui.markAllRead.disabled = currentCount === 0;
 		} finally {
 			setLoadingState('notifications', false);
 		}
@@ -1650,6 +1650,10 @@
         }
         console.log(`[Log Activity] Loguji: Uživatel ${userId}, Typ: ${type}, Titul: ${title}`);
         try {
+            // Získání výchozí ikony z activityVisuals, pokud není explicitně předána a type existuje
+            const defaultVisual = activityVisuals[type.toLowerCase()] || activityVisuals.default;
+            const finalIcon = icon || defaultVisual.icon;
+
             const { error } = await supabase
                 .from('activities')
                 .insert({
@@ -1660,7 +1664,7 @@
                     details: details,
                     link_url: link_url,
                     reference_id: reference_id,
-                    icon: icon // Použijeme badge.icon, pokud je k dispozici
+                    icon: finalIcon // Použijeme finalIcon
                 });
             if (error) {
                 console.error("Chyba logování aktivity:", error);
@@ -1689,7 +1693,7 @@
 				fetchUserEarnedBadges(currentUser.id),
 				fetchAllPurchasableTitles(),
 				fetchAvatarDecorationsData(),
-				fetchLeaderboardData('points', LEADERBOARD_LIMIT + 10), // Load more for rank
+				fetchLeaderboardData('points', LEADERBOARD_LIMIT + 10),
 				fetchNotifications(currentUser.id, NOTIFICATION_FETCH_LIMIT),
 				fetchUserDiagnosticTestCount(currentUser.id),
 				fetchUserLearningLogsCount(currentUser.id),
@@ -1736,11 +1740,11 @@
 			updateSidebarProfile(currentProfile, allTitlesFromDB);
             const { count: totalProfilesCount } = await supabase.from('profiles').select('id', { count: 'exact', head: true });
 			const statsForCards = {
-				badges: currentProfile.badges_count || 0, // Directly from profile after potential updates
+				badges: userBadges?.length || 0, // Použijeme aktuální délku pole userBadges
 				points: currentProfile.points,
 				streak_current: currentProfile.streak_days,
 				streak_longest: currentProfile.longest_streak_days,
-				rank: leaderboardData.find(u => u.user_id === currentUser.id)?.calculated_rank, // Use calculated_rank
+				rank: leaderboardData.find(u => u.user_id === currentUser.id)?.calculated_rank,
 				totalUsers: totalProfilesCount || leaderboardData.length || 0
 			};
 			updateStatsCards(statsForCards);
@@ -1789,7 +1793,6 @@
 				if (!el._eventHandlers[key]) el._eventHandlers[key] = {};
 				el._eventHandlers[key][ev] = fn;
 			} else {
-                // Log only if it's not one of the intentionally non-collapsible sections' toggle buttons
                 if (!key.startsWith('toggle') ||
                     (key === 'toggleUserBadgesSection' || key === 'toggleUserTitlesSection' || key === 'toggleAvatarDecorationsSection')
                    ) {
@@ -1824,33 +1827,33 @@
 
         const sectionToggleMap = {
             toggleUserBadgesSection: { content: ui.userBadgesContent, active: true },
-            toggleAvailableBadgesSection: { content: ui.availableBadgesContent, active: false }, // User wants this non-collapsible
+            toggleAvailableBadgesSection: { content: ui.availableBadgesContent, active: false },
             toggleUserTitlesSection: { content: ui.userTitlesInventoryContent, active: true },
-            toggleTitleShopSection: { content: ui.titleShopContent, active: false },      // User wants this non-collapsible
-            toggleAvatarDecorationsSection: { content: ui.avatarDecorationsContent, active: true }, // Keep as collapsible
-            toggleLeaderboardSection: { content: ui.leaderboardContent, active: false }    // User wants this non-collapsible
+            toggleTitleShopSection: { content: ui.titleShopContent, active: false },
+            toggleAvatarDecorationsSection: { content: ui.avatarDecorationsContent, active: true },
+            toggleLeaderboardSection: { content: ui.leaderboardContent, active: false }
         };
 
 		Object.keys(sectionToggleMap).forEach(buttonKey => {
 			const button = ui[buttonKey];
 			const config = sectionToggleMap[buttonKey];
             const contentElement = config.content;
-            const sectionCard = button?.closest('.card-section'); // Button might be null for non-active
+            const sectionCard = button?.closest('.card-section');
 
-			if (contentElement) { // Ensure content element exists
+			if (contentElement) {
                 if (!config.active) {
-                    if (button) button.style.display = 'none'; // Hide button if section is not active for collapsing
-                    contentElement.style.maxHeight = ''; // Ensure it's expanded
+                    if (button) button.style.display = 'none';
+                    contentElement.style.maxHeight = '';
                     contentElement.style.opacity = '1';
                     contentElement.style.visibility = 'visible';
-                    contentElement.style.paddingTop = ''; // Reset to CSS default
+                    contentElement.style.paddingTop = '';
                     contentElement.style.paddingBottom = '';
                     contentElement.style.marginTop = '';
                     contentElement.style.marginBottom = '';
                     contentElement.removeAttribute('aria-hidden');
                     if (sectionCard) sectionCard.classList.remove('collapsed-section');
                     console.log(`[SETUP] Section ${buttonKey || contentElement.id} is NOT collapsible. Button hidden, content forced visible.`);
-                } else if (button) { // Only proceed if button exists and section is active for collapsing
+                } else if (button) {
 				    const localStorageKey = `section-${buttonKey}-collapsed`;
 				    let isInitiallyCollapsed = localStorage.getItem(localStorageKey) === 'true';
 
@@ -1923,7 +1926,7 @@
 
 	// --- START: Initialization ---
 	async function initializeApp() {
-		console.log(`🚀 [Init Oceneni v23.23.12] Starting...`);
+		console.log(`🚀 [Init Oceneni v23.23.13] Starting...`);
 		cacheDOMElements();
 		if (!initializeSupabase()) return;
 
@@ -1965,7 +1968,7 @@
 			console.log(`[Init Oceneni] All DB titles loaded: ${allTitlesFromDB.length}`);
 
 			updateSidebarProfile(currentProfile, allTitlesFromDB);
-			setupEventListeners(); // This will now correctly set up non-collapsible sections
+			setupEventListeners();
 			initMouseFollower();
 			initHeaderScrollDetection();
 			updateCopyrightYear();
