@@ -1753,10 +1753,10 @@ button:hover ~ .mouse-follower-glow,
 
 @media print { /* Print styles remain largely the same */
 	body { background: #fff; color: #000; font-size: 10pt; }
-	#header, #contact, .hero #particles-js, .mouse-follower-glow, .cta, .ai-interface-section, .testimonial-slider-wrapper .slider-btn, .yuki-special-section .yuki-card::before, body::after, .hero::before { display: none !important; }
+	#header, #contact, .hero #particles-js, .mouse-follower-glow, .cta, .ai-interface-section, .testimonial-slider-wrapper .slider-btn, .yuki-special-section .yuki-card::before, body::after, .hero::before, #cookie-consent-banner, .cookie-modal { display: none !important; }
 	.container { width: 100%; max-width: none; margin: 0; padding: 0 1cm; }
 	a { color: #000 !important; text-decoration: underline !important; filter: none !important; }
-    a[href^="/"]:after { content: " (" attr(href) ")"; }
+    a[href^="/"]:after, a[href^="http"]:after { content: " (" attr(href) ")"; font-size: 0.8em; }
 	h1, h2, h3, h4, h5, h6 { color: #000 !important; text-shadow: none !important; page-break-after: avoid; }
     h1 { font-size: 24pt; } h2 { font-size: 18pt; } h3 { font-size: 14pt; }
 	p { color: #333 !important; orphans: 3; widows: 3; }
@@ -1764,7 +1764,6 @@ button:hover ~ .mouse-follower-glow,
     .testimonial-slider-container { overflow: visible !important; box-shadow: none !important; }
     .testimonial-slider-track { display: block !important; transform: none !important; }
     .testimonial-card { border: 1px solid #ccc !important; box-shadow: none !important; backdrop-filter: none !important; background: #f9f9f9 !important; padding: 1cm !important; break-inside: avoid !important; width: 100% !important; margin-bottom: 1cm !important; margin-right: 0 !important; page-break-inside: avoid !important; }
-    /* .hero h1 .highlight rule from original not needed if h1 structure changes */
     .hero p, .hero .hero-buttons, .section-subtitle, .ai-explanation { display: none !important; }
     .logo span, .logo i { color: #000 !important; filter: none !important; }
     .yuki-photo { border: 2px solid #666 !important; box-shadow: none !important; float: right; margin-left: 1cm; width: 3cm !important; height: 3cm !important; }
@@ -1777,28 +1776,28 @@ button:hover ~ .mouse-follower-glow,
    ========================================================================== */
 
 #cookie-consent-banner {
-    position: fixed;
+    position: fixed; /* THIS IS THE KEY FOR VIEWPORT STICKING */
     bottom: 0;
     left: 0;
-    width: 100%;
-    z-index: 10000;
+    width: 100%; /* Changed from right:0 and left:0 for clarity */
+    z-index: 10000; /* High z-index */
     box-sizing: border-box;
-    background-color: var(--clr-bg-tertiary); /* Using a slightly lighter bg from your palette */
+    background-color: var(--clr-bg-tertiary);
     color: var(--clr-text-primary);
-    padding: 15px 25px; /* Adjusted padding */
+    padding: 15px 25px;
     box-shadow: 0 -3px 15px rgba(0, 0, 0, 0.4);
-    border-top: 1.5px solid var(--clr-accent-purple); /* Use an accent for border */
-    display: flex; /* For JavaScript to toggle via .visible */
+    border-top: 1.5px solid var(--clr-accent-purple);
+    display: flex; /* Managed by JS for initial state, then .visible class */
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     gap: 20px;
-    transition: transform 0.45s var(--transition-bounce), opacity 0.4s ease-out; /* Use your bounce transition */
-    transform: translateY(100%);
-    opacity: 0;
+    transition: transform 0.45s var(--transition-bounce), opacity 0.4s ease-out;
+    transform: translateY(100%); /* Start off-screen */
+    opacity: 0; /* Start transparent */
 }
 
-#cookie-consent-banner.visible {
+#cookie-consent-banner.visible { /* Class added by JS to show banner */
     transform: translateY(0);
     opacity: 1;
 }
@@ -1806,19 +1805,19 @@ button:hover ~ .mouse-follower-glow,
 #cookie-consent-banner p {
     margin: 0;
     flex-grow: 1;
-    font-size: 0.9rem; /* Slightly smaller text */
+    font-size: 0.9rem;
     line-height: 1.55;
     color: var(--clr-text-secondary);
-    padding-right: 20px; /* Space before buttons if they don't wrap */
+    padding-right: 20px;
 }
 
 #cookie-consent-banner p a {
-    color: var(--clr-accent-cyan); /* Use your cyan accent */
+    color: var(--clr-accent-cyan);
     text-decoration: underline;
     font-weight: 500;
 }
 #cookie-consent-banner p a:hover {
-    color: var(--clr-accent-pink); /* Pink on hover */
+    color: var(--clr-accent-pink);
     filter: drop-shadow(0 0 4px var(--clr-accent-pink));
 }
 
@@ -1826,52 +1825,59 @@ button:hover ~ .mouse-follower-glow,
     display: flex;
     align-items: center;
     flex-shrink: 0;
-    gap: 12px; /* Space between buttons */
+    gap: 12px;
 }
 
-/* Style buttons within banner using your .btn class structure */
-#cookie-consent-banner .btn {
-    padding: 0.7em 1.6em; /* Slightly smaller padding for banner buttons */
-    font-size: 0.85rem; /* Slightly smaller font */
-    min-width: auto; /* Allow buttons to be smaller */
-    letter-spacing: 1px; /* Adjust letter spacing if needed */
+#cookie-consent-banner .btn { /* Inherits from global .btn, specific overrides here */
+    padding: 0.7em 1.6em;
+    font-size: 0.85rem;
+    min-width: auto;
+    letter-spacing: 1px;
+    /* ::before shine effect from global .btn will apply */
 }
-/* Specific override for primary accept button in banner */
-#cookie-consent-banner .btn#cookie-consent-accept-all {
-    background: linear-gradient(45deg, var(--clr-accent-green), var(--clr-accent-cyan)); /* Green/Cyan gradient */
-    color: var(--clr-bg-primary);
-    box-shadow: 0 0 15px rgba(0, 255, 179, 0.4), 0 0 15px rgba(0, 242, 255, 0.3);
+#cookie-consent-banner .btn#cookie-consent-accept-all { /* Primary accept button */
+    background: linear-gradient(45deg, var(--clr-accent-green), var(--clr-accent-cyan));
+    color: var(--clr-bg-primary); /* Ensure text is dark on light gradient */
+    box-shadow: 0 0 15px rgba(0, 255, 179, 0.4), 0 0 15px rgba(0, 242, 255, 0.3), var(--shadow-interactive);
 }
 #cookie-consent-banner .btn#cookie-consent-accept-all:hover {
     background: linear-gradient(45deg, var(--clr-accent-cyan), var(--clr-accent-green));
-    box-shadow: 0 0 20px rgba(0, 242, 255, 0.5), 0 0 20px rgba(0, 255, 179, 0.4);
-    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.5), 0 0 20px rgba(0, 255, 179, 0.4), var(--shadow-interactive-hover);
+    transform: translateY(-4px) scale(1.04); /* Enhanced hover from global .btn.auth-link */
 }
-/* Style for reject and customize (as outline) */
-#cookie-consent-banner .btn.btn-outline {
-    color: var(--clr-accent-purple);
-    border-color: var(--clr-accent-purple);
-    text-shadow: 0 0 6px var(--clr-accent-purple);
+/* Reject button as outline */
+#cookie-consent-banner .btn#cookie-consent-reject-all.btn-outline { /* More specific */
+    color: var(--clr-accent-red); /* Use red for reject */
+    border-color: var(--clr-accent-red);
+    text-shadow: 0 0 6px var(--clr-accent-red);
 }
-#cookie-consent-banner .btn.btn-outline:hover {
-    background-color: rgba(170, 108, 255, 0.12);
+#cookie-consent-banner .btn#cookie-consent-reject-all.btn-outline:hover {
+    background-color: rgba(255, 80, 80, 0.1); /* Reddish transparent bg */
     color: var(--clr-text-highlight);
-    border-color: var(--clr-accent-pink);
-    box-shadow: var(--glow-pink), 0 0 0 2.5px rgba(255, 64, 191, 0.15);
-    text-shadow: 0 0 8px var(--clr-accent-pink);
+    border-color: var(--clr-accent-red); /* Keep red border or change to pink for consistency? User choice */
+    box-shadow: 0 0 10px var(--clr-accent-red), 0 0 0 2.5px rgba(255, 80, 80, 0.15);
+    text-shadow: 0 0 8px var(--clr-accent-red);
 }
-/* Link style button for customize if preferred over outline */
-#cookie-consent-banner .btn.btn-link {
+/* Customize button as link style */
+#cookie-consent-banner .btn#cookie-consent-customize.btn-link {
     color: var(--clr-text-secondary);
-    font-family: var(--font-secondary); /* Match main text font */
+    font-family: var(--font-secondary);
     text-transform: none;
     letter-spacing: normal;
     font-size: 0.85rem;
-    padding: 0.7em 0.5em; /* Small padding */
+    padding: 0.7em 0.5em;
+    border: none; /* Ensure no border from .btn */
+    background: none; /* Ensure no background from .btn */
+    box-shadow: none; /* Ensure no shadow from .btn */
 }
-#cookie-consent-banner .btn.btn-link:hover {
+#cookie-consent-banner .btn#cookie-consent-customize.btn-link:hover {
     color: var(--clr-accent-cyan);
     text-shadow: 0 0 5px var(--clr-accent-cyan);
+    transform: none; /* No transform for link button */
+    box-shadow: none; /* No shadow for link button */
+}
+#cookie-consent-banner .btn#cookie-consent-customize.btn-link::before {
+    display:none; /* No shine effect */
 }
 
 
@@ -1882,12 +1888,12 @@ button:hover ~ .mouse-follower-glow,
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(5, 4, 15, 0.75); /* Darker overlay from your palette */
-    backdrop-filter: blur(8px) saturate(0.9);
+    background-color: rgba(5, 4, 15, 0.8); /* Darker overlay */
+    backdrop-filter: blur(10px) saturate(0.8); /* More blur */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10001; /* Higher than banner */
+    z-index: 10001;
     opacity: 0;
     visibility: hidden;
     transition: opacity var(--transition-smooth), visibility 0s linear var(--transition-smooth);
@@ -1900,19 +1906,19 @@ button:hover ~ .mouse-follower-glow,
 }
 
 .cookie-modal-content {
-    background: var(--clr-bg-card); /* Use your card background */
-    backdrop-filter: blur(15px) saturate(1.2);
+    background: var(--clr-bg-card);
+    backdrop-filter: blur(18px) saturate(1.3); /* Stronger blur for modal content */
     padding: clamp(25px, 4vw, 40px);
-    border-radius: var(--layout-border-radius-lg); /* Use your large border radius */
-    border: 1.5px solid var(--clr-accent-purple); /* Accent border */
-    box-shadow: var(--shadow-card-hover), var(--glow-purple); /* Use your hover shadow and glow */
+    border-radius: var(--layout-border-radius-lg);
+    border: 1.5px solid var(--clr-accent-purple);
+    box-shadow: var(--shadow-card-hover), var(--glow-purple), 0 0 50px rgba(0,0,0,0.5); /* Stronger shadow */
     width: 90%;
-    max-width: 700px; /* Max width for modal */
+    max-width: 700px;
     max-height: 88vh;
     overflow-y: auto;
     color: var(--clr-text-primary);
     transform: scale(0.92) translateY(15px);
-    transition: transform var(--transition-bounce) 0.1s, opacity var(--transition-smooth) 0.1s; /* Staggered entry */
+    transition: transform var(--transition-bounce) 0.1s, opacity var(--transition-smooth) 0.1s;
     opacity: 0;
     scrollbar-width: thin;
     scrollbar-color: var(--clr-accent-cyan) var(--clr-bg-crt-log);
@@ -1920,7 +1926,7 @@ button:hover ~ .mouse-follower-glow,
 .cookie-modal.visible .cookie-modal-content {
     transform: scale(1) translateY(0);
     opacity: 1;
-    transition-delay: 0s; /* Override stagger for visible state */
+    transition-delay: 0s;
 }
 .cookie-modal-content::-webkit-scrollbar { width: 10px; }
 .cookie-modal-content::-webkit-scrollbar-track { background: var(--clr-bg-crt-log); border-radius: var(--layout-border-radius-sm); }
@@ -1934,7 +1940,7 @@ button:hover ~ .mouse-follower-glow,
     align-items: center;
     margin-bottom: 25px;
     padding-bottom: 20px;
-    border-bottom: 1px solid rgba(170, 108, 255, 0.25); /* Subtle purple border */
+    border-bottom: 1px solid rgba(170, 108, 255, 0.25);
 }
 .cookie-modal-header h3 {
     margin: 0;
@@ -1946,7 +1952,7 @@ button:hover ~ .mouse-follower-glow,
     background: none;
     border: none;
     color: var(--clr-text-secondary);
-    font-size: 2.2rem; /* Larger close icon */
+    font-size: 2.2rem;
     line-height: 1;
     padding: 0;
     cursor: pointer;
@@ -1970,7 +1976,7 @@ button:hover ~ .mouse-follower-glow,
 }
 .cookie-category:last-child {
     border-bottom: none;
-    padding-bottom: 0; /* Remove bottom padding for last item */
+    padding-bottom: 0;
 }
 .cookie-category-header {
     display: flex;
@@ -1980,70 +1986,68 @@ button:hover ~ .mouse-follower-glow,
 }
 .cookie-category-header h4 {
     margin: 0;
-    font-size: 1.15rem; /* Slightly larger category titles */
-    font-weight: 600; /* Bolder */
+    font-size: 1.15rem;
+    font-weight: 600;
     color: var(--clr-text-highlight);
 }
 .cookie-category-description {
-    font-size: 0.88rem; /* Consistent small text */
+    font-size: 0.88rem;
     color: var(--clr-text-secondary);
     line-height: 1.6;
     margin: 0;
     opacity: 0.9;
 }
 
-/* Switch for Cookie Settings */
 .cookie-switch {
     position: relative;
     display: inline-block;
-    width: 48px; /* Adjusted size */
+    width: 48px;
     height: 26px;
     flex-shrink: 0;
 }
-.cookie-switch input { display: none; } /* Visually hide checkbox */
+.cookie-switch input { display: none; }
 
 .cookie-slider {
     position: absolute;
     cursor: pointer;
     top: 0; left: 0; right: 0; bottom: 0;
-    background-color: var(--clr-bg-tertiary); /* Darker switch bg */
-    border: 1.5px solid var(--clr-accent-purple); /* Purple border */
+    background-color: var(--clr-bg-tertiary);
+    border: 1.5px solid var(--clr-accent-purple);
     transition: var(--transition-fast);
-    border-radius: 26px; /* Fully rounded */
+    border-radius: 26px;
 }
 .cookie-slider:before {
     position: absolute;
     content: "";
-    height: 18px; /* Knob size */
+    height: 18px;
     width: 18px;
-    left: 3px; /* Knob position */
+    left: 3px;
     bottom: 3px;
-    background-color: var(--clr-text-secondary); /* Knob color */
+    background-color: var(--clr-text-secondary);
     transition: var(--transition-fast);
     border-radius: 50%;
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 .cookie-switch input:checked + .cookie-slider {
-    background-color: var(--clr-accent-cyan); /* Cyan when active */
+    background-color: var(--clr-accent-cyan);
     border-color: var(--clr-accent-cyan);
     box-shadow: var(--glow-cyan);
 }
-.cookie-switch input:focus + .cookie-slider { /* Focus outline */
+.cookie-switch input:focus + .cookie-slider {
     box-shadow: 0 0 0 2.5px rgba(0, 242, 255, 0.3), var(--glow-cyan);
 }
 .cookie-switch input:checked + .cookie-slider:before {
-    transform: translateX(22px); /* Move knob */
-    background-color: var(--clr-bg-primary); /* Dark knob on active */
+    transform: translateX(22px);
+    background-color: var(--clr-bg-primary);
 }
-/* Styles for always-on (necessary) switch */
-.cookie-switch.always-on .cookie-slider {
-    background-color: var(--clr-accent-green); /* Green for necessary */
+.cookie-switch.always-on .cookie-slider { /* For "Necessary" cookies */
+    background-color: var(--clr-accent-green);
     border-color: var(--clr-accent-green);
     cursor: default;
     box-shadow: var(--glow-green);
 }
 .cookie-switch.always-on input:checked + .cookie-slider:before {
-    background-color: var(--clr-bg-primary); /* Dark knob */
+    background-color: var(--clr-bg-primary);
 }
 
 
@@ -2052,30 +2056,43 @@ button:hover ~ .mouse-follower-glow,
     padding-top: 25px;
     border-top: 1px solid rgba(170, 108, 255, 0.25);
     display: flex;
-    justify-content: flex-end; /* Align buttons to right */
+    justify-content: flex-end;
     gap: 15px;
     flex-wrap: wrap;
 }
-/* Ensure modal buttons use the global .btn styles correctly */
 .cookie-modal-footer .btn {
-    padding: 0.85em 1.8em; /* Standardize modal button padding */
+    padding: 0.85em 1.8em;
     font-size: 0.9rem;
 }
-.cookie-modal-footer .btn#cookie-settings-save { /* Primary save button */
+.cookie-modal-footer .btn#cookie-settings-save { /* Primary save button in modal */
     background: linear-gradient(45deg, var(--clr-accent-purple), var(--clr-accent-pink));
     color: var(--clr-text-highlight);
-    box-shadow: 0 0 15px rgba(170, 108, 255, 0.4), 0 0 15px rgba(255, 64, 191, 0.3);
+    box-shadow: 0 0 15px rgba(170, 108, 255, 0.4), 0 0 15px rgba(255, 64, 191, 0.3), var(--shadow-interactive);
 }
 .cookie-modal-footer .btn#cookie-settings-save:hover {
     background: linear-gradient(45deg, var(--clr-accent-pink), var(--clr-accent-purple));
-    box-shadow: 0 0 20px rgba(255, 64, 191, 0.5), 0 0 20px rgba(170, 108, 255, 0.4);
+    box-shadow: 0 0 20px rgba(255, 64, 191, 0.5), 0 0 20px rgba(170, 108, 255, 0.4), var(--shadow-interactive-hover);
+    transform: translateY(-4px) scale(1.04);
+}
+/* Style for "Accept All" button in modal as outline, if needed */
+.cookie-modal-footer .btn#cookie-settings-accept-all-modal.btn-outline {
+    color: var(--clr-accent-green);
+    border-color: var(--clr-accent-green);
+    text-shadow: 0 0 6px var(--clr-accent-green);
+}
+.cookie-modal-footer .btn#cookie-settings-accept-all-modal.btn-outline:hover {
+    background-color: rgba(0, 255, 179, 0.1);
+    color: var(--clr-text-highlight);
+    border-color: var(--clr-accent-green);
+    box-shadow: var(--glow-green), 0 0 0 2.5px rgba(0, 255, 179, 0.15);
+    text-shadow: 0 0 8px var(--clr-accent-green);
 }
 
 
 /* Responsive adjustments for cookie UI on smaller screens */
 @media (max-width: 768px) {
     .cookie-modal-content {
-        padding: 25px 20px; /* Adjust padding for smaller modals */
+        padding: 25px 20px;
         max-height: 90vh;
     }
     .cookie-modal-header h3 {
@@ -2084,7 +2101,7 @@ button:hover ~ .mouse-follower-glow,
 }
 
 @media (max-width: 600px) {
-    #cookie-consent-banner { /* Stack banner items vertically */
+    #cookie-consent-banner {
         flex-direction: column;
         padding: 20px 15px;
         text-align: center;
@@ -2096,25 +2113,25 @@ button:hover ~ .mouse-follower-glow,
     #cookie-consent-banner .cookie-consent-actions {
         justify-content: center;
         width: 100%;
-        flex-wrap: wrap;
+        flex-wrap: wrap; /* Ensure buttons can wrap */
     }
      #cookie-consent-banner .cookie-consent-actions .btn {
-        flex-grow: 1; /* Allow buttons to take space */
-        min-width: 130px; /* Ensure buttons are tappable */
-        margin-bottom: 8px; /* Space if they wrap */
+        flex-grow: 1; /* Allow buttons to take available width */
+        min-width: 130px;
+        margin-bottom: 8px;
     }
     #cookie-consent-banner .cookie-consent-actions .btn:last-child {
         margin-bottom: 0;
     }
 
-    .cookie-modal-footer { /* Stack modal footer buttons */
+    .cookie-modal-footer {
         flex-direction: column;
         gap: 12px;
     }
     .cookie-modal-footer .btn {
-        width: 100%; /* Full width buttons in modal footer */
+        width: 100%;
     }
-    .cookie-category-header { /* Stack category header on small screens if needed */
+    .cookie-category-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
@@ -2122,7 +2139,7 @@ button:hover ~ .mouse-follower-glow,
     .cookie-category-header h4 {
         font-size: 1.05rem;
     }
-    .cookie-switch { /* Ensure switch isn't too small */
-        transform: scale(0.95);
+    .cookie-switch {
+        transform: scale(0.95); /* Slightly smaller switch */
     }
 }
