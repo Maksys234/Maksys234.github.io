@@ -1722,3 +1722,106 @@ button:hover ~ .mouse-follower-glow,
     .feature-icon, .how-it-works-icon { display: none !important; }
     img { max-width: 100% !important; height: auto !important; }
 }
+/* Existing styles in index.css should remain above this line */
+
+/* Cookie Consent Banner Styles */
+#cookie-consent-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--bg-darker, #1a1a2e); /* Fallback if CSS var is not defined */
+    color: var(--text-light, #e0e0e0);
+    padding: 20px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1000; /* Ensure it's above other content */
+    display: none; /* Initially hidden, JS will show it */
+    border-top: 1px solid var(--interface-border, #3a3a5e);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+#cookie-consent-banner p {
+    margin: 0 0 15px 0;
+    color: var(--text-medium, #c0c0c0);
+}
+
+#cookie-consent-banner a {
+    color: var(--accent-primary, #00e0ff);
+    text-decoration: underline;
+}
+
+#cookie-consent-banner a:hover {
+    color: var(--white, #ffffff);
+    text-decoration: none;
+}
+
+.cookie-consent-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+}
+
+#cookie-consent-banner .btn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    min-width: 120px; /* Give buttons some minimum width */
+}
+
+/* Ensure banner buttons inherit global button styles but can be overridden */
+#cookie-consent-banner #cookie-consent-accept {
+    background-color: var(--accent-primary, #00e0ff);
+    color: var(--bg-dark, #03020c); /* Text color for primary button */
+    border: 1px solid var(--accent-primary, #00e0ff);
+}
+
+#cookie-consent-banner #cookie-consent-accept:hover {
+    background-color: var(--accent-primary-darker, #00b8d4); /* Slightly darker on hover */
+    border-color: var(--accent-primary-darker, #00b8d4);
+}
+
+#cookie-consent-banner .btn-outline {
+    background-color: transparent;
+    color: var(--accent-secondary, #a05cff);
+    border: 1px solid var(--accent-secondary, #a05cff);
+}
+
+#cookie-consent-banner .btn-outline:hover {
+    background-color: var(--accent-secondary-transparent, rgba(160, 92, 255, 0.1));
+    color: var(--white, #ffffff);
+}
+
+#cookie-consent-banner .btn-link {
+    background-color: transparent;
+    color: var(--text-muted, #888);
+    border: none;
+    text-decoration: underline;
+    padding: 10px 0; /* Adjust padding for link-style button */
+}
+
+#cookie-consent-banner .btn-link:hover {
+    color: var(--text-light, #e0e0e0);
+}
+
+/* Responsive adjustments for smaller screens if needed */
+@media (max-width: 600px) {
+    .cookie-consent-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #cookie-consent-banner .btn {
+        width: 100%; /* Make buttons full width on small screens */
+        margin-bottom: 10px;
+    }
+
+    .cookie-consent-actions .btn:last-child {
+        margin-bottom: 0;
+    }
+
+    #cookie-consent-banner {
+        padding: 15px;
+        font-size: 0.9rem;
+    }
+}
