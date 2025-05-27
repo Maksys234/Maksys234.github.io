@@ -6,6 +6,7 @@
 // VERZE 10.3 (POŽADAVEK UŽIVATELE): Přidána logika pro výběr otázek dle ročníku a sebehodnocení témat.
 // VERZE 10.4 (POŽADAVEK UŽIVATELE): Upraveno vracení prázdného pole místo chyby při nedostatku otázek.
 // VERZE 10.5 (POŽADAVEK UŽIVATELE): Test se spustí i s 0 otázkami; MINIMUM_QUESTIONS_THRESHOLD se použije pro logiku "smysluplnosti" testu, nikoliv pro jeho spuštění.
+// VERZE K ÚPRAVĚ: Odstranění sloupce source_year
 
 // Используем IIFE для изоляции области видимости
 (function(global) {
@@ -23,7 +24,8 @@
     const NOTIFICATION_FETCH_LIMIT = 5;
     const DEFAULT_QUESTIONS_PER_TOPIC = 3;
     const TOTAL_QUESTIONS_IN_TEST = 30;
-    const MINIMUM_QUESTIONS_THRESHOLD = 1; // Minimální počet otázek, aby byl test považován za "spustitelný" pro zobrazení, i když s 0 otázkami to také půjde.
+    const MINIMUM_QUESTIONS_THRESHOLD = 1;
+    // --- END: Конфигурация ---
 
     // --- START: Вспомогательные функции ---
     function shuffleArray(array) {
@@ -149,13 +151,13 @@
         if (learningGoal === 'math_review') {
             sourceExamTypeFilter = 'math_review';
         }
-
+        // ZMĚNA: Odstraněn source_year z SELECT dotazu
         let query = supabase
             .from('exam_questions')
             .select(`
                 id, question_text, question_type, options, correct_answer,
                 solution_explanation, topic_id, subtopic_id, difficulty,
-                image_url, source_year, source_exam_type, target_grade,
+                image_url, source_exam_type, target_grade,
                 answer_prefix, answer_suffix,
                 topic:topic_id ( id, name ),
                 subtopic:subtopic_id ( id, name )
@@ -174,7 +176,6 @@
 
         if (fetchError) {
             console.error("[Logic LoadQ v10.5] Chyba při načítání otázek z DB:", fetchError);
-            // Nevyhazujeme chybu, ale vrátíme prázdné pole, aby UI mohlo zobrazit zprávu
             return [];
         }
 
@@ -183,7 +184,7 @@
                 ? `V databázi nejsou žádné otázky pro typ '${sourceExamTypeFilter}' a ročník '${userGrade}' (kromě konstrukčních).`
                 : `V databázi nejsou žádné otázky pro typ '${sourceExamTypeFilter}' (kromě konstrukčních).`;
             console.warn(`[Logic LoadQ v10.5] ${warningMessage}`);
-            return []; // Vracíme prázdné pole
+            return [];
         }
         console.log(`[Logic LoadQ v10.5] Načteno ${allQuestionsForGrade.length} otázek odpovídajících filtru ročníku (pokud byl aplikován).`);
 
@@ -265,7 +266,6 @@
 
         if (selectedQuestions.length < TOTAL_QUESTIONS_IN_TEST) {
             console.log(`[Logic LoadQ v10.5] Doplňování otázek. Aktuálně: ${selectedQuestions.length}/${TOTAL_QUESTIONS_IN_TEST}`);
-            const remainingQuestionsNeeded = TOTAL_QUESTIONS_IN_TEST - selectedQuestions.length;
             let allAvailableQuestionsFlat = Object.values(questionsByTopic).flat();
             shuffleArray(allAvailableQuestionsFlat);
 
@@ -283,8 +283,6 @@
             selectedQuestions = selectedQuestions.slice(0, TOTAL_QUESTIONS_IN_TEST);
         }
 
-        // Odstraněna podmínka pro MINIMUM_QUESTIONS_THRESHOLD zde,
-        // vrátíme vždy pole, i když je prázdné. UI se o to postará.
         if (selectedQuestions.length === 0) {
             console.warn(`[Logic LoadQ v10.5] Po všech krocích nebyly vybrány žádné otázky. Vracím prázdné pole.`);
             return [];
@@ -292,6 +290,7 @@
 
         console.log(`[Logic LoadQ v10.5] Finálně vybráno ${selectedQuestions.length} otázek.`);
 
+        // ZMĚNA: Odstraněn source_year z mapování
         const formattedQuestions = selectedQuestions.map((question, index) => ({
             id: question.id,
             question_number: index + 1,
@@ -306,7 +305,7 @@
             subtopic_name: question.subtopic ? question.subtopic.name : "",
             difficulty: question.difficulty,
             image_url: question.image_url,
-            source_year: question.source_year,
+            // source_year: question.source_year, // ODSTRANĚNO
             source_exam_type: question.source_exam_type,
             target_grade: question.target_grade,
             answer_prefix: question.answer_prefix,
@@ -417,7 +416,6 @@
                     is_equivalent: localComparisonResult
                 };
             }
-            // Pokud lokální porovnání vrátilo null (např. u numerického, kde ani jedna hodnota není číslo), spadne to do Gemini.
             console.log(`[Logic v10.2 Q#${currentQuestionIndex + 1}] Lokální srovnání NENÍ JEDNOZNAČNÉ nebo selhalo. Volám Gemini.`);
         }
 
@@ -440,7 +438,6 @@
         if (!GEMINI_API_KEY || GEMINI_API_KEY.startsWith('YOUR_') || GEMINI_API_KEY.length < 10) { return runFallbackCheck("Chybí platný Gemini API klíč."); }
 
         let prompt;
-        // UPDATED PROMPT with more specific instructions for format equivalence
         const baseInstruction = `Jsi PŘÍSNÝ, DETAILNÍ a PŘESNÝ AI hodnotitel odpovědí z PŘIJÍMACÍCH ZKOUŠEK z matematiky/logiky pro 9. třídu ZŠ v ČR. Tvým úkolem je KOMPLEXNĚ posoudit odpověď studenta vůči správnému řešení/odpovědi v kontextu dané otázky. MUSÍŠ vrátit POUZE JSON objekt podle PŘESNĚ definované struktury. NEPŘIDÁVEJ žádný text PŘED nebo ZA JSON blok.
 Při hodnocení numerických a algebraických odpovědí:
 - **Ekvivalence formátu:** Považuj různé, ale matematicky SPRÁVNÉ formáty zápisu za ekvivalentní, POKUD otázka explicitně NEVYŽADUJE specifický formát. Například:
@@ -535,7 +532,6 @@ Pro textové odpovědi (včetně ano/ne) buď tolerantní k velkým/malým písm
         if (!supabase || !userId) { console.error("[Notifications Logic v10.2] Chybí Supabase nebo ID uživatele."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications Logic v10.2] Načítání nepřečtených oznámení pro uživatele ${userId}`); try { const { data, error, count } = await supabase.from('user_notifications').select('*', { count: 'exact' }).eq('user_id', userId).eq('is_read', false).order('created_at', { ascending: false }).limit(limit); if (error) { throw error; } console.log(`[Notifications Logic v10.2] Načteno ${data?.length || 0} oznámení. Celkem nepřečtených: ${count}`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications Logic v10.2] Výjimka při načítání oznámení:", error); return { unreadCount: 0, notifications: [] }; }
     }
     // --- END: Логика Уведомлений ---
-
 
     // --- START: Глобальный Экспорт ---
     global.TestLogic = {
