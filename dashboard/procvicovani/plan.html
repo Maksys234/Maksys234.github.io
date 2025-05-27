@@ -138,22 +138,41 @@
                     <div class="loading-spinner"></div>
                     <p>Načítám aktuální plán...</p>
                 </div>
-                <div id="currentPlanContent" class="section-content">
+                <div id="dailyPlanCarouselContainer" class="daily-plan-carousel-container section-content">
+                    <button id="prevDayBtn" class="btn btn-secondary daily-plan-nav-btn prev-day-btn btn-tooltip" title="Předchozí den" style="display: none;">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+
+                    <div class="daily-plan-viewport">
+                        <div id="singleDayPlanView" class="single-day-plan-view">
+                            <div class="day-schedule-card skeleton-day-card" style="display:none;">
+                                <div class="day-header skeleton-day-header">Načítání dne...</div>
+                                <div class="activity-list-container">
+                                    <div class="activity-list-item skeleton-activity-item">
+                                        <label class="activity-checkbox skeleton-activity-checkbox"></label>
+                                        <i class="fas fa-spinner fa-spin activity-icon"></i>
+                                        <div class="activity-details skeleton-activity-details">
+                                            <div class="activity-title-time">
+                                                <span class="activity-title skeleton-text" style="width:70%"></span>
+                                                <span class="activity-time-display skeleton-text" style="width:30%"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="nextDayBtn" class="btn btn-secondary daily-plan-nav-btn next-day-btn btn-tooltip" title="Následující den" style="display: none;">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
                 </div>
-                <div id="vertical-schedule-list" class="vertical-schedule-list section-content">
-                     <div class="skeleton day-card-skeleton" style="display:none;">
-                         <div class="skeleton day-header-skeleton"></div>
-                         <div class="skeleton activity-item-skeleton">
-                             <div class="skeleton activity-checkbox-skeleton"></div>
-                             <div class="skeleton activity-content-skeleton">
-                                 <div class="skeleton activity-title-skeleton"></div>
-                                 <div class="skeleton activity-meta-skeleton"></div>
-                             </div>
-                         </div>
-                     </div>
-                </div>
-                 <div class="step-navigation" id="verticalScheduleNav" style="display:none;">
-                     <button class="btn btn-primary btn-tooltip" id="exportScheduleBtnVertical" title="Stáhnout plán jako PDF">
+
+                <div id="currentPlanEmptyState" class="section-content" style="display:none;">
+                    </div>
+
+
+                 <div class="step-navigation" id="verticalScheduleNav" style="display:none;"> <button class="btn btn-primary btn-tooltip" id="exportScheduleBtnVertical" title="Stáhnout plán jako PDF">
                          <i class="fas fa-file-pdf"></i> Exportovat
                      </button>
                  </div>
