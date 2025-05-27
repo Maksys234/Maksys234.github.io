@@ -3,14 +3,14 @@
  * Handles UI interactions, animations, infinite testimonial slider,
  * Hero text mask reveal, interactive gradient, enhanced visual effects,
  * and Advanced Cookie Consent Banner with gtag.js integration.
- * Version: v2.34 (Advanced Cookie Consent & Gtag Integration)
- * Author: Gemini Modification (enhanced from v2.33)
- * Date: 2025-05-26 // Assuming current date for update
+ * Version: v2.35 (Collapsible Cookie Categories & Improved Banner Display)
+ * Author: Gemini Modification (enhanced from v2.34)
+ * Date: 2025-05-27 
  *
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Ready. Initializing JUSTAX Interface v2.34 (Advanced Cookie Consent)...");
+    console.log("DOM Ready. Initializing JUSTAX Interface v2.35 (Collapsible Cookies)...");
 
     // --- Global Variables & DOM References ---
     const body = document.body;
@@ -61,18 +61,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Cookie Consent Elements ---
     const cookieConsentBanner = document.getElementById('cookie-consent-banner');
-    const cookieConsentAcceptAllBtn = document.getElementById('cookie-consent-accept-all'); // Updated ID
-    const cookieConsentRejectAllBtn = document.getElementById('cookie-consent-reject-all'); // New ID
-    const cookieConsentCustomizeBtn = document.getElementById('cookie-consent-customize');   // New ID
+    const cookieConsentAcceptAllBtn = document.getElementById('cookie-consent-accept-all');
+    const cookieConsentRejectAllBtn = document.getElementById('cookie-consent-reject-all');
+    const cookieConsentCustomizeBtn = document.getElementById('cookie-consent-customize');
 
     const cookieSettingsModal = document.getElementById('cookie-settings-modal');
     const cookieModalCloseBtn = document.getElementById('cookie-modal-close');
     const cookieSettingsSaveBtn = document.getElementById('cookie-settings-save');
     const cookieSettingsAcceptAllModalBtn = document.getElementById('cookie-settings-accept-all-modal');
-    const cookieSettingsTriggerFooter = document.getElementById('cookie-settings-trigger'); // Updated ID from 'cookie-settings-link'
+    const cookieSettingsTriggerFooter = document.getElementById('cookie-settings-trigger');
 
-    // All consent toggle inputs within the modal
+    // All consent toggle inputs and category headers within the modal
     const cookieSettingToggles = cookieSettingsModal ? Array.from(cookieSettingsModal.querySelectorAll('.cookie-switch input[type="checkbox"][data-consent-type]')) : [];
+    const cookieCategoryHeaders = cookieSettingsModal ? Array.from(cookieSettingsModal.querySelectorAll('.cookie-category-header')) : [];
 
 
     let localTestimonials = [];
@@ -195,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn("Local testimonials array is empty after initialization attempt.");
     }
 
-    // --- Utility Functions & Core Logic (Existing functions like debounce, getRandomColorPair, etc. remain unchanged) ---
+    // --- Utility Functions & Core Logic ---
     const debounce = (func, wait) => {
         let timeout;
         return function executedFunction(...args) {
@@ -312,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const initializeInfiniteSlider = async () => {
-        console.log("Starting infinite slider initialization v2.34...");
+        console.log("Starting infinite slider initialization v2.35...");
         if (!sliderTrack || !prevBtn || !nextBtn) { console.error("Slider init fail: core elements missing."); return; }
         isSliding = true; sliderInitialLoadComplete = false; prevBtn.disabled = true; nextBtn.disabled = true;
         sliderTrack.innerHTML = ''; testimonialDataCache = []; cardsInTrack = []; cardWidthAndMargin = 0; stableVisibleStartIndex = config.testimonials.bufferCards;
@@ -382,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; if(follower.style.display === 'none') follower.style.display = ''; currentOpacity = 0.7;});
         document.addEventListener('mouseleave', () => { currentOpacity = 0; });
         document.addEventListener('mouseenter', () => { if(follower.style.display === 'none') follower.style.display = ''; currentOpacity = 0.7; });
-        document.querySelectorAll('a, button, .btn, .slider-btn, .feature-card, .how-it-works-step, .yuki-card, input, textarea').forEach(el => {
+        document.querySelectorAll('a, button, .btn, .slider-btn, .feature-card, .how-it-works-step, .yuki-card, input, textarea, .cookie-category-header').forEach(el => {
             el.addEventListener('mouseenter', () => { currentScale = el.matches('input, textarea') ? config.mouseFollower.textHoverScale : config.mouseFollower.hoverScale; follower.classList.add('is-hovering'); });
             el.addEventListener('mouseleave', () => { currentScale = 1; follower.classList.remove('is-hovering'); });
         });
@@ -395,9 +396,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (yearSpan) yearSpan.textContent = new Date().getFullYear().toString();
 
-    // --- AI Demo Simulation (Existing code remains unchanged) ---
+    // --- AI Demo Simulation ---
     const aiDemoSteps = [
-        { type: 'status', text: 'AI jádro v2.34 aktivní. Připraven na analýzu...', progress: 5 },
+        { type: 'status', text: 'AI jádro v2.35 aktivní. Připraven na analýzu...', progress: 5 },
         { type: 'status', text: 'Probíhá skenování interakcí uživatele ID: 734B...', delay: 700 },
         { type: 'input', text: 'ANALYZE_USER_PERFORMANCE --id=734B --subject=algebra --level=intermediate' },
         { type: 'process', text: 'Zpracování dotazu na výkon...', duration: 900, progress: 20 },
@@ -483,7 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
         aiStatusIndicator.textContent = config.aiDemo.enabled ? 'NEVIDITELNÉ' : 'OFFLINE';
     }
 
-    // --- Scroll Animations (Existing code remains unchanged) ---
+    // --- Scroll Animations ---
     const animatedElements = document.querySelectorAll('[data-animate], [data-animate-letters]');
     const observerOptions = { root: null, rootMargin: '0px 0px -50px 0px', threshold: config.animations.scrollThreshold };
 
@@ -512,7 +513,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         currentWordWrapper.appendChild(highlightContainerInWord);
                         if (element === heroHeading) {
                             heroHighlightSpan = highlightContainerInWord;
-                            // console.log("Global heroHighlightSpan (for gradient) updated in setupLetterAnimation."); // Less verbose
                         }
                     }
                     highlightContainerInWord.appendChild(span);
@@ -585,7 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn("No elements found for scroll animation.");
     }
 
-    // --- Interactive Gradient for Hero (Existing code remains unchanged) ---
+    // --- Interactive Gradient for Hero ---
     const handleHeroMouseMove = (event) => {
         if (!heroSection || isTouchDevice) return;
         if (!heroHighlightSpan || !document.contains(heroHighlightSpan)) {
@@ -629,7 +629,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     } else if (isTouchDevice) {
         const setStaticGradientForTouch = () => {
-            // Try to find heroHighlightSpan again in case letter animation was slow
             if (!heroHighlightSpan || !document.contains(heroHighlightSpan)) {
                  const currentHeroHighlight = heroHeading ? heroHeading.querySelector('.highlight') : null;
                  if (currentHeroHighlight) heroHighlightSpan = currentHeroHighlight;
@@ -643,11 +642,10 @@ document.addEventListener('DOMContentLoaded', () => {
                  console.warn("Touch device: heroHighlightSpan still not found for static gradient after delay.");
             }
         };
-        // Delay this slightly to ensure letter animation might have run and populated heroHighlightSpan
         setTimeout(setStaticGradientForTouch, 1500);
     }
 
-    // --- Event Listeners (Existing listeners remain) ---
+    // --- Event Listeners ---
     window.addEventListener('scroll', debounce(handleScroll, 30));
     if (prevBtn) prevBtn.addEventListener('click', () => moveSlider(-1)); else console.warn("Prev button not found for slider.");
     if (nextBtn) nextBtn.addEventListener('click', () => moveSlider(1)); else console.warn("Next button not found for slider.");
@@ -676,7 +674,7 @@ document.addEventListener('DOMContentLoaded', () => {
             date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
             expires = `; expires=${date.toUTCString()}`;
         }
-        document.cookie = `${name}=${value || ""}${expires}; path=/; SameSite=Lax; Secure`; // Added Secure
+        document.cookie = `${name}=${value || ""}${expires}; path=/; SameSite=Lax; Secure`;
         console.log(`Processed Cookie set: ${name}=${value}`);
     };
 
@@ -685,14 +683,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const prefsString = localStorage.getItem(config.cookies.consentPreferencesKey);
             if (prefsString) {
                 const prefs = JSON.parse(prefsString);
-                // Ensure all defined keys in defaultConsentState are present
                 const completePrefs = { ...config.cookies.defaultConsentState, ...prefs };
                 return completePrefs;
             }
         } catch (e) {
             console.error("Error reading consent preferences from localStorage:", e);
         }
-        return { ...config.cookies.defaultConsentState }; // Return a copy of defaults if nothing found or error
+        return { ...config.cookies.defaultConsentState };
     };
 
     const saveConsentPreferences = (preferences) => {
@@ -706,11 +703,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const updateGtagConsent = (preferences) => {
         if (typeof gtag === 'function') {
-            const gtagPrefs = { ...preferences }; // Clone to avoid modifying original if needed
-            // security_storage is managed by default Gtag config and not user-changeable here.
-            // It's 'granted' by default in HTML. If you needed to change it, it would be here.
-            // delete gtagPrefs.security_storage; // Example if it was part of prefs but shouldn't be sent to update
-
+            const gtagPrefs = { ...preferences };
             gtag('consent', 'update', gtagPrefs);
             console.log("gtag consent updated:", gtagPrefs);
         } else {
@@ -722,7 +715,15 @@ document.addEventListener('DOMContentLoaded', () => {
         updateGtagConsent(preferences);
         saveConsentPreferences(preferences);
         setProcessedCookie(config.cookies.consentProcessedCookieName, 'true', config.cookies.consentCookieExpirationDays);
-        if (cookieConsentBanner) cookieConsentBanner.style.display = 'none';
+        if (cookieConsentBanner) {
+            cookieConsentBanner.classList.remove('visible'); // For animated hiding
+             // Keep style.display='none' logic for cases where animation is not desired or for robustness
+            setTimeout(() => { // Ensure banner is fully hidden after animation
+              if (!cookieConsentBanner.classList.contains('visible')) { // Check if it wasn't re-shown
+                cookieConsentBanner.style.display = 'none';
+              }
+            }, 500); // Match CSS transition duration
+        }
         if (cookieSettingsModal) cookieSettingsModal.classList.remove('visible');
     };
 
@@ -741,9 +742,6 @@ document.addEventListener('DOMContentLoaded', () => {
         for (const key in config.cookies.defaultConsentState) {
             allDeniedPrefs[key] = 'denied';
         }
-        // 'security_storage' must remain 'granted' as per gtag default in HTML,
-        // and is not part of config.cookies.defaultConsentState for user toggling.
-        // Gtag default already set security_storage: 'granted'.
         applyConsentDecision(allDeniedPrefs);
     };
 
@@ -758,16 +756,49 @@ document.addEventListener('DOMContentLoaded', () => {
             if (consentType && currentPrefs.hasOwnProperty(consentType)) {
                 toggle.checked = currentPrefs[consentType] === 'granted';
             } else if (consentType) {
-                // If a new type was added to HTML but not in defaults/localStorage yet
                 toggle.checked = config.cookies.defaultConsentState[consentType] === 'granted';
             }
         });
+        // Initialize collapsible sections state (all collapsed by default on show)
+        cookieCategoryHeaders.forEach(header => {
+            const descId = header.getAttribute('aria-controls');
+            const descElement = document.getElementById(descId);
+            if (descElement) {
+                 // Only collapse if it's not the 'necessary' cookies category, which is always expanded
+                if (header.parentElement.querySelector('input[name="necessary"]')) {
+                    header.classList.remove('collapsed');
+                    header.setAttribute('aria-expanded', 'true');
+                    descElement.classList.add('expanded');
+                } else {
+                    header.classList.add('collapsed');
+                    header.setAttribute('aria-expanded', 'false');
+                    descElement.classList.remove('expanded');
+                }
+            }
+        });
+
         cookieSettingsModal.classList.add('visible');
-        if (cookieConsentBanner) cookieConsentBanner.style.display = 'none'; // Hide banner when modal is open
+        if (cookieConsentBanner) {
+            cookieConsentBanner.classList.remove('visible');
+            // Banner will be set to display:none by applyConsentDecision or if modal is just opened
+             setTimeout(() => {
+                 if (!cookieConsentBanner.classList.contains('visible')) {
+                    cookieConsentBanner.style.display = 'none';
+                  }
+             }, 500);
+        }
     };
 
     const hideCookieSettingsModal = () => {
         if (cookieSettingsModal) cookieSettingsModal.classList.remove('visible');
+        // If consent hasn't been processed, show the banner again
+        const consentProcessed = getProcessedCookie(config.cookies.consentProcessedCookieName) === 'true';
+        if (!consentProcessed && cookieConsentBanner) {
+            cookieConsentBanner.style.display = 'flex'; // or 'block' depending on original display type
+            requestAnimationFrame(() => { // Ensure display is set before trying to animate
+                 cookieConsentBanner.classList.add('visible');
+            });
+        }
     };
 
     const handleSaveCookieSettings = () => {
@@ -783,48 +814,58 @@ document.addEventListener('DOMContentLoaded', () => {
         applyConsentDecision(newPrefs);
     };
 
+    // Function to toggle cookie category description
+    const toggleCookieCategory = (headerElement) => {
+        const descId = headerElement.getAttribute('aria-controls');
+        const descElement = document.getElementById(descId);
+        if (!descElement) return;
+
+        const isExpanded = descElement.classList.toggle('expanded');
+        headerElement.classList.toggle('collapsed', !isExpanded);
+        headerElement.setAttribute('aria-expanded', isExpanded.toString());
+    };
+
 
     const initializeCookieConsentFramework = () => {
-        console.log("Initializing Cookie Consent Framework v2.34...");
+        console.log("Initializing Cookie Consent Framework v2.35...");
         const consentProcessed = getProcessedCookie(config.cookies.consentProcessedCookieName) === 'true';
-        const currentPreferences = getConsentPreferences(); // Get stored or default
-
-        // Always update Gtag with stored/default preferences on page load
+        const currentPreferences = getConsentPreferences(); 
         updateGtagConsent(currentPreferences);
 
-        if (consentProcessed) {
-            console.log("Cookie consent already processed. Banner remains hidden.");
-            if (cookieConsentBanner) cookieConsentBanner.style.display = 'none';
+        if (cookieConsentBanner) { // Check if banner element exists
+            if (consentProcessed) {
+                console.log("Cookie consent already processed. Banner remains hidden.");
+                cookieConsentBanner.style.display = 'none'; // Ensure it's hidden
+                cookieConsentBanner.classList.remove('visible');
+            } else {
+                console.log("Cookie consent not processed. Displaying banner.");
+                cookieConsentBanner.style.display = 'flex'; // Set display before adding visible for animation
+                requestAnimationFrame(() => { // Wait for next frame to apply class for transition
+                    cookieConsentBanner.classList.add('visible');
+                });
+            }
         } else {
-            console.log("Cookie consent not processed. Displaying banner.");
-            if (cookieConsentBanner) cookieConsentBanner.style.display = 'block';
-            else console.warn("Cookie consent banner element not found.");
+            console.warn("Cookie consent banner element not found in HTML.");
         }
 
-        // Setup Event Listeners for new buttons
-        if (cookieConsentAcceptAllBtn) {
-            cookieConsentAcceptAllBtn.addEventListener('click', handleAcceptAll);
-        } else { console.warn("#cookie-consent-accept-all button not found."); }
 
-        if (cookieConsentRejectAllBtn) {
-            cookieConsentRejectAllBtn.addEventListener('click', handleRejectAll);
-        } else { console.warn("#cookie-consent-reject-all button not found."); }
+        if (cookieConsentAcceptAllBtn) cookieConsentAcceptAllBtn.addEventListener('click', handleAcceptAll);
+        else console.warn("#cookie-consent-accept-all button not found.");
 
-        if (cookieConsentCustomizeBtn) {
-            cookieConsentCustomizeBtn.addEventListener('click', showCookieSettingsModal);
-        } else { console.warn("#cookie-consent-customize button not found."); }
+        if (cookieConsentRejectAllBtn) cookieConsentRejectAllBtn.addEventListener('click', handleRejectAll);
+        else console.warn("#cookie-consent-reject-all button not found.");
 
-        if (cookieModalCloseBtn) {
-            cookieModalCloseBtn.addEventListener('click', hideCookieSettingsModal);
-        } else { console.warn("#cookie-modal-close button not found."); }
+        if (cookieConsentCustomizeBtn) cookieConsentCustomizeBtn.addEventListener('click', showCookieSettingsModal);
+        else console.warn("#cookie-consent-customize button not found.");
 
-        if (cookieSettingsSaveBtn) {
-            cookieSettingsSaveBtn.addEventListener('click', handleSaveCookieSettings);
-        } else { console.warn("#cookie-settings-save button not found."); }
+        if (cookieModalCloseBtn) cookieModalCloseBtn.addEventListener('click', hideCookieSettingsModal);
+        else console.warn("#cookie-modal-close button not found.");
 
-        if (cookieSettingsAcceptAllModalBtn) {
-            cookieSettingsAcceptAllModalBtn.addEventListener('click', handleAcceptAll);
-        } else { console.warn("#cookie-settings-accept-all-modal button not found."); }
+        if (cookieSettingsSaveBtn) cookieSettingsSaveBtn.addEventListener('click', handleSaveCookieSettings);
+        else console.warn("#cookie-settings-save button not found.");
+
+        if (cookieSettingsAcceptAllModalBtn) cookieSettingsAcceptAllModalBtn.addEventListener('click', handleAcceptAll);
+        else console.warn("#cookie-settings-accept-all-modal button not found.");
         
         if (cookieSettingsTriggerFooter) {
             cookieSettingsTriggerFooter.addEventListener('click', (event) => {
@@ -832,18 +873,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 showCookieSettingsModal();
             });
         } else { console.warn("#cookie-settings-trigger (footer link) not found."); }
+
+        // Add event listeners for collapsible cookie categories
+        cookieCategoryHeaders.forEach(header => {
+            // Don't make "Nezbytně nutné" collapsible if it's always on and expanded
+            const necessaryInput = header.querySelector('input[name="necessary"]');
+            if (necessaryInput && necessaryInput.disabled && necessaryInput.checked) {
+                const descId = header.getAttribute('aria-controls');
+                const descElement = document.getElementById(descId);
+                if (descElement) {
+                    header.classList.remove('collapsed'); // Ensure it's not collapsed
+                    header.setAttribute('aria-expanded', 'true');
+                    descElement.classList.add('expanded'); // Ensure it's expanded
+                }
+                return; // Skip adding click listener
+            }
+
+            header.addEventListener('click', () => toggleCookieCategory(header));
+            header.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    toggleCookieCategory(header);
+                }
+            });
+        });
     };
 
     // --- Initialize Components ---
     try {
-        handleScroll(); // Initial states
+        handleScroll(); 
         initializeInfiniteSlider();
-        initializeCookieConsentFramework(); // Initialize new cookie consent logic
+        initializeCookieConsentFramework(); 
     } catch (error) {
         console.error("Error during final initializations:", error);
     }
 
-    // Defer non-critical initializations slightly
     setTimeout(() => {
         if (demoSection && config.aiDemo.enabled && aiDemoObserver) {
             if (!(aiOutput && aiFakeInput && aiProgressLabel && aiProgressBar && aiStatusIndicator)) {
@@ -852,5 +916,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 500);
 
-    console.log("JUSTAX Interface v2.34 (Advanced Cookie Consent) Initialization Complete.");
+    console.log("JUSTAX Interface v2.35 (Collapsible Cookies) Initialization Complete.");
 });
