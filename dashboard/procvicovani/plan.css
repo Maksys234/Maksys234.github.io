@@ -3,6 +3,7 @@
 /* Doplněno o styly pro sklápěcí sidebar z main.css */
 /* VERZE 27.5.1-PLAN-CSS: Výrazné vylepšení vzhledu sekce Aktuální plán (.vertical-schedule-list) */
 /* VERZE 27.5.2-PLAN-CSS: Přidáno vertikální posouvání pro dlouhé denní plány v karuselu. */
+/* VERZE 27.5.3-PLAN-CSS: Oprava vertikálního scrollu v denním plánu. */
 
 /* --- START: Киберпанк CSS Тема (PŮVODNÍ KÓD UŽIVATELE + Doplnění + Vylepšení plánu) --- */
 /* --- Глобальные Настройки и Переменные --- */
@@ -352,10 +353,29 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .section { background: var(--card-bg); border-radius: 0 0 var(--card-radius) var(--card-radius); box-shadow: var(--shadow-hud); border: 1px solid var(--border-color-light); border-top: none; position: relative; overflow: hidden; display: none; flex-grow: 1; flex-direction: column; min-height: 0; }
 .section.visible-section { display: flex !important; animation: fadeIn 0.5s ease forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.section-content { padding: 0; display: flex; flex-direction: column; min-height: 150px; position: relative; flex-grow: 1; /* overflow-y: auto; -- Toto je nyní řešeno níže pro specifické kontejnery */ scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--accent-secondary-rgb), 0.08); }
+
+.section-content {
+    padding: 0; /* Původní bylo 0 */
+    display: flex;
+    flex-direction: column;
+    min-height: 150px;
+    position: relative;
+    flex-grow: 1;
+    /* overflow-y: auto; -- TOTO BUDE ODSTRANĚNO PRO .daily-plan-carousel-container */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--accent-secondary-rgb), 0.08);
+}
 .section-content::-webkit-scrollbar { width: 8px; }
 .section-content::-webkit-scrollbar-track { background: rgba(var(--accent-secondary-rgb), 0.08); border-radius: 4px;}
 .section-content::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.5); border-radius: 4px; }
+
+/* Specifické pro karusel, aby on sám neskroloval vertikálně */
+#dailyPlanCarouselContainer.section-content {
+    overflow-y: hidden; /* Zabrání vertikálnímu scrollu tohoto kontejneru */
+    overflow-x: hidden; /* Karusel bude řízen JS, ne nativním scrollem */
+}
+
+
 .section-content.content-visible { display: flex !important; animation: fadeIn 0.6s ease-out forwards; }
 .plan-content { line-height: 1.75; display: none; padding: 2rem 2.5rem; flex-grow: 1; overflow-y: auto; }
 .plan-content.content-visible { display: block !important; animation: fadeIn 0.6s ease-out forwards; }
@@ -422,7 +442,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     display: flex;
     flex-direction: column; /* Vnitřní layout karty dne je sloupcový */
     overflow: hidden; /* Zajistí, že obsah .day-schedule-card nepřeteče */
-    /* transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); */ /* Pro případné animace přechodu */
+    flex-grow: 1; /* Karta dne zabere dostupnou výšku */
 }
 
 /* Úprava existujících stylů pro .day-schedule-card, aby lépe fungovaly v karuselu */
@@ -431,14 +451,14 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     border-radius: var(--card-radius);
     border: 1px solid var(--border-color-medium);
     box-shadow: var(--shadow-card);
-    overflow: hidden;
+    overflow: hidden; /* Toto je důležité, aby vnitřní scroll fungoval */
     transition: all var(--transition-medium);
     display: flex; /* Umožní, aby .activity-list-container mohl růst */
     flex-direction: column; /* Hlavička nahoře, aktivity pod ní */
     flex-grow: 1; /* Karta dne zabere dostupnou výšku */
     margin: 0; /* Odstranění původních mezer, pokud byly */
+    height: 100%; /* ZAJIŠŤUJE, ŽE KARTA DENNÍHO PLÁNU VYPLNÍ VÝŠKU VIEWPORTU */
 }
-/* .single-day-plan-view .day-schedule-card:hover { transform: none; box-shadow: var(--shadow-card); } - Hover efekt pro denní kartu v karuselu možná není žádoucí */
 .single-day-plan-view .day-schedule-card.today {
     background: linear-gradient(135deg, rgba(var(--accent-lime-rgb), 0.15), rgba(var(--card-solid-rgb), 0.9));
     border-color: var(--accent-lime);
@@ -495,7 +515,109 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     border-top: 1px solid var(--border-color-light);
     padding: 1.2rem 1.3rem 1.2rem 0; /* Upraven pravý padding kvůli scrollbaru */
     /* Ostatní styly .activity-list-item zůstávají */
+     display: flex; gap: 1.2rem; align-items: flex-start;
+     transition: background-color var(--transition-fast), transform 0.2s ease;
+     position: relative;
+     cursor: default;
 }
+.single-day-plan-view .activity-list-item:first-child { border-top: none; }
+.single-day-plan-view .activity-list-item:hover {
+    background-color: rgba(var(--accent-primary-rgb), 0.08);
+    transform: translateX(3px);
+}
+.single-day-plan-view .activity-list-item.completed {
+    background-color: rgba(var(--accent-lime-rgb), 0.1);
+    border-left: 4px solid var(--accent-lime);
+    padding-left: calc(1.3rem - 4px); /* Upravíme levý padding, pokud je border-left */
+}
+.single-day-plan-view .activity-list-item.completed .activity-title,
+.single-day-plan-view .activity-list-item.completed .activity-time-display,
+.single-day-plan-view .activity-list-item.completed .activity-desc {
+    color: var(--accent-lime) !important;
+    text-decoration: line-through; opacity: 0.7;
+}
+.single-day-plan-view .activity-list-item.completed .activity-icon { color: var(--accent-lime); }
+.single-day-plan-view .activity-list-item .activity-checkbox {
+    flex-shrink: 0; display: flex; align-items: center;
+    margin: 0; padding-top: 3px;
+}
+.single-day-plan-view .activity-list-item input[type="checkbox"] {
+    width: 20px; height: 20px; cursor: pointer;
+    accent-color: var(--accent-primary);
+    background-color: var(--bg-secondary);
+    border: 2px solid var(--border-color-medium);
+    border-radius: 5px;
+    transition: all 0.2s ease;
+    appearance: none; -webkit-appearance: none;
+    position: relative;
+}
+.single-day-plan-view .activity-list-item input[type="checkbox"]:hover { border-color: var(--accent-primary); }
+.single-day-plan-view .activity-list-item input[type="checkbox"]:checked {
+    background-color: var(--accent-lime);
+    border-color: var(--accent-lime);
+    box-shadow: 0 0 8px var(--accent-lime-glow);
+}
+.single-day-plan-view .activity-list-item input[type="checkbox"]:checked::before {
+    content: '\f00c';
+    font-family: "Font Awesome 6 Free"; font-weight: 900;
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    font-size: 14px; color: var(--text-fixed-dark);
+    transition: transform 0.2s ease;
+}
+.single-day-plan-view .activity-list-item .activity-icon {
+    font-size: 1.3rem;
+    color: var(--accent-secondary);
+    width: 24px; text-align: center; flex-shrink: 0; margin: 0;
+    padding-top: 2px;
+    filter: drop-shadow(0 0 5px var(--accent-secondary-glow));
+}
+.single-day-plan-view .activity-list-item .activity-details { flex-grow: 1; margin: 0; align-self: flex-start; }
+.single-day-plan-view .activity-list-item .activity-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    width: 100%; margin-bottom: 0.3rem;
+}
+.single-day-plan-view .activity-list-item .activity-title-time {
+    display: flex; flex-direction: column; flex-grow: 1; margin-right: 0.8rem;
+}
+.single-day-plan-view .activity-list-item .activity-title {
+    font-weight: 600; color: var(--text-light);
+    font-size: 1.1rem;
+    line-height: 1.4; margin-bottom: 3px;
+}
+.single-day-plan-view .activity-list-item .activity-time-display {
+    font-size: 0.85rem; font-weight: 500;
+    color: var(--accent-primary); margin-top: 0;
+    text-shadow: 0 0 3px var(--accent-glow);
+}
+.single-day-plan-view .activity-list-item .activity-desc {
+    font-size: 0.95rem; color: var(--text-medium); margin-top: 0;
+    max-height: 0; overflow: hidden; line-height: 1.65;
+    padding-top: 0; border-top: 1px dashed transparent;
+    transition: max-height 0.4s ease-out, margin-top 0.4s ease-out, padding-top 0.4s ease-out, border-color 0.4s ease-out, opacity 0.4s ease-out;
+    opacity: 0;
+}
+.single-day-plan-view .activity-list-item.expanded .activity-desc {
+    max-height: 300px;
+    margin-top: 0.9rem; padding-top: 0.9rem;
+    border-top-color: var(--border-color-medium);
+    opacity: 1;
+}
+.single-day-plan-view .activity-list-item .expand-icon-button {
+    background: none; border: none; color: var(--text-muted);
+    cursor: pointer; padding: 0.3rem; font-size: 1rem; line-height: 1;
+    transition: transform 0.3s ease, color 0.2s ease;
+    flex-shrink: 0; align-self: center;
+    border-radius: 50%; width: 30px; height: 30px;
+    display: inline-flex; align-items: center; justify-content: center;
+}
+.single-day-plan-view .activity-list-item .expand-icon-button:hover {
+    color: var(--accent-primary);
+    background-color: rgba(var(--accent-primary-rgb), 0.1);
+}
+.single-day-plan-view .activity-list-item.expanded .expand-icon-button i { transform: rotate(180deg); }
+
+
 .single-day-plan-view .no-activities-day {
     padding: 3rem 1.5rem; /* Větší padding pro zprávu */
     text-align: center; font-style: italic;
@@ -519,6 +641,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     border-radius: var(--card-radius);
     background-color: var(--card-solid);
     overflow: hidden;
+    height: 100%; /* Aby skeleton zabral výšku */
 }
 .single-day-plan-view .skeleton-day-header {
     height: 50px; /* Výška hlavičky */
@@ -526,12 +649,21 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     margin: 1.2rem 1.8rem;
     background-color: var(--skeleton-highlight);
     border-radius: var(--form-element-radius);
+    flex-shrink: 0;
 }
-.single-day-plan-view .skeleton-activity-item {
+.single-day-plan-view .skeleton-day-card .activity-list-container { /* Cílení na skeleton v kontejneru aktivit */
+    padding: 1rem 1.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem; /* Mezery mezi skeleton aktivitami */
+    flex-grow: 1; /* Aby zabral zbytek místa */
+    overflow: hidden; /* Neměl by scrollbar */
+}
+.single-day-plan-view .skeleton-activity-item { /* Přejmenováno z .skeleton-activity-item na .skeleton-activity-row pro jasnost */
     height: 60px; /* Výška položky aktivity */
-    margin: 0.5rem 1.8rem;
     background-color: var(--skeleton-highlight);
     border-radius: var(--form-element-radius);
+    width: 100%;
 }
 /* --- END: Vylepšené styly pro KARUSEL dnů --- */
 
