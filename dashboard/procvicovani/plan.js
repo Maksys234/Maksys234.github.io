@@ -32,13 +32,11 @@
          planTabs: document.querySelectorAll('.plan-tab'),
          currentPlanSection: document.getElementById('currentPlanSection'),
          currentPlanLoader: document.getElementById('currentPlanLoader'),
-        // Původní #currentPlanContent je nyní #currentPlanEmptyState pro případy, kdy není plán
-        // Nové kontejnery pro karusel:
          dailyPlanCarouselContainer: document.getElementById('dailyPlanCarouselContainer'),
          singleDayPlanView: document.getElementById('singleDayPlanView'),
          prevDayBtn: document.getElementById('prevDayBtn'),
          nextDayBtn: document.getElementById('nextDayBtn'),
-         currentPlanEmptyState: document.getElementById('currentPlanEmptyState'), // Pro zobrazení zpráv, pokud není plán
+         currentPlanEmptyState: document.getElementById('currentPlanEmptyState'),
 
          historyPlanSection: document.getElementById('historyPlanSection'),
          historyLoader: document.getElementById('historyLoader'),
@@ -52,9 +50,9 @@
          planContent: document.getElementById('planContent'),
          planActions: document.getElementById('planActions'),
          genericBackBtn: document.getElementById('genericBackBtn'),
-         verticalScheduleList: document.getElementById('vertical-schedule-list'), // Ponecháno pro případné skeletony nebo fallback
-         verticalScheduleNav: document.getElementById('verticalScheduleNav'), // Ponecháno pro tlačítko exportu
-         exportScheduleBtnVertical: document.getElementById('exportScheduleBtnVertical'),
+         // verticalScheduleList: document.getElementById('vertical-schedule-list'), // Již se nepoužívá pro hlavní zobrazení
+         // verticalScheduleNav: document.getElementById('verticalScheduleNav'), // Odstraněno
+         // exportScheduleBtnVertical: document.getElementById('exportScheduleBtnVertical'), // Odstraněno
          notificationBell: document.getElementById('notification-bell'),
          notificationCount: document.getElementById('notification-count'),
          notificationsDropdown: document.getElementById('notifications-dropdown'),
@@ -69,7 +67,9 @@
          noActivePlanTemplate: document.getElementById('noActivePlanTemplate'),
          currentYearSidebar: document.getElementById('currentYearSidebar'),
          currentYearFooter: document.getElementById('currentYearFooter'),
-         mouseFollower: document.getElementById('mouse-follower')
+         mouseFollower: document.getElementById('mouse-follower'),
+         dayCardTemplate: document.getElementById('dayCardTemplate'), // Nová šablona
+         dayCardSkeleton: document.getElementById('dayCardSkeleton') // Skeleton pro denní kartu
     };
 
     // ==============================================
@@ -84,12 +84,11 @@
         isLoading: { current: false, history: false, create: false, detail: false, schedule: false, generation: false, notifications: false, titles: false },
         topicMap: { /* Populate this if needed from DB or keep static */ },
         allTitles: [],
-        // Nové stavové proměnné pro karusel dnů
-        currentDisplayDate: null, // YYYY-MM-DD string aktuálně zobrazeného dne
-        allActivePlanActivitiesByDay: {}, // { 'YYYY-MM-DD': [activities], ... }
-        sortedActivityDates: [], // Pole seřazených unikátních dat (stringů) s aktivitami
-        planStartDate: null, // Date object
-        planEndDate: null, // Date object
+        currentDisplayDate: null,
+        allActivePlanActivitiesByDay: {},
+        sortedActivityDates: [],
+        planStartDate: null,
+        planEndDate: null,
     };
 
      const activityVisuals = {
@@ -110,10 +109,9 @@
     const formatDateForDisplay = (dateStringOrDate) => {
         if (!dateStringOrDate) return 'Neznámé datum';
         try {
-            const date = (typeof dateStringOrDate === 'string') ? new Date(dateStringOrDate + 'T00:00:00') : dateStringOrDate; // Zajistí lokální čas, pokud je string bez času
+            const date = (typeof dateStringOrDate === 'string') ? new Date(dateStringOrDate + 'T00:00:00') : dateStringOrDate;
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             let formatted = date.toLocaleDateString('cs-CZ', options);
-            // Kapitalizace prvního písmene
             formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1);
             return formatted;
         } catch (e) {
@@ -136,7 +134,7 @@
     };
 
     const addDaysToDate = (dateString, days) => {
-        const date = new Date(dateString + 'T00:00:00'); // Zajistí lokální čas
+        const date = new Date(dateString + 'T00:00:00');
         date.setDate(date.getDate() + days);
         return dateToYYYYMMDD(date);
     };
@@ -223,18 +221,17 @@
         console.log(`[Loading] ${sectionKey}: ${isLoadingFlag}`);
 
         const loaderMap = { current: ui.currentPlanLoader, history: ui.historyLoader, create: ui.createPlanLoader, detail: ui.planLoading, schedule: ui.currentPlanLoader, generation: ui.planLoading, notifications: null, titles: null };
-        // ZMĚNA: Místo verticalScheduleList použijeme singleDayPlanView pro zobrazení obsahu dne
         const contentMap = { current: ui.dailyPlanCarouselContainer, history: ui.historyPlanContent, create: ui.createPlanContent, detail: ui.planContent, schedule: ui.singleDayPlanView, notifications: ui.notificationsList };
-        const navMap = { schedule: ui.verticalScheduleNav }; // Tlačítko Export zůstává pod #verticalScheduleNav
+        // const navMap = { schedule: ui.verticalScheduleNav }; // Odstraněno
         const sectionMap = { current: ui.currentPlanSection, history: ui.historyPlanSection, create: ui.createPlanSection, detail: ui.planSection };
-        const emptyMap = { notifications: ui.noNotificationsMsg, current: ui.currentPlanEmptyState }; // currentPlanEmptyState pro zobrazení, když není plán
+        const emptyMap = { notifications: ui.noNotificationsMsg, current: ui.currentPlanEmptyState };
 
         const sectionsToUpdate = sectionKey === 'all' ? Object.keys(loaderMap) : [sectionKey];
 
         sectionsToUpdate.forEach(key => {
             const loader = loaderMap[key];
             const content = contentMap[key];
-            const nav = navMap[key];
+            // const nav = navMap[key]; // Odstraněno
             const section = sectionMap[key];
             const emptyState = emptyMap[key];
 
@@ -257,37 +254,36 @@
 
             if (isLoadingFlag) {
                 if (content) content.classList.remove('content-visible', 'schedule-visible', 'generated-reveal');
-                if (nav) nav.classList.remove('nav-visible');
-                if (emptyState) emptyState.style.display = 'none'; // Skryjeme empty state při načítání
+                // if (nav) nav.classList.remove('nav-visible'); // Odstraněno
+                if (emptyState) emptyState.style.display = 'none';
                 if (key === 'history' && ui.historyPlanContent) renderHistorySkeletons(3);
 
-                // ZMĚNA: Skeleton pro načítání dne v karuselu
                 if (key === 'schedule' && ui.singleDayPlanView) {
-                    ui.singleDayPlanView.innerHTML = `
-                        <div class="day-schedule-card skeleton-day-card" style="display:block; opacity:0.5; margin: 0 auto; max-width: 700px;">
-                             <div class="day-header skeleton-day-header skeleton" style="height: 40px; width: 60%; margin-bottom:1rem;"></div>
-                             <div class="activity-list-container" style="max-height: 500px; padding: 1rem 0;">
-                                 <div class="activity-list-item skeleton-activity-item skeleton" style="height: 50px; margin-bottom:0.5rem;"></div>
-                                 <div class="activity-list-item skeleton-activity-item skeleton" style="height: 50px; margin-bottom:0.5rem;"></div>
-                                 <div class="activity-list-item skeleton-activity-item skeleton" style="height: 50px;"></div>
-                             </div>
-                         </div>`;
+                    if (ui.dayCardSkeleton) { // Zobrazíme HTML skeleton, pokud existuje
+                        ui.singleDayPlanView.innerHTML = ''; // Vyčistíme, kdyby tam něco bylo
+                        const skeletonClone = ui.dayCardSkeleton.cloneNode(true);
+                        skeletonClone.style.display = 'flex'; // Ujistíme se, že je viditelný
+                        ui.singleDayPlanView.appendChild(skeletonClone);
+                    } else { // Fallback, pokud HTML skeleton není
+                        ui.singleDayPlanView.innerHTML = `<div class="day-schedule-card skeleton-day-card" style="display:block; opacity:0.5; margin: 0 auto; max-width: 700px; height: 300px;"><div class="day-header skeleton-day-header skeleton" style="height: 40px; width: 60%; margin-bottom:1rem;"></div><div class="activity-list-container" style="padding: 1rem 0;"><div class="activity-list-item skeleton-activity-item skeleton" style="height: 50px; margin-bottom:0.5rem;"></div></div></div>`;
+                    }
                     if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'flex';
                 }
                 if (key === 'notifications' && ui.notificationsList) renderNotificationSkeletons(2);
                  if (key === 'generation' && ui.planActions) {
                      ui.planActions.style.display = 'none';
                  }
-            } else { // isLoadingFlag is false
+            } else {
                 if (key === 'history' && ui.historyPlanContent) {
                     if (!ui.historyPlanContent.querySelector('.history-item') && !ui.historyPlanContent.querySelector('.notest-message')) {
-                        ui.historyPlanContent.innerHTML = ''; // Vyčistí skeletony jen pokud není skutečný obsah
+                        ui.historyPlanContent.innerHTML = '';
                     }
                 }
-                // ZMĚNA: Obsah pro 'schedule' (singleDayPlanView) se naplní v renderSingleDayPlan
-                 if (key === 'schedule' && ui.singleDayPlanView && !ui.singleDayPlanView.querySelector('.day-schedule-card:not(.skeleton-day-card)')) {
-                     // Pokud po načtení není žádná skutečná karta dne, můžeme skeleton nechat nebo vyčistit
-                     // Prozatím necháme, renderSingleDayPlan by měl vložit "žádné aktivity"
+                 if (key === 'schedule' && ui.singleDayPlanView) {
+                    const existingSkeleton = ui.singleDayPlanView.querySelector('.skeleton-day-card');
+                    if (existingSkeleton && !ui.singleDayPlanView.querySelector('.day-schedule-card:not(.skeleton-day-card)')) {
+                        // Necháme skeleton, pokud nebyl nahrazen skutečným obsahem
+                    }
                  }
             }
              if (key === 'detail') {
@@ -315,10 +311,9 @@
         });
         container.innerHTML = `<div class="notest-message ${type}"><h3><i class="fas ${iconMap[type]}"></i> ${sanitizeHTML(title)}</h3><p>${sanitizeHTML(message)}</p><div class="action-buttons">${buttonsHTML}</div></div>`;
         container.classList.add('content-visible');
-        // ZMĚNA: Pro karusel chceme, aby se zobrazil 'empty state container', ne 'dailyPlanCarouselContainer'
         if (container === ui.currentPlanEmptyState) {
             if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
-            container.style.display = 'flex'; // Zajistí zobrazení, i když je to 'empty state'
+            container.style.display = 'flex';
         }
 
 
@@ -358,22 +353,11 @@
                 }
             });
         }
-        if (ui.exportScheduleBtnVertical) { ui.exportScheduleBtnVertical.addEventListener('click', () => { if (state.currentStudyPlan) exportPlanToPDFWithStyle(state.currentStudyPlan); else showToast('Nelze exportovat, plán není načten.', 'warning'); }); }
+        // Odstraněn listener pro ui.exportScheduleBtnVertical
+
         window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) closeMenu(); });
 
-        // ZMĚNA: Posluchače pro aktivity přesunuty do renderSingleDayPlan, protože obsah se generuje dynamicky
-        // Starý listener pro .verticalScheduleList bude odstraněn nebo upraven, pokud ho někde ještě potřebujeme.
-        // Prozatím ho zakomentuji, protože nový způsob vykreslování dnů to řeší jinak.
-        /*
-        const scheduleContainer = ui.verticalScheduleList; // Původní kontejner
-        if (scheduleContainer) {
-            scheduleContainer.addEventListener('click', (event) => { ... });
-            scheduleContainer.addEventListener('change', async (event) => { ... });
-        } else {
-            console.warn("Vertical schedule container not found for event delegation.");
-        }
-        */
-       // Nové posluchače pro navigační tlačítka dnů
+       // Navigační tlačítka dnů
         if (ui.prevDayBtn) {
             ui.prevDayBtn.addEventListener('click', () => {
                 if (state.currentDisplayDate && state.sortedActivityDates.length > 0) {
@@ -460,7 +444,7 @@
             const loadNotificationsPromise = fetchNotifications(user.id, NOTIFICATION_FETCH_LIMIT)
                 .then(({ unreadCount, notifications }) => renderNotifications(unreadCount, notifications))
                 .catch(err => { console.error("Failed to load notifications initially:", err); renderNotifications(0, []); });
-            const loadInitialTabPromise = switchTab('current'); // Načte 'current' jako první
+            const loadInitialTabPromise = switchTab('current');
             await Promise.all([loadNotificationsPromise, loadInitialTabPromise]);
             if (ui.mainContent) {
                 ui.mainContent.style.display = 'block';
@@ -471,7 +455,6 @@
             console.error("App initialization error:", error);
             showGlobalError(`Chyba inicializace: ${error.message}`);
             if (ui.mainContent) ui.mainContent.style.display = 'block';
-            // ZMĚNA: Zobrazování chybové zprávy do #currentPlanEmptyState
             const errorContainer = ui.currentPlanEmptyState || ui.mainContent;
             if(errorContainer) renderMessage(errorContainer, 'error', 'Chyba inicializace', error.message);
         } finally {
@@ -585,13 +568,12 @@
         ui.createPlanSection?.classList.remove('visible-section');
         ui.planSection?.classList.remove('visible-section');
 
-        // Skrytí/zobrazení relevantních kontejnerů pro novou strukturu
         if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
         if (ui.currentPlanEmptyState) ui.currentPlanEmptyState.style.display = 'none';
         if (ui.historyPlanContent) ui.historyPlanContent.classList.remove('content-visible');
         if (ui.createPlanContent) ui.createPlanContent.classList.remove('content-visible');
         if (ui.planContent) ui.planContent.classList.remove('content-visible', 'generated-reveal');
-        if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible');
+        // if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible'); // Odstraněno
 
 
         if (state.lastGeneratedMarkdown !== null && tabId !== 'detail' && tabId !== 'generation') {
@@ -620,7 +602,6 @@
         } catch (error) {
             console.error(`[NAV] Error loading tab ${tabId}:`, error);
             const errorTargetSection = document.getElementById(`${tabId}PlanSection`);
-            // ZMĚNA: Cílení na #currentPlanEmptyState pro chyby v záložce 'current'
             const errorContentContainer = (tabId === 'current') ? ui.currentPlanEmptyState : errorTargetSection?.querySelector('.section-content');
 
             if(errorTargetSection) errorTargetSection.classList.add('visible-section');
@@ -650,29 +631,24 @@
             return;
         }
 
-        const dayToDateMap = {}; // Mapuje day_of_week na konkrétní datum (pro aktuální týden plánu)
-        let planStartDayOfWeek = activities[0].day_of_week; // Předpokládáme, že aktivity jsou seřazeny
-        let referenceDate = new Date(); // Dnešní datum jako reference
+        const dayToDateMap = {};
+        let planStartDayOfWeek = activities[0].day_of_week;
+        let referenceDate = new Date();
 
-        // Najdeme datum začátku plánu (nejbližší budoucí nebo minulé pondělí, pokud plán začíná v pondělí)
-        // Toto je zjednodušení; reálně by datumy měly být v DB nebo odvozeny z `created_at` plánu.
-        // Pro demonstraci: začneme od nejbližšího pondělí před/po referenčním datu, které odpovídá startovnímu dni plánu.
-        let currentDayOfWeek = referenceDate.getDay(); // 0=Ne, 1=Po, ...
+        let currentDayOfWeek = referenceDate.getDay();
         let diffToStartDay = planStartDayOfWeek - currentDayOfWeek;
-        referenceDate.setDate(referenceDate.getDate() + diffToStartDay); // Jsme na prvním dni plánu v aktuálním týdnu
+        referenceDate.setDate(referenceDate.getDate() + diffToStartDay);
 
-        state.planStartDate = new Date(referenceDate); // Začátek cyklu
+        state.planStartDate = new Date(referenceDate);
         state.planEndDate = new Date(referenceDate);
-        state.planEndDate.setDate(state.planEndDate.getDate() + 6); // Konec cyklu (7 dní)
-
+        state.planEndDate.setDate(state.planEndDate.getDate() + 6);
 
         for (let i = 0; i < 7; i++) {
             const currentDate = new Date(state.planStartDate);
             currentDate.setDate(state.planStartDate.getDate() + i);
-            const dayOfWeek = currentDate.getDay(); // 0 pro neděli, 1 pro pondělí atd.
+            const dayOfWeek = currentDate.getDay();
             dayToDateMap[dayOfWeek] = dateToYYYYMMDD(currentDate);
         }
-
 
         activities.forEach(act => {
             const dateString = dayToDateMap[act.day_of_week];
@@ -685,10 +661,7 @@
                  console.warn(`Activity with ID ${act.id} has invalid day_of_week: ${act.day_of_week} or dateString not found.`);
             }
         });
-
         state.sortedActivityDates = Object.keys(state.allActivePlanActivitiesByDay).sort();
-
-        // Aktualizace skutečného start a end date plánu na základě existujících aktivit
         if (state.sortedActivityDates.length > 0) {
             state.planStartDate = new Date(state.sortedActivityDates[0] + 'T00:00:00');
             state.planEndDate = new Date(state.sortedActivityDates[state.sortedActivityDates.length - 1] + 'T00:00:00');
@@ -706,9 +679,10 @@
         if (!supabaseClient || !state.currentUser) return;
         console.log("[CurrentPlan] Loading current plan...");
         setLoadingState('current', true);
-        setLoadingState('schedule', true); // Loader pro obsah dne
+        setLoadingState('schedule', true);
         if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
         if (ui.currentPlanEmptyState) ui.currentPlanEmptyState.style.display = 'none';
+        // if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible'); // Odstraněno
 
         try {
             const { data: plans, error } = await supabaseClient.from('study_plans')
@@ -737,15 +711,14 @@
                 if (state.sortedActivityDates.includes(todayStr)) {
                     state.currentDisplayDate = todayStr;
                 } else if (state.sortedActivityDates.length > 0) {
-                    // Zobrazit první den s aktivitami, pokud dnešek není v plánu nebo nemá aktivity
                     state.currentDisplayDate = state.sortedActivityDates[0];
                 } else {
-                    state.currentDisplayDate = todayStr; // Fallback na dnešek, i když nejsou aktivity
+                    state.currentDisplayDate = todayStr;
                 }
 
                 renderSingleDayPlan(state.currentDisplayDate);
                 if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'flex';
-                if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.add('nav-visible');
+                // if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.add('nav-visible'); // Odstraněno
 
             } else {
                 state.currentStudyPlan = null;
@@ -754,7 +727,7 @@
                 state.currentDisplayDate = null;
                 console.log("[CurrentPlan] No active plan found. Checking diagnostic...");
                 if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
-                if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible');
+                // if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible'); // Odstraněno
 
                 const diagnostic = await getLatestDiagnostic(false);
                 if (diagnostic === null) {
@@ -769,7 +742,7 @@
             console.error("[CurrentPlan] Error loading current plan:", error);
             renderMessage(ui.currentPlanEmptyState, 'error', 'Chyba', 'Nepodařilo se načíst aktuální studijní plán.');
             if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
-            if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible');
+            // if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible'); // Odstraněno
         } finally {
             setLoadingState('current', false);
             setLoadingState('schedule', false);
@@ -779,32 +752,58 @@
 
     const renderSingleDayPlan = (targetDateString) => {
         console.log(`[RenderSingleDay] Rendering for date: ${targetDateString}`);
-        if (!ui.singleDayPlanView || !state.currentStudyPlan) {
-            console.error("[RenderSingleDay] Missing UI elements or current study plan.");
+        if (!ui.singleDayPlanView || !state.currentStudyPlan || !ui.dayCardTemplate) { // Kontrola i ui.dayCardTemplate
+            console.error("[RenderSingleDay] Missing UI elements (singleDayPlanView, dayCardTemplate) or current study plan.");
             if(ui.currentPlanEmptyState) renderMessage(ui.currentPlanEmptyState, 'error', 'Chyba zobrazení', 'Nelze zobrazit denní plán.');
             if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
+            setLoadingState('schedule', false);
             return;
         }
 
         setLoadingState('schedule', true);
-        ui.singleDayPlanView.innerHTML = ''; // Vyčistit předchozí den
+
+        // Použití #dayCardSkeleton pokud je viditelné
+        if (ui.dayCardSkeleton && getComputedStyle(ui.dayCardSkeleton).display !== 'none') {
+            ui.dayCardSkeleton.style.display = 'none';
+        }
+
+        let dayCard = ui.singleDayPlanView.querySelector('.day-schedule-card:not(.skeleton-day-card)');
+        let dayHeader, activitiesContainer;
+
+        if (!dayCard) {
+            console.log("[RenderSingleDay] No existing day card, cloning template.");
+            const templateNode = ui.dayCardTemplate.content.cloneNode(true);
+            dayCard = templateNode.querySelector('.day-schedule-card');
+            if (!dayCard) {
+                console.error("[RenderSingleDay] Failed to clone .day-schedule-card from template!");
+                setLoadingState('schedule', false);
+                return;
+            }
+            ui.singleDayPlanView.innerHTML = ''; // Vyčistit, pokud tam byl skeleton
+            ui.singleDayPlanView.appendChild(dayCard);
+        } else {
+            console.log("[RenderSingleDay] Reusing existing day card structure.");
+        }
+
+        dayHeader = dayCard.querySelector('.day-header');
+        activitiesContainer = dayCard.querySelector('.activity-list-container');
+
+        if (!dayHeader || !activitiesContainer) {
+            console.error("[RenderSingleDay] Day header or activity container missing in day card!");
+            setLoadingState('schedule', false);
+            return;
+        }
+
+        // Plynulý přechod obsahu
+        dayCard.style.opacity = '0';
+
 
         const activitiesForDay = state.allActivePlanActivitiesByDay[targetDateString] || [];
         activitiesForDay.sort((a, b) => (a.time_slot || '99:99').localeCompare(b.time_slot || '99:99'));
 
-        const dayCard = document.createElement('div');
-        dayCard.className = 'day-schedule-card expanded'; // Den je vždy "rozbalený" v tomto zobrazení
-        if (targetDateString === getTodayDateString()) {
-            dayCard.classList.add('today');
-        }
-
-        const dayHeader = document.createElement('div');
-        dayHeader.className = 'day-header';
+        dayCard.classList.toggle('today', targetDateString === getTodayDateString());
         dayHeader.innerHTML = `${formatDateForDisplay(targetDateString)} ${targetDateString === getTodayDateString() ? '<span>(Dnes)</span>' : ''}`;
-        dayCard.appendChild(dayHeader);
-
-        const activitiesContainer = document.createElement('div');
-        activitiesContainer.className = 'activity-list-container';
+        activitiesContainer.innerHTML = ''; // Vyčistit pouze seznam aktivit
 
         if (activitiesForDay.length > 0) {
             activitiesForDay.forEach(activity => {
@@ -833,7 +832,6 @@
                         ${hasDescription ? `<div class="activity-desc">${sanitizeHTML(activity.description)}</div>` : ''}
                     </div>`;
 
-                // Event listener pro rozbalení popisu
                 const expandButtonElem = activityElement.querySelector('.expand-icon-button');
                 if (expandButtonElem) {
                     expandButtonElem.addEventListener('click', (e) => {
@@ -844,7 +842,6 @@
                         }
                     });
                 }
-                // Event listener pro checkbox
                 const checkbox = activityElement.querySelector('input[type="checkbox"]');
                 if (checkbox) {
                     checkbox.addEventListener('change', async (e) => {
@@ -858,15 +855,19 @@
         } else {
             activitiesContainer.innerHTML = `<div class="no-activities-day"><i class="fas fa-coffee"></i> Žádné aktivity pro tento den. Užijte si volno!</div>`;
         }
-        dayCard.appendChild(activitiesContainer);
-        ui.singleDayPlanView.appendChild(dayCard);
 
         if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'flex';
         if (ui.currentPlanEmptyState) ui.currentPlanEmptyState.style.display = 'none';
 
         updateNavigationButtonsState(targetDateString);
-        initTooltips(); // Reinicializace tooltipů pro nově přidané prvky
+        initTooltips();
         setLoadingState('schedule', false);
+
+        // Plynulý přechod obsahu - fade in
+        requestAnimationFrame(() => {
+            dayCard.style.transition = 'opacity 0.3s ease-in-out';
+            dayCard.style.opacity = '1';
+        });
     };
 
     const updateNavigationButtonsState = (currentDateString) => {
@@ -890,37 +891,31 @@
      const renderPromptCreatePlan = (container) => {
          if (!container || !ui.promptCreatePlanTemplate) return;
          console.log("[Render] Rendering Prompt Create Plan...");
-         // ZMĚNA: Skrytí karuselu, zobrazení empty state kontejneru
          if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
-         if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible');
+         // if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible'); // Odstraněno
 
          const node = ui.promptCreatePlanTemplate.content.cloneNode(true);
          const btn = node.getElementById('createNewPlanFromPromptBtn');
          if (btn) btn.addEventListener('click', () => switchTab('create'));
          container.innerHTML = '';
          container.appendChild(node);
-         container.style.display = 'flex'; // Zajistíme, že je kontejner viditelný
+         container.style.display = 'flex';
          console.log("[Render] Prompt Create Plan Rendered.");
      };
      const renderNoActivePlan = (container) => {
          if (!container || !ui.noActivePlanTemplate) return;
          console.log("[Render] Rendering No Active Plan...");
-         // ZMĚNA: Skrytí karuselu, zobrazení empty state kontejneru
          if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
-         if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible');
+         // if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible'); // Odstraněno
 
          const node = ui.noActivePlanTemplate.content.cloneNode(true);
          const link = node.querySelector('.link-to-create-tab');
          if (link) link.addEventListener('click', (e) => { e.preventDefault(); switchTab('create'); });
          container.innerHTML = '';
          container.appendChild(node);
-         container.style.display = 'flex'; // Zajistíme, že je kontejner viditelný
+         container.style.display = 'flex';
          console.log("[Render] No Active Plan Rendered.");
      };
-
-    // Původní showVerticalSchedule a renderVerticalSchedule již nejsou potřeba pro hlavní zobrazení,
-    // jejich logika pro vykreslení jednoho dne je nyní v renderSingleDayPlan.
-    // Pokud by byly potřeba jinde, můžeme je ponechat, ale pro aktuální účel je nevoláme.
 
      const handleActivityCompletionToggle = async (activityId, isCompleted, planId) => { if (!supabaseClient) return; try { const { error } = await supabaseClient.from('plan_activities').update({ completed: isCompleted, updated_at: new Date().toISOString() }).eq('id', activityId); if (error) throw error; console.log(`[ActivityToggle] Aktivita ${activityId} stav: ${isCompleted}`); await updatePlanProgress(planId); } catch (error) { console.error(`[ActivityToggle] Chyba aktualizace aktivity ${activityId}:`, error); showToast('Nepodařilo se aktualizovat stav aktivity.', 'error'); const checkbox = document.getElementById(`carousel-activity-${activityId}`) || document.getElementById(`vertical-activity-${activityId}`); const activityElement = checkbox?.closest('.activity-list-item'); if(checkbox) checkbox.checked = !isCompleted; if(activityElement) activityElement.classList.toggle('completed', !isCompleted); } };
      const updatePlanProgress = async (planId) => { if (!planId || !supabaseClient) return; console.log(`[PlanProgress] Updating progress for plan ${planId}`); try { const { count: totalCount, error: countError } = await supabaseClient.from('plan_activities').select('id', { count: 'exact', head: true }).eq('plan_id', planId); const { count: completedCount, error: completedError } = await supabaseClient.from('plan_activities').select('id', { count: 'exact', head: true }).eq('plan_id', planId).eq('completed', true); if (countError || completedError) throw countError || completedError; const numTotal = totalCount ?? 0; const numCompleted = completedCount ?? 0; const progress = numTotal > 0 ? Math.round((numCompleted / numTotal) * 100) : 0; console.log(`[PlanProgress] Plan ${planId}: ${numCompleted}/${numTotal} completed (${progress}%)`); const { error: updateError } = await supabaseClient.from('study_plans').update({ progress: progress, updated_at: new Date().toISOString() }).eq('id', planId); if (updateError) throw updateError; console.log(`[PlanProgress] Plan ${planId} progress DB updated to ${progress}%`); if (state.currentStudyPlan?.id === planId) state.currentStudyPlan.progress = progress; } catch (error) { console.error(`[PlanProgress] Error updating plan progress ${planId}:`, error); } };
