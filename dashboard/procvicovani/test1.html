@@ -10,13 +10,33 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <script>
-        // Конфигурация MathJax (остается без изменений)
+        // --- MathJax Configuration (Převzato z vyuka.html) ---
         if (typeof window.MathJax === 'undefined') {
             window.MathJax = {
-                tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']], processEscapes: true },
-                options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], ignoreHtmlClass: 'tex2jax_ignore' },
-                startup: { ready: () => { MathJax.startup.defaultReady(); MathJax.startup.promise.then(() => console.log('MathJax loaded and ready.')); } }
+                tex: {
+                    inlineMath: [['$', '$'], ['\\(', '\\)']],
+                    displayMath: [['$$', '$$']],
+                    processEscapes: true
+                },
+                svg: {
+                    fontCache: 'global'
+                },
+                options: {
+                    ignoreHtmlClass: 'tex2jax_ignore', // Třída pro ignorování MathJaxem
+                    processHtmlClass: 'tex2jax_process' // Třída pro explicitní zpracování
+                },
+                startup: {
+                    ready: () => {
+                        console.log('[MathJax Config] MathJax Startup: Ready (test1.html).');
+                        MathJax.startup.defaultReady();
+                        MathJax.startup.promise.then(() => {
+                            console.log('[MathJax Config] MathJax Startup: Core Ready (test1.html).');
+                        });
+                    }
+                }
             };
+        } else {
+            console.warn("[MathJax Config] window.MathJax already defined (test1.html). Skipping default config.");
         }
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
