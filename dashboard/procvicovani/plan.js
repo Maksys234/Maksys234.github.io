@@ -25,15 +25,21 @@
          sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'),
          sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
          sidebarName: document.getElementById('sidebar-name'),
-         // ***** OPRAVA ZDE: userAvatar -> sidebarAvatar *****
-         sidebarAvatar: document.getElementById('sidebar-avatar'), // Správný klíč pro element s avatarem
+         sidebarAvatar: document.getElementById('sidebar-avatar'),
          sidebarUserTitle: document.getElementById('sidebar-user-title'),
          toastContainer: document.getElementById('toast-container'),
          globalError: document.getElementById('global-error'),
          planTabs: document.querySelectorAll('.plan-tab'),
          currentPlanSection: document.getElementById('currentPlanSection'),
          currentPlanLoader: document.getElementById('currentPlanLoader'),
-         currentPlanContent: document.getElementById('currentPlanContent'),
+        // Původní #currentPlanContent je nyní #currentPlanEmptyState pro případy, kdy není plán
+        // Nové kontejnery pro karusel:
+         dailyPlanCarouselContainer: document.getElementById('dailyPlanCarouselContainer'),
+         singleDayPlanView: document.getElementById('singleDayPlanView'),
+         prevDayBtn: document.getElementById('prevDayBtn'),
+         nextDayBtn: document.getElementById('nextDayBtn'),
+         currentPlanEmptyState: document.getElementById('currentPlanEmptyState'), // Pro zobrazení zpráv, pokud není plán
+
          historyPlanSection: document.getElementById('historyPlanSection'),
          historyLoader: document.getElementById('historyLoader'),
          historyPlanContent: document.getElementById('historyPlanContent'),
@@ -46,8 +52,8 @@
          planContent: document.getElementById('planContent'),
          planActions: document.getElementById('planActions'),
          genericBackBtn: document.getElementById('genericBackBtn'),
-         verticalScheduleList: document.getElementById('vertical-schedule-list'),
-         verticalScheduleNav: document.getElementById('verticalScheduleNav'),
+         verticalScheduleList: document.getElementById('vertical-schedule-list'), // Ponecháno pro případné skeletony nebo fallback
+         verticalScheduleNav: document.getElementById('verticalScheduleNav'), // Ponecháno pro tlačítko exportu
          exportScheduleBtnVertical: document.getElementById('exportScheduleBtnVertical'),
          notificationBell: document.getElementById('notification-bell'),
          notificationCount: document.getElementById('notification-count'),
@@ -77,7 +83,13 @@
         lastGeneratedTopicsData: null,
         isLoading: { current: false, history: false, create: false, detail: false, schedule: false, generation: false, notifications: false, titles: false },
         topicMap: { /* Populate this if needed from DB or keep static */ },
-        allTitles: []
+        allTitles: [],
+        // Nové stavové proměnné pro karusel dnů
+        currentDisplayDate: null, // YYYY-MM-DD string aktuálně zobrazeného dne
+        allActivePlanActivitiesByDay: {}, // { 'YYYY-MM-DD': [activities], ... }
+        sortedActivityDates: [], // Pole seřazených unikátních dat (stringů) s aktivitami
+        planStartDate: null, // Date object
+        planEndDate: null, // Date object
     };
 
      const activityVisuals = {
@@ -95,6 +107,41 @@
     // ==============================================
     //          Помощники (Утилиты)
     // ==============================================
+    const formatDateForDisplay = (dateStringOrDate) => {
+        if (!dateStringOrDate) return 'Neznámé datum';
+        try {
+            const date = (typeof dateStringOrDate === 'string') ? new Date(dateStringOrDate + 'T00:00:00') : dateStringOrDate; // Zajistí lokální čas, pokud je string bez času
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            let formatted = date.toLocaleDateString('cs-CZ', options);
+            // Kapitalizace prvního písmene
+            formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1);
+            return formatted;
+        } catch (e) {
+            console.error("Chyba formátování data pro zobrazení:", dateStringOrDate, e);
+            return 'Chybné datum';
+        }
+    };
+
+    const getTodayDateString = () => {
+        const today = new Date();
+        return dateToYYYYMMDD(today);
+    };
+
+    const dateToYYYYMMDD = (date) => {
+        if (!(date instanceof Date) || isNaN(date)) return null;
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const addDaysToDate = (dateString, days) => {
+        const date = new Date(dateString + 'T00:00:00'); // Zajistí lokální čas
+        date.setDate(date.getDate() + days);
+        return dateToYYYYMMDD(date);
+    };
+
+
     const formatDate = (dateString) => { if(!dateString) return '-'; try { const date = new Date(dateString); return date.toLocaleDateString('cs-CZ', { day: '2-digit', month: '2-digit', year: 'numeric' }); } catch(e){ return '-'}};
     function showToast(title, message, type = 'info', duration = 4500) { if (!ui.toastContainer) return; try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content">${title ? `<div class="toast-title">${sanitizeHTML(title)}</div>` : ''}<div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Chyba při zobrazování toastu:", e); } };
     const sanitizeHTML = (str) => { const t = document.createElement('div'); t.textContent = str || ''; return t.innerHTML; };
@@ -176,10 +223,11 @@
         console.log(`[Loading] ${sectionKey}: ${isLoadingFlag}`);
 
         const loaderMap = { current: ui.currentPlanLoader, history: ui.historyLoader, create: ui.createPlanLoader, detail: ui.planLoading, schedule: ui.currentPlanLoader, generation: ui.planLoading, notifications: null, titles: null };
-        const contentMap = { current: ui.currentPlanContent, history: ui.historyPlanContent, create: ui.createPlanContent, detail: ui.planContent, schedule: ui.verticalScheduleList, notifications: ui.notificationsList };
-        const navMap = { schedule: ui.verticalScheduleNav };
+        // ZMĚNA: Místo verticalScheduleList použijeme singleDayPlanView pro zobrazení obsahu dne
+        const contentMap = { current: ui.dailyPlanCarouselContainer, history: ui.historyPlanContent, create: ui.createPlanContent, detail: ui.planContent, schedule: ui.singleDayPlanView, notifications: ui.notificationsList };
+        const navMap = { schedule: ui.verticalScheduleNav }; // Tlačítko Export zůstává pod #verticalScheduleNav
         const sectionMap = { current: ui.currentPlanSection, history: ui.historyPlanSection, create: ui.createPlanSection, detail: ui.planSection };
-        const emptyMap = { notifications: ui.noNotificationsMsg };
+        const emptyMap = { notifications: ui.noNotificationsMsg, current: ui.currentPlanEmptyState }; // currentPlanEmptyState pro zobrazení, když není plán
 
         const sectionsToUpdate = sectionKey === 'all' ? Object.keys(loaderMap) : [sectionKey];
 
@@ -206,29 +254,40 @@
                  }
             }
             if (section) section.classList.toggle('loading', isLoadingFlag);
+
             if (isLoadingFlag) {
                 if (content) content.classList.remove('content-visible', 'schedule-visible', 'generated-reveal');
                 if (nav) nav.classList.remove('nav-visible');
-                if (emptyState) emptyState.style.display = 'none';
+                if (emptyState) emptyState.style.display = 'none'; // Skryjeme empty state při načítání
                 if (key === 'history' && ui.historyPlanContent) renderHistorySkeletons(3);
-                if (key === 'schedule' && ui.verticalScheduleList) {
-                    ui.verticalScheduleList.innerHTML = `
-                        <div class="skeleton day-card-skeleton"> <div class="skeleton day-header-skeleton"></div> <div class="skeleton activity-item-skeleton"><div class="skeleton activity-checkbox-skeleton"></div><div class="skeleton activity-content-skeleton"><div class="skeleton activity-title-skeleton"></div><div class="skeleton activity-meta-skeleton"></div></div></div> <div class="skeleton activity-item-skeleton"><div class="skeleton activity-checkbox-skeleton"></div><div class="skeleton activity-content-skeleton"><div class="skeleton activity-title-skeleton" style="width: 60%;"></div></div></div> </div>
-                        <div class="skeleton day-card-skeleton"> <div class="skeleton day-header-skeleton" style="width: 50%;"></div> <div class="skeleton activity-item-skeleton"><div class="skeleton activity-checkbox-skeleton"></div><div class="skeleton activity-content-skeleton"><div class="skeleton activity-title-skeleton" style="width: 70%;"></div></div></div> </div>`;
-                    ui.verticalScheduleList.classList.add('schedule-visible');
+
+                // ZMĚNA: Skeleton pro načítání dne v karuselu
+                if (key === 'schedule' && ui.singleDayPlanView) {
+                    ui.singleDayPlanView.innerHTML = `
+                        <div class="day-schedule-card skeleton-day-card" style="display:block; opacity:0.5; margin: 0 auto; max-width: 700px;">
+                             <div class="day-header skeleton-day-header skeleton" style="height: 40px; width: 60%; margin-bottom:1rem;"></div>
+                             <div class="activity-list-container" style="max-height: 500px; padding: 1rem 0;">
+                                 <div class="activity-list-item skeleton-activity-item skeleton" style="height: 50px; margin-bottom:0.5rem;"></div>
+                                 <div class="activity-list-item skeleton-activity-item skeleton" style="height: 50px; margin-bottom:0.5rem;"></div>
+                                 <div class="activity-list-item skeleton-activity-item skeleton" style="height: 50px;"></div>
+                             </div>
+                         </div>`;
+                    if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'flex';
                 }
                 if (key === 'notifications' && ui.notificationsList) renderNotificationSkeletons(2);
                  if (key === 'generation' && ui.planActions) {
                      ui.planActions.style.display = 'none';
                  }
-            } else {
+            } else { // isLoadingFlag is false
                 if (key === 'history' && ui.historyPlanContent) {
                     if (!ui.historyPlanContent.querySelector('.history-item') && !ui.historyPlanContent.querySelector('.notest-message')) {
-                        ui.historyPlanContent.innerHTML = '';
+                        ui.historyPlanContent.innerHTML = ''; // Vyčistí skeletony jen pokud není skutečný obsah
                     }
                 }
-                 if (key === 'schedule' && ui.verticalScheduleList && !ui.verticalScheduleList.querySelector('.day-schedule-card')) {
-                     ui.verticalScheduleList.innerHTML = '';
+                // ZMĚNA: Obsah pro 'schedule' (singleDayPlanView) se naplní v renderSingleDayPlan
+                 if (key === 'schedule' && ui.singleDayPlanView && !ui.singleDayPlanView.querySelector('.day-schedule-card:not(.skeleton-day-card)')) {
+                     // Pokud po načtení není žádná skutečná karta dne, můžeme skeleton nechat nebo vyčistit
+                     // Prozatím necháme, renderSingleDayPlan by měl vložit "žádné aktivity"
                  }
             }
              if (key === 'detail') {
@@ -248,14 +307,20 @@
 
     const renderMessage = (container, type = 'info', title, message, addButtons = []) => {
         if (!container) { console.error("renderMessage: Container not found!"); return; }
-        console.log(`[RenderMessage] Rendering into:`, container.id, `Type: ${type}, Title: ${title}`);
+        console.log(`[RenderMessage] Rendering into:`, container.id || container.className, `Type: ${type}, Title: ${title}`);
         const iconMap = { info: 'fa-info-circle', warning: 'fa-exclamation-triangle', error: 'fa-exclamation-circle' };
         let buttonsHTML = '';
         addButtons.forEach(btn => {
-            buttonsHTML += `<button class="btn ${btn.class || 'btn-primary'}" id="${btn.id}" ${btn.disabled ? 'disabled' : ''}>${btn.icon ? `<i class="fas ${btn.icon}"></i> ` : ''}${btn.text}</button>`;
+            buttonsHTML += `<button class="btn ${btn.class || 'btn-primary'}" id="${btn.id}" ${btn.disabled ? 'disabled' : ''}>${btn.icon ? `<i class="fas ${btn.icon}"></i> ` : ''}${sanitizeHTML(btn.text)}</button>`;
         });
         container.innerHTML = `<div class="notest-message ${type}"><h3><i class="fas ${iconMap[type]}"></i> ${sanitizeHTML(title)}</h3><p>${sanitizeHTML(message)}</p><div class="action-buttons">${buttonsHTML}</div></div>`;
         container.classList.add('content-visible');
+        // ZMĚNA: Pro karusel chceme, aby se zobrazil 'empty state container', ne 'dailyPlanCarouselContainer'
+        if (container === ui.currentPlanEmptyState) {
+            if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
+            container.style.display = 'flex'; // Zajistí zobrazení, i když je to 'empty state'
+        }
+
 
         addButtons.forEach(btn => {
             const btnElement = container.querySelector(`#${btn.id}`);
@@ -295,47 +360,44 @@
         }
         if (ui.exportScheduleBtnVertical) { ui.exportScheduleBtnVertical.addEventListener('click', () => { if (state.currentStudyPlan) exportPlanToPDFWithStyle(state.currentStudyPlan); else showToast('Nelze exportovat, plán není načten.', 'warning'); }); }
         window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) closeMenu(); });
-        const scheduleContainer = ui.verticalScheduleList;
+
+        // ZMĚNA: Posluchače pro aktivity přesunuty do renderSingleDayPlan, protože obsah se generuje dynamicky
+        // Starý listener pro .verticalScheduleList bude odstraněn nebo upraven, pokud ho někde ještě potřebujeme.
+        // Prozatím ho zakomentuji, protože nový způsob vykreslování dnů to řeší jinak.
+        /*
+        const scheduleContainer = ui.verticalScheduleList; // Původní kontejner
         if (scheduleContainer) {
-            scheduleContainer.addEventListener('click', (event) => {
-                const expandButton = event.target.closest('.expand-icon-button');
-                const header = event.target.closest('.day-header');
-                const titleArea = event.target.closest('.activity-title-time');
-                const checkboxLabel = event.target.closest('.activity-checkbox');
-                if (checkboxLabel || event.target.tagName === 'INPUT') return;
-                if (expandButton || titleArea) {
-                    const activityElement = (expandButton || titleArea).closest('.activity-list-item');
-                    const descElement = activityElement?.querySelector('.activity-desc');
-                    if (activityElement && descElement && descElement.textContent.trim()) {
-                        activityElement.classList.toggle('expanded');
-                        console.log("Toggled activity description for:", activityElement.dataset.activityId);
-                    } else if (activityElement) {
-                         console.log("No description to toggle or desc element not found for:", activityElement.dataset.activityId);
-                    }
-                }
-                else if (header) {
-                    const dayCard = header.closest('.day-schedule-card');
-                    if (dayCard) {
-                        dayCard.classList.toggle('expanded');
-                        console.log("Toggled day card:", dayCard.querySelector('.day-header').textContent.trim().split('\n')[0]);
-                    }
-                }
-            });
-            scheduleContainer.addEventListener('change', async (event) => {
-                if (event.target.type === 'checkbox' && event.target.closest('.activity-checkbox')) {
-                    const checkbox = event.target;
-                    const activityId = checkbox.dataset.activityId;
-                    const planId = checkbox.dataset.planId;
-                    const isCompleted = checkbox.checked;
-                    const activityElement = checkbox.closest('.activity-list-item');
-                    console.log(`Checkbox changed for activity ${activityId}, completed: ${isCompleted}`);
-                    if (activityElement) { activityElement.classList.toggle('completed', isCompleted); }
-                    await handleActivityCompletionToggle(activityId, isCompleted, planId);
-                }
-            });
+            scheduleContainer.addEventListener('click', (event) => { ... });
+            scheduleContainer.addEventListener('change', async (event) => { ... });
         } else {
             console.warn("Vertical schedule container not found for event delegation.");
         }
+        */
+       // Nové posluchače pro navigační tlačítka dnů
+        if (ui.prevDayBtn) {
+            ui.prevDayBtn.addEventListener('click', () => {
+                if (state.currentDisplayDate && state.sortedActivityDates.length > 0) {
+                    const currentIndex = state.sortedActivityDates.indexOf(state.currentDisplayDate);
+                    if (currentIndex > 0) {
+                        state.currentDisplayDate = state.sortedActivityDates[currentIndex - 1];
+                        renderSingleDayPlan(state.currentDisplayDate);
+                    }
+                }
+            });
+        }
+        if (ui.nextDayBtn) {
+            ui.nextDayBtn.addEventListener('click', () => {
+                if (state.currentDisplayDate && state.sortedActivityDates.length > 0) {
+                    const currentIndex = state.sortedActivityDates.indexOf(state.currentDisplayDate);
+                    if (currentIndex < state.sortedActivityDates.length - 1) {
+                        state.currentDisplayDate = state.sortedActivityDates[currentIndex + 1];
+                        renderSingleDayPlan(state.currentDisplayDate);
+                    }
+                }
+            });
+        }
+
+
         if (ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); }
         if (ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead); }
         if (ui.notificationsList) {
@@ -398,7 +460,7 @@
             const loadNotificationsPromise = fetchNotifications(user.id, NOTIFICATION_FETCH_LIMIT)
                 .then(({ unreadCount, notifications }) => renderNotifications(unreadCount, notifications))
                 .catch(err => { console.error("Failed to load notifications initially:", err); renderNotifications(0, []); });
-            const loadInitialTabPromise = switchTab('current');
+            const loadInitialTabPromise = switchTab('current'); // Načte 'current' jako první
             await Promise.all([loadNotificationsPromise, loadInitialTabPromise]);
             if (ui.mainContent) {
                 ui.mainContent.style.display = 'block';
@@ -409,7 +471,8 @@
             console.error("App initialization error:", error);
             showGlobalError(`Chyba inicializace: ${error.message}`);
             if (ui.mainContent) ui.mainContent.style.display = 'block';
-            const errorContainer = document.getElementById('currentPlanContent') || ui.mainContent;
+            // ZMĚNA: Zobrazování chybové zprávy do #currentPlanEmptyState
+            const errorContainer = ui.currentPlanEmptyState || ui.mainContent;
             if(errorContainer) renderMessage(errorContainer, 'error', 'Chyba inicializace', error.message);
         } finally {
             if (ui.initialLoader) {
@@ -459,7 +522,7 @@
     }
 
     function updateSidebarProfile() {
-        if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { // Správná kontrola ui.sidebarAvatar
+        if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) {
             console.warn("[SidebarUI] Chybí elementy postranního panelu pro profil.");
             return;
         }
@@ -479,12 +542,12 @@
                 finalAvatarUrl = `${sanitizeHTML(avatarUrl)}?t=${new Date().getTime()}`;
             }
 
-            ui.sidebarAvatar.innerHTML = finalAvatarUrl ? `<img src="${finalAvatarUrl}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials); // Správné použití ui.sidebarAvatar
-            const img = ui.sidebarAvatar.querySelector('img'); // Správné použití ui.sidebarAvatar
+            ui.sidebarAvatar.innerHTML = finalAvatarUrl ? `<img src="${finalAvatarUrl}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
+            const img = ui.sidebarAvatar.querySelector('img');
             if (img) {
                 img.onerror = function() {
                     console.warn(`[SidebarUI] Nepodařilo se načíst avatar: ${this.src}. Zobrazuji iniciály.`);
-                    ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); // Správné použití ui.sidebarAvatar
+                    ui.sidebarAvatar.innerHTML = sanitizeHTML(initials);
                 };
             }
 
@@ -506,7 +569,7 @@
 
         } else {
             ui.sidebarName.textContent = "Nepřihlášen";
-            ui.sidebarAvatar.textContent = '?'; // Správné použití ui.sidebarAvatar
+            ui.sidebarAvatar.textContent = '?';
             ui.sidebarUserTitle.textContent = 'Pilot';
             ui.sidebarUserTitle.removeAttribute('title');
         }
@@ -521,12 +584,16 @@
         ui.historyPlanSection?.classList.remove('visible-section');
         ui.createPlanSection?.classList.remove('visible-section');
         ui.planSection?.classList.remove('visible-section');
-        ui.currentPlanContent?.classList.remove('content-visible');
-        ui.verticalScheduleList?.classList.remove('schedule-visible');
-        ui.verticalScheduleNav?.classList.remove('nav-visible');
-        ui.planContent?.classList.remove('content-visible', 'generated-reveal');
-        ui.historyPlanContent?.classList.remove('content-visible');
-        ui.createPlanContent?.classList.remove('content-visible');
+
+        // Skrytí/zobrazení relevantních kontejnerů pro novou strukturu
+        if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
+        if (ui.currentPlanEmptyState) ui.currentPlanEmptyState.style.display = 'none';
+        if (ui.historyPlanContent) ui.historyPlanContent.classList.remove('content-visible');
+        if (ui.createPlanContent) ui.createPlanContent.classList.remove('content-visible');
+        if (ui.planContent) ui.planContent.classList.remove('content-visible', 'generated-reveal');
+        if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible');
+
+
         if (state.lastGeneratedMarkdown !== null && tabId !== 'detail' && tabId !== 'generation') {
             console.log("[NAV] Clearing generated plan state as we are leaving the preview section.");
             state.lastGeneratedMarkdown = null;
@@ -553,7 +620,9 @@
         } catch (error) {
             console.error(`[NAV] Error loading tab ${tabId}:`, error);
             const errorTargetSection = document.getElementById(`${tabId}PlanSection`);
-            const errorContentContainer = errorTargetSection?.querySelector('.section-content');
+            // ZMĚNA: Cílení na #currentPlanEmptyState pro chyby v záložce 'current'
+            const errorContentContainer = (tabId === 'current') ? ui.currentPlanEmptyState : errorTargetSection?.querySelector('.section-content');
+
             if(errorTargetSection) errorTargetSection.classList.add('visible-section');
             if (errorContentContainer) {
                 renderMessage(errorContentContainer, 'error', 'Chyba načítání', `Obsah záložky "${tabId}" nelze načíst: ${error.message}`);
@@ -572,173 +641,288 @@
      async function markNotificationRead(notificationId) { console.log("[Notifications] Marking notification as read:", notificationId); if (!state.currentUser || !notificationId) return false; try { const { error } = await supabaseClient.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[Notifications] Mark as read successful for ID:", notificationId); return true; } catch (error) { console.error("[Notifications] Mark as read error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
      async function markAllNotificationsRead() { console.log("[Notifications] Marking all as read for user:", state.currentUser?.id); if (!state.currentUser || !ui.markAllReadBtn) return; setLoadingState('notifications', true); try { const { error } = await supabaseClient.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('is_read', false); if (error) throw error; console.log("[Notifications] Mark all as read successful"); const { unreadCount, notifications } = await fetchNotifications(state.currentUser.id, NOTIFICATION_FETCH_LIMIT); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[Notifications] Mark all as read error:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { setLoadingState('notifications', false); } }
 
+    const groupActivitiesByDayAndDateArray = (activities) => {
+        state.allActivePlanActivitiesByDay = {};
+        state.sortedActivityDates = [];
+        if (!activities || activities.length === 0) {
+            state.planStartDate = null;
+            state.planEndDate = null;
+            return;
+        }
+
+        const dayToDateMap = {}; // Mapuje day_of_week na konkrétní datum (pro aktuální týden plánu)
+        let planStartDayOfWeek = activities[0].day_of_week; // Předpokládáme, že aktivity jsou seřazeny
+        let referenceDate = new Date(); // Dnešní datum jako reference
+
+        // Najdeme datum začátku plánu (nejbližší budoucí nebo minulé pondělí, pokud plán začíná v pondělí)
+        // Toto je zjednodušení; reálně by datumy měly být v DB nebo odvozeny z `created_at` plánu.
+        // Pro demonstraci: začneme od nejbližšího pondělí před/po referenčním datu, které odpovídá startovnímu dni plánu.
+        let currentDayOfWeek = referenceDate.getDay(); // 0=Ne, 1=Po, ...
+        let diffToStartDay = planStartDayOfWeek - currentDayOfWeek;
+        referenceDate.setDate(referenceDate.getDate() + diffToStartDay); // Jsme na prvním dni plánu v aktuálním týdnu
+
+        state.planStartDate = new Date(referenceDate); // Začátek cyklu
+        state.planEndDate = new Date(referenceDate);
+        state.planEndDate.setDate(state.planEndDate.getDate() + 6); // Konec cyklu (7 dní)
+
+
+        for (let i = 0; i < 7; i++) {
+            const currentDate = new Date(state.planStartDate);
+            currentDate.setDate(state.planStartDate.getDate() + i);
+            const dayOfWeek = currentDate.getDay(); // 0 pro neděli, 1 pro pondělí atd.
+            dayToDateMap[dayOfWeek] = dateToYYYYMMDD(currentDate);
+        }
+
+
+        activities.forEach(act => {
+            const dateString = dayToDateMap[act.day_of_week];
+            if (dateString) {
+                if (!state.allActivePlanActivitiesByDay[dateString]) {
+                    state.allActivePlanActivitiesByDay[dateString] = [];
+                }
+                state.allActivePlanActivitiesByDay[dateString].push(act);
+            } else {
+                 console.warn(`Activity with ID ${act.id} has invalid day_of_week: ${act.day_of_week} or dateString not found.`);
+            }
+        });
+
+        state.sortedActivityDates = Object.keys(state.allActivePlanActivitiesByDay).sort();
+
+        // Aktualizace skutečného start a end date plánu na základě existujících aktivit
+        if (state.sortedActivityDates.length > 0) {
+            state.planStartDate = new Date(state.sortedActivityDates[0] + 'T00:00:00');
+            state.planEndDate = new Date(state.sortedActivityDates[state.sortedActivityDates.length - 1] + 'T00:00:00');
+        } else {
+            state.planStartDate = null;
+            state.planEndDate = null;
+        }
+        console.log("[groupActivities] Grouped activities:", state.allActivePlanActivitiesByDay);
+        console.log("[groupActivities] Sorted dates:", state.sortedActivityDates);
+        console.log("[groupActivities] Plan effective start/end:", state.planStartDate, state.planEndDate);
+    };
+
+
     const loadCurrentPlan = async () => {
         if (!supabaseClient || !state.currentUser) return;
         console.log("[CurrentPlan] Loading current plan...");
         setLoadingState('current', true);
-        setLoadingState('schedule', true);
-        if (ui.currentPlanContent) ui.currentPlanContent.classList.remove('content-visible');
-        if (ui.verticalScheduleList) ui.verticalScheduleList.classList.remove('schedule-visible');
-        if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible');
+        setLoadingState('schedule', true); // Loader pro obsah dne
+        if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
+        if (ui.currentPlanEmptyState) ui.currentPlanEmptyState.style.display = 'none';
+
         try {
-            const { data: plans, error } = await supabaseClient.from('study_plans').select('*').eq('user_id', state.currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1);
+            const { data: plans, error } = await supabaseClient.from('study_plans')
+                .select('*')
+                .eq('user_id', state.currentUser.id)
+                .eq('status', 'active')
+                .order('created_at', { ascending: false })
+                .limit(1);
             if (error) throw error;
-            console.log("[CurrentPlan] Fetched plans:", plans);
+
             if (plans && plans.length > 0) {
                 state.currentStudyPlan = plans[0];
                 console.log("[CurrentPlan] Active plan found:", state.currentStudyPlan.id);
-                await showVerticalSchedule(state.currentStudyPlan);
+
+                const { data: activities, error: actError } = await supabaseClient
+                    .from('plan_activities')
+                    .select('*')
+                    .eq('plan_id', state.currentStudyPlan.id)
+                    .order('day_of_week')
+                    .order('time_slot');
+                if (actError) throw actError;
+
+                groupActivitiesByDayAndDateArray(activities || []);
+
+                const todayStr = getTodayDateString();
+                if (state.sortedActivityDates.includes(todayStr)) {
+                    state.currentDisplayDate = todayStr;
+                } else if (state.sortedActivityDates.length > 0) {
+                    // Zobrazit první den s aktivitami, pokud dnešek není v plánu nebo nemá aktivity
+                    state.currentDisplayDate = state.sortedActivityDates[0];
+                } else {
+                    state.currentDisplayDate = todayStr; // Fallback na dnešek, i když nejsou aktivity
+                }
+
+                renderSingleDayPlan(state.currentDisplayDate);
+                if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'flex';
+                if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.add('nav-visible');
+
             } else {
                 state.currentStudyPlan = null;
+                state.allActivePlanActivitiesByDay = {};
+                state.sortedActivityDates = [];
+                state.currentDisplayDate = null;
                 console.log("[CurrentPlan] No active plan found. Checking diagnostic...");
-                setLoadingState('schedule', false);
+                if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
+                if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible');
+
                 const diagnostic = await getLatestDiagnostic(false);
                 if (diagnostic === null) {
-                    renderMessage(ui.currentPlanContent, 'error', 'Chyba načítání diagnostiky', 'Nepodařilo se ověřit stav vašeho diagnostického testu.');
+                    renderMessage(ui.currentPlanEmptyState, 'error', 'Chyba načítání diagnostiky', 'Nepodařilo se ověřit stav vašeho diagnostického testu.');
                 } else if (diagnostic) {
-                    renderPromptCreatePlan(ui.currentPlanContent);
+                    renderPromptCreatePlan(ui.currentPlanEmptyState);
                 } else {
-                    renderNoActivePlan(ui.currentPlanContent);
+                    renderNoActivePlan(ui.currentPlanEmptyState);
                 }
             }
         } catch (error) {
             console.error("[CurrentPlan] Error loading current plan:", error);
-            renderMessage(ui.currentPlanContent, 'error', 'Chyba', 'Nepodařilo se načíst aktuální studijní plán.');
-            setLoadingState('schedule', false);
+            renderMessage(ui.currentPlanEmptyState, 'error', 'Chyba', 'Nepodařilo se načíst aktuální studijní plán.');
+            if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
+            if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible');
         } finally {
             setLoadingState('current', false);
+            setLoadingState('schedule', false);
             console.log("[CurrentPlan] Loading finished.");
         }
      };
+
+    const renderSingleDayPlan = (targetDateString) => {
+        console.log(`[RenderSingleDay] Rendering for date: ${targetDateString}`);
+        if (!ui.singleDayPlanView || !state.currentStudyPlan) {
+            console.error("[RenderSingleDay] Missing UI elements or current study plan.");
+            if(ui.currentPlanEmptyState) renderMessage(ui.currentPlanEmptyState, 'error', 'Chyba zobrazení', 'Nelze zobrazit denní plán.');
+            if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
+            return;
+        }
+
+        setLoadingState('schedule', true);
+        ui.singleDayPlanView.innerHTML = ''; // Vyčistit předchozí den
+
+        const activitiesForDay = state.allActivePlanActivitiesByDay[targetDateString] || [];
+        activitiesForDay.sort((a, b) => (a.time_slot || '99:99').localeCompare(b.time_slot || '99:99'));
+
+        const dayCard = document.createElement('div');
+        dayCard.className = 'day-schedule-card expanded'; // Den je vždy "rozbalený" v tomto zobrazení
+        if (targetDateString === getTodayDateString()) {
+            dayCard.classList.add('today');
+        }
+
+        const dayHeader = document.createElement('div');
+        dayHeader.className = 'day-header';
+        dayHeader.innerHTML = `${formatDateForDisplay(targetDateString)} ${targetDateString === getTodayDateString() ? '<span>(Dnes)</span>' : ''}`;
+        dayCard.appendChild(dayHeader);
+
+        const activitiesContainer = document.createElement('div');
+        activitiesContainer.className = 'activity-list-container';
+
+        if (activitiesForDay.length > 0) {
+            activitiesForDay.forEach(activity => {
+                if (!activity.id) return;
+                const activityElement = document.createElement('div');
+                activityElement.className = `activity-list-item ${activity.completed ? 'completed' : ''}`;
+                activityElement.dataset.activityId = activity.id;
+                const timeDisplay = activity.time_slot ? `<span class="activity-time-display">${activity.time_slot}</span>` : '';
+                const iconClass = getActivityIcon(activity.title, activity.type);
+                const hasDescription = activity.description && activity.description.trim().length > 0;
+                const expandIcon = hasDescription ? `<button class="expand-icon-button btn-tooltip" aria-label="Rozbalit popis" title="Zobrazit/skrýt popis"><i class="fas fa-chevron-down expand-icon"></i></button>` : '';
+
+                activityElement.innerHTML = `
+                    <label class="activity-checkbox">
+                        <input type="checkbox" id="carousel-activity-${activity.id}" ${activity.completed ? 'checked' : ''} data-activity-id="${activity.id}" data-plan-id="${state.currentStudyPlan.id}">
+                    </label>
+                    <i class="fas ${iconClass} activity-icon"></i>
+                    <div class="activity-details">
+                        <div class="activity-header">
+                            <div class="activity-title-time">
+                                <span class="activity-title">${sanitizeHTML(activity.title || 'Aktivita')}</span>
+                                ${timeDisplay}
+                            </div>
+                            ${expandIcon}
+                        </div>
+                        ${hasDescription ? `<div class="activity-desc">${sanitizeHTML(activity.description)}</div>` : ''}
+                    </div>`;
+
+                // Event listener pro rozbalení popisu
+                const expandButtonElem = activityElement.querySelector('.expand-icon-button');
+                if (expandButtonElem) {
+                    expandButtonElem.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const descElement = activityElement.querySelector('.activity-desc');
+                        if (descElement) {
+                            activityElement.classList.toggle('expanded');
+                        }
+                    });
+                }
+                // Event listener pro checkbox
+                const checkbox = activityElement.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    checkbox.addEventListener('change', async (e) => {
+                        const isCompleted = e.target.checked;
+                        activityElement.classList.toggle('completed', isCompleted);
+                        await handleActivityCompletionToggle(activity.id, isCompleted, state.currentStudyPlan.id);
+                    });
+                }
+                activitiesContainer.appendChild(activityElement);
+            });
+        } else {
+            activitiesContainer.innerHTML = `<div class="no-activities-day"><i class="fas fa-coffee"></i> Žádné aktivity pro tento den. Užijte si volno!</div>`;
+        }
+        dayCard.appendChild(activitiesContainer);
+        ui.singleDayPlanView.appendChild(dayCard);
+
+        if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'flex';
+        if (ui.currentPlanEmptyState) ui.currentPlanEmptyState.style.display = 'none';
+
+        updateNavigationButtonsState(targetDateString);
+        initTooltips(); // Reinicializace tooltipů pro nově přidané prvky
+        setLoadingState('schedule', false);
+    };
+
+    const updateNavigationButtonsState = (currentDateString) => {
+        if (!ui.prevDayBtn || !ui.nextDayBtn || !state.sortedActivityDates || state.sortedActivityDates.length === 0) {
+            if(ui.prevDayBtn) ui.prevDayBtn.style.display = 'none';
+            if(ui.nextDayBtn) ui.nextDayBtn.style.display = 'none';
+            return;
+        }
+
+        const currentIndex = state.sortedActivityDates.indexOf(currentDateString);
+
+        ui.prevDayBtn.style.display = 'inline-flex';
+        ui.nextDayBtn.style.display = 'inline-flex';
+
+        ui.prevDayBtn.disabled = currentIndex <= 0;
+        ui.nextDayBtn.disabled = currentIndex >= state.sortedActivityDates.length - 1;
+    };
+
+
+
      const renderPromptCreatePlan = (container) => {
          if (!container || !ui.promptCreatePlanTemplate) return;
          console.log("[Render] Rendering Prompt Create Plan...");
-         ui.verticalScheduleList?.classList.remove('schedule-visible');
-         ui.verticalScheduleNav?.classList.remove('nav-visible');
+         // ZMĚNA: Skrytí karuselu, zobrazení empty state kontejneru
+         if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
+         if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible');
+
          const node = ui.promptCreatePlanTemplate.content.cloneNode(true);
          const btn = node.getElementById('createNewPlanFromPromptBtn');
          if (btn) btn.addEventListener('click', () => switchTab('create'));
          container.innerHTML = '';
          container.appendChild(node);
-         container.classList.add('content-visible');
+         container.style.display = 'flex'; // Zajistíme, že je kontejner viditelný
          console.log("[Render] Prompt Create Plan Rendered.");
      };
      const renderNoActivePlan = (container) => {
          if (!container || !ui.noActivePlanTemplate) return;
          console.log("[Render] Rendering No Active Plan...");
-         ui.verticalScheduleList?.classList.remove('schedule-visible');
-         ui.verticalScheduleNav?.classList.remove('nav-visible');
+         // ZMĚNA: Skrytí karuselu, zobrazení empty state kontejneru
+         if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
+         if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible');
+
          const node = ui.noActivePlanTemplate.content.cloneNode(true);
          const link = node.querySelector('.link-to-create-tab');
          if (link) link.addEventListener('click', (e) => { e.preventDefault(); switchTab('create'); });
          container.innerHTML = '';
          container.appendChild(node);
-         container.classList.add('content-visible');
+         container.style.display = 'flex'; // Zajistíme, že je kontejner viditelný
          console.log("[Render] No Active Plan Rendered.");
      };
-     const showVerticalSchedule = async (plan) => {
-        if (!supabaseClient || !plan || !plan.id) {
-            console.error("[ShowVertical] Invalid plan data.");
-            if(ui.currentPlanContent) {
-                 renderMessage(ui.currentPlanContent, 'error', 'Chyba plánu', 'Nelze zobrazit detaily plánu.');
-                 ui.currentPlanContent.classList.add('content-visible');
-            }
-            ui.verticalScheduleList?.classList.remove('schedule-visible');
-            ui.verticalScheduleNav?.classList.remove('nav-visible');
-            setLoadingState('schedule', false);
-            return;
-        }
-        console.log(`[ShowVertical] Displaying schedule for Plan ID ${plan.id}`);
-        if (ui.currentPlanContent) ui.currentPlanContent.classList.remove('content-visible');
-        try {
-            const { data: activities, error } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', plan.id).order('day_of_week').order('time_slot');
-            if (error) throw error;
-            console.log(`[ShowVertical] Fetched ${activities?.length ?? 0} activities.`);
-            renderVerticalSchedule(activities || [], plan.id);
-            if (ui.verticalScheduleList) ui.verticalScheduleList.classList.add('schedule-visible');
-            if (ui.verticalScheduleNav) ui.verticalScheduleNav.classList.add('nav-visible');
-        } catch (error) {
-            console.error("[ShowVertical] Error fetching activities:", error);
-             if(ui.currentPlanContent) {
-                 renderMessage(ui.currentPlanContent, 'error', 'Chyba Harmonogramu', 'Nepodařilo se načíst aktivity.');
-                 ui.currentPlanContent.classList.add('content-visible');
-            }
-            if(ui.verticalScheduleList) ui.verticalScheduleList.classList.remove('schedule-visible');
-            if(ui.verticalScheduleNav) ui.verticalScheduleNav.classList.remove('nav-visible');
-        } finally {
-            setLoadingState('schedule', false);
-            initTooltips();
-        }
-     };
-     const renderVerticalSchedule = (activities, planId) => {
-         const days = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
-         const todayIndex = new Date().getDay();
-         const listContainer = ui.verticalScheduleList;
-         if (!listContainer) { console.error("[RenderVertical] Container #vertical-schedule-list not found!"); return; }
-         listContainer.innerHTML = '';
-         if (!Array.isArray(activities)) activities = [];
-         const activitiesByDay = {};
-         for (let i = 0; i <= 6; i++) { activitiesByDay[i] = []; }
-         activities.forEach(act => { if (activitiesByDay[act.day_of_week] !== undefined) activitiesByDay[act.day_of_week].push(act); });
-         console.log("[RenderVertical] Grouped activities:", activitiesByDay);
-         const daysOrder = [1, 2, 3, 4, 5, 6, 0];
-         let hasAnyActivity = false;
-         daysOrder.forEach(dayIndex => {
-             const dayActivities = activitiesByDay[dayIndex].sort((a, b) => (a.time_slot || '99:99').localeCompare(b.time_slot || '99:99'));
-             const dayName = days[dayIndex];
-             const isToday = dayIndex === todayIndex;
-             const dayCard = document.createElement('div');
-             dayCard.className = `day-schedule-card ${isToday ? 'today' : ''} expanded`;
-             dayCard.setAttribute('data-animate', '');
-             dayCard.style.setProperty('--animation-order', daysOrder.indexOf(dayIndex));
-             const dayHeader = document.createElement('div');
-             dayHeader.className = 'day-header';
-             dayHeader.innerHTML = `${dayName} ${isToday ? '<span>(Dnes)</span>' : ''}<i class="fas fa-chevron-down day-expand-icon"></i>`;
-             dayCard.appendChild(dayHeader);
-             const activitiesContainer = document.createElement('div');
-             activitiesContainer.className = 'activity-list-container';
-             if (dayActivities.length > 0) {
-                 hasAnyActivity = true;
-                 dayActivities.forEach(activity => {
-                     if (!activity.id) return;
-                     const activityElement = document.createElement('div');
-                     activityElement.className = `activity-list-item ${activity.completed ? 'completed' : ''}`;
-                     activityElement.dataset.activityId = activity.id;
-                     const timeDisplay = activity.time_slot ? `<span class="activity-time-display">${activity.time_slot}</span>` : '';
-                     const iconClass = getActivityIcon(activity.title, activity.type);
-                     const hasDescription = activity.description && activity.description.trim().length > 0;
-                     const expandIcon = hasDescription ? `<button class="expand-icon-button btn-tooltip" aria-label="Rozbalit popis" title="Zobrazit/skrýt popis"><i class="fas fa-chevron-down expand-icon"></i></button>` : '';
-                     activityElement.innerHTML = `
-                        <label class="activity-checkbox">
-                            <input type="checkbox" id="vertical-activity-${activity.id}" ${activity.completed ? 'checked' : ''} data-activity-id="${activity.id}" data-plan-id="${planId}">
-                        </label>
-                        <i class="fas ${iconClass} activity-icon"></i>
-                        <div class="activity-details">
-                            <div class="activity-header">
-                                <div class="activity-title-time">
-                                    <span class="activity-title">${sanitizeHTML(activity.title || 'Aktivita')}</span>
-                                    ${timeDisplay}
-                                </div>
-                                ${expandIcon}
-                            </div>
-                            ${hasDescription ? `<div class="activity-desc">${sanitizeHTML(activity.description)}</div>` : ''}
-                        </div>`;
-                     activitiesContainer.appendChild(activityElement);
-                 });
-             } else {
-                 activitiesContainer.innerHTML = `<div class="no-activities-day">Žádné aktivity pro tento den.</div>`;
-             }
-             dayCard.appendChild(activitiesContainer);
-             listContainer.appendChild(dayCard);
-         });
-         if (!hasAnyActivity) {
-             console.log("[RenderVertical] No activities found in the entire plan.");
-             listContainer.innerHTML = '<div class="no-activities-day" style="padding: 2rem; border: none;">Pro tento plán nebyly nalezeny žádné aktivity.</div>';
-         }
-         console.log("[RenderVertical] Vertical schedule rendering logic complete.");
-         requestAnimationFrame(initScrollAnimations);
-     };
-     const handleActivityCompletionToggle = async (activityId, isCompleted, planId) => { if (!supabaseClient) return; try { const { error } = await supabaseClient.from('plan_activities').update({ completed: isCompleted, updated_at: new Date().toISOString() }).eq('id', activityId); if (error) throw error; console.log(`[ActivityToggle] Aktivita ${activityId} stav: ${isCompleted}`); await updatePlanProgress(planId); } catch (error) { console.error(`[ActivityToggle] Chyba aktualizace aktivity ${activityId}:`, error); showToast('Nepodařilo se aktualizovat stav aktivity.', 'error'); const checkbox = document.getElementById(`vertical-activity-${activityId}`); const activityElement = document.querySelector(`.activity-list-item[data-activity-id="${activityId}"]`); if(checkbox) checkbox.checked = !isCompleted; if(activityElement) activityElement.classList.toggle('completed', !isCompleted); } };
+
+    // Původní showVerticalSchedule a renderVerticalSchedule již nejsou potřeba pro hlavní zobrazení,
+    // jejich logika pro vykreslení jednoho dne je nyní v renderSingleDayPlan.
+    // Pokud by byly potřeba jinde, můžeme je ponechat, ale pro aktuální účel je nevoláme.
+
+     const handleActivityCompletionToggle = async (activityId, isCompleted, planId) => { if (!supabaseClient) return; try { const { error } = await supabaseClient.from('plan_activities').update({ completed: isCompleted, updated_at: new Date().toISOString() }).eq('id', activityId); if (error) throw error; console.log(`[ActivityToggle] Aktivita ${activityId} stav: ${isCompleted}`); await updatePlanProgress(planId); } catch (error) { console.error(`[ActivityToggle] Chyba aktualizace aktivity ${activityId}:`, error); showToast('Nepodařilo se aktualizovat stav aktivity.', 'error'); const checkbox = document.getElementById(`carousel-activity-${activityId}`) || document.getElementById(`vertical-activity-${activityId}`); const activityElement = checkbox?.closest('.activity-list-item'); if(checkbox) checkbox.checked = !isCompleted; if(activityElement) activityElement.classList.toggle('completed', !isCompleted); } };
      const updatePlanProgress = async (planId) => { if (!planId || !supabaseClient) return; console.log(`[PlanProgress] Updating progress for plan ${planId}`); try { const { count: totalCount, error: countError } = await supabaseClient.from('plan_activities').select('id', { count: 'exact', head: true }).eq('plan_id', planId); const { count: completedCount, error: completedError } = await supabaseClient.from('plan_activities').select('id', { count: 'exact', head: true }).eq('plan_id', planId).eq('completed', true); if (countError || completedError) throw countError || completedError; const numTotal = totalCount ?? 0; const numCompleted = completedCount ?? 0; const progress = numTotal > 0 ? Math.round((numCompleted / numTotal) * 100) : 0; console.log(`[PlanProgress] Plan ${planId}: ${numCompleted}/${numTotal} completed (${progress}%)`); const { error: updateError } = await supabaseClient.from('study_plans').update({ progress: progress, updated_at: new Date().toISOString() }).eq('id', planId); if (updateError) throw updateError; console.log(`[PlanProgress] Plan ${planId} progress DB updated to ${progress}%`); if (state.currentStudyPlan?.id === planId) state.currentStudyPlan.progress = progress; } catch (error) { console.error(`[PlanProgress] Error updating plan progress ${planId}:`, error); } };
      const getActivityIcon = (title = '', type = '') => { const lowerTitle = title.toLowerCase(); const lowerType = type?.toLowerCase() || ''; if (activityVisuals[lowerType]) return activityVisuals[lowerType].icon; if (lowerTitle.includes('test')) return activityVisuals.test.icon; if (lowerTitle.includes('cvičení') || lowerTitle.includes('příklad') || lowerTitle.includes('úloh')) return activityVisuals.exercise.icon; if (lowerTitle.includes('procvič')) return activityVisuals.practice.icon; if (lowerTitle.includes('opakování') || lowerTitle.includes('shrnutí')) return activityVisuals.review.icon; if (lowerTitle.includes('geometrie')) return 'fa-draw-polygon'; if (lowerTitle.includes('algebra')) return 'fa-square-root-alt'; if (lowerTitle.includes('procent')) return 'fa-percentage'; if (lowerTitle.includes('analýza') || lowerTitle.includes('kontrola')) return activityVisuals.analysis.icon; if (lowerTitle.includes('lekce') || lowerTitle.includes('teorie')) return activityVisuals.theory.icon; return activityVisuals.default.icon; };
 
@@ -1075,7 +1259,7 @@
         const analysis = testData.analysis || {};
         const overallAssessment = analysis.summary?.overall_assessment || 'N/A';
         const strengths = analysis.strengths?.map(s => `${s.topic} (${s.score}%)`).join(', ') || 'Nebyly identifikovány';
-        const weaknesses = analysis.weaknesses?.map(w => `${w.topic} (${w.score}%)`).join(', ') || 'Nebyly identifikovány';
+        const weaknesses = analysis.weaknesses?.map(w => `${w.topic} (${s.score}%)`).join(', ') || 'Nebyly identifikovány';
         const recommendations = analysis.recommendations?.join('\n- ') || 'Žádná specifická.';
         const prompt = `
 Jsi expertní AI tutor specializující se na přípravu na PŘIJÍMACÍ ZKOUŠKY z matematiky pro 9. třídu ZŠ v Česku. Tvým úkolem je vytvořit EXTRÉMNĚ DETAILNÍ, ZAMĚŘENÝ a STRUKTUROVANÝ týdenní studijní plán (Pondělí - Sobota, Neděle volno) v ČEŠTINĚ ve formátu Markdown. Cílem je hluboké porozumění a procvičení **JEDNOHO NEBO DVOU NEJSLABŠÍCH TÉMAT** týdně, nikoli povrchní pokrytí mnoha oblastí. Důraz klad na PRAKTICKÉ PŘÍKLADY a OPAKOVÁNÍ. Na konci MUSÍŠ vygenerovat JSON pole aktivit pro tento plán.
@@ -1230,7 +1414,7 @@ ${topicsData.map(topic => `  - ${topic.name}: ${topic.percentage}%`).join('\n')}
             .pdf-footer { text-align: center; margin-top: 10mm; padding-top: 5mm; border-top: 1px solid #ccc; color: #888; font-size: 8pt; }
         </style>
         `;
-        exportContainer.innerHTML = pdfStyles;
+        exportContainer.innerHTML += pdfStyles;
         const pdfTitle = plan.title ? plan.title.replace(/\s*\(\d{2}\.\d{2}\.\d{4}\)$/, '').trim() : 'Studijní plán';
         exportContainer.innerHTML += `
             <div class="pdf-header">
