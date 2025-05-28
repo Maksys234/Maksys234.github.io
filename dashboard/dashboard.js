@@ -1,5 +1,7 @@
 // dashboard.js
 // Verze: 27.0.3 - Opravena chyba s opakovaným vyzvednutím odměn za sérii.
+// EDIT LOG: Developer Action -> Fixing milestone re-claim bug and credit display issue.
+// EDIT LOG: Stage -> Modifying dashboard.js logic for milestone state management and credit refresh.
 (function() {
     'use strict';
 
@@ -15,8 +17,6 @@
     const AUTH_TIMEOUT = 30000;
     const DATA_FETCH_TIMEOUT = 20000;
 
-    // Расширяем список полей для загрузки профиля, чтобы включить `claimed_streak_milestones`
-    // Однако, `claimed_streak_milestones` это отдельная таблица. Мы загрузим ее отдельно и добавим к currentProfile.
     const PROFILE_COLUMNS_TO_SELECT = 'id, username, first_name, last_name, email, avatar_url, bio, school, grade, level, completed_exercises, streak_days, last_login, badges_count, points, preferences, notifications, experience, purchased_titles, selected_title, monthly_claims, last_milestone_claimed, longest_streak_days, created_at, updated_at';
 
     let isLoading = {
@@ -33,7 +33,7 @@
         shortcuts: false,
     };
     const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
-    const MONTHLY_REWARD_DAYS = 31; // Assuming May has 31 days for the config
+    const MONTHLY_REWARD_DAYS = 31;
     // --- END: Constants and Configuration ---
 
     // --- START: UI Elements Cache (to be populated by cacheDOMElements) ---
@@ -372,6 +372,11 @@
     // --- END: Skeleton and Loading State Management ---
 
     // --- START: Supabase Interaction Functions ---
+    // ... (All Supabase functions: initializeSupabase, fetchUserProfile, createDefaultProfile, fetchTitles, fetchUserStats, fetchAndDisplayLatestCreditChange, checkAndUpdateLoginStreak, updateMonthlyClaimsInDB, updateLastMilestoneClaimedInDB, awardPoints, awardUserTitle, logActivity, fetchNotifications, renderNotifications, renderNotificationSkeletons, markNotificationRead, markAllNotificationsRead are assumed to be the same as in the provided dashboard.js)
+    // --- Only `updateLastMilestoneClaimedInDB` and `handleStreakMilestoneClaim` will be significantly changed.
+    // --- Other Supabase functions will be used as they are from the user's `dashboard.js`
+    // --- I will only include the modified ones for brevity.
+
     function initializeSupabase() { const startTime = performance.now(); console.log("[Supabase] Attempting initialization..."); try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not loaded or createClient is not a function."); } supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); if (!supabase) { throw new Error("Supabase client creation failed (returned null/undefined)."); } window.supabaseClient = supabase; const endTime = performance.now(); console.log(`[Supabase] Klient úspěšně inicializován a globálně dostupný. Time: ${(endTime - startTime).toFixed(2)}ms`); return true; } catch (error) { console.error('[Supabase] Initialization failed:', error); showError("Kritická chyba: Nepodařilo se připojit k databázi. Zkuste obnovit stránku.", true); return false; } }
     async function fetchUserProfile(userId) { const startTime = performance.now(); console.log(`[Profile] Fetching profile for user ID: ${userId}`); if (!supabase || !userId) return null; try { const { data: profile, error } = await withTimeout(supabase.from('profiles').select(PROFILE_COLUMNS_TO_SELECT).eq('id', userId).single(), DATA_FETCH_TIMEOUT, new Error('Načítání profilu vypršelo.')); if (error && error.code !== 'PGRST116') { throw error; } if (!profile) { console.warn(`[Profile] Profile for ${userId} not found. Returning null.`); return null; } profile.monthly_claims = profile.monthly_claims || {}; profile.last_milestone_claimed = profile.last_milestone_claimed || 0; profile.purchased_titles = profile.purchased_titles || []; const endTime = performance.now(); console.log(`[Profile] Profile data fetched successfully. Time: ${(endTime - startTime).toFixed(2)}ms`); return profile; } catch (error) { console.error('[Profile] Exception fetching profile:', error); return null; } }
     async function createDefaultProfile(userId, userEmail) { const startTime = performance.now(); if (!supabase || !userId || !userEmail) return null; console.log(`[Profile Create] Creating default profile for user ${userId}`); try { const defaultData = { id: userId, email: userEmail, username: userEmail.split('@')[0] || `user_${userId.substring(0, 6)}`, level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0, longest_streak_days: 0, last_login: new Date().toISOString(), monthly_claims: {}, last_milestone_claimed: 0, purchased_titles: [], created_at: new Date().toISOString(), updated_at: new Date().toISOString(), preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches, language: 'cs' }, notifications: { email: true, study_tips: true, content_updates: true, practice_reminders: true } }; const { data: newProfile, error } = await withTimeout(supabase.from('profiles').insert(defaultData).select(PROFILE_COLUMNS_TO_SELECT).single(), DATA_FETCH_TIMEOUT, new Error('Vytváření profilu vypršelo.')); if (error) { if (error.code === '23505') { console.warn("[Profile Create] Profile likely already exists, fetching again."); return await fetchUserProfile(userId); } throw error; } const endTime = performance.now(); console.log(`[Profile Create] Default profile created. Time: ${(endTime - startTime).toFixed(2)}ms`); return newProfile; } catch (error) { console.error("[Profile Create] Failed to create default profile:", error); return null; } }
@@ -380,70 +385,6 @@
     async function fetchAndDisplayLatestCreditChange(userId) { console.log(`[CreditChange] Fetching latest credit change for user ${userId}...`); if (ui.latestCreditChange) { ui.latestCreditChange.innerHTML = ''; ui.latestCreditChange.style.display = 'none'; } if (!supabase || !userId ) { console.warn("[CreditChange] Missing Supabase or userId."); return null; } try { const { data, error } = await supabase.from('credit_transactions').select('amount, description, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(1).single(); if (error && error.code !== 'PGRST116') { throw error; } if (data && data.amount !== undefined) { console.log(`[CreditChange] Latest change: ${data.amount}, Description: ${data.description}`); return { amount: data.amount, description: data.description }; } else { console.log('[CreditChange] No credit transactions found.'); return null; } } catch (error) { console.error('[CreditChange] Error fetching latest credit change:', error); return null; } }
     async function checkAndUpdateLoginStreak() { const startTime = performance.now(); if (!currentUser || !currentProfile || !supabase) { console.warn("[StreakCheck] Cannot perform check: missing user, profile, or supabase."); return false; } console.log("[StreakCheck] Performing daily login check/update..."); const today = new Date(); const lastLogin = currentProfile.last_login ? new Date(currentProfile.last_login) : null; let currentStreak = currentProfile.streak_days || 0; let longestStreak = currentProfile.longest_streak_days || 0; let needsDbUpdate = false; let updateData = { updated_at: today.toISOString() }; const currentMonthYear = getCurrentMonthYearString(); if (!lastLogin || !isSameDate(today, lastLogin)) { needsDbUpdate = true; console.log("[StreakCheck] First login of the day detected."); if (lastLogin && isYesterday(lastLogin, today)) { currentStreak++; console.log(`[StreakCheck] Streak continued! New current streak: ${currentStreak}`); } else if (lastLogin) { currentStreak = 1; console.log("[StreakCheck] Streak broken. Resetting to 1."); } else { currentStreak = 1; console.log("[StreakCheck] First login ever. Setting streak to 1."); } updateData.streak_days = currentStreak; updateData.last_login = today.toISOString(); if (currentStreak > longestStreak) { longestStreak = currentStreak; updateData.longest_streak_days = longestStreak; console.log(`[StreakCheck] New longest streak: ${longestStreak}!`); } } else { console.log("[StreakCheck] Already logged in today."); if (currentProfile.streak_days > (currentProfile.longest_streak_days || 0) ) { updateData.longest_streak_days = currentProfile.streak_days; longestStreak = currentProfile.streak_days; needsDbUpdate = true; } } currentProfile.streak_days = currentStreak; currentProfile.longest_streak_days = longestStreak; if (ui.modalCurrentStreakValue) ui.modalCurrentStreakValue.textContent = currentStreak; if (ui.modalLongestStreakValue) ui.modalLongestStreakValue.textContent = longestStreak; currentProfile.monthly_claims = currentProfile.monthly_claims || {}; if (!currentProfile.monthly_claims[currentMonthYear]) { console.log(`[StreakCheck] Initializing claims for new month: ${currentMonthYear}`); updateData.monthly_claims = { ...currentProfile.monthly_claims, [currentMonthYear]: [] }; needsDbUpdate = true; } else { console.log(`[StreakCheck] Monthly claims for ${currentMonthYear} already exist:`, currentProfile.monthly_claims[currentMonthYear]); } if (needsDbUpdate) { console.log("[StreakCheck] Updating profile in DB with:", JSON.stringify(updateData)); try { const { error: updateError } = await supabase.from('profiles').update(updateData).eq('id', currentUser.id); if (updateError) throw updateError; const refreshedProfile = await fetchUserProfile(currentUser.id); if (refreshedProfile) { currentProfile = refreshedProfile; } else { console.warn("[StreakCheck] Could not re-fetch profile after update, local currentProfile might be partially stale for non-updated fields."); if (updateData.last_login) currentProfile.last_login = updateData.last_login; if (updateData.monthly_claims) currentProfile.monthly_claims = updateData.monthly_claims; if (updateData.streak_days !== undefined) currentProfile.streak_days = updateData.streak_days; if (updateData.longest_streak_days !== undefined) currentProfile.longest_streak_days = updateData.longest_streak_days; } const endTime = performance.now(); console.log(`[StreakCheck] Profile updated successfully in DB. Time: ${(endTime - startTime).toFixed(2)}ms`); return true; } catch (error) { console.error("[StreakCheck] Error updating profile:", error); showToast('Chyba', `Nepodařilo se aktualizovat data přihlášení: ${error.message}`, 'error'); return false; } } const endTimeUnchanged = performance.now(); console.log(`[StreakCheck] No DB update needed. Time: ${(endTimeUnchanged - startTime).toFixed(2)}ms`); return false; }
     async function updateMonthlyClaimsInDB(newClaimsData) { if (!currentUser || !supabase) { console.error("[DB Update] Pre-condition failed: No user or supabase client."); return false; } const functionStartTime = performance.now(); console.log(`[DB Update] Attempting to update monthly_claims in DB for user ${currentUser.id} with:`, JSON.parse(JSON.stringify(newClaimsData))); try { const { data: updateResult, error: dbUpdateError } = await supabase.from('profiles').update({ monthly_claims: newClaimsData, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select('monthly_claims'); if (dbUpdateError) { console.error("[DB Update] Supabase UPDATE error:", dbUpdateError); throw dbUpdateError; } if (!updateResult || updateResult.length === 0) { console.warn("[DB Update] Supabase update operation returned 0 rows or no data. Monthly claims might not have been saved to DB."); currentProfile.monthly_claims = newClaimsData; } else { currentProfile.monthly_claims = updateResult[0].monthly_claims; } console.log(`[DB Update] Database update successful. Local currentProfile.monthly_claims updated:`, JSON.parse(JSON.stringify(currentProfile.monthly_claims))); const functionEndTime = performance.now(); console.log(`[DB Update] updateMonthlyClaimsInDB finished successfully. Total time: ${(functionEndTime - functionStartTime).toFixed(2)}ms`); return true; } catch (error) { console.error("[DB Update] Catch block: Error updating monthly_claims in DB or locally:", error); showToast('Chyba databáze', `Nepodařilo se uložit vyzvednutí měsíční odměny: ${error.message}`, 'error'); return false; } }
-    async function updateLastMilestoneClaimedInDB(milestoneDay, rewardKey, rewardName) {
-        if (!currentUser || !supabase) return false;
-        console.log(`[DB Update] Attempting to record claim for milestoneDay: ${milestoneDay}, rewardKey: ${rewardKey}`);
-        try {
-            const { error: insertError } = await supabase
-                .from('claimed_streak_milestones')
-                .insert({
-                    user_id: currentUser.id,
-                    milestone_day: milestoneDay,
-                    reward_key: rewardKey, // Make sure this column exists and is part of unique constraint if needed
-                    reward_name: rewardName
-                });
-
-            if (insertError && insertError.code !== '23505') { // '23505' is unique_violation
-                throw insertError;
-            } else if (insertError && insertError.code === '23505') {
-                console.warn(`[DB Update] Milestone ${milestoneDay} (key: ${rewardKey}) already claimed. No new record inserted.`);
-                // If it's already claimed, we still might need to update profiles.last_milestone_claimed
-                // if it's somehow lower than this milestoneDay.
-            } else {
-                console.log(`[DB Update] Milestone ${milestoneDay} (key: ${rewardKey}) successfully recorded.`);
-            }
-
-            // Always check if profiles.last_milestone_claimed needs updating
-            if (currentProfile && milestoneDay > (currentProfile.last_milestone_claimed || 0)) {
-                console.log(`[DB Update] Current last_milestone_claimed (${currentProfile.last_milestone_claimed || 0}) is less than ${milestoneDay}. Updating profile.`);
-                const { error: profileUpdateError } = await supabase
-                    .from('profiles')
-                    .update({ last_milestone_claimed: milestoneDay, updated_at: new Date().toISOString() })
-                    .eq('id', currentUser.id);
-
-                if (profileUpdateError) {
-                    console.error(`[DB Update] Error updating profiles.last_milestone_claimed for ${milestoneDay}:`, profileUpdateError);
-                } else {
-                    const refreshedProfile = await fetchUserProfile(currentUser.id); // Re-fetch to get the absolute latest
-                    if (refreshedProfile) {
-                        currentProfile = refreshedProfile; // Update local profile
-                         if(!currentProfile.claimed_streak_milestones) currentProfile.claimed_streak_milestones = [];
-                         const alreadyLocallyTracked = currentProfile.claimed_streak_milestones.some(
-                             c => c.milestone_day === milestoneDay && c.reward_key === rewardKey
-                         );
-                         if (!alreadyLocallyTracked) {
-                             currentProfile.claimed_streak_milestones.push({
-                                 user_id: currentUser.id,
-                                 milestone_day: milestoneDay,
-                                 reward_key: rewardKey,
-                                 claimed_at: new Date().toISOString(), // Simulate local update
-                                 reward_name: rewardName
-                             });
-                         }
-                    } else {
-                        // Fallback if re-fetch fails, update local data optimistically
-                        currentProfile.last_milestone_claimed = milestoneDay;
-                    }
-                    console.log(`[DB Update] profiles.last_milestone_claimed updated to ${milestoneDay}.`);
-                }
-            }
-            return true;
-        } catch (error) {
-            console.error(`[DB Update] General error in updateLastMilestoneClaimedInDB for ${milestoneDay} (key: ${rewardKey}):`, error);
-            showToast('Chyba', 'Nepodařilo se uložit vyzvednutí milníkové odměny.', 'error');
-            return false;
-        }
-    }
     async function awardPoints(pointsValue, reason = "Nespecifikováno", transactionType = 'points_earned', referenceActivityId = null, suppressActivityLog = false) { if (!currentUser || !currentProfile || !supabase) { console.warn("Cannot award points: User, profile, or Supabase missing."); return; } if (pointsValue === 0) { console.log("No points to award (value is 0)."); return; } console.log(`[Points] Awarding/deducting ${pointsValue} points for: ${reason}. Type: ${transactionType}, SuppressLog: ${suppressActivityLog}`); setLoadingState('stats', true); const currentPoints = currentProfile.points || 0; const newPoints = currentPoints + pointsValue; try { const { error: profileUpdateError } = await supabase.from('profiles').update({ points: newPoints, updated_at: new Date().toISOString() }).eq('id', currentUser.id); if (profileUpdateError) throw profileUpdateError; console.log("[Points] Points successfully updated in DB."); currentProfile.points = newPoints; currentProfile.updated_at = new Date().toISOString(); console.log("[Points] Local currentProfile.points updated:", currentProfile.points); const { error: transactionError } = await supabase.from('credit_transactions').insert({ user_id: currentUser.id, transaction_type: transactionType, amount: pointsValue, description: reason, balance_after_transaction: newPoints, reference_activity_id: referenceActivityId }); if (transactionError) { console.error("[Points] Error logging credit transaction:", transactionError); showToast('Varování', 'Kredity připsány, ale záznam transakce selhal.', 'warning'); } else { console.log(`[Points] Credit transaction logged: ${pointsValue} for ${reason}`); } if (pointsValue > 0) { showToast('Kredity Získány!', `+${pointsValue} kreditů za: ${reason}`, 'success', 2500); } else if (pointsValue < 0) { showToast('Kredity Utraceny!', `${pointsValue} kreditů za: ${reason}`, 'info', 2500); } userStatsData = await fetchUserStats(currentUser.id, currentProfile); const latestTxData = await fetchAndDisplayLatestCreditChange(currentUser.id); updateStatsCards(userStatsData); if (ui.totalPointsFooter && userStatsData && (userStatsData.points_weekly === 0 || userStatsData.points_weekly == null) && latestTxData) { const sign = latestTxData.amount > 0 ? '+' : (latestTxData.amount < 0 ? '' : ''); const descText = latestTxData.description || `Transakce`; let displayDesc = descText; if (displayDesc.length > 25) displayDesc = displayDesc.substring(0, 22) + "..."; const amountColorClass = latestTxData.amount > 0 ? 'positive' : (latestTxData.amount < 0 ? 'negative' : ''); ui.totalPointsFooter.innerHTML = `<i class="fas fa-history"></i> <span title="${sanitizeHTML(descText)}: ${sign}${latestTxData.amount}">${sanitizeHTML(displayDesc)}: <span style="font-weight:bold;" class="${amountColorClass}">${sign}${latestTxData.amount}</span></span>`; ui.totalPointsFooter.classList.remove('positive', 'negative'); if(latestTxData.amount > 0) ui.totalPointsFooter.classList.add('positive'); if(latestTxData.amount < 0) ui.totalPointsFooter.classList.add('negative'); } if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderCreditHistory === 'function') { await DashboardLists.loadAndRenderCreditHistory(currentUser.id, 5); } if (pointsValue > 0 && !suppressActivityLog) { await logActivity( currentUser.id, 'points_earned', `Získáno ${pointsValue} kreditů`, `Důvod: ${reason}`, { points_change: pointsValue, new_total_points: newPoints, source: transactionType }, null, referenceActivityId, 'fa-coins' ); } } catch (error) { console.error(`[Points] Error awarding/deducting points:`, error); showToast('Chyba', 'Nepodařilo se upravit kredity.', 'error'); } finally { setLoadingState('stats', false); } }
     async function awardUserTitle(titleKey, titleName, reason = "Měsíční odměna") { if (!currentProfile || !currentUser || !supabase) { console.error("Cannot award title: Missing profile, user or supabase."); return false; } if (currentProfile.purchased_titles && currentProfile.purchased_titles.includes(titleKey)) { showToast("Titul již vlastněn", `Titul "${titleName}" již máte.`, "info"); return true; } const newTitles = [...(currentProfile.purchased_titles || []), titleKey]; let newSelectedTitle = currentProfile.selected_title; if (!newSelectedTitle) { newSelectedTitle = titleKey; } try { const { data: updatedData, error } = await supabase.from('profiles').update({ purchased_titles: newTitles, selected_title: newSelectedTitle, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select('purchased_titles, selected_title'); if (error) throw error; if (updatedData && updatedData.length > 0) { currentProfile.purchased_titles = updatedData[0].purchased_titles; currentProfile.selected_title = updatedData[0].selected_title; } else { currentProfile.purchased_titles = newTitles; currentProfile.selected_title = newSelectedTitle; } currentProfile.updated_at = new Date().toISOString(); await logActivity(currentUser.id, 'title_awarded', `Získán titul: ${titleName}`, `Důvod: ${reason}. Klíč: ${titleKey}`); showToast("Nový titul získán!", `Gratulujeme k titulu: "${titleName}"!`, 'success'); updateSidebarProfile(currentProfile); return true; } catch (error) { console.error("Error awarding title:", error); showToast("Chyba", "Nepodařilo se udělit titul.", "error"); return false; } }
     async function logActivity(userId, type, title, description = null, details = null, link_url = null, reference_id = null, icon = null) { if (!supabase || !userId) { console.error("Cannot log activity: Supabase client or user ID is missing."); return; } console.log(`[Log Activity] Logging: User ${userId}, Type: ${type}, Title: ${title}`); try { const { error } = await supabase.from('activities').insert({ user_id: userId, type: type, title: title, description: description, details: details, link_url: link_url, reference_id: reference_id, icon: icon || activityVisuals[type]?.icon || activityVisuals.default.icon }); if (error) { console.error("Error logging activity:", error); } else { console.log("Activity logged successfully."); if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderRecentActivities === 'function' && window.location.pathname.includes('dashboard.html')) { await DashboardLists.loadAndRenderRecentActivities(userId, 5); } } } catch (err) { console.error("Exception during activity logging:", err); } }
@@ -452,6 +393,48 @@
     function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) { console.warn("[Render Notifications Skeletons] Chybí UI elementy."); return; } let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
     async function markNotificationRead(notificationId) { console.log("[FUNC] markNotificationRead: Označení ID:", notificationId); if (!currentUser || !notificationId || !supabase) return false; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[FUNC] markNotificationRead: Úspěch pro ID:", notificationId); return true; } catch (error) { console.error("[FUNC] markNotificationRead: Chyba:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
     async function markAllNotificationsRead() { console.log("[FUNC] markAllNotificationsRead: Start pro uživatele:", currentUser?.id); if (!currentUser || !ui.markAllReadBtn || !supabase) { console.warn("Cannot mark all read: Missing user, button, or supabase."); return; } if (isLoading.notifications) return; setLoadingState('notifications', true); try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false); if (error) throw error; console.log("[FUNC] markAllNotificationsRead: Úspěch"); const { unreadCount, notifications } = await fetchNotifications(currentUser.id, 5); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Chyba:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = currentCount === 0; } finally { setLoadingState('notifications', false); } }
+
+    async function updateLastMilestoneClaimedInDB(milestoneDay, rewardKey, rewardName) {
+        if (!currentUser || !supabase) return false;
+        console.log(`[DB Update Milestones] Záznam vyzvednutí: Den ${milestoneDay}, Klíč ${rewardKey}`);
+        try {
+            const { error: insertError } = await supabase
+                .from('claimed_streak_milestones')
+                .insert({
+                    user_id: currentUser.id,
+                    milestone_day: milestoneDay,
+                    reward_key: rewardKey,
+                    reward_name: rewardName // Ukládáme i název pro referenci
+                });
+
+            if (insertError && insertError.code !== '23505') { // 23505 = unique_violation
+                throw insertError;
+            } else if (insertError && insertError.code === '23505') {
+                console.warn(`[DB Update Milestones] Milník ${rewardKey} pro den ${milestoneDay} již byl zaznamenán.`);
+            } else {
+                console.log(`[DB Update Milestones] Milník ${rewardKey} pro den ${milestoneDay} úspěšně zaznamenán.`);
+            }
+
+            // Aktualizujeme last_milestone_claimed v profilu POUZE pokud je nový milník vyšší
+            if (currentProfile && milestoneDay > (currentProfile.last_milestone_claimed || 0)) {
+                const { error: profileUpdateError } = await supabase
+                    .from('profiles')
+                    .update({ last_milestone_claimed: milestoneDay, updated_at: new Date().toISOString() })
+                    .eq('id', currentUser.id);
+
+                if (profileUpdateError) {
+                    console.error(`[DB Update Milestones] Chyba aktualizace profiles.last_milestone_claimed na ${milestoneDay}:`, profileUpdateError);
+                } else {
+                    console.log(`[DB Update Milestones] profiles.last_milestone_claimed aktualizováno na ${milestoneDay}.`);
+                }
+            }
+            return true;
+        } catch (error) {
+            console.error(`[DB Update Milestones] Obecná chyba pro milník ${rewardKey}, den ${milestoneDay}:`, error);
+            showToast('Chyba', 'Nepodařilo se uložit vyzvednutí milníkové odměny.', 'error');
+            return false;
+        }
+    }
     // --- END: Supabase Interaction Functions ---
 
     // --- START: UI Update Functions ---
@@ -464,167 +447,8 @@
     let currentDisplayedMonth = new Date().getMonth();
     let currentDisplayedYear = new Date().getFullYear();
     function renderMonthlyCalendar() { console.log("[Monthly Reward] Rendering calendar..."); setLoadingState('monthlyRewards', true); if (!ui.modalMonthlyCalendarGrid || !ui.modalCurrentMonthYearSpan || !currentProfile) { console.error("[Monthly Reward] Missing UI elements or profile for calendar."); if(ui.modalMonthlyCalendarGrid) ui.modalMonthlyCalendarGrid.innerHTML = '<p class="text-danger">Chyba načítání kalendáře.</p>'; setLoadingState('monthlyRewards', false); return; } ui.modalCurrentMonthYearSpan.textContent = new Date(currentDisplayedYear, currentDisplayedMonth).toLocaleString('cs-CZ', { month: 'long', year: 'numeric' }); const daysInMonth = new Date(currentDisplayedYear, currentDisplayedMonth + 1, 0).getDate(); const firstDayOfMonth = new Date(currentDisplayedYear, currentDisplayedMonth, 1).getDay(); const dayOffset = (firstDayOfMonth === 0) ? 6 : firstDayOfMonth - 1; const currentMonthYearKey = `${currentDisplayedYear}-${String(currentDisplayedMonth + 1).padStart(2, '0')}`; const claimedDays = currentProfile.monthly_claims?.[currentMonthYearKey] || []; let calendarHTML = ''; for (let i = 0; i < dayOffset; i++) { calendarHTML += `<div class="calendar-day empty"></div>`; } const today = new Date(); const currentRealDay = today.getDate(); const currentRealMonth = today.getMonth(); const currentRealYear = today.getFullYear(); for (let day = 1; day <= daysInMonth; day++) { const rewardConfig = (currentDisplayedMonth === 4 && currentDisplayedYear === 2025) ? mayRewardsConfig[day] : null; const isClaimed = claimedDays.includes(day); const isClaimableDate = (currentDisplayedYear === currentRealYear && currentDisplayedMonth === currentRealMonth && day <= currentRealDay); let dayClass = 'calendar-day'; let content = `<div class="day-number">${day}</div>`; let rewardInfoHTML = ''; let buttonOrStatusHTML = ''; if (rewardConfig) { dayClass += ' has-reward'; let rewardIconClass = ''; let rewardName = rewardConfig.name; let rewardValueText = ''; if (rewardConfig.type === 'title') { rewardIconClass = rewardConfig.icon || 'fa-crown'; } else if (rewardConfig.type === 'credits') { rewardIconClass = rewardConfig.icon || 'fa-coins'; rewardValueText = `+${rewardConfig.value} Kr.`;} else if (rewardConfig.type === 'xp') { rewardIconClass = rewardConfig.icon || 'fa-star'; rewardValueText = `+${rewardConfig.value} ZK`;} else if (rewardConfig.type === 'bundle') { rewardIconClass = rewardConfig.icon || 'fa-box-open'; rewardName = rewardConfig.name; rewardValueText = rewardConfig.rewards.map(r => { let iconR = r.icon_reward || 'fa-gift'; if (r.type === 'title') return `<span class="bundle-reward-item"><i class="fas ${iconR}"></i> ${sanitizeHTML(r.name)}</span>`; if (r.type === 'credits') return `<span class="bundle-reward-item"><i class="fas ${iconR}"></i> +${r.value} Kr.</span>`; if (r.type === 'xp') return `<span class="bundle-reward-item"><i class="fas ${iconR}"></i> +${r.value} ZK</span>`; return sanitizeHTML(r.name); }).join(''); } rewardInfoHTML = `<div class="reward-icon reward-type-${rewardConfig.type}" title="${sanitizeHTML(rewardConfig.description || rewardName)}"><i class="fas ${rewardIconClass}"></i></div><div class="reward-name">${sanitizeHTML(rewardName)}</div>`; if (rewardConfig.type !== 'title' && rewardConfig.type !== 'bundle') { rewardInfoHTML += `<div class="reward-value">${sanitizeHTML(rewardValueText)}</div>`; } else if (rewardConfig.type === 'bundle') { rewardInfoHTML += `<div class="reward-bundle-details">${rewardValueText}</div>`; } if (isClaimed) { dayClass += ' claimed'; buttonOrStatusHTML = `<div class="reward-status"><i class="fas fa-check-circle"></i> Vyzvednuto</div>`; } else if (isClaimableDate) { dayClass += ' claimable'; buttonOrStatusHTML = `<button class="btn btn-sm btn-claim-month-reward" data-day="${day}"><i class="fas fa-gift"></i> Vyzvednout</button>`; } else if (day > currentRealDay && currentDisplayedMonth === currentRealMonth && currentDisplayedYear === currentRealYear) { dayClass += ' upcoming-reward'; buttonOrStatusHTML = `<div class="reward-status">Bude dostupné</div>`; } else { dayClass += ' missed'; buttonOrStatusHTML = `<div class="reward-status">Prošlo</div>`; } } else { dayClass += ' no-reward'; } if (currentDisplayedYear === currentRealYear && currentDisplayedMonth === currentRealMonth && day === currentRealDay) { dayClass += ' today'; } calendarHTML += `<div class="${dayClass}" data-day="${day}">${content}${rewardInfoHTML}${buttonOrStatusHTML}</div>`; } ui.modalMonthlyCalendarGrid.innerHTML = calendarHTML; ui.modalMonthlyCalendarGrid.style.display = 'grid'; if (ui.modalMonthlyCalendarEmpty) ui.modalMonthlyCalendarEmpty.style.display = 'none'; ui.modalMonthlyCalendarGrid.querySelectorAll('.btn-claim-month-reward').forEach(button => { button.addEventListener('click', async (event) => { const dayToClaim = parseInt(event.currentTarget.dataset.day); const rewardForDay = (currentDisplayedMonth === 4 && currentDisplayedYear === 2025) ? mayRewardsConfig[dayToClaim] : null; if (rewardForDay) { await handleMonthlyRewardClaim(dayToClaim, rewardForDay); } }); }); initTooltips(); setLoadingState('monthlyRewards', false); }
-    function renderStreakMilestones() {
-        console.log("[Streak Milestones] Rendering...");
-        setLoadingState('streakMilestones', true);
-        if (!ui.modalMilestonesGrid || !ui.modalMilestonesEmpty || !currentProfile) {
-            console.error("[Streak Milestones] Missing UI elements or profile.");
-            if (ui.modalMilestonesGrid) ui.modalMilestonesGrid.innerHTML = '<p class="text-danger">Chyba načítání milníků.</p>';
-            setLoadingState('streakMilestones', false);
-            return;
-        }
-
-        if (ui.modalCurrentStreakValue) ui.modalCurrentStreakValue.textContent = currentProfile.streak_days || 0;
-        if (ui.modalLongestStreakValue) ui.modalLongestStreakValue.textContent = currentProfile.longest_streak_days || 0;
-
-        ui.modalMilestonesGrid.innerHTML = '';
-        let hasAvailableMilestones = false;
-
-        sortedMilestoneDays.forEach(dayCount => {
-            const milestoneConfig = STREAK_MILESTONES_CONFIG[dayCount];
-            if (!milestoneConfig) return;
-            hasAvailableMilestones = true;
-
-            // FIX: Correctly check if this specific milestone (by day and reward_key) is claimed
-            const isClaimed = currentProfile.claimed_streak_milestones?.some(
-                claimed => claimed.milestone_day === dayCount && claimed.reward_key === milestoneConfig.reward_key
-            ) || false;
-
-            const canClaim = currentProfile.streak_days >= dayCount && !isClaimed;
-
-            let cardClass = 'milestone-card card';
-            if (isClaimed) cardClass += ' claimed';
-            else if (canClaim) cardClass += ' available';
-            else cardClass += ' locked';
-
-            let rewardsHTML = '<ul class="milestone-rewards-list">';
-            milestoneConfig.rewards.forEach(reward => {
-                rewardsHTML += `<li><i class="fas ${reward.icon_reward || 'fa-gift'}"></i> ${sanitizeHTML(reward.name)}</li>`;
-            });
-            rewardsHTML += '</ul>';
-
-            let buttonOrStatusHTML = '';
-            if (isClaimed) {
-                buttonOrStatusHTML = `<div class="milestone-status claimed"><i class="fas fa-check-circle"></i> Získáno</div>`;
-            } else if (canClaim) {
-                buttonOrStatusHTML = `<button class="btn btn-sm btn-success claim-milestone-btn" data-milestone-day="${dayCount}" data-reward-key="${milestoneConfig.reward_key}"><i class="fas fa-gift"></i> Vyzvednout</button>`;
-            } else {
-                buttonOrStatusHTML = `<div class="milestone-status locked"><i class="fas fa-lock"></i> Potřebujete ${dayCount} dní série</div>`;
-            }
-
-            const milestoneCard = document.createElement('div');
-            milestoneCard.className = cardClass;
-            milestoneCard.innerHTML = `
-                <div class="milestone-header">
-                    <i class="fas ${milestoneConfig.icon || 'fa-star'} milestone-icon-indicator"></i>
-                    <span class="milestone-days">Série ${dayCount} Dní</span>
-                </div>
-                <h4 class="milestone-name">${sanitizeHTML(milestoneConfig.name)}</h4>
-                <p class="milestone-desc">${sanitizeHTML(milestoneConfig.description)}</p>
-                ${rewardsHTML}
-                <div class="milestone-actions">${buttonOrStatusHTML}</div>`;
-            ui.modalMilestonesGrid.appendChild(milestoneCard);
-        });
-
-        if (!hasAvailableMilestones) {
-            ui.modalMilestonesGrid.style.display = 'none';
-            ui.modalMilestonesEmpty.style.display = 'block';
-            ui.modalMilestonesEmpty.innerHTML = `<i class="fas fa-road"></i> <p>Momentálně nejsou definovány žádné milníky.</p>`;
-        } else {
-            ui.modalMilestonesGrid.style.display = 'grid';
-            ui.modalMilestonesEmpty.style.display = 'none';
-        }
-
-        ui.modalMilestonesGrid.querySelectorAll('.claim-milestone-btn').forEach(button => {
-            button.addEventListener('click', async (event) => {
-                const day = parseInt(event.currentTarget.dataset.milestoneDay);
-                const rKey = event.currentTarget.dataset.rewardKey;
-                await handleStreakMilestoneClaim(day, rKey);
-            });
-        });
-        initTooltips();
-        setLoadingState('streakMilestones', false);
-    }
-    async function handleStreakMilestoneClaim(milestoneDay, rewardKey) {
-        console.log(`[Streak Milestone] Attempting to claim for ${milestoneDay} days, key: ${rewardKey}`);
-        const milestoneConfig = STREAK_MILESTONES_CONFIG[milestoneDay];
-        if (!currentUser || !currentProfile || !supabase || !milestoneConfig || milestoneConfig.reward_key !== rewardKey) {
-            showToast('Chyba', 'Nelze vyzvednout milník.', 'error');
-            return;
-        }
-
-        // Re-check with the accurate claimed_streak_milestones array
-        const isAlreadyClaimed = currentProfile.claimed_streak_milestones?.some(
-            claimed => claimed.milestone_day === milestoneDay && claimed.reward_key === rewardKey
-        ) || false;
-
-        if (isAlreadyClaimed) {
-            showToast('Již Vyzvednuto', 'Tento milník již byl vyzvednut.', 'info');
-            return;
-        }
-        if (currentProfile.streak_days < milestoneDay) {
-            showToast('Nedostatečná Série', `Potřebujete alespoň ${milestoneDay} dní v sérii.`, 'warning');
-            return;
-        }
-
-        const claimButton = ui.modalMilestonesGrid.querySelector(`.claim-milestone-btn[data-milestone-day="${milestoneDay}"][data-reward-key="${rewardKey}"]`);
-        if (claimButton) claimButton.disabled = true;
-        let allRewardsAwardedSuccessfully = true;
-
-        try {
-            setLoadingState('streakMilestones', true);
-            for (const reward of milestoneConfig.rewards) {
-                let successThisReward = false;
-                const rewardReason = `Odměna za sérii (${milestoneDay} dní): ${reward.name}`;
-                if (reward.type === 'credits' && reward.value) {
-                    await awardPoints(reward.value, rewardReason, 'streak_milestone_credits', null, true);
-                    successThisReward = true;
-                } else if (reward.type === 'xp' && reward.value) {
-                    await awardPoints(reward.value * 10, `${rewardReason} (ZK)`, 'streak_milestone_xp', null, true); // Assuming XP are 10x points value
-                    successThisReward = true;
-                } else if (reward.type === 'title' && reward.key) {
-                    successThisReward = await awardUserTitle(reward.key, reward.name, rewardReason);
-                } else if (reward.type === 'badge' && reward.key) {
-                    console.log(`[Streak Milestone] Placeholder for awarding badge: ${reward.key} - ${reward.name}`);
-                    showToast('Odměna (Odznak)', `Odznak "${reward.name}" bude brzy implementován.`, 'info');
-                    successThisReward = true; // Assume success for now
-                }
-                if (!successThisReward) {
-                    allRewardsAwardedSuccessfully = false;
-                    showToast('Chyba Odměny', `Nepodařilo se připsat část odměny: ${reward.name}`, 'error');
-                    break; // Stop processing further rewards for this milestone if one fails
-                }
-            }
-
-            if (allRewardsAwardedSuccessfully) {
-                const dbRecordSuccess = await updateLastMilestoneClaimedInDB(milestoneDay, rewardKey, milestoneConfig.name);
-                if (dbRecordSuccess) {
-                    // The local currentProfile.claimed_streak_milestones is now updated inside updateLastMilestoneClaimedInDB upon successful re-fetch
-                    await logActivity(currentUser.id, 'streak_milestone_claimed', `Vyzvednut milník série: ${milestoneConfig.name}`, `Dosaženo ${milestoneDay} dní.`, { milestone_day: milestoneDay, reward_key: rewardKey });
-                    showToast('Milník Vyzvednut!', `Gratulujeme k dosažení milníku: ${milestoneConfig.name}`, 'success');
-                } else {
-                    showToast('Chyba Ukládání', 'Odměny připsány, ale nepodařilo se uložit informaci o vyzvednutí milníku.', 'warning');
-                }
-            } else {
-                showToast('Chyba Vyzvednutí', 'Některé části odměny se nepodařilo připsat.', 'error');
-            }
-        } catch (error) {
-            console.error("Error claiming streak milestone:", error);
-            showToast('Chyba Vyzvednutí', `Nastala chyba: ${error.message}`, 'error');
-        } finally {
-            setLoadingState('streakMilestones', false);
-            if (claimButton) claimButton.disabled = false;
-            renderStreakMilestones(); // Re-render to reflect new claimed state
-            updateSidebarProfile(currentProfile); // Update sidebar if points/titles changed
-            if (allRewardsAwardedSuccessfully) { // Re-fetch and update stats if rewards were given
-                userStatsData = await fetchUserStats(currentUser.id, currentProfile);
-                updateStatsCards(userStatsData);
-            }
-        }
-    }
     // --- END: Rewards Logic ---
-
-    // --- START: Data Loading ---
+    // --- START: Load All Data ---
     // НОВАЯ функция для загрузки полученных вех серии
     async function fetchClaimedStreakMilestones(userId) {
         if (!supabase || !userId) {
@@ -635,7 +459,7 @@
         try {
             const { data, error } = await supabase
                 .from('claimed_streak_milestones')
-                .select('milestone_day, reward_key, claimed_at, reward_name') // Убедитесь, что reward_key выбирается
+                .select('milestone_day, reward_key, claimed_at, reward_name')
                 .eq('user_id', userId);
 
             if (error) throw error;
@@ -753,6 +577,189 @@
     }
     // --- END: Data Loading ---
 
+    // --- START: Streak Milestones Logic (MODIFIED) ---
+    function renderStreakMilestones() {
+        console.log("[Streak Milestones] Rendering...");
+        setLoadingState('streakMilestones', true);
+        if (!ui.modalMilestonesGrid || !ui.modalMilestonesEmpty || !currentProfile) {
+            console.error("[Streak Milestones] Missing UI elements or profile.");
+            if (ui.modalMilestonesGrid) ui.modalMilestonesGrid.innerHTML = '<p class="text-danger">Chyba načítání milníků.</p>';
+            setLoadingState('streakMilestones', false);
+            return;
+        }
+
+        if (ui.modalCurrentStreakValue) ui.modalCurrentStreakValue.textContent = currentProfile.streak_days || 0;
+        if (ui.modalLongestStreakValue) ui.modalLongestStreakValue.textContent = currentProfile.longest_streak_days || 0;
+
+        ui.modalMilestonesGrid.innerHTML = '';
+        let hasAvailableMilestones = false;
+
+        sortedMilestoneDays.forEach(dayCount => {
+            const milestoneConfig = STREAK_MILESTONES_CONFIG[dayCount];
+            if (!milestoneConfig) return;
+            hasAvailableMilestones = true;
+
+            // MODIFIED: Check against the claimed_streak_milestones array
+            const isClaimed = currentProfile.claimed_streak_milestones?.some(
+                claimed => claimed.milestone_day === dayCount && claimed.reward_key === milestoneConfig.reward_key
+            ) || false;
+
+            // Unlock based on current streak
+            const canClaim = currentProfile.streak_days >= dayCount && !isClaimed;
+
+            let cardClass = 'milestone-card card';
+            if (isClaimed) cardClass += ' claimed';
+            else if (canClaim) cardClass += ' available';
+            else cardClass += ' locked';
+
+            let rewardsHTML = '<ul class="milestone-rewards-list">';
+            milestoneConfig.rewards.forEach(reward => {
+                rewardsHTML += `<li><i class="fas ${reward.icon_reward || 'fa-gift'}"></i> ${sanitizeHTML(reward.name)}</li>`;
+            });
+            rewardsHTML += '</ul>';
+
+            let buttonOrStatusHTML = '';
+            if (isClaimed) {
+                buttonOrStatusHTML = `<div class="milestone-status claimed"><i class="fas fa-check-circle"></i> Získáno</div>`;
+            } else if (canClaim) {
+                buttonOrStatusHTML = `<button class="btn btn-sm btn-success claim-milestone-btn" data-milestone-day="${dayCount}" data-reward-key="${milestoneConfig.reward_key}"><i class="fas fa-gift"></i> Vyzvednout</button>`;
+            } else {
+                buttonOrStatusHTML = `<div class="milestone-status locked"><i class="fas fa-lock"></i> Potřebujete ${dayCount} dní série</div>`;
+            }
+
+            const milestoneCard = document.createElement('div');
+            milestoneCard.className = cardClass;
+            milestoneCard.innerHTML = `
+                <div class="milestone-header">
+                    <i class="fas ${milestoneConfig.icon || 'fa-star'} milestone-icon-indicator"></i>
+                    <span class="milestone-days">Série ${dayCount} Dní</span>
+                </div>
+                <h4 class="milestone-name">${sanitizeHTML(milestoneConfig.name)}</h4>
+                <p class="milestone-desc">${sanitizeHTML(milestoneConfig.description)}</p>
+                ${rewardsHTML}
+                <div class="milestone-actions">${buttonOrStatusHTML}</div>`;
+            ui.modalMilestonesGrid.appendChild(milestoneCard);
+        });
+
+        if (!hasAvailableMilestones) {
+            ui.modalMilestonesGrid.style.display = 'none';
+            ui.modalMilestonesEmpty.style.display = 'block';
+            ui.modalMilestonesEmpty.innerHTML = `<i class="fas fa-road"></i> <p>Momentálně nejsou definovány žádné milníky.</p>`;
+        } else {
+            ui.modalMilestonesGrid.style.display = 'grid';
+            ui.modalMilestonesEmpty.style.display = 'none';
+        }
+
+        ui.modalMilestonesGrid.querySelectorAll('.claim-milestone-btn').forEach(button => {
+            button.addEventListener('click', async (event) => {
+                const day = parseInt(event.currentTarget.dataset.milestoneDay);
+                const rKey = event.currentTarget.dataset.rewardKey;
+                await handleStreakMilestoneClaim(day, rKey);
+            });
+        });
+        initTooltips();
+        setLoadingState('streakMilestones', false);
+    }
+
+    async function handleStreakMilestoneClaim(milestoneDay, rewardKey) {
+        console.log(`[Streak Milestone] Pokus o vyzvednutí: ${milestoneDay} dní, klíč: ${rewardKey}`);
+        const milestoneConfig = STREAK_MILESTONES_CONFIG[milestoneDay];
+        if (!currentUser || !currentProfile || !supabase || !milestoneConfig || milestoneConfig.reward_key !== rewardKey) {
+            showToast('Chyba', 'Nelze vyzvednout milník.', 'error');
+            return;
+        }
+
+        // MODIFIED: Check against the full claimed_streak_milestones array
+        const isAlreadyClaimed = currentProfile.claimed_streak_milestones?.some(
+            claimed => claimed.milestone_day === milestoneDay && claimed.reward_key === rewardKey
+        ) || false;
+
+        if (isAlreadyClaimed) {
+            showToast('Již Vyzvednuto', 'Tento milník již byl vyzvednut.', 'info');
+            return;
+        }
+
+        // Unlock condition: current streak must be sufficient
+        if (currentProfile.streak_days < milestoneDay) {
+            showToast('Nedostatečná Série', `Potřebujete alespoň ${milestoneDay} dní v sérii.`, 'warning');
+            return;
+        }
+
+        const claimButton = ui.modalMilestonesGrid.querySelector(`.claim-milestone-btn[data-milestone-day="${milestoneDay}"][data-reward-key="${rewardKey}"]`);
+        if (claimButton) claimButton.disabled = true;
+        let allRewardsAwardedSuccessfully = true;
+
+        try {
+            setLoadingState('streakMilestones', true);
+            for (const reward of milestoneConfig.rewards) {
+                let successThisReward = false;
+                const rewardReason = `Odměna za sérii (${milestoneDay} dní): ${reward.name}`;
+                if (reward.type === 'credits' && reward.value) {
+                    await awardPoints(reward.value, rewardReason, 'streak_milestone_credits', null, true);
+                    successThisReward = true;
+                } else if (reward.type === 'xp' && reward.value) {
+                    await awardPoints(reward.value * 10, `${rewardReason} (ZK)`, 'streak_milestone_xp', null, true);
+                    successThisReward = true;
+                } else if (reward.type === 'title' && reward.key) {
+                    successThisReward = await awardUserTitle(reward.key, reward.name, rewardReason);
+                } else if (reward.type === 'badge' && reward.key) {
+                    console.log(`[Streak Milestone] Placeholder pro udělení odznaku: ${reward.key} - ${reward.name}`);
+                    showToast('Odměna (Odznak)', `Odznak "${reward.name}" bude brzy implementován.`, 'info');
+                    successThisReward = true;
+                }
+                if (!successThisReward) {
+                    allRewardsAwardedSuccessfully = false;
+                    showToast('Chyba Odměny', `Nepodařilo se připsat část odměny: ${reward.name}`, 'error');
+                    break;
+                }
+            }
+
+            if (allRewardsAwardedSuccessfully) {
+                const dbRecordSuccess = await updateLastMilestoneClaimedInDB(milestoneDay, rewardKey, milestoneConfig.name);
+                if (dbRecordSuccess) {
+                    // MODIFIED: Immediately update local profile's claimed_streak_milestones
+                    if (!currentProfile.claimed_streak_milestones) {
+                        currentProfile.claimed_streak_milestones = [];
+                    }
+                    currentProfile.claimed_streak_milestones.push({
+                        user_id: currentUser.id,
+                        milestone_day: milestoneDay,
+                        reward_key: rewardKey,
+                        claimed_at: new Date().toISOString(), // Simulate local update of claimed_at
+                        reward_name: milestoneConfig.name
+                    });
+                    // Also update last_milestone_claimed if this is a new highest
+                    if (milestoneDay > (currentProfile.last_milestone_claimed || 0)) {
+                        currentProfile.last_milestone_claimed = milestoneDay;
+                    }
+
+                    await logActivity(currentUser.id, 'streak_milestone_claimed', `Vyzvednut milník série: ${milestoneConfig.name}`, `Dosaženo ${milestoneDay} dní.`, { milestone_day: milestoneDay, reward_key: rewardKey });
+                    showToast('Milník Vyzvednut!', `Gratulujeme k dosažení milníku: ${milestoneConfig.name}`, 'success');
+                } else {
+                    showToast('Chyba Ukládání', 'Odměny připsány, ale nepodařilo se uložit informaci o vyzvednutí milníku.', 'warning');
+                }
+            } else {
+                showToast('Chyba Vyzvednutí', 'Některé části odměny se nepodařilo připsat.', 'error');
+            }
+        } catch (error) {
+            console.error("Error claiming streak milestone:", error);
+            showToast('Chyba Vyzvednutí', `Nastala chyba: ${error.message}`, 'error');
+        } finally {
+            setLoadingState('streakMilestones', false);
+            if (claimButton) claimButton.disabled = false; // Re-enable button (or it will be re-rendered)
+            renderStreakMilestones(); // Re-render to reflect new claimed state from the now updated currentProfile
+            updateSidebarProfile(currentProfile);
+
+            if (allRewardsAwardedSuccessfully) {
+                userStatsData = await fetchUserStats(currentUser.id, currentProfile);
+                updateStatsCards(userStatsData);
+                // MODIFIED: Refresh credit display after points are awarded
+                await fetchAndDisplayLatestCreditChange(currentUser.id);
+            }
+        }
+    }
+    // --- END: Streak Milestones Logic ---
+
     // --- START: Event Listeners Setup ---
     function setupEventListeners() { const startTime = performance.now(); console.log("[SETUP] setupEventListeners: Start"); if (!ui || Object.keys(ui).length === 0) { console.error("[SETUP] UI cache is empty! Cannot setup listeners."); return; } const listenersAdded = new Set(); const safeAddListener = (element, eventType, handler, key) => { if (element) { element.removeEventListener(eventType, handler); element.addEventListener(eventType, handler); listenersAdded.add(key); } else { console.warn(`[SETUP] Element not found for listener: ${key}`); } }; safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle'); safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle'); safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay'); safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn'); document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); }); safeAddListener(ui.startPracticeBtn, 'click', () => { window.location.href = '/dashboard/procvicovani/main.html'; }, 'startPracticeBtn'); safeAddListener(ui.openMonthlyModalBtn, 'click', () => showModal('monthly-reward-modal'), 'openMonthlyModalBtn'); safeAddListener(ui.openStreakModalBtn, 'click', () => showModal('streak-milestones-modal'), 'openStreakModalBtn'); safeAddListener(ui.refreshDataBtn, 'click', async () => { if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné se přihlásit.", "error"); return; } if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; } const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'RELOADING...'; ui.refreshDataBtn.disabled = true; await loadDashboardData(currentUser, currentProfile); if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'RELOAD'; ui.refreshDataBtn.disabled = false; }, 'refreshDataBtn'); safeAddListener(ui.notificationBell, 'click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell'); safeAddListener(ui.markAllReadBtn, 'click', markAllNotificationsRead, 'markAllReadBtn'); safeAddListener(ui.notificationsList, 'click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount?.textContent?.replace('+', '') || '0'; const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); if(ui.notificationCount) { ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); } if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }, 'notificationsList'); document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown?.classList.remove('active'); } }); safeAddListener(ui.closeMonthlyModalBtn, 'click', () => hideModal('monthly-reward-modal'), 'closeMonthlyModalBtn'); safeAddListener(ui.monthlyRewardModal, 'click', (event) => { if (event.target === ui.monthlyRewardModal) { hideModal('monthly-reward-modal'); } }, 'monthlyRewardModal'); safeAddListener(ui.closeStreakModalBtn, 'click', () => hideModal('streak-milestones-modal'), 'closeStreakModalBtn'); safeAddListener(ui.streakMilestonesModal, 'click', (event) => { if (event.target === ui.streakMilestonesModal) { hideModal('streak-milestones-modal'); } }, 'streakMilestonesModal'); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); if (ui.mainContent) ui.mainContent.addEventListener('scroll', initHeaderScrollDetection, { passive: true }); const endTime = performance.now(); console.log(`[SETUP] Event listeners set up. Added: ${[...listenersAdded].length}. Time: ${(endTime - startTime).toFixed(2)}ms`); }
     // --- END: Event Listeners Setup ---
@@ -839,11 +846,10 @@
                     console.log(`[INIT Dashboard] User authenticated (ID: ${currentUser.id}). Loading profile and titles...`);
                     if (ui.mainContentAreaPlaceholder) ui.mainContentAreaPlaceholder.style.display = 'none';
 
-                    // Параллельная загрузка профиля, титулов и полученных мильстоунов
                     const [profileResult, titlesResult, claimedMilestonesResult] = await Promise.allSettled([
                         fetchUserProfile(currentUser.id),
                         fetchTitles(),
-                        fetchClaimedStreakMilestones(currentUser.id) // Новая функция
+                        fetchClaimedStreakMilestones(currentUser.id)
                     ]);
                     console.log(`[INIT Dashboard] fetchProfile, fetchTitles & fetchClaimedMilestones (parallel) Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
                     stepStartTime = performance.now();
@@ -868,13 +874,12 @@
                         showToast('Varování', 'Nepodařilo se načíst seznam titulů.', 'warning');
                     }
 
-                    // Присвоение загруженных мильстоунов к currentProfile
                     if (claimedMilestonesResult.status === 'fulfilled') {
                         currentProfile.claimed_streak_milestones = claimedMilestonesResult.value || [];
                         console.log("[INIT Dashboard] Claimed streak milestones loaded:", currentProfile.claimed_streak_milestones.length);
                     } else {
                         console.warn("[INIT Dashboard] Failed to load claimed streak milestones:", claimedMilestonesResult.reason);
-                        currentProfile.claimed_streak_milestones = []; // Инициализируем пустым массивом при ошибке
+                        currentProfile.claimed_streak_milestones = [];
                         showToast('Varování', 'Nepodařilo se načíst získané milníky série.', 'warning');
                     }
 
@@ -973,5 +978,8 @@
     window.DashboardApp = {
         showToast,
     };
-
+// EDIT LOG: Developer Action -> Fixing milestone re-claim bug and credit display issue.
+// EDIT LOG: Stage -> Modified renderStreakMilestones to check claimed_streak_milestones.
+// EDIT LOG: Stage -> Modified handleStreakMilestoneClaim to update local claimed_streak_milestones and refresh credit display.
+// EDIT LOG: Stage -> Ensured fetchClaimedStreakMilestones is called and data stored in loadDashboardData.
 })();
