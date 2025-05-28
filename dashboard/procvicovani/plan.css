@@ -4,7 +4,7 @@
 /* VERZE 27.5.1-PLAN-CSS: Výrazné vylepšení vzhledu sekce Aktuální plán (.vertical-schedule-list) */
 /* VERZE 27.5.2-PLAN-CSS: Přidáno vertikální posouvání pro dlouhé denní plány v karuselu. */
 /* VERZE 27.5.3-PLAN-CSS: Oprava vertikálního scrollu v denním plánu. */
-/* VERZE 28.5.5-PLAN-CSS: Oprava vertikálního rolování pro všechny záložky (strukturální změny pro main-content-wrapper a section). */
+/* VERZE 28.5.6-PLAN-CSS: Vráceno k rolování celé stránky (.main-content-wrapper), odstraněna interní rolování tabů. */
 
 /* --- START: Киберпанк CSS Тема (PŮVODNÍ KÓD UŽIVATELE + Doplnění + Vylepšení plánu) --- */
 /* --- Глобальные Настройки и Переменные --- */
@@ -300,13 +300,20 @@ main#main-content.loaded { animation: fadeInMain 0.5s ease-out forwards; }
 @keyframes fadeInMain { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 .main-content-wrapper {
-    display: flex; /* Přidáno */
-    flex-direction: column; /* Přidáno */
-    flex-grow: 1; /* Klíčové, aby wrapper zabral zbytek místa po headeru */
-    overflow: hidden; /* Změněno z auto na hidden, aby scroll řešily vnitřní sekce */
+    /* display: flex;  REMOVED */
+    /* flex-direction: column; REMOVED */
+    flex-grow: 1;
+    overflow-y: auto; /* CHANGED: Main scrollbar here */
+    overflow-x: hidden;
+    padding: var(--section-padding-y) var(--container-padding-x); /* RESTORED PADDING */
     position: relative;
-    /* Padding je přesunut na .section */
+    scrollbar-width: thin; /* Add scrollbar styles for consistency if needed */
+    scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--bg-secondary-rgb), 0.3);
 }
+.main-content-wrapper::-webkit-scrollbar { width: 8px; height: 8px; }
+.main-content-wrapper::-webkit-scrollbar-track { background: rgba(var(--bg-secondary-rgb), 0.3); }
+.main-content-wrapper::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.5); border-radius: 4px; }
+.main-content-wrapper::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--accent-primary-rgb), 0.8); }
 
 
 /* --- Хедер дашборда (upraveno pro tlačítko sklápění) --- */
@@ -375,41 +382,52 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     border: 1px solid var(--border-color-light);
     border-top: none;
     position: relative;
-    display: none; /* .visible-section will make it flex */
-    flex-grow: 1;
-    flex-direction: column;
-    min-height: 0;
-    overflow: hidden; /* Parent hides overflow, children handle their own scroll */
-    padding: var(--section-padding-y) var(--container-padding-x); /* ADDED PADDING HERE */
+    /* overflow: hidden; -- REMOVED, let content dictate height */
+    display: none; /* .visible-section will make it block (not flex) */
+    /* flex-grow: 1; -- REMOVED, height will be auto */
+    /* flex-direction: column; -- REMOVED */
+    /* min-height: 0; -- REMOVED */
+    padding: var(--section-padding-y) var(--container-padding-x); /* Padding is here */
 }
-.section.visible-section { display: flex !important; animation: fadeIn 0.5s ease forwards; }
+.section.visible-section {
+    display: block !important; /* CHANGED to block */
+    animation: fadeIn 0.5s ease forwards;
+}
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 .section-content {
     padding: 0; /* Padding is handled by .section or specific inner content like .plan-content */
-    display: flex;
-    flex-direction: column;
-    min-height: 0; /* CHANGED from 150px - Crucial for flex children scrolling */
+    /* display: flex; -- REMOVED */
+    /* flex-direction: column; -- REMOVED */
+    /* min-height: 0; -- REMOVED */
     position: relative;
-    flex-grow: 1;
-    overflow-y: auto; /* GENERAL SCROLL FOR CONTENT WITHIN A SECTION */
-    scrollbar-width: thin;
-    scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--accent-secondary-rgb), 0.08);
+    /* flex-grow: 1; -- REMOVED */
+    /* overflow-y: auto; -- REMOVED, scrolling handled by main-content-wrapper */
+    /* scrollbar styles removed as this element won't scroll */
 }
-.section-content::-webkit-scrollbar { width: 8px; }
-.section-content::-webkit-scrollbar-track { background: rgba(var(--accent-secondary-rgb), 0.08); border-radius: 4px;}
-.section-content::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.5); border-radius: 4px; }
 
-/* Specifické pro karusel, aby on sám neskroloval vertikálně - TOTO PŘEPIŠE overflow-y: auto; z .section-content */
+/* Specifické pro karusel, aby on sám neskroloval vertikálně */
 #dailyPlanCarouselContainer.section-content {
     overflow-y: hidden;
     overflow-x: hidden;
-    padding: 1rem 0.5rem; /* Restore its specific padding */
+    padding: 1rem 0.5rem; /* Restore its specific padding if section padding is too much */
+    display: flex; /* Keep flex for carousel layout */
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: space-between;
+    flex-grow: 1; /* To fill the section if section itself becomes flex again */
 }
 
 
-.section-content.content-visible { display: flex !important; animation: fadeIn 0.6s ease-out forwards; }
-.plan-content { line-height: 1.75; display: none; padding: 2rem 2.5rem; flex-grow: 1; overflow-y: auto; }
+.section-content.content-visible { display: block !important; animation: fadeIn 0.6s ease-out forwards; } /* block for normal flow */
+.plan-content {
+    line-height: 1.75;
+    display: none;
+    padding: 2rem 2.5rem;
+    /* flex-grow: 1; -- REMOVED */
+    /* overflow-y: auto; -- REMOVED */
+    height: auto; /* Let content define height */
+}
 .plan-content.content-visible { display: block !important; animation: fadeIn 0.6s ease-out forwards; }
 .plan-content.generated-reveal { animation: revealPlan 0.7s cubic-bezier(0.25, 0.8, 0.25, 1) forwards !important; }
 @keyframes revealPlan { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
@@ -432,64 +450,53 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .plan-content mjx-math { color: var(--accent-cyan); }
 
 /* --- START: Vylepšené styly pro KARUSEL dnů --- */
-.daily-plan-carousel-container {
-    display: none; /* Defaultně skryté, zobrazí JS */
-    flex-direction: row; /* Hlavní směr je řádek pro tlačítka a viewport */
-    align-items: stretch; /* Tlačítka a viewport budou stejně vysoké */
-    justify-content: space-between;
-    gap: 0.5rem; /* Malá mezera mezi tlačítky a viewportem */
-    /* padding: 1rem 0.5rem;  Padding je nyní na .section */
-    flex-grow: 1; /* Aby zabral dostupnou výšku */
-    overflow: hidden; /* Skryje obsah, který by přesahoval */
-    position: relative; /* Pro absolutní pozicování vnitřních prvků, pokud bude potřeba */
-}
+/* .daily-plan-carousel-container - no change to scrolling logic if main wrapper scrolls */
 .daily-plan-carousel-container.schedule-visible { display: flex !important; animation: fadeIn 0.6s ease-out forwards; }
 
 .daily-plan-nav-btn {
-    flex-shrink: 0; /* Tlačítka se nebudou zmenšovat */
-    align-self: center; /* Vertikální zarovnání tlačítek na střed */
-    padding: 0.8rem; /* Menší padding pro navigační tlačítka */
-    font-size: 1.2rem; /* Větší ikony */
-    border-radius: 50%; /* Kulatá tlačítka */
+    flex-shrink: 0;
+    align-self: center;
+    padding: 0.8rem;
+    font-size: 1.2rem;
+    border-radius: 50%;
     width: 48px; height: 48px;
-    z-index: 10; /* Nad obsahem dne */
+    z-index: 10;
     box-shadow: var(--shadow-md);
 }
-.daily-plan-nav-btn.prev-day-btn { /* Může být potřeba pro specifické pozicování */ }
-.daily-plan-nav-btn.next-day-btn { /* Může být potřeba pro specifické pozicování */ }
 
 .daily-plan-viewport {
-    flex-grow: 1; /* Viewport zabere zbývající prostor */
-    display: flex; /* Aby vnitřní .single-day-plan-view mohl být správně zarovnán */
-    justify-content: center; /* Centrování karty dne, pokud je užší */
-    align-items: stretch; /* Karta dne bude plnit výšku viewportu */
-    overflow: hidden; /* Důležité pro "efekt" jedné karty */
-    min-width: 0; /* Pro flexbox bugfix */
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: stretch; /* Changed from flex-start to stretch */
+    overflow: hidden;
+    min-width: 0;
     position: relative;
 }
 
 .single-day-plan-view {
-    width: 100%; /* Karta dne zabere celou šířku viewportu */
-    max-width: 800px; /* Maximální šířka karty dne */
+    width: 100%;
+    max-width: 800px;
     display: flex;
-    flex-direction: column; /* Vnitřní layout karty dne je sloupcový */
-    overflow: hidden; /* Zajistí, že obsah .day-schedule-card nepřeteče */
-    flex-grow: 1; /* Karta dne zabere dostupnou výšku */
+    flex-direction: column;
+    /* overflow: hidden; -- REMOVED to allow content to define height */
+    /* flex-grow: 1; -- REMOVED */
+    height: auto; /* Let content define height */
 }
 
-/* Úprava existujících stylů pro .day-schedule-card, aby lépe fungovaly v karuselu */
 .single-day-plan-view .day-schedule-card {
     background-color: var(--card-solid);
     border-radius: var(--card-radius);
     border: 1px solid var(--border-color-medium);
     box-shadow: var(--shadow-card);
-    overflow: hidden; /* Toto je důležité, aby vnitřní scroll fungoval */
+    /* overflow: hidden; -- REMOVED */
     transition: all var(--transition-medium);
-    display: flex; /* Umožní, aby .activity-list-container mohl růst */
-    flex-direction: column; /* Hlavička nahoře, aktivity pod ní */
-    flex-grow: 1; /* Karta dne zabere dostupnou výšku */
-    margin: 0; /* Odstranění původních mezer, pokud byly */
-    height: 100%; /* ZAJIŠŤUJE, ŽE KARTA DENNÍHO PLÁNU VYPLNÍ VÝŠKU VIEWPORTU */
+    display: flex;
+    flex-direction: column;
+    /* flex-grow: 1; -- REMOVED */
+    margin: 0;
+    /* height: 100%; -- REMOVED */
+    height: auto; /* Let content define height */
 }
 .single-day-plan-view .day-schedule-card.today {
     background: linear-gradient(135deg, rgba(var(--accent-lime-rgb), 0.15), rgba(var(--card-solid-rgb), 0.9));
@@ -499,15 +506,15 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 
 .single-day-plan-view .day-header {
     padding: 1.2rem 1.8rem;
-    background-color: rgba(var(--dark-purple-accent-rgb), 0.65); /* O něco výraznější pozadí hlavičky */
+    background-color: rgba(var(--dark-purple-accent-rgb), 0.65);
     border-bottom: 1px solid var(--interface-border);
     font-size: 1.35rem; font-weight: 700;
     color: var(--text-heading);
-    cursor: default; /* Není potřeba kurzor, pokud se nerozbaluje */
+    cursor: default;
     text-shadow: 0 1px 3px rgba(0,0,0,0.4);
-    flex-shrink: 0; /* Hlavička se nebude smršťovat */
+    flex-shrink: 0;
     display: flex;
-    justify-content: center; /* Vycentrování textu v hlavičce */
+    justify-content: center;
     align-items: center;
 }
 .single-day-plan-view .day-schedule-card.today .day-header {
@@ -516,37 +523,29 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     text-shadow: 0 0 10px var(--accent-lime-glow);
     border-bottom-color: rgba(var(--accent-lime-rgb), 0.6);
 }
-.single-day-plan-view .day-header span { /* Pro "(Dnes)" */
+.single-day-plan-view .day-header span {
     font-weight: 600; color: var(--accent-lime);
     font-size: 0.9em; margin-left: 0.8rem;
     background-color: rgba(var(--accent-lime-rgb), 0.25);
     padding: 0.25rem 0.7rem; border-radius: 12px;
     border: 1px solid rgba(var(--accent-lime-rgb), 0.5);
 }
-/* Odebrání ikony pro rozbalení dne, protože den je vždy "rozbalený" */
 .single-day-plan-view .day-header .day-expand-icon { display: none; }
 
 .single-day-plan-view .activity-list-container {
-    padding: 1rem 0.5rem 1rem 1.8rem; /* Upraven padding pro vnitřní scrollbar */
+    padding: 1rem 0.5rem 1rem 1.8rem;
     display: flex; flex-direction: column; gap: 0;
-    overflow-y: auto; /* ZAJIŠŤUJE VERTIKÁLNÍ POSUN */
-    flex-grow: 1; /* Klíčové pro zabrání zbytku místa a umožnění scrollu */
-    min-height: 0; /* Pro flexbox a overflow */
-    background-color: transparent; /* Podklad pod aktivitami */
-    scrollbar-width: thin;
-    scrollbar-color: var(--accent-secondary) rgba(var(--card-solid-rgb), 0.5);
+    /* overflow-y: auto; -- REMOVED */
+    /* flex-grow: 1; -- REMOVED */
+    /* min-height: 0; -- REMOVED */
+    height: auto; /* Let content define height */
+    background-color: transparent;
+    /* scrollbar styles removed as this element won't scroll */
 }
-.single-day-plan-view .activity-list-container::-webkit-scrollbar { width: 8px; }
-.single-day-plan-view .activity-list-container::-webkit-scrollbar-track { background: rgba(var(--card-solid-rgb), 0.5); border-radius: 4px; }
-.single-day-plan-view .activity-list-container::-webkit-scrollbar-thumb { background-color: var(--accent-secondary); border-radius: 4px; border: 2px solid transparent; background-clip: content-box;}
-.single-day-plan-view .activity-list-container::-webkit-scrollbar-thumb:hover { background-color: var(--accent-pink); }
 
-/* Styly pro .activity-list-item, .activity-icon, atd. zůstávají z velké části stejné, */
-/* ale mohou vyžadovat drobné úpravy paddingu/marginu v kontextu nového layoutu. */
 .single-day-plan-view .activity-list-item {
     border-top: 1px solid var(--border-color-light);
-    padding: 1.2rem 1.3rem 1.2rem 0; /* Upraven pravý padding kvůli scrollbaru */
-    /* Ostatní styly .activity-list-item zůstávají */
+    padding: 1.2rem 1.3rem 1.2rem 0;
      display: flex; gap: 1.2rem; align-items: flex-start;
      transition: background-color var(--transition-fast), transform 0.2s ease;
      position: relative;
@@ -560,7 +559,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .single-day-plan-view .activity-list-item.completed {
     background-color: rgba(var(--accent-lime-rgb), 0.1);
     border-left: 4px solid var(--accent-lime);
-    padding-left: calc(1.3rem - 4px); /* Upravíme levý padding, pokud je border-left */
+    padding-left: calc(1.3rem - 4px);
 }
 .single-day-plan-view .activity-list-item.completed .activity-title,
 .single-day-plan-view .activity-list-item.completed .activity-time-display,
@@ -617,13 +616,13 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     font-size: 1.1rem;
     line-height: 1.4; margin-bottom: 3px;
 }
-.single-day-plan-view .activity-list-item .activity-link { /* Styl pro odkaz aktivity */
+.single-day-plan-view .activity-list-item .activity-link {
     text-decoration: none;
-    color: inherit; /* Zdědí barvu textu */
-    display: contents; /* Aby se choval jako by tam nebyl pro layout */
+    color: inherit;
+    display: contents;
 }
 .single-day-plan-view .activity-list-item .activity-link:hover .activity-title {
-    color: var(--accent-primary); /* Zvýraznění názvu při najetí na odkaz */
+    color: var(--accent-primary);
     text-decoration: underline;
 }
 .single-day-plan-view .activity-list-item .activity-time-display {
@@ -660,11 +659,11 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 
 
 .single-day-plan-view .no-activities-day {
-    padding: 3rem 1.5rem; /* Větší padding pro zprávu */
+    padding: 3rem 1.5rem;
     text-align: center; font-style: italic;
-    color: var(--text-medium); font-size: 1.1rem; /* Výraznější text */
+    color: var(--text-medium); font-size: 1.1rem;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    flex-grow: 1; /* Aby vyplnilo prostor, pokud je to jediný obsah */
+    /* flex-grow: 1; -- REMOVED, height will be auto */
 }
 .single-day-plan-view .no-activities-day i {
     font-size: 3rem; color: var(--accent-secondary); opacity: 0.7; margin-bottom: 1rem;
@@ -676,32 +675,32 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     display: flex;
     flex-direction: column;
     opacity: 0.7;
-    margin: 0 auto; /* Centrování skeletonu */
+    margin: 0 auto;
     width: 100%;
-    max-width: 800px; /* Stejné jako skutečná karta */
+    max-width: 800px;
     border-radius: var(--card-radius);
     background-color: var(--card-solid);
     overflow: hidden;
-    height: 100%; /* Aby skeleton zabral výšku */
+    /* height: 100%; -- REMOVED */
 }
 .single-day-plan-view .skeleton-day-header {
-    height: 50px; /* Výška hlavičky */
+    height: 50px;
     width: 60%;
     margin: 1.2rem 1.8rem;
     background-color: var(--skeleton-highlight);
     border-radius: var(--form-element-radius);
     flex-shrink: 0;
 }
-.single-day-plan-view .skeleton-day-card .activity-list-container { /* Cílení na skeleton v kontejneru aktivit */
+.single-day-plan-view .skeleton-day-card .activity-list-container {
     padding: 1rem 1.8rem;
     display: flex;
     flex-direction: column;
-    gap: 0.8rem; /* Mezery mezi skeleton aktivitami */
-    flex-grow: 1; /* Aby zabral zbytek místa */
-    overflow: hidden; /* Neměl by scrollbar */
+    gap: 0.8rem;
+    /* flex-grow: 1; -- REMOVED */
+    overflow: hidden;
 }
-.single-day-plan-view .skeleton-activity-item { /* Přejmenováno z .skeleton-activity-item na .skeleton-activity-row pro jasnost */
-    height: 60px; /* Výška položky aktivity */
+.single-day-plan-view .skeleton-activity-item {
+    height: 60px;
     background-color: var(--skeleton-highlight);
     border-radius: var(--form-element-radius);
     width: 100%;
@@ -712,7 +711,17 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 
 .step-navigation#verticalScheduleNav { display: none; justify-content: flex-end; margin-top: auto; padding: 1.2rem 2.5rem; border-top: 1px solid var(--border-color-light); background-color: var(--card-solid); margin-left: 0; margin-right: 0; margin-bottom: 0; border-radius: 0 0 var(--card-radius) var(--card-radius); flex-shrink: 0; position: static; }
 .step-navigation.nav-visible { display: flex !important; animation: fadeIn 0.5s ease-out forwards; }
-.plan-history { margin-top: 0; padding: 1.5rem 2rem; display: none; gap: 1.5rem; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); flex-grow: 1; overflow-y: auto; }
+
+.plan-history {
+    margin-top: 0;
+    padding: 1.5rem 0; /* Padding je nyní na .section, zde může být menší nebo žádný */
+    display: none;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    /* flex-grow: 1; -- REMOVED */
+    /* overflow-y: auto; -- REMOVED */
+    height: auto; /* Let content define height */
+}
 .plan-history.content-visible { display: grid !important; }
 .history-item { background-color: var(--card-solid); border-radius: var(--card-radius); padding: 1.5rem; box-shadow: var(--shadow-hud); display: flex; flex-direction: column; transition: all 0.2s ease; cursor: pointer; border: 1px solid var(--border-color-medium); border-left: 5px solid var(--text-muted); }
 .history-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-card); border-left-color: var(--accent-primary); background-color: rgba(var(--card-solid-rgb), 0.95); }
@@ -746,12 +755,12 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .timer-container { margin-bottom: 2rem; font-size: 1.2rem; font-weight: 500; color: var(--accent-primary); }
 .timer-container strong { font-weight: 700; padding: 0 0.3ch; display: inline-block; min-width: 1.5ch; text-shadow: 0 0 8px var(--accent-glow); }
 .action-buttons { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1.5rem; justify-content: center; }
-.plan-header-dynamic { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; padding: 1.5rem 2.5rem; border-bottom: 1px solid var(--border-color-light); background-color: rgba(var(--dark-purple-accent-rgb), 0.2); flex-shrink: 0; }
+.plan-header-dynamic { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; padding: 1.5rem 0; border-bottom: 1px solid var(--border-color-light); background-color: transparent; /* Původně rgba(var(--dark-purple-accent-rgb), 0.2) */ flex-shrink: 0; } /* Padding přesunut na .section */
 .plan-meta { display: flex; flex-direction: column; gap: 0.3rem; flex-grow: 1; }
 .plan-meta h2 { margin-bottom: 0.4rem !important; border: none !important; padding: 0 !important; font-size: 1.5rem;}
 .plan-date { font-size: 0.85rem; color: var(--text-muted); }
 .plan-actions { display: none; gap: 0.75rem; flex-shrink: 0; align-self: flex-start;}
-.loader-container { display: none; flex-direction: column; justify-content: center; align-items: center; min-height: 200px; text-align: center; color: var(--text-muted); font-size: 1.1rem; padding: 2rem; flex-grow: 1; position: absolute; inset: 0; background: rgba(var(--bg-color), 0.6); backdrop-filter: blur(3px); z-index: 10; }
+.loader-container { display: none; flex-direction: column; justify-content: center; align-items: center; min-height: 200px; text-align: center; color: var(--text-muted); font-size: 1.1rem; padding: 2rem; /* flex-grow: 1; -- REMOVED */ position: absolute; inset: 0; background: rgba(var(--bg-color), 0.6); backdrop-filter: blur(3px); z-index: 10; }
 #currentPlanSection .loader-container, #historyPlanSection .loader-container, #createPlanSection .loader-container, #planSection .loader-container { border-radius: 0 0 var(--card-radius) var(--card-radius); }
 .loader-container.visible-loader { display: flex !important; }
 .loading-spinner { width: 40px; height: 40px; border: 5px solid rgba(var(--accent-primary-rgb), 0.2); border-radius: 50%; border-top-color: var(--accent-primary); animation: spin 1s linear infinite; margin-bottom: 1rem; }
@@ -772,7 +781,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .skeleton.activity-content-skeleton { flex-grow: 1; display: flex; flex-direction: column; gap: 0.5rem; }
 .skeleton.activity-title-skeleton { height: 16px; width: 80%; }
 .skeleton.activity-meta-skeleton { height: 12px; width: 50%; }
-.empty-state { padding: 3rem 2rem; text-align: center; color: var(--text-muted); display: none; flex-grow: 1; }
+.empty-state { padding: 3rem 2rem; text-align: center; color: var(--text-muted); display: none; /* flex-grow: 1; -- REMOVED */ }
 .section-content.content-visible .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .empty-state i { font-size: 3rem; margin-bottom: 1rem; color: var(--accent-secondary); opacity: 0.6; }
 .empty-state h3 { font-size: 1.2rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.75rem; }
@@ -801,6 +810,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .dashboard-footer { margin-top: auto; padding: 1.5rem var(--container-padding-x); text-align: center; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border-color-light); opacity: 0.6; flex-shrink: 0; width: 100%; }
 .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(3, 2, 12, 0.7); z-index: 999; opacity: 0; transition: opacity var(--transition-medium) ease; backdrop-filter: blur(5px); }
 .sidebar-overlay.active { display: block; opacity: 1; }
+
 /* PŮVODNÍ @media pravidla z plan.css, upravena pro .sidebar-collapsed */
 @media (max-width: 992px) {
     body:not(.sidebar-collapsed) main#main-content { margin-left: var(--sidebar-collapsed-width); width: calc(100% - var(--sidebar-collapsed-width)); }
@@ -817,37 +827,36 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     .sidebar:not(.active):not(.sidebar-collapsed) .user-profile .avatar-wrapper { margin-right: 0; }
     .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } /* Toto je pro mobilní toggle */
     #sidebar-close-toggle { display: none !important; }
-    .section-content, .plan-content { padding: 1.5rem; } /* Padding pro obsah sekce na menších obrazovkách */
-    #dailyPlanCarouselContainer.section-content { padding: 0.5rem; } /* Menší padding pro carousel na mobilu */
+    /* .section-content, .plan-content { padding: 1.5rem; } -- Padding je nyní na .section */
+    #dailyPlanCarouselContainer.section-content { padding: 0.5rem; }
     .single-day-plan-view .day-header, .single-day-plan-view .activity-list-item { padding-left: 1rem; padding-right: 1rem; }
-    .section { padding: var(--section-padding-y) 1.5rem; } /* Upraven padding pro .section */
+    .section { padding: var(--section-padding-y) 1.5rem; }
 }
 @media (max-width: 768px) {
-    /* main { padding: 0 1rem; } -- již pokryto v main#main-content */
     .dashboard-header { padding: 0.8rem 1rem; margin-left: 0; margin-right: 0;}
-    body.scrolled .dashboard-header { margin: 0; padding: 0.8rem 1rem; } /* Odebráno var(--section-padding-y) z margin-bottom */
+    body.scrolled .dashboard-header { margin: 0; padding: 0.8rem 1rem; }
     .header-content { flex-direction: column; align-items: stretch; }
     .header-left-group { justify-content: space-between;}
     .header-actions { justify-content: flex-end; margin-top: 0.5rem; gap: 0.8rem; }
-    .plan-header-dynamic { flex-direction: column; gap: 1rem; padding: 1.2rem 1.5rem; }
+    .plan-header-dynamic { flex-direction: column; gap: 1rem; padding: 1.2rem 0; } /* Padding na .section */
     .plan-actions { width: 100%; justify-content: center; }
     .plan-tabs { padding-bottom: 0.5rem; }
     .plan-tab { padding: 0.75rem 1rem; font-size: 0.9rem; }
-    .section { padding: var(--section-padding-y) 1rem; } /* Upraven padding pro .section */
-    .section-content, .plan-content { padding: 1.2rem; } /* Sjednocení paddingu */
-    .plan-history { grid-template-columns: 1fr; padding: 1.2rem;}
-    .step-navigation#verticalScheduleNav { padding: 1.2rem 1.5rem; }
+    .section { padding: var(--section-padding-y) 1rem; }
+    /* .section-content, .plan-content { padding: 1.2rem; } -- Nespecifický padding pro .section-content, .plan-content má svůj */
+    .plan-history { padding: 1.2rem 0; } /* Padding na .section */
+    .step-navigation#verticalScheduleNav { padding: 1.2rem 0; } /* Padding na .section */
     .single-day-plan-view .day-header, .single-day-plan-view .activity-list-item { padding-left: 0.8rem; padding-right: 0.8rem; }
     .error-container { padding: 0 1.5rem; }
     .dashboard-footer { padding: 1.5rem 1rem; }
 }
 @media (max-width: 576px) {
-    :root { --sidebar-width: 0; --sidebar-collapsed-width: 0;} /* Pro mobilní by se panel měl skrývat přes transform */
-    main#main-content { margin-left: 0; width: 100%; } /* Odebrán padding z main, bude na .section */
-    body.scrolled .dashboard-header { margin: 0; padding: 0.75rem 1rem; } /* Odebráno var(--section-padding-y) z margin-bottom */
-    .sidebar { transform: translateX(-100%); width: 260px; z-index: 1100; } /* Šířka pro mobilní zobrazení, když je aktivní */
+    :root { --sidebar-width: 0; --sidebar-collapsed-width: 0;}
+    main#main-content { margin-left: 0; width: 100%; }
+    body.scrolled .dashboard-header { margin: 0; padding: 0.75rem 1rem; }
+    .sidebar { transform: translateX(-100%); width: 260px; z-index: 1100; }
     .sidebar.active { transform: translateX(0); }
-    .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; opacity: 1; max-width: 150px;} /* Obnovení viditelnosti pro aktivní mobilní sidebar */
+    .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; opacity: 1; max-width: 150px;}
     .sidebar.active .sidebar-link i { margin-right: 0.75rem; font-size: 1.2rem; }
     .sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; }
     .sidebar.active .user-profile { padding: 1rem; }
@@ -863,8 +872,10 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     .single-day-plan-view .day-header, .single-day-plan-view .activity-list-item { padding-left: 0.8rem; padding-right: 0.8rem; }
     .activity-list-item .activity-title { font-size: 1rem; }
     .single-day-plan-view .day-header { font-size: 1.1rem; padding: 1rem; }
-    .section { padding: var(--section-padding-y) 0.75rem; } /* Upraven padding pro .section */
-    .section-content, .plan-content, .plan-history { padding: 1rem; } /* Sjednocení paddingu */
+    .section { padding: var(--section-padding-y) 0.75rem; }
+    /* .section-content, .plan-content, .plan-history { padding: 1rem; } */
+    .plan-content { padding: 1rem; }
+    .plan-history { padding: 1rem 0; }
 }
 
 /* Reduced Motion */
