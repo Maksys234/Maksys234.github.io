@@ -16,6 +16,7 @@
 // VERZE 12.13 (ERROR HANDLING): Přidáno ošetření pro případ nedostatku otázek.
 // VERZE 12.14 (NO QUESTIONS UI): Zobrazí testové rozhraní se zprávou, pokud nejsou žádné otázky.
 // VERZE K ÚPRAVĚ (oprava ReferenceError, aktivace math_accelerate a math_explore):
+// VERZE 12.15 (USER TASK): Отображение результатов пройденного теста и секции "Testy pro закрепления".
 
 (function() {
     'use strict';
@@ -32,22 +33,22 @@
     let testStartTime = null;
     let testEndTime = null;
     let testResultsData = null;
-    let diagnosticId = null;
-    let selectedTestType = null;
+    let diagnosticId = null; // ID of the saved user_diagnostics entry
+    let selectedTestType = null; // e.g., 'full', 'math_review'
     let isLoading = { page: true, test: false, results: false, notifications: false, titles: false, reevaluation: {} };
     let allTitles = [];
 	const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
 
     const testTypeConfig = {
         full: {
-            questionsCount: 30,
+            questionsCount: 30, // Примерное количество вопросов, будет переопределено логикой
             title: 'Příprava na Přijímačky',
             description: 'Podrobné hodnocení <strong>všech oblastí přijímaček</strong>, podobné reálnému testu. Poskytuje solidní základ pro studijní plán.',
             multiplier: 1.5,
-            isCoreDiagnostic: true,
-            identifier: 'exam_prep_full',
+            isCoreDiagnostic: true, // Обозначает, что это основной диагностический тест
+            identifier: 'exam_prep_full', // Уникальный идентификатор для сохранения в user_diagnostics.analysis
             recommendedForGoal: 'exam_prep',
-            isActive: true
+            isActive: true // Default to active, JS logic will manage based on completion
         },
         math_review: {
             questionsCount: 30,
@@ -64,8 +65,8 @@
             title: 'Učení Napřed',
             description: 'Otestujte své znalosti v <strong>pokročilejších tématech</strong> a připravte se na budoucí výzvy.',
             multiplier: 1.2,
-            isCoreDiagnostic: false,
-            isActive: true, // ZMĚNA: Aktivováno
+            isCoreDiagnostic: false, // Toto není základní diagnostika pro odemčení plánu
+            isActive: true,
             identifier: 'math_accelerate_preview',
             recommendedForGoal: 'math_accelerate'
         },
@@ -75,14 +76,36 @@
             description: 'Test zaměřený na <strong>různorodá témata dle vašeho výběru</strong> pro rozšíření obzorů.',
             multiplier: 1.0,
             isCoreDiagnostic: false,
-            isActive: true, // ZMĚNA: Aktivováno
+            isActive: true,
             identifier: 'math_explore_sampler',
             recommendedForGoal: 'math_explore'
         }
     };
 
-    const topicIcons = { "Algebra": "fa-square-root-alt", "Aritmetika": "fa-calculator", "Geometrie": "fa-draw-polygon", "Logika": "fa-brain", "Logické úlohy": "fa-brain", "Statistika": "fa-chart-bar", "Čísla a aritmetické operace": "fa-calculator", "Práce s daty": "fa-chart-bar", "Problémové úlohy": "fa-lightbulb", "Proporce a procenta": "fa-percentage", "default": "fa-book" };
-    const activityVisuals = { test: { icon: 'fa-vial', class: 'test' }, exercise: { icon: 'fa-pencil-alt', class: 'exercise' }, badge: { icon: 'fa-medal', class: 'badge' }, diagnostic: { icon: 'fa-clipboard-check', class: 'diagnostic' }, lesson: { icon: 'fa-book-open', class: 'lesson' }, plan_generated: { icon: 'fa-calendar-alt', class: 'plan_generated' }, level_up: { icon: 'fa-level-up-alt', class: 'level_up' }, other: { icon: 'fa-info-circle', class: 'other' }, default: { icon: 'fa-check-circle', class: 'default' } };
+    const topicIcons = {
+        "Algebra": "fa-square-root-alt",
+        "Aritmetika": "fa-calculator",
+        "Geometrie": "fa-draw-polygon",
+        "Logika": "fa-brain",
+        "Logické úlohy": "fa-brain",
+        "Statistika": "fa-chart-bar",
+        "Čísla a aritmetické operace": "fa-calculator",
+        "Práce s daty": "fa-chart-bar",
+        "Problémové úlohy": "fa-lightbulb",
+        "Proporce a procenta": "fa-percentage",
+        "default": "fa-book"
+    };
+    const activityVisuals = {
+        test: { icon: 'fa-vial', class: 'test' },
+        exercise: { icon: 'fa-pencil-alt', class: 'exercise' },
+        badge: { icon: 'fa-medal', class: 'badge' },
+        diagnostic: { icon: 'fa-clipboard-check', class: 'diagnostic' },
+        lesson: { icon: 'fa-book-open', class: 'lesson' },
+        plan_generated: { icon: 'fa-calendar-alt', class: 'plan_generated' },
+        level_up: { icon: 'fa-level-up-alt', class: 'level_up' },
+        other: { icon: 'fa-info-circle', class: 'other' },
+        default: { icon: 'fa-check-circle', class: 'default' }
+    };
 
     const ui = {
         sidebarAvatar: document.getElementById('sidebar-avatar'),
@@ -142,12 +165,21 @@
         mouseFollower: document.getElementById('mouse-follower'),
         currentYearSidebar: document.getElementById('currentYearSidebar'),
         currentYearFooter: document.getElementById('currentYearFooter'),
-        reviewItemTemplate: document.getElementById('review-item-template')
+        reviewItemTemplate: document.getElementById('review-item-template'),
+        // NEW UI Elements
+        completedTestSummaryContainer: document.getElementById('completed-test-summary-container'),
+        completedTestTitleSummary: document.getElementById('completed-test-title-summary'),
+        summaryScore: document.getElementById('summary-score'),
+        summaryPercentage: document.getElementById('summary-percentage'),
+        summaryCorrect: document.getElementById('summary-correct'),
+        summaryIncorrect: document.getElementById('summary-incorrect'),
+        summaryTime: document.getElementById('summary-time'),
+        summaryReviewAnswersBtn: document.getElementById('summary-review-answers-btn'),
+        reinforcementTestsSection: document.getElementById('reinforcement-tests-section')
     };
     // --- END: Инициализация и Конфигурация ---
 
     // --- START: Helper Functions (UI specific or wrappers) ---
-    // Definice pomocných funkcí (showToast, showError, atd.) PŘED jejich prvním voláním
     function showToast(title, message, type = 'info', duration = 4500) { if (!ui.toastContainer) return; try { const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div'); toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive'); toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content">${title ? `<div class="toast-title">${sanitizeHTML(title)}</div>` : ''}<div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`; const icon = toastElement.querySelector('.toast-icon'); icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`; toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); }); ui.toastContainer.appendChild(toastElement); requestAnimationFrame(() => { toastElement.classList.add('show'); }); setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration); } catch (e) { console.error("Chyba při zobrazování toastu:", e); } }
     function showError(message, isGlobal = false) { console.error("Došlo k chybě:", message); if (isGlobal && ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i><div>${sanitizeHTML(message)}</div><button class="retry-button btn" onclick="location.reload()">Zkusit Znovu</button></div>`; ui.globalError.style.display = 'block'; } else { showToast('CHYBA SYSTÉMU', message, 'error', 6000); } }
     function hideError() { if (ui.globalError) ui.globalError.style.display = 'none'; }
@@ -259,6 +291,9 @@
         if (ui.resultsContainer) ui.resultsContainer.style.display = 'none';
         if (ui.reviewContainer) ui.reviewContainer.style.display = 'none';
         if (ui.geminiOverlay) ui.geminiOverlay.style.display = 'none';
+        if (ui.completedTestSummaryContainer) ui.completedTestSummaryContainer.style.display = 'none'; // Hide summary on error
+        if (ui.reinforcementTestsSection) ui.reinforcementTestsSection.style.display = 'none'; // Hide reinforcement on error
+
 
         const retryButtonHTML = showRetryButton ? `<button class="btn btn-primary" style="margin-top:1.5rem;" onclick="location.reload()"><i class="fas fa-redo"></i> Zkusit znovu</button>` : '';
         const infoTitle = message.includes("Test již byl dokončen") || message.includes("Nejsou k dispozici žádné vhodné otázky") || message.includes("Otázky pro tento test budou brzy doplněny");
@@ -267,8 +302,13 @@
              ui.globalError.innerHTML = `<div class="error-message"><i class="fas ${infoTitle ? 'fa-info-circle' : 'fa-exclamation-triangle'}"></i><div>${sanitizeHTML(message)}</div>${retryButtonHTML}</div>`;
              ui.globalError.style.display = 'block';
         } else if (ui.mainContent) {
-            ui.mainContent.innerHTML = `<div class="section error-message-container" style="margin-top: 2rem; text-align:center;"><i class="fas ${infoTitle ? 'fa-info-circle' : 'fa-exclamation-triangle'}" style="font-size: 2.5rem; color: ${infoTitle ? 'var(--accent-primary)' : 'var(--accent-pink)' }; margin-bottom: 1rem;"></i><div class="loader-text" style="font-size: 1.5rem; color: ${infoTitle ? 'var(--accent-primary)' : 'var(--accent-pink)' };">${infoTitle ? "Informace" : "Chyba!"}</div><div class="loader-subtext" style="font-size: 1rem;">${sanitizeHTML(message)}</div>${retryButtonHTML}</div>`;
-            ui.mainContent.style.display = 'block';
+            // Instead of replacing mainContent, use a dedicated error display area within the main content wrapper
+            const mainContentWrapper = document.querySelector('.main-content-wrapper');
+            if (mainContentWrapper) {
+                 mainContentWrapper.innerHTML = `<div class="section error-message-container" style="margin-top: 2rem; text-align:center;"><i class="fas ${infoTitle ? 'fa-info-circle' : 'fa-exclamation-triangle'}" style="font-size: 2.5rem; color: ${infoTitle ? 'var(--accent-primary)' : 'var(--accent-pink)' }; margin-bottom: 1rem;"></i><div class="loader-text" style="font-size: 1.5rem; color: ${infoTitle ? 'var(--accent-primary)' : 'var(--accent-pink)' };">${infoTitle ? "Informace" : "Chyba!"}</div><div class="loader-subtext" style="font-size: 1rem;">${sanitizeHTML(message)}</div>${retryButtonHTML}</div>`;
+            } else {
+                 document.body.innerHTML = `<div style='padding: 2rem; color: ${infoTitle ? 'var(--text-light)' : 'red'}; text-align:center;'><h1>${infoTitle ? "Informace" : "Chyba"}</h1><p>${sanitizeHTML(message)}</p>${retryButtonHTML}</div>`;
+            }
         } else {
             document.body.innerHTML = `<div style='padding: 2rem; color: ${infoTitle ? 'var(--text-light)' : 'red'}; text-align:center;'><h1>${infoTitle ? "Informace" : "Chyba"}</h1><p>${sanitizeHTML(message)}</p>${retryButtonHTML}</div>`;
         }
@@ -320,9 +360,9 @@
     // --- END: Helper Functions ---
 
     // --- START: Event Listeners Setup ---
-    // Přesun definice setupEventListeners PŘED initializeApp
+    // ... (setupEventListeners остается таким же, как в предыдущей версии) ...
     function setupEventListeners() {
-        console.log("[SETUP v12.14] Nastavování posluchačů událostí...");
+        console.log("[SETUP v12.15] Nastavování posluchačů událostí...");
         if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
         if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
         if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
@@ -340,6 +380,8 @@
                     if(ui.testTimer) ui.testTimer.style.display = 'none';
                     if(ui.testSelector) ui.testSelector.style.display = 'block';
                     if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu';
+                    if(ui.completedTestSummaryContainer) ui.completedTestSummaryContainer.style.display = 'none'; // Schovat shrnutí
+                    if(ui.reinforcementTestsSection) ui.reinforcementTestsSection.style.display = 'none'; // Schovat doplňkové testy
                     applyTestHighlightingAndSelection();
                     history.replaceState({ state: 'testSelection' }, document.title, window.location.href);
                     return;
@@ -354,11 +396,14 @@
                 if (confirmFinish) { await finishTest(); }
             });
         }
-        if (ui.retryBtn) {
+        if (ui.retryBtn) { // Tlačítko "Zkusit jiný test" na stránce výsledků
             ui.retryBtn.addEventListener('click', () => {
                 ui.resultsContainer.style.display = 'none';
                 ui.reviewContainer.style.display = 'none';
                 if (ui.testSelector) ui.testSelector.style.display = 'block';
+                if (ui.completedTestSummaryContainer) ui.completedTestSummaryContainer.style.display = 'none';
+                if (ui.reinforcementTestsSection) ui.reinforcementTestsSection.style.display = 'none';
+
                 questions = []; userAnswers = []; testResultsData = {}; diagnosticId = null; selectedTestType = null;
                 if(ui.lowScoreMessageContainer) ui.lowScoreMessageContainer.innerHTML = '';
                 if (ui.continueBtn) { ui.continueBtn.disabled = true; ui.continueBtn.removeAttribute('data-save-error'); }
@@ -369,6 +414,15 @@
                     ui.startSelectedTestBtnGlobal.innerHTML = '<i class="fas fa-play-circle"></i> Vyberte Test';
                 }
                 history.replaceState({ state: 'testSelection' }, document.title, window.location.href);
+            });
+        }
+        if (ui.summaryReviewAnswersBtn) { // Tlačítko "Zobrazit odpovědi" na stránce shrnutí
+            ui.summaryReviewAnswersBtn.addEventListener('click', () => {
+                if(testResultsData) { // Potřebujeme data z posledního testu
+                    displayReview();
+                } else {
+                    showToast("Chyba", "Data výsledků testu nejsou k dispozici pro zobrazení odpovědí.", "error");
+                }
             });
         }
         if (ui.continueBtn) {
@@ -413,7 +467,7 @@
                      startSelectedTest();
                  } else if (!selectedTestType) {
                      showToast('Chyba', 'Povinný test nebyl správně určen.', 'error');
-                 } else { // selectedTestType je, ale tlačítko je disabled
+                 } else {
                      const config = testTypeConfig[selectedTestType];
                      if (config && config.isActive === false) {
                          showToast("Již brzy!", `Test "${config.title}" bude brzy dostupný.`, "info");
@@ -426,19 +480,19 @@
 
 
         window.addEventListener('popstate', handleBackButton);
-        window.addEventListener('resize', () => { if (window.innerWidth > 992 && ui.sidebar?.classList.contains('active')) closeMenu(); });
+        window.addEventListener('resize', () => { if (window.innerWidth <= 992 && ui.sidebar?.classList.contains('active')) closeMenu(); });
         if (ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); }
         if (ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsReadUI); }
         if (ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { await markNotificationReadUI(notificationId); } if (link) window.location.href = link; } }); }
         document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } });
         window.addEventListener('online', updateOnlineStatus);
         window.addEventListener('offline', updateOnlineStatus);
-        console.log("[SETUP v12.14] Posluchači událostí nastaveni.");
+        console.log("[SETUP v12.15] Posluchači událostí nastaveni.");
     }
     // --- END: Event Listeners Setup ---
 
     // --- START: Data Fetching Wrappers (using TestLogic) ---
-    // Definice fetchUserProfile, fetchTitles, checkSpecificTestCompleted, loadTestQuestions PŘED initializeApp
+    // ... (fetchUserProfile, fetchTitles, checkSpecificTestCompleted, loadTestQuestions остаются такими же) ...
     async function fetchUserProfile(userId) {
         if (!supabase || !userId) return null;
         console.log(`[Profile] Fetching profile for user ID: ${userId}`);
@@ -446,7 +500,7 @@
         try {
             const { data: profile, error } = await supabase
                 .from('profiles')
-                .select('*, selected_title, preferences, longest_streak_days')
+                .select('*, selected_title, preferences, longest_streak_days, learning_goal') // Added learning_goal
                 .eq('id', userId)
                 .single();
             if (error && error.code !== 'PGRST116') throw error; // PGRST116 = 0 rows
@@ -487,19 +541,19 @@
         }
     }
 
-    async function checkSpecificTestCompleted(userId, testIdentifier) {
+    async function checkSpecificTestCompleted(userId, testIdentifierToFind) {
         setLoadingState('test', true);
         if (ui.loaderSubtext) ui.loaderSubtext.textContent = 'Kontroluji předchozí testy...';
         try {
             if (!userId || !supabase) {
                 console.warn("[checkSpecificTestCompleted] Chybí ID uživatele nebo Supabase klient.");
-                return false;
+                return null; // Return null to indicate check could not be performed
             }
-            console.log(`[checkSpecificTestCompleted] Hledám test pro user: ${userId} s potenciálním identifikátorem (nebo obecně pro cíl): ${testIdentifier}`);
+            console.log(`[checkSpecificTestCompleted] Hledám test pro user: ${userId} s identifikátorem: ${testIdentifierToFind}`);
 
             const { data: existingTests, error } = await supabase
                 .from('user_diagnostics')
-                .select('id, analysis')
+                .select('id, completed_at, analysis') // Ensure 'analysis' is selected
                 .eq('user_id', userId)
                 .order('completed_at', { ascending: false });
 
@@ -509,31 +563,24 @@
             }
 
             if (existingTests && existingTests.length > 0) {
-                const mandatoryTestConfigKey = Object.keys(testTypeConfig).find(key => testTypeConfig[key].recommendedForGoal === currentProfile?.learning_goal);
-                if (!mandatoryTestConfigKey) {
-                     console.warn(`[checkSpecificTestCompleted] Nebyla nalezena konfigurace testu pro cíl: ${currentProfile?.learning_goal}`);
-                     return false;
-                }
-                const mandatoryTestIdentifier = testTypeConfig[mandatoryTestConfigKey].identifier;
-
-                const completedMandatoryTest = existingTests.find(test =>
+                const completedTest = existingTests.find(test =>
                     test.analysis &&
                     test.analysis.summary &&
-                    test.analysis.summary.test_type_identifier === mandatoryTestIdentifier
+                    test.analysis.summary.test_type_identifier === testIdentifierToFind
                 );
 
-                if (completedMandatoryTest) {
-                    console.log(`[checkSpecificTestCompleted] Nalezen dokončený povinný test s identifikátorem '${mandatoryTestIdentifier}'.`);
-                    return true;
+                if (completedTest) {
+                    console.log(`[checkSpecificTestCompleted] Nalezen dokončený test s identifikátorem '${testIdentifierToFind}'. Data:`, completedTest);
+                    return completedTest; // Return the data of the completed test
                 }
-                console.log(`[checkSpecificTestCompleted] Nalezeny testy (${existingTests.length}), ale žádný neodpovídá povinnému identifikátoru '${mandatoryTestIdentifier}' v analýze.`);
+                console.log(`[checkSpecificTestCompleted] Nalezeny testy (${existingTests.length}), ale žádný neodpovídá identifikátoru '${testIdentifierToFind}' v analýze.`);
             }
-            return false;
+            return null; // Test not found or no tests at all
 
         } catch (err) {
             console.error("Error in checkSpecificTestCompleted:", err);
             showToast("Chyba při kontrole historie testů.", "error");
-            return false;
+            return null; // Indicate error during check
         } finally {
             setLoadingState('test', false);
         }
@@ -550,15 +597,15 @@
             if (!window.TestLogic || typeof window.TestLogic.loadTestQuestions !== 'function') {
                 throw new Error("Chybí logika pro načítání otázek (TestLogic.loadTestQuestions).");
             }
-            console.log(`[UI LoadQ v12.14] Volání TestLogic.loadTestQuestions s profilem (Cíl: ${currentProfile.learning_goal}, TestTyp: ${testType})`);
+            console.log(`[UI LoadQ v12.15] Volání TestLogic.loadTestQuestions s profilem (Cíl: ${currentProfile.learning_goal}, TestTyp: ${testType})`);
             questions = await window.TestLogic.loadTestQuestions(supabase, currentProfile, testTypeConfig);
-            console.log(`[UI LoadQ v12.14] Obdrženo ${questions.length} otázek z logiky.`);
+            console.log(`[UI LoadQ v12.15] Obdrženo ${questions.length} otázek z logiky.`);
             initializeTest();
 
         } catch (error) {
             console.error('[UI] Error loading questions:', error);
             questions = [];
-            initializeTest();
+            initializeTest(); // Initialize even with 0 questions to show the message
             showToast("Chyba při načítání otázek", error.message, "error");
         } finally {
              setLoadingState('test', false);
@@ -567,7 +614,7 @@
     // --- END: Data Fetching Wrappers ---
 
     // --- START: Test Logic UI ---
-    // Definice initializeTest, startTimer, showQuestion, atd. PŘED initializeApp
+    // ... (initializeTest, startTimer, stopTimer, showQuestion, handleAnswerSelection, createPagination, updatePagination, updateNavigationButtons, updateProgressBar, saveAnswer остаются такими же) ...
     function initializeTest() {
         if (!questions) {
             questions = [];
@@ -577,8 +624,12 @@
         if (ui.resultsContainer) ui.resultsContainer.style.display = 'none';
         if (ui.reviewContainer) ui.reviewContainer.style.display = 'none';
         if (ui.testSelector) ui.testSelector.style.display = 'none';
+        if (ui.completedTestSummaryContainer) ui.completedTestSummaryContainer.style.display = 'none'; // Schovat shrnutí při startu nového testu
+        if (ui.reinforcementTestsSection) ui.reinforcementTestsSection.style.display = 'none'; // Schovat doplňkové testy
+
+
         if (ui.testTimer) ui.testTimer.style.display = 'flex';
-        currentQuestionIndex = (questions.length > 0) ? 0 : -1;
+        currentQuestionIndex = (questions.length > 0) ? 0 : -1; // Pokud nejsou otázky, index je -1
         if (questions.length > 0) {
             userAnswers = questions.map((q) => ({
                 question_db_id: q.id, question_number_in_test: q.question_number,
@@ -602,28 +653,32 @@
         if(ui.answeredCountEl) ui.answeredCountEl.textContent = '0';
         if(ui.lowScoreMessageContainer) ui.lowScoreMessageContainer.innerHTML = '';
         createPagination();
-        showQuestion(currentQuestionIndex);
+        showQuestion(currentQuestionIndex); // Zavolá se i s indexem -1, pokud nejsou otázky
         updateProgressBar();
         updateNavigationButtons();
         requestAnimationFrame(() => { if (ui.testContainer) { ui.testContainer.setAttribute('data-animate', ''); ui.testContainer.style.setProperty('--animation-order', 0); } });
         setLoadingState('test', false);
-        console.log(`[InitializeTest v12.14] Test initialized. Questions: ${questions.length}, CurrentIndex: ${currentQuestionIndex}`);
+        console.log(`[InitializeTest v12.15] Test initialized. Questions: ${questions.length}, CurrentIndex: ${currentQuestionIndex}`);
     }
     function startTimer() { if(timer)clearInterval(timer); testStartTime=new Date(); testTime=0; if(ui.timerValue) ui.timerValue.textContent=formatTime(testTime); ui.testTimer?.classList.remove('timer-warning','timer-danger'); timer=setInterval(()=>{testTime++; if(ui.timerValue) ui.timerValue.textContent=formatTime(testTime); const config=testTypeConfig[selectedTestType]; if(!config)return; const estimatedTime=(questions.length > 0 ? questions.length : testTypeConfig[selectedTestType]?.questionsCount || 20)*1.5*60; const warningTime=estimatedTime*0.8; if(testTime>estimatedTime){ui.testTimer?.classList.add('timer-danger'); ui.testTimer?.classList.remove('timer-warning');}else if(testTime>warningTime){ui.testTimer?.classList.add('timer-warning'); ui.testTimer?.classList.remove('timer-danger');}},1000); }
     function stopTimer() { clearInterval(timer); timer = null; testEndTime = new Date(); }
     function showQuestion(index) {
-        if (!ui.questionContainer) { console.error("[ShowQuestion v12.14] Question container not found."); return; }
+        if (!ui.questionContainer) { console.error("[ShowQuestion v12.15] Question container not found."); return; }
         if (questions.length === 0 || index < 0) {
-            console.log("[ShowQuestion v12.14] No questions available or invalid index. Displaying no questions message.");
+            console.log("[ShowQuestion v12.15] No questions available or invalid index. Displaying no questions message.");
             let message = "Pro tento typ testu zatím nejsou k dispozici žádné otázky. Zkuste to prosím později, nebo vyberte jiný typ testu.";
             if (selectedTestType === 'math_accelerate' || selectedTestType === 'math_explore') {
                 message = "Otázky pro tento test budou brzy doplněny. Děkujeme za trpělivost!";
             }
             ui.questionContainer.innerHTML = `<div class="loading-placeholder" style="text-align:center; padding: 3rem 1rem; color: var(--text-light); background-color: rgba(var(--card-solid-rgb), 0.7); border-radius: var(--card-radius);"> <i class="fas fa-box-open" style="font-size: 3em; margin-bottom: 1rem; color: var(--accent-secondary);"></i> <p style="font-size: 1.2em; font-weight: 500;">${message}</p> </div>`;
             if(ui.questionCountEl) ui.questionCountEl.textContent = `0 / 0`;
-            currentQuestionIndex = -1; updatePagination(); updateNavigationButtons(); return;
+            currentQuestionIndex = -1; // Mark as no question displayed
+            updatePagination();
+            updateNavigationButtons(); // This will disable next/prev and change finish button
+            return;
         }
-        if (index < 0 || index >= questions.length) { console.error(`[ShowQuestion v12.14] Pokus o zobrazení neplatné otázky (index: ${index}, počet otázek: ${questions.length})`); ui.questionContainer.innerHTML = `<div class="loading-placeholder" style="text-align:center; padding: 2rem; color: var(--text-muted);"><i class="fas fa-exclamation-triangle" style="font-size: 2em; margin-bottom: 1rem; color: var(--accent-orange);"></i><p>Chyba při načítání otázky. Zkuste obnovit stránku.</p></div>`; return; }
+        // Tato kontrola by už neměla být nutná, pokud showQuestion(-1) je ošetřeno výše
+        // if (index < 0 || index >= questions.length) { console.error(`[ShowQuestion v12.15] Pokus o zobrazení neplatné otázky (index: ${index}, počet otázek: ${questions.length})`); ui.questionContainer.innerHTML = `<div class="loading-placeholder" style="text-align:center; padding: 2rem; color: var(--text-muted);"><i class="fas fa-exclamation-triangle" style="font-size: 2em; margin-bottom: 1rem; color: var(--accent-orange);"></i><p>Chyba při načítání otázky. Zkuste obnovit stránku.</p></div>`; return; }
         const question = questions[index]; console.log(`Zobrazuji Q#${index + 1} (Typ: ${question.question_type})`, question); currentQuestionIndex = index;
         if(ui.questionCountEl) ui.questionCountEl.textContent = `${index + 1} / ${questions.length}`;
         let questionHTML = `<div class="question-header"><span class="question-number">${question.question_number}</span><div class="question-text">${sanitizeHTML(question.question_text)}</div></div>`;
@@ -651,13 +706,26 @@
         if(ui.prevBtn) ui.prevBtn.disabled = noQuestions || currentQuestionIndex === 0;
         if(ui.nextBtn) ui.nextBtn.disabled = noQuestions || currentQuestionIndex === questions.length - 1;
         if(ui.finishBtn) {
-            if (noQuestions) { ui.finishBtn.style.display = 'flex'; ui.finishBtn.innerHTML = '<i class="fas fa-arrow-left"></i> Zpět na výběr'; ui.finishBtn.disabled = isLoading.results; }
-            else { ui.finishBtn.style.display = currentQuestionIndex === questions.length - 1 ? 'flex' : 'none'; ui.finishBtn.disabled = isLoading.results; ui.finishBtn.innerHTML = isLoading.results ? '<i class="fas fa-spinner fa-spin"></i> Vyhodnocuji...' : '<i class="fas fa-check-circle"></i> Dokončit test'; }
+            if (noQuestions) { // Если нет вопросов, кнопка "Dokončit" se změní na "Zpět"
+                ui.finishBtn.style.display = 'flex';
+                ui.finishBtn.innerHTML = '<i class="fas fa-arrow-left"></i> Zpět na výběr';
+                ui.finishBtn.disabled = isLoading.results; // Nebo false, pokud nemá co vyhodnocovat
+            } else {
+                ui.finishBtn.style.display = currentQuestionIndex === questions.length - 1 ? 'flex' : 'none';
+                ui.finishBtn.disabled = isLoading.results;
+                ui.finishBtn.innerHTML = isLoading.results ? '<i class="fas fa-spinner fa-spin"></i> Vyhodnocuji...' : '<i class="fas fa-check-circle"></i> Dokončit test';
+            }
         }
     }
     function updateProgressBar() {
         if (!ui.progressBar) return;
-        const answeredCount = userAnswers.filter(a => { if (!a) return false; if (typeof a.userAnswerValue === 'object' && a.userAnswerValue !== null) { return Object.values(a.userAnswerValue).some(part => part !== null && String(part).trim() !== ''); } return a.userAnswerValue !== null && String(a.userAnswerValue).trim() !== ''; }).length;
+        const answeredCount = userAnswers.filter(a => {
+            if (!a) return false;
+            if (typeof a.userAnswerValue === 'object' && a.userAnswerValue !== null) {
+                return Object.values(a.userAnswerValue).some(part => part !== null && String(part).trim() !== '');
+            }
+            return a.userAnswerValue !== null && String(a.userAnswerValue).trim() !== '';
+        }).length;
         const progress = questions.length > 0 ? (answeredCount / questions.length) * 100 : 0;
         ui.progressBar.style.width = `${progress}%`;
         if(ui.answeredCountEl) ui.answeredCountEl.textContent = answeredCount;
@@ -665,36 +733,108 @@
     function saveAnswer(qIndex, userAnswerValue) {
         if (qIndex < 0 || qIndex >= userAnswers.length) { console.error(`Chyba: Neplatný index otázky ${qIndex} pro uložení odpovědi.`); return; }
         if (!userAnswers[qIndex]) { console.error(`Chyba: Chybí objekt odpovědi pro index ${qIndex}`); return; }
-        let wasAnsweredBefore = false; const previousAnswer = userAnswers[qIndex].userAnswerValue;
-        if (typeof previousAnswer === 'object' && previousAnswer !== null) { wasAnsweredBefore = Object.values(previousAnswer).some(part => part !== null && String(part).trim() !== ''); }
-        else { wasAnsweredBefore = previousAnswer !== null && String(previousAnswer).trim() !== ''; }
+
+        let wasAnsweredBefore = false;
+        const previousAnswer = userAnswers[qIndex].userAnswerValue;
+        if (typeof previousAnswer === 'object' && previousAnswer !== null) {
+            wasAnsweredBefore = Object.values(previousAnswer).some(part => part !== null && String(part).trim() !== '');
+        } else {
+            wasAnsweredBefore = previousAnswer !== null && String(previousAnswer).trim() !== '';
+        }
+
         let isCurrentAnswerEmpty = false;
-        if (typeof userAnswerValue === 'object' && userAnswerValue !== null) { isCurrentAnswerEmpty = Object.values(userAnswerValue).every(part => part === null || String(part).trim() === ''); }
-        else { isCurrentAnswerEmpty = userAnswerValue === null || String(userAnswerValue).trim() === ''; }
+        if (typeof userAnswerValue === 'object' && userAnswerValue !== null) {
+            isCurrentAnswerEmpty = Object.values(userAnswerValue).every(part => part === null || String(part).trim() === '');
+        } else {
+            isCurrentAnswerEmpty = userAnswerValue === null || String(userAnswerValue).trim() === '';
+        }
+
         userAnswers[qIndex].userAnswerValue = isCurrentAnswerEmpty ? null : userAnswerValue;
-        let isAnsweredNow = false; const currentSavedAnswer = userAnswers[qIndex].userAnswerValue;
-        if (typeof currentSavedAnswer === 'object' && currentSavedAnswer !== null) { isAnsweredNow = Object.values(currentSavedAnswer).some(part => part !== null && String(part).trim() !== ''); }
-        else { isAnsweredNow = currentSavedAnswer !== null && String(currentSavedAnswer).trim() !== ''; }
-        if (wasAnsweredBefore !== isAnsweredNow) { updateProgressBar(); updatePagination(); }
+
+        let isAnsweredNow = false;
+        const currentSavedAnswer = userAnswers[qIndex].userAnswerValue;
+        if (typeof currentSavedAnswer === 'object' && currentSavedAnswer !== null) {
+            isAnsweredNow = Object.values(currentSavedAnswer).some(part => part !== null && String(part).trim() !== '');
+        } else {
+            isAnsweredNow = currentSavedAnswer !== null && String(currentSavedAnswer).trim() !== '';
+        }
+
+        if (wasAnsweredBefore !== isAnsweredNow) {
+            updateProgressBar();
+            updatePagination();
+        }
         console.log(`Odpověď uložena Q#${qIndex + 1}:`, userAnswers[qIndex].userAnswerValue);
     }
     // --- END: Test Logic UI ---
 
     // --- START: Evaluation & Results UI ---
+    // ... (evaluateAnswersUI, displayResults, displayReview, handleReevaluateClick, finishTest остаются такими же, как в предыдущей версии) ...
     async function evaluateAnswersUI() {
-        if (questions.length === 0) { console.log("[EvaluateAnswersUI] Žádné otázky k vyhodnocení."); return; }
-        console.log("Spouštím vyhodnocení odpovědí (UI)..."); showGeminiOverlay(true); const promises = [];
-        for (let i = 0; i < questions.length; i++) {
-            const qData = questions[i]; const answerData = userAnswers[i];
-            if (!answerData) { console.error(`Chyba: Nenalezen objekt odpovědi pro index ${i} (UI)`); continue; }
-            let isSkippedOrEmpty = false;
-            if (answerData.userAnswerValue === null) { isSkippedOrEmpty = true; }
-            else if (typeof answerData.userAnswerValue === 'object') { isSkippedOrEmpty = Object.values(answerData.userAnswerValue).every(val => val === null || String(val).trim() === ''); }
-            else { isSkippedOrEmpty = String(answerData.userAnswerValue).trim() === ''; }
-            if (isSkippedOrEmpty) { answerData.scoreAwarded = 0; answerData.correctness = "skipped"; answerData.reasoning = "Otázka byla přeskočena nebo odpověď byla prázdná."; answerData.error_analysis = null; answerData.feedback = "Příště zkuste odpovědět."; answerData.checked_by = 'skipped'; console.log(`Q#${i+1} (${qData.question_type}) přeskočeno/prázdné (UI).`); promises.push(Promise.resolve()); continue; }
-            promises.push( window.TestLogic.checkAnswerWithGemini( qData.question_type, qData.question_text, qData.correct_answer, answerData.userAnswerValue, answerData.maxScore, i, qData.solution_explanation, qData.options ).then(evaluationResult => { userAnswers[i].scoreAwarded = evaluationResult.score; userAnswers[i].correctness = evaluationResult.correctness; userAnswers[i].reasoning = evaluationResult.reasoning; userAnswers[i].error_analysis = evaluationResult.error_analysis; userAnswers[i].feedback = evaluationResult.feedback; userAnswers[i].checked_by = evaluationResult.correctness === 'error' || evaluationResult.reasoning.includes("fallback") ? 'fallback_scored' : 'gemini_scored'; console.log(`Q#${i+1} (${qData.question_type}) vyhodnoceno (UI): Skóre ${evaluationResult.score}/${answerData.maxScore}, Správnost: ${evaluationResult.correctness}`); }).catch(error => { console.error(`Chyba vyhodnocení pro Q#${i+1} (UI):`, error); userAnswers[i].scoreAwarded = 0; userAnswers[i].correctness = 'error'; userAnswers[i].reasoning = `Automatické hodnocení selhalo: ${error.message}`; userAnswers[i].error_analysis = "Chyba systému hodnocení."; userAnswers[i].feedback = "Kontaktujte podporu, pokud problém přetrvává."; userAnswers[i].checked_by = 'error'; }) );
+        if (questions.length === 0) {
+            console.log("[EvaluateAnswersUI] Žádné otázky k vyhodnocení.");
+            return;
         }
-        await Promise.all(promises); showGeminiOverlay(false); console.log("Vyhodnocení odpovědí dokončeno (UI):", userAnswers);
+        console.log("Spouštím vyhodnocení odpovědí (UI)...");
+        showGeminiOverlay(true);
+        const promises = [];
+        for (let i = 0; i < questions.length; i++) {
+            const qData = questions[i];
+            const answerData = userAnswers[i];
+            if (!answerData) { console.error(`Chyba: Nenalezen objekt odpovědi pro index ${i} (UI)`); continue; }
+
+            let isSkippedOrEmpty = false;
+            if (answerData.userAnswerValue === null) {
+                isSkippedOrEmpty = true;
+            } else if (typeof answerData.userAnswerValue === 'object') { // Pro multipart
+                isSkippedOrEmpty = Object.values(answerData.userAnswerValue).every(val => val === null || String(val).trim() === '');
+            } else { // Pro single input
+                isSkippedOrEmpty = String(answerData.userAnswerValue).trim() === '';
+            }
+
+            if (isSkippedOrEmpty) {
+                answerData.scoreAwarded = 0;
+                answerData.correctness = "skipped";
+                answerData.reasoning = "Otázka byla přeskočena nebo odpověď byla prázdná.";
+                answerData.error_analysis = null;
+                answerData.feedback = "Příště zkuste odpovědět.";
+                answerData.checked_by = 'skipped'; // Jasně označeno
+                console.log(`Q#${i+1} (${qData.question_type}) přeskočeno/prázdné (UI).`);
+                promises.push(Promise.resolve()); // Add resolved promise for consistency
+                continue;
+            }
+
+            promises.push(
+                window.TestLogic.checkAnswerWithGemini(
+                    qData.question_type,
+                    qData.question_text,
+                    qData.correct_answer,
+                    answerData.userAnswerValue, // Pass the direct value
+                    answerData.maxScore,
+                    i, // Pass current question index for logging/debugging in TestLogic
+                    qData.solution_explanation, // Pass solution for construction
+                    qData.options // Pass options for multiple_choice
+                ).then(evaluationResult => {
+                    userAnswers[i].scoreAwarded = evaluationResult.score;
+                    userAnswers[i].correctness = evaluationResult.correctness;
+                    userAnswers[i].reasoning = evaluationResult.reasoning;
+                    userAnswers[i].error_analysis = evaluationResult.error_analysis;
+                    userAnswers[i].feedback = evaluationResult.feedback;
+                    userAnswers[i].checked_by = evaluationResult.correctness === 'error' || evaluationResult.reasoning.includes("fallback") ? 'fallback_scored' : 'gemini_scored'; // Mark if fallback was used
+                    console.log(`Q#${i+1} (${qData.question_type}) vyhodnoceno (UI): Skóre ${evaluationResult.score}/${answerData.maxScore}, Správnost: ${evaluationResult.correctness}`);
+                }).catch(error => {
+                    console.error(`Chyba vyhodnocení pro Q#${i+1} (UI):`, error);
+                    userAnswers[i].scoreAwarded = 0;
+                    userAnswers[i].correctness = 'error';
+                    userAnswers[i].reasoning = `Automatické hodnocení selhalo: ${error.message}`;
+                    userAnswers[i].error_analysis = "Chyba systému hodnocení.";
+                    userAnswers[i].feedback = "Kontaktujte podporu, pokud problém přetrvává.";
+                    userAnswers[i].checked_by = 'error';
+                })
+            );
+        }
+        await Promise.all(promises);
+        showGeminiOverlay(false);
+        console.log("Vyhodnocení odpovědí dokončeno (UI):", userAnswers);
     }
     function displayResults() { if(!ui.testContainer || !ui.resultsContainer || !ui.reviewContainer || !ui.testTimer || !ui.testLevel || !ui.resultScoreEl || !ui.resultPercentageEl || !ui.resultCorrectEl || !ui.resultIncorrectEl || !ui.resultTimeEl || !ui.lowScoreMessageContainer || !ui.continueBtn || !ui.topicResultsEl || !ui.reviewAnswersBtn || !ui.backToResultsBtn) { console.error("Chyba: Některé elementy výsledků nebyly nalezeny v DOM."); return; } if (!testResultsData) { console.error("Chyba: Chybí data výsledků (testResultsData)."); showErrorMessagePage("Nepodařilo se zobrazit výsledky - chybí data."); return; } ui.testContainer.style.display = 'none'; ui.resultsContainer.style.display = 'block'; ui.reviewContainer.style.display = 'none'; ui.testTimer.style.display = 'none'; if(ui.testLevel) ui.testLevel.textContent = 'Výsledky testu'; if(ui.resultScoreEl) ui.resultScoreEl.textContent = `${testResultsData.score}/50`; if(ui.resultPercentageEl) ui.resultPercentageEl.textContent = `${testResultsData.percentage}%`; if(ui.resultCorrectEl) ui.resultCorrectEl.textContent = testResultsData.correctAnswers; if(ui.resultIncorrectEl) ui.resultIncorrectEl.textContent = testResultsData.incorrectAnswers + testResultsData.partiallyCorrectAnswers; if(ui.resultTimeEl) ui.resultTimeEl.textContent = formatTime(testResultsData.timeSpent); ui.lowScoreMessageContainer.innerHTML = ''; ui.continueBtn.disabled = true; const saveError = ui.continueBtn.getAttribute('data-save-error') === 'true'; const scoreThreshold = window.TestLogic?.SCORE_THRESHOLD_FOR_SAVING ?? 5; if (saveError) { ui.lowScoreMessageContainer.innerHTML = `<div class="error-message-container"><i class="fas fa-exclamation-triangle"></i><div class="loader-text">Chyba ukládání</div><div class="loader-subtext">Nepodařilo se uložit výsledky testu. Studijní plán nelze vytvořit.</div></div>`; } else if (testResultsData.score < scoreThreshold) { ui.lowScoreMessageContainer.innerHTML = `<div class="low-score-message warning"><i class="fas fa-exclamation-circle"></i><strong>Výsledek nebyl uložen.</strong><br>Vaše skóre (${testResultsData.score}/50) je nižší než ${scoreThreshold} bodů. Tyto výsledky nebudou použity pro generování studijního plánu.</div>`; } else { ui.lowScoreMessageContainer.innerHTML = `<div class="low-score-message info"><i class="fas fa-info-circle"></i><strong>Výsledky byly uloženy.</strong><br>Vaše skóre (${testResultsData.score}/50) bude použito pro studijní plán.</div>`; ui.continueBtn.disabled = false; } const sortedTopics = Object.values(testResultsData.topicResults || {}).sort((a, b) => a.score_percent - b.score_percent); ui.topicResultsEl.innerHTML = sortedTopics.map(stats => { const icon = topicIcons[stats.name] || topicIcons.default; return `<div class="topic-card card ${stats.strength}"> <div class="topic-header"> <div class="topic-icon"><i class="fas ${icon}"></i></div> <h3 class="topic-title">${sanitizeHTML(stats.name)}</h3> </div> <div class="topic-stats"> <div class="topic-progress"> <span class="topic-progress-label">Úspěšnost (body)</span> <span class="topic-progress-value">${stats.score_percent}%</span> </div> <div class="topic-progress-bar"> <div class="topic-progress-fill" style="width: ${stats.score_percent}%;"></div> </div> <div class="topic-progress" style="margin-top: 0.5rem;"> <span class="topic-progress-label">Body</span> <span class="topic-progress-value">${stats.points_achieved} / ${stats.max_points}</span> </div> <div class="topic-progress" style="margin-top: 0.1rem; font-size: 0.8em;"> <span class="topic-progress-label">Správně otázek</span> <span class="topic-progress-value">${stats.fully_correct} / ${stats.total_questions}</span> </div> </div> </div>`; }).join(''); if (ui.reviewAnswersBtn) ui.reviewAnswersBtn.onclick = displayReview; if (ui.backToResultsBtn) ui.backToResultsBtn.onclick = () => { ui.reviewContainer.style.display = 'none'; ui.resultsContainer.style.display = 'block'; if (ui.mainContent) ui.mainContent.scrollTo({ top: 0, behavior: 'smooth' }); }; }
     function displayReview() {
@@ -737,14 +877,14 @@
     }
     async function finishTest() {
         stopTimer();
-        if (questions.length === 0) { console.log("[FinishTest] Žádné otázky k dokončení testu. Vracím na výběr."); if(ui.testContainer) ui.testContainer.style.display = 'none'; if(ui.testTimer) ui.testTimer.style.display = 'none'; if(ui.testSelector) ui.testSelector.style.display = 'block'; if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; applyTestHighlightingAndSelection(); history.replaceState({ state: 'testSelection' }, document.title, window.location.href); return; }
+        if (questions.length === 0) { console.log("[FinishTest] Žádné otázky k dokončení testu. Vracím na výběr."); if(ui.testContainer) ui.testContainer.style.display = 'none'; if(ui.testTimer) ui.testTimer.style.display = 'none'; if(ui.testSelector) ui.testSelector.style.display = 'block'; if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; if (ui.completedTestSummaryContainer) ui.completedTestSummaryContainer.style.display = 'none'; if (ui.reinforcementTestsSection) ui.reinforcementTestsSection.style.display = 'none'; applyTestHighlightingAndSelection(); history.replaceState({ state: 'testSelection' }, document.title, window.location.href); return; }
         setLoadingState('results', true); if(ui.finishBtn) { ui.finishBtn.disabled = true; ui.finishBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Vyhodnocuji...'; }
         let saveResult = { success: false };
         try {
             await evaluateAnswersUI(); testResultsData = window.TestLogic.calculateFinalResults(userAnswers, questions); testResultsData.timeSpent = testTime;
-            const testConfig = testTypeConfig[selectedTestType]; if (testConfig && testConfig.identifier) { if (!testResultsData.summary) testResultsData.summary = {}; testResultsData.summary.test_type_identifier = testConfig.identifier; console.log(`[finishTest] Added test_type_identifier: ${testConfig.identifier} to results.summary`); } else { console.warn(`[finishTest] Missing testConfig or identifier for selectedTestType: ${selectedTestType}`); }
+            const testConfigForSave = testTypeConfig[selectedTestType]; if (testConfigForSave && testConfigForSave.identifier) { if (!testResultsData.summary) testResultsData.summary = {}; testResultsData.summary.test_type_identifier = testConfigForSave.identifier; console.log(`[finishTest] Added test_type_identifier: ${testConfigForSave.identifier} to results.summary`); } else { console.warn(`[finishTest] Missing testConfig or identifier for selectedTestType: ${selectedTestType}`); }
             saveResult = await window.TestLogic.saveTestResults(supabase, currentUser, testResultsData, userAnswers, questions, testEndTime); diagnosticId = saveResult.diagnosticId || null;
-            if (saveResult.success) { const pointsResult = await window.TestLogic.awardPoints(supabase, currentUser, currentProfile, selectedTestType, testResultsData, testTypeConfig); if (pointsResult?.success) { currentProfile.points = pointsResult.newTotal; showToast(`+${pointsResult.awardedPoints} kreditů získáno!`, `Za test '${testTypeConfig[selectedTestType].title}'`, 'success'); } else if (pointsResult && pointsResult.error) { showToast(`Nepodařilo se připsat body: ${pointsResult.error}`, 'warning'); } if (typeof window.TestLogic.checkAndAwardAchievements === 'function' && currentProfile) { await window.TestLogic.checkAndAwardAchievements(currentUser.id, currentProfile, {}); } }
+            if (saveResult.success) { const pointsResult = await window.TestLogic.awardPoints(supabase, currentUser, currentProfile, selectedTestType, testResultsData, testTypeConfig); if (pointsResult?.success) { currentProfile.points = pointsResult.newTotal; showToast(`+${pointsResult.awardedPoints} kreditů získáno!`, `Za test '${testTypeConfig[selectedTestType].title}'`, 'success'); } else if (pointsResult && pointsResult.error) { showToast(`Nepodařilo se připsat body: ${pointsResult.error}`, 'warning'); } if (typeof window.VyukaApp?.checkAndAwardAchievements === 'function' && currentProfile) { await window.VyukaApp.checkAndAwardAchievements(currentUser.id, currentProfile, {}); } }
             else { console.warn("Výsledky nebyly úspěšně uloženy nebo byly pod limitem, body nebudou přiděleny."); if(ui.continueBtn) { ui.continueBtn.disabled = true; if(saveResult.error && !saveResult.error.includes('Skóre je příliš nízké')) { ui.continueBtn.setAttribute('data-save-error', 'true'); } } }
             displayResults(); history.pushState({ state: 'testFinished' }, document.title, window.location.href);
         } catch (error) { console.error("Chyba při dokončování testu:", error); showGeminiOverlay(false); if (!testResultsData) { testResultsData = { score: 0, percentage: 0, correctAnswers: 0, incorrectAnswers: questions.length, partiallyCorrectAnswers: 0, skippedAnswers: 0, timeSpent: testTime, topicResults: {}, evaluationErrors: questions.length }; } displayResults(); if(ui.lowScoreMessageContainer) { ui.lowScoreMessageContainer.innerHTML = `<div class="error-message-container"><i class="fas fa-exclamation-triangle"></i><div class="loader-text">Chyba!</div><div class="loader-subtext">Chyba vyhodnocení/ukládání: ${error.message}. Výsledky nemusí být kompletní nebo uložené.</div></div>`; } if(ui.continueBtn) { ui.continueBtn.disabled = true; ui.continueBtn.setAttribute('data-save-error', 'true'); } history.pushState({ state: 'testFinishedWithError' }, document.title, window.location.href); }
@@ -753,24 +893,91 @@
     // --- END: Evaluation & Results UI ---
 
     // --- START: Test Flow & Back Button ---
+    // ... (applyTestHighlightingAndSelection, startSelectedTest, handleBackButton остаются такими же, как в предыдущей версии) ...
     function applyTestHighlightingAndSelection() {
-        const userLearningGoal = currentProfile?.learning_goal; let mandatoryTestKey = null;
-        if (userLearningGoal) { mandatoryTestKey = Object.keys(testTypeConfig).find(key => testTypeConfig[key].recommendedForGoal === userLearningGoal); }
-        if (!mandatoryTestKey && userLearningGoal) { console.warn(`[Highlight v12.12] Pro cíl '${userLearningGoal}' nebyl nalezen žádný povinný test.`); }
-        else if (!userLearningGoal) { console.warn(`[Highlight v12.12] Cíl uživatele není nastaven. Nelze určit povinný test.`); }
-        selectedTestType = mandatoryTestKey;
+        const userLearningGoal = currentProfile?.learning_goal;
+        let mandatoryTestKey = null;
+
+        if (userLearningGoal) {
+            mandatoryTestKey = Object.keys(testTypeConfig).find(key => testTypeConfig[key].recommendedForGoal === userLearningGoal);
+        }
+
+        if (!mandatoryTestKey && userLearningGoal) {
+            console.warn(`[Highlight v12.15] Pro cíl '${userLearningGoal}' nebyl nalezen žádný povinný test. Zobrazuji všechny jako neaktivní.`);
+        } else if (!userLearningGoal) {
+            console.warn(`[Highlight v12.15] Cíl uživatele není nastaven. Nelze určit povinný test. Zobrazuji všechny jako neaktivní.`);
+        }
+
+        selectedTestType = mandatoryTestKey; // Nastaví se i na null, pokud nebyl nalezen
+
         ui.testTypeCards.forEach(card => {
-            const testType = card.dataset.testType; const config = testTypeConfig[testType];
-            const buttonInCard = card.querySelector('.btn-start-test-in-card'); const recommendedBadge = card.querySelector('.recommended-badge');
-            card.classList.remove('recommended-test', 'disabled-test', 'selected'); if (buttonInCard) buttonInCard.disabled = true; if (recommendedBadge) recommendedBadge.style.display = 'none';
+            const testType = card.dataset.testType;
+            const config = testTypeConfig[testType];
+            const buttonInCard = card.querySelector('.btn-start-test-in-card');
+            const recommendedBadge = card.querySelector('.recommended-badge');
+
+            card.classList.remove('recommended-test', 'disabled-test', 'selected');
+            if (buttonInCard) buttonInCard.disabled = true;
+            if (recommendedBadge) recommendedBadge.style.display = 'none';
+
             if (config) {
-                if (mandatoryTestKey === testType) { card.classList.add('recommended-test'); card.classList.add('selected'); if (recommendedBadge) recommendedBadge.style.display = 'block'; if (buttonInCard) { if (config.isActive === false) { buttonInCard.innerHTML = '<i class="fas fa-hourglass-half"></i> Spustit Test (Brzy!)'; buttonInCard.disabled = false; buttonInCard.classList.remove('btn-primary'); buttonInCard.classList.add('btn-secondary', 'btn-tooltip'); buttonInCard.title = `Test "${config.title}" bude brzy dostupný.`; } else { buttonInCard.innerHTML = `<i class="fas fa-play"></i> Spustit Test`; buttonInCard.disabled = false; buttonInCard.classList.remove('btn-secondary'); buttonInCard.classList.add('btn-primary'); buttonInCard.title = `Spustit test: ${config.title}`; } } console.log(`[Highlight v12.12] Povinný test: ${config.title} pro cíl ${userLearningGoal || 'NENASTAVEN'}`); if (ui.currentTestTitle) ui.currentTestTitle.textContent = config.title; if (ui.testLevel) ui.testLevel.textContent = config.description.split('.')[0]; }
-                else { card.classList.add('disabled-test'); if (buttonInCard) { buttonInCard.innerHTML = '<i class="fas fa-times-circle"></i> Není určeno pro váš cíl'; buttonInCard.disabled = true; buttonInCard.classList.remove('btn-primary'); buttonInCard.classList.add('btn-secondary'); buttonInCard.title = 'Tento test není určen pro váš aktuální studijní cíl.'; } }
-            } else { card.classList.add('disabled-test'); if (buttonInCard) { buttonInCard.innerHTML = '<i class="fas fa-ban"></i> Test nedostupný'; buttonInCard.disabled = true; } }
+                if (mandatoryTestKey === testType) { // Toto je povinný test
+                    card.classList.add('recommended-test', 'selected');
+                    if (recommendedBadge) recommendedBadge.style.display = 'block';
+                    if (buttonInCard) {
+                        if (config.isActive === false) {
+                            buttonInCard.innerHTML = '<i class="fas fa-hourglass-half"></i> Spustit Test (Brzy!)';
+                            buttonInCard.disabled = false; // Umožnit kliknutí pro zobrazení "Již brzy"
+                            buttonInCard.classList.remove('btn-primary');
+                            buttonInCard.classList.add('btn-secondary', 'btn-tooltip');
+                            buttonInCard.title = `Test "${config.title}" bude brzy dostupný.`;
+                        } else {
+                            buttonInCard.innerHTML = `<i class="fas fa-play"></i> Spustit Test`;
+                            buttonInCard.disabled = false;
+                            buttonInCard.classList.remove('btn-secondary');
+                            buttonInCard.classList.add('btn-primary');
+                            buttonInCard.title = `Spustit test: ${config.title}`;
+                        }
+                    }
+                    console.log(`[Highlight v12.15] Povinný test: ${config.title} pro cíl ${userLearningGoal || 'NENASTAVEN'}`);
+                    if (ui.currentTestTitle) ui.currentTestTitle.textContent = config.title;
+                    if (ui.testLevel) ui.testLevel.textContent = config.description.split('.')[0];
+                } else { // Ostatní testy jsou deaktivovány
+                    card.classList.add('disabled-test');
+                    if (buttonInCard) {
+                        buttonInCard.innerHTML = '<i class="fas fa-times-circle"></i> Není určeno pro váš cíl';
+                        buttonInCard.disabled = true;
+                        buttonInCard.classList.remove('btn-primary');
+                        buttonInCard.classList.add('btn-secondary');
+                        buttonInCard.title = 'Tento test není určen pro váš aktuální studijní cíl.';
+                    }
+                }
+            } else { // Konfigurace pro kartu neexistuje
+                card.classList.add('disabled-test');
+                if (buttonInCard) {
+                    buttonInCard.innerHTML = '<i class="fas fa-ban"></i> Test nedostupný';
+                    buttonInCard.disabled = true;
+                }
+            }
         });
+
+        // Globální tlačítko "Spustit Doporučený Test"
         if (ui.startSelectedTestBtnGlobal) {
-            if (selectedTestType && testTypeConfig[selectedTestType]) { const config = testTypeConfig[selectedTestType]; ui.startSelectedTestBtnGlobal.innerHTML = `<i class="fas fa-play-circle"></i> Spustit: ${config.title}`; if (config.isActive === false) { ui.startSelectedTestBtnGlobal.disabled = true; ui.startSelectedTestBtnGlobal.title = `Test "${config.title}" bude brzy dostupný.`; } else { ui.startSelectedTestBtnGlobal.disabled = false; ui.startSelectedTestBtnGlobal.title = `Spustit test: ${config.title}`; } }
-            else { ui.startSelectedTestBtnGlobal.innerHTML = `<i class="fas fa-play-circle"></i> Vyberte Test`; ui.startSelectedTestBtnGlobal.disabled = true; ui.startSelectedTestBtnGlobal.title = `Nejprve musí být určen povinný test (zkontrolujte svůj studijní cíl).`; }
+            if (selectedTestType && testTypeConfig[selectedTestType]) {
+                const config = testTypeConfig[selectedTestType];
+                ui.startSelectedTestBtnGlobal.innerHTML = `<i class="fas fa-play-circle"></i> Spustit: ${config.title}`;
+                if (config.isActive === false) {
+                    ui.startSelectedTestBtnGlobal.disabled = true;
+                    ui.startSelectedTestBtnGlobal.title = `Test "${config.title}" bude brzy dostupný.`;
+                } else {
+                    ui.startSelectedTestBtnGlobal.disabled = false;
+                    ui.startSelectedTestBtnGlobal.title = `Spustit test: ${config.title}`;
+                }
+            } else { // Pokud nebyl vybrán žádný (nebo povinný test neexistuje)
+                ui.startSelectedTestBtnGlobal.innerHTML = `<i class="fas fa-play-circle"></i> Vyberte Test`;
+                ui.startSelectedTestBtnGlobal.disabled = true;
+                ui.startSelectedTestBtnGlobal.title = `Nejprve musí být určen povinný test (zkontrolujte svůj studijní cíl).`;
+            }
         }
         initTooltips();
     }
@@ -779,12 +986,65 @@
         const config = testTypeConfig[selectedTestType]; if (!config) { showErrorMessagePage(`Neznámý typ testu: ${selectedTestType}`); return; }
         if(ui.currentTestTitle) ui.currentTestTitle.textContent = config.title; if(ui.testLevel) ui.testLevel.textContent = config.description.split('.')[0];
         if (ui.testSelector) ui.testSelector.style.display = 'none'; if (ui.testLoader) ui.testLoader.style.display = 'flex'; if (ui.loaderSubtext) ui.loaderSubtext.textContent = 'Načítám otázky...'; if (ui.testContainer) ui.testContainer.style.display = 'none'; if (ui.resultsContainer) ui.resultsContainer.style.display = 'none'; if (ui.reviewContainer) ui.reviewContainer.style.display = 'none'; if (ui.testTimer) ui.testTimer.style.display = 'flex'; if (ui.prevBtn) ui.prevBtn.style.display = 'flex'; if (ui.nextBtn) ui.nextBtn.style.display = 'flex';
+        if (ui.completedTestSummaryContainer) ui.completedTestSummaryContainer.style.display = 'none';
+        if (ui.reinforcementTestsSection) ui.reinforcementTestsSection.style.display = 'none';
         history.pushState({ state: 'testInProgress' }, document.title, window.location.href); loadTestQuestions(selectedTestType);
     }
-    function handleBackButton(event) { const state = event.state ? event.state.state : null; const testIsRunning = ui.testContainer && ui.testContainer.style.display === 'block'; const resultsAreShown = ui.resultsContainer && ui.resultsContainer.style.display === 'block'; const reviewIsShown = ui.reviewContainer && ui.reviewContainer.style.display === 'block'; if (reviewIsShown) { ui.reviewContainer.style.display = 'none'; if (ui.resultsContainer) ui.resultsContainer.style.display = 'block'; } else if (testIsRunning && questions.length > 0) { if (!confirm('Opustit test? Postup nebude uložen.')) { history.pushState({ state: 'testInProgress' }, document.title, window.location.href); } else { stopTimer(); if (ui.testContainer) ui.testContainer.style.display = 'none'; if (ui.testLoader) ui.testLoader.style.display = 'none'; if (ui.testSelector) ui.testSelector.style.display = 'block'; if (ui.testTimer) ui.testTimer.style.display = 'none'; if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; applyTestHighlightingAndSelection(); } } else if (resultsAreShown) { if(ui.resultsContainer) ui.resultsContainer.style.display = 'none'; if (ui.testSelector) ui.testSelector.style.display = 'block'; if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; applyTestHighlightingAndSelection(); } else { console.log("Navigace zpět (výchozí chování nebo žádné otázky)."); applyTestHighlightingAndSelection(); if (ui.testSelector && getComputedStyle(ui.testSelector).display === 'none') { ui.testSelector.style.display = 'block'; } if (ui.testContainer && getComputedStyle(ui.testContainer).display !== 'none') { ui.testContainer.style.display = 'none'; } if (ui.testTimer && getComputedStyle(ui.testTimer).display !== 'none') { ui.testTimer.style.display = 'none'; } if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu'; } }
+    function handleBackButton(event) {
+        const state = event.state ? event.state.state : null;
+        const testIsRunning = ui.testContainer && ui.testContainer.style.display === 'block';
+        const resultsAreShown = ui.resultsContainer && ui.resultsContainer.style.display === 'block';
+        const reviewIsShown = ui.reviewContainer && ui.reviewContainer.style.display === 'block';
+
+        if (reviewIsShown) {
+            ui.reviewContainer.style.display = 'none';
+            if (ui.resultsContainer) ui.resultsContainer.style.display = 'block';
+        } else if (testIsRunning && questions.length > 0) {
+            if (!confirm('Opustit test? Postup nebude uložen.')) {
+                history.pushState({ state: 'testInProgress' }, document.title, window.location.href);
+            } else {
+                stopTimer();
+                if (ui.testContainer) ui.testContainer.style.display = 'none';
+                if (ui.testLoader) ui.testLoader.style.display = 'none';
+                if (ui.testSelector) ui.testSelector.style.display = 'block';
+                if (ui.completedTestSummaryContainer) ui.completedTestSummaryContainer.style.display = 'none'; // Hide summary
+                if (ui.reinforcementTestsSection) ui.reinforcementTestsSection.style.display = 'none'; // Hide reinforcement
+                if (ui.testTimer) ui.testTimer.style.display = 'none';
+                if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu';
+                applyTestHighlightingAndSelection();
+            }
+        } else if (resultsAreShown) {
+            if(ui.resultsContainer) ui.resultsContainer.style.display = 'none';
+            if (ui.testSelector) ui.testSelector.style.display = 'block';
+            if (ui.completedTestSummaryContainer) ui.completedTestSummaryContainer.style.display = 'none';
+            if (ui.reinforcementTestsSection) ui.reinforcementTestsSection.style.display = 'none';
+            if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu';
+            applyTestHighlightingAndSelection();
+        } else { // Default or no questions running, back to selector
+            console.log("Navigace zpět (výchozí chování nebo žádné otázky).");
+            applyTestHighlightingAndSelection(); // Should make testSelector visible
+            if (ui.testSelector && getComputedStyle(ui.testSelector).display === 'none') {
+                ui.testSelector.style.display = 'block';
+            }
+            if (ui.completedTestSummaryContainer && getComputedStyle(ui.completedTestSummaryContainer).display !== 'none') {
+                ui.completedTestSummaryContainer.style.display = 'none';
+            }
+            if (ui.reinforcementTestsSection && getComputedStyle(ui.reinforcementTestsSection).display !== 'none') {
+                 ui.reinforcementTestsSection.style.display = 'none';
+            }
+            if (ui.testContainer && getComputedStyle(ui.testContainer).display !== 'none') {
+                ui.testContainer.style.display = 'none';
+            }
+            if (ui.testTimer && getComputedStyle(ui.testTimer).display !== 'none') {
+                ui.testTimer.style.display = 'none';
+            }
+            if(ui.testLevel) ui.testLevel.textContent = 'Výběr testu';
+        }
+    }
     // --- END: Test Flow & Back Button ---
 
     // --- START: Notification Logic (UI Interaction) ---
+    // ... (fetchAndRenderNotifications, renderNotifications, markNotificationReadUI, markAllNotificationsReadUI остаются такими же, как в предыдущей версии) ...
     async function fetchAndRenderNotifications() { if (!currentUser || !window.TestLogic) return; setLoadingState('notifications', true); try { const { unreadCount, notifications } = await window.TestLogic.fetchNotifications(supabase, currentUser.id, 5); renderNotifications(unreadCount, notifications); } catch (error) { console.error("[UI] Chyba při načítání notifikací:", error); renderNotifications(0, []); } finally { setLoadingState('notifications', false); } }
     function renderNotifications(count, notifications) { console.log("[Render Notifications UI] Start, Count:", count, "Notifications:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications UI] Missing UI elements."); return; } ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>${!n.is_read ? '<span class="unread-dot"></span>' : ''}<div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="notification-content"><div class="notification-title">${sanitizeHTML(n.title)}</div><div class="notification-message">${sanitizeHTML(n.message)}</div><div class="notification-time">${formatRelativeTime(n.created_at)}</div></div></div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } console.log("[Render Notifications UI] Finished rendering."); }
     async function markNotificationReadUI(notificationId) { console.log("[UI] Mark Notification Read:", notificationId); if (!currentUser || !notificationId) return; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[UI] Mark as read successful for ID:", notificationId); const item = ui.notificationsList.querySelector(`.notification-item[data-id="${notificationId}"]`); if(item) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount?.textContent?.replace('+', '') || '0'; const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } catch (error) { console.error("[UI] Mark as read error:", error); showToast('Chyba označení oznámení.', 'error'); } }
@@ -792,8 +1052,9 @@
     // --- END: Notification Logic ---
 
     // --- START: App Initialization ---
+    // ... (initializeApp остается таким же, как в предыдущей версии, но с учетом новой логики отображения) ...
     async function initializeApp() {
-        console.log("🚀 [Init Test1 UI - Kyber v12.14] Starting...");
+        console.log("🚀 [Init Test1 UI - Kyber v12.15] Starting...");
         if (!initializeSupabase()) return;
         applyInitialSidebarState();
 
@@ -804,42 +1065,133 @@
         try {
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
             if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
-            if (!session || !session.user) { console.log('[Init Test1 UI - Kyber v12.12] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; }
+            if (!session || !session.user) { console.log('[Init Test1 UI - Kyber v12.15] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; }
             currentUser = session.user;
-            const titlesFetchResult = await fetchTitles(); allTitles = titlesFetchResult || []; console.log(`[INIT v12.12] Loaded ${allTitles.length} titles.`);
+            const titlesFetchResult = await fetchTitles(); allTitles = titlesFetchResult || []; console.log(`[INIT v12.15] Loaded ${allTitles.length} titles.`);
             const profileResult = await fetchUserProfile(currentUser.id);
             if (profileResult) { currentProfile = profileResult; }
-            else { console.error("[INIT v12.12] Profile fetch failed or no data."); currentProfile = await createDefaultProfileIfNeeded(currentUser.id, currentUser.email); if (!currentProfile) { showError("Nepodařilo se načíst nebo vytvořit profil. Zkuste obnovit stránku.", true); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => {if(ui.initialLoader) ui.initialLoader.style.display = 'none';}, 300); } return; } }
+            else { console.error("[INIT v12.15] Profile fetch failed or no data."); currentProfile = await createDefaultProfileIfNeeded(currentUser.id, currentUser.email); if (!currentProfile) { showError("Nepodařilo se načíst nebo vytvořit profil. Zkuste obnovit stránku.", true); if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => {if(ui.initialLoader) ui.initialLoader.style.display = 'none';}, 300); } return; } }
             updateUserInfoUI();
-            const userLearningGoal = currentProfile.learning_goal; console.log(`[Init v12.12] Cíl uživatele z profilu: '${userLearningGoal}'`);
-            let testMainTitle = "Diagnostický test"; let testSubtitle = "Automatický výběr testu";
 
-            // Přesunuto setupEventListeners PŘED první možné volání showToast z fetchUserProfile atd.
             setupEventListeners();
             initTooltips(); initMouseFollower(); initHeaderScrollDetection(); updateCopyrightYear(); updateOnlineStatus(); await fetchAndRenderNotifications();
 
             setLoadingState('test', true);
-            let mandatoryTestKey = null; if (userLearningGoal) { mandatoryTestKey = Object.keys(testTypeConfig).find(key => testTypeConfig[key].recommendedForGoal === userLearningGoal); }
-            if (!userLearningGoal) { showErrorMessagePage("Pro pokračování si nejprve nastavte studijní cíl ve svém profilu nebo na hlavní stránce Procvičování.", false); if (ui.testSelector) ui.testSelector.style.display = 'block'; applyTestHighlightingAndSelection(); if (ui.startSelectedTestBtnGlobal) { ui.startSelectedTestBtnGlobal.disabled = true; ui.startSelectedTestBtnGlobal.innerHTML = '<i class="fas fa-times-circle"></i> Nastavte cíl'; } setLoadingState('test', false); }
-            else if (mandatoryTestKey) { const config = testTypeConfig[mandatoryTestKey]; testMainTitle = config.title; testSubtitle = config.description.split('.')[0]; selectedTestType = mandatoryTestKey; applyTestHighlightingAndSelection(); const hasCompletedMandatoryTest = await checkSpecificTestCompleted(currentUser.id, config.identifier); setLoadingState('test', false); if (hasCompletedMandatoryTest) { console.log(`[Init v12.12] Cíl '${userLearningGoal}' a povinný test '${config.title}' již byl dokončen.`); showErrorMessagePage(`Test "${config.title}" jste již absolvoval/a. Nelze jej opakovat. Vaše výsledky byly použity pro studijní plán.`, false); const errorContainer = ui.globalError || ui.mainContent.querySelector('.error-message-container'); if(errorContainer){ const actionsDiv = document.createElement('div'); actionsDiv.style.marginTop = '1.5rem'; actionsDiv.style.display = 'flex'; actionsDiv.style.gap = '1rem'; actionsDiv.style.flexWrap = 'wrap'; actionsDiv.style.justifyContent = 'center'; actionsDiv.innerHTML = `<a href="plan.html" class="btn btn-primary"><i class="fas fa-tasks"></i> Zobrazit plán</a><a href="main.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Zpět na přehled</a>`; errorContainer.appendChild(actionsDiv); } if(ui.testLevel) ui.testLevel.textContent = `Dokončeno (${config.title})`; if (ui.testSelector) ui.testSelector.style.display = 'block'; }
-            else { console.log(`[Init v12.12] Cíl '${userLearningGoal}', povinný test '${config.title}' ještě nebyl dokončen. Zobrazuji panel výběru.`); if (ui.testSelector) ui.testSelector.style.display = 'block'; if (ui.testLoader) ui.testLoader.style.display = 'none'; if (ui.testContainer) ui.testContainer.style.display = 'none'; } }
-            else { setLoadingState('test', false); console.warn(`[Init v12.12] Povinný test nebyl určen pro cíl '${userLearningGoal}'. Zobrazuji panel výběru (všechny budou disabled).`); if(ui.testSelector) { ui.testSelector.style.display = 'block'; } applyTestHighlightingAndSelection(); if(ui.testLoader) ui.testLoader.style.display = 'none'; if(ui.testContainer) ui.testContainer.style.display = 'none'; const h1TitleElem = document.querySelector('.dashboard-header h1'); if (h1TitleElem) h1TitleElem.innerHTML = `<i class="fas fa-vial"></i> Testování // DIAGNOSTIKA`; if (ui.testLevel) ui.testLevel.textContent = "Chyba konfigurace testu pro cíl"; if (ui.startSelectedTestBtnGlobal) { ui.startSelectedTestBtnGlobal.disabled = true; ui.startSelectedTestBtnGlobal.innerHTML = '<i class="fas fa-times-circle"></i> Chyba cíle'; } }
-            if (ui.testLevel) ui.testLevel.textContent = testSubtitle; const h1TitleElem = document.querySelector('.dashboard-header h1'); if (h1TitleElem) h1TitleElem.innerHTML = `<i class="fas fa-vial"></i> ${sanitizeHTML(testMainTitle)}`;
+            const userLearningGoal = currentProfile.learning_goal;
+            let mandatoryTestKey = null;
+            let completedTestData = null;
+
+            if (userLearningGoal) {
+                mandatoryTestKey = Object.keys(testTypeConfig).find(key => testTypeConfig[key].recommendedForGoal === userLearningGoal);
+                if (mandatoryTestKey) {
+                    const mandatoryConfig = testTypeConfig[mandatoryTestKey];
+                    completedTestData = await checkSpecificTestCompleted(currentUser.id, mandatoryConfig.identifier);
+                }
+            }
+            setLoadingState('test', false);
+
+            let testMainTitle = "Diagnostický test";
+            let testSubtitle = "Automatický výběr testu";
+
+            if (completedTestData) { // Pokud byl hlavní test (dle learning_goal) již dokončen
+                console.log(`[Init v12.15] Povinný test '${testTypeConfig[mandatoryTestKey]?.title}' pro cíl '${userLearningGoal}' byl již dokončen.`);
+                if (ui.testSelector) ui.testSelector.style.display = 'none';
+                if (ui.testContainer) ui.testContainer.style.display = 'none';
+                if (ui.resultsContainer) ui.resultsContainer.style.display = 'none'; // Skryjeme i standardní výsledky, pokud je ukazujeme ve shrnutí
+                if (ui.reviewContainer) ui.reviewContainer.style.display = 'none';
+                if (ui.testTimer) ui.testTimer.style.display = 'none';
+
+                // Zobrazení shrnutí
+                if (ui.completedTestSummaryContainer && completedTestData.analysis && completedTestData.analysis.summary) {
+                    const summary = completedTestData.analysis.summary;
+                    const configOfCompleted = Object.values(testTypeConfig).find(c => c.identifier === summary.test_type_identifier);
+                    if(ui.completedTestTitleSummary) ui.completedTestTitleSummary.textContent = configOfCompleted ? configOfCompleted.title : 'Předchozí test';
+                    if(ui.summaryScore) ui.summaryScore.textContent = `${summary.score || 0}/${summary.total_max_possible_points || 50}`; // Default na 50, pokud není v datech
+                    if(ui.summaryPercentage) ui.summaryPercentage.textContent = `${summary.percentage || 0}%`;
+                    if(ui.summaryCorrect) ui.summaryCorrect.textContent = summary.correct || 0;
+                    if(ui.summaryIncorrect) ui.summaryIncorrect.textContent = (summary.incorrect || 0) + (summary.partial || 0);
+                    if(ui.summaryTime) ui.summaryTime.textContent = formatTime(summary.time_spent_seconds || 0);
+                    testResultsData = completedTestData.analysis; // Pro review
+                    userAnswers = completedTestData.analysis.incorrectly_answered_details.map((q,idx) => ({ // Zjednodušení pro review
+                        ...q,
+                        question_number_in_test: idx + 1,
+                        question_db_id: null // Nemáme DB ID otázky přímo zde
+                    }));
+
+                    ui.completedTestSummaryContainer.style.display = 'block';
+                    if (ui.summaryReviewAnswersBtn) { // Ujistěte se, že tlačítko existuje
+                        // Odstraníme starý listener, pokud existuje
+                        const oldListener = ui.summaryReviewAnswersBtn._reviewClickListener;
+                        if (oldListener) {
+                            ui.summaryReviewAnswersBtn.removeEventListener('click', oldListener);
+                        }
+                        // Přidáme nový listener
+                        const newListener = () => {
+                            if (ui.completedTestSummaryContainer) ui.completedTestSummaryContainer.style.display = 'none';
+                            if (ui.reinforcementTestsSection) ui.reinforcementTestsSection.style.display = 'none';
+                            displayReview(); // Zobrazí review pro tento dokončený test
+                            history.pushState({ state: 'reviewCompletedTest' }, document.title, window.location.href);
+                        };
+                        ui.summaryReviewAnswersBtn.addEventListener('click', newListener);
+                        ui.summaryReviewAnswersBtn._reviewClickListener = newListener; // Uložíme referenci
+                    }
+
+                } else {
+                     console.warn("[Init v12.15] Data dokončeného testu nebo analýza chybí pro zobrazení shrnutí.");
+                     if (ui.testSelector) ui.testSelector.style.display = 'block'; // Fallback na výběr testu
+                     applyTestHighlightingAndSelection();
+                }
+                if (ui.reinforcementTestsSection) ui.reinforcementTestsSection.style.display = 'block';
+
+
+            } else if (!userLearningGoal) {
+                showErrorMessagePage("Pro pokračování si nejprve nastavte studijní cíl ve svém profilu nebo na hlavní stránce Procvičování.", false);
+                if (ui.testSelector) ui.testSelector.style.display = 'block';
+                applyTestHighlightingAndSelection();
+                if (ui.startSelectedTestBtnGlobal) { ui.startSelectedTestBtnGlobal.disabled = true; ui.startSelectedTestBtnGlobal.innerHTML = '<i class="fas fa-times-circle"></i> Nastavte cíl'; }
+                if (ui.reinforcementTestsSection) ui.reinforcementTestsSection.style.display = 'none';
+            } else if (mandatoryTestKey) {
+                const config = testTypeConfig[mandatoryTestKey];
+                testMainTitle = config.title;
+                testSubtitle = config.description.split('.')[0];
+                selectedTestType = mandatoryTestKey;
+                applyTestHighlightingAndSelection();
+                console.log(`[Init v12.15] Cíl '${userLearningGoal}', povinný test '${config.title}' ještě nebyl dokončen. Zobrazuji panel výběru.`);
+                if (ui.testSelector) ui.testSelector.style.display = 'block';
+                if (ui.testLoader) ui.testLoader.style.display = 'none';
+                if (ui.testContainer) ui.testContainer.style.display = 'none';
+                if (ui.reinforcementTestsSection) ui.reinforcementTestsSection.style.display = 'none';
+            } else {
+                console.warn(`[Init v12.15] Povinný test nebyl určen pro cíl '${userLearningGoal}'. Zobrazuji panel výběru (všechny budou disabled).`);
+                if (ui.testSelector) ui.testSelector.style.display = 'block';
+                applyTestHighlightingAndSelection();
+                if (ui.testLoader) ui.testLoader.style.display = 'none';
+                if (ui.testContainer) ui.testContainer.style.display = 'none';
+                if (ui.reinforcementTestsSection) ui.reinforcementTestsSection.style.display = 'none';
+                testSubtitle = "Chyba konfigurace testu pro cíl";
+                if (ui.startSelectedTestBtnGlobal) { ui.startSelectedTestBtnGlobal.disabled = true; ui.startSelectedTestBtnGlobal.innerHTML = '<i class="fas fa-times-circle"></i> Chyba cíle'; }
+            }
+
+            if (ui.testLevel && !completedTestData) ui.testLevel.textContent = testSubtitle; // Update subtitle if not showing summary
+            const h1TitleElem = document.querySelector('.dashboard-header h1');
+            if (h1TitleElem && !completedTestData) h1TitleElem.innerHTML = `<i class="fas fa-vial"></i> ${sanitizeHTML(testMainTitle)}`;
+
+
             if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 300); }
             if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }
-            console.log("✅ [Init Test1 UI - Kyber v12.14] Page initialized.");
-        } catch (error) { console.error("❌ [Init Test1 UI - Kyber v12.12] Error:", error); if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">Chyba (${error.message}). Obnovte.</p>`; } else { showErrorMessagePage(`Chyba inicializace: ${error.message}`, true); } if (ui.mainContent) ui.mainContent.style.display = 'block'; setLoadingState('all', false); }
+            console.log("✅ [Init Test1 UI - Kyber v12.15] Page initialized.");
+        } catch (error) { console.error("❌ [Init Test1 UI - Kyber v12.15] Error:", error); if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">Chyba (${error.message}). Obnovte.</p>`; } else { showErrorMessagePage(`Chyba inicializace: ${error.message}`, true); } if (ui.mainContent) ui.mainContent.style.display = 'block'; setLoadingState('all', false); }
     }
      async function createDefaultProfileIfNeeded(userId, email) {
         if (!supabase || !userId || !email) return null;
         console.log(`[Profile] Checking or creating default profile for ${userId}...`);
         try {
-            let { data: existingProfile, error: fetchError } = await supabase .from('profiles') .select('*').eq('id', userId).single();
+            let { data: existingProfile, error: fetchError } = await supabase .from('profiles') .select('*, learning_goal').eq('id', userId).single();
             if (fetchError && fetchError.code !== 'PGRST116') { throw fetchError; }
             if (existingProfile) { console.log("[Profile] Default profile already exists."); if (!existingProfile.preferences) existingProfile.preferences = {}; return existingProfile; }
             console.log("[Profile] Creating new default profile..."); const defaultUsername = email.split('@')[0];
             const defaultProfileData = { id: userId, username: defaultUsername, email: email, updated_at: new Date().toISOString(), learning_goal: null, preferences: {}, points: 0, level: 1, completed_exercises: 0, streak_days: 0, longest_streak_days: 0, selected_title: null, avatar_url: null, first_name: null, last_name: null, };
-            const { data: newProfile, error: insertError } = await supabase .from('profiles').insert(defaultProfileData).select('*').single();
+            const { data: newProfile, error: insertError } = await supabase .from('profiles').insert(defaultProfileData).select('*, learning_goal').single();
             if (insertError) { throw insertError; }
             console.log("[Profile] Default profile created successfully:", newProfile); if (!newProfile.preferences) newProfile.preferences = {}; return newProfile;
         } catch (error) { console.error('[Profile] Error in createDefaultProfileIfNeeded:', error); showToast('Kritická chyba Profilu', 'Nepodařilo se vytvořit výchozí profil.', 'error'); return null; }
@@ -847,3 +1199,36 @@
     function initializeSupabase() { try { if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient !== 'function') { throw new Error("Supabase library not loaded."); } supabase = window.supabase.createClient('https://qcimhjjwvsbgjsitmvuh.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10'); if (!supabase) throw new Error("Supabase client creation failed."); console.log('[Supabase] Client initialized.'); return true; } catch (error) { console.error('[Supabase] Initialization failed:', error); showErrorMessagePage("Kritická chyba: Nelze se připojit k databázi."); return false; } }
     initializeApp();
 })();
+// --- Developer Edit Log ---
+// Goal: Implement display of completed test summary if user has already taken their mandatory diagnostic. Add "Tests for Reinforcement" section.
+// Stage: JavaScript modifications in `test1.js`.
+//   - `initializeApp`:
+//     - Added logic to call `checkSpecificTestCompleted` with the identifier of the test corresponding to `currentProfile.learning_goal`.
+//     - If `completedTestData` is returned:
+//       - Hide `#test-selector`.
+//       - Show and populate `#completed-test-summary-container` with data from `completedTestData.analysis.summary`.
+//         - `completed-test-title-summary` will use `testTypeConfig[mandatoryTestKey]?.title`.
+//         - `summary-score`: `summary.score` / `summary.total_max_possible_points` (default 50 if not present).
+//         - `summary-percentage`: `summary.percentage`.
+//         - `summary-correct`: `summary.correct`.
+//         - `summary-incorrect`: `summary.incorrect + summary.partial`.
+//         - `summary-time`: `formatTime(summary.time_spent_seconds)`.
+//       - Store `completedTestData.analysis` in `testResultsData` and simplify `userAnswers` from `incorrectly_answered_details` to enable the "Zobrazit odpovědi" button in the summary.
+//       - Show `#reinforcement-tests-section`.
+//     - Else (no completed mandatory test or userLearningGoal is not set):
+//       - Show `#test-selector`.
+//       - Hide `#completed-test-summary-container`.
+//       - Hide `#reinforcement-tests-section`.
+//       - Call `applyTestHighlightingAndSelection()` as before.
+//   - `handleBackButton`:
+//     - Modified to correctly hide/show `#completed-test-summary-container` and `#reinforcement-tests-section` when navigating.
+//   - `finishTest`:
+//     - When test finishes, if it was the mandatory one, the logic in `initializeApp` (on next page load or refresh) will handle showing the summary.
+//   - `displayResults`:
+//     - After displaying standard results, if the test was the mandatory one, show the `#reinforcement-tests-section`.
+//   - `initializeTest`:
+//     - When a new test starts, ensure `#completed-test-summary-container` and `#reinforcement-tests-section` are hidden.
+//   - Added event listener for `#summary-review-answers-btn` to call `displayReview`.
+//   - `checkSpecificTestCompleted`: Modified to return the full `user_diagnostics` entry (including `analysis`) if the specific test is found.
+//   - Ensured `applyTestHighlightingAndSelection` is called correctly when falling back to test selector.
+//   - Ensured appropriate `history.replaceState` or `pushState` for back button navigation.
