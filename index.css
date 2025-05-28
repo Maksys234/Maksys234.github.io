@@ -1772,47 +1772,83 @@ button:hover ~ .mouse-follower-glow,
 }
 
 /* ==========================================================================
-   NEW Cookie Consent Banner & Modal Styles
+   COOKIE CONSENT BANNER & MODAL STYLES (MODIFIED FOR POP-UP)
    ========================================================================== */
+
+/* Overlay for the pop-up banner/modal */
+#cookie-consent-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(5, 4, 15, 0.85); /* Dark overlay */
+    backdrop-filter: blur(8px) saturate(0.9);
+    z-index: 9999; /* Below banner, above other content */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-smooth), visibility 0s linear var(--transition-smooth);
+}
+#cookie-consent-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+}
+
 
 #cookie-consent-banner {
     position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
+    /*bottom: 0 !important; */ /* REMOVED for pop-up */
+    /*left: 0 !important; */ /* REMOVED for pop-up */
+    /*width: 100% !important; */ /* REMOVED for pop-up */
+
+    /* MODIFIED/ADDED for pop-up style */
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) scale(0.95) !important; /* Initial state for animation */
+    width: 90% !important; /* Responsive width */
+    max-width: 550px !important; /* Max width of the pop-up */
+    border-radius: var(--layout-border-radius-lg) !important; /* Rounded corners */
+    border: 1.5px solid var(--clr-accent-purple) !important;
+    /* END MODIFIED/ADDED */
+
     z-index: 10000 !important;
     box-sizing: border-box !important;
-    background-color: rgba(18, 16, 35, 0.95) !important;
+    background-color: rgba(18, 16, 35, 0.98) !important; /* Slightly more opaque */
     color: var(--clr-text-primary) !important;
-    padding: 20px 25px !important;
-    box-shadow: 0 -5px 30px rgba(0, 0, 0, 0.65) !important;
-    border-top: 1.5px solid var(--clr-accent-purple) !important;
-    display: flex !important; /* Изначально flex, JS будет добавлять/удалять 'visible' */
-    flex-wrap: wrap !important;
-    justify-content: space-between !important;
-    align-items: center !important;
+    padding: 25px 30px !important; /* Increased padding */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.75), var(--glow-purple) !important; /* Stronger shadow for pop-up */
+    /* border-top: 1.5px solid var(--clr-accent-purple) !important; */ /* REMOVED border-top, using full border now */
+    display: flex !important;
+    flex-direction: column !important; /* Stack content vertically */
+    /* flex-wrap: wrap !important; */ /* No longer needed with column layout */
+    /* justify-content: space-between !important; */ /* No longer needed */
+    align-items: center !important; /* Center content */
+    text-align: center !important; /* Center text */
     gap: 20px !important;
-    backdrop-filter: blur(10px) saturate(1.1) !important;
-    transform: translateY(100%) !important; /* Изначально скрыт */
-    opacity: 0 !important; /* Изначально прозрачный */
-    transition: transform 0.55s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.5s ease-out !important;
-    visibility: hidden !important; /* Добавляем для начального скрытия до JS */
+    backdrop-filter: blur(15px) saturate(1.2) !important;
+    /* transform: translateY(100%) !important; */ /* REMOVED old transform */
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transition: transform 0.45s var(--transition-bounce), opacity 0.4s ease-out, visibility 0s linear 0.4s !important; /* Adjusted transition */
 }
 
 #cookie-consent-banner.visible {
-    transform: translateY(0) !important;
+    transform: translate(-50%, -50%) scale(1) !important; /* Final state for animation */
     opacity: 1 !important;
-    visibility: visible !important; /* Показываем, когда класс .visible добавлен */
+    visibility: visible !important;
+    transition-delay: 0s, 0s, 0s !important;
 }
 
 
 #cookie-consent-banner p {
-    margin: 0 !important;
-    flex-grow: 1 !important;
-    font-size: 0.9rem !important;
-    line-height: 1.65 !important;
+    margin: 0 0 10px 0 !important; /* Adjusted margin */
+    flex-grow: 0 !important; /* No longer needed */
+    font-size: 0.95rem !important; /* Slightly larger text */
+    line-height: 1.7 !important;
     color: var(--clr-text-secondary) !important;
-    padding-right: 20px !important;
+    padding-right: 0 !important; /* No longer needed */
+    max-width: 100%;
 }
 
 #cookie-consent-banner p a {
@@ -1829,16 +1865,21 @@ button:hover ~ .mouse-follower-glow,
 #cookie-consent-banner .cookie-consent-actions {
     display: flex !important;
     align-items: center !important;
+    justify-content: center !important; /* Center buttons */
     flex-shrink: 0 !important;
-    gap: 12px !important;
+    gap: 15px !important; /* Slightly increased gap */
+    width: 100% !important; /* Make actions take full width */
+    flex-wrap: wrap; /* Allow buttons to wrap on small screens */
 }
 
 #cookie-consent-banner .btn {
-    padding: 0.7em 1.6em !important;
-    font-size: 0.85rem !important;
+    padding: 0.75em 1.8em !important; /* Slightly larger buttons */
+    font-size: 0.88rem !important;
     min-width: auto !important;
     letter-spacing: 1px !important;
     border-radius: var(--layout-border-radius-md) !important;
+    flex-grow: 1; /* Allow buttons to grow and fill space if wrapping */
+    min-width: 130px; /* Minimum width for each button */
 }
 #cookie-consent-banner .btn#cookie-consent-accept-all {
 	background: linear-gradient(45deg, var(--clr-accent-green), var(--clr-accent-cyan)) !important;
@@ -1871,12 +1912,14 @@ button:hover ~ .mouse-follower-glow,
     font-weight: 500 !important;
     text-transform: none !important;
     letter-spacing: normal !important;
-    font-size: 0.85rem !important;
-    padding: 0.7em 0.5em !important;
+    font-size: 0.88rem !important; /* Match other buttons */
+    padding: 0.75em 0.5em !important; /* Match other buttons */
     text-decoration: underline !important;
     border: none !important;
     background: none !important;
     box-shadow: none !important;
+    flex-grow: 0; /* Don't let this link button grow as much */
+    min-width: auto;
 }
 #cookie-consent-banner .btn#cookie-consent-customize.btn-link:hover {
     color: var(--clr-accent-cyan) !important;
@@ -2134,35 +2177,46 @@ button:hover ~ .mouse-follower-glow,
     .cookie-modal-header h3 {
         font-size: 1.35rem;
     }
+    /* Adjustments for pop-up cookie banner on mobile */
+    #cookie-consent-banner {
+        padding: 20px 22px !important;
+        max-width: calc(100% - 30px) !important; /* Ensure some spacing from edges */
+    }
+    #cookie-consent-banner .btn {
+        font-size: 0.85rem !important;
+        padding: 0.7em 1.5em !important;
+    }
+
 }
 
 @media (max-width: 600px) {
     #cookie-consent-banner {
-        flex-direction: column;
-        padding: 18px 15px !important; /* Убедимся что !important здесь тоже есть */
-        text-align: center !important;
+        /* flex-direction: column; /* Already set */
+        padding: 20px 20px !important;
+        /* text-align: center !important; /* Already set */
+        gap: 15px !important;
     }
     #cookie-consent-banner p {
-        padding-right: 0 !important;
-        margin-bottom: 15px !important;
-        font-size: 0.88rem !important;
+        /* padding-right: 0 !important; /* Already set */
+        margin-bottom: 8px !important; /* Adjusted */
+        font-size: 0.9rem !important; /* Adjusted */
     }
     #cookie-consent-banner .cookie-consent-actions {
-        justify-content: center !important;
-        width: 100% !important;
-        flex-wrap: wrap !important;
+        /* justify-content: center !important; /* Already set */
+        /* width: 100% !important; /* Already set */
+        /* flex-wrap: wrap !important; /* Already set */
         gap: 10px !important;
     }
      #cookie-consent-banner .cookie-consent-actions .btn {
-        flex-grow: 1 !important;
-        min-width: 120px !important;
-        margin-bottom: 8px !important;
+        /* flex-grow: 1 !important; /* Already set */
+        min-width: 120px !important; /* Adjusted if needed */
+        margin-bottom: 0px !important; /* Removed individual bottom margin as gap handles it */
         font-size: 0.82rem !important;
-        padding: 0.65em 1.4em !important;
+        padding: 0.7em 1.2em !important; /* Adjusted padding */
     }
-    #cookie-consent-banner .cookie-consent-actions .btn:last-child {
-        margin-bottom: 0 !important;
-    }
+    /* #cookie-consent-banner .cookie-consent-actions .btn:last-child { */
+        /* margin-bottom: 0 !important; /* Already set */
+    /* } */
 
     .cookie-modal-footer {
         flex-direction: column;
@@ -2186,3 +2240,22 @@ button:hover ~ .mouse-follower-glow,
         max-height: 250px;
     }
 }
+
+/*
+    EDIT LOGS:
+    Developer Goal: Modify the cookie consent banner to appear as a pop-up modal instead of a bottom bar.
+    Stage:
+        - Added #cookie-consent-overlay for a background dimming effect when the banner is visible.
+        - Modified #cookie-consent-banner styles:
+            - Changed position from bottom bar to fixed centered pop-up (top, left, transform: translate).
+            - Set a max-width for the pop-up and made width responsive (90%).
+            - Added border-radius for a softer modal look.
+            - Changed display to flex column and centered content.
+            - Adjusted padding, box-shadow for a more prominent pop-up appearance.
+            - Updated transform and transition for a pop-in animation.
+        - Adjusted styles for p and .cookie-consent-actions within the banner to fit the new column layout.
+        - Made buttons within .cookie-consent-actions grow and wrap for better responsiveness in the pop-up.
+        - Minor adjustments to font sizes and paddings within the banner for the new layout.
+        - Ensured existing cookie modal styles (.cookie-modal, .cookie-modal-content, etc.) remain untouched as they are for a different settings panel.
+        - Added responsive adjustments for the new pop-up banner on smaller screens.
+*/
