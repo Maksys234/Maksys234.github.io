@@ -1776,112 +1776,115 @@ button:hover ~ .mouse-follower-glow,
    ========================================================================== */
 
 #cookie-consent-banner {
-    position: fixed !important; /* Усилено для прикрепления */
-    bottom: 0 !important;       /* Прижимает к низу экрана */
-    left: 0 !important;         /* Растягивает по левому краю */
-    width: 100% !important;     /* Растягивает на всю ширину */
-    z-index: 10000 !important;  /* Поверх других элементов */
-    box-sizing: border-box;
-    background-color: rgba(18, 16, 35, 0.95); /* --clr-bg-secondary с небольшой прозрачностью для эффекта "стекла" */
-    color: var(--clr-text-primary);
-    padding: 20px 25px; /* Немного уменьшил вертикальные отступы */
-    box-shadow: 0 -5px 30px rgba(0, 0, 0, 0.65); /* Более выраженная тень сверху */
-    border-top: 1.5px solid var(--clr-accent-purple); /* Тонкая верхняя граница */
-    display: flex; /* JS управляет этим, меняя на 'flex' или 'none' */
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-    backdrop-filter: blur(10px) saturate(1.1); /* Эффект размытия фона */
-    transform: translateY(100%); /* Изначально скрыт под экраном */
-    opacity: 0;                  /* Изначально прозрачный */
-    transition: transform 0.55s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.5s ease-out; /* Немного дольше анимация */
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    z-index: 10000 !important;
+    box-sizing: border-box !important;
+    background-color: rgba(18, 16, 35, 0.95) !important;
+    color: var(--clr-text-primary) !important;
+    padding: 20px 25px !important;
+    box-shadow: 0 -5px 30px rgba(0, 0, 0, 0.65) !important;
+    border-top: 1.5px solid var(--clr-accent-purple) !important;
+    display: flex !important; /* Изначально flex, JS будет добавлять/удалять 'visible' */
+    flex-wrap: wrap !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 20px !important;
+    backdrop-filter: blur(10px) saturate(1.1) !important;
+    transform: translateY(100%) !important; /* Изначально скрыт */
+    opacity: 0 !important; /* Изначально прозрачный */
+    transition: transform 0.55s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.5s ease-out !important;
+    visibility: hidden !important; /* Добавляем для начального скрытия до JS */
 }
 
 #cookie-consent-banner.visible {
-    transform: translateY(0); /* Выдвигает баннер на экран */
-    opacity: 1;               /* Делает видимым */
+    transform: translateY(0) !important;
+    opacity: 1 !important;
+    visibility: visible !important; /* Показываем, когда класс .visible добавлен */
 }
 
 
 #cookie-consent-banner p {
-    margin: 0;
-    flex-grow: 1;
-    font-size: 0.9rem; /* Немного уменьшил шрифт для компактности */
-    line-height: 1.65;
-    color: var(--clr-text-secondary);
-    padding-right: 20px; /* Отступ справа от текста до кнопок */
+    margin: 0 !important;
+    flex-grow: 1 !important;
+    font-size: 0.9rem !important;
+    line-height: 1.65 !important;
+    color: var(--clr-text-secondary) !important;
+    padding-right: 20px !important;
 }
 
 #cookie-consent-banner p a {
-    color: var(--clr-accent-cyan);
-    text-decoration: underline;
-    font-weight: 600; /* Сделал ссылку жирнее */
-    transition: color var(--transition-fast), filter var(--transition-fast);
+    color: var(--clr-accent-cyan) !important;
+    text-decoration: underline !important;
+    font-weight: 600 !important;
+    transition: color var(--transition-fast), filter var(--transition-fast) !important;
 }
 #cookie-consent-banner p a:hover {
-    color: var(--clr-accent-pink);
-    filter: drop-shadow(0 0 5px var(--clr-accent-pink));
+    color: var(--clr-accent-pink) !important;
+    filter: drop-shadow(0 0 5px var(--clr-accent-pink)) !important;
 }
 
 #cookie-consent-banner .cookie-consent-actions {
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    gap: 12px; /* Уменьшил расстояние между кнопками */
+    display: flex !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+    gap: 12px !important;
 }
 
 #cookie-consent-banner .btn {
-    padding: 0.7em 1.6em; /* Сделал кнопки немного компактнее */
-    font-size: 0.85rem; /* Уменьшил шрифт на кнопках */
-    min-width: auto;
-    letter-spacing: 1px; /* Немного уменьшил letter-spacing */
-    border-radius: var(--layout-border-radius-md); /* Скругление как у других кнопок */
+    padding: 0.7em 1.6em !important;
+    font-size: 0.85rem !important;
+    min-width: auto !important;
+    letter-spacing: 1px !important;
+    border-radius: var(--layout-border-radius-md) !important;
 }
 #cookie-consent-banner .btn#cookie-consent-accept-all {
-	background: linear-gradient(45deg, var(--clr-accent-green), var(--clr-accent-cyan));
-	color: var(--clr-bg-primary); /* Темный текст для контраста */
-	border: none; /* Убрал границу, так как есть фон */
-	box-shadow: 0 0 12px rgba(0, 255, 179, 0.45), 0 0 12px rgba(0, 242, 255, 0.35), var(--shadow-interactive);
+	background: linear-gradient(45deg, var(--clr-accent-green), var(--clr-accent-cyan)) !important;
+	color: var(--clr-bg-primary) !important;
+	border: none !important;
+	box-shadow: 0 0 12px rgba(0, 255, 179, 0.45), 0 0 12px rgba(0, 242, 255, 0.35), var(--shadow-interactive) !important;
 }
 #cookie-consent-banner .btn#cookie-consent-accept-all:hover {
-	background: linear-gradient(45deg, var(--clr-accent-cyan), color-mix(in srgb, var(--clr-accent-green), white 10%)); /* Светлее при наведении */
-	box-shadow: 0 0 18px rgba(0, 242, 255, 0.55), 0 0 18px rgba(0, 255, 179, 0.45), var(--shadow-interactive-hover);
-	transform: translateY(-3px) scale(1.03);
+	background: linear-gradient(45deg, var(--clr-accent-cyan), color-mix(in srgb, var(--clr-accent-green), white 10%)) !important;
+	box-shadow: 0 0 18px rgba(0, 242, 255, 0.55), 0 0 18px rgba(0, 255, 179, 0.45), var(--shadow-interactive-hover) !important;
+	transform: translateY(-3px) scale(1.03) !important;
 }
 #cookie-consent-banner .btn#cookie-consent-reject-all.btn-outline {
-	color: var(--clr-accent-red);
-	border-color: var(--clr-accent-red);
-	text-shadow: 0 0 5px var(--clr-accent-red);
+	color: var(--clr-accent-red) !important;
+	border-color: var(--clr-accent-red) !important;
+	text-shadow: 0 0 5px var(--clr-accent-red) !important;
+    background-color: transparent !important;
 }
 #cookie-consent-banner .btn#cookie-consent-reject-all.btn-outline:hover {
-	background-color: rgba(255, 80, 80, 0.12);
-	color: var(--clr-text-highlight);
-	border-color: color-mix(in srgb, var(--clr-accent-red), white 20%);
-	box-shadow: 0 0 12px var(--clr-accent-red), 0 0 0 3px rgba(255, 80, 80, 0.18);
-	text-shadow: 0 0 8px var(--clr-accent-red);
-    transform: translateY(-3px) scale(1.03);
+	background-color: rgba(255, 80, 80, 0.12) !important;
+	color: var(--clr-text-highlight) !important;
+	border-color: color-mix(in srgb, var(--clr-accent-red), white 20%) !important;
+	box-shadow: 0 0 12px var(--clr-accent-red), 0 0 0 3px rgba(255, 80, 80, 0.18) !important;
+	text-shadow: 0 0 8px var(--clr-accent-red) !important;
+    transform: translateY(-3px) scale(1.03) !important;
 }
 #cookie-consent-banner .btn#cookie-consent-customize.btn-link {
-    color: var(--clr-text-secondary);
-    font-family: var(--font-secondary);
-    font-weight: 500;
-    text-transform: none;
-    letter-spacing: normal;
-    font-size: 0.85rem;
-    padding: 0.7em 0.5em;
-    text-decoration: underline;
-    border: none;
-    background: none;
-    box-shadow: none;
+    color: var(--clr-text-secondary) !important;
+    font-family: var(--font-secondary) !important;
+    font-weight: 500 !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    font-size: 0.85rem !important;
+    padding: 0.7em 0.5em !important;
+    text-decoration: underline !important;
+    border: none !important;
+    background: none !important;
+    box-shadow: none !important;
 }
 #cookie-consent-banner .btn#cookie-consent-customize.btn-link:hover {
-    color: var(--clr-accent-cyan);
-    text-shadow: 0 0 5px var(--clr-accent-cyan);
-    transform: none; /* Убрал transform для текстовой кнопки */
+    color: var(--clr-accent-cyan) !important;
+    text-shadow: 0 0 5px var(--clr-accent-cyan) !important;
+    transform: none !important;
 }
 #cookie-consent-banner .btn#cookie-consent-customize.btn-link::before {
-    display:none; /* Убираем эффект блика для текстовой кнопки */
+    display:none !important;
 }
 
 
@@ -1992,7 +1995,7 @@ button:hover ~ .mouse-follower-glow,
 }
 
 .cookie-category-header::after {
-    content: '\f078'; 
+    content: '\f078';
     font-family: 'Font Awesome 6 Free';
     font-weight: 900;
     color: var(--clr-accent-cyan);
@@ -2136,29 +2139,29 @@ button:hover ~ .mouse-follower-glow,
 @media (max-width: 600px) {
     #cookie-consent-banner {
         flex-direction: column;
-        padding: 18px 15px; /* Еще немного уменьшил отступы */
-        text-align: center;
+        padding: 18px 15px !important; /* Убедимся что !important здесь тоже есть */
+        text-align: center !important;
     }
     #cookie-consent-banner p {
-        padding-right: 0;
-        margin-bottom: 15px; /* Уменьшил отступ */
-        font-size: 0.88rem; /* Чуть меньше шрифт текста */
+        padding-right: 0 !important;
+        margin-bottom: 15px !important;
+        font-size: 0.88rem !important;
     }
     #cookie-consent-banner .cookie-consent-actions {
-        justify-content: center;
-        width: 100%;
-        flex-wrap: wrap;
-        gap: 10px; /* Уменьшил промежуток между кнопками при переносе */
+        justify-content: center !important;
+        width: 100% !important;
+        flex-wrap: wrap !important;
+        gap: 10px !important;
     }
      #cookie-consent-banner .cookie-consent-actions .btn {
-        flex-grow: 1;
-        min-width: 120px; /* Немного уменьшил минимальную ширину */
-        margin-bottom: 8px; /* Добавил небольшой отступ снизу для кнопок при переносе */
-        font-size: 0.82rem; /* Чуть меньше шрифт на кнопках */
-        padding: 0.65em 1.4em; /* Компактнее кнопки */
+        flex-grow: 1 !important;
+        min-width: 120px !important;
+        margin-bottom: 8px !important;
+        font-size: 0.82rem !important;
+        padding: 0.65em 1.4em !important;
     }
     #cookie-consent-banner .cookie-consent-actions .btn:last-child {
-        margin-bottom: 0;
+        margin-bottom: 0 !important;
     }
 
     .cookie-modal-footer {
@@ -2169,8 +2172,8 @@ button:hover ~ .mouse-follower-glow,
         width: 100%;
     }
     .cookie-category-header {
-        flex-direction: row; 
-        align-items: center; 
+        flex-direction: row;
+        align-items: center;
         gap: 8px;
     }
     .cookie-category-header h4 {
