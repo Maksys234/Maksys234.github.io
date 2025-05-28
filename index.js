@@ -3,14 +3,14 @@
  * Handles UI interactions, animations, infinite testimonial slider,
  * Hero text mask reveal, interactive gradient, enhanced visual effects,
  * and Advanced Cookie Consent Banner with gtag.js integration.
- * Version: v2.35 (Collapsible Cookie Categories & Improved Banner Display)
- * Author: Gemini Modification (enhanced from v2.34)
- * Date: 2025-05-27 
+ * Version: v2.36 (Ensuring CSS control for Banner Position)
+ * Author: Gemini Modification (enhanced from v2.35)
+ * Date: 2025-05-28 // Обновлена дата
  *
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Ready. Initializing JUSTAX Interface v2.35 (Collapsible Cookies)...");
+    console.log("DOM Ready. Initializing JUSTAX Interface v2.36 (Banner Position Fix Attempt)...");
 
     // --- Global Variables & DOM References ---
     const body = document.body;
@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const initializeInfiniteSlider = async () => {
-        console.log("Starting infinite slider initialization v2.35...");
+        console.log("Starting infinite slider initialization v2.36...");
         if (!sliderTrack || !prevBtn || !nextBtn) { console.error("Slider init fail: core elements missing."); return; }
         isSliding = true; sliderInitialLoadComplete = false; prevBtn.disabled = true; nextBtn.disabled = true;
         sliderTrack.innerHTML = ''; testimonialDataCache = []; cardsInTrack = []; cardWidthAndMargin = 0; stableVisibleStartIndex = config.testimonials.bufferCards;
@@ -398,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- AI Demo Simulation ---
     const aiDemoSteps = [
-        { type: 'status', text: 'AI jádro v2.35 aktivní. Připraven na analýzu...', progress: 5 },
+        { type: 'status', text: 'AI jádro v2.36 aktivní. Připraven na analýzu...', progress: 5 }, // Updated version
         { type: 'status', text: 'Probíhá skenování interakcí uživatele ID: 734B...', delay: 700 },
         { type: 'input', text: 'ANALYZE_USER_PERFORMANCE --id=734B --subject=algebra --level=intermediate' },
         { type: 'process', text: 'Zpracování dotazu na výkon...', duration: 900, progress: 20 },
@@ -783,8 +783,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Banner will be set to display:none by applyConsentDecision or if modal is just opened
              setTimeout(() => {
                  if (!cookieConsentBanner.classList.contains('visible')) {
-                    cookieConsentBanner.style.display = 'none';
-                  }
+                     cookieConsentBanner.style.display = 'none';
+                   }
              }, 500);
         }
     };
@@ -794,6 +794,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // If consent hasn't been processed, show the banner again
         const consentProcessed = getProcessedCookie(config.cookies.consentProcessedCookieName) === 'true';
         if (!consentProcessed && cookieConsentBanner) {
+            // Сброс инлайновых стилей, которые могут мешать CSS позиционированию
+            cookieConsentBanner.style.position = '';
+            cookieConsentBanner.style.bottom = '';
+            cookieConsentBanner.style.left = '';
+            cookieConsentBanner.style.width = '';
+            cookieConsentBanner.style.transform = '';
+
             cookieConsentBanner.style.display = 'flex'; // or 'block' depending on original display type
             requestAnimationFrame(() => { // Ensure display is set before trying to animate
                  cookieConsentBanner.classList.add('visible');
@@ -827,7 +834,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     const initializeCookieConsentFramework = () => {
-        console.log("Initializing Cookie Consent Framework v2.35...");
+        console.log("Initializing Cookie Consent Framework v2.36...");
         const consentProcessed = getProcessedCookie(config.cookies.consentProcessedCookieName) === 'true';
         const currentPreferences = getConsentPreferences(); 
         updateGtagConsent(currentPreferences);
@@ -839,6 +846,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 cookieConsentBanner.classList.remove('visible');
             } else {
                 console.log("Cookie consent not processed. Displaying banner.");
+                // Сброс потенциально конфликтующих инлайновых стилей перед показом
+                cookieConsentBanner.style.position = '';
+                cookieConsentBanner.style.bottom = '';
+                cookieConsentBanner.style.left = '';
+                cookieConsentBanner.style.width = '';
+                cookieConsentBanner.style.transform = '';
+                // Убедимся, что opacity также сброшен, чтобы CSS мог им управлять
+                cookieConsentBanner.style.opacity = '';
+
+
                 cookieConsentBanner.style.display = 'flex'; // Set display before adding visible for animation
                 requestAnimationFrame(() => { // Wait for next frame to apply class for transition
                     cookieConsentBanner.classList.add('visible');
@@ -916,5 +933,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 500);
 
-    console.log("JUSTAX Interface v2.35 (Collapsible Cookies) Initialization Complete.");
+    console.log("JUSTAX Interface v2.36 (Banner Position Fix Attempt) Initialization Complete.");
 });
