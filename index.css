@@ -1753,7 +1753,7 @@ button:hover ~ .mouse-follower-glow,
 
 @media print { /* Print styles remain largely the same */
 	body { background: #fff; color: #000; font-size: 10pt; }
-	#header, #contact, .hero #particles-js, .mouse-follower-glow, .cta, .ai-interface-section, .testimonial-slider-wrapper .slider-btn, .yuki-special-section .yuki-card::before, body::after, .hero::before, #cookie-consent-banner, .cookie-modal { display: none !important; }
+	#header, #contact, .hero #particles-js, .mouse-follower-glow, .cta, .ai-interface-section, .testimonial-slider-wrapper .slider-btn, .yuki-special-section .yuki-card::before, body::after, .hero::before, #cookie-consent-banner, #cookie-settings-modal { display: none !important; }
 	.container { width: 100%; max-width: none; margin: 0; padding: 0 1cm; }
 	a { color: #000 !important; text-decoration: underline !important; filter: none !important; }
     a[href^="/"]:after, a[href^="http"]:after { content: " (" attr(href) ")"; font-size: 0.8em; }
@@ -1782,19 +1782,20 @@ button:hover ~ .mouse-follower-glow,
     width: 100% !important;     /* Растягивает на всю ширину */
     z-index: 10000 !important;  /* Поверх других элементов */
     box-sizing: border-box;
-    background-color: var(--clr-bg-tertiary);
+    background-color: rgba(18, 16, 35, 0.95); /* --clr-bg-secondary с небольшой прозрачностью для эффекта "стекла" */
     color: var(--clr-text-primary);
-    padding: 20px 25px;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
-    border-top: 2px solid var(--clr-accent-purple);
+    padding: 20px 25px; /* Немного уменьшил вертикальные отступы */
+    box-shadow: 0 -5px 30px rgba(0, 0, 0, 0.65); /* Более выраженная тень сверху */
+    border-top: 1.5px solid var(--clr-accent-purple); /* Тонкая верхняя граница */
     display: flex; /* JS управляет этим, меняя на 'flex' или 'none' */
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     gap: 20px;
-    transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.45s ease-out;
+    backdrop-filter: blur(10px) saturate(1.1); /* Эффект размытия фона */
     transform: translateY(100%); /* Изначально скрыт под экраном */
     opacity: 0;                  /* Изначально прозрачный */
+    transition: transform 0.55s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.5s ease-out; /* Немного дольше анимация */
 }
 
 #cookie-consent-banner.visible {
@@ -1806,64 +1807,70 @@ button:hover ~ .mouse-follower-glow,
 #cookie-consent-banner p {
     margin: 0;
     flex-grow: 1;
-    font-size: 0.92rem;
-    line-height: 1.6;
+    font-size: 0.9rem; /* Немного уменьшил шрифт для компактности */
+    line-height: 1.65;
     color: var(--clr-text-secondary);
-    padding-right: 20px;
+    padding-right: 20px; /* Отступ справа от текста до кнопок */
 }
 
 #cookie-consent-banner p a {
     color: var(--clr-accent-cyan);
     text-decoration: underline;
-    font-weight: 500;
+    font-weight: 600; /* Сделал ссылку жирнее */
+    transition: color var(--transition-fast), filter var(--transition-fast);
 }
 #cookie-consent-banner p a:hover {
     color: var(--clr-accent-pink);
-    filter: drop-shadow(0 0 4px var(--clr-accent-pink));
+    filter: drop-shadow(0 0 5px var(--clr-accent-pink));
 }
 
 #cookie-consent-banner .cookie-consent-actions {
     display: flex;
     align-items: center;
     flex-shrink: 0;
-    gap: 15px;
+    gap: 12px; /* Уменьшил расстояние между кнопками */
 }
 
 #cookie-consent-banner .btn {
-    padding: 0.75em 1.8em;
-    font-size: 0.88rem;
+    padding: 0.7em 1.6em; /* Сделал кнопки немного компактнее */
+    font-size: 0.85rem; /* Уменьшил шрифт на кнопках */
     min-width: auto;
-    letter-spacing: 1.1px;
+    letter-spacing: 1px; /* Немного уменьшил letter-spacing */
+    border-radius: var(--layout-border-radius-md); /* Скругление как у других кнопок */
 }
 #cookie-consent-banner .btn#cookie-consent-accept-all {
-    background: linear-gradient(45deg, var(--clr-accent-green), var(--clr-accent-cyan));
-    color: var(--clr-bg-primary);
-    box-shadow: 0 0 15px rgba(0, 255, 179, 0.4), 0 0 15px rgba(0, 242, 255, 0.3), var(--shadow-interactive);
+	background: linear-gradient(45deg, var(--clr-accent-green), var(--clr-accent-cyan));
+	color: var(--clr-bg-primary); /* Темный текст для контраста */
+	border: none; /* Убрал границу, так как есть фон */
+	box-shadow: 0 0 12px rgba(0, 255, 179, 0.45), 0 0 12px rgba(0, 242, 255, 0.35), var(--shadow-interactive);
 }
 #cookie-consent-banner .btn#cookie-consent-accept-all:hover {
-    background: linear-gradient(45deg, var(--clr-accent-cyan), var(--clr-accent-green));
-    box-shadow: 0 0 20px rgba(0, 242, 255, 0.5), 0 0 20px rgba(0, 255, 179, 0.4), var(--shadow-interactive-hover);
-    transform: translateY(-4px) scale(1.04);
+	background: linear-gradient(45deg, var(--clr-accent-cyan), color-mix(in srgb, var(--clr-accent-green), white 10%)); /* Светлее при наведении */
+	box-shadow: 0 0 18px rgba(0, 242, 255, 0.55), 0 0 18px rgba(0, 255, 179, 0.45), var(--shadow-interactive-hover);
+	transform: translateY(-3px) scale(1.03);
 }
 #cookie-consent-banner .btn#cookie-consent-reject-all.btn-outline {
-    color: var(--clr-accent-red);
-    border-color: var(--clr-accent-red);
-    text-shadow: 0 0 6px var(--clr-accent-red);
+	color: var(--clr-accent-red);
+	border-color: var(--clr-accent-red);
+	text-shadow: 0 0 5px var(--clr-accent-red);
 }
 #cookie-consent-banner .btn#cookie-consent-reject-all.btn-outline:hover {
-    background-color: rgba(255, 80, 80, 0.1);
-    color: var(--clr-text-highlight);
-    border-color: var(--clr-accent-red);
-    box-shadow: 0 0 10px var(--clr-accent-red), 0 0 0 2.5px rgba(255, 80, 80, 0.15);
-    text-shadow: 0 0 8px var(--clr-accent-red);
+	background-color: rgba(255, 80, 80, 0.12);
+	color: var(--clr-text-highlight);
+	border-color: color-mix(in srgb, var(--clr-accent-red), white 20%);
+	box-shadow: 0 0 12px var(--clr-accent-red), 0 0 0 3px rgba(255, 80, 80, 0.18);
+	text-shadow: 0 0 8px var(--clr-accent-red);
+    transform: translateY(-3px) scale(1.03);
 }
 #cookie-consent-banner .btn#cookie-consent-customize.btn-link {
     color: var(--clr-text-secondary);
     font-family: var(--font-secondary);
+    font-weight: 500;
     text-transform: none;
     letter-spacing: normal;
-    font-size: 0.88rem;
-    padding: 0.75em 0.5em;
+    font-size: 0.85rem;
+    padding: 0.7em 0.5em;
+    text-decoration: underline;
     border: none;
     background: none;
     box-shadow: none;
@@ -1871,11 +1878,10 @@ button:hover ~ .mouse-follower-glow,
 #cookie-consent-banner .btn#cookie-consent-customize.btn-link:hover {
     color: var(--clr-accent-cyan);
     text-shadow: 0 0 5px var(--clr-accent-cyan);
-    transform: none;
-    box-shadow: none;
+    transform: none; /* Убрал transform для текстовой кнопки */
 }
 #cookie-consent-banner .btn#cookie-consent-customize.btn-link::before {
-    display:none;
+    display:none; /* Убираем эффект блика для текстовой кнопки */
 }
 
 
@@ -2130,22 +2136,26 @@ button:hover ~ .mouse-follower-glow,
 @media (max-width: 600px) {
     #cookie-consent-banner {
         flex-direction: column;
-        padding: 20px 15px;
+        padding: 18px 15px; /* Еще немного уменьшил отступы */
         text-align: center;
     }
     #cookie-consent-banner p {
         padding-right: 0;
-        margin-bottom: 18px;
+        margin-bottom: 15px; /* Уменьшил отступ */
+        font-size: 0.88rem; /* Чуть меньше шрифт текста */
     }
     #cookie-consent-banner .cookie-consent-actions {
         justify-content: center;
         width: 100%;
         flex-wrap: wrap;
+        gap: 10px; /* Уменьшил промежуток между кнопками при переносе */
     }
      #cookie-consent-banner .cookie-consent-actions .btn {
         flex-grow: 1;
-        min-width: 130px;
-        margin-bottom: 8px;
+        min-width: 120px; /* Немного уменьшил минимальную ширину */
+        margin-bottom: 8px; /* Добавил небольшой отступ снизу для кнопок при переносе */
+        font-size: 0.82rem; /* Чуть меньше шрифт на кнопках */
+        padding: 0.65em 1.4em; /* Компактнее кнопки */
     }
     #cookie-consent-banner .cookie-consent-actions .btn:last-child {
         margin-bottom: 0;
