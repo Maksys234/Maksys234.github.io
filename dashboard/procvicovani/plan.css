@@ -4,7 +4,7 @@
 /* VERZE 27.5.1-PLAN-CSS: Výrazné vylepšení vzhledu sekce Aktuální plán (.vertical-schedule-list) */
 /* VERZE 27.5.2-PLAN-CSS: Přidáno vertikální posouvání pro dlouhé denní plány v karuselu. */
 /* VERZE 27.5.3-PLAN-CSS: Oprava vertikálního scrollu v denním plánu. */
-/* VERZE 28.5.4-PLAN-CSS: Zajištění vertikálního rolování pro všechny záložky (přidáno overflow-y: auto do .section-content). */
+/* VERZE 28.5.5-PLAN-CSS: Oprava vertikálního rolování pro všechny záložky (strukturální změny pro main-content-wrapper a section). */
 
 /* --- START: Киберпанк CSS Тема (PŮVODNÍ KÓD UŽIVATELE + Doplnění + Vylepšení plánu) --- */
 /* --- Глобальные Настройки и Переменные --- */
@@ -284,23 +284,39 @@ body.sidebar-collapsed .sidebar-menu::-webkit-scrollbar { display: none; }
 
 
 /* --- Основной контент --- */
-main#main-content { flex: 1; margin-left: var(--sidebar-width); transition: margin-left var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1); width: calc(100% - var(--sidebar-width)); height: 100vh; display: flex; flex-direction: column; overflow: hidden; position: relative; padding: 0; }
+main#main-content {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    transition: margin-left var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1), width var(--transition-medium) cubic-bezier(0.4, 0, 0.2, 1);
+    width: calc(100% - var(--sidebar-width));
+    height: 100vh; /* Celá výška viewportu */
+    display: flex;
+    flex-direction: column; /* Aby header a main-content-wrapper šly pod sebe */
+    overflow: hidden; /* Zabrání scrollbaru na main, pokud děti správně fungují */
+    position: relative;
+    padding: 0; /* Odebrání paddingu z main, bude na dětech */
+}
 main#main-content.loaded { animation: fadeInMain 0.5s ease-out forwards; }
 @keyframes fadeInMain { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.main-content-wrapper { flex-grow: 1; overflow-y: auto; overflow-x: hidden; padding: var(--section-padding-y) var(--container-padding-x); position: relative; scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--bg-secondary-rgb), 0.3); }
-.main-content-wrapper::-webkit-scrollbar { width: 8px; height: 8px; }
-.main-content-wrapper::-webkit-scrollbar-track { background: rgba(var(--bg-secondary-rgb), 0.3); }
-.main-content-wrapper::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.5); border-radius: 4px; }
-.main-content-wrapper::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--accent-primary-rgb), 0.8); }
+
+.main-content-wrapper {
+    display: flex; /* Přidáno */
+    flex-direction: column; /* Přidáno */
+    flex-grow: 1; /* Klíčové, aby wrapper zabral zbytek místa po headeru */
+    overflow: hidden; /* Změněno z auto na hidden, aby scroll řešily vnitřní sekce */
+    position: relative;
+    /* Padding je přesunut na .section */
+}
+
 
 /* --- Хедер дашборда (upraveno pro tlačítko sklápění) --- */
-.dashboard-header { background-color: rgba(var(--bg-secondary-rgb), 0.7); backdrop-filter: blur(12px); border-radius: 0 0 var(--card-radius) var(--card-radius); padding: 1rem var(--container-padding-x); box-shadow: var(--shadow-hud); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: sticky; top: 0; z-index: 900; border-bottom: 1px solid var(--border-color-light); transition: background-color 0.3s ease, box-shadow 0.3s ease; flex-shrink: 0; margin-left: 0; margin-right: 0; margin-bottom: 0; /* Odebráno var(--section-padding-y) z margin-bottom */ }
+.dashboard-header { background-color: rgba(var(--bg-secondary-rgb), 0.7); backdrop-filter: blur(12px); border-radius: 0 0 var(--card-radius) var(--card-radius); padding: 1rem var(--container-padding-x); box-shadow: var(--shadow-hud); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: sticky; top: 0; z-index: 900; border-bottom: 1px solid var(--border-color-light); transition: background-color 0.3s ease, box-shadow 0.3s ease; flex-shrink: 0; margin-left: 0; margin-right: 0; margin-bottom: 0; }
 body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb), 0.85); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
 .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; width: 100%; }
-.header-left-group { display: flex; align-items: center; gap: 0.8rem; flex-grow: 1; } /* Přidáno z main.html */
-.mobile-menu-toggle#main-mobile-menu-toggle { display: none; background: none; border: none; color: var(--text-muted); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; z-index: 1010; transition: color 0.2s ease; } /* Použijeme ID #main-mobile-menu-toggle */
+.header-left-group { display: flex; align-items: center; gap: 0.8rem; flex-grow: 1; }
+.mobile-menu-toggle#main-mobile-menu-toggle { display: none; background: none; border: none; color: var(--text-muted); font-size: 1.6rem; cursor: pointer; padding: 0.5rem; z-index: 1010; transition: color 0.2s ease; }
 .mobile-menu-toggle#main-mobile-menu-toggle:hover { color: var(--accent-primary); }
-@media (max-width: 992px) { .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } } /* Zobrazení pro mobilní zařízení */
+@media (max-width: 992px) { .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } }
 .header-content h1 { font-size: 1.7rem; font-weight: 700; color: var(--text-heading); margin: 0; text-shadow: 0 0 10px var(--accent-glow); display: flex; align-items: center; gap: 0.7rem;}
 .header-content h1 i { font-size: 1em; color: var(--accent-primary); }
 .header-actions { display: flex; align-items: center; gap: 1rem; }
@@ -351,18 +367,32 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .plan-tab:hover { color: var(--text-light); background-color: rgba(var(--accent-primary-rgb), 0.05); }
 .plan-tab.active { color: var(--accent-primary); border-bottom-color: var(--accent-primary); font-weight: 700; }
 .plan-tab.active i { opacity: 1; }
-.section { background: var(--card-bg); border-radius: 0 0 var(--card-radius) var(--card-radius); box-shadow: var(--shadow-hud); border: 1px solid var(--border-color-light); border-top: none; position: relative; overflow: hidden; display: none; flex-grow: 1; flex-direction: column; min-height: 0; }
+
+.section {
+    background: var(--card-bg);
+    border-radius: 0 0 var(--card-radius) var(--card-radius);
+    box-shadow: var(--shadow-hud);
+    border: 1px solid var(--border-color-light);
+    border-top: none;
+    position: relative;
+    display: none; /* .visible-section will make it flex */
+    flex-grow: 1;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden; /* Parent hides overflow, children handle their own scroll */
+    padding: var(--section-padding-y) var(--container-padding-x); /* ADDED PADDING HERE */
+}
 .section.visible-section { display: flex !important; animation: fadeIn 0.5s ease forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 .section-content {
-    padding: 0;
+    padding: 0; /* Padding is handled by .section or specific inner content like .plan-content */
     display: flex;
     flex-direction: column;
-    min-height: 150px;
+    min-height: 0; /* CHANGED from 150px - Crucial for flex children scrolling */
     position: relative;
     flex-grow: 1;
-    overflow-y: auto; /* <--- ZAJIŠTĚNÍ VERTIKÁLNÍHO ROLOVÁNÍ PRO .section-content */
+    overflow-y: auto; /* GENERAL SCROLL FOR CONTENT WITHIN A SECTION */
     scrollbar-width: thin;
     scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--accent-secondary-rgb), 0.08);
 }
@@ -372,8 +402,9 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 
 /* Specifické pro karusel, aby on sám neskroloval vertikálně - TOTO PŘEPIŠE overflow-y: auto; z .section-content */
 #dailyPlanCarouselContainer.section-content {
-    overflow-y: hidden; /* Zabrání vertikálnímu scrollu tohoto kontejneru */
-    overflow-x: hidden; /* Karusel bude řízen JS, ne nativním scrollem */
+    overflow-y: hidden;
+    overflow-x: hidden;
+    padding: 1rem 0.5rem; /* Restore its specific padding */
 }
 
 
@@ -407,7 +438,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     align-items: stretch; /* Tlačítka a viewport budou stejně vysoké */
     justify-content: space-between;
     gap: 0.5rem; /* Malá mezera mezi tlačítky a viewportem */
-    padding: 1rem 0.5rem; /* Padding pro celý karusel kontejner */
+    /* padding: 1rem 0.5rem;  Padding je nyní na .section */
     flex-grow: 1; /* Aby zabral dostupnou výšku */
     overflow: hidden; /* Skryje obsah, který by přesahoval */
     position: relative; /* Pro absolutní pozicování vnitřních prvků, pokud bude potřeba */
@@ -585,6 +616,15 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     font-weight: 600; color: var(--text-light);
     font-size: 1.1rem;
     line-height: 1.4; margin-bottom: 3px;
+}
+.single-day-plan-view .activity-list-item .activity-link { /* Styl pro odkaz aktivity */
+    text-decoration: none;
+    color: inherit; /* Zdědí barvu textu */
+    display: contents; /* Aby se choval jako by tam nebyl pro layout */
+}
+.single-day-plan-view .activity-list-item .activity-link:hover .activity-title {
+    color: var(--accent-primary); /* Zvýraznění názvu při najetí na odkaz */
+    text-decoration: underline;
 }
 .single-day-plan-view .activity-list-item .activity-time-display {
     font-size: 0.85rem; font-weight: 500;
@@ -777,14 +817,15 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     .sidebar:not(.active):not(.sidebar-collapsed) .user-profile .avatar-wrapper { margin-right: 0; }
     .mobile-menu-toggle#main-mobile-menu-toggle { display: block; } /* Toto je pro mobilní toggle */
     #sidebar-close-toggle { display: none !important; }
-    .section-content, .plan-content { padding: 1.5rem; }
-    .daily-plan-carousel-container { padding: 0.5rem; } /* Menší padding pro mobil */
-    .single-day-plan-view .day-header, .single-day-plan-view .activity-list-item { padding-left: 1rem; padding-right: 1rem; } /* Menší padding pro mobil */
+    .section-content, .plan-content { padding: 1.5rem; } /* Padding pro obsah sekce na menších obrazovkách */
+    #dailyPlanCarouselContainer.section-content { padding: 0.5rem; } /* Menší padding pro carousel na mobilu */
+    .single-day-plan-view .day-header, .single-day-plan-view .activity-list-item { padding-left: 1rem; padding-right: 1rem; }
+    .section { padding: var(--section-padding-y) 1.5rem; } /* Upraven padding pro .section */
 }
 @media (max-width: 768px) {
     /* main { padding: 0 1rem; } -- již pokryto v main#main-content */
-    .dashboard-header { padding: 0.8rem 1rem; margin-left: 0; margin-right: 0;} /* Odebráno negativní margin */
-    body.scrolled .dashboard-header { margin: 0 0 var(--section-padding-y) 0; padding: 0.8rem 1rem; } /* Odebráno negativní margin */
+    .dashboard-header { padding: 0.8rem 1rem; margin-left: 0; margin-right: 0;}
+    body.scrolled .dashboard-header { margin: 0; padding: 0.8rem 1rem; } /* Odebráno var(--section-padding-y) z margin-bottom */
     .header-content { flex-direction: column; align-items: stretch; }
     .header-left-group { justify-content: space-between;}
     .header-actions { justify-content: flex-end; margin-top: 0.5rem; gap: 0.8rem; }
@@ -792,19 +833,18 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     .plan-actions { width: 100%; justify-content: center; }
     .plan-tabs { padding-bottom: 0.5rem; }
     .plan-tab { padding: 0.75rem 1rem; font-size: 0.9rem; }
-    .section-content, .plan-content { padding: 1.5rem; }
-    /* .section-title { padding: 1.2rem 1.5rem;} -- styl section-title je již definován */
-    .plan-history { grid-template-columns: 1fr; }
+    .section { padding: var(--section-padding-y) 1rem; } /* Upraven padding pro .section */
+    .section-content, .plan-content { padding: 1.2rem; } /* Sjednocení paddingu */
+    .plan-history { grid-template-columns: 1fr; padding: 1.2rem;}
     .step-navigation#verticalScheduleNav { padding: 1.2rem 1.5rem; }
-    /* .day-header, .activity-list-item { padding-left: 1.5rem; padding-right: 1.5rem; } - Již pokryto výše */
-    .single-day-plan-view .day-header, .single-day-plan-view .activity-list-item { padding-left: 1rem; padding-right: 1rem; }
+    .single-day-plan-view .day-header, .single-day-plan-view .activity-list-item { padding-left: 0.8rem; padding-right: 0.8rem; }
     .error-container { padding: 0 1.5rem; }
     .dashboard-footer { padding: 1.5rem 1rem; }
 }
 @media (max-width: 576px) {
     :root { --sidebar-width: 0; --sidebar-collapsed-width: 0;} /* Pro mobilní by se panel měl skrývat přes transform */
-    main#main-content { margin-left: 0; width: 100%; padding: 0 0.75rem; }
-    body.scrolled .dashboard-header { margin: 0 0 var(--section-padding-y) 0; padding: 0.75rem 1rem; }
+    main#main-content { margin-left: 0; width: 100%; } /* Odebrán padding z main, bude na .section */
+    body.scrolled .dashboard-header { margin: 0; padding: 0.75rem 1rem; } /* Odebráno var(--section-padding-y) z margin-bottom */
     .sidebar { transform: translateX(-100%); width: 260px; z-index: 1100; } /* Šířka pro mobilní zobrazení, když je aktivní */
     .sidebar.active { transform: translateX(0); }
     .sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; opacity: 1; max-width: 150px;} /* Obnovení viditelnosti pro aktivní mobilní sidebar */
@@ -823,6 +863,8 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     .single-day-plan-view .day-header, .single-day-plan-view .activity-list-item { padding-left: 0.8rem; padding-right: 0.8rem; }
     .activity-list-item .activity-title { font-size: 1rem; }
     .single-day-plan-view .day-header { font-size: 1.1rem; padding: 1rem; }
+    .section { padding: var(--section-padding-y) 0.75rem; } /* Upraven padding pro .section */
+    .section-content, .plan-content, .plan-history { padding: 1rem; } /* Sjednocení paddingu */
 }
 
 /* Reduced Motion */
