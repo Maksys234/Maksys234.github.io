@@ -1,7 +1,7 @@
 // dashboard.js
-// Verze: 27.0.5 - Opravena ReferenceError pro fetchClaimedStreakMilestones.
-// EDIT LOG: Developer Action -> Fixing ReferenceError: fetchClaimedStreakMilestones is not defined.
-// EDIT LOG: Stage -> Added fetchClaimedStreakMilestones function from oceneni.js to dashboard.js.
+// Verze: 27.0.6 - Obnovena chybějící funkce loadDashboardData.
+// EDIT LOG: Developer Action -> Fixing ReferenceError: loadDashboardData is not defined.
+// EDIT LOG: Stage -> Re-added the loadDashboardData function and ensured its dependencies are present.
 (function() {
     'use strict';
 
@@ -494,8 +494,7 @@
             ui.totalPointsValue.textContent = `${pointsValue} `;
         }
 
-        // MODIFIED: Logic for totalPointsFooter to always use latestTxData if available
-        const latestTx = fetchAndDisplayLatestCreditChange.latestTxData; // Použijeme uloženou hodnotu
+        const latestTx = fetchAndDisplayLatestCreditChange.latestTxData;
 
         if (latestTx && latestTx.amount !== undefined) {
             const amount = latestTx.amount;
@@ -719,9 +718,9 @@
 
             if (allRewardsAwardedSuccessfully) {
                 userStatsData = await fetchUserStats(currentUser.id, currentProfile);
-                // MODIFIED: Ensure latestTxData is fetched and then used by updateStatsCards
+                // Ensure latestTxData is fetched and then used by updateStatsCards
                 const latestTxData = await fetchAndDisplayLatestCreditChange(currentUser.id);
-                fetchAndDisplayLatestCreditChange.latestTxData = latestTxData; // Store it for updateStatsCards
+                fetchAndDisplayLatestCreditChange.latestTxData = latestTxData; 
                 updateStatsCards(userStatsData);
             }
         }
@@ -733,9 +732,119 @@
     // --- END: Event Listeners Setup ---
 
     // --- START: App Initialization ---
+    // --- NEW FUNCTION for fetching claimed streak milestones ---
+    async function fetchClaimedStreakMilestones(userId) {
+        if (!supabase || !userId) {
+            console.error("[ClaimedMilestones] Supabase client or User ID missing.");
+            return [];
+        }
+        console.log(`[ClaimedMilestones] Fetching claimed streak milestones for user ${userId}`);
+        try {
+            const { data, error } = await supabase
+                .from('claimed_streak_milestones')
+                .select('milestone_day, reward_key, claimed_at, reward_name')
+                .eq('user_id', userId);
+
+            if (error) throw error;
+            console.log(`[ClaimedMilestones] Fetched ${data?.length || 0} claimed milestones.`);
+            return data || [];
+        } catch (e) {
+            console.error('[ClaimedMilestones] Exception fetching claimed streak milestones:', e);
+            showToast('Chyba', 'Nepodařilo se načíst získané milníky série.', 'error');
+            return [];
+        }
+    }
+    // --- END: New Function ---
+
+    async function loadDashboardData(user, profile) {
+        const startTime = performance.now();
+        if (!user || !profile) {
+            showError("Chyba: Nelze načíst data bez profilu uživatele.", true);
+            setLoadingState('all', false);
+            return;
+        }
+        console.log("[MAIN] loadDashboardData: Start pro uživatele:", user.id);
+        hideError();
+        setLoadingState('stats', true);
+        setLoadingState('notifications', true);
+        setLoadingState('activities', true);
+        setLoadingState('creditHistory', true);
+
+        try {
+            await checkAndUpdateLoginStreak();
+            const claimedMilestones = await fetchClaimedStreakMilestones(user.id); // Fetch fresh here
+            currentProfile.claimed_streak_milestones = claimedMilestones;
+
+            updateSidebarProfile(currentProfile);
+            console.log("[MAIN] loadDashboardData: Paralelní načítání...");
+
+            const statsResultPromise = fetchUserStats(user.id, currentProfile);
+            const notificationsResultPromise = fetchNotifications(user.id, 5);
+            const dashboardListsResultPromise = (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderAll === 'function')
+                ? DashboardLists.loadAndRenderAll(user.id, 5)
+                : Promise.resolve({ status: 'fulfilled', value: console.warn("DashboardLists.loadAndRenderAll not found.") });
+            const latestCreditDataPromise = fetchAndDisplayLatestCreditChange(user.id);
+
+            const [statsResult, notificationsResult, dashboardListsResult, latestCreditDataResult] = await Promise.allSettled([
+                statsResultPromise,
+                notificationsResultPromise,
+                dashboardListsResultPromise,
+                latestCreditDataPromise
+            ]);
+
+            console.log("[MAIN] loadDashboardData: Основные данные получены.");
+
+            if (statsResult.status === 'fulfilled' && statsResult.value) {
+                userStatsData = statsResult.value;
+                // The latestTxData is now stored as a property of fetchAndDisplayLatestCreditChange by itself
+                updateStatsCards(userStatsData);
+            } else {
+                console.error("❌ Chyba při načítání statistik:", statsResult.reason);
+                showError("Nepodařilo se načíst statistiky.", false);
+                updateStatsCards(currentProfile);
+            }
+
+            if (notificationsResult.status === 'fulfilled' && notificationsResult.value) {
+                const { unreadCount, notifications } = notificationsResult.value;
+                renderNotifications(unreadCount, notifications);
+            } else {
+                console.error("❌ Chyba při načítání oznámení:", notificationsResult.reason);
+                renderNotifications(0, []);
+            }
+
+            if (dashboardListsResult.status === 'rejected') {
+                console.error("❌ Chyba при DashboardLists.loadAndRenderAll:", dashboardListsResult.reason);
+            }
+            // No need to explicitly handle latestCreditDataResult for totalPointsFooter here,
+            // as updateStatsCards now uses the stored fetchAndDisplayLatestCreditChange.latestTxData
+
+            const endTime = performance.now();
+            console.log(`[MAIN] loadDashboardData: Data načtena a zobrazena. Time: ${(endTime - startTime).toFixed(2)}ms`);
+        } catch (error) {
+            console.error('[MAIN] loadDashboardData: Zachycena hlavní chyba:', error);
+            showError('Nepodařilo se kompletně načíst data nástěnky: ' + error.message);
+            updateStatsCards(currentProfile);
+            renderNotifications(0, []);
+            if (typeof DashboardLists !== 'undefined') {
+                if (typeof DashboardLists.renderActivities === 'function') DashboardLists.renderActivities(null);
+                if (typeof DashboardLists.renderCreditHistory === 'function') DashboardLists.renderCreditHistory(null);
+            }
+            if (ui.latestCreditChange) ui.latestCreditChange.style.display = 'none';
+            if (ui.totalPointsFooter) ui.totalPointsFooter.innerHTML = `<i class="fas fa-exclamation-circle"></i> Chyba`;
+        } finally {
+            setLoadingState('stats', false);
+            setLoadingState('notifications', false);
+            setLoadingState('activities', false);
+            setLoadingState('creditHistory', false);
+            if (typeof initTooltips === 'function') initTooltips();
+            console.log("[MAIN] loadDashboardData: Blok finally dokončen.");
+        }
+    }
+
+
     async function initializeApp() {
         const totalStartTime = performance.now();
-        console.log("[INIT Dashboard] initializeApp: Start v27.0.5"); // Updated version
+        console.log("[INIT Dashboard] initializeApp: Start v27.0.6"); // Updated version
         let stepStartTime = performance.now();
 
         cacheDOMElements();
@@ -935,31 +1044,6 @@
     }
     // --- END: App Initialization ---
 
-    // --- START: New Function for fetching claimed streak milestones ---
-    async function fetchClaimedStreakMilestones(userId) {
-        if (!supabase || !userId) {
-            console.error("[ClaimedMilestones] Supabase client or User ID missing.");
-            return [];
-        }
-        console.log(`[ClaimedMilestones] Fetching claimed streak milestones for user ${userId}`);
-        try {
-            const { data, error } = await supabase
-                .from('claimed_streak_milestones')
-                .select('milestone_day, reward_key, claimed_at, reward_name')
-                .eq('user_id', userId);
-
-            if (error) throw error;
-            console.log(`[ClaimedMilestones] Fetched ${data?.length || 0} claimed milestones.`);
-            return data || [];
-        } catch (e) {
-            console.error('[ClaimedMilestones] Exception fetching claimed streak milestones:', e);
-            showToast('Chyba', 'Nepodařilo se načíst získané milníky série.', 'error');
-            return [];
-        }
-    }
-    // --- END: New Function ---
-
-
     // --- START THE APP ---
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initializeApp);
@@ -971,6 +1055,7 @@
     window.DashboardApp = {
         showToast,
     };
-// EDIT LOG: Developer Action -> Fixing ReferenceError: fetchClaimedStreakMilestones is not defined.
-// EDIT LOG: Stage -> Added fetchClaimedStreakMilestones function to dashboard.js.
+// EDIT LOG: Developer Action -> Fixing ReferenceError: loadDashboardData is not defined.
+// EDIT LOG: Stage -> Re-added the loadDashboardData function and ensured its dependencies are present.
+// EDIT LOG: Stage -> Ensured fetchClaimedStreakMilestones is defined.
 })();
