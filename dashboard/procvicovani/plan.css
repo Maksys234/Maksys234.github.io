@@ -4,6 +4,7 @@
 /* VERZE 27.5.1-PLAN-CSS: Výrazné vylepšení vzhledu sekce Aktuální plán (.vertical-schedule-list) */
 /* VERZE 27.5.2-PLAN-CSS: Přidáno vertikální posouvání pro dlouhé denní plány v karuselu. */
 /* VERZE 27.5.3-PLAN-CSS: Oprava vertikálního scrollu v denním plánu. */
+/* VERZE 28.5.4-PLAN-CSS: Zajištění vertikálního rolování pro všechny záložky (přidáno overflow-y: auto do .section-content). */
 
 /* --- START: Киберпанк CSS Тема (PŮVODNÍ KÓD UŽIVATELE + Doplnění + Vylepšení plánu) --- */
 /* --- Глобальные Настройки и Переменные --- */
@@ -355,13 +356,13 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 .section-content {
-    padding: 0; /* Původní bylo 0 */
+    padding: 0;
     display: flex;
     flex-direction: column;
     min-height: 150px;
     position: relative;
     flex-grow: 1;
-    /* overflow-y: auto; -- TOTO BUDE ODSTRANĚNO PRO .daily-plan-carousel-container */
+    overflow-y: auto; /* <--- ZAJIŠTĚNÍ VERTIKÁLNÍHO ROLOVÁNÍ PRO .section-content */
     scrollbar-width: thin;
     scrollbar-color: rgba(var(--accent-primary-rgb), 0.5) rgba(var(--accent-secondary-rgb), 0.08);
 }
@@ -369,7 +370,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 .section-content::-webkit-scrollbar-track { background: rgba(var(--accent-secondary-rgb), 0.08); border-radius: 4px;}
 .section-content::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.5); border-radius: 4px; }
 
-/* Specifické pro karusel, aby on sám neskroloval vertikálně */
+/* Specifické pro karusel, aby on sám neskroloval vertikálně - TOTO PŘEPIŠE overflow-y: auto; z .section-content */
 #dailyPlanCarouselContainer.section-content {
     overflow-y: hidden; /* Zabrání vertikálnímu scrollu tohoto kontejneru */
     overflow-x: hidden; /* Karusel bude řízen JS, ne nativním scrollem */
