@@ -3,14 +3,14 @@
  * Handles UI interactions, animations, infinite testimonial slider,
  * Hero text mask reveal, interactive gradient, enhanced visual effects,
  * and Advanced Cookie Consent Banner with gtag.js integration.
- * Version: v2.36 (Ensuring CSS control for Banner Position)
- * Author: Gemini Modification (enhanced from v2.35)
- * Date: 2025-05-28 // Обновлена дата
+ * Version: v2.37 (Pop-up Cookie Banner Overlay Management)
+ * Author: Gemini Modification (enhanced from v2.36)
+ * Date: 2025-05-29
  *
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Ready. Initializing JUSTAX Interface v2.36 (Banner Position Fix Attempt)...");
+    console.log("DOM Ready. Initializing JUSTAX Interface v2.37 (Pop-up Cookie Banner Overlay Management)...");
 
     // --- Global Variables & DOM References ---
     const body = document.body;
@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Cookie Consent Elements ---
     const cookieConsentBanner = document.getElementById('cookie-consent-banner');
+    const cookieConsentOverlay = document.getElementById('cookie-consent-overlay'); // Added overlay reference
     const cookieConsentAcceptAllBtn = document.getElementById('cookie-consent-accept-all');
     const cookieConsentRejectAllBtn = document.getElementById('cookie-consent-reject-all');
     const cookieConsentCustomizeBtn = document.getElementById('cookie-consent-customize');
@@ -275,20 +276,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const direction = parseInt(sliderTrack.dataset.slideDirection || "0"); if (direction === 0) { throw new Error("No slide direction."); }
             let cardToMoveElement, newCardData;
             if (direction > 0) { // Sliding left (next)
-                cardToMoveElement = cardsInTrack.shift(); 
+                cardToMoveElement = cardsInTrack.shift();
                 sliderTrack.removeChild(cardToMoveElement);
                 newCardData = getRandomLocalTestimonial();
                 updateCardContent(cardToMoveElement, newCardData);
-                sliderTrack.appendChild(cardToMoveElement); 
+                sliderTrack.appendChild(cardToMoveElement);
                 cardsInTrack.push(cardToMoveElement);
                 testimonialDataCache.shift();
                 testimonialDataCache.push(newCardData);
             } else { // Sliding right (prev)
-                cardToMoveElement = cardsInTrack.pop(); 
+                cardToMoveElement = cardsInTrack.pop();
                 sliderTrack.removeChild(cardToMoveElement);
                 newCardData = getRandomLocalTestimonial();
                 updateCardContent(cardToMoveElement, newCardData);
-                sliderTrack.insertBefore(cardToMoveElement, sliderTrack.firstChild); 
+                sliderTrack.insertBefore(cardToMoveElement, sliderTrack.firstChild);
                 cardsInTrack.unshift(cardToMoveElement);
                 testimonialDataCache.pop();
                 testimonialDataCache.unshift(newCardData);
@@ -313,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const initializeInfiniteSlider = async () => {
-        console.log("Starting infinite slider initialization v2.36...");
+        console.log("Starting infinite slider initialization v2.37...");
         if (!sliderTrack || !prevBtn || !nextBtn) { console.error("Slider init fail: core elements missing."); return; }
         isSliding = true; sliderInitialLoadComplete = false; prevBtn.disabled = true; nextBtn.disabled = true;
         sliderTrack.innerHTML = ''; testimonialDataCache = []; cardsInTrack = []; cardWidthAndMargin = 0; stableVisibleStartIndex = config.testimonials.bufferCards;
@@ -398,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- AI Demo Simulation ---
     const aiDemoSteps = [
-        { type: 'status', text: 'AI jádro v2.36 aktivní. Připraven na analýzu...', progress: 5 }, // Updated version
+        { type: 'status', text: 'AI jádro v2.37 aktivní. Připraven na analýzu...', progress: 5 }, // Updated version
         { type: 'status', text: 'Probíhá skenování interakcí uživatele ID: 734B...', delay: 700 },
         { type: 'input', text: 'ANALYZE_USER_PERFORMANCE --id=734B --subject=algebra --level=intermediate' },
         { type: 'process', text: 'Zpracování dotazu na výkon...', duration: 900, progress: 20 },
@@ -715,12 +716,16 @@ document.addEventListener('DOMContentLoaded', () => {
         updateGtagConsent(preferences);
         saveConsentPreferences(preferences);
         setProcessedCookie(config.cookies.consentProcessedCookieName, 'true', config.cookies.consentCookieExpirationDays);
+
         if (cookieConsentBanner) {
-            cookieConsentBanner.classList.remove('visible'); // For animated hiding
-             // Keep style.display='none' logic for cases where animation is not desired or for robustness
-            setTimeout(() => { // Ensure banner is fully hidden after animation
-              if (!cookieConsentBanner.classList.contains('visible')) { // Check if it wasn't re-shown
+            cookieConsentBanner.classList.remove('visible');
+            if (cookieConsentOverlay) cookieConsentOverlay.classList.remove('visible'); // Hide overlay
+            setTimeout(() => {
+              if (!cookieConsentBanner.classList.contains('visible')) {
                 cookieConsentBanner.style.display = 'none';
+                if (cookieConsentOverlay && !cookieConsentOverlay.classList.contains('visible')) { // Ensure overlay is also display:none
+                    cookieConsentOverlay.style.display = 'none';
+                }
               }
             }, 500); // Match CSS transition duration
         }
@@ -759,12 +764,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 toggle.checked = config.cookies.defaultConsentState[consentType] === 'granted';
             }
         });
-        // Initialize collapsible sections state (all collapsed by default on show)
+
         cookieCategoryHeaders.forEach(header => {
             const descId = header.getAttribute('aria-controls');
             const descElement = document.getElementById(descId);
             if (descElement) {
-                 // Only collapse if it's not the 'necessary' cookies category, which is always expanded
                 if (header.parentElement.querySelector('input[name="necessary"]')) {
                     header.classList.remove('collapsed');
                     header.setAttribute('aria-expanded', 'true');
@@ -777,13 +781,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        cookieSettingsModal.classList.add('visible');
-        if (cookieConsentBanner) {
+        cookieSettingsModal.classList.add('visible'); // This modal has its own overlay effect via CSS
+
+        if (cookieConsentBanner) { // Hide the main banner and its specific overlay
             cookieConsentBanner.classList.remove('visible');
-            // Banner will be set to display:none by applyConsentDecision or if modal is just opened
+            if (cookieConsentOverlay) cookieConsentOverlay.classList.remove('visible');
              setTimeout(() => {
                  if (!cookieConsentBanner.classList.contains('visible')) {
                      cookieConsentBanner.style.display = 'none';
+                     if (cookieConsentOverlay && !cookieConsentOverlay.classList.contains('visible')) {
+                         cookieConsentOverlay.style.display = 'none';
+                     }
                    }
              }, 500);
         }
@@ -791,18 +799,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const hideCookieSettingsModal = () => {
         if (cookieSettingsModal) cookieSettingsModal.classList.remove('visible');
-        // If consent hasn't been processed, show the banner again
         const consentProcessed = getProcessedCookie(config.cookies.consentProcessedCookieName) === 'true';
         if (!consentProcessed && cookieConsentBanner) {
-            // Сброс инлайновых стилей, которые могут мешать CSS позиционированию
             cookieConsentBanner.style.position = '';
             cookieConsentBanner.style.bottom = '';
             cookieConsentBanner.style.left = '';
             cookieConsentBanner.style.width = '';
             cookieConsentBanner.style.transform = '';
+            cookieConsentBanner.style.opacity = '';
 
-            cookieConsentBanner.style.display = 'flex'; // or 'block' depending on original display type
-            requestAnimationFrame(() => { // Ensure display is set before trying to animate
+            cookieConsentBanner.style.display = 'flex';
+            if (cookieConsentOverlay) {
+                cookieConsentOverlay.style.display = 'block'; // Or 'flex' based on its CSS
+                requestAnimationFrame(() => {
+                    cookieConsentOverlay.classList.add('visible');
+                });
+            }
+            requestAnimationFrame(() => {
                  cookieConsentBanner.classList.add('visible');
             });
         }
@@ -821,7 +834,6 @@ document.addEventListener('DOMContentLoaded', () => {
         applyConsentDecision(newPrefs);
     };
 
-    // Function to toggle cookie category description
     const toggleCookieCategory = (headerElement) => {
         const descId = headerElement.getAttribute('aria-controls');
         const descElement = document.getElementById(descId);
@@ -834,35 +846,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     const initializeCookieConsentFramework = () => {
-        console.log("Initializing Cookie Consent Framework v2.36...");
+        console.log("Initializing Cookie Consent Framework v2.37...");
+        if (!cookieConsentBanner || !cookieConsentOverlay) { // Check for overlay too
+            console.warn("Cookie consent banner or overlay element not found in HTML. Framework halted.");
+            return;
+        }
+
         const consentProcessed = getProcessedCookie(config.cookies.consentProcessedCookieName) === 'true';
-        const currentPreferences = getConsentPreferences(); 
+        const currentPreferences = getConsentPreferences();
         updateGtagConsent(currentPreferences);
 
-        if (cookieConsentBanner) { // Check if banner element exists
-            if (consentProcessed) {
-                console.log("Cookie consent already processed. Banner remains hidden.");
-                cookieConsentBanner.style.display = 'none'; // Ensure it's hidden
-                cookieConsentBanner.classList.remove('visible');
-            } else {
-                console.log("Cookie consent not processed. Displaying banner.");
-                // Сброс потенциально конфликтующих инлайновых стилей перед показом
-                cookieConsentBanner.style.position = '';
-                cookieConsentBanner.style.bottom = '';
-                cookieConsentBanner.style.left = '';
-                cookieConsentBanner.style.width = '';
-                cookieConsentBanner.style.transform = '';
-                // Убедимся, что opacity также сброшен, чтобы CSS мог им управлять
-                cookieConsentBanner.style.opacity = '';
-
-
-                cookieConsentBanner.style.display = 'flex'; // Set display before adding visible for animation
-                requestAnimationFrame(() => { // Wait for next frame to apply class for transition
-                    cookieConsentBanner.classList.add('visible');
-                });
-            }
+        if (consentProcessed) {
+            console.log("Cookie consent already processed. Banner and overlay remain hidden.");
+            cookieConsentBanner.style.display = 'none';
+            cookieConsentOverlay.style.display = 'none';
+            cookieConsentBanner.classList.remove('visible');
+            cookieConsentOverlay.classList.remove('visible');
         } else {
-            console.warn("Cookie consent banner element not found in HTML.");
+            console.log("Cookie consent not processed. Displaying banner and overlay.");
+            cookieConsentBanner.style.position = '';
+            cookieConsentBanner.style.bottom = '';
+            cookieConsentBanner.style.left = '';
+            cookieConsentBanner.style.width = '';
+            cookieConsentBanner.style.transform = '';
+            cookieConsentBanner.style.opacity = '';
+
+            cookieConsentBanner.style.display = 'flex';
+            cookieConsentOverlay.style.display = 'block'; // Or 'flex' or as defined in CSS default state
+
+            requestAnimationFrame(() => {
+                cookieConsentBanner.classList.add('visible');
+                cookieConsentOverlay.classList.add('visible');
+            });
         }
 
 
@@ -883,7 +898,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (cookieSettingsAcceptAllModalBtn) cookieSettingsAcceptAllModalBtn.addEventListener('click', handleAcceptAll);
         else console.warn("#cookie-settings-accept-all-modal button not found.");
-        
+
         if (cookieSettingsTriggerFooter) {
             cookieSettingsTriggerFooter.addEventListener('click', (event) => {
                 event.preventDefault();
@@ -891,19 +906,17 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } else { console.warn("#cookie-settings-trigger (footer link) not found."); }
 
-        // Add event listeners for collapsible cookie categories
         cookieCategoryHeaders.forEach(header => {
-            // Don't make "Nezbytně nutné" collapsible if it's always on and expanded
             const necessaryInput = header.querySelector('input[name="necessary"]');
             if (necessaryInput && necessaryInput.disabled && necessaryInput.checked) {
                 const descId = header.getAttribute('aria-controls');
                 const descElement = document.getElementById(descId);
                 if (descElement) {
-                    header.classList.remove('collapsed'); // Ensure it's not collapsed
+                    header.classList.remove('collapsed');
                     header.setAttribute('aria-expanded', 'true');
-                    descElement.classList.add('expanded'); // Ensure it's expanded
+                    descElement.classList.add('expanded');
                 }
-                return; // Skip adding click listener
+                return;
             }
 
             header.addEventListener('click', () => toggleCookieCategory(header));
@@ -918,9 +931,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Initialize Components ---
     try {
-        handleScroll(); 
+        handleScroll();
         initializeInfiniteSlider();
-        initializeCookieConsentFramework(); 
+        initializeCookieConsentFramework();
     } catch (error) {
         console.error("Error during final initializations:", error);
     }
@@ -933,5 +946,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 500);
 
-    console.log("JUSTAX Interface v2.36 (Banner Position Fix Attempt) Initialization Complete.");
+    console.log("JUSTAX Interface v2.37 (Pop-up Cookie Banner Overlay Management) Initialization Complete.");
 });
+
+/*
+    EDIT LOGS:
+    Developer Goal: Modify the cookie consent banner to appear as a pop-up modal with an overlay,
+                    ensuring JavaScript correctly manages the visibility of both the banner and its overlay.
+    Stage:
+        - Added `cookieConsentOverlay` constant to reference the overlay DOM element.
+        - Modified `initializeCookieConsentFramework`:
+            - If consent is not processed, it now makes both `cookieConsentBanner` and `cookieConsentOverlay` visible using `display` style and then adding the `.visible` class for animation.
+            - If consent is processed, both are set to `display: none` and the `.visible` class is removed.
+        - Modified `applyConsentDecision`:
+            - When consent is given, it now also removes the `.visible` class from `cookieConsentOverlay` and sets its `display` to `none` after a timeout (matching banner hiding animation).
+        - Modified `showCookieSettingsModal`:
+            - When the settings modal is shown, it explicitly hides the main `cookieConsentBanner` and its `cookieConsentOverlay` because the settings modal has its own overlay effect.
+        - Modified `hideCookieSettingsModal`:
+            - If consent is not yet processed and the settings modal is closed, it re-shows both `cookieConsentBanner` and `cookieConsentOverlay`.
+        - Ensured that `display` styles are correctly managed alongside `classList.toggle('visible')` to prevent conflicts between CSS-driven animations and JS direct style manipulation.
+        - Updated version number to v2.37 and added a note about Pop-up Cookie Banner Overlay Management.
+*/
