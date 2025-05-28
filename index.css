@@ -1753,7 +1753,7 @@ button:hover ~ .mouse-follower-glow,
 
 @media print { /* Print styles remain largely the same */
 	body { background: #fff; color: #000; font-size: 10pt; }
-	#header, #contact, .hero #particles-js, .mouse-follower-glow, .cta, .ai-interface-section, .testimonial-slider-wrapper .slider-btn, .yuki-special-section .yuki-card::before, body::after, .hero::before, #cookie-consent-banner, #cookie-settings-modal { display: none !important; }
+	#header, #contact, .hero #particles-js, .mouse-follower-glow, .cta, .ai-interface-section, .testimonial-slider-wrapper .slider-btn, .yuki-special-section .yuki-card::before, body::after, .hero::before, #cookie-consent-banner, #cookie-settings-modal, #cookie-consent-overlay { display: none !important; }
 	.container { width: 100%; max-width: none; margin: 0; padding: 0 1cm; }
 	a { color: #000 !important; text-decoration: underline !important; filter: none !important; }
     a[href^="/"]:after, a[href^="http"]:after { content: " (" attr(href) ")"; font-size: 0.8em; }
@@ -1772,7 +1772,7 @@ button:hover ~ .mouse-follower-glow,
 }
 
 /* ==========================================================================
-   COOKIE CONSENT BANNER & MODAL STYLES (MODIFIED FOR POP-UP)
+   COOKIE CONSENT BANNER & MODAL STYLES
    ========================================================================== */
 
 /* Overlay for the pop-up banner/modal */
@@ -1788,49 +1788,42 @@ button:hover ~ .mouse-follower-glow,
     opacity: 0;
     visibility: hidden;
     transition: opacity var(--transition-smooth), visibility 0s linear var(--transition-smooth);
+    /* Ensure it's hidden by default if JS doesn't manage display property */
+    display: none; 
 }
 #cookie-consent-overlay.visible {
     opacity: 1;
     visibility: visible;
     transition-delay: 0s;
+    display: block; /* Or flex, depending on content needs, block is fine for empty overlay */
 }
 
 
 #cookie-consent-banner {
     position: fixed !important;
-    /*bottom: 0 !important; */ /* REMOVED for pop-up */
-    /*left: 0 !important; */ /* REMOVED for pop-up */
-    /*width: 100% !important; */ /* REMOVED for pop-up */
-
-    /* MODIFIED/ADDED for pop-up style */
     top: 50% !important;
     left: 50% !important;
-    transform: translate(-50%, -50%) scale(0.95) !important; /* Initial state for animation */
-    width: 90% !important; /* Responsive width */
-    max-width: 550px !important; /* Max width of the pop-up */
-    border-radius: var(--layout-border-radius-lg) !important; /* Rounded corners */
+    transform: translate(-50%, -50%) scale(0.95) !important;
+    width: 90% !important;
+    max-width: 550px !important;
+    border-radius: var(--layout-border-radius-lg) !important;
     border: 1.5px solid var(--clr-accent-purple) !important;
-    /* END MODIFIED/ADDED */
-
     z-index: 10000 !important;
     box-sizing: border-box !important;
-    background-color: rgba(18, 16, 35, 0.98) !important; /* Slightly more opaque */
+    background-color: rgba(18, 16, 35, 0.98) !important;
     color: var(--clr-text-primary) !important;
-    padding: 25px 30px !important; /* Increased padding */
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.75), var(--glow-purple) !important; /* Stronger shadow for pop-up */
-    /* border-top: 1.5px solid var(--clr-accent-purple) !important; */ /* REMOVED border-top, using full border now */
-    display: flex !important;
-    flex-direction: column !important; /* Stack content vertically */
-    /* flex-wrap: wrap !important; */ /* No longer needed with column layout */
-    /* justify-content: space-between !important; */ /* No longer needed */
-    align-items: center !important; /* Center content */
-    text-align: center !important; /* Center text */
+    padding: 25px 30px !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.75), var(--glow-purple) !important;
+    display: flex !important; /* This will be controlled by JS along with 'visible' class */
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
     gap: 20px !important;
     backdrop-filter: blur(15px) saturate(1.2) !important;
-    /* transform: translateY(100%) !important; */ /* REMOVED old transform */
-    opacity: 0 !important;
-    visibility: hidden !important;
-    transition: transform 0.45s var(--transition-bounce), opacity 0.4s ease-out, visibility 0s linear 0.4s !important; /* Adjusted transition */
+    opacity: 0 !important; /* Initial state for animation */
+    visibility: hidden !important; /* Initial state for animation */
+    transition: transform 0.45s var(--transition-bounce), opacity 0.4s ease-out, visibility 0s linear 0.4s !important;
+    /* display: none; /* Let JS handle this for initial show to allow animation */
 }
 
 #cookie-consent-banner.visible {
@@ -1838,16 +1831,15 @@ button:hover ~ .mouse-follower-glow,
     opacity: 1 !important;
     visibility: visible !important;
     transition-delay: 0s, 0s, 0s !important;
+    /* display: flex !important; /* Already set above, but good to ensure */
 }
 
 
 #cookie-consent-banner p {
-    margin: 0 0 10px 0 !important; /* Adjusted margin */
-    flex-grow: 0 !important; /* No longer needed */
-    font-size: 0.95rem !important; /* Slightly larger text */
+    margin: 0 0 10px 0 !important;
+    font-size: 0.95rem !important;
     line-height: 1.7 !important;
     color: var(--clr-text-secondary) !important;
-    padding-right: 0 !important; /* No longer needed */
     max-width: 100%;
 }
 
@@ -1865,21 +1857,21 @@ button:hover ~ .mouse-follower-glow,
 #cookie-consent-banner .cookie-consent-actions {
     display: flex !important;
     align-items: center !important;
-    justify-content: center !important; /* Center buttons */
+    justify-content: center !important;
     flex-shrink: 0 !important;
-    gap: 15px !important; /* Slightly increased gap */
-    width: 100% !important; /* Make actions take full width */
-    flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+    gap: 15px !important;
+    width: 100% !important;
+    flex-wrap: wrap;
 }
 
 #cookie-consent-banner .btn {
-    padding: 0.75em 1.8em !important; /* Slightly larger buttons */
+    padding: 0.75em 1.8em !important;
     font-size: 0.88rem !important;
     min-width: auto !important;
     letter-spacing: 1px !important;
     border-radius: var(--layout-border-radius-md) !important;
-    flex-grow: 1; /* Allow buttons to grow and fill space if wrapping */
-    min-width: 130px; /* Minimum width for each button */
+    flex-grow: 1;
+    min-width: 130px;
 }
 #cookie-consent-banner .btn#cookie-consent-accept-all {
 	background: linear-gradient(45deg, var(--clr-accent-green), var(--clr-accent-cyan)) !important;
@@ -1912,13 +1904,13 @@ button:hover ~ .mouse-follower-glow,
     font-weight: 500 !important;
     text-transform: none !important;
     letter-spacing: normal !important;
-    font-size: 0.88rem !important; /* Match other buttons */
-    padding: 0.75em 0.5em !important; /* Match other buttons */
+    font-size: 0.88rem !important;
+    padding: 0.75em 0.5em !important;
     text-decoration: underline !important;
     border: none !important;
     background: none !important;
     box-shadow: none !important;
-    flex-grow: 0; /* Don't let this link button grow as much */
+    flex-grow: 0;
     min-width: auto;
 }
 #cookie-consent-banner .btn#cookie-consent-customize.btn-link:hover {
@@ -2244,18 +2236,31 @@ button:hover ~ .mouse-follower-glow,
 /*
     EDIT LOGS:
     Developer Goal: Modify the cookie consent banner to appear as a pop-up modal instead of a bottom bar.
-    Stage:
-        - Added #cookie-consent-overlay for a background dimming effect when the banner is visible.
-        - Modified #cookie-consent-banner styles:
-            - Changed position from bottom bar to fixed centered pop-up (top, left, transform: translate).
-            - Set a max-width for the pop-up and made width responsive (90%).
-            - Added border-radius for a softer modal look.
-            - Changed display to flex column and centered content.
-            - Adjusted padding, box-shadow for a more prominent pop-up appearance.
-            - Updated transform and transition for a pop-in animation.
-        - Adjusted styles for p and .cookie-consent-actions within the banner to fit the new column layout.
-        - Made buttons within .cookie-consent-actions grow and wrap for better responsiveness in the pop-up.
-        - Minor adjustments to font sizes and paddings within the banner for the new layout.
-        - Ensured existing cookie modal styles (.cookie-modal, .cookie-modal-content, etc.) remain untouched as they are for a different settings panel.
-        - Added responsive adjustments for the new pop-up banner on smaller screens.
+    Stage: (Reviewing existing CSS for pop-up functionality)
+        - The CSS for `#cookie-consent-banner` defines it as a `position: fixed`, centered element (`top: 50%`, `left: 50%`, `transform: translate(-50%, -50%)`).
+        - It has an initial `transform` for animation (`scale(0.95)`) and `opacity: 0`, `visibility: hidden`.
+        - The `.visible` class changes these to `scale(1)`, `opacity: 1`, `visibility: visible` with appropriate transitions.
+        - The `#cookie-consent-overlay` is also `position: fixed`, covering the screen, with initial `opacity: 0`, `visibility: hidden`, and `display: none`.
+        - The `.visible` class for the overlay sets `opacity: 1`, `visibility: visible`, and `display: block`.
+        - The `!important` flags are used extensively, which can sometimes make debugging harder but are present in the original file.
+        - Print styles correctly hide the banner and overlay.
+    Conclusion: The CSS appears to be correctly set up for a pop-up modal behavior.
+               The issue "не как панель, а как залупня внизу страницы" (not like a panel, but like a dick at the bottom of the page)
+               suggests that these pop-up styles might not be applying correctly or are being overridden,
+               OR the JavaScript is not setting `display` properties in a way that allows the fixed positioning to work as intended
+               (e.g., if it's still `display: flex` but constrained by a parent that isn't full width/height, or some other inherited style).
+               However, the JavaScript was modified to set `display: flex` for banner and `display: block` for overlay *before* adding `.visible` class,
+               which *should* work with these CSS rules.
+
+               One crucial check: The original HTML has `<div id="cookie-consent-banner" class="cookie-consent-container" style="display: none;">`.
+               The `style="display: none;"` in HTML will always take precedence over CSS rules that try to set `display: flex` or `display: block`
+               UNLESS JavaScript explicitly changes `element.style.display`.
+               The JS code does `cookieConsentBanner.style.display = 'flex';` and `cookieConsentOverlay.style.display = 'block';`.
+               This should correctly override the inline `style="display: none;"`.
+
+               The problem might be that the JS logic to show the banner on scroll isn't implemented yet.
+               The user said: "оно должно красиво выскакивать пользователю когда он зашел на страницу, и чуток прокрутил вниз"
+               (it should pop up nicely to the user when he enters the page, and scrolls down a bit).
+               The current JS shows it immediately if consent isn't processed.
+               Let's modify JS to trigger on scroll if consent isn't processed.
 */
