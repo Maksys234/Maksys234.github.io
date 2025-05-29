@@ -100,9 +100,14 @@
         }
 
         /* Ensuring sections controlled by plan.js logic are initially hidden if not active */
-        .section:not(.visible-section) {
+        .section:not(.visible-section):not(#practice-tab-content) { /* Exclude practice-tab-content from this rule if it's managed by tab-content.active */
             display: none !important;
         }
+         /* Ensure initially active tab content is visible */
+        .tab-content.active {
+            display: block !important; /* Or flex, depending on its layout needs */
+        }
+
 
     </style>
 </head>
@@ -192,14 +197,90 @@
 
             <div class="tabs-wrapper" id="tabs-wrapper" style="display: none;">
                 <div class="content-tabs" id="content-tabs">
-                    <div class="plan-tab active" data-tab="current"> <i class="fas fa-globe"></i> Obecné </div>
-                    <div class="plan-tab" data-tab="history"> <i class="fas fa-route"></i> Plán </div>
-                    <div class="plan-tab" data-tab="create"> <i class="fas fa-person-chalkboard"></i> Výuka </div>
+                    <div class="plan-tab active" data-tab="practice-tab"> <i class="fas fa-globe"></i> Obecné </div>
+                    <div class="plan-tab" data-tab="current"> <i class="fas fa-route"></i> Plán </div>
+                    <div class="plan-tab" data-tab="vyuka-tab"> <i class="fas fa-person-chalkboard"></i> Výuka </div>
                 </div>
             </div>
 
             <div class="tab-content-container" id="main-tab-content-area" style="display: block;">
-                <div class="section visible-section" id="currentPlanSection">
+                <div class="tab-content active" id="practice-tab-content">
+                    <section class="stats-section">
+                        <h2 class="section-title" data-animate style="--animation-order: 1;"><i class="fas fa-chart-pie"></i>Celkový Přehled</h2>
+                        <div class="dashboard-grid loading" id="stats-cards">
+                            <div class="dashboard-card card loading"> <div class="loading-skeleton"> <div class="skeleton" style="height: 20px; width: 60%; margin-bottom: 1rem;"></div> <div class="skeleton" style="height: 35px; width: 40%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 16px; width: 80%; margin-bottom: 1.5rem;"></div> <div class="skeleton" style="height: 14px; width: 50%;"></div> </div> </div>
+                             <div class="dashboard-card card loading"> <div class="loading-skeleton"> <div class="skeleton" style="height: 20px; width: 70%; margin-bottom: 1rem;"></div> <div class="skeleton" style="height: 35px; width: 30%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 16px; width: 75%; margin-bottom: 1.5rem;"></div> <div class="skeleton" style="height: 14px; width: 55%;"></div> </div> </div>
+                             <div class="dashboard-card card loading"> <div class="loading-skeleton"> <div class="skeleton" style="height: 20px; width: 50%; margin-bottom: 1rem;"></div> <div class="skeleton" style="height: 35px; width: 35%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 16px; width: 85%; margin-bottom: 1.5rem;"></div> <div class="skeleton" style="height: 14px; width: 60%;"></div> </div> </div>
+                             <div class="dashboard-card card loading"> <div class="loading-skeleton"> <div class="skeleton" style="height: 20px; width: 65%; margin-bottom: 1rem;"></div> <div class="skeleton" style="height: 35px; width: 40%; margin-bottom: 0.8rem;"></div> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 1.5rem;"></div> <div class="skeleton" style="height: 14px; width: 45%;"></div> </div> </div>
+                        </div>
+                     </section>
+
+                     <section class="shortcuts-section">
+                        <h2 class="section-title" data-animate style="--animation-order: 6;"><i class="fas fa-rocket"></i>Rychlé Akce</h2>
+                        <div class="shortcut-grid" id="shortcuts-grid">
+                            <a href="test1.html" class="shortcut-card card" data-animate style="--animation-order: 1;">
+                                <div class="shortcut-icon">
+                                    <i class="fas fa-diagnoses"></i>
+                                </div>
+                                <h3 class="shortcut-title">Nový Test</h3>
+                                <p class="shortcut-desc">Spusťte diagnostický nebo cvičný test.</p>
+                            </a>
+                            <a href="plan.html" class="shortcut-card card" data-animate style="--animation-order: 2;">
+                                <div class="shortcut-icon">
+                                    <i class="fas fa-route"></i>
+                                </div>
+                                <h3 class="shortcut-title">Studijní Plán</h3>
+                                <p class="shortcut-desc">Pokračujte ve svém aktuálním plánu.</p>
+                            </a>
+                            <a href="vyuka/vyuka.html" class="shortcut-card card" data-animate style="--animation-order: 3;">
+                                <div class="shortcut-icon">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <h3 class="shortcut-title">AI Výuka</h3>
+                                <p class="shortcut-desc">Učte se s interaktivním AI tutorem.</p>
+                            </a>
+                             <a href="../pokrok.html" class="shortcut-card card" data-animate style="--animation-order: 4;">
+                                <div class="shortcut-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <h3 class="shortcut-title">Můj Pokrok</h3>
+                                <p class="shortcut-desc">Sledujte své statistiky a zlepšení.</p>
+                            </a>
+                        </div>
+                     </section>
+
+                    <section class="section card data-table-section" id="topic-progress-section" data-animate style="--animation-order: 8; margin-top: 2.5rem;">
+                        <div class="loading-overlay hidden" id="topic-progress-table-loading-overlay"> <div class="loading-spinner"></div> </div>
+                        <div class="data-table-header">
+                            <h2 class="section-title data-table-title"><i class="fas fa-layer-group"></i>Pokrok v Tématech</h2>
+                            <div class="data-table-actions">
+                                </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table" id="topic-progress-table" style="display: none;">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="topic_name">Téma</th>
+                                        <th data-sort="progress_percentage">Pokrok (%)</th>
+                                        <th data-sort="last_studied_at">Naposledy Studováno</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="topic-progress-body">
+                                    <tr class="skeleton-row"><td><div class="skeleton text-sm" style="width: 150px;"></div></td><td><div class="skeleton text-sm" style="width: 50px;"></div></td><td><div class="skeleton text-sm" style="width: 100px;"></div></td></tr>
+                                    <tr class="skeleton-row"><td><div class="skeleton text-sm" style="width: 180px;"></div></td><td><div class="skeleton text-sm" style="width: 60px;"></div></td><td><div class="skeleton text-sm" style="width: 90px;"></div></td></tr>
+                                    <tr class="skeleton-row"><td><div class="skeleton text-sm" style="width: 120px;"></div></td><td><div class="skeleton text-sm" style="width: 40px;"></div></td><td><div class="skeleton text-sm" style="width: 110px;"></div></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="empty-state" id="topic-progress-empty-state" style="display: none;">
+                            <i class="fas fa-book-reader"></i>
+                             <h3>Žádná data o pokroku</h3>
+                            <p>Zatím nemáte zaznamenaný žádný pokrok v tématech. Začněte procvičovat!</p>
+                        </div>
+                        </section>
+                </div>
+
+                 <div class="section" id="currentPlanSection" style="display:none;">
                     <div class="loader-container visible-loader" id="currentPlanLoader" style="display: none;">
                         <div class="loading-spinner"></div>
                         <p>Načítám aktuální plán...</p>
@@ -227,36 +308,9 @@
 
                     <div id="currentPlanEmptyState" class="section-content" style="display:none;">
                         </div>
+                     </div>
 
-                    </div>
-
-                 <div class="section" id="historyPlanSection" style="display:none;">
-                    <section class="study-plan-section card loading" id="study-plan-container">
-                        <h2 class="section-title"><i class="fas fa-route"></i>Aktuální Studijní Plán</h2>
-                        <div class="loading-overlay hidden" id="study-plan-loading"> <div class="loading-spinner"></div> </div>
-                        <div id="study-plan-content">
-                            </div>
-                        <div class="empty-state enhanced-empty-state" id="study-plan-empty" style="display:none;">
-                            <div class="empty-state-icon-enhanced">
-                                <i class="fas fa-map-signs"></i>
-                            </div>
-                            <h3 class="empty-state-title-enhanced">Vesmírný Průzkumník Bez Mapy?</h3>
-                            <p class="empty-state-text-enhanced">Vypadá to, že tvůj studijní plán je zatím prázdná hvězdná mapa. Žádné obavy, každý velký objevitel někde začínal!</p>
-                            <div class="empty-state-actions-enhanced">
-                                <p class="empty-state-suggestion">Absolvoval/a jsi už <strong>diagnostický test</strong>? To je první krok k vytvoření tvé osobní trasy vesmírem vědomostí.</p>
-                                <button class="btn btn-primary btn-lg" id="create-new-plan-btn-empty">
-                                    <i class="fas fa-drafting-compass"></i> Vytvořit Nový Plán
-                                </button>
-                                <button class="btn btn-secondary" id="go-to-diagnostic-test-btn-empty">
-                                    <i class="fas fa-rocket"></i> K Diagnostickému Testu
-                                </button>
-                            </div>
-                            <p class="empty-state-info-enhanced"><small>Tvůj osobní studijní plán ti pomůže navigovat výukou a dosáhnout tvých cílů rychleji.</small></p>
-                        </div>
-                    </section>
-                 </div>
-
-                 <div class="section" id="createPlanSection" style="display:none;">
+                 <div class="tab-content" id="vyuka-tab-content" style="display:none;">
                      <section class="vyuka-section card">
                         <h2 class="section-title"><i class="fas fa-person-chalkboard"></i>Výuka s AI</h2>
                         <div class="empty-state" style="display:flex;"> <i class="fas fa-robot empty-state-icon"></i>
@@ -412,7 +466,7 @@
                     </div>
                     <div class="form-group" id="review-topic-ratings-group">
                         <legend>Jak dobře si myslíš, že ovládáš následující témata?</legend>
-                        <p><small>(1 hvězda = vůbec nerozumím, 5 hvězd = ovládám perfektně)</small></p>
+                        <p><small>(1 hvězda = vůbec nerozumím, 5 hvěзд = ovládám perfektně)</small></p>
                         <div id="topic-ratings-container">
                             <div class="loading-skeleton" style="padding: 1rem;"> <div class="skeleton" style="height: 30px; width: 80%; margin-bottom: 0.8rem;"></div>
                                 <div class="skeleton" style="height: 30px; width: 70%; margin-bottom: 0.8rem;"></div>
