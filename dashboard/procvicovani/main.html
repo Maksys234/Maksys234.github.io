@@ -99,6 +99,11 @@
             height: 20px;
         }
 
+        /* Ensuring sections controlled by plan.js logic are initially hidden if not active */
+        .section:not(.visible-section) {
+            display: none !important;
+        }
+
     </style>
 </head>
 <body class="dark">
@@ -162,7 +167,7 @@
                         <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
                             <div class="notifications-header">
                                 <span class="notifications-title">PŘÍCHOZÍ SIGNÁLY</span>
-                                <button class="mark-all-read-btn btn-secondary btn-sm" id="mark-all-read-btn" disabled>Vymazat vše</button>
+                                <button class="mark-all-read-btn btn-secondary btn-sm" id="mark-all-read" disabled>Vymazat vše</button>
                             </div>
                             <div id="notifications-list">
                                 <div id="no-notifications-msg" style="display: none; padding: 1rem; text-align: center; color: var(--text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div>
@@ -185,15 +190,14 @@
                 <a href="test1.html" class="btn btn-primary" id="start-test-btn-prompt"><i class="fas fa-play"></i> Spustit test</a>
             </div>
 
-            <div class="tabs-wrapper" id="tabs-wrapper" style="display: none;"> <div class="content-tabs" id="content-tabs">
-                    <div class="content-tab active" data-tab="practice-tab"> <i class="fas fa-globe"></i> Obecné </div>
-                    <div class="content-tab" data-tab="study-plan-tab"> <i class="fas fa-route"></i> Plán </div>
-                    <div class="content-tab" data-tab="vyuka-tab"> <i class="fas fa-person-chalkboard"></i> Výuka </div>
-                    </div>
+            <div class="tabs-wrapper" id="tabs-wrapper" style="display: none;">
+                 <div class="content-tabs" id="content-tabs">
+                    <div class="plan-tab active" data-tab="current"> <i class="fas fa-globe"></i> Obecné </div>
+                    <div class="plan-tab" data-tab="history"> <i class="fas fa-route"></i> Plán </div> <div class="plan-tab" data-tab="create"> <i class="fas fa-person-chalkboard"></i> Výuka </div> </div>
             </div>
 
-            <div class="tab-content-container" style="display: none;">
-                <div class="tab-content active" id="practice-tab-content">
+            <div class="tab-content-container" id="main-tab-content-area" style="display: block;"> {/* Ensure this is visible if children are managed by main.js */}
+                <div class="section visible-section" id="currentPlanSection"> {/* Changed ID and classes */}
                     <section class="stats-section">
                         <h2 class="section-title" data-animate style="--animation-order: 1;"><i class="fas fa-chart-pie"></i>Celkový Přehled</h2>
                         <div class="dashboard-grid loading" id="stats-cards">
@@ -267,9 +271,9 @@
                             <p>Zatím nemáte zaznamenaný žádný pokrok v tématech. Začněte procvičovat!</p>
                         </div>
                         </section>
-                    </div>
+                </div>
 
-                 <div class="tab-content" id="study-plan-tab-content">
+                 <div class="section" id="historyPlanSection" style="display:none;"> {/* Changed ID and classes, initially hidden */}
                     <section class="study-plan-section card loading" id="study-plan-container">
                         <h2 class="section-title"><i class="fas fa-route"></i>Aktuální Studijní Plán</h2>
                         <div class="loading-overlay hidden" id="study-plan-loading"> <div class="loading-spinner"></div> </div>
@@ -295,7 +299,7 @@
                     </section>
                  </div>
 
-                 <div class="tab-content" id="vyuka-tab-content">
+                 <div class="section" id="createPlanSection" style="display:none;"> {/* Changed ID and classes, initially hidden */}
                      <section class="vyuka-section card">
                         <h2 class="section-title"><i class="fas fa-person-chalkboard"></i>Výuka s AI</h2>
                         <div class="empty-state" style="display:flex;"> <i class="fas fa-robot empty-state-icon"></i>
