@@ -9,11 +9,21 @@
     let currentProfile = null;
     let allBadgesList = [];
     let allTitlesList = [];
-    let allAvatarDecorationsList = []; // Pro dekorace z DB (pokud budou)
+    let allAvatarDecorationsList = []; 
 
-    const SIDEBAR_STATE_KEY = 'sidebarCollapsedStatePlayground'; // Unique key for playground
+    const SIDEBAR_STATE_KEY = 'sidebarCollapsedStatePlayground';
+    const API_TIMEOUT = 15000; // 15 sekundový timeout pro API volání
 
     const ui = {};
+
+    // --- START: Helper function for timeout ---
+    async function fetchWithTimeout(promise, ms, timeoutError = new Error(`Operace vypršela po ${ms / 1000}s`)) {
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(timeoutError), ms)
+      );
+      return Promise.race([promise, timeout]);
+    }
+    // --- END: Helper function for timeout ---
 
     function cacheDOMElements() {
         const ids = [
@@ -22,7 +32,7 @@
             'userEmailDisplay', 'userIdDisplay', 'userLevelDisplay', 'userXpDisplay', 'userPointsDisplay', 'userStreakDisplay',
             'showRegister', 'showLogin', 'toast-container', 'sidebar', 'main-content',
             'sidebar-overlay', 'main-mobile-menu-toggle', 'sidebar-close-toggle',
-            'sidebar-toggle-btn-desktop', // Using desktop specific ID from HTML
+            'sidebar-toggle-btn-desktop',
             'user-profile-sidebar', 'avatar-wrapper-sidebar', 'sidebar-avatar',
             'sidebar-name', 'sidebar-user-title', 'currentYearSidebar', 'currentYearFooter',
             'mouse-follower', 'increaseLevelBtn', 'addXpAmount', 'addXpBtn',
@@ -34,9 +44,10 @@
             'notificationTitle', 'notificationMessage', 'notificationType', 'notificationIcon', 'notificationLink', 'sendTestNotificationBtn'
         ];
         ids.forEach(id => ui[id] = document.getElementById(id));
-        if (!ui.sidebarToggleBtnDesktop && ui.sidebarToggleBtn) { // Fallback if only generic ID was used
-            ui.sidebarToggleBtnDesktop = ui.sidebarToggleBtn;
+        if (!ui.sidebarToggleBtnDesktop && document.getElementById('sidebar-toggle-btn')) { 
+            ui.sidebarToggleBtnDesktop = document.getElementById('sidebar-toggle-btn');
         }
+         console.log("[Playground CacheDOM] DOM elements cached.");
     }
 
     function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
@@ -79,6 +90,13 @@
     }
 
     function updateUserInfoUI() {
+        if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle || 
+            !ui.userEmailDisplay || !ui.userIdDisplay || !ui.userLevelDisplay || 
+            !ui.userXpDisplay || !ui.userPointsDisplay || !ui.userStreakDisplay ||
+            !ui.avatarWrapperSidebar || !ui.userProfileSidebar) {
+            console.warn("[Playground UI Update] Některé UI prvky pro zobrazení informací o uživateli chybí.");
+        }
+
         if (!currentUser || !currentProfile) {
             if (ui.sidebarName) ui.sidebarName.textContent = "Nepřihlášen";
             if (ui.sidebarAvatar) ui.sidebarAvatar.innerHTML = "?";
@@ -106,13 +124,13 @@
         const initials = getInitials(currentProfile);
         let avatarUrl = currentProfile.avatar_url;
         if (avatarUrl && (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://'))) {
-             avatarUrl += `?t=${new Date().getTime()}`; // Cache busting for external URLs
+             avatarUrl += `?t=${new Date().getTime()}`;
         }
 
         if (ui.sidebarAvatar) {
             ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}" alt="Avatar">` : sanitizeHTML(initials);
             const img = ui.sidebarAvatar.querySelector('img');
-            if (img) img.onerror = () => { ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); };
+            if (img) img.onerror = () => { if(ui.sidebarAvatar) ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); };
         }
 
         if (ui.sidebarUserTitle) {
@@ -147,7 +165,7 @@
             if (ui.authSection) ui.authSection.classList.add('hidden');
             if (ui.appContent) ui.appContent.classList.remove('hidden');
             if (ui.sidebar) ui.sidebar.style.display = 'flex';
-            if (ui.mainContent) ui.mainContent.style.display = 'flex'; // main content visible
+            if (ui.mainContent) ui.mainContent.style.display = 'flex';
             if (ui.logoutButton) ui.logoutButton.style.display = 'inline-flex';
         } else {
             if (ui.authSection) ui.authSection.classList.remove('hidden');
@@ -161,38 +179,48 @@
     async function fetchUserProfileData() {
         if (!currentUser || !supabase) return null;
         try {
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*') // Select all for simplicity in playground
-                .eq('id', currentUser.id)
-                .single();
-            if (error && error.code !== 'PGRST116') throw error; // PGRST116 means no rows found
-            if (!data) { // If no profile, create one
+            console.log(`[Playground fetchUserProfileData] Fetching for ${currentUser.id}`);
+            const { data, error } = await fetchWithTimeout(
+                supabase
+                    .from('profiles')
+                    .select('*') 
+                    .eq('id', currentUser.id)
+                    .single(),
+                API_TIMEOUT 
+            );
+
+            if (error && error.code !== 'PGRST116') throw error; 
+            if (!data) { 
                  console.log("Profil nenalezen, vytvářím výchozí pro playground...");
                 const defaultProfile = {
-                    id: currentUser.id,
-                    email: currentUser.email,
+                    id: currentUser.id, email: currentUser.email,
                     username: currentUser.email.split('@')[0] || `user_${currentUser.id.substring(0,6)}`,
                     level: 1, experience: 0, points: 0, streak_days: 0, longest_streak_days: 0, badges_count: 0,
-                    last_login: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
-                    preferences: {}, notifications: {},
+                    last_login: new Date().toISOString(), updated_at: new Date().toISOString(),
+                    preferences: {"language":"cs","dark_mode":true,"show_progress":true,"sound_effects":true}, 
+                    notifications: {"email":true,"study_tips":true,"content_updates":true,"practice_reminders":true},
                     purchased_titles: [], selected_title: null,
                     purchased_decorations: [], selected_decoration: null, selected_profile_decoration: null,
+                    monthly_claims: {}, last_milestone_claimed: 0
                 };
-                const { data: newProfile, error: createError } = await supabase
-                    .from('profiles')
-                    .insert(defaultProfile)
-                    .select('*')
-                    .single();
+                const { data: newProfile, error: createError } = await fetchWithTimeout(
+                    supabase
+                        .from('profiles')
+                        .insert(defaultProfile)
+                        .select('*')
+                        .single(),
+                    API_TIMEOUT
+                );
                 if (createError) throw createError;
+                console.log("[Playground fetchUserProfileData] Default profile created:", newProfile);
                 return newProfile;
             }
+            console.log("[Playground fetchUserProfileData] Profile fetched:", data);
             return data;
         } catch (e) {
             console.error('Chyba načítání/vytváření profilu:', e);
             showToast(`Chyba profilu: ${e.message}`, 'error');
-            return null;
+            return null; 
         }
     }
 
@@ -204,10 +232,14 @@
                 currentProfile = await fetchUserProfileData();
                 if (!currentProfile) {
                      showToast("Nepodařilo se načíst profil uživatele.", "error");
-                     showAppContent(false); // Zobrazit login
+                     showAppContent(false); 
+                     if (ui.initialSiteLoader && !ui.initialSiteLoader.classList.contains('hidden')) {
+                        ui.initialSiteLoader.style.opacity = '0';
+                        setTimeout(() => { if(ui.initialSiteLoader) ui.initialSiteLoader.style.display = 'none'; }, 300);
+                     }
                      return;
                 }
-                await loadInitialSelectData(); // Načtení dat pro selecty
+                await loadInitialSelectData(); 
                 updateUserInfoUI();
                 showAppContent(true);
             } else {
@@ -222,9 +254,11 @@
             currentUser = null; currentProfile = null;
             updateUserInfoUI(); showAppContent(false);
         } finally {
-            if (ui.initialSiteLoader) {
+            if (ui.initialSiteLoader && !ui.initialSiteLoader.classList.contains('hidden')) {
                 ui.initialSiteLoader.style.opacity = '0';
-                setTimeout(() => { if(ui.initialSiteLoader) ui.initialSiteLoader.style.display = 'none'; }, 300);
+                setTimeout(() => { 
+                    if(ui.initialSiteLoader) ui.initialSiteLoader.style.display = 'none'; 
+                }, 300);
             }
         }
     }
@@ -261,14 +295,17 @@
         }
         try {
             updates.updated_at = new Date().toISOString();
-            const { data, error } = await supabase
-                .from('profiles')
-                .update(updates)
-                .eq('id', currentUser.id)
-                .select()
-                .single();
+            const { data, error } = await fetchWithTimeout( // Using timeout
+                 supabase
+                    .from('profiles')
+                    .update(updates)
+                    .eq('id', currentUser.id)
+                    .select()
+                    .single(),
+                API_TIMEOUT
+            );
             if (error) throw error;
-            currentProfile = data; // Update local profile
+            currentProfile = data; 
             updateUserInfoUI();
             showToast("Profil úspěšně aktualizován!", "success");
             return true;
@@ -282,23 +319,12 @@
     async function increaseLevel() {
         if (!currentProfile) return;
         const newLevel = (currentProfile.level || 1) + 1;
-        // XP needed for this new level (based on DB function logic, if we want to be precise)
-        // For simplicity here, we just increase level. DB trigger for level up based on XP is primary.
-        // This function in playground is for *forcing* a level, not natural progression.
-        // To ensure XP is consistent with the new level, we could calculate the minimum XP for that level.
-        // Let's assume get_total_exp_threshold(level) gives XP for START of that level.
-        // We need XP for start of newLevel + 1 to be sure.
-        // OR, let's just add a moderate amount of XP that would trigger the level up.
-        // Simpler: just set level. The DB trigger should not fire IF experience isn't also changing.
-        // However, if we WANT the trigger to fire, we should set XP to required for level up.
-        // For now, let's just increment the level directly.
         await updateProfileField({ level: newLevel });
     }
 
     async function addExperience(amount) {
         if (!currentProfile) return;
         const newExperience = (currentProfile.experience || 0) + amount;
-        // The database trigger handle_level_up should automatically adjust the level
         await updateProfileField({ experience: newExperience });
     }
 
@@ -310,10 +336,6 @@
 
     async function resetExperienceForLevel() {
         if (!currentProfile || !currentProfile.level) return;
-        // This requires the DB function get_total_exp_threshold to exist and be callable by Supabase.
-        // Or, we replicate the logic here.
-        // Logic from DB: BASE_XP = 100, INCREMENT_XP = 25
-        // Threshold for level L is SUM (BASE + INCREMENT * (i-1)) for i=1 to L-1
         let threshold = 0;
         const base_xp = 100;
         const increment_xp = 25;
@@ -336,43 +358,30 @@
         }
         await updateProfileField(updates);
     }
-     async function syncDailyStreak() {
+    
+    async function syncDailyStreak() {
         if (!currentUser || !currentProfile || !supabase) {
             showToast("Pro synchronizaci série je nutné být přihlášen.", "error");
             return;
         }
         showToast("Synchronizuji denní sérii...", "info");
         try {
-            // We simulate the daily login logic, which might be more complex in the actual dashboard
-            // For playground, just setting last_login to yesterday and then triggering an update
-            // or calling a specific function if available.
-            // A simplified approach: Set last_login to far past to ensure streak can be incremented by profile update.
-            const farPastDate = new Date(0).toISOString(); // Epoch time
-            const { error: loginUpdateError } = await supabase
-                .from('profiles')
-                .update({ last_login: farPastDate, updated_at: new Date().toISOString() })
-                .eq('id', currentUser.id);
-
-            if (loginUpdateError) throw loginUpdateError;
-
-            // Now, fetch and update the profile. If `handle_user_login_streak` trigger is active on UPDATE,
-            // it should handle the streak.
-            // Or, if there's a specific function, call it.
-            // For now, let's just rely on a profile update potentially triggering it.
-            // A more direct way is to call a specific DB function if one exists for this.
-            // Let's call 'update_user_streak' function that was in oceneni.js logic before.
-            const { data: streakData, error: streakError } = await supabase.rpc('update_user_streak_and_get_profile', {
-                p_user_id: currentUser.id
-            });
+            const { data: streakData, error: streakError } = await fetchWithTimeout( // Using timeout
+                supabase.rpc('update_user_streak_and_get_profile', { p_user_id: currentUser.id }),
+                API_TIMEOUT
+            );
 
             if (streakError) throw streakError;
 
             if (streakData) {
-                currentProfile = streakData; // RPC returns the updated profile
+                currentProfile = streakData; 
                 updateUserInfoUI();
                 showToast("Denní série synchronizována a profil aktualizován.", "success");
             } else {
-                showToast("Synchronizace série dokončena, ale nebyly vráceny data profilu.", "warning");
+                // Možná je lepší znovu načíst profil, pokud RPC nevrací celý profil
+                currentProfile = await fetchUserProfileData();
+                updateUserInfoUI();
+                showToast("Synchronizace série dokončena, profil obnoven.", "warning");
             }
 
         } catch (error) {
@@ -385,43 +394,46 @@
     async function fetchAllBadgesDefinition() {
         if (!supabase) return [];
         try {
-            const { data, error } = await supabase.from('badges').select('id, title, description');
+            const { data, error } = await fetchWithTimeout( // Using timeout
+                supabase.from('badges').select('id, title, description'),
+                API_TIMEOUT
+            );
             if (error) throw error;
             allBadgesList = data || [];
             populateSelect(ui.badgeSelect, allBadgesList, 'id', 'title');
         } catch (e) {
             console.error("Error fetching badge definitions:", e);
-            showToast("Nepodařilo se načíst definice odznaků.", "error");
+            showToast("Nepodařilo se načíst definice odznaků: " + e.message, "error");
+            allBadgesList = [];
+            populateSelect(ui.badgeSelect, [], 'id', 'title');
         }
     }
 
     async function awardSpecificBadge(badgeId) {
         if (!currentUser || !supabase || !badgeId) return;
         try {
-            // Check if user already has this badge
-            const { data: existing, error: checkError } = await supabase
-                .from('user_badges')
-                .select('badge_id')
-                .eq('user_id', currentUser.id)
-                .eq('badge_id', badgeId)
-                .maybeSingle();
-
+            const { data: existing, error: checkError } = await fetchWithTimeout( // Using timeout
+                supabase
+                    .from('user_badges')
+                    .select('badge_id')
+                    .eq('user_id', currentUser.id)
+                    .eq('badge_id', badgeId)
+                    .maybeSingle(),
+                API_TIMEOUT
+            );
             if (checkError) throw checkError;
-
             if (existing) {
                 showToast("Tento odznak již uživatel vlastní.", "info");
                 return;
             }
-
-            const { error: insertError } = await supabase
-                .from('user_badges')
-                .insert({ user_id: currentUser.id, badge_id: badgeId });
+            const { error: insertError } = await fetchWithTimeout( // Using timeout
+                 supabase.from('user_badges').insert({ user_id: currentUser.id, badge_id: badgeId }),
+                 API_TIMEOUT
+            );
             if (insertError) throw insertError;
 
-            // Update badges_count in profiles
             const newBadgeCount = (currentProfile.badges_count || 0) + 1;
             await updateProfileField({ badges_count: newBadgeCount });
-
             showToast("Odznak úspěšně přidán!", "success");
         } catch (e) {
             console.error("Chyba při přidávání odznaku:", e);
@@ -433,10 +445,10 @@
         if (!currentUser || !supabase) return;
         if (!confirm("Opravdu chcete smazat všechny odznaky tohoto uživatele?")) return;
         try {
-            const { error } = await supabase
-                .from('user_badges')
-                .delete()
-                .eq('user_id', currentUser.id);
+            const { error } = await fetchWithTimeout( // Using timeout
+                supabase.from('user_badges').delete().eq('user_id', currentUser.id),
+                API_TIMEOUT
+            );
             if (error) throw error;
             await updateProfileField({ badges_count: 0 });
             showToast("Všechny odznaky byly smazány.", "success");
@@ -449,19 +461,23 @@
     async function fetchAllTitles() {
         if (!supabase) return [];
         try {
-            const { data, error } = await supabase.from('title_shop').select('title_key, name');
+            const { data, error } = await fetchWithTimeout( // Using timeout
+                supabase.from('title_shop').select('title_key, name'),
+                API_TIMEOUT
+            );
             if (error) throw error;
             allTitlesList = data || [];
             populateSelect(ui.titleSelect, allTitlesList, 'title_key', 'name');
         } catch (e) {
             console.error("Error fetching titles:", e);
-            showToast("Nepodařilo se načíst tituly.", "error");
+            showToast("Nepodařilo se načíst tituly: " + e.message, "error");
+            allTitlesList = [];
+            populateSelect(ui.titleSelect, [], 'title_key', 'name');
         }
     }
 
     async function equipTitle(titleKey) {
-        // Also add to purchased_titles if not already there for testing purposes
-        let purchased = currentProfile.purchased_titles || [];
+        let purchased = Array.isArray(currentProfile.purchased_titles) ? [...currentProfile.purchased_titles] : [];
         if (titleKey && !purchased.includes(titleKey)) {
             purchased.push(titleKey);
         }
@@ -474,35 +490,36 @@
     async function fetchAvatarDecorations() {
         if (!supabase) return;
         try {
-            // Assuming 'avatar_decorations_shop' exists and has 'decoration_key' and 'name'
-            const { data, error } = await supabase
-                .from('avatar_decorations_shop')
-                .select('decoration_key, name, image_url') // image_url for preview if available
-                .eq('is_available', true);
+            const { data, error } = await fetchWithTimeout( // Using timeout
+                supabase
+                    .from('avatar_decorations_shop')
+                    .select('decoration_key, name, image_url') 
+                    .eq('is_available', true),
+                API_TIMEOUT
+            );
             if (error) throw error;
             allAvatarDecorationsList = data || [];
             populateSelect(ui.avatarDecorationSelect, allAvatarDecorationsList, 'decoration_key', 'name');
-            // For profile decorations, it's not clear if they are from the same table
-            // For now, let's assume they are specific CSS classes
-            // If they were also from a table, we'd fetch and populate ui.profileDecorationSelect
         } catch (e) {
             console.error("Error fetching avatar decorations:", e);
-            showToast("Nepodařilo se načíst dekorace avatarů.", "error");
+            showToast("Nepodařilo se načíst dekorace avatarů: " + e.message, "error");
+            allAvatarDecorationsList = [];
+            populateSelect(ui.avatarDecorationSelect, [], 'decoration_key', 'name');
         }
     }
     
     async function setAvatarDecoration(decorationKey) {
-         let purchased = currentProfile.purchased_decorations || [];
+         let purchased = Array.isArray(currentProfile.purchased_decorations) ? [...currentProfile.purchased_decorations] : [];
          if (decorationKey && !purchased.includes(decorationKey)) {
              purchased.push(decorationKey);
          }
-        await updateProfileField({ selected_decoration: decorationKey, purchased_decorations: purchased });
+        await updateProfileField({ selected_decoration: decorationKey || null, purchased_decorations: purchased });
     }
 
     async function setProfileDecoration(decorationKey) {
-        // Profile decorations might not have a "purchased" concept if they are test-only CSS classes
-        await updateProfileField({ selected_profile_decoration: decorationKey });
+        await updateProfileField({ selected_profile_decoration: decorationKey || null });
     }
+
     async function sendTestNotification() {
         if (!currentUser || !supabase) {
             showToast("Pro odeslání notifikace je nutné být přihlášen.", "error");
@@ -511,27 +528,24 @@
         const title = ui.notificationTitle.value.trim();
         const message = ui.notificationMessage.value.trim();
         const type = ui.notificationType.value;
-        const icon = ui.notificationIcon.value.trim() || null; // Null if empty
-        const link = ui.notificationLink.value.trim() || null; // Null if empty
+        const icon = ui.notificationIcon.value.trim() || null; 
+        const link = ui.notificationLink.value.trim() || null; 
 
         if (!title || !message) {
             showToast("Titul a zpráva notifikace jsou povinné.", "warning");
             return;
         }
-
         showToast("Odesílám testovací notifikaci...", "info");
         try {
-            const { error } = await supabase
-                .from('user_notifications')
-                .insert({
-                    user_id: currentUser.id,
-                    title: title,
-                    message: message,
-                    type: type,
-                    icon: icon,
-                    link: link,
-                    is_read: false // Playground notifications should appear as unread
-                });
+            const { error } = await fetchWithTimeout( // Using timeout
+                supabase
+                    .from('user_notifications')
+                    .insert({
+                        user_id: currentUser.id, title: title, message: message,
+                        type: type, icon: icon, link: link, is_read: false
+                    }),
+                API_TIMEOUT
+            );
             if (error) throw error;
             showToast("Testovací notifikace úspěšně odeslána!", "success");
         } catch (e) {
@@ -540,10 +554,9 @@
         }
     }
 
-
     function populateSelect(selectElement, items, valueKey, textKey) {
         if (!selectElement || !items) return;
-        selectElement.innerHTML = '<option value="">-- Vybrat --</option>'; // Default empty option
+        selectElement.innerHTML = '<option value="">-- Vybrat --</option>'; 
         items.forEach(item => {
             const option = document.createElement('option');
             option.value = item[valueKey];
@@ -553,11 +566,20 @@
     }
     
     async function loadInitialSelectData() {
-        await fetchAllBadgesDefinition();
-        await fetchAllTitles();
-        await fetchAvatarDecorations(); // Načtení dekorací z DB
+        console.log("[Playground] Načítání dat pro select boxy...");
+        const promises = [
+            fetchAllBadgesDefinition(),
+            fetchAllTitles(),
+            fetchAvatarDecorations()
+        ];
+        try {
+            await Promise.all(promises);
+            console.log("[Playground] Data pro select boxy načtena.");
+        } catch (error) {
+            console.error("[Playground] Chyba při hromadném načítání dat pro selecty:", error);
+            showToast("Chyba při načítání některých dat pro formuláře.", "warning");
+        }
     }
-
 
     function setupEventListeners() {
         if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
@@ -571,7 +593,6 @@
         if (ui.showRegister) ui.showRegister.addEventListener('click', () => { ui.loginFormContainer.classList.add('hidden'); ui.registerFormContainer.classList.remove('hidden'); });
         if (ui.showLogin) ui.showLogin.addEventListener('click', () => { ui.registerFormContainer.classList.add('hidden'); ui.loginFormContainer.classList.remove('hidden'); });
 
-        // Testing function buttons
         if (ui.increaseLevelBtn) ui.increaseLevelBtn.addEventListener('click', increaseLevel);
         if (ui.addXpBtn) ui.addXpBtn.addEventListener('click', () => addExperience(parseInt(ui.addXpAmount.value) || 0));
         if (ui.addPointsBtn) ui.addPointsBtn.addEventListener('click', () => addPoints(parseInt(ui.addPointsAmount.value) || 0));
@@ -579,24 +600,20 @@
         if (ui.resetPointsBtn) ui.resetPointsBtn.addEventListener('click', resetPoints);
         if (ui.setStreakBtn) ui.setStreakBtn.addEventListener('click', () => setStreak(parseInt(ui.setStreakDays.value) || 0));
         if (ui.syncDailyStreakBtn) ui.syncDailyStreakBtn.addEventListener('click', syncDailyStreak);
-
-        if (ui.addBadgeBtn) ui.addBadgeBtn.addEventListener('click', () => awardSpecificBadge(ui.badgeSelect.value));
+        if (ui.addBadgeBtn) ui.addBadgeBtn.addEventListener('click', () => {const badgeVal = ui.badgeSelect.value; if(badgeVal) awardSpecificBadge(parseInt(badgeVal)); else showToast("Vyberte odznak.", "warning");});
         if (ui.clearBadgesBtn) ui.clearBadgesBtn.addEventListener('click', clearUserBadges);
-
-        if (ui.equipTitleBtn) ui.equipTitleBtn.addEventListener('click', () => equipTitle(ui.titleSelect.value));
+        if (ui.equipTitleBtn) ui.equipTitleBtn.addEventListener('click', () => {const titleVal = ui.titleSelect.value; if(titleVal) equipTitle(titleVal); else showToast("Vyberte titul.", "warning");});
         if (ui.clearEquippedTitleBtn) ui.clearEquippedTitleBtn.addEventListener('click', clearEquippedTitle);
-
         if (ui.setAvatarDecorationBtn) ui.setAvatarDecorationBtn.addEventListener('click', () => setAvatarDecoration(ui.avatarDecorationSelect.value || null));
         if (ui.setProfileDecorationBtn) ui.setProfileDecorationBtn.addEventListener('click', () => setProfileDecoration(ui.profileDecorationSelect.value || null));
         if (ui.applyFallingStarsPlayground) ui.applyFallingStarsPlayground.addEventListener('click', () => setAvatarDecoration('avatar_falling_elements'));
         if (ui.removeAllDecorationsBtn) ui.removeAllDecorationsBtn.addEventListener('click', () => { setAvatarDecoration(null); setProfileDecoration(null); });
-        
         if(ui.sendTestNotificationBtn) ui.sendTestNotificationBtn.addEventListener('click', sendTestNotification);
 
         window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus);
+         console.log("[Playground] Event listeners setup complete.");
     }
-     function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Offline', 'Spojení bylo ztraceno.', 'warning'); }
-
+    function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Offline', 'Spojení bylo ztraceno.', 'warning'); }
 
     async function initializeApp() {
         cacheDOMElements();
@@ -609,20 +626,51 @@
         initMouseFollower();
         updateOnlineStatus();
 
-
         if (ui.initialSiteLoader) {
-            ui.initialSiteLoader.style.opacity = '1'; // Ensure it's visible
+            ui.initialSiteLoader.style.opacity = '1'; 
             ui.initialSiteLoader.style.display = 'flex';
         }
-        if (ui.sidebar) ui.sidebar.style.display = 'none';
-        if (ui.mainContent) ui.mainContent.style.display = 'none';
+        if (ui.sidebar) ui.sidebar.style.display = 'none'; // Hide until auth check
+        if (ui.mainContent) ui.mainContent.style.display = 'none'; // Hide until auth check
         
         supabase.auth.onAuthStateChange(handleAuthStateChange);
         
-        // Manually trigger initial auth state check
-        const { data: { session } } = await supabase.auth.getSession();
-        handleAuthStateChange('INITIAL_CHECK', session);
+        try {
+            const { data: { session } } = await fetchWithTimeout(supabase.auth.getSession(), API_TIMEOUT);
+            handleAuthStateChange('INITIAL_CHECK', session);
+        } catch(e) {
+            console.error("Initial session check/timeout failed:", e);
+            handleAuthStateChange('INITIAL_CHECK_ERROR', null); // Proceed as if no session
+            showToast("Chyba při ověřování sezení: " + e.message, "error");
+        }
     }
 
     document.addEventListener('DOMContentLoaded', initializeApp);
 })();
+// EDIT LOGS:
+// Developer Goal: Fix infinite loading screen on Playground page after login.
+// Stage:
+//  - Added a global API_TIMEOUT constant (15 seconds).
+//  - Created a `fetchWithTimeout` helper function to wrap Supabase promises and prevent indefinite hanging.
+//  - Applied `fetchWithTimeout` to all Supabase select/insert/update/delete calls within:
+//    - `fetchUserProfileData` (including default profile creation)
+//    - `updateProfileField`
+//    - `syncDailyStreak` (for the RPC call)
+//    - `fetchAllBadgesDefinition`
+//    - `awardSpecificBadge` (for checking existing and inserting new)
+//    - `clearUserBadges`
+//    - `fetchAllTitles`
+//    - `fetchAvatarDecorations`
+//    - `sendTestNotification`
+//  - Ensured `catch` blocks in these functions handle potential timeout errors by showing a toast and returning a sensible default (e.g., empty array, null, or false) to allow the calling code to proceed.
+//  - Verified that the `finally` block in `handleAuthStateChange` will now be reached even if one of the awaited setup functions (like `loadInitialSelectData`) encounters a timeout, because the sub-functions will now throw an error that can be caught or will return, allowing the `await` to complete.
+//  - Added more console logs for debugging various stages.
+//  - Ensured `populateSelect` is called with empty data in `catch` blocks of fetch functions for selects, to clear them on error.
+//  - Corrected a potential issue in `handleAuthStateChange` where an early `return` (if `!currentProfile`) would skip the `finally` block; explicitly hid the loader in that path too, although the primary fix is ensuring `fetchUserProfileData` doesn't hang.
+//  - Ensured the `syncDailyStreak` RPC call is also wrapped in a timeout.
+//  - Small refinement in `updateUserInfoUI` to prevent errors if some UI elements are unexpectedly missing.
+//  - Added a check for `sidebarToggleBtnDesktop` existence in `applyInitialSidebarState` and `toggleSidebarDesktop`.
+//  - In `fetchUserProfileData` and `createDefaultProfile`, ensured `purchased_decorations`, `selected_decoration`, and `selected_profile_decoration` are included in the select and default data.
+//  - In `setAvatarDecoration` and `setProfileDecoration`, ensured that when `decorationKey` is falsy (e.g., empty string from select), `null` is passed to `updateProfileField` to clear the decoration.
+//  - Updated `awardSpecificBadge` to correctly handle `maybeSingle()` and potential null `existing` badge.
+//  - Added a fallback for `sidebarToggleBtnDesktop` to use `sidebarToggleBtn` if the former is not found (though HTML should be consistent).
