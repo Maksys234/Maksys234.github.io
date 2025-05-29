@@ -17,42 +17,47 @@
 
     <link rel="stylesheet" href="dashboard.css">
     <style>
-        /* START: Footer Styles (Old - some might be overridden or removed by new styles) */
+        :root {
+            --accent-primary: #00e0ff;
+            --accent-primary-rgb: 0, 224, 255;
+            --accent-secondary: #a05cff;
+            --border-color-light: rgba(255, 255, 255, 0.1);
+            --card-radius: 12px;
+            --text-primary: #e0e0e0;
+            --text-link-hover: var(--accent-primary);
+            --bg-footer: var(--bg-secondary); /* Or a specific darker color like #0d0f14 */
+            --text-muted: #8899a6; /* Ensure text-muted is defined */
+            --text-link: #a9b8c3; /* Ensure text-link is defined */
+        }
+
+        /* START: Footer Styles Enhancements */
         .main-footer {
-            background-color: var(--bg-secondary);
-            padding: 2rem var(--container-padding-x);
-            margin-top: auto; /* Pushes footer to the bottom if main content is short */
-            border-top: 1px solid var(--border-color-light);
-            /* text-align: center; */ /* Overridden by new structure for left alignment in columns */
+            background-color: var(--bg-footer, var(--bg-secondary)); /* Use specific footer bg or fallback */
+            padding: 2.5rem var(--container-padding-x) 2rem;
+            margin-top: auto;
+            border-top: 3px solid transparent;
+            border-image: linear-gradient(to right, var(--accent-primary) 0%, var(--accent-secondary) 100%) 1;
             color: var(--text-muted);
             font-size: 0.9rem;
+            position: relative;
         }
-        /* .main-footer .footer-links (old structure - removed) */
-        /* .main-footer .footer-links a (old structure - removed) */
-        /* .main-footer .footer-links a:hover (old structure - removed) */
-        /* .main-footer .footer-links a i (old structure - removed) */
-        /* .main-footer .footer-copyright (old structure - replaced by .copyright) */
-        /* END: Footer Styles (Old) */
-
-        /* START: New Footer Styles (modeled after index.html but adapted for .main-footer) */
         .main-footer .footer-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            /* margin-bottom: 2rem; */ /* Removed as copyright div is gone, adjust padding on .main-footer if needed */
-            text-align: left; /* Override parent's text-align: center if it was set */
+            gap: 2.5rem; /* Increased gap slightly */
+            text-align: left;
         }
         .main-footer .footer-column .logo {
             display: inline-flex;
             align-items: center;
-            font-size: 1.8rem;
+            font-size: 1.9rem; /* Slightly larger logo */
             font-weight: 700;
             color: var(--text-primary);
             text-decoration: none;
-            margin-bottom: 1rem;
+            margin-bottom: 1.25rem; /* More space below logo */
         }
         .main-footer .footer-column .logo i {
-            margin-right: 0.5rem;
+            margin-right: 0.6rem;
             color: var(--accent-primary);
         }
         .main-footer .footer-column .logo span {
@@ -60,75 +65,163 @@
         }
         .main-footer .footer-column p {
             margin-bottom: 1rem;
-            color: var(--text-secondary);
+            color: var(--text-secondary, var(--text-muted)); /* Fallback for text-secondary */
             line-height: 1.6;
             font-size: 0.9rem;
         }
         .main-footer .footer-column h3 {
-            font-size: 1.1rem;
+            font-size: 1.15rem; /* Slightly larger */
             font-weight: 600;
             color: var(--text-primary);
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem; /* More space below title */
+            position: relative;
+            padding-bottom: 0.6rem; /* Space for an accent line */
         }
-        .main-footer .footer-column .footer-links { /* This is for UL elements */
+        .main-footer .footer-column h3::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 35px; /* Shorter line, slightly thicker */
+            height: 2.5px;
+            background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
+            border-radius: 2px; /* Rounded ends for the line */
+            opacity: 0.85;
+        }
+        .main-footer .footer-column .footer-links {
             list-style: none;
             padding: 0;
             margin: 0;
         }
         .main-footer .footer-column .footer-links li {
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.85rem; /* Slightly more space between links */
         }
-        .main-footer .footer-column .footer-links a,
-        .main-footer .footer-column .footer-links span { /* For text with icon before it like email/location */
+        .main-footer .footer-column .footer-links a {
             color: var(--text-link);
             text-decoration: none;
-            transition: color var(--transition-fast), text-shadow 0.3s ease;
             font-size: 0.95rem;
+            display: inline-block;
+            position: relative;
+            transition: color 0.25s ease;
         }
-        .main-footer .footer-column .footer-links a:hover {
-            color: var(--text-link-hover);
-            text-shadow: var(--shadow-text-glow);
-        }
-        .main-footer .footer-column .footer-links i.fa-fw { /* Ensure fixed width for icons */
-            margin-right: 0.6em;
-            width: 1.2em; /* Adjust as needed for alignment */
+        .main-footer .footer-column .footer-links a i.fa-fw { /* Icon specific styling */
+            margin-right: 0.7em;
+            width: 1.2em;
             text-align: center;
             color: var(--text-muted);
+            transition: color 0.25s ease;
         }
-         .main-footer .footer-column .footer-links .icon-link i { /* Specific for icons in links if not fa-fw */
-            margin-right: 0.6em;
-            color: var(--text-muted);
+        .main-footer .footer-column .footer-links a:hover {
+            color: var(--accent-primary);
         }
-
+        .main-footer .footer-column .footer-links a:hover i.fa-fw {
+            color: var(--accent-primary); /* Icon color matches text on hover */
+        }
+        .main-footer .footer-column .footer-links a::after { /* Underline effect */
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 1.5px;
+            bottom: -4px; /* Position below the text */
+            left: 0;
+            background-color: var(--accent-primary);
+            transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smoother transition */
+        }
+        .main-footer .footer-column .footer-links a:hover::after {
+            width: 100%;
+        }
+        .main-footer .footer-column .footer-links span.icon-link { /* For non-clickable items like address */
+             display: flex;
+             align-items: center;
+             color: var(--text-muted);
+        }
+        .main-footer .footer-column .footer-links span.icon-link i.fa-fw {
+            color: var(--text-muted); /* Keep icon color consistent */
+        }
 
         .main-footer .social-links {
             display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
+            gap: 1.25rem; /* More space between social icons */
+            margin-top: 1.25rem;
         }
         .main-footer .social-links .social-link {
             color: var(--text-muted);
-            font-size: 1.4rem;
-            transition: color var(--transition-fast);
+            font-size: 1.6rem; /* Larger social icons */
+            transition: color 0.2s ease, transform 0.2s ease;
         }
         .main-footer .social-links .social-link:hover {
             color: var(--accent-primary);
+            transform: scale(1.2) translateY(-2px); /* More pronounced pop */
         }
+        /* END: Footer Styles Enhancements */
 
-        /* .main-footer .copyright - This class and its styles are removed as the div is removed */
-        
-        /* END: New Footer Styles */
-
-        /* Suggestion for "cool" rewards styling (to be added in dashboard.css) */
-        /*
-        .calendar-day .reward-icon-xp { color: var(--accent-lime); }
-        .calendar-day .reward-icon-credits { color: var(--accent-orange); }
-        .calendar-day .reward-icon-title { color: var(--accent-secondary); }
-
-        .milestone-card .reward-value-xp { color: var(--accent-lime); font-weight: bold; }
-        .milestone-card .reward-value-credits { color: var(--accent-orange); font-weight: bold; }
-        .milestone-card .reward-value-title { color: var(--accent-secondary); font-style: italic; }
-        */
+        /* START: General Design Improvements (from previous step, ensure they don't conflict) */
+        .card {
+            border-radius: var(--card-radius, 12px);
+            border: 1px solid var(--border-color-light);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0 15px rgba(var(--accent-primary-rgb), 0.3), 0 4px 15px rgba(0,0,0,0.2);
+            border-color: rgba(var(--accent-primary-rgb), 0.5);
+        }
+        .section-title {
+            position: relative;
+            padding-bottom: 0.75rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 600;
+            color: var(--text-title, var(--text-primary));
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            border-radius: 3px;
+            box-shadow: 0 0 8px rgba(var(--accent-primary-rgb), 0.5);
+        }
+        .section-title i {
+            color: var(--accent-secondary);
+            font-size: 1.1em;
+            margin-right: 0.25rem;
+        }
+        .shortcut-card {
+            text-align: center;
+        }
+        .shortcut-card .shortcut-icon {
+            transition: color 0.3s ease, transform 0.3s ease;
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--accent-secondary);
+        }
+        .shortcut-card:hover .shortcut-icon {
+            color: var(--accent-primary);
+            transform: scale(1.15) rotate(-5deg);
+        }
+        .shortcut-card .shortcut-title {
+             transition: color 0.3s ease;
+             font-size: 1.1rem;
+             font-weight: 500;
+             color: var(--text-primary);
+             margin-bottom: 0.5rem;
+        }
+        .shortcut-card:hover .shortcut-title {
+            color: var(--accent-primary);
+        }
+        .shortcut-card .shortcut-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        /* END: General Design Improvements */
     </style>
 </head>
 <body class="dark">
@@ -397,7 +490,7 @@
                     </ul>
                 </div>
             </div>
-            </footer>
+        </footer>
     </main>
 
     <div class="toast-container" id="toast-container"></div>
@@ -446,18 +539,16 @@
     <script src="dashboard-lists.js" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Existing JS for currentYearFooter (though the span is removed, this won't cause an error if it checks for element existence)
             const currentYearFooterElement = document.getElementById('currentYearFooter');
             if (currentYearFooterElement) {
+                // This span is no longer in the footer, but the check prevents errors.
+                // If it were used elsewhere, it would still function.
                 currentYearFooterElement.textContent = new Date().getFullYear();
             }
-            // Existing JS for currentYearSidebar (should be in dashboard.js)
             const currentYearSidebarElement = document.getElementById('currentYearSidebar');
             if (currentYearSidebarElement) {
                 currentYearSidebarElement.textContent = new Date().getFullYear();
             }
-
-            // JavaScript for dashboard-cookie-settings-trigger removed as the element is removed.
         });
     </script>
 </body>
