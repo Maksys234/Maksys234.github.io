@@ -24,45 +24,89 @@
     }
 
     function cacheDOMElements() {
-        const ids = [
-            'initialSiteLoader', 'authSection', 'appContent', 'loginFormContainer',
-            'registerFormContainer', 'loginForm', 'registerForm', 'logoutButton',
-            'userEmailDisplay', 'userIdDisplay', 'userLevelDisplay', 'userXpDisplay', 'userPointsDisplay', 'userStreakDisplay',
-            'showRegister', 'showLogin', /* 'toast-container' bude ošetřen speciálně */ 'sidebar', 'main-content',
-            'sidebar-overlay', 'main-mobile-menu-toggle', 'sidebar-close-toggle',
-            'sidebar-toggle-btn-desktop',
-            'user-profile-sidebar', 'avatar-wrapper-sidebar', 'sidebar-avatar',
-            'sidebar-name', 'sidebar-user-title', 'currentYearSidebar', 'currentYearFooter',
-            'mouse-follower', 'increaseLevelBtn', 'addXpAmount', 'addXpBtn',
-            'addPointsAmount', 'addPointsBtn', 'resetXpBtn', 'resetPointsBtn',
-            'setStreakDays', 'setStreakBtn', 'syncDailyStreakBtn', 'badgeSelect', 'addBadgeBtn', 'clearBadgesBtn',
-            'titleSelect', 'equipTitleBtn', 'clearEquippedTitleBtn',
-            'avatarDecorationSelect', 'setAvatarDecorationBtn', 'profileDecorationSelect',
-            'setProfileDecorationBtn', 'applyFallingStarsPlayground', 'removeAllDecorationsBtn',
-            'notificationTitle', 'notificationMessage', 'notificationType', 'notificationIcon', 'notificationLink', 'sendTestNotificationBtn'
+        console.log("[Playground CacheDOM START] Zahajuji cachování DOM elementů...");
+        const elementDefinitions = [
+            { key: 'initialSiteLoader', id: 'initialSiteLoader' },
+            { key: 'authSection', id: 'authSection' },
+            { key: 'appContent', id: 'appContent' },
+            { key: 'loginFormContainer', id: 'loginFormContainer' },
+            { key: 'registerFormContainer', id: 'registerFormContainer' },
+            { key: 'loginForm', id: 'loginForm' },
+            { key: 'registerForm', id: 'registerForm' },
+            { key: 'logoutButton', id: 'logoutButton' },
+            { key: 'userEmailDisplay', id: 'userEmailDisplay' },
+            { key: 'userIdDisplay', id: 'userIdDisplay' },
+            { key: 'userLevelDisplay', id: 'userLevelDisplay' },
+            { key: 'userXpDisplay', id: 'userXpDisplay' },
+            { key: 'userPointsDisplay', id: 'userPointsDisplay' },
+            { key: 'userStreakDisplay', id: 'userStreakDisplay' },
+            { key: 'showRegister', id: 'showRegister' },
+            { key: 'showLogin', id: 'showLogin' },
+            { key: 'toastContainer', id: 'toast-container' },
+            { key: 'sidebar', id: 'sidebar' },
+            { key: 'mainContent', id: 'main-content' },
+            { key: 'sidebarOverlay', id: 'sidebar-overlay' },
+            { key: 'mainMobileMenuToggle', id: 'main-mobile-menu-toggle' },
+            { key: 'sidebarCloseToggle', id: 'sidebar-close-toggle' },
+            { key: 'sidebarToggleBtnDesktop', id: 'sidebar-toggle-btn-desktop' },
+            { key: 'userProfileSidebar', id: 'user-profile-sidebar' },
+            { key: 'avatarWrapperSidebar', id: 'avatar-wrapper-sidebar' },
+            { key: 'sidebarAvatar', id: 'sidebar-avatar' },
+            { key: 'sidebarName', id: 'sidebar-name' },
+            { key: 'sidebarUserTitle', id: 'sidebar-user-title' },
+            { key: 'currentYearSidebar', id: 'currentYearSidebar' },
+            { key: 'currentYearFooter', id: 'currentYearFooter' },
+            { key: 'mouseFollower', id: 'mouse-follower' },
+            { key: 'increaseLevelBtn', id: 'increaseLevelBtn' },
+            { key: 'addXpAmount', id: 'addXpAmount' }, { key: 'addXpBtn', id: 'addXpBtn' },
+            { key: 'addPointsAmount', id: 'addPointsAmount' }, { key: 'addPointsBtn', id: 'addPointsBtn' },
+            { key: 'resetXpBtn', id: 'resetXpBtn' }, { key: 'resetPointsBtn', id: 'resetPointsBtn' },
+            { key: 'setStreakDays', id: 'setStreakDays' }, { key: 'setStreakBtn', id: 'setStreakBtn' },
+            { key: 'syncDailyStreakBtn', id: 'syncDailyStreakBtn'},
+            { key: 'badgeSelect', id: 'badgeSelect' }, { key: 'addBadgeBtn', id: 'addBadgeBtn' }, { key: 'clearBadgesBtn', id: 'clearBadgesBtn' },
+            { key: 'titleSelect', id: 'titleSelect' }, { key: 'equipTitleBtn', id: 'equipTitleBtn' }, { key: 'clearEquippedTitleBtn', id: 'clearEquippedTitleBtn' },
+            { key: 'avatarDecorationSelect', id: 'avatarDecorationSelect' }, { key: 'setAvatarDecorationBtn', id: 'setAvatarDecorationBtn' },
+            { key: 'profileDecorationSelect', id: 'profileDecorationSelect' }, { key: 'setProfileDecorationBtn', id: 'setProfileDecorationBtn' },
+            { key: 'applyFallingStarsPlayground', id: 'applyFallingStarsPlayground' }, { key: 'removeAllDecorationsBtn', id: 'removeAllDecorationsBtn' },
+            { key: 'notificationTitle', id: 'notificationTitle'}, { key: 'notificationMessage', id: 'notificationMessage'},
+            { key: 'notificationType', id: 'notificationType'}, { key: 'notificationIcon', id: 'notificationIcon'},
+            { key: 'notificationLink', id: 'notificationLink'}, { key: 'sendTestNotificationBtn', id: 'sendTestNotificationBtn'}
         ];
-        ids.forEach(id => ui[id] = document.getElementById(id));
-        
-        // Speciální ošetření pro toast-container
-        ui.toastContainer = document.getElementById('toast-container');
-        if (!ui.toastContainer) {
-            console.warn("VAROVÁNÍ KACHOVÁNÍ: Element #toast-container nebyl nalezen v DOM při cachování! Funkce showToast se ho pokusí najít znovu.");
-        }
 
+        let notFoundDuringCache = [];
+        elementDefinitions.forEach(item => {
+            const element = document.getElementById(item.id);
+            ui[item.key] = element; // Store even if null
+            if (!element) {
+                notFoundDuringCache.push(`${item.key} (ID: ${item.id})`);
+            }
+        });
+
+        if (notFoundDuringCache.length > 0) {
+            // TOTO JE DŮLEŽITÝ LOG - PROSÍM, ZKONTROLUJTE, ZDA SE OBJEVÍ V KONZOLI
+            console.error(`[Playground CacheDOM KONTROLA CHYB] Následující elementy NEBYLY NALEZENY v DOM: ${notFoundDuringCache.join('; ')}`);
+            // Můžete zde přidat i showToast, pokud je ui.toastContainer již cachován (nebo ho zde cachovat jako první)
+            if (!ui.toastContainer) ui.toastContainer = document.getElementById('toast-container'); // Jistota
+            showToast(`Chyba UI: Některé elementy stránky nebyly nalezeny (${notFoundDuringCache.length}). Zkontrolujte konzoli.`, "error", 10000);
+        } else {
+            console.log("[Playground CacheDOM] Všechny definované elementy byly úspěšně nalezeny a cachovány.");
+        }
+        
         if (!ui.sidebarToggleBtnDesktop && document.getElementById('sidebar-toggle-btn')) { 
             ui.sidebarToggleBtnDesktop = document.getElementById('sidebar-toggle-btn');
+            console.log("[Playground CacheDOM] Použit fallback pro sidebarToggleBtnDesktop na ID 'sidebar-toggle-btn'.");
         }
-        console.log("[Playground CacheDOM] DOM elements cached.");
+        console.log("[Playground CacheDOM FINISH] Dokončeno cachování DOM elementů.");
     }
 
     function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
 
     function showToast(message, type = 'info', duration = 3500) {
         if (!ui.toastContainer) {
-            ui.toastContainer = document.getElementById('toast-container'); // Pokus o znovunalezení
+            ui.toastContainer = document.getElementById('toast-container'); 
             if (!ui.toastContainer) {
-                console.error("CHYBA ZOBRAZENÍ TOASTU: Element #toast-container stále nebyl nalezen. Toast se nezobrazí.");
-                return; // Ukončit funkci, pokud kontejner není
+                console.error("CHYBA ZOBRAZENÍ TOASTU: Element #toast-container stále nebyl nalezen. Toast se nezobrazí. Zpráva: " + message);
+                return; 
             }
         }
         const toastId = `toast-${Date.now()}`;
@@ -101,25 +145,35 @@
     }
 
     function updateUserInfoUI() {
-        if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle || 
-            !ui.userEmailDisplay || !ui.userIdDisplay || !ui.userLevelDisplay || 
-            !ui.userXpDisplay || !ui.userPointsDisplay || !ui.userStreakDisplay ||
-            !ui.avatarWrapperSidebar || !ui.userProfileSidebar) {
-            console.warn("[Playground UI Update] Některé UI prvky pro zobrazení informací o uživateli chybí.");
+        const requiredUiKeys = [
+            'sidebarName', 'sidebarAvatar', 'sidebarUserTitle', 
+            'userEmailDisplay', 'userIdDisplay', 'userLevelDisplay', 
+            'userXpDisplay', 'userPointsDisplay', 'userStreakDisplay',
+            'avatarWrapperSidebar', 'userProfileSidebar'
+        ];
+        let missingKeysMessages = [];
+        requiredUiKeys.forEach(key => {
+            if (!ui[key]) {
+                missingKeysMessages.push(key);
+            }
+        });
+
+        if (missingKeysMessages.length > 0) {
+            console.warn(`[Playground UI Update KONTROLA] Před aktualizací UI chybí elementy: ${missingKeysMessages.join(', ')}`);
         }
 
         if (!currentUser || !currentProfile) {
-            if (ui.sidebarName) ui.sidebarName.textContent = "Nepřihlášen";
-            if (ui.sidebarAvatar) ui.sidebarAvatar.innerHTML = "?";
-            if (ui.sidebarUserTitle) ui.sidebarUserTitle.textContent = "Pilot";
-            if (ui.userEmailDisplay) ui.userEmailDisplay.textContent = "N/A";
-            if (ui.userIdDisplay) ui.userIdDisplay.textContent = "N/A";
-            if (ui.userLevelDisplay) ui.userLevelDisplay.textContent = "N/A";
-            if (ui.userXpDisplay) ui.userXpDisplay.textContent = "N/A";
-            if (ui.userPointsDisplay) ui.userPointsDisplay.textContent = "N/A";
-            if (ui.userStreakDisplay) ui.userStreakDisplay.textContent = "N/A";
-            if (ui.avatarWrapperSidebar) ui.avatarWrapperSidebar.removeAttribute('data-decoration-key');
-            if (ui.userProfileSidebar) ui.userProfileSidebar.removeAttribute('data-profile-decoration');
+            if (ui.sidebarName) ui.sidebarName.textContent = "Nepřihlášen"; else console.warn("ui.sidebarName chybí");
+            if (ui.sidebarAvatar) ui.sidebarAvatar.innerHTML = "?"; else console.warn("ui.sidebarAvatar chybí");
+            if (ui.sidebarUserTitle) ui.sidebarUserTitle.textContent = "Pilot"; else console.warn("ui.sidebarUserTitle chybí");
+            if (ui.userEmailDisplay) ui.userEmailDisplay.textContent = "N/A"; else console.warn("ui.userEmailDisplay chybí");
+            if (ui.userIdDisplay) ui.userIdDisplay.textContent = "N/A"; else console.warn("ui.userIdDisplay chybí");
+            if (ui.userLevelDisplay) ui.userLevelDisplay.textContent = "N/A"; else console.warn("ui.userLevelDisplay chybí");
+            if (ui.userXpDisplay) ui.userXpDisplay.textContent = "N/A"; else console.warn("ui.userXpDisplay chybí");
+            if (ui.userPointsDisplay) ui.userPointsDisplay.textContent = "N/A"; else console.warn("ui.userPointsDisplay chybí");
+            if (ui.userStreakDisplay) ui.userStreakDisplay.textContent = "N/A"; else console.warn("ui.userStreakDisplay chybí");
+            if (ui.avatarWrapperSidebar) ui.avatarWrapperSidebar.removeAttribute('data-decoration-key'); else console.warn("ui.avatarWrapperSidebar chybí");
+            if (ui.userProfileSidebar) ui.userProfileSidebar.removeAttribute('data-profile-decoration'); else console.warn("ui.userProfileSidebar chybí");
             return;
         }
 
@@ -244,12 +298,11 @@
                 if (!currentProfile) {
                      showToast("Nepodařilo se načíst profil uživatele.", "error");
                      showAppContent(false); 
-                     // Explicitní skrytí loaderu, i když by to měl dělat finally
                      if (ui.initialSiteLoader && !ui.initialSiteLoader.classList.contains('hidden')) {
                         ui.initialSiteLoader.style.opacity = '0';
                         setTimeout(() => { if(ui.initialSiteLoader) ui.initialSiteLoader.style.display = 'none'; }, 300);
                      }
-                     return; // Důležité: Ukončit zde, pokud profil není načten
+                     return; 
                 }
                 await loadInitialSelectData(); 
                 updateUserInfoUI();
@@ -266,7 +319,6 @@
             currentUser = null; currentProfile = null;
             updateUserInfoUI(); showAppContent(false);
         } finally {
-            // Tento finally blok se vykoná vždy po try nebo catch
             if (ui.initialSiteLoader && !ui.initialSiteLoader.classList.contains('hidden')) {
                 console.log("[Playground handleAuthStateChange FINALLY] Skrývám initialSiteLoader.");
                 ui.initialSiteLoader.style.opacity = '0';
@@ -313,8 +365,8 @@
                     .from('profiles')
                     .update(updates)
                     .eq('id', currentUser.id)
-                    .select() // Vrací pole, i když je jen jeden záznam
-                    .single(), // Zajistí vrácení jednoho objektu nebo null
+                    .select() 
+                    .single(), 
                 API_TIMEOUT
             );
             if (error) throw error;
@@ -581,12 +633,10 @@
             fetchAvatarDecorations()
         ];
         try {
-            await Promise.all(promises); // Všechna volání nyní používají fetchWithTimeout
+            await Promise.all(promises); 
             console.log("[Playground] Data pro select boxy načtena.");
         } catch (error) {
-            // Chyby jsou již zpracovány uvnitř jednotlivých fetch funkcí (zobrazí toast)
-            console.error("[Playground] Alespoň jedno načítání pro select selhalo nebo vypršelo:", error);
-            // Není třeba zde zobrazovat další toast, pokud to již dělají podfunkce
+            console.error("[Playground] Chyba při hromadném načítání dat pro selecty:", error);
         }
     }
 
@@ -625,8 +675,14 @@
     function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Offline', 'Spojení bylo ztraceno.', 'warning'); }
 
     async function initializeApp() {
-        cacheDOMElements(); // Zavolat hned na začátku
-        if (!initializeSupabase()) return;
+        cacheDOMElements();
+        if (!initializeSupabase()) {
+             if (ui.initialSiteLoader) {
+                ui.initialSiteLoader.innerHTML = "<p style='color:var(--accent-pink)'>Chyba! Nelze inicializovat databázi.</p>";
+                // Neschováváme loader, aby chyba byla viditelná
+             }
+            return;
+        }
         
         applyInitialSidebarState();
         setupEventListeners();
@@ -645,31 +701,30 @@
         supabase.auth.onAuthStateChange(handleAuthStateChange);
         
         try {
+            console.log("[Playground initializeApp] Pokus o získání session...");
             const { data: { session } } = await fetchWithTimeout(supabase.auth.getSession(), API_TIMEOUT);
+            console.log("[Playground initializeApp] getSession výsledek:", session);
             handleAuthStateChange('INITIAL_CHECK', session);
         } catch(e) {
-            console.error("Initial session check/timeout failed:", e);
-            // V tomto bodě je `finally` blok z `handleAuthStateChange` zodpovědný za skrytí loaderu
-            // ale showToast zde může selhat, pokud `cacheDOMElements` ještě nezachytilo `toastContainer` správně
-            // nebo pokud samotné `showToast` selže.
+            console.error("[Playground initializeApp] Initial session check/timeout failed:", e);
             handleAuthStateChange('INITIAL_CHECK_ERROR', null); 
             showToast("Chyba při ověřování sezení: " + e.message, "error");
         }
+        // NEBUdeme zde volat finally pro skrytí loaderu, to je teď plně v zodpovědnosti handleAuthStateChange
     }
 
     document.addEventListener('DOMContentLoaded', initializeApp);
 })();
 // EDIT LOGS:
-// Developer Goal: Fix infinite loading and "Toast container not found" errors on Playground page.
+// Developer Goal: Address persistent "UI elements missing" warning and potential issues with initial loader hiding.
 // Stage:
-//  - Increased API_TIMEOUT to 30000ms (30 seconds).
-//  - Made `showToast` function more robust:
-//    - It now attempts to re-cache `ui.toastContainer` using `document.getElementById('toast-container')` if `ui.toastContainer` is initially null.
-//    - If `toast-container` is still not found after the re-cache attempt, it logs an error to the console and exits the `showToast` function gracefully, preventing further script execution errors due to a missing toast container.
-//  - Ensured `fetchWithTimeout` is applied to all primary Supabase select/insert/update/delete/rpc calls within data fetching and action functions to prevent indefinite hangs.
-//  - Confirmed that `catch` blocks in data-handling functions will show a toast (if possible) and return a default value (like null or an empty array), allowing the main execution flow in `handleAuthStateChange` to reach its `finally` block.
-//  - Added a specific `console.warn` in `cacheDOMElements` if `toast-container` is not found during the initial caching phase, for better diagnostics.
-//  - Ensured the `finally` block in `handleAuthStateChange` correctly attempts to hide `ui.initialSiteLoader`. The primary reason for it not being hidden before was likely an unhandled error (e.g., from `showToast` or a hanging promise) stopping script execution before the `finally` block.
-//  - Explicitly hide `initialSiteLoader` within `handleAuthStateChange` if `!currentProfile` is true after `fetchUserProfileData`, as an additional safeguard before an early return.
-//  - The `initializeApp` function's main `try...catch` block also attempts to hide the loader in its `finally` clause, providing another layer of safety, though the primary fix is preventing hangs within `handleAuthStateChange`.
-//  - Ensured `loadInitialSelectData` correctly awaits all its sub-fetches, which now also use `fetchWithTimeout`.
+//  - Refined `cacheDOMElements`:
+//    - Changed the logging for missing elements to `console.error` to make it more prominent.
+//    - Added a specific log when all elements are found successfully.
+//    - The special handling for `toast-container` was kept from the previous version.
+//  - Refined `updateUserInfoUI`:
+//    - It now logs a more detailed warning for each specific UI key that is missing, rather than one generic message. This will help pinpoint if `ui.sidebarName` is null, or `ui.userEmailDisplay`, etc.
+//  - Ensured `handleAuthStateChange` robustly handles the `ui.initialSiteLoader` in its `finally` block. This block should execute regardless of errors in the `try` block (unless the error is so catastrophic it halts all JS).
+//  - The `initializeApp`'s own `finally` block for hiding the loader was removed, as `handleAuthStateChange` should now be the definitive place for this logic once a session state (even error/null) is determined.
+//  - Kept `API_TIMEOUT` at 30000ms.
+//  - Kept `fetchWithTimeout` and its application to all relevant Supabase calls.
