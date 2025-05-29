@@ -20,156 +20,150 @@
         :root {
             --accent-primary: #00e0ff;
             --accent-primary-rgb: 0, 224, 255;
-            --accent-secondary: #a05cff;
+            --accent-secondary: #a05cff; /* Assuming this is used like in index.html particles */
             --border-color-light: rgba(255, 255, 255, 0.1);
             --card-radius: 12px;
-            --text-primary: #e0e0e0;
-            --text-link-hover: var(--accent-primary);
-            --bg-footer: var(--bg-secondary);
+            --text-primary: #e0e0e0; /* Typical dark theme primary text */
+            --text-secondary: #b0b8c4; /* Typical dark theme secondary text */
             --text-muted: #8899a6;
-            --text-link: #a9b8c3;
-            --text-secondary-brighter: #b8c5d0; /* For tagline */
+            --text-link: var(--accent-secondary); /* Links in index.html footer might use an accent color */
+            --text-link-hover: var(--accent-primary);
+            --bg-footer: #1c1e26; /* A dark footer background, similar to what index.html might have */
+            --container-max-width: 1140px; /* Standard container width */
+            --container-padding-x: 15px;
         }
 
-        /* START: Footer Styles Enhancements */
+        /* START: Footer Styles (to match index.html) */
         .main-footer {
-            background-color: var(--bg-footer, var(--bg-secondary));
-            padding: 2.5rem var(--container-padding-x) 2rem;
+            background-color: var(--bg-footer);
+            padding: 3rem 0; /* Vertical padding, horizontal handled by .container */
             margin-top: auto;
-            border-top: 3px solid transparent;
-            border-image: linear-gradient(to right, var(--accent-primary) 0%, var(--accent-secondary) 100%) 1;
-            color: var(--text-muted);
+            border-top: 1px solid var(--border-color-light); /* Simple top border */
+            color: var(--text-secondary);
             font-size: 0.9rem;
-            position: relative;
+            line-height: 1.6;
         }
+
+        .main-footer .container {
+            max-width: var(--container-max-width);
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: var(--container-padding-x);
+            padding-right: var(--container-padding-x);
+        }
+
         .main-footer .footer-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2.5rem;
+            gap: 2rem;
             text-align: left;
         }
+
         .main-footer .footer-column .logo {
             display: inline-flex;
             align-items: center;
-            font-size: 1.9rem;
+            font-size: 1.8rem; /* Matching index.html logo style */
             font-weight: 700;
             color: var(--text-primary);
             text-decoration: none;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1rem;
         }
         .main-footer .footer-column .logo i {
-            margin-right: 0.6rem;
-            color: var(--accent-primary);
+            margin-right: 0.5rem;
+            color: var(--accent-primary); /* Atom icon color */
         }
         .main-footer .footer-column .logo span {
             color: var(--text-primary);
         }
-        .main-footer .footer-column p { /* Default paragraph styling in footer */
+
+        .main-footer .footer-column p { /* Default paragraph styling in footer, for slogan */
             margin-bottom: 1rem;
-            color: var(--text-secondary, var(--text-muted));
-            line-height: 1.6;
-            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-style: normal; /* Ensuring it's not italic unless specified by index.html */
         }
-        .main-footer .footer-column p.tagline { /* Specific styling for the tagline */
-            color: var(--text-secondary-brighter, #b0bdc9);
-            font-style: italic;
-            margin-bottom: 1.25rem;
-        }
+
         .main-footer .footer-column h3 {
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             font-weight: 600;
             color: var(--text-primary);
-            margin-bottom: 1.5rem;
-            position: relative;
-            padding-bottom: 0.6rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0; /* No special padding or underline */
         }
         .main-footer .footer-column h3::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 35px;
-            height: 2.5px;
-            background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
-            border-radius: 2px;
-            opacity: 0.85;
+            content: none; /* Remove underline from previous attempts */
         }
+
         .main-footer .footer-column .footer-links {
             list-style: none;
             padding: 0;
             margin: 0;
         }
         .main-footer .footer-column .footer-links li {
-            margin-bottom: 0.85rem;
+            margin-bottom: 0.75rem;
         }
-        .main-footer .footer-column .footer-links a {
+        .main-footer .footer-column .footer-links a { /* For links without preceding icon in LI */
             color: var(--text-link);
             text-decoration: none;
             font-size: 0.95rem;
-            display: inline-block;
-            position: relative;
-            transition: color 0.25s ease;
-        }
-        .main-footer .footer-column .footer-links a i.fa-fw {
-            margin-right: 0.7em;
-            width: 1.2em;
-            text-align: center;
-            color: var(--text-muted);
-            transition: color 0.25s ease;
+            transition: color 0.2s ease;
         }
         .main-footer .footer-column .footer-links a:hover {
-            color: var(--accent-primary);
+            color: var(--text-link-hover);
+            text-decoration: underline; /* Simple underline like index.html might have */
         }
-        .main-footer .footer-column .footer-links a:hover i.fa-fw {
-            color: var(--accent-primary);
+        .main-footer .footer-column .footer-links a::after { /* Remove animated underline */
+            content: none;
         }
-        .main-footer .footer-column .footer-links a::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 1.5px;
-            bottom: -4px;
-            left: 0;
-            background-color: var(--accent-primary);
-            transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+        /* Styling for items like email/location which have an icon directly in LI before an A or text */
+        .main-footer .footer-column .footer-links li > i {
+            margin-right: 0.6em;
+            width: 16px;
+            text-align: center;
+            color: var(--text-muted); /* Icon color for list items like email/location */
         }
-        .main-footer .footer-column .footer-links a:hover::after {
-            width: 100%;
+         .main-footer .footer-column .footer-links li > i + a { /* Link immediately following an icon in LI */
+            color: var(--text-link);
         }
-        .main-footer .footer-column .footer-links span.icon-link {
-             display: flex;
-             align-items: center;
-             color: var(--text-muted);
+        .main-footer .footer-column .footer-links li > i + a:hover {
+             color: var(--text-link-hover);
         }
-        .main-footer .footer-column .footer-links span.icon-link i.fa-fw {
+         .main-footer .footer-column .footer-links li > span.icon-link { /* If location is just text not a link */
+            display: flex;
+            align-items: center;
+            color: var(--text-secondary); /* Regular text color for non-link items */
+         }
+         .main-footer .footer-column .footer-links li > span.icon-link i {
+            margin-right: 0.6em;
+            width: 16px;
+            text-align: center;
             color: var(--text-muted);
-        }
+         }
+
 
         .main-footer .social-links {
             display: flex;
-            gap: 0.75rem; /* Adjusted gap for new background shape */
-            margin-top: 1.25rem;
+            gap: 1rem;
+            margin-top: 1rem;
         }
         .main-footer .social-links .social-link {
-            color: var(--text-muted);
-            font-size: 1.2rem; /* Adjusted for fixed size container */
-            transition: color 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
-            width: 40px; 
-            height: 40px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%; /* Circular shape */
-            background-color: transparent; /* Initial transparent background */
+            color: var(--text-muted); /* Matching index.html social icon color */
+            font-size: 1.4rem; /* Matching index.html social icon size */
+            transition: color 0.2s ease, transform 0.2s ease;
+            /* Removed fixed width/height and background from previous attempts */
+            background-color: transparent;
+            border-radius: 0;
+            width: auto;
+            height: auto;
         }
         .main-footer .social-links .social-link:hover {
-            color: var(--accent-primary);
-            transform: scale(1.1); /* Slightly reduced scale for icon within shape */
-            background-color: rgba(var(--accent-primary-rgb), 0.12); /* Accent background on hover */
+            color: var(--accent-primary); /* Or var(--text-link-hover) */
+            transform: translateY(-2px); /* Simple lift effect */
         }
-        /* END: Footer Styles Enhancements */
+        /* END: Footer Styles (to match index.html) */
 
-        /* START: General Design Improvements (from previous step, ensure they don't conflict) */
+
+        /* START: General Design Improvements (from previous unrelated step, kept for page context) */
         .card {
             border-radius: var(--card-radius, 12px);
             border: 1px solid var(--border-color-light);
@@ -472,36 +466,40 @@
         </div>
 
         <footer class="main-footer">
-            <div class="footer-grid">
-                <div class="footer-column">
-                    <a href="/dashboard/dashboard.html" class="logo" aria-label="Justax Domů">
-                        <i class="fas fa-atom" aria-hidden="true"></i> <span>JUSTAX</span>
-                    </a>
-                    <p class="tagline">AI Augmentace Vzdělávání a Osobního Rozvoje.</p>
-                    <div class="social-links" aria-label="Sociální sítě">
-                         <a href="https://t.me/justaxspace" class="social-link" aria-label="Telegram" target="_blank" rel="noopener noreferrer"><i class="fab fa-telegram-plane" aria-hidden="true"></i></a>
-                         <a href="https://www.instagram.com/learnwithjustax/" class="social-link" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram" aria-hidden="true"></i></a>
-                         <a href="mailto:admin@justax.space" class="social-link" aria-label="Email"><i class="fas fa-envelope" aria-hidden="true"></i></a>
+            <div class="container">
+                <div class="footer-grid">
+                    <div class="footer-column">
+                        <a href="/dashboard/dashboard.html" class="logo" aria-label="Justax Domů"> <i class="fas fa-atom" aria-hidden="true"></i> <span>JUSTAX</span>
+                        </a>
+                        <p>AI Augmentace Vzdělávání a Osobního Rozvoje.</p> {/* Removed tagline class to match index.html simplicity */}
+                        <div class="social-links" aria-label="Sociální sítě">
+                             <a href="https://t.me/justaxspace" class="social-link" aria-label="Telegram" target="_blank" rel="noopener noreferrer"><i class="fab fa-telegram-plane" aria-hidden="true"></i></a>
+                             <a href="https://www.instagram.com/learnwithjustax/" class="social-link" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram" aria-hidden="true"></i></a>
+                             <a href="mailto:admin@justax.space" class="social-link" aria-label="Email"><i class="fas fa-envelope" aria-hidden="true"></i></a>
+                        </div>
                     </div>
-                </div>
-                <div class="footer-column">
-                    <h3>Účet a Dashboard</h3>
-                    <ul class="footer-links">
-                        <li><a href="/auth/" class="icon-link"><i class="fas fa-sign-in-alt fa-fw"></i>Přihlášení / Registrace</a></li>
-                        <li><a href="/dashboard/dashboard.html" class="icon-link"><i class="fas fa-tachometer-alt fa-fw"></i>Hlavní Panel</a></li>
-                        <li><a href="/dashboard/profile.html" class="icon-link"><i class="fas fa-user-astronaut fa-fw"></i>Můj Profil</a></li>
-                        <li><a href="/dashboard/pokrok.html" class="icon-link"><i class="fas fa-chart-line fa-fw"></i>Sledování Pokroku</a></li>
-                        <li><a href="/dashboard/oceneni.html" class="icon-link"><i class="fas fa-medal fa-fw"></i>Moje Ocenění</a></li>
-                    </ul>
-                </div>
-                <div class="footer-column">
-                    <h3>Právní & Podpora</h3>
-                    <ul class="footer-links">
-                        <li><a href="/privacy-policy.html" class="icon-link"><i class="fas fa-shield-alt fa-fw"></i>Ochrana Údajů</a></li>
-                        <li><a href="/terms.html" class="icon-link"><i class="fas fa-file-contract fa-fw"></i>Podmínky Použití</a></li>
-                        <li><a href="mailto:admin@justax.space" class="icon-link"><i class="fas fa-envelope fa-fw"></i>admin@justax.space</a></li>
-                        <li><span class="icon-link"><i class="fas fa-map-marker-alt fa-fw"></i>Centrála: Cheb, CZ</span></li>
-                    </ul>
+                    <div class="footer-column">
+                        <h3>Účet a Dashboard</h3>
+                        <ul class="footer-links">
+                            {/* Links simplified, icons removed to match index.html column 2 style */}
+                            <li><a href="/auth/">Přihlášení / Registrace</a></li>
+                            <li><a href="/dashboard/dashboard.html">Hlavní Panel</a></li>
+                            <li><a href="/dashboard/profile.html">Můj Profil</a></li>
+                            <li><a href="/dashboard/pokrok.html">Sledování Pokroku</a></li>
+                            <li><a href="/dashboard/oceneni.html">Moje Ocenění</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Právní & Podpora</h3>
+                        <ul class="footer-links">
+                            {/* Links simplified, icons removed where not present in index.html column 3 style */}
+                            <li><a href="/privacy-policy.html">Ochrana Údajů</a></li>
+                            <li><a href="/terms.html">Podmínky Použití</a></li>
+                            {/* Nastavení Cookies link is kept out as per previous request. If needed, can be added back. */}
+                            <li><i class="fas fa-envelope" aria-hidden="true"></i> <a href="mailto:admin@justax.space">admin@justax.space</a></li>
+                            <li><i class="fas fa-map-marker-alt" aria-hidden="true"></i>Centrála: Cheb, CZ</li> {/* Kept Cheb as per dashboard specific */}
+                        </ul>
+                    </div>
                 </div>
             </div>
         </footer>
@@ -553,7 +551,7 @@
     <script src="dashboard-lists.js" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const currentYearFooterElement = document.getElementById('currentYearFooter');
+            const currentYearFooterElement = document.getElementById('currentYearFooter'); // This ID is from index.html's copyright, which is not in dashboard footer
             if (currentYearFooterElement) {
                 currentYearFooterElement.textContent = new Date().getFullYear();
             }
