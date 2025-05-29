@@ -21,28 +21,29 @@
             --accent-primary: #00e0ff;
             --accent-primary-rgb: 0, 224, 255;
             --accent-secondary: #a05cff;
-            --border-color-light: rgba(255, 255, 255, 0.1); /* Used for subtle borders */
+            --accent-secondary-rgb: 160, 92, 255; /* Added for h3::before glow */
+            --border-color-light: rgba(255, 255, 255, 0.1);
             --card-radius: 12px;
             --text-primary: #e0e0e0;
             --text-secondary: #b0b8c4;
             --text-muted: #8899a6;
-            --text-link: var(--text-secondary); /* Default link color in footer */
+            --text-link: var(--text-secondary);
             --text-link-hover: var(--accent-primary);
-            --bg-footer: #10121a; /* Very dark footer background */
+            --bg-footer: #10121a;
             --container-max-width: 1140px;
             --container-padding-x: 15px;
         }
 
-        /* START: Footer Styles - "Improve Even More" */
+        /* START: Footer Styles - "Improve Even More" with Icons for all links */
         .main-footer {
             background-color: var(--bg-footer);
-            padding: 2.5rem 0; /* Increased vertical padding */
+            padding: 2.5rem 0;
             margin-top: auto;
             border-top: 2px solid var(--accent-primary);
-            box-shadow: 0 4px 15px -5px rgba(var(--accent-primary-rgb), 0.3); /* Subtle glow shadow for the top border */
+            box-shadow: 0 4px 15px -5px rgba(var(--accent-primary-rgb), 0.3);
             color: var(--text-secondary);
             font-size: 0.9rem;
-            line-height: 1.7; /* Improved line height for readability */
+            line-height: 1.7;
         }
 
         .main-footer .container {
@@ -55,8 +56,8 @@
 
         .main-footer .footer-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); /* Slightly larger minmax */
-            gap: 2.5rem; /* Consistent gap */
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 2.5rem;
             text-align: left;
         }
 
@@ -78,22 +79,22 @@
             color: var(--accent-primary);
         }
 
-        .main-footer .footer-column p { /* Slogan paragraph */
+        .main-footer .footer-column p {
             margin-bottom: 1.25rem;
             color: var(--text-secondary);
-            font-size: 0.875rem; /* Slightly smaller for slogan */
+            font-size: 0.875rem;
             opacity: 0.9;
         }
 
         .main-footer .footer-column h3 {
             font-size: 1.15rem;
-            font-weight: 600; /* Bolder */
+            font-weight: 600;
             color: var(--text-primary);
             margin-bottom: 1.25rem;
             position: relative;
-            padding-left: 18px; /* Space for the dot */
+            padding-left: 18px;
         }
-        .main-footer .footer-column h3::before { /* Accent dot */
+        .main-footer .footer-column h3::before {
             content: '';
             background-color: var(--accent-secondary);
             width: 8px;
@@ -103,15 +104,8 @@
             left: 0;
             top: 50%;
             transform: translateY(-50%);
-            box-shadow: 0 0 5px rgba(var(--accent-secondary-rgb, 160, 92, 255), 0.5); /* Assuming accent-secondary-rgb */
+            box-shadow: 0 0 5px rgba(var(--accent-secondary-rgb), 0.5);
         }
-         /* Fallback for accent-secondary-rgb if not defined */
-        @supports not (background: rgb(from var(--accent-secondary) r g b / 0.5)) {
-            .main-footer .footer-column h3::before {
-                 box-shadow: 0 0 5px var(--accent-secondary);
-            }
-        }
-
 
         .main-footer .footer-column .footer-links {
             list-style: none;
@@ -119,10 +113,10 @@
             margin: 0;
         }
         .main-footer .footer-column .footer-links li {
-            margin-bottom: 0.5rem; /* Slightly reduced space between links for bg hover */
+            margin-bottom: 0.5rem;
             transition: background-color 0.2s ease;
-            border-radius: 5px; /* Rounded corners for li hover */
-            padding: 0.25rem 0.5rem; /* Padding for li to show background */
+            border-radius: 5px;
+            padding: 0.25rem 0.5rem;
             margin-left: -0.5rem; /* Counteract padding for alignment */
             margin-right: -0.5rem;
         }
@@ -130,40 +124,35 @@
             background-color: rgba(var(--accent-primary-rgb), 0.07);
         }
 
-        .main-footer .footer-column .footer-links a {
+        .main-footer .footer-column .footer-links a,
+        .main-footer .footer-column .footer-links span.icon-text-item { /* Apply to both links and styled spans */
             color: var(--text-link);
             text-decoration: none;
             font-size: 0.95rem;
             transition: color 0.2s ease;
-            display: inline-block; /* Needed for proper hover and padding application */
+            display: flex; 
+            align-items: center;
+            width: 100%; /* Ensure it takes full width of li for hover */
         }
-        .main-footer .footer-column .footer-links li:hover a {
+        .main-footer .footer-column .footer-links li:hover a,
+        .main-footer .footer-column .footer-links li:hover span.icon-text-item {
             color: var(--text-link-hover);
             text-decoration: none;
         }
 
-        .main-footer .footer-column .footer-links li > i { /* Icons for email/location */
-            margin-right: 0.7em;
+        .main-footer .footer-column .footer-links a i,
+        .main-footer .footer-column .footer-links span.icon-text-item i { /* Icons inside links or styled spans */
+            margin-right: 0.8em; /* More space for icon */
             color: var(--text-muted);
-            width: 16px;
+            width: 18px; /* Slightly wider for icons */
             text-align: center;
             transition: color 0.2s ease;
+            flex-shrink: 0; /* Prevent icon from shrinking */
         }
-        .main-footer .footer-column .footer-links li:hover > i {
+        .main-footer .footer-column .footer-links li:hover a i,
+        .main-footer .footer-column .footer-links li:hover span.icon-text-item i {
             color: var(--text-link-hover);
         }
-         .main-footer .footer-column .footer-links li > span.icon-link {
-            display: flex;
-            align-items: center;
-            color: var(--text-secondary);
-         }
-         .main-footer .footer-column .footer-links li:hover > span.icon-link {
-             color: var(--text-link-hover); /* To make non-link text also react if desired */
-         }
-         .main-footer .footer-column .footer-links li:hover > span.icon-link i {
-            color: var(--text-link-hover);
-         }
-
 
         .main-footer .social-links {
             display: flex;
@@ -171,7 +160,7 @@
             margin-top: 1.25rem;
         }
         .main-footer .social-links .social-link {
-            width: 38px; /* Consistent size */
+            width: 38px;
             height: 38px;
             border-radius: 50%;
             display: inline-flex;
@@ -179,18 +168,18 @@
             justify-content: center;
             border: 1px solid var(--border-color-light);
             color: var(--text-muted);
-            font-size: 1.1rem; /* Adjusted icon size for the container */
+            font-size: 1.1rem;
             transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
             text-decoration: none;
         }
         .main-footer .social-links .social-link:hover {
             background-color: var(--accent-primary);
             border-color: var(--accent-primary);
-            color: var(--bg-footer); /* Icon color contrasts with accent bg */
-            transform: translateY(-3px) scale(1.05); /* Lift and slight scale */
+            color: var(--bg-footer);
+            transform: translateY(-3px) scale(1.05);
             box-shadow: 0 4px 8px rgba(var(--accent-primary-rgb), 0.3);
         }
-        /* END: Footer Styles - "Improve Even More" */
+        /* END: Footer Styles - "Improve Even More" with Icons for all links */
 
 
         /* START: General Design Improvements (from previous unrelated step, kept for page context) */
@@ -512,20 +501,20 @@
                     <div class="footer-column">
                         <h3>Účet a Dashboard</h3>
                         <ul class="footer-links">
-                            <li><a href="/auth/">Přihlášení / Registrace</a></li>
-                            <li><a href="/dashboard/dashboard.html">Hlavní Panel</a></li>
-                            <li><a href="/dashboard/profile.html">Můj Profil</a></li>
-                            <li><a href="/dashboard/pokrok.html">Sledování Pokroku</a></li>
-                            <li><a href="/dashboard/oceneni.html">Moje Ocenění</a></li>
+                            <li><a href="/auth/"><i class="fas fa-sign-in-alt" aria-hidden="true"></i> Přihlášení / Registrace</a></li>
+                            <li><a href="/dashboard/dashboard.html"><i class="fas fa-tachometer-alt" aria-hidden="true"></i> Hlavní Panel</a></li>
+                            <li><a href="/dashboard/profile.html"><i class="fas fa-user-astronaut" aria-hidden="true"></i> Můj Profil</a></li>
+                            <li><a href="/dashboard/pokrok.html"><i class="fas fa-chart-line" aria-hidden="true"></i> Sledování Pokroku</a></li>
+                            <li><a href="/dashboard/oceneni.html"><i class="fas fa-medal" aria-hidden="true"></i> Moje Ocenění</a></li>
                         </ul>
                     </div>
                     <div class="footer-column">
                         <h3>Právní & Podpora</h3>
                         <ul class="footer-links">
-                            <li><a href="/privacy-policy.html">Ochrana Údajů</a></li>
-                            <li><a href="/terms.html">Podmínky Použití</a></li>
-                            <li><i class="fas fa-envelope" aria-hidden="true"></i> <a href="mailto:admin@justax.space">admin@justax.space</a></li>
-                            <li><i class="fas fa-map-marker-alt" aria-hidden="true"></i><span class="icon-link">Centrála: Cheb, CZ</span></li>
+                            <li><a href="/privacy-policy.html"><i class="fas fa-shield-alt" aria-hidden="true"></i> Ochrana Údajů</a></li>
+                            <li><a href="/terms.html"><i class="fas fa-file-contract" aria-hidden="true"></i> Podmínky Použití</a></li>
+                            <li><a href="mailto:admin@justax.space"><i class="fas fa-envelope" aria-hidden="true"></i> admin@justax.space</a></li>
+                            <li><span class="icon-text-item"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> Centrála: Cheb, CZ</span></li>
                         </ul>
                     </div>
                 </div>
