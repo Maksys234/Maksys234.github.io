@@ -1048,7 +1048,7 @@ RETURNS TABLE (
     topic_name TEXT,
     progress_percentage DOUBLE PRECISION,
     last_studied_at TIMESTAMPTZ,
-    topic_icon TEXT
+    topic_icon TEXT  -- Это имя столбца, которое ожидает ваш JavaScript (main.js)
 )
 AS $$
 BEGIN
@@ -1056,19 +1056,19 @@ BEGIN
     WITH user_topic_activities AS (
         SELECT
             pa.topic_id,
-            et.name AS calculated_topic_name, -- Используем псевдоним, чтобы избежать конфликта имен, если topic_name есть в pa
-            et.icon AS calculated_topic_icon,   -- Используем псевдоним
+            et.name AS calculated_topic_name,
+            et.icon_class AS calculated_topic_icon, -- Используем ваш столбец 'icon_class'
             COUNT(pa.id) AS total_activities,
             SUM(CASE WHEN pa.completed THEN 1 ELSE 0 END) AS completed_activities,
-            MAX(pa.updated_at) AS latest_activity_update -- Предполагаем, что updated_at отражает время изучения
+            MAX(pa.updated_at) AS latest_activity_update
         FROM
-            public.plan_activities pa -- Явно указываем схему public
+            public.plan_activities pa
         JOIN
-            public.exam_topics et ON pa.topic_id = et.id -- Явно указываем схему public
+            public.exam_topics et ON pa.topic_id = et.id
         WHERE
             pa.user_id = p_user_id
         GROUP BY
-            pa.topic_id, et.name, et.icon
+            pa.topic_id, et.name, et.icon_class -- Группируем также по icon_class
     )
     SELECT
         uta.calculated_topic_name,
@@ -1076,19 +1076,15 @@ BEGIN
             WHEN uta.total_activities > 0 THEN ROUND((uta.completed_activities::DECIMAL / uta.total_activities) * 100.0, 2)
             ELSE 0.0
         END AS progress_percentage,
-        uta.latest_activity_update AS last_studied_at, -- Переименовываем для соответствия возвращаемому типу
-        uta.calculated_topic_icon
+        uta.latest_activity_update AS last_studied_at,
+        uta.calculated_topic_icon   -- Возвращаем значение из et.icon_class
     FROM
         user_topic_activities uta
     ORDER BY
         uta.latest_activity_update DESC NULLS LAST, uta.calculated_topic_name;
 END;
 $$ LANGUAGE plpgsql
--- SECURITY DEFINER может потребоваться, если у роли authenticated нет прямых прав на чтение таблиц,
--- но функция должна выполняться с правами создателя (обычно суперпользователя).
--- Если у вас настроены RLS и роли имеют доступ, SECURITY INVOKER может быть безопаснее.
--- Для начала можно попробовать с SECURITY DEFINER.
 SECURITY DEFINER;
 
--- После создания функции, не забудьте предоставить права на ее выполнение роли authenticated:
+-- Не забудьте предоставить права на выполнение, если вы заменяете функцию (обычно права сохраняются, но лучше проверить):
 GRANT EXECUTE ON FUNCTION public.get_user_topic_progress_summary(uuid) TO authenticated;
