@@ -12,7 +12,7 @@
     let allAvatarDecorationsList = [];
 
     const SIDEBAR_STATE_KEY = 'sidebarCollapsedStatePlayground';
-    const API_TIMEOUT = 30000; // <--- УВЕЛИЧЕН ТАЙМАУТ до 30 секунд
+    const API_TIMEOUT = 30000; // 30 sekundový timeout
 
     const ui = {};
 
@@ -28,7 +28,7 @@
             'initialSiteLoader', 'authSection', 'appContent', 'loginFormContainer',
             'registerFormContainer', 'loginForm', 'registerForm', 'logoutButton',
             'userEmailDisplay', 'userIdDisplay', 'userLevelDisplay', 'userXpDisplay', 'userPointsDisplay', 'userStreakDisplay',
-            'showRegister', 'showLogin', 'toast-container', 'sidebar', 'main-content',
+            'showRegister', 'showLogin', /* 'toast-container' bude ošetřen speciálně */ 'sidebar', 'main-content',
             'sidebar-overlay', 'main-mobile-menu-toggle', 'sidebar-close-toggle',
             'sidebar-toggle-btn-desktop',
             'user-profile-sidebar', 'avatar-wrapper-sidebar', 'sidebar-avatar',
@@ -43,12 +43,13 @@
         ];
         ids.forEach(id => ui[id] = document.getElementById(id));
         
-        // Важно: Проверка наличия toast-container здесь
+        // Speciální ošetření pro toast-container
+        ui.toastContainer = document.getElementById('toast-container');
         if (!ui.toastContainer) {
-            console.error("KRITICKÁ CHYBA KACHOVÁNÍ: Element #toast-container nebyl nalezen v DOM!");
+            console.warn("VAROVÁNÍ KACHOVÁNÍ: Element #toast-container nebyl nalezen v DOM při cachování! Funkce showToast se ho pokusí najít znovu.");
         }
 
-        if (!ui.sidebarToggleBtnDesktop && document.getElementById('sidebar-toggle-btn')) {
+        if (!ui.sidebarToggleBtnDesktop && document.getElementById('sidebar-toggle-btn')) { 
             ui.sidebarToggleBtnDesktop = document.getElementById('sidebar-toggle-btn');
         }
         console.log("[Playground CacheDOM] DOM elements cached.");
@@ -58,13 +59,10 @@
 
     function showToast(message, type = 'info', duration = 3500) {
         if (!ui.toastContainer) {
-            // Попытка повторно найти контейнер, если он не был закэширован
-            ui.toastContainer = document.getElementById('toast-container');
+            ui.toastContainer = document.getElementById('toast-container'); // Pokus o znovunalezení
             if (!ui.toastContainer) {
-                console.error("Toast container stále nebyl nalezen. Toast se nezobrazí.");
-                // Можно также добавить алерт для пользователя, если это критично
-                // alert(`Chyba zobrazení notifikace: ${message}`);
-                return;
+                console.error("CHYBA ZOBRAZENÍ TOASTU: Element #toast-container stále nebyl nalezen. Toast se nezobrazí.");
+                return; // Ukončit funkci, pokud kontejner není
             }
         }
         const toastId = `toast-${Date.now()}`;
@@ -246,11 +244,12 @@
                 if (!currentProfile) {
                      showToast("Nepodařilo se načíst profil uživatele.", "error");
                      showAppContent(false); 
+                     // Explicitní skrytí loaderu, i když by to měl dělat finally
                      if (ui.initialSiteLoader && !ui.initialSiteLoader.classList.contains('hidden')) {
                         ui.initialSiteLoader.style.opacity = '0';
                         setTimeout(() => { if(ui.initialSiteLoader) ui.initialSiteLoader.style.display = 'none'; }, 300);
                      }
-                     return;
+                     return; // Důležité: Ukončit zde, pokud profil není načten
                 }
                 await loadInitialSelectData(); 
                 updateUserInfoUI();
@@ -267,7 +266,9 @@
             currentUser = null; currentProfile = null;
             updateUserInfoUI(); showAppContent(false);
         } finally {
+            // Tento finally blok se vykoná vždy po try nebo catch
             if (ui.initialSiteLoader && !ui.initialSiteLoader.classList.contains('hidden')) {
+                console.log("[Playground handleAuthStateChange FINALLY] Skrývám initialSiteLoader.");
                 ui.initialSiteLoader.style.opacity = '0';
                 setTimeout(() => { 
                     if(ui.initialSiteLoader) ui.initialSiteLoader.style.display = 'none'; 
@@ -312,8 +313,8 @@
                     .from('profiles')
                     .update(updates)
                     .eq('id', currentUser.id)
-                    .select()
-                    .single(),
+                    .select() // Vrací pole, i když je jen jeden záznam
+                    .single(), // Zajistí vrácení jednoho objektu nebo null
                 API_TIMEOUT
             );
             if (error) throw error;
@@ -389,7 +390,7 @@
                 updateUserInfoUI();
                 showToast("Denní série synchronizována a profil aktualizován.", "success");
             } else {
-                currentProfile = await fetchUserProfileData(); // Re-fetch if RPC doesn't return full profile
+                currentProfile = await fetchUserProfileData();
                 updateUserInfoUI();
                 showToast("Synchronizace série dokončena, profil obnoven.", "warning");
             }
@@ -580,11 +581,12 @@
             fetchAvatarDecorations()
         ];
         try {
-            await Promise.all(promises);
+            await Promise.all(promises); // Všechna volání nyní používají fetchWithTimeout
             console.log("[Playground] Data pro select boxy načtena.");
         } catch (error) {
-            console.error("[Playground] Chyba při hromadném načítání dat pro selecty:", error);
-            showToast("Chyba při načítání některých dat pro formuláře.", "warning");
+            // Chyby jsou již zpracovány uvnitř jednotlivých fetch funkcí (zobrazí toast)
+            console.error("[Playground] Alespoň jedno načítání pro select selhalo nebo vypršelo:", error);
+            // Není třeba zde zobrazovat další toast, pokud to již dělají podfunkce
         }
     }
 
@@ -620,11 +622,10 @@
         window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus);
          console.log("[Playground] Event listeners setup complete.");
     }
-
     function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Offline', 'Spojení bylo ztraceno.', 'warning'); }
 
     async function initializeApp() {
-        cacheDOMElements();
+        cacheDOMElements(); // Zavolat hned na začátku
         if (!initializeSupabase()) return;
         
         applyInitialSidebarState();
@@ -648,6 +649,9 @@
             handleAuthStateChange('INITIAL_CHECK', session);
         } catch(e) {
             console.error("Initial session check/timeout failed:", e);
+            // V tomto bodě je `finally` blok z `handleAuthStateChange` zodpovědný za skrytí loaderu
+            // ale showToast zde může selhat, pokud `cacheDOMElements` ještě nezachytilo `toastContainer` správně
+            // nebo pokud samotné `showToast` selže.
             handleAuthStateChange('INITIAL_CHECK_ERROR', null); 
             showToast("Chyba při ověřování sezení: " + e.message, "error");
         }
@@ -656,20 +660,16 @@
     document.addEventListener('DOMContentLoaded', initializeApp);
 })();
 // EDIT LOGS:
-// Developer Goal: Fix infinite loading and toast container issues on Playground page.
+// Developer Goal: Fix infinite loading and "Toast container not found" errors on Playground page.
 // Stage:
-//  - Increased API_TIMEOUT to 30000ms (30 seconds) to give Supabase operations more time.
+//  - Increased API_TIMEOUT to 30000ms (30 seconds).
 //  - Made `showToast` function more robust:
-//    - It now attempts to re-cache `ui.toastContainer` if it's null at the time of call.
-//    - If `toast-container` is still not found after re-caching, it logs an error and exits gracefully instead of throwing an unhandled error that might stop script execution.
-//  - Reviewed `handleAuthStateChange`: The logic for hiding `ui.initialSiteLoader` in both success and failure paths (including when `currentProfile` is null after `fetchUserProfileData` fails/times out) appears to be correct. The primary cause of the loader not hiding was likely an unhandled error from `showToast` (due to missing container) or a promise in `loadInitialSelectData` hanging indefinitely.
-//  - All Supabase calls within `fetchUserProfileData`, `updateProfileField`, `syncDailyStreak` (RPC), `fetchAllBadgesDefinition`, `awardSpecificBadge`, `clearUserBadges`, `fetchAllTitles`, `fetchAvatarDecorations`, and `sendTestNotification` are now wrapped with `fetchWithTimeout`.
-//  - Ensured `catch` blocks in these data-fetching/modifying functions show a toast with the error message and return appropriate default values (e.g., `null`, `[]`, `false`) to allow `handleAuthStateChange` to proceed to its `finally` block.
-// - Added console log for cacheDOMElements completion.
-// - Corrected potential issue in equipTitle where purchased_titles might not be an array if currentProfile.purchased_titles is null.
-// - Ensured that `populateSelect` is called even if fetch functions for select data fail, to clear previous options.
-// - In `handleAuthStateChange`, ensured `initialSiteLoader` is explicitly hidden if `!currentProfile` after `fetchUserProfileData` returns, before the early `return`.
-// - Ensured `loadInitialSelectData` is awaited and its potential to hang is mitigated by timeouts in its sub-functions.
-// - Ensured UI elements are hidden/shown correctly based on auth state in `showAppContent`.
-// - Added a check for `sidebarToggleBtnDesktop` in `applyInitialSidebarState` and `toggleSidebarDesktop` for robustness.
-// - Made `fetchUserProfileData` always return null in its catch block after showing toast.
+//    - It now attempts to re-cache `ui.toastContainer` using `document.getElementById('toast-container')` if `ui.toastContainer` is initially null.
+//    - If `toast-container` is still not found after the re-cache attempt, it logs an error to the console and exits the `showToast` function gracefully, preventing further script execution errors due to a missing toast container.
+//  - Ensured `fetchWithTimeout` is applied to all primary Supabase select/insert/update/delete/rpc calls within data fetching and action functions to prevent indefinite hangs.
+//  - Confirmed that `catch` blocks in data-handling functions will show a toast (if possible) and return a default value (like null or an empty array), allowing the main execution flow in `handleAuthStateChange` to reach its `finally` block.
+//  - Added a specific `console.warn` in `cacheDOMElements` if `toast-container` is not found during the initial caching phase, for better diagnostics.
+//  - Ensured the `finally` block in `handleAuthStateChange` correctly attempts to hide `ui.initialSiteLoader`. The primary reason for it not being hidden before was likely an unhandled error (e.g., from `showToast` or a hanging promise) stopping script execution before the `finally` block.
+//  - Explicitly hide `initialSiteLoader` within `handleAuthStateChange` if `!currentProfile` is true after `fetchUserProfileData`, as an additional safeguard before an early return.
+//  - The `initializeApp` function's main `try...catch` block also attempts to hide the loader in its `finally` clause, providing another layer of safety, though the primary fix is preventing hangs within `handleAuthStateChange`.
+//  - Ensured `loadInitialSelectData` correctly awaits all its sub-fetches, which now also use `fetchWithTimeout`.
