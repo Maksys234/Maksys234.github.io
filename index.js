@@ -1,16 +1,15 @@
 /**
  * JUSTAX Landing Page Script
  * Handles UI interactions, animations, infinite testimonial slider,
- * Hero text mask reveal, interactive gradient, enhanced visual effects,
- * and Advanced Cookie Consent Banner with gtag.js integration.
- * Version: v2.41 (Fallback Hide if CSS Fails for Pop-up)
+ * Hero text mask reveal, interactive gradient, enhanced visual effects.
+ * Version: v2.41_NoCookie (Cookie consent functionality removed from this page)
  * Author: Gemini Modification (enhanced from v2.40)
- * Date: 2025-05-29
+ * Date: 2025-05-29 // Adjusted by AI
  *
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Ready. Initializing JUSTAX Interface v2.41 (Fallback Hide if CSS Fails for Pop-up)...");
+    console.log("DOM Ready. Initializing JUSTAX Interface v2.41_NoCookie (Cookie consent functionality removed from this page)...");
 
     // --- Global Variables & DOM References ---
     const body = document.body;
@@ -43,41 +42,41 @@ document.addEventListener('DOMContentLoaded', () => {
         animations: { scrollThreshold: 0.05, staggerDelay: 100, letterMaskRevealDelay: 50, heroElementEntryDelay: 150 },
         aiDemo: { enabled: true, typingSpeed: 35, stepBaseDelay: 180, stepRandomDelay: 400 },
         testimonials: { placeholderAvatarBaseUrl: 'https://placehold.co/100x100/', visibleCardsDesktop: 3, bufferCards: 2, slideDuration: 550 },
-        cookies: {
-            consentProcessedCookieName: 'justax_consent_processed_v2', 
-            consentPreferencesKey: 'justax_consent_preferences_v2',    
-            consentCookieExpirationDays: 365,
-            defaultConsentState: { 
-                'analytics_storage': 'denied',
-                'functionality_storage': 'denied',
-                'personalization_storage': 'denied',
-                'ad_storage': 'denied',
-                'ad_user_data': 'denied',
-                'ad_personalization': 'denied',
-            }
-        }
+        // cookies: { // Cookie configuration removed as per requirement
+        //     consentProcessedCookieName: 'justax_consent_processed_v2',
+        //     consentPreferencesKey: 'justax_consent_preferences_v2',
+        //     consentCookieExpirationDays: 365,
+        //     defaultConsentState: {
+        //         'analytics_storage': 'denied',
+        //         'functionality_storage': 'denied',
+        //         'personalization_storage': 'denied',
+        //         'ad_storage': 'denied',
+        //         'ad_user_data': 'denied',
+        //         'ad_personalization': 'denied',
+        //     }
+        // }
     };
 
-    // --- Cookie Consent Elements ---
-    const cookieConsentBanner = document.getElementById('cookie-consent-banner');
-    const cookieConsentOverlay = document.getElementById('cookie-consent-overlay');
-    const cookieConsentAcceptAllBtn = document.getElementById('cookie-consent-accept-all');
-    const cookieConsentRejectAllBtn = document.getElementById('cookie-consent-reject-all');
-    const cookieConsentCustomizeBtn = document.getElementById('cookie-consent-customize');
+    // --- Cookie Consent Elements (Commented out as they will be removed from HTML) ---
+    // const cookieConsentBanner = document.getElementById('cookie-consent-banner');
+    // const cookieConsentOverlay = document.getElementById('cookie-consent-overlay');
+    // const cookieConsentAcceptAllBtn = document.getElementById('cookie-consent-accept-all');
+    // const cookieConsentRejectAllBtn = document.getElementById('cookie-consent-reject-all');
+    // const cookieConsentCustomizeBtn = document.getElementById('cookie-consent-customize');
 
-    const cookieSettingsModal = document.getElementById('cookie-settings-modal');
-    const cookieModalCloseBtn = document.getElementById('cookie-modal-close');
-    const cookieSettingsSaveBtn = document.getElementById('cookie-settings-save');
-    const cookieSettingsAcceptAllModalBtn = document.getElementById('cookie-settings-accept-all-modal');
-    const cookieSettingsTriggerFooter = document.getElementById('cookie-settings-trigger');
+    // const cookieSettingsModal = document.getElementById('cookie-settings-modal');
+    // const cookieModalCloseBtn = document.getElementById('cookie-modal-close');
+    // const cookieSettingsSaveBtn = document.getElementById('cookie-settings-save');
+    // const cookieSettingsAcceptAllModalBtn = document.getElementById('cookie-settings-accept-all-modal');
+    // const cookieSettingsTriggerFooter = document.getElementById('cookie-settings-trigger');
 
-    const cookieSettingToggles = cookieSettingsModal ? Array.from(cookieSettingsModal.querySelectorAll('.cookie-switch input[type="checkbox"][data-consent-type]')) : [];
-    const cookieCategoryHeaders = cookieSettingsModal ? Array.from(cookieSettingsModal.querySelectorAll('.cookie-category-header')) : [];
+    // const cookieSettingToggles = cookieSettingsModal ? Array.from(cookieSettingsModal.querySelectorAll('.cookie-switch input[type="checkbox"][data-consent-type]')) : [];
+    // const cookieCategoryHeaders = cookieSettingsModal ? Array.from(cookieSettingsModal.querySelectorAll('.cookie-category-header')) : [];
 
     let localTestimonials = [];
     let testimonialDataCache = [];
     let cardsInTrack = [];
-    let stableVisibleStartIndex = config.testimonials.bufferCards;
+    let stableVisibleStartIndex = config.testimonials.bufferCards; // Remains, as it's for testimonials
     let totalCardsInDOM = 0;
     let cardWidthAndMargin = 0;
     let isSliding = false;
@@ -263,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const direction = parseInt(sliderTrack.dataset.slideDirection || "0"); if (direction === 0) { throw new Error("No slide direction."); }
             let cardToMoveElement, newCardData;
-            if (direction > 0) { 
+            if (direction > 0) {
                 cardToMoveElement = cardsInTrack.shift();
                 sliderTrack.removeChild(cardToMoveElement);
                 newCardData = getRandomLocalTestimonial();
@@ -272,7 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 cardsInTrack.push(cardToMoveElement);
                 testimonialDataCache.shift();
                 testimonialDataCache.push(newCardData);
-            } else { 
+            } else {
                 cardToMoveElement = cardsInTrack.pop();
                 sliderTrack.removeChild(cardToMoveElement);
                 newCardData = getRandomLocalTestimonial();
@@ -379,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (yearSpan) yearSpan.textContent = new Date().getFullYear().toString();
 
     const aiDemoSteps = [
-        { type: 'status', text: 'AI jádro v2.41 aktivní. Připraven na analýzu...', progress: 5 }, 
+        { type: 'status', text: 'AI jádro v2.41 aktivní. Připraven na analýzu...', progress: 5 },
         { type: 'status', text: 'Probíhá skenování interakcí uživatele ID: 734B...', delay: 700 },
         { type: 'input', text: 'ANALYZE_USER_PERFORMANCE --id=734B --subject=algebra --level=intermediate' },
         { type: 'process', text: 'Zpracování dotazu na výkon...', duration: 900, progress: 20 },
@@ -548,13 +547,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (animatedElements.length > 0) {
         animatedElements.forEach(el => {
             if (el) {
-                 el.style.opacity = '0'; 
+                 el.style.opacity = '0';
                  animationObserver.observe(el);
             }
         });
         if (heroHeading && heroHeading.dataset.animateLetters !== undefined) {
+            // Handled by observer
         } else if (heroHeading) {
-             heroHeading.style.opacity = '1'; 
+             heroHeading.style.opacity = '1'; // Default if no letter animation
         }
     }
 
@@ -609,7 +609,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 heroHighlightSpan.style.setProperty('--mouse-y', "0.3");
             }
         };
-        setTimeout(setStaticGradientForTouch, 1500);
+        setTimeout(setStaticGradientForTouch, 1500); // Delay to ensure element is rendered
     }
 
     window.addEventListener('scroll', debounce(handleScroll, 30));
@@ -622,247 +622,189 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 200));
 
-    // --- ADVANCED COOKIE CONSENT LOGIC ---
 
-    const getProcessedCookie = (name) => {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-        return null;
-    };
+    // --- ADVANCED COOKIE CONSENT LOGIC (REMOVED / COMMENTED OUT) ---
 
-    const setProcessedCookie = (name, value, days) => {
-        let expires = "";
-        if (days) {
-            const date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            expires = `; expires=${date.toUTCString()}`;
-        }
-        document.cookie = `${name}=${value || ""}${expires}; path=/; SameSite=Lax; Secure`;
-    };
+    // const getProcessedCookie = (name) => {
+    //     const value = `; ${document.cookie}`;
+    //     const parts = value.split(`; ${name}=`);
+    //     if (parts.length === 2) return parts.pop().split(';').shift();
+    //     return null;
+    // };
 
-    const getConsentPreferences = () => {
-        try {
-            const prefsString = localStorage.getItem(config.cookies.consentPreferencesKey);
-            if (prefsString) {
-                const prefs = JSON.parse(prefsString);
-                return { ...config.cookies.defaultConsentState, ...prefs };
-            }
-        } catch (e) { console.error("Error reading consent preferences from localStorage:", e); }
-        return { ...config.cookies.defaultConsentState };
-    };
+    // const setProcessedCookie = (name, value, days) => {
+    //     let expires = "";
+    //     if (days) {
+    //         const date = new Date();
+    //         date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    //         expires = `; expires=${date.toUTCString()}`;
+    //     }
+    //     document.cookie = `${name}=${value || ""}${expires}; path=/; SameSite=Lax; Secure`;
+    // };
 
-    const saveConsentPreferences = (preferences) => {
-        try {
-            localStorage.setItem(config.cookies.consentPreferencesKey, JSON.stringify(preferences));
-        } catch (e) { console.error("Error saving consent preferences to localStorage:", e); }
-    };
+    // const getConsentPreferences = () => {
+    //     // try {
+    //     //     const prefsString = localStorage.getItem(config.cookies.consentPreferencesKey);
+    //     //     if (prefsString) {
+    //     //         const prefs = JSON.parse(prefsString);
+    //     //         return { ...config.cookies.defaultConsentState, ...prefs };
+    //     //     }
+    //     // } catch (e) { console.error("Error reading consent preferences from localStorage:", e); }
+    //     // return { ...config.cookies.defaultConsentState }; // config.cookies would be undefined
+    //     return {}; // Return empty object or predefined defaults if absolutely necessary elsewhere
+    // };
 
-    const updateGtagConsent = (preferences) => {
-        if (typeof gtag === 'function') {
-            gtag('consent', 'update', { ...preferences });
-        }
-    };
+    // const saveConsentPreferences = (preferences) => {
+    //     // try {
+    //     //     localStorage.setItem(config.cookies.consentPreferencesKey, JSON.stringify(preferences));
+    //     // } catch (e) { console.error("Error saving consent preferences to localStorage:", e); }
+    // };
 
-    const applyConsentDecision = (preferences) => {
-        updateGtagConsent(preferences);
-        saveConsentPreferences(preferences);
-        setProcessedCookie(config.cookies.consentProcessedCookieName, 'true', config.cookies.consentCookieExpirationDays);
+    // const updateGtagConsent = (preferences) => {
+    //     // if (typeof gtag === 'function') {
+    //     //     gtag('consent', 'update', { ...preferences });
+    //     // }
+    //     // This function will be needed on the registration page, not here.
+    // };
 
-        if (cookieConsentBanner) {
-            cookieConsentBanner.classList.remove('visible');
-            cookieConsentBanner.removeAttribute('style'); 
-            setTimeout(() => {
-              if (!cookieConsentBanner.classList.contains('visible')) {
-                cookieConsentBanner.style.display = 'none';
-              }
-            }, 500); 
-        }
-        if (cookieConsentOverlay) {
-            cookieConsentOverlay.classList.remove('visible');
-            cookieConsentOverlay.removeAttribute('style');
-            setTimeout(() => {
-                if (!cookieConsentOverlay.classList.contains('visible')) {
-                    cookieConsentOverlay.style.display = 'none';
-                }
-            }, 500);
-        }
-        if (cookieSettingsModal) cookieSettingsModal.classList.remove('visible');
-    };
+    // const applyConsentDecision = (preferences) => {
+    //     // updateGtagConsent(preferences); // gtag call removed for this page
+    //     // saveConsentPreferences(preferences); // localStorage saving removed
+    //     // setProcessedCookie(config.cookies.consentProcessedCookieName, 'true', config.cookies.consentCookieExpirationDays); // Cookie setting removed
 
-    const handleAcceptAll = () => {
-        const allGrantedPrefs = {};
-        for (const key in config.cookies.defaultConsentState) {
-            allGrantedPrefs[key] = 'granted';
-        }
-        applyConsentDecision(allGrantedPrefs);
-    };
+    //     // if (cookieConsentBanner) { // cookieConsentBanner is commented out
+    //     //     cookieConsentBanner.classList.remove('visible');
+    //     //     cookieConsentBanner.removeAttribute('style');
+    //     //     setTimeout(() => {
+    //     //         if (!cookieConsentBanner.classList.contains('visible')) {
+    //     //             cookieConsentBanner.style.display = 'none';
+    //     //         }
+    //     //     }, 500);
+    //     // }
+    //     // if (cookieConsentOverlay) { // cookieConsentOverlay is commented out
+    //     //     cookieConsentOverlay.classList.remove('visible');
+    //     //     cookieConsentOverlay.removeAttribute('style');
+    //     //     setTimeout(() => {
+    //     //         if (!cookieConsentOverlay.classList.contains('visible')) {
+    //     //             cookieConsentOverlay.style.display = 'none';
+    //     //         }
+    //     //     }, 500);
+    //     // }
+    //     // if (cookieSettingsModal) cookieSettingsModal.classList.remove('visible'); // cookieSettingsModal is commented out
+    // };
 
-    const handleRejectAll = () => {
-        const allDeniedPrefs = {};
-        for (const key in config.cookies.defaultConsentState) {
-            allDeniedPrefs[key] = 'denied';
-        }
-        applyConsentDecision(allDeniedPrefs);
-    };
+    // const handleAcceptAll = () => {
+    //     // const allGrantedPrefs = {};
+    //     // for (const key in config.cookies.defaultConsentState) { // config.cookies would be undefined
+    //     //     allGrantedPrefs[key] = 'granted';
+    //     // }
+    //     // applyConsentDecision(allGrantedPrefs);
+    // };
 
-    const showCookieSettingsModal = () => {
-        if (!cookieSettingsModal) { return; }
-        const currentPrefs = getConsentPreferences();
-        cookieSettingToggles.forEach(toggle => {
-            const consentType = toggle.dataset.consentType;
-            if (consentType && currentPrefs.hasOwnProperty(consentType)) {
-                toggle.checked = currentPrefs[consentType] === 'granted';
-            } else if (consentType) {
-                toggle.checked = config.cookies.defaultConsentState[consentType] === 'granted';
-            }
-        });
-        cookieCategoryHeaders.forEach(header => {
-            const descId = header.getAttribute('aria-controls');
-            const descElement = document.getElementById(descId);
-            if (descElement) {
-                if (header.parentElement.querySelector('input[name="necessary"]')) {
-                    header.classList.remove('collapsed'); header.setAttribute('aria-expanded', 'true'); descElement.classList.add('expanded');
-                } else {
-                    header.classList.add('collapsed'); header.setAttribute('aria-expanded', 'false'); descElement.classList.remove('expanded');
-                }
-            }
-        });
-        cookieSettingsModal.classList.add('visible');
-        if (cookieConsentBanner) {
-            cookieConsentBanner.classList.remove('visible');
-            cookieConsentBanner.style.display = 'none'; 
-        }
-        if (cookieConsentOverlay) {
-            cookieConsentOverlay.classList.remove('visible');
-            cookieConsentOverlay.style.display = 'none'; 
-        }
-    };
+    // const handleRejectAll = () => {
+    //     // const allDeniedPrefs = {};
+    //     // for (const key in config.cookies.defaultConsentState) { // config.cookies would be undefined
+    //     //     allDeniedPrefs[key] = 'denied';
+    //     // }
+    //     // applyConsentDecision(allDeniedPrefs);
+    // };
 
-    const hideCookieSettingsModal = () => {
-        if (cookieSettingsModal) cookieSettingsModal.classList.remove('visible');
-        const consentProcessed = getProcessedCookie(config.cookies.consentProcessedCookieName) === 'true';
-        if (!consentProcessed && cookieConsentBanner) {
-            cookieConsentBanner.removeAttribute('style'); // Clean slate for CSS
-            cookieConsentOverlay.removeAttribute('style'); // Clean slate for CSS
+    // const showCookieSettingsModal = () => {
+    //     // if (!cookieSettingsModal) { return; } // cookieSettingsModal is commented out
+    //     // const currentPrefs = getConsentPreferences();
+    //     // cookieSettingToggles.forEach(toggle => { // cookieSettingToggles is commented out
+    //     //     const consentType = toggle.dataset.consentType;
+    //     //     if (consentType && currentPrefs.hasOwnProperty(consentType)) {
+    //     //         toggle.checked = currentPrefs[consentType] === 'granted';
+    //     //     } else if (consentType && config.cookies && config.cookies.defaultConsentState) { // Check if config.cookies exists
+    //     //         toggle.checked = config.cookies.defaultConsentState[consentType] === 'granted';
+    //     //     }
+    //     // });
+    //     // cookieCategoryHeaders.forEach(header => { // cookieCategoryHeaders is commented out
+    //     //     const descId = header.getAttribute('aria-controls');
+    //     //     const descElement = document.getElementById(descId);
+    //     //     if (descElement) {
+    //     //         if (header.parentElement.querySelector('input[name="necessary"]')) {
+    //     //             header.classList.remove('collapsed'); header.setAttribute('aria-expanded', 'true'); descElement.classList.add('expanded');
+    //     //         } else {
+    //     //             header.classList.add('collapsed'); header.setAttribute('aria-expanded', 'false'); descElement.classList.remove('expanded');
+    //     //         }
+    //     //     }
+    //     // });
+    //     // cookieSettingsModal.classList.add('visible');
+    //     // if (cookieConsentBanner) {
+    //     //     cookieConsentBanner.classList.remove('visible');
+    //     //     cookieConsentBanner.style.display = 'none';
+    //     // }
+    //     // if (cookieConsentOverlay) {
+    //     //     cookieConsentOverlay.classList.remove('visible');
+    //     //     cookieConsentOverlay.style.display = 'none';
+    //     // }
+    // };
 
-            cookieConsentBanner.style.display = 'flex'; 
-            if (cookieConsentOverlay) cookieConsentOverlay.style.display = 'block';
+    // const hideCookieSettingsModal = () => {
+    //     // if (cookieSettingsModal) cookieSettingsModal.classList.remove('visible'); // cookieSettingsModal is commented out
+    //     // const consentProcessed = getProcessedCookie(config.cookies.consentProcessedCookieName) === 'true'; // config.cookies would be undefined
+    //     // if (!consentProcessed && cookieConsentBanner) { // cookieConsentBanner is commented out
+    //     //     cookieConsentBanner.removeAttribute('style');
+    //     //     if (cookieConsentOverlay) cookieConsentOverlay.removeAttribute('style'); // cookieConsentOverlay is commented out
+
+    //     //     cookieConsentBanner.style.display = 'flex';
+    //     //     if (cookieConsentOverlay) cookieConsentOverlay.style.display = 'block';
             
-            requestAnimationFrame(() => { 
-                 if (cookieConsentBanner) cookieConsentBanner.classList.add('visible');
-                 if (cookieConsentOverlay) cookieConsentOverlay.classList.add('visible');
-            });
-        }
-    };
+    //     //     requestAnimationFrame(() => {
+    //     //         if (cookieConsentBanner) cookieConsentBanner.classList.add('visible');
+    //     //         if (cookieConsentOverlay) cookieConsentOverlay.classList.add('visible');
+    //     //     });
+    //     // }
+    // };
 
-    const handleSaveCookieSettings = () => {
-        if (!cookieSettingsModal) return;
-        const newPrefs = {};
-        cookieSettingToggles.forEach(toggle => {
-            const consentType = toggle.dataset.consentType;
-            if (consentType) { newPrefs[consentType] = toggle.checked ? 'granted' : 'denied'; }
-        });
-        applyConsentDecision(newPrefs);
-    };
+    // const handleSaveCookieSettings = () => {
+    //     // if (!cookieSettingsModal) return; // cookieSettingsModal is commented out
+    //     // const newPrefs = {};
+    //     // cookieSettingToggles.forEach(toggle => { // cookieSettingToggles is commented out
+    //     //     const consentType = toggle.dataset.consentType;
+    //     //     if (consentType) { newPrefs[consentType] = toggle.checked ? 'granted' : 'denied'; }
+    //     // });
+    //     // applyConsentDecision(newPrefs);
+    // };
 
-    const toggleCookieCategory = (headerElement) => {
-        const descId = headerElement.getAttribute('aria-controls');
-        const descElement = document.getElementById(descId);
-        if (!descElement) return;
-        const isExpanded = descElement.classList.toggle('expanded');
-        headerElement.classList.toggle('collapsed', !isExpanded);
-        headerElement.setAttribute('aria-expanded', isExpanded.toString());
-    };
+    // const toggleCookieCategory = (headerElement) => {
+    //     // const descId = headerElement.getAttribute('aria-controls');
+    //     // const descElement = document.getElementById(descId);
+    //     // if (!descElement) return;
+    //     // const isExpanded = descElement.classList.toggle('expanded');
+    //     // headerElement.classList.toggle('collapsed', !isExpanded);
+    //     // headerElement.setAttribute('aria-expanded', isExpanded.toString());
+    // };
 
-    const initializeCookieConsentFramework = () => {
-        console.log("DEBUG: Initializing Cookie Consent Framework v2.41...");
+    // const initializeCookieConsentFramework = () => {
+    //     // console.log("DEBUG: Cookie Consent Framework initialization skipped as it's removed from this page.");
 
-        if (!cookieConsentBanner || !cookieConsentOverlay) {
-            console.error("CRITICAL: Cookie banner or overlay NOT FOUND. Framework halted.");
-            return;
-        }
-        console.log("DEBUG: Banner and Overlay elements confirmed present.");
+    //     // // All references to cookie elements (cookieConsentBanner, cookieConsentOverlay, etc.)
+    //     // // and their event listeners are removed or commented out.
+    //     // // The logic for checking processed cookies and showing the banner is no longer needed here.
+    //     // // The gtag('consent', 'default', ...) in HTML handles the initial consent state.
+    //     // // Actual consent update will happen at registration.
 
-        const consentCookieValue = getProcessedCookie(config.cookies.consentProcessedCookieName);
-        const consentProcessed = consentCookieValue === 'true';
-        console.log(`DEBUG: Cookie ${config.cookies.consentProcessedCookieName} value: '${consentCookieValue}', Processed: ${consentProcessed}`);
-        
-        const currentPreferences = getConsentPreferences();
-        updateGtagConsent(currentPreferences);
-
-        if (consentProcessed) {
-            console.log("DEBUG: Consent already processed. Banner/Overlay remain hidden.");
-            cookieConsentBanner.style.display = 'none';
-            cookieConsentOverlay.style.display = 'none';
-            cookieConsentBanner.classList.remove('visible');
-            cookieConsentOverlay.classList.remove('visible');
-        } else {
-            console.log("DEBUG: Consent NOT processed. Attempting to display banner/overlay.");
-            
-            cookieConsentBanner.removeAttribute('style'); // Clean slate FOR CSS
-            cookieConsentOverlay.removeAttribute('style'); // Clean slate FOR CSS
-
-            cookieConsentBanner.style.display = 'flex'; 
-            cookieConsentOverlay.style.display = 'block'; 
-
-            requestAnimationFrame(() => {
-                console.log("DEBUG: Adding .visible class to banner and overlay for CSS-driven animation.");
-                cookieConsentBanner.classList.add('visible');
-                cookieConsentOverlay.classList.add('visible');
-                
-                let computedBannerStyle = window.getComputedStyle(cookieConsentBanner);
-                let computedOverlayStyle = window.getComputedStyle(cookieConsentOverlay);
-                
-                console.log("DEBUG (after .visible): Banner display:", computedBannerStyle.display, "visibility:", computedBannerStyle.visibility, "Opacity:", computedBannerStyle.opacity, "z-index:", computedBannerStyle.zIndex, "position:", computedBannerStyle.position, "top:", computedBannerStyle.top, "left:", computedBannerStyle.left, "transform:", computedBannerStyle.transform);
-                console.log("DEBUG (after .visible): Overlay display:", computedOverlayStyle.display, "visibility:", computedOverlayStyle.visibility, "Opacity:", computedOverlayStyle.opacity, "z-index:", computedOverlayStyle.zIndex);
-
-                // Fallback: If CSS fails to make it a fixed pop-up, hide it to prevent layout issues.
-                if (computedBannerStyle.position !== 'fixed') {
-                    console.error(`CRITICAL CSS FAILURE: #cookie-consent-banner is NOT position:fixed (it is ${computedBannerStyle.position}). Hiding banner and overlay to prevent layout issues.`);
-                    cookieConsentBanner.style.setProperty('display', 'none', 'important');
-                    cookieConsentOverlay.style.setProperty('display', 'none', 'important');
-                    cookieConsentBanner.classList.remove('visible');
-                    cookieConsentOverlay.classList.remove('visible');
-                    // Optionally, inform the user via a less intrusive way or log for site admin.
-                    // For example: console.error("Cookie consent UI could not be displayed correctly due to CSS issues.");
-                } else {
-                    console.log("DEBUG: Banner position is fixed. CSS styling for pop-up should be active.");
-                }
-            });
-        }
-
-        if (cookieConsentAcceptAllBtn) cookieConsentAcceptAllBtn.addEventListener('click', handleAcceptAll);
-        if (cookieConsentRejectAllBtn) cookieConsentRejectAllBtn.addEventListener('click', handleRejectAll);
-        if (cookieConsentCustomizeBtn) cookieConsentCustomizeBtn.addEventListener('click', showCookieSettingsModal);
-        if (cookieModalCloseBtn) cookieModalCloseBtn.addEventListener('click', hideCookieSettingsModal);
-        if (cookieSettingsSaveBtn) cookieSettingsSaveBtn.addEventListener('click', handleSaveCookieSettings);
-        if (cookieSettingsAcceptAllModalBtn) cookieSettingsAcceptAllModalBtn.addEventListener('click', handleAcceptAll);
-        if (cookieSettingsTriggerFooter) {
-            cookieSettingsTriggerFooter.addEventListener('click', (event) => {
-                event.preventDefault(); showCookieSettingsModal();
-            });
-        }
-        cookieCategoryHeaders.forEach(header => {
-            const necessaryInput = header.parentElement.querySelector('input[name="necessary"]');
-            if (necessaryInput && necessaryInput.disabled && necessaryInput.checked) {
-                const descId = header.getAttribute('aria-controls');
-                const descElement = document.getElementById(descId);
-                if (descElement) {
-                    header.classList.remove('collapsed'); header.setAttribute('aria-expanded', 'true'); descElement.classList.add('expanded');
-                } return;
-            }
-            header.addEventListener('click', () => toggleCookieCategory(header));
-            header.addEventListener('keydown', (event) => {
-                if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleCookieCategory(header); }
-            });
-        });
-    };
+    //     // // Example of what's removed:
+    //     // // if (!cookieConsentBanner || !cookieConsentOverlay) { /* ... */ return; }
+    //     // // const consentCookieValue = getProcessedCookie(config.cookies.consentProcessedCookieName);
+    //     // // const consentProcessed = consentCookieValue === 'true';
+    //     // // const currentPreferences = getConsentPreferences();
+    //     // // updateGtagConsent(currentPreferences); // This gtag call is removed for this page
+    //     // // if (consentProcessed) { /* ... banner remains hidden ... */ }
+    //     // // else { /* ... logic to show banner ... */ }
+    //     // // Event listeners for accept, reject, customize buttons are removed.
+    //     // // Event listeners for modal buttons are removed.
+    //     // // Event listener for cookieSettingsTriggerFooter is removed.
+    //     // // Event listeners for cookieCategoryHeaders are removed.
+    // };
 
     try {
-        handleScroll(); 
+        handleScroll();
         initializeInfiniteSlider();
-        initializeCookieConsentFramework();
+        // initializeCookieConsentFramework(); // <-- This call is now removed/commented out
     } catch (error) {
         console.error("Error during final initializations:", error);
     }
@@ -870,29 +812,33 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         if (demoSection && config.aiDemo.enabled && aiDemoObserver) {
             // if (!(aiOutput && aiFakeInput && aiProgressLabel && aiProgressBar && aiStatusIndicator)) {
-                // console.warn("AI Demo deferred init: elements missing, AI Demo might not work.");
+            //     console.warn("AI Demo deferred init: elements missing, AI Demo might not work.");
             // }
         }
     }, 500);
 
-    console.log("JUSTAX Interface v2.41 (Fallback Hide if CSS Fails for Pop-up) Initialization Complete.");
+    console.log("JUSTAX Interface v2.41_NoCookie (Cookie consent functionality removed) Initialization Complete.");
 });
 
 /*
     EDIT LOGS:
-    Developer Goal: Ensure the cookie consent banner does not appear at the bottom of the page if its
-                    `position: fixed` styling fails to apply. If it cannot be a proper pop-up, hide it.
-    Stage (v2.41):
-        - In `initializeCookieConsentFramework`, within the `requestAnimationFrame` callback (after attempting to show the banner and overlay):
-            - Added a check for `computedBannerStyle.position`.
-            - If `computedBannerStyle.position` is NOT `fixed` (e.g., it's `static` as seen in logs):
-                - A critical error is logged to the console indicating CSS failure.
-                - Both `cookieConsentBanner` and `cookieConsentOverlay` have their `display` style forcibly set to `none !important;`.
-                - The `.visible` class is removed from both.
-                - This directly addresses the user's complaint about the banner spoiling the design at the bottom by ensuring it's hidden if the pop-up styling isn't correctly applied by the CSS.
-            - If `computedBannerStyle.position` IS `fixed`, a success message is logged.
-        - Ensured `removeAttribute('style')` is called on banner/overlay before attempting to show them, to clear any prior inline styles (like debug styles or `display:none` from HTML).
-        - In `applyConsentDecision`, ensured `removeAttribute('style')` is called to clean up any inline styles, including the potential `display:none !important` from the new fallback.
-        - This version prioritizes preventing the broken layout (banner at the bottom) if the intended fixed positioning fails, effectively fulfilling the "or nowhere" part of the user's request as a safety measure.
-        - Updated version to v2.41 and log notes.
+    Developer Goal: Remove all cookie consent functionality from the main landing page (index.html, index.js, index.css).
+                    Cookie consent will be handled at the registration stage.
+    Stage (index.js - Part 1 of 3):
+        - Commented out all DOM element references related to cookie consent (banners, modals, buttons).
+        - Commented out the `config.cookies` object.
+        - Commented out all JavaScript functions dedicated to cookie logic:
+            - getProcessedCookie, setProcessedCookie
+            - getConsentPreferences, saveConsentPreferences
+            - updateGtagConsent (this specific call on this page; gtag itself remains for default state)
+            - applyConsentDecision
+            - handleAcceptAll, handleRejectAll
+            - showCookieSettingsModal, hideCookieSettingsModal
+            - handleSaveCookieSettings
+            - toggleCookieCategory
+            - initializeCookieConsentFramework
+        - Removed the call to `initializeCookieConsentFramework()` from the main DOMContentLoaded try-catch block.
+        - Ensured that other functionalities (slider, animations, menu, AI demo, etc.) remain untouched.
+        - Updated version in initial console log and file header comment to reflect changes (v2.41_NoCookie).
+        - The `gtag('consent', 'default', ...)` in index.html will still set initial denied states, which is appropriate until consent is given at registration.
 */
