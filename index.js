@@ -801,21 +801,23 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cookieSettingsModal) cookieSettingsModal.classList.remove('visible');
         const consentProcessed = getProcessedCookie(config.cookies.consentProcessedCookieName) === 'true';
         if (!consentProcessed && cookieConsentBanner) {
-            cookieConsentBanner.style.position = '';
+            // Reset styles that might have been applied for pop-up
+            cookieConsentBanner.style.position = ''; // Let CSS handle if it's fixed
             cookieConsentBanner.style.bottom = '';
             cookieConsentBanner.style.left = '';
             cookieConsentBanner.style.width = '';
-            cookieConsentBanner.style.transform = '';
-            cookieConsentBanner.style.opacity = '';
+            cookieConsentBanner.style.transform = ''; // Reset transform for pop-up
+            cookieConsentBanner.style.opacity = ''; // Reset opacity for pop-up
 
-            cookieConsentBanner.style.display = 'flex';
+            // Make banner and overlay visible again
+            cookieConsentBanner.style.display = 'flex'; // Or 'block' based on its default CSS
             if (cookieConsentOverlay) {
                 cookieConsentOverlay.style.display = 'block'; // Or 'flex' based on its CSS
-                requestAnimationFrame(() => {
+                requestAnimationFrame(() => { // Ensure display is applied before class for transition
                     cookieConsentOverlay.classList.add('visible');
                 });
             }
-            requestAnimationFrame(() => {
+            requestAnimationFrame(() => { // Ensure display is applied before class for transition
                  cookieConsentBanner.classList.add('visible');
             });
         }
@@ -854,26 +856,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const consentProcessed = getProcessedCookie(config.cookies.consentProcessedCookieName) === 'true';
         const currentPreferences = getConsentPreferences();
-        updateGtagConsent(currentPreferences);
+        updateGtagConsent(currentPreferences); // Update gtag with stored or default preferences
 
         if (consentProcessed) {
             console.log("Cookie consent already processed. Banner and overlay remain hidden.");
             cookieConsentBanner.style.display = 'none';
-            cookieConsentOverlay.style.display = 'none';
+            cookieConsentOverlay.style.display = 'none'; // Also ensure overlay is hidden
             cookieConsentBanner.classList.remove('visible');
             cookieConsentOverlay.classList.remove('visible');
         } else {
             console.log("Cookie consent not processed. Displaying banner and overlay.");
-            cookieConsentBanner.style.position = '';
+            // Reset inline styles that might conflict with CSS for pop-up
+            cookieConsentBanner.style.position = ''; // Let CSS handle if it's fixed
             cookieConsentBanner.style.bottom = '';
             cookieConsentBanner.style.left = '';
             cookieConsentBanner.style.width = '';
-            cookieConsentBanner.style.transform = '';
-            cookieConsentBanner.style.opacity = '';
+            cookieConsentBanner.style.transform = ''; // Reset transform for pop-up
+            cookieConsentBanner.style.opacity = ''; // Reset opacity for pop-up
 
-            cookieConsentBanner.style.display = 'flex';
+            // Set display to allow visibility and animation, then add .visible class
+            cookieConsentBanner.style.display = 'flex'; // This should be 'flex' as per CSS for centering content
             cookieConsentOverlay.style.display = 'block'; // Or 'flex' or as defined in CSS default state
 
+            // Use requestAnimationFrame to ensure display is applied before adding class for transition
             requestAnimationFrame(() => {
                 cookieConsentBanner.classList.add('visible');
                 cookieConsentOverlay.classList.add('visible');
@@ -906,17 +911,20 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } else { console.warn("#cookie-settings-trigger (footer link) not found."); }
 
+        // Initialize accordion behavior for cookie categories in the modal
         cookieCategoryHeaders.forEach(header => {
+            // Ensure necessary category is expanded by default and others are collapsed, if not handled by CSS
             const necessaryInput = header.querySelector('input[name="necessary"]');
             if (necessaryInput && necessaryInput.disabled && necessaryInput.checked) {
+                // This category is 'Nezbytně nutné' and should be expanded by default.
                 const descId = header.getAttribute('aria-controls');
                 const descElement = document.getElementById(descId);
                 if (descElement) {
-                    header.classList.remove('collapsed');
+                    header.classList.remove('collapsed'); // Ensure not collapsed
                     header.setAttribute('aria-expanded', 'true');
                     descElement.classList.add('expanded');
                 }
-                return;
+                return; // Skip adding click listener for this one if it should always be open
             }
 
             header.addEventListener('click', () => toggleCookieCategory(header));
@@ -931,15 +939,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Initialize Components ---
     try {
-        handleScroll();
+        handleScroll(); // Initial call to set active nav item and header state
         initializeInfiniteSlider();
-        initializeCookieConsentFramework();
+        initializeCookieConsentFramework(); // Initialize cookie consent logic
     } catch (error) {
         console.error("Error during final initializations:", error);
     }
 
+    // Deferred check for AI demo elements if observer setup was skipped
     setTimeout(() => {
         if (demoSection && config.aiDemo.enabled && aiDemoObserver) {
+            // Check if observer is observing, and if not, and elements now exist, observe.
+            // This is a fallback, ideally elements are present on DOMContentLoaded.
             if (!(aiOutput && aiFakeInput && aiProgressLabel && aiProgressBar && aiStatusIndicator)) {
                 console.warn("AI Demo deferred init: elements missing, AI Demo might not work.");
             }
