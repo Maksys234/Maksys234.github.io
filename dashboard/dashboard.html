@@ -227,17 +227,12 @@
         }
         /* --- MODIFIED ICON HOVER --- */
         .shortcut-card .shortcut-icon {
-            /* Default state of icon color is defined in dashboard.css as var(--accent-primary) */
-            transition: color 0.3s ease, transform 0.3s ease, background-color 0.3s ease; /* Added background-color transition */
-            font-size: 2.5rem; /* This might be overridden by dashboard.css */
-            margin-bottom: 0.75rem; /* This might be overridden by dashboard.css */
-            /* color: var(--accent-secondary); -- dashboard.css uses --accent-primary */
+            transition: color 0.3s ease, transform 0.3s ease, background-color 0.3s ease;
         }
         .shortcut-card:hover .shortcut-icon {
-            background: var(--accent-primary); /* This makes the container background cyan */
-            color: var(--text-fixed-dark); /* This should make the icon itself dark and visible */
-            transform: scale(1.1) rotate(5deg); /* Adjusted to match dashboard.css hover transform */
-            /* box-shadow will be inherited from dashboard.css if it's more specific or loaded after */
+            background: var(--accent-primary);
+            color: var(--text-fixed-dark);
+            transform: scale(1.1) rotate(5deg);
         }
         /* --- END MODIFIED ICON HOVER --- */
 
@@ -258,68 +253,18 @@
         }
         /* END: General Design Improvements */
 
-        /* --- START: Level/XP Widget Styles (to be confirmed/complemented by dashboard.css) --- */
-        /* These are copied from profile.css structure and adapted slightly */
-        .level-xp-widget-new {
-            width: 100%;
-            max-width: 380px; /* Adjusted max-width */
-            padding: 1rem 1.2rem; /* Adjusted padding */
-            background: rgba(var(--card-solid-rgb, 22, 12, 65), 0.6); /* Darker, semi-transparent */
-            border-radius: var(--button-radius);
-            border: 1px solid var(--border-color-medium);
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
-            margin-top: 1.5rem; /* Added margin for spacing */
+        /* --- START: Level/XP Widget Styles --- */
+        /* Moving this to dashboard.css for better organization, 
+           but keeping a placeholder for the structure change.
+           Actual styling will be in dashboard.css */
+        .level-xp-widget-container { /* New container for the widget */
+            margin-top: 2rem; /* Space above the widget */
+            padding-top: 1.5rem; /* Space inside the widget container */
+            border-top: 1px solid var(--border-color-light); /* Separator line */
         }
-        .level-display {
-            display: flex;
-            align-items: baseline;
-            justify-content: center;
-            margin-bottom: 0.75rem; /* Adjusted margin */
+        .level-xp-widget-new { /* Styles from dashboard.css will apply here */
+            /* Existing styles from dashboard.css will be used or enhanced */
         }
-        .level-label {
-            font-size: 0.9rem; /* Adjusted size */
-            font-weight: 600;
-            color: var(--accent-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-right: 0.6em;
-        }
-        .level-value {
-            font-size: 2.2rem; /* Adjusted size */
-            font-weight: 700;
-            color: var(--accent-primary);
-            line-height: 1;
-            text-shadow: 0 0 12px var(--accent-glow);
-        }
-        .xp-bar-container { width: 100%; }
-        .xp-bar-track {
-            width: 100%;
-            height: 14px; /* Slightly thicker */
-            background: var(--dark-purple-accent, #160c41); /* Consistent dark purple */
-            border-radius: 7px;
-            overflow: hidden;
-            border: 1px solid rgba(0,0,0, 0.6);
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
-            position: relative;
-        }
-        .xp-bar-progress {
-            height: 100%;
-            width: 0%; /* Initial width */
-            background: var(--gradient-exp-bar, linear-gradient(90deg, var(--accent-secondary) 0%, var(--accent-primary) 100%)); /* Fallback if var not defined */
-            border-radius: 7px;
-            transition: width 0.7s cubic-bezier(0.65, 0, 0.35, 1);
-            box-shadow: 0 0 10px var(--accent-secondary-glow);
-        }
-        .xp-text {
-            font-size: 0.85rem; /* Adjusted size */
-            font-family: var(--font-mono);
-            color: var(--text-medium);
-            text-align: center;
-            margin-top: 0.6rem; /* Adjusted margin */
-            letter-spacing: 0.5px;
-        }
-        .xp-text span { font-weight: 500; color: var(--text-light); }
-        #dashboard-exp-percentage { color: var(--accent-primary); }
         /* --- END: Level/XP Widget Styles --- */
 
     </style>
@@ -413,22 +358,7 @@
                              <button class="btn btn-primary welcome-button" id="start-practice-btn">
                                  <i class="fas fa-play"></i> Spustit Cvičení
                              </button>
-                             <div class="level-xp-widget-new">
-                                 <div class="level-display">
-                                     <span class="level-label">Úroveň</span>
-                                     <span class="level-value" id="dashboard-level-widget">1</span>
-                                 </div>
-                                 <div class="xp-bar-container">
-                                     <div class="xp-bar-track">
-                                         <div class="xp-bar-progress" id="dashboard-exp-progress-bar" style="width: 0%;"></div>
-                                     </div>
-                                     <div class="xp-text">
-                                         <span id="dashboard-exp-current">0</span> / <span id="dashboard-exp-required">100</span> ZK
-                                         (<span id="dashboard-exp-percentage">0</span>%)
-                                     </div>
-                                 </div>
-                             </div>
-                             </div>
+                         </div>
                          <div class="welcome-image">
                               <svg width="150" height="150" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" stroke="var(--accent-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.7"/>
@@ -439,6 +369,23 @@
                               </svg>
                          </div>
                      </div>
+                     <div class="level-xp-widget-container">
+                         <div class="level-xp-widget-new">
+                             <div class="level-display">
+                                 <span class="level-label">Úroveň</span>
+                                 <span class="level-value" id="dashboard-level-widget">1</span>
+                             </div>
+                             <div class="xp-bar-container">
+                                 <div class="xp-bar-track">
+                                     <div class="xp-bar-progress" id="dashboard-exp-progress-bar" style="width: 0%;"></div>
+                                 </div>
+                                 <div class="xp-text">
+                                     <span id="dashboard-exp-current">0</span> / <span id="dashboard-exp-required">100</span> ZK
+                                     (<span id="dashboard-exp-percentage">0</span>%)
+                                 </div>
+                             </div>
+                         </div>
+                     </div>
                  </section>
                  <section class="welcome-banner card skeleton-mode" id="welcome-banner-skeleton" style="display: none;" data-animate style="--animation-order: 0;">
                     <div class="welcome-content">
@@ -446,23 +393,26 @@
                             <div class="skeleton title" style="height: 28px; width: 70%; margin-bottom: 1rem;"></div>
                             <div class="skeleton text" style="height: 16px; width: 90%; margin-bottom: 0.7rem;"></div>
                             <div class="skeleton text" style="height: 16px; width: 80%; margin-bottom: 1.5rem;"></div>
-                            <div class="skeleton" style="height: 44px; width: 180px; border-radius: var(--button-radius); margin-bottom: 1.5rem;"></div> <div class="level-xp-widget-new">
-                                <div class="level-display">
-                                    <div class="skeleton" style="height: 14px; width: 50px; margin-right: 0.6em;"></div>
-                                    <div class="skeleton" style="height: 28px; width: 30px;"></div>
-                                </div>
-                                <div class="xp-bar-container">
-                                    <div class="xp-bar-track">
-                                        <div class="skeleton" style="height:100%; width:100%;"></div>
-                                    </div>
-                                    <div class="xp-text">
-                                        <div class="skeleton" style="height:12px; width:100px; margin: 0 auto;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            </div>
+                            <div class="skeleton" style="height: 44px; width: 180px; border-radius: var(--button-radius); margin-bottom: 1.5rem;"></div>
+                        </div>
                         <div class="welcome-image">
                              <div class="skeleton" style="width: 150px; height: 150px; border-radius: 12px;"></div>
+                        </div>
+                    </div>
+                     <div class="level-xp-widget-container">
+                         <div class="level-xp-widget-new">
+                            <div class="level-display">
+                                <div class="skeleton" style="height: 14px; width: 50px; margin-right: 0.6em; margin-bottom: 0.75rem;"></div>
+                                <div class="skeleton" style="height: 28px; width: 30px; margin-bottom: 0.75rem;"></div>
+                            </div>
+                            <div class="xp-bar-container">
+                                <div class="xp-bar-track">
+                                    <div class="skeleton" style="height:100%; width:100%;"></div>
+                                </div>
+                                <div class="xp-text">
+                                    <div class="skeleton" style="height:12px; width:100px; margin: 0.6rem auto 0 auto;"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                  </section>
