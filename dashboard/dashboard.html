@@ -253,20 +253,10 @@
         }
         /* END: General Design Improvements */
 
-        /* --- START: Level/XP Widget Styles --- */
-        /* Moving this to dashboard.css for better organization, 
-           but keeping a placeholder for the structure change.
-           Actual styling will be in dashboard.css */
-        .level-xp-widget-container { /* New container for the widget */
-            margin-top: 2rem; /* Space above the widget */
-            padding-top: 1.5rem; /* Space inside the widget container */
-            border-top: 1px solid var(--border-color-light); /* Separator line */
+        /* Level/XP Widget Container - Will be styled in dashboard.css */
+        .level-xp-widget-container {
+            /* Placeholder, actual styles in dashboard.css */
         }
-        .level-xp-widget-new { /* Styles from dashboard.css will apply here */
-            /* Existing styles from dashboard.css will be used or enhanced */
-        }
-        /* --- END: Level/XP Widget Styles --- */
-
     </style>
 </head>
 <body class="dark">
@@ -369,24 +359,7 @@
                               </svg>
                          </div>
                      </div>
-                     <div class="level-xp-widget-container">
-                         <div class="level-xp-widget-new">
-                             <div class="level-display">
-                                 <span class="level-label">Úroveň</span>
-                                 <span class="level-value" id="dashboard-level-widget">1</span>
-                             </div>
-                             <div class="xp-bar-container">
-                                 <div class="xp-bar-track">
-                                     <div class="xp-bar-progress" id="dashboard-exp-progress-bar" style="width: 0%;"></div>
-                                 </div>
-                                 <div class="xp-text">
-                                     <span id="dashboard-exp-current">0</span> / <span id="dashboard-exp-required">100</span> ZK
-                                     (<span id="dashboard-exp-percentage">0</span>%)
-                                 </div>
-                             </div>
-                         </div>
-                     </div>
-                 </section>
+                     </section>
                  <section class="welcome-banner card skeleton-mode" id="welcome-banner-skeleton" style="display: none;" data-animate style="--animation-order: 0;">
                     <div class="welcome-content">
                         <div class="welcome-text-content">
@@ -399,46 +372,49 @@
                              <div class="skeleton" style="width: 150px; height: 150px; border-radius: 12px;"></div>
                         </div>
                     </div>
-                     <div class="level-xp-widget-container">
-                         <div class="level-xp-widget-new">
-                            <div class="level-display">
-                                <div class="skeleton" style="height: 14px; width: 50px; margin-right: 0.6em; margin-bottom: 0.75rem;"></div>
-                                <div class="skeleton" style="height: 28px; width: 30px; margin-bottom: 0.75rem;"></div>
-                            </div>
-                            <div class="xp-bar-container">
-                                <div class="xp-bar-track">
-                                    <div class="skeleton" style="height:100%; width:100%;"></div>
-                                </div>
-                                <div class="xp-text">
-                                    <div class="skeleton" style="height:12px; width:100px; margin: 0.6rem auto 0 auto;"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                  </section>
+
                  <section class="stats-section">
                     <h2 class="section-title" data-animate style="--animation-order: 1;"><i class="fas fa-chart-pie"></i>BOJOVÉ STATISTIKY</h2>
                     <div class="stat-cards skeleton-mode" id="stats-cards-skeleton-container" style="display: none;">
-                        <div class="stat-card card loading"> <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder" style="width:40px; height:40px; border-radius: 8px;"></div> </div> </div>
+                        <div class="stat-card card loading">
+                            <div class="loading-skeleton">
+                                <div class="skeleton-info">
+                                    <div class="skeleton title" style="width: 60%; margin-bottom: 1.5rem;"></div> <div class="skeleton" style="height: 3rem; width: 40%; margin: 0.5rem auto 1rem auto; border-radius: var(--button-radius);"></div> <div class="skeleton" style="height: 1.2rem; width: 100%; margin-bottom: 0.5rem; border-radius: var(--button-radius);"></div> <div class="skeleton text" style="width: 70%; margin: 0.5rem auto 0 auto;"></div> </div>
+                            </div>
+                        </div>
                         <div class="stat-card card loading"> <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder" style="width:40px; height:40px; border-radius: 8px;"></div> </div> </div>
                         <div class="stat-card card loading"> <div class="loading-skeleton"> <div class="skeleton-info"> <div class="skeleton title"></div> <div class="skeleton value"></div> <div class="skeleton text text-short"></div> </div> <div class="skeleton icon-placeholder" style="width:40px; height:40px; border-radius: 8px;"></div> </div> </div>
                     </div>
                     <div class="stat-cards" id="stats-cards-container" style="display: none;">
                         <div class="stat-card card loading" id="progress-card" data-animate style="--animation-order: 2;">
-                            <div class="stat-card-content">
-                                <div class="stat-card-info">
-                                    <div class="stat-card-title"><i class="fas fa-tasks"></i>Celkový Progress</div>
-                                    <div class="stat-card-value" id="overall-progress-value">- %</div>
+                            <div class="stat-card-content" style="display: block; padding: 0;"> <div class="stat-card-header" style="padding: 1.5rem 1.5rem 0.5rem; margin-bottom:0.5rem; border-bottom: 1px solid var(--border-color-light);"> <h3 class="stat-card-title"><i class="fas fa-khanda"></i>Úroveň & Zkušenosti</h3>
                                 </div>
+                                <div class="level-xp-widget-new" style="margin: 0; padding: 1rem 1.5rem 1.5rem; border:none; box-shadow:none; background:transparent; border-radius:0;">
+                                     <div class="level-display">
+                                         <span class="level-label">Úroveň</span>
+                                         <span class="level-value" id="dashboard-level-widget">1</span>
+                                     </div>
+                                     <div class="xp-bar-container">
+                                         <div class="xp-bar-track">
+                                             <div class="xp-bar-progress" id="dashboard-exp-progress-bar" style="width: 0%;"></div>
+                                         </div>
+                                         <div class="xp-text">
+                                             <span id="dashboard-exp-current">0</span> / <span id="dashboard-exp-required">100</span> ZK
+                                             (<span id="dashboard-exp-percentage">0</span>%)
+                                         </div>
+                                     </div>
+                                 </div>
                             </div>
-                            <div class="stat-card-footer" id="overall-progress-footer"><i class="fas fa-minus"></i> Načítání...</div>
-                            <div class="stat-card-icon-bg progress-icon"><i class="fas fa-chart-line"></i></div>
+                            <div class="stat-card-footer" id="overall-progress-footer" style="display:none;"><i class="fas fa-info-circle"></i> Statistiky úrovně</div>
+                            <div class="stat-card-icon-bg rank-icon" style="opacity:0.05;"><i class="fas fa-user-shield"></i></div>
                         </div>
+
                         <div class="stat-card card loading" id="points-card" data-animate style="--animation-order: 3;">
                             <div class="stat-card-content">
                                 <div class="stat-card-info">
                                     <div class="stat-card-title"><i class="fas fa-coins"></i>Kredity</div>
-                                    <div class="stat-card-value" id="total-points-value">40614 <span id="latest-credit-change" style="font-size: 0.5em; color: var(--text-medium); vertical-align: middle; margin-left: 0.5em;">--</span></div>
+                                    <div class="stat-card-value" id="total-points-value">0 <span id="latest-credit-change" style="font-size: 0.5em; color: var(--text-medium); vertical-align: middle; margin-left: 0.5em;">--</span></div>
                                 </div>
                             </div>
                             <div class="stat-card-footer" id="total-points-footer"><i class="fas fa-minus"></i> Načítání...</div>
