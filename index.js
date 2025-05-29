@@ -3,14 +3,14 @@
  * Handles UI interactions, animations, infinite testimonial slider,
  * Hero text mask reveal, interactive gradient, enhanced visual effects,
  * and Advanced Cookie Consent Banner with gtag.js integration.
- * Version: v2.39 (Aggressive Debug Display for Cookie Banner)
- * Author: Gemini Modification (enhanced from v2.38)
+ * Version: v2.40 (Reverting to CSS-driven Pop-up, Post-Debug)
+ * Author: Gemini Modification (enhanced from v2.39)
  * Date: 2025-05-29
  *
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Ready. Initializing JUSTAX Interface v2.39 (Aggressive Debug Display for Cookie Banner)...");
+    console.log("DOM Ready. Initializing JUSTAX Interface v2.40 (Reverting to CSS-driven Pop-up, Post-Debug)...");
 
     // --- Global Variables & DOM References ---
     const body = document.body;
@@ -229,7 +229,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             setTimeout(() => cardElement.classList.remove('card-content-updated'), 600);
         } catch (error) {
-            console.error("Error in updateCardContent:", error, "Data:", testimonialData);
             if (cardElement) cardElement.innerHTML = "<p>Chyba při načítání recenze.</p>";
         }
     };
@@ -254,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const setTrackPositionInstantly = (logReason = "default") => {
         if (!sliderInitialLoadComplete || !sliderTrack) { return; }
-        if (cardWidthAndMargin <= 0) { if (!calculateCardWidthAndMargin() || cardWidthAndMargin <= 0) { console.error(`setTrackPositionInstantly (${logReason}): Recalc failed.`); return; } }
+        if (cardWidthAndMargin <= 0) { if (!calculateCardWidthAndMargin() || cardWidthAndMargin <= 0) { return; } }
         sliderTrack.style.transition = 'none'; const position = -stableVisibleStartIndex * cardWidthAndMargin; sliderTrack.style.transform = `translateX(${position}px)`;
         void sliderTrack.offsetHeight; sliderTrack.style.transition = `transform ${config.testimonials.slideDuration}ms cubic-bezier(0.65, 0, 0.35, 1)`;
     };
@@ -285,7 +284,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             setTrackPositionInstantly("transition end adjustment");
         } catch (error) {
-            console.error("Error in handleSliderTransitionEnd:", error);
             setTrackPositionInstantly("error recovery in transition end");
         } finally {
             sliderTrack.dataset.slideDirection = "0"; isSliding = false; if(prevBtn) prevBtn.disabled = false; if(nextBtn) nextBtn.disabled = false;
@@ -307,9 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isSliding = true; sliderInitialLoadComplete = false; prevBtn.disabled = true; nextBtn.disabled = true;
         sliderTrack.innerHTML = ''; testimonialDataCache = []; cardsInTrack = []; cardWidthAndMargin = 0; stableVisibleStartIndex = config.testimonials.bufferCards;
         if (!localTestimonials || localTestimonials.length === 0) { sliderTrack.innerHTML = `<p>Chyba dat.</p>`; isSliding = false; return; }
-
         const numVisible = config.testimonials.visibleCardsDesktop; totalCardsInDOM = numVisible + 2 * config.testimonials.bufferCards;
-        
         for (let i = 0; i < totalCardsInDOM; i++) { const cardElement = createPlaceholderCard(); sliderTrack.appendChild(cardElement); cardsInTrack.push(cardElement); }
         for (let i = 0; i < totalCardsInDOM; i++) {
             let testimonial; let attempts = 0;
@@ -319,9 +315,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         cardsInTrack.forEach((card, index) => updateCardContent(card, testimonialDataCache[index]));
         await new Promise(resolve => requestAnimationFrame(resolve));
-
         if (!calculateCardWidthAndMargin() || cardWidthAndMargin <= 0) {
-            sliderTrack.innerHTML = '<p>Chyba layoutu.</p>'; isSliding = false; return;
+             sliderTrack.innerHTML = '<p>Chyba layoutu.</p>'; isSliding = false; return;
         }
         sliderInitialLoadComplete = true; setTrackPositionInstantly("initialization positioning");
         isSliding = false; prevBtn.disabled = false; nextBtn.disabled = false;
@@ -384,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (yearSpan) yearSpan.textContent = new Date().getFullYear().toString();
 
     const aiDemoSteps = [
-        { type: 'status', text: 'AI jádro v2.39 aktivní. Připraven na analýzu...', progress: 5 }, 
+        { type: 'status', text: 'AI jádro v2.40 aktivní. Připraven na analýzu...', progress: 5 }, 
         { type: 'status', text: 'Probíhá skenování interakcí uživatele ID: 734B...', delay: 700 },
         { type: 'input', text: 'ANALYZE_USER_PERFORMANCE --id=734B --subject=algebra --level=intermediate' },
         { type: 'process', text: 'Zpracování dotazu na výkon...', duration: 900, progress: 20 },
@@ -609,7 +604,6 @@ document.addEventListener('DOMContentLoaded', () => {
                  const currentHeroHighlight = heroHeading ? heroHeading.querySelector('.highlight') : null;
                  if (currentHeroHighlight) heroHighlightSpan = currentHeroHighlight;
             }
-
             if (heroHighlightSpan && document.contains(heroHighlightSpan)) {
                 heroHighlightSpan.style.setProperty('--mouse-x', "0.5");
                 heroHighlightSpan.style.setProperty('--mouse-y', "0.3");
@@ -645,7 +639,6 @@ document.addEventListener('DOMContentLoaded', () => {
             expires = `; expires=${date.toUTCString()}`;
         }
         document.cookie = `${name}=${value || ""}${expires}; path=/; SameSite=Lax; Secure`;
-        console.log(`DEBUG: Processed Cookie set: ${name}=${value}`);
     };
 
     const getConsentPreferences = () => {
@@ -653,8 +646,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const prefsString = localStorage.getItem(config.cookies.consentPreferencesKey);
             if (prefsString) {
                 const prefs = JSON.parse(prefsString);
-                const completePrefs = { ...config.cookies.defaultConsentState, ...prefs };
-                return completePrefs;
+                return { ...config.cookies.defaultConsentState, ...prefs };
             }
         } catch (e) { console.error("Error reading consent preferences from localStorage:", e); }
         return { ...config.cookies.defaultConsentState };
@@ -668,30 +660,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const updateGtagConsent = (preferences) => {
         if (typeof gtag === 'function') {
-            const gtagPrefs = { ...preferences };
-            gtag('consent', 'update', gtagPrefs);
+            gtag('consent', 'update', { ...preferences });
         }
     };
 
     const applyConsentDecision = (preferences) => {
-        console.log("DEBUG: Applying consent decision:", preferences);
         updateGtagConsent(preferences);
         saveConsentPreferences(preferences);
         setProcessedCookie(config.cookies.consentProcessedCookieName, 'true', config.cookies.consentCookieExpirationDays);
 
         if (cookieConsentBanner) {
             cookieConsentBanner.classList.remove('visible');
-            // Remove aggressive styles if they were applied
-            cookieConsentBanner.removeAttribute('style'); 
-            // Re-apply display none after transitions (original logic had this)
+            cookieConsentBanner.removeAttribute('style'); // Remove any inline styles (like debug styles)
             setTimeout(() => {
-                if (!cookieConsentBanner.classList.contains('visible')) {
-                     cookieConsentBanner.style.display = 'none';
-                }
-            }, 500); // Match CSS transition duration
+              if (!cookieConsentBanner.classList.contains('visible')) {
+                cookieConsentBanner.style.display = 'none';
+              }
+            }, 500); 
         }
         if (cookieConsentOverlay) {
             cookieConsentOverlay.classList.remove('visible');
+             cookieConsentOverlay.removeAttribute('style');
             setTimeout(() => {
                 if (!cookieConsentOverlay.classList.contains('visible')) {
                     cookieConsentOverlay.style.display = 'none';
@@ -702,7 +691,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const handleAcceptAll = () => {
-        console.log("DEBUG: User clicked Accept All.");
         const allGrantedPrefs = {};
         for (const key in config.cookies.defaultConsentState) {
             allGrantedPrefs[key] = 'granted';
@@ -711,7 +699,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const handleRejectAll = () => {
-        console.log("DEBUG: User clicked Reject All.");
         const allDeniedPrefs = {};
         for (const key in config.cookies.defaultConsentState) {
             allDeniedPrefs[key] = 'denied';
@@ -744,11 +731,11 @@ document.addEventListener('DOMContentLoaded', () => {
         cookieSettingsModal.classList.add('visible');
         if (cookieConsentBanner) {
             cookieConsentBanner.classList.remove('visible');
-            cookieConsentBanner.style.display = 'none'; // Hide immediately
+            cookieConsentBanner.style.display = 'none'; 
         }
         if (cookieConsentOverlay) {
             cookieConsentOverlay.classList.remove('visible');
-            cookieConsentOverlay.style.display = 'none'; // Hide immediately
+            cookieConsentOverlay.style.display = 'none'; 
         }
     };
 
@@ -756,9 +743,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cookieSettingsModal) cookieSettingsModal.classList.remove('visible');
         const consentProcessed = getProcessedCookie(config.cookies.consentProcessedCookieName) === 'true';
         if (!consentProcessed && cookieConsentBanner) {
-            cookieConsentBanner.style.display = 'flex';
+            // Ensure inline style "display: none" from HTML is overridden
+            cookieConsentBanner.style.display = 'flex'; 
             if (cookieConsentOverlay) cookieConsentOverlay.style.display = 'block';
-            requestAnimationFrame(() => {
+            
+            requestAnimationFrame(() => { // Add .visible after display is set
                  if (cookieConsentBanner) cookieConsentBanner.classList.add('visible');
                  if (cookieConsentOverlay) cookieConsentOverlay.classList.add('visible');
             });
@@ -785,17 +774,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const initializeCookieConsentFramework = () => {
-        console.log("DEBUG: Initializing Cookie Consent Framework v2.39...");
+        console.log("DEBUG: Initializing Cookie Consent Framework v2.40...");
 
-        if (!cookieConsentBanner) {
-            console.error("CRITICAL: Cookie consent banner (#cookie-consent-banner) NOT FOUND. Framework halted.");
+        if (!cookieConsentBanner || !cookieConsentOverlay) {
+            console.error("CRITICAL: Cookie banner or overlay NOT FOUND. Framework halted.");
             return;
         }
-        if (!cookieConsentOverlay) {
-            console.error("CRITICAL: Cookie consent overlay (#cookie-consent-overlay) NOT FOUND. Framework halted.");
-            return;
-        }
-        console.log("DEBUG: Banner and Overlay elements confirmed present.");
+        console.log("DEBUG: Banner and Overlay elements found.");
 
         const consentCookieValue = getProcessedCookie(config.cookies.consentProcessedCookieName);
         const consentProcessed = consentCookieValue === 'true';
@@ -811,68 +796,27 @@ document.addEventListener('DOMContentLoaded', () => {
             cookieConsentBanner.classList.remove('visible');
             cookieConsentOverlay.classList.remove('visible');
         } else {
-            console.log("DEBUG: Consent NOT processed. Attempting to display banner/overlay.");
-            console.log("DEBUG: cookieConsentBanner element:", cookieConsentBanner);
-            console.log("DEBUG: cookieConsentOverlay element:", cookieConsentOverlay);
-            if (cookieConsentBanner && cookieConsentBanner.parentElement) {
-                console.log("DEBUG: cookieConsentBanner.parentElement.innerHTML (first 200 chars):", cookieConsentBanner.parentElement.innerHTML.substring(0,200));
-            }
-             if (cookieConsentBanner) {
-                console.log("DEBUG: cookieConsentBanner.innerHTML (first 200 chars before modification):", cookieConsentBanner.innerHTML.substring(0,200));
-            }
-
-            // Clear any potentially conflicting inline styles first
+            console.log("DEBUG: Consent NOT processed. Attempting to display banner/overlay using CSS classes.");
+            
+            // Remove any inline styles that might have been set by previous debug versions or the HTML
             cookieConsentBanner.removeAttribute('style');
             cookieConsentOverlay.removeAttribute('style');
 
-            // Set display first
-            console.log("DEBUG: Setting banner to display: flex (via JS style.display)");
-            cookieConsentBanner.style.display = 'flex';
-            console.log("DEBUG: Setting overlay to display: block (via JS style.display)");
-            cookieConsentOverlay.style.display = 'block';
+            // Set display style to override potential HTML "display: none"
+            // The actual pop-up styling (position, transform, etc.) should come from CSS
+            cookieConsentBanner.style.display = 'flex'; 
+            cookieConsentOverlay.style.display = 'block'; 
 
             requestAnimationFrame(() => {
-                console.log("DEBUG: Adding .visible class to banner and overlay.");
+                console.log("DEBUG: Adding .visible class to banner and overlay for CSS-driven animation.");
                 cookieConsentBanner.classList.add('visible');
                 cookieConsentOverlay.classList.add('visible');
                 
+                // Log computed styles to see what the browser renders based on CSS
                 let computedBannerStyle = window.getComputedStyle(cookieConsentBanner);
                 let computedOverlayStyle = window.getComputedStyle(cookieConsentOverlay);
-                console.log("DEBUG (after .visible): Banner display:", computedBannerStyle.display, "visibility:", computedBannerStyle.visibility, "Opacity:", computedBannerStyle.opacity, "z-index:", computedBannerStyle.zIndex, "transform:", computedBannerStyle.transform, "top:", computedBannerStyle.top, "left:", computedBannerStyle.left);
+                console.log("DEBUG (after .visible): Banner display:", computedBannerStyle.display, "visibility:", computedBannerStyle.visibility, "Opacity:", computedBannerStyle.opacity, "z-index:", computedBannerStyle.zIndex, "position:", computedBannerStyle.position, "top:", computedBannerStyle.top, "left:", computedBannerStyle.left, "transform:", computedBannerStyle.transform);
                 console.log("DEBUG (after .visible): Overlay display:", computedOverlayStyle.display, "visibility:", computedOverlayStyle.visibility, "Opacity:", computedOverlayStyle.opacity, "z-index:", computedOverlayStyle.zIndex);
-
-                // AGGRESSIVE DEBUG STYLING - This will be applied FORCED
-                console.warn("DEBUG: FORCING AGGRESSIVE DEBUG STYLES to cookieConsentBanner.");
-                cookieConsentBanner.setAttribute('style', `
-                    display: flex !important;
-                    position: fixed !important;
-                    top: 20px !important; /* More offset from edge */
-                    left: 20px !important; /* More offset from edge */
-                    width: 350px !important;
-                    min-height: 150px !important; /* Min height */
-                    padding: 25px !important;
-                    background: red !important;
-                    color: white !important;
-                    border: 3px solid yellow !important;
-                    z-index: 2000000000 !important; /* Extremely high z-index */
-                    opacity: 1 !important;
-                    visibility: visible !important;
-                    transform: none !important; /* Override any transform */
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    text-align: center;
-                    box-shadow: 0 0 30px black;
-                `);
-                // To ensure the content inside is also visible
-                let originalContent = cookieConsentBanner.querySelector('.cookie-consent-content');
-                if (originalContent) {
-                    originalContent.style.color = 'white'; // Ensure text is visible
-                    originalContent.style.setProperty('color', 'white', 'important'); // Force it
-                } else { // If original content structure isn't there, add simple text
-                     cookieConsentBanner.innerHTML = '<p style="color:white; font-weight:bold; font-size:18px;">VISIBLE DEBUG BANNER</p><p style="color:yellow; font-size:14px;">If you see this, JS is working.</p>';
-                }
-                console.log("DEBUG: Aggressive styles applied. Look for a RED BOX at top-left with yellow border.");
             });
         }
 
@@ -913,30 +857,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setTimeout(() => {
         if (demoSection && config.aiDemo.enabled && aiDemoObserver) {
-            if (!(aiOutput && aiFakeInput && aiProgressLabel && aiProgressBar && aiStatusIndicator)) {
+            // if (!(aiOutput && aiFakeInput && aiProgressLabel && aiProgressBar && aiStatusIndicator)) {
                 // console.warn("AI Demo deferred init: elements missing, AI Demo might not work.");
-            }
+            // }
         }
     }, 500);
 
-    console.log("JUSTAX Interface v2.39 (Aggressive Debug Display for Cookie Banner) Initialization Complete.");
+    console.log("JUSTAX Interface v2.40 (Reverting to CSS-driven Pop-up, Post-Debug) Initialization Complete.");
 });
 
 /*
     EDIT LOGS:
-    Developer Goal: Force the cookie consent banner to be visible for debugging purposes,
-                    as previous attempts and logs indicate it should be visible but isn't.
-                    This aims to determine if JS can manipulate the element visually at all.
-    Stage (v2.39):
-        - In `initializeCookieConsentFramework`, when `consentProcessed` is false:
-            - Added more console logs to show the banner/overlay elements themselves and their parent's innerHTML (truncated) to verify their DOM presence and context.
-            - Cleared any existing inline styles on `cookieConsentBanner` and `cookieConsentOverlay` using `removeAttribute('style')` before applying new ones. This is to ensure a cleaner slate.
-            - **Crucially, after attempting to show the banner with existing class-based logic (`.visible`), new code now FORCIBLY applies a set of highly visible inline CSS styles directly to `cookieConsentBanner` using `setAttribute('style', '...')`.**
-                - These styles include: `display: flex !important`, `position: fixed !important`, bright red background, yellow border, extremely high z-index, `opacity: 1 !important`, `visibility: visible !important`, `transform: none !important`, and fixed position at top-left (20px, 20px) with a set width and auto height.
-                - This is designed to make the banner unmissable if the JavaScript is indeed able to modify its style.
-            - Added a message inside the aggressively styled banner (`VISIBLE DEBUG BANNER`) to confirm its content is also being set.
-            - Modified `applyConsentDecision` to use `removeAttribute('style')` on the banner when it's hidden, to clean up the aggressive debug styles if consent is given.
-        - Retained all previous console logging for tracing.
-        - The primary goal of this version is diagnostic: if a red box appears, the JS can control the element, and the issue lies in the original CSS or its interaction. If no red box appears despite logs indicating execution, the problem is more severe (e.g., external interference, deep rendering issues).
-        - Updated version to v2.39 and log notes.
+    Developer Goal: Revert to a CSS-driven approach for the cookie banner pop-up,
+                    now that aggressive inline style debugging has confirmed JS can control the element.
+                    The aim is to have the banner appear as originally designed in the CSS (centered pop-up).
+    Stage (v2.40):
+        - In `initializeCookieConsentFramework` when `consentProcessed` is false:
+            - Removed the forced, aggressive inline styling (red box) for `cookieConsentBanner`.
+            - The logic now primarily relies on:
+                1. Removing any pre-existing inline `style` attribute from `cookieConsentBanner` and `cookieConsentOverlay` using `removeAttribute('style')`. This ensures a clean slate for CSS.
+                2. Setting `cookieConsentBanner.style.display = 'flex';` and `cookieConsentOverlay.style.display = 'block';` to ensure the elements are not hidden by `display: none` (e.g., from initial HTML inline style).
+                3. Adding the `.visible` class to both elements within a `requestAnimationFrame` callback. This class, in conjunction with the styles in `index.css`, should trigger the fade-in and scale animation for the centered pop-up.
+            - Kept detailed console logs to observe the computed styles after these operations, to confirm if the CSS is applying as expected (fixed position, centered, correct z-index etc.).
+        - In `applyConsentDecision`:
+            - Ensured `cookieConsentBanner.removeAttribute('style');` and `cookieConsentOverlay.removeAttribute('style');` are called when the banner is hidden after a decision, to clean up any residual inline styles (especially `display: none` which is set after timeout).
+        - The expectation is that with a clean slate (no conflicting inline styles from JS debug versions) and the correct `display` property set, the existing CSS rules in `index.css` (which include `position: fixed !important;`, centering transforms, and `z-index: 10000 !important;`) will take effect and display the banner as a proper pop-up modal that moves with the screen.
+        - Updated version to v2.40 and log notes.
 */
