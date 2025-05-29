@@ -39,7 +39,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 2rem;
-            margin-bottom: 2rem;
+            /* margin-bottom: 2rem; */ /* Removed as copyright div is gone, adjust padding on .main-footer if needed */
             text-align: left; /* Override parent's text-align: center if it was set */
         }
         .main-footer .footer-column .logo {
@@ -115,21 +115,8 @@
             color: var(--accent-primary);
         }
 
-        .main-footer .copyright {
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border-color-light);
-            text-align: center;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-        .main-footer .copyright p {
-            margin-bottom: 0.5rem;
-            line-height: 1.5;
-        }
-        .main-footer .copyright .fa-heart {
-            color: var(--accent-love, #e91e63); /* Default love color if var not set */
-        }
+        /* .main-footer .copyright - This class and its styles are removed as the div is removed */
+        
         /* END: New Footer Styles */
 
         /* Suggestion for "cool" rewards styling (to be added in dashboard.css) */
@@ -405,17 +392,12 @@
                     <ul class="footer-links">
                         <li><a href="/privacy-policy.html" class="icon-link"><i class="fas fa-shield-alt fa-fw"></i>Ochrana Údajů</a></li>
                         <li><a href="/terms.html" class="icon-link"><i class="fas fa-file-contract fa-fw"></i>Podmínky Použití</a></li>
-                        <li><a href="#" id="dashboard-cookie-settings-trigger" class="icon-link"><i class="fas fa-cookie-bite fa-fw"></i>Nastavení Cookies</a></li>
                         <li><a href="mailto:admin@justax.space" class="icon-link"><i class="fas fa-envelope fa-fw"></i>admin@justax.space</a></li>
                         <li><span class="icon-link"><i class="fas fa-map-marker-alt fa-fw"></i>Centrála: Cheb, CZ</span></li>
                     </ul>
                 </div>
             </div>
-            <div class="copyright">
-                <p>Protokol v2.4 // Sestaveno s <i class="fas fa-heart" aria-hidden="true"></i> v CZ.</p>
-                <p>&copy; <span id="currentYearFooter">2025</span> Justax AI Systems. Některá práva vyhrazena.</p>
-            </div>
-        </footer>
+            </footer>
     </main>
 
     <div class="toast-container" id="toast-container"></div>
@@ -464,7 +446,7 @@
     <script src="dashboard-lists.js" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Existing JS for currentYearFooter (should be in dashboard.js, but good practice to ensure it's handled)
+            // Existing JS for currentYearFooter (though the span is removed, this won't cause an error if it checks for element existence)
             const currentYearFooterElement = document.getElementById('currentYearFooter');
             if (currentYearFooterElement) {
                 currentYearFooterElement.textContent = new Date().getFullYear();
@@ -475,17 +457,7 @@
                 currentYearSidebarElement.textContent = new Date().getFullYear();
             }
 
-            // Placeholder for cookie settings trigger functionality
-            const cookieSettingsTriggerDashboard = document.getElementById('dashboard-cookie-settings-trigger');
-            if (cookieSettingsTriggerDashboard) {
-                cookieSettingsTriggerDashboard.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    // Here you would typically open a cookie settings modal
-                    // For now, just an alert or console log.
-                    alert('Nastavení cookies pro dashboard (funkcionalita k doplnění).');
-                    console.log('Dashboard cookie settings trigger clicked.');
-                });
-            }
+            // JavaScript for dashboard-cookie-settings-trigger removed as the element is removed.
         });
     </script>
 </body>
