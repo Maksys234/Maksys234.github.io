@@ -1,5 +1,5 @@
 // dashboard/profile.js
-// Version: UPDATED with Level Up Logic
+// Version: UPDATED with Learning Goal Selection & DB Level Up
 (function() {
     // --- START: Initialization and Configuration ---
     const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
@@ -14,8 +14,7 @@
         avatar: false, delete: false, notifications: false,
         titles: false
     };
-    const BASE_XP = 100;
-    const INCREMENT_XP = 25;
+    // BASE_XP a INCREMENT_XP se již nepoužívají v JS, logika je v DB
     const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
 
     const ui = {
@@ -56,6 +55,15 @@
         confirmPasswordField: document.getElementById('confirm_password'),
         darkModeToggle: document.getElementById('dark_mode'),
         languageSelect: document.getElementById('language'),
+        // Learning Goal Elements
+        learningGoalSelect: document.getElementById('learning_goal'),
+        goalDetailsContainer: document.getElementById('goal-details-container'),
+        goalDetailsMathAccelerate: document.getElementById('goal-details-math_accelerate'),
+        accelerateGradeProfileSelect: document.getElementById('accelerate_grade_profile'),
+        accelerateIntensityProfileSelect: document.getElementById('accelerate_intensity_profile'),
+        goalDetailsMathReview: document.getElementById('goal-details-math_review'),
+        reviewGradeProfileSelect: document.getElementById('review_grade_profile'),
+        // End Learning Goal Elements
         emailNotificationsToggle: document.getElementById('email_notifications'),
         studyTipsToggle: document.getElementById('study_tips'),
         contentUpdatesToggle: document.getElementById('content_updates'),
@@ -276,95 +284,15 @@
     }
     // --- END: Helper Functions ---
 
-    // --- START: Leveling Logic ---
-    function getTotalExpThreshold(targetLevel) {
-        if (targetLevel <= 1) {
-            return 0;
-        }
-        let totalExp = 0;
-        for (let level = 1; level < targetLevel; level++) {
-            const expNeededForThisLevelSpan = BASE_XP + (INCREMENT_XP * (level - 1));
-            totalExp += expNeededForThisLevelSpan;
-        }
-        return totalExp;
-    }
+    // --- START: Leveling Logic (DB Trigger handles this, JS function removed) ---
+    // Funkce checkAndProcessLevelUps a updateProfileLevelInDB byly odstraněny,
+    // jelikož tuto logiku nyní řeší databázový trigger.
+    // Zajistíme pouze správné zobrazení levelu a XP.
 
-    // <<< NEW FUNCTION: checkAndProcessLevelUps >>>
-    async function checkAndProcessLevelUps(profileData) {
-        if (!profileData) return false; // No profile data to process
-
-        let initialLevel = profileData.level;
-        let levelIncreased = false;
-        let levelsGained = 0;
-
-        console.log(`[LevelUpCheck] Start. Current Lvl: ${profileData.level}, Current XP: ${profileData.experience}`);
-
-        // Loop to handle multiple level-ups if enough XP is gained at once
-        while (profileData.experience >= getTotalExpThreshold(profileData.level + 1)) {
-            profileData.level += 1;
-            levelsGained++;
-            levelIncreased = true;
-            console.log(`[LevelUpCheck] Leveled up to: ${profileData.level}! XP needed for next: ${getTotalExpThreshold(profileData.level + 1)}`);
-            showToast('POSTUP NA NOVOU ÚROVEŇ!', `Gratulujeme, dosáhli jste úrovně ${profileData.level}!`, 'success', 5000);
-            // TODO: Consider adding logActivity here if you have a generic one
-            // await logActivity(currentUser.id, 'level_up', `Dosažena úroveň ${profileData.level}`, null, { new_level: profileData.level });
-        }
-
-        if (levelIncreased) {
-            console.log(`[LevelUpCheck] Total levels gained: ${levelsGained}. New level: ${profileData.level}. Saving to DB...`);
-            const success = await updateProfileLevelInDB(currentUser.id, profileData.level, profileData.experience);
-            if (success) {
-                console.log(`[LevelUpCheck] New level ${profileData.level} saved to DB.`);
-                 // Optionally, re-fetch the entire profile to ensure all server-side triggers (if any) are processed
-                 // currentProfile = await fetchUserProfile(currentUser.id); // This would ensure data consistency
-            } else {
-                console.error(`[LevelUpCheck] Failed to save new level ${profileData.level} to DB. Reverting local change for safety.`);
-                profileData.level = initialLevel; // Revert if DB update failed
-                return false; // Indicate that changes were not persisted
-            }
-        } else {
-            console.log(`[LevelUpCheck] No level up. XP (${profileData.experience}) < Threshold for Lvl ${profileData.level + 1} (${getTotalExpThreshold(profileData.level + 1)})`);
-        }
-        return levelIncreased; // Return true if level changed and was saved
-    }
-
-    // <<< NEW FUNCTION: updateProfileLevelInDB >>>
-    async function updateProfileLevelInDB(userId, newLevel, currentTotalExperience) {
-        if (!supabase || !userId) return false;
-        console.log(`[DB Update] Saving new level ${newLevel} for user ${userId}. Total XP remains ${currentTotalExperience}.`);
-        try {
-            const { error } = await supabase
-                .from('profiles')
-                .update({ level: newLevel, updated_at: new Date().toISOString() }) // Only update level and timestamp
-                .eq('id', userId);
-            if (error) throw error;
-            console.log("[DB Update] Level successfully updated in database.");
-            return true;
-        } catch (error) {
-            console.error('[DB Update] Error updating level in database:', error);
-            showToast('Chyba', 'Nepodařilo se uložit novou úroveň.', 'error');
-            return false;
-        }
-    }
-
-    // <<< NEW FUNCTION (Placeholder): logActivity >>>
+    // Placeholder pro logActivity (pokud by byla potřeba z JS)
     async function logActivity(userId, type, title, description = null, details = null) {
-        // This is a placeholder. In a real app, this would make a Supabase insert call.
-        console.log(`[Activity Log] User: ${userId}, Type: ${type}, Title: "${title}", Desc: "${description}", Details:`, details);
-        // Example Supabase call (uncomment and adapt if you have an 'activities' table)
-        /*
-        if (!supabase || !userId) return;
-        try {
-            const { error } = await supabase.from('activities').insert([
-                { user_id: userId, type: type, title: title, description: description, details: details }
-            ]);
-            if (error) console.error('Error logging activity:', error);
-        } catch (e) {
-            console.error('Exception logging activity:', e);
-        }
-        */
+        console.log(`[Activity Log Placeholder] User: ${userId}, Type: ${type}, Title: "${title}", Desc: "${description}", Details:`, details);
     }
-
     // --- END: Leveling Logic ---
 
 
@@ -375,26 +303,32 @@
         if (!supabase || !userId) return null;
         console.log(`[Profile] Načítání profilu pro ID: ${userId}`);
         try {
+            // Přidáno learning_goal a preferences->goal_details do selectu
             const { data: profile, error } = await supabase
                 .from('profiles')
-                .select('*, selected_title')
+                .select('*, selected_title, learning_goal, preferences->goal_details AS goal_details')
                 .eq('id', userId)
                 .single();
-            if (error && error.code !== 'PGRST116') throw error;
+            if (error && error.code !== 'PGRST116') throw error; // PGRST116 = 0 rows
             if (!profile) {
                 console.warn(`[Profile] Profil nenalezen pro ${userId}. Vytváření výchozího...`);
                 const defaultProfileData = {
                     id: userId, email: currentUser.email, username: currentUser.email.split('@')[0], level: 1, points: 0, experience: 0, badges_count: 0, streak_days: 0,
                     created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
-                    preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches, language: 'cs' },
-                    notifications: { email: true, study_tips: true, content_updates: true, practice_reminders: true }
+                    preferences: { dark_mode: window.matchMedia('(prefers-color-scheme: dark)').matches, language: 'cs', goal_details: {} }, // Přidány výchozí goal_details
+                    notifications: { email: true, study_tips: true, content_updates: true, practice_reminders: true },
+                    learning_goal: null // Výchozí studijní cíl
                 };
-                const { data: newProfile, error: createError } = await supabase.from('profiles').insert([defaultProfileData]).select('*, selected_title').single();
+                const { data: newProfile, error: createError } = await supabase.from('profiles').insert([defaultProfileData]).select('*, selected_title, learning_goal, preferences->goal_details AS goal_details').single();
                 if (createError) throw createError;
                 console.log("[Profile] Výchozí profil úspěšně vytvořen.");
                 return newProfile;
             }
-            console.log("[Profile] Profil úspěšně načten.");
+            // Zajistíme, že goal_details je objekt, i když je null v DB
+            if (!profile.goal_details) {
+                profile.goal_details = {};
+            }
+            console.log("[Profile] Profil úspěšně načten:", profile);
             return profile;
         } catch (error) {
             console.error('[Profile] Chyba při načítání/vytváření profilu:', error);
@@ -423,10 +357,89 @@
         }
     }
 
-    async function updateProfileData(data) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Profile Update] Aktualizace dat:", data); setLoadingState('profile', true); try { const { data: updatedProfile, error } = await supabase.from('profiles').update({ first_name: data.first_name, last_name: data.last_name, username: data.username, school: data.school, grade: data.grade, bio: data.bio, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select('*, selected_title').single(); if (error) throw error; currentProfile = updatedProfile; updateProfileDisplay(currentProfile, allTitles); showToast('ÚSPĚCH', 'Profil byl úspěšně aktualizován.', 'success'); console.log("[Profile Update] Úspěšně aktualizováno."); return true; } catch (error) { console.error('[Profile Update] Chyba:', error); showToast('CHYBA', `Aktualizace profilu selhala: ${error.message}`, 'error'); return false; } finally { setLoadingState('profile', false); } }
+    async function updateProfileData(data) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Profile Update] Aktualizace dat:", data); setLoadingState('profile', true); try { const { data: updatedProfile, error } = await supabase.from('profiles').update({ first_name: data.first_name, last_name: data.last_name, username: data.username, school: data.school, grade: data.grade, bio: data.bio, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select('*, selected_title, learning_goal, preferences->goal_details AS goal_details').single(); if (error) throw error; currentProfile = updatedProfile; updateProfileDisplay(currentProfile, allTitles); showToast('ÚSPĚCH', 'Profil byl úspěšně aktualizován.', 'success'); console.log("[Profile Update] Úspěšně aktualizováno."); return true; } catch (error) { console.error('[Profile Update] Chyba:', error); showToast('CHYBA', `Aktualizace profilu selhala: ${error.message}`, 'error'); return false; } finally { setLoadingState('profile', false); } }
     async function updateUserPassword(currentPassword, newPassword) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Password Update] Pokus o změnu hesla."); setLoadingState('password', true); try { console.warn("Password Update: Client-side update doesn't verify current password securely."); const { error } = await supabase.auth.updateUser({ password: newPassword }); if (error) { let message = 'Změna hesla selhala.'; if (error.message.includes('requires recent login')) message = 'Vyžadováno nedávné přihlášení. Přihlaste se znovu.'; else if (error.message.includes('weak_password')) message = 'Heslo je příliš slabé.'; else if (error.message.includes('same password')) message = 'Nové heslo musí být jiné než současné.'; showToast('CHYBA HESLA', message, 'error'); console.error('[Password Update] Chyba Supabase:', error); if (message.includes('jiné')) { showFieldError('new_password', message); } else { showFieldError('current_password', 'Ověření selhalo nebo je vyžadováno nové přihlášení.'); } return false; } ui.passwordForm.reset(); clearAllErrors('password-form'); showToast('ÚSPĚCH', 'Heslo bylo úspěšně změněno.', 'success'); console.log("[Password Update] Heslo úspěšně změněno."); return true; } catch (error) { console.error('[Password Update] Neočekávaná chyba:', error); showToast('CHYBA', 'Došlo k neočekávané chybě při změně hesla.', 'error'); return false; } finally { setLoadingState('password', false); } }
-    async function updatePreferencesData() { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } console.log("[Preferences Update] Aktualizace nastavení."); setLoadingState('preferences', true); try { const preferences = { dark_mode: ui.darkModeToggle.checked, language: ui.languageSelect.value, }; const notifications = { email: ui.emailNotificationsToggle.checked, study_tips: ui.studyTipsToggle.checked, content_updates: ui.contentUpdatesToggle.checked, practice_reminders: ui.practiceRemindersToggle.checked }; const { data: updatedProfile, error } = await supabase.from('profiles').update({ preferences: preferences, notifications: notifications, updated_at: new Date().toISOString() }).eq('id', currentUser.id).select('*, selected_title').single(); if (error) throw error; currentProfile = updatedProfile; applyPreferences(currentProfile.preferences); showToast('ÚSPĚCH', 'Nastavení byla uložena.', 'success'); console.log("[Preferences Update] Nastavení uložena."); return true; } catch (error) { console.error('[Preferences Update] Chyba:', error); showToast('CHYBA', 'Uložení nastavení selhalo.', 'error'); return false; } finally { setLoadingState('preferences', false); } }
-    async function saveSelectedAvatar() { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } setLoadingState('avatar', true); const file = ui.avatarUploadInput?.files[0]; let finalAvatarUrl = null; let uploadError = null; try { if (selectedBuiltInAvatarPath) { console.log("[Avatar Save] Saving built-in avatar:", selectedBuiltInAvatarPath); finalAvatarUrl = selectedBuiltInAvatarPath; } else if (file) { console.log("[Avatar Save] Uploading new file:", file.name); if (file.size > 2 * 1024 * 1024) { throw new Error('Soubor je příliš velký (max 2MB).'); } if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) { console.warn(`[Avatar Save] Unsupported file type: ${file.type}`); throw new Error('Nepodporovaný formát souboru (JPG, PNG, GIF).'); } const fileExt = file.name.split('.').pop(); const fileName = `${currentUser.id}/${Date.now()}.${fileExt}`; const { error } = await supabase.storage .from('avatars') .upload(fileName, file, { cacheControl: '3600', upsert: true }); uploadError = error; if (uploadError) throw new Error(`Chyba nahrávání souboru: ${uploadError.message}`); const { data: urlData } = supabase.storage .from('avatars') .getPublicUrl(fileName); if (!urlData || !urlData.publicUrl) throw new Error("Nepodařilo se získat URL obrázku."); finalAvatarUrl = urlData.publicUrl; console.log("[Avatar Save] File uploaded, URL:", finalAvatarUrl); } else { showToast('Info', 'Nevybrali jste žádný nový obrázek.', 'info'); setLoadingState('avatar', false); return false; } console.log("[Avatar Save] Updating profile with avatar_url:", finalAvatarUrl); const { data: updatedProfile, error: updateError } = await supabase .from('profiles') .update({ avatar_url: finalAvatarUrl, updated_at: new Date().toISOString() }) .eq('id', currentUser.id) .select('*, selected_title') .single(); if (updateError) throw new Error(`Chyba aktualizace profilu: ${updateError.message}`); currentProfile = updatedProfile; updateProfileDisplay(currentProfile, allTitles); hideModal('avatar-modal'); showToast('ÚSPĚCH', 'Profilový obrázek byl aktualizován.', 'success'); console.log("[Avatar Save] Avatar successfully updated."); return true; } catch (error) { console.error('[Avatar Save] Chyba:', error); showToast('CHYBA', `Aktualizace avataru selhala: ${error.message}`, 'error'); return false; } finally { setLoadingState('avatar', false); } }
+
+    async function updatePreferencesData() {
+        if (!currentUser || !supabase || !currentProfile) {
+            showToast('Chyba', 'Nejste přihlášeni nebo chybí data profilu.', 'error');
+            return false;
+        }
+        console.log("[Preferences Update] Aktualizace nastavení...");
+        setLoadingState('preferences', true);
+        try {
+            const preferences = {
+                dark_mode: ui.darkModeToggle.checked,
+                language: ui.languageSelect.value,
+                goal_details: currentProfile.preferences?.goal_details || {} // Zachováme stávající goal_details
+            };
+            const notifications = {
+                email: ui.emailNotificationsToggle.checked,
+                study_tips: ui.studyTipsToggle.checked,
+                content_updates: ui.contentUpdatesToggle.checked,
+                practice_reminders: ui.practiceRemindersToggle.checked
+            };
+
+            const newLearningGoal = ui.learningGoalSelect.value || null;
+            let goalDetailsToSave = preferences.goal_details; // Začneme se stávajícími
+
+            if (newLearningGoal) {
+                // Resetujeme goal_details, pokud není relevantní pro nový cíl, nebo je aktualizujeme
+                goalDetailsToSave = {}; // Resetujeme, pokud je to nový cíl, nebo pokud chceme čistý zápis
+                if (newLearningGoal === 'math_accelerate') {
+                    goalDetailsToSave = {
+                        grade: ui.accelerateGradeProfileSelect.value,
+                        intensity: ui.accelerateIntensityProfileSelect.value
+                        // Zde by se mohly přidat další specifické detaily pro math_accelerate, pokud jsou
+                    };
+                } else if (newLearningGoal === 'math_review') {
+                    goalDetailsToSave = {
+                        grade: ui.reviewGradeProfileSelect.value
+                        // Zde by se mohly přidat hodnocení témat, pokud by byla ve formuláři
+                    };
+                }
+                // Pro exam_prep a math_explore nejsou momentálně žádné goal_details v tomto formuláři
+            }
+            preferences.goal_details = goalDetailsToSave;
+
+            const updates = {
+                preferences: preferences,
+                notifications: notifications,
+                learning_goal: newLearningGoal, // Uložíme i hlavní cíl
+                updated_at: new Date().toISOString()
+            };
+
+            console.log("[Preferences Update] Data k uložení:", updates);
+
+            const { data: updatedProfile, error } = await supabase
+                .from('profiles')
+                .update(updates)
+                .eq('id', currentUser.id)
+                .select('*, selected_title, learning_goal, preferences->goal_details AS goal_details') // Načteme goal_details správně
+                .single();
+
+            if (error) throw error;
+
+            currentProfile = updatedProfile;
+            if (!currentProfile.goal_details) currentProfile.goal_details = {}; // Zajistíme, že goal_details je objekt
+
+            applyPreferences(currentProfile.preferences);
+            // Po uložení znovu načteme hodnoty do formuláře, včetně studijního cíle
+            populateLearningGoalForm(currentProfile.learning_goal, currentProfile.goal_details);
+
+            showToast('ÚSPĚCH', 'Nastavení byla uložena.', 'success');
+            console.log("[Preferences Update] Nastavení uložena.");
+            return true;
+        } catch (error) {
+            console.error('[Preferences Update] Chyba:', error);
+            showToast('CHYBA', `Uložení nastavení selhalo: ${error.message}`, 'error');
+            return false;
+        } finally {
+            setLoadingState('preferences', false);
+        }
+    }
+
+    async function saveSelectedAvatar() { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } setLoadingState('avatar', true); const file = ui.avatarUploadInput?.files[0]; let finalAvatarUrl = null; let uploadError = null; try { if (selectedBuiltInAvatarPath) { console.log("[Avatar Save] Saving built-in avatar:", selectedBuiltInAvatarPath); finalAvatarUrl = selectedBuiltInAvatarPath; } else if (file) { console.log("[Avatar Save] Uploading new file:", file.name); if (file.size > 2 * 1024 * 1024) { throw new Error('Soubor je příliš velký (max 2MB).'); } if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) { console.warn(`[Avatar Save] Unsupported file type: ${file.type}`); throw new Error('Nepodporovaný formát souboru (JPG, PNG, GIF).'); } const fileExt = file.name.split('.').pop(); const fileName = `${currentUser.id}/${Date.now()}.${fileExt}`; const { error } = await supabase.storage .from('avatars') .upload(fileName, file, { cacheControl: '3600', upsert: true }); uploadError = error; if (uploadError) throw new Error(`Chyba nahrávání souboru: ${uploadError.message}`); const { data: urlData } = supabase.storage .from('avatars') .getPublicUrl(fileName); if (!urlData || !urlData.publicUrl) throw new Error("Nepodařilo se získat URL obrázku."); finalAvatarUrl = urlData.publicUrl; console.log("[Avatar Save] File uploaded, URL:", finalAvatarUrl); } else { showToast('Info', 'Nevybrali jste žádný nový obrázek.', 'info'); setLoadingState('avatar', false); return false; } console.log("[Avatar Save] Updating profile with avatar_url:", finalAvatarUrl); const { data: updatedProfile, error: updateError } = await supabase .from('profiles') .update({ avatar_url: finalAvatarUrl, updated_at: new Date().toISOString() }) .eq('id', currentUser.id) .select('*, selected_title, learning_goal, preferences->goal_details AS goal_details').single(); if (updateError) throw new Error(`Chyba aktualizace profilu: ${updateError.message}`); currentProfile = updatedProfile; updateProfileDisplay(currentProfile, allTitles); hideModal('avatar-modal'); showToast('ÚSPĚCH', 'Profilový obrázek byl aktualizován.', 'success'); console.log("[Avatar Save] Avatar successfully updated."); return true; } catch (error) { console.error('[Avatar Save] Chyba:', error); showToast('CHYBA', `Aktualizace avataru selhala: ${error.message}`, 'error'); return false; } finally { setLoadingState('avatar', false); } }
     async function deleteUserAccount(password) { if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; } if (!password) { showFieldError('confirm-delete-password', 'Zadejte heslo pro potvrzení.'); return false; } console.warn("[Account Deletion] Zahájení procesu smazání účtu pro:", currentUser.id); setLoadingState('delete', true); clearFieldError('confirm-delete-password'); try { console.log("[Account Deletion] Volání funkce 'delete-user-account'..."); const { data, error } = await supabase.functions.invoke('delete-user-account', { body: JSON.stringify({ password: password }) }); if (error) { let message = error.message || 'Neznámá chyba serverové funkce.'; if (message.includes('Invalid user credentials') || message.includes('Incorrect password')) { showFieldError('confirm-delete-password', 'Nesprávné heslo.'); message = 'Nesprávné heslo.'; } else if (message.includes('requires recent login')) { showFieldError('confirm-delete-password', 'Vyžadováno nedávné přihlášení.'); message = 'Pro smazání účtu se prosím znovu přihlaste.'; showToast('Chyba', message, 'warning'); } else { showToast('CHYBA SMAZÁNÍ', message, 'error'); } console.error('[Account Deletion] Chyba funkce:', error); return false; } console.log("[Account Deletion] Funkce úspěšně provedena:", data); showToast('ÚČET SMAZÁN', 'Váš účet byl úspěšně smazán.', 'success', 5000); setTimeout(() => { window.location.href = '/auth/index.html'; }, 3000); return true; } catch (error) { console.error('[Account Deletion] Chyba:', error); if (!document.getElementById('confirm-delete-password-error')?.textContent) { showToast('CHYBA SMAZÁNÍ', `Smazání účtu selhalo: ${error.message}`, 'error'); } return false; } finally { setLoadingState('delete', false); } }
     // --- END: Supabase Interaction Functions ---
 
@@ -434,12 +447,26 @@
     async function fetchNotifications(userId, limit = 5) { if (!supabase || !userId) { console.error("[Notifications] Chybí Supabase nebo ID uživatele."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications] Načítání nepřečtených oznámení pro uživatele ${userId}`); setLoadingState('notifications', true); try { const { data, error, count } = await supabase .from('user_notifications') .select('*', { count: 'exact' }) .eq('user_id', userId) .eq('is_read', false) .order('created_at', { ascending: false }) .limit(limit); if (error) throw error; console.log(`[Notifications] Načteno ${data?.length || 0} oznámení. Celkem nepřečtených: ${count}`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications] Výjimka při načítání oznámení:", error); showToast('Chyba', 'Nepodařilo se načíst oznámení.', 'error'); return { unreadCount: 0, notifications: [] }; } finally { setLoadingState('notifications', false); } }
     function renderNotifications(count, notifications) { console.log("[Render Notifications] Start, Počet:", count, "Oznámení:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications] Chybí UI elementy."); return; } ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const iconMap = { info: 'fa-info-circle', success: 'fa-check-circle', warning: 'fa-exclamation-triangle', danger: 'fa-exclamation-circle', badge: 'fa-medal', level_up: 'fa-angle-double-up' }; const iconClass = iconMap[n.type] || 'fa-info-circle'; const typeClass = n.type || 'info'; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}> ${!n.is_read ? '<span class="unread-dot"></span>' : ''} <div class="notification-icon ${typeClass}"><i class="fas ${iconClass}"></i></div> <div class="notification-content"> <div class="notification-title">${sanitizeHTML(n.title)}</div> <div class="notification-message">${sanitizeHTML(n.message)}</div> <div class="notification-time">${formatRelativeTime(n.created_at)}</div> </div> </div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } console.log("[Render Notifications] Hotovo"); }
     async function markNotificationRead(notificationId) { console.log("[FUNC] markNotificationRead: Označení ID:", notificationId); if (!currentUser || !notificationId) return false; try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[FUNC] markNotificationRead: Úspěch pro ID:", notificationId); return true; } catch (error) { console.error("[FUNC] markNotificationRead: Chyba:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
-    async function markAllNotificationsRead() { console.log("[FUNC] markAllNotificationsRead: Start pro uživatele:", currentUser?.id); if (!currentUser || !ui.markAllReadBtn) return; setLoadingState('notifications', true); try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false); if (error) throw error; console.log("[FUNC] markAllNotificationsRead: Úspěch"); const { unreadCount, notifications } = await fetchNotifications(currentUser.id, 5); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Chyba:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); } finally { setLoadingState('notifications', false); } }
+    async function markAllNotificationsRead() { console.log("[FUNC] markAllNotificationsRead: Start pro uživatele:", currentUser?.id); if (!currentUser || !ui.markAllReadBtn) return; setLoadingState('notifications', true); try { const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false); if (error) throw error; console.log("[FUNC] markAllNotificationsRead: Úspěch"); const { unreadCount, notifications } = await fetchNotifications(currentUser.id, 5); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[FUNC] markAllNotificationsRead: Chyba:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = currentCount === 0; } finally { setLoadingState('notifications', false); } }
     function formatRelativeTime(timestamp) { if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); if (isNaN(date.getTime())) return '-'; const diffMs = now - date; const diffSec = Math.round(diffMs / 1000); const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60); const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7); if (diffSec < 60) return 'Nyní'; if (diffMin < 60) return `Před ${diffMin} min`; if (diffHour < 24) return `Před ${diffHour} hod`; if (diffDay === 1) return `Včera`; if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`; return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { console.error("Chyba formátování času:", e, "Timestamp:", timestamp); return '-'; } }
     // --- END: Notification Functions ---
 
 
     // --- START: UI Update Functions ---
+    function getTotalExpThreshold(targetLevel) {
+        // Tato funkce musí být stejná jako v DB pro konzistenci,
+        // pokud by se volala z JS pro zobrazení prahu PŘED tím, než DB trigger aktualizuje level.
+        // V tomto případě ji používáme pouze pro výpočet PROCENTA v rámci aktuální úrovně.
+        const BASE_XP_JS = 100;
+        const INCREMENT_XP_JS = 25;
+        if (targetLevel <= 1) return 0;
+        let totalExp = 0;
+        for (let level = 1; level < targetLevel; level++) {
+            totalExp += (BASE_XP_JS + (INCREMENT_XP_JS * (level - 1)));
+        }
+        return totalExp;
+    }
+
     function updateProfileDisplay(profileData, titlesData = []) {
         if (!profileData) { console.warn("updateProfileDisplay: Missing profile data."); return; }
         console.log("[UI Update] Updating profile display...");
@@ -511,6 +538,7 @@
         if (ui.profileBadges) ui.profileBadges.textContent = profileData.badges_count ?? 0;
         if (ui.profileStreak) ui.profileStreak.textContent = profileData.streak_days ?? 0;
 
+        // Logika pro XP bar a level (používá JS funkci getTotalExpThreshold pro výpočet procent)
         const currentLevel = profileData.level ?? 1;
         const currentExperience = profileData.experience ?? 0;
         const currentLevelExpThreshold = getTotalExpThreshold(currentLevel);
@@ -518,20 +546,21 @@
         const expNeededForLevelSpan = nextLevelExpThreshold - currentLevelExpThreshold;
         const currentExpInLevel = Math.max(0, currentExperience - currentLevelExpThreshold);
         let percentage = 0;
-        if (expNeededForLevelSpan > 0) {
+        if (expNeededForLevelSpan > 0) { // Zabrání dělení nulou, pokud je level MAX nebo chyba
             percentage = Math.min(100, Math.max(0, Math.round((currentExpInLevel / expNeededForLevelSpan) * 100)));
-        } else {
-            percentage = (currentExperience >= currentLevelExpThreshold && currentLevel > 0) ? 100 : 0;
+        } else if (currentExperience >= currentLevelExpThreshold && currentLevel > 0) { // Na max levelu nebo pokud je prahova hodnota 0 (pro level 1)
+            percentage = 100;
         }
+
 
         console.log(`[EXP Update] Level: ${currentLevel}, Experience: ${currentExperience}`);
         console.log(`[EXP Update] Thresholds: Current=${currentLevelExpThreshold}, Next=${nextLevelExpThreshold}`);
-        console.log(`[EXP Update] Progress in Level: ${currentExpInLevel} / ${expNeededForLevelSpan > 0 ? expNeededForLevelSpan : 'N/A'} (${percentage}%)`);
+        console.log(`[EXP Update] Progress in Level: ${currentExpInLevel} / ${expNeededForLevelSpan > 0 ? expNeededForLevelSpan : 'MAX'} (${percentage}%)`);
 
         if (ui.profileLevelMain) { ui.profileLevelMain.textContent = currentLevel; }
         if (ui.expProgressBarFill) { ui.expProgressBarFill.style.width = `${percentage}%`; }
         if (ui.expCurrentValue) { ui.expCurrentValue.textContent = currentExpInLevel; }
-        if (ui.expRequiredValue) { ui.expRequiredValue.textContent = expNeededForLevelSpan > 0 ? expNeededForLevelSpan : 'MAX'; } // Changed to MAX
+        if (ui.expRequiredValue) { ui.expRequiredValue.textContent = expNeededForLevelSpan > 0 ? expNeededForLevelSpan : 'MAX'; }
         if (ui.expPercentage) { ui.expPercentage.textContent = percentage; }
 
         if (ui.firstNameField) ui.firstNameField.value = profileData.first_name || '';
@@ -544,6 +573,11 @@
         if (profileData.preferences) {
             if (ui.darkModeToggle) ui.darkModeToggle.checked = profileData.preferences.dark_mode ?? false;
             if (ui.languageSelect) ui.languageSelect.value = profileData.preferences.language || 'cs';
+            // Načtení studijního cíle a jeho detailů
+            if (ui.learningGoalSelect) {
+                ui.learningGoalSelect.value = profileData.learning_goal || "";
+                populateLearningGoalForm(profileData.learning_goal, profileData.preferences.goal_details || {});
+            }
             applyPreferences(profileData.preferences);
         }
         if (profileData.notifications) {
@@ -588,7 +622,7 @@
         const fragment = document.createDocumentFragment();
         console.log("[Avatars] Populating built-in avatars...");
         for (let i = 1; i <= 9; i++) {
-             const avatarPath = `assets/avatar${i}.jpeg`;
+             const avatarPath = `assets/avatar${i}.jpeg`; // Cesta k avatarům
             const item = document.createElement('div');
             item.className = 'builtin-avatar-item';
             item.dataset.path = avatarPath;
@@ -611,6 +645,35 @@
         console.log("[Avatars] Built-in avatars populated into grid.");
     }
     function applyPreferences(preferences) { if (!preferences) return; if (preferences.dark_mode) { document.documentElement.classList.add('dark'); } else { document.documentElement.classList.remove('dark'); } console.log("[Preferences Apply] Aplikováno nastavení (Tmavý režim: " + preferences.dark_mode + ")"); }
+
+    function populateLearningGoalForm(learningGoal, goalDetails) {
+        if (!ui.learningGoalSelect || !ui.goalDetailsContainer ||
+            !ui.goalDetailsMathAccelerate || !ui.goalDetailsMathReview ||
+            !ui.accelerateGradeProfileSelect || !ui.accelerateIntensityProfileSelect ||
+            !ui.reviewGradeProfileSelect) {
+            console.warn("Learning goal form elements not found.");
+            return;
+        }
+
+        ui.learningGoalSelect.value = learningGoal || "";
+        goalDetails = goalDetails || {}; // Zajistíme, že goalDetails je objekt
+
+        // Skryjeme všechny detailní sekce
+        ui.goalDetailsMathAccelerate.style.display = 'none';
+        ui.goalDetailsMathReview.style.display = 'none';
+        ui.goalDetailsContainer.style.display = 'none';
+
+        if (learningGoal === 'math_accelerate') {
+            ui.accelerateGradeProfileSelect.value = goalDetails.grade || "";
+            ui.accelerateIntensityProfileSelect.value = goalDetails.intensity || "medium";
+            ui.goalDetailsMathAccelerate.style.display = 'block';
+            ui.goalDetailsContainer.style.display = 'block';
+        } else if (learningGoal === 'math_review') {
+            ui.reviewGradeProfileSelect.value = goalDetails.grade || "";
+            ui.goalDetailsMathReview.style.display = 'block';
+            ui.goalDetailsContainer.style.display = 'block';
+        }
+    }
     // --- END: UI Update Functions ---
 
     // --- START: Form Validation ---
@@ -656,15 +719,7 @@
              if (profileResult.status === 'fulfilled' && profileResult.value) {
                  currentProfile = profileResult.value;
                  console.log("[MAIN] Profile loaded successfully.");
-                 // <<< NEW: Call level up check after profile is loaded >>>
-                 const leveledUp = await checkAndProcessLevelUps(currentProfile);
-                 if (leveledUp) {
-                     // If level up happened and DB was updated, currentProfile is already modified.
-                     // If we wanted to be super sure, we could re-fetch:
-                     // currentProfile = await fetchUserProfile(currentUser.id);
-                     console.log("[MAIN] Profile updated after level up check.");
-                 }
-
+                 // DB trigger handles level up, JS only displays
              } else {
                  throw new Error(`Nepodařilo se načíst profil: ${profileResult.reason || 'Nenalezen'}`);
              }
@@ -677,7 +732,7 @@
                  allTitles = [];
              }
 
-             updateProfileDisplay(currentProfile, allTitles);
+             updateProfileDisplay(currentProfile, allTitles); // Toto nyní zahrnuje i populateLearningGoalForm
 
              if (notificationsResult.status === 'fulfilled') {
                  const { unreadCount, notifications } = notificationsResult.value || { unreadCount: 0, notifications: [] };
@@ -711,6 +766,13 @@
         if (ui.profileForm) { ui.profileForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!validateProfileForm() || isLoading.profile) return; await updateProfileData({ first_name: ui.firstNameField.value, last_name: ui.lastNameField.value, username: ui.usernameField.value, school: ui.schoolField.value, grade: ui.gradeField.value, bio: ui.bioField.value }); }); }
         if (ui.passwordForm) { ui.passwordForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!validatePasswordForm() || isLoading.password) return; const success = await updateUserPassword(ui.currentPasswordField.value, ui.newPasswordField.value); if (success) ui.passwordForm.reset(); }); }
         if (ui.savePreferencesBtn) { ui.savePreferencesBtn.addEventListener('click', async () => { if(isLoading.preferences) return; await updatePreferencesData(); }); }
+        // Learning Goal Select Listener
+        if (ui.learningGoalSelect) {
+            ui.learningGoalSelect.addEventListener('change', function() {
+                populateLearningGoalForm(this.value, currentProfile?.preferences?.goal_details || {});
+            });
+        }
+
         if (ui.profileAvatar) { ui.profileAvatar.addEventListener('click', (event) => { if (event.target.closest('#edit-avatar-btn') || event.target.closest('.edit-avatar-overlay')) { console.log("[Event] Edit avatar clicked, opening modal."); showModal('avatar-modal'); } }); }
         if (ui.selectAvatarFileBtn && ui.avatarUploadInput) { ui.selectAvatarFileBtn.addEventListener('click', () => { console.log("[Event] Upload button clicked, triggering file input."); ui.avatarUploadInput.click(); }); } else { console.warn("Could not find avatar select button or file input for listener setup."); }
         if (ui.avatarUploadInput) { ui.avatarUploadInput.addEventListener('change', function() { if (this.files && this.files[0]) { console.log("[Event] File selected:", this.files[0].name); selectedBuiltInAvatarPath = null; if(ui.builtinAvatarGrid) ui.builtinAvatarGrid.querySelectorAll('.selected').forEach(el => el.classList.remove('selected')); const reader = new FileReader(); reader.onload = (e) => { if (ui.avatarPreview) ui.avatarPreview.innerHTML = `<img src="${e.target.result}" alt="Náhled"/>`; if (ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = false; }; reader.readAsDataURL(this.files[0]); } else { console.log("[Event] File selection cancelled."); if (!selectedBuiltInAvatarPath && ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = true; } }); }
@@ -759,7 +821,7 @@
             currentUser = session.user;
             console.log(`[INIT] Uživatel ověřen (ID: ${currentUser.id}). Načítání profilu a titulů...`);
 
-            await loadAndDisplayProfile(); // This now handles level up checks internally
+            await loadAndDisplayProfile();
 
             if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 600); }
             if (ui.mainContent) { ui.mainContent.style.display = 'block'; requestAnimationFrame(() => { ui.mainContent.classList.add('loaded'); }); }
@@ -779,3 +841,19 @@
     initializeApp();
 
 })();
+// EDIT LOG:
+// Developer Goal: Add learning goal selection to profile, remove JS level-up logic.
+// Stage:
+//  - Added new UI elements to `ui` cache for learning goal selection.
+//  - Modified `fetchUserProfile` to include `learning_goal` and `preferences->goal_details`.
+//  - Modified `updateProfileDisplay` to call `populateLearningGoalForm`.
+//  - Added `populateLearningGoalForm` function to set the values of the learning goal select and its detail forms.
+//  - Modified `updatePreferencesData` to:
+//      - Read the selected learning goal from `ui.learningGoalSelect`.
+//      - Read values from the relevant goal detail form (`accelerateGradeProfileSelect`, `accelerateIntensityProfileSelect`, `reviewGradeProfileSelect`).
+//      - Construct the `goal_details` object based on the selected goal.
+//      - Save both `learning_goal` (main column) and `preferences.goal_details` (JSONB column) to Supabase.
+//      - After saving, call `populateLearningGoalForm` again to reflect saved state.
+//  - Added event listener to `ui.learningGoalSelect` to dynamically show/hide goal-specific detail forms.
+//  - Removed `checkAndProcessLevelUps` and `updateProfileLevelInDB` functions.
+//  - `getTotalExpThreshold` (JS version) is kept as it's used for UI display of XP progress within the current level, but it no longer triggers level ups in JS.
