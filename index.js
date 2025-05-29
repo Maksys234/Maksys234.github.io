@@ -3,14 +3,14 @@
  * Handles UI interactions, animations, infinite testimonial slider,
  * Hero text mask reveal, interactive gradient, enhanced visual effects,
  * and Advanced Cookie Consent Banner with gtag.js integration.
- * Version: v2.40 (Reverting to CSS-driven Pop-up, Post-Debug)
- * Author: Gemini Modification (enhanced from v2.39)
+ * Version: v2.41 (Fallback Hide if CSS Fails for Pop-up)
+ * Author: Gemini Modification (enhanced from v2.40)
  * Date: 2025-05-29
  *
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Ready. Initializing JUSTAX Interface v2.40 (Reverting to CSS-driven Pop-up, Post-Debug)...");
+    console.log("DOM Ready. Initializing JUSTAX Interface v2.41 (Fallback Hide if CSS Fails for Pop-up)...");
 
     // --- Global Variables & DOM References ---
     const body = document.body;
@@ -379,7 +379,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (yearSpan) yearSpan.textContent = new Date().getFullYear().toString();
 
     const aiDemoSteps = [
-        { type: 'status', text: 'AI jádro v2.40 aktivní. Připraven na analýzu...', progress: 5 }, 
+        { type: 'status', text: 'AI jádro v2.41 aktivní. Připraven na analýzu...', progress: 5 }, 
         { type: 'status', text: 'Probíhá skenování interakcí uživatele ID: 734B...', delay: 700 },
         { type: 'input', text: 'ANALYZE_USER_PERFORMANCE --id=734B --subject=algebra --level=intermediate' },
         { type: 'process', text: 'Zpracování dotazu na výkon...', duration: 900, progress: 20 },
@@ -671,7 +671,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (cookieConsentBanner) {
             cookieConsentBanner.classList.remove('visible');
-            cookieConsentBanner.removeAttribute('style'); // Remove any inline styles (like debug styles)
+            cookieConsentBanner.removeAttribute('style'); 
             setTimeout(() => {
               if (!cookieConsentBanner.classList.contains('visible')) {
                 cookieConsentBanner.style.display = 'none';
@@ -680,7 +680,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (cookieConsentOverlay) {
             cookieConsentOverlay.classList.remove('visible');
-             cookieConsentOverlay.removeAttribute('style');
+            cookieConsentOverlay.removeAttribute('style');
             setTimeout(() => {
                 if (!cookieConsentOverlay.classList.contains('visible')) {
                     cookieConsentOverlay.style.display = 'none';
@@ -743,11 +743,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cookieSettingsModal) cookieSettingsModal.classList.remove('visible');
         const consentProcessed = getProcessedCookie(config.cookies.consentProcessedCookieName) === 'true';
         if (!consentProcessed && cookieConsentBanner) {
-            // Ensure inline style "display: none" from HTML is overridden
+            cookieConsentBanner.removeAttribute('style'); // Clean slate for CSS
+            cookieConsentOverlay.removeAttribute('style'); // Clean slate for CSS
+
             cookieConsentBanner.style.display = 'flex'; 
             if (cookieConsentOverlay) cookieConsentOverlay.style.display = 'block';
             
-            requestAnimationFrame(() => { // Add .visible after display is set
+            requestAnimationFrame(() => { 
                  if (cookieConsentBanner) cookieConsentBanner.classList.add('visible');
                  if (cookieConsentOverlay) cookieConsentOverlay.classList.add('visible');
             });
@@ -774,13 +776,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const initializeCookieConsentFramework = () => {
-        console.log("DEBUG: Initializing Cookie Consent Framework v2.40...");
+        console.log("DEBUG: Initializing Cookie Consent Framework v2.41...");
 
         if (!cookieConsentBanner || !cookieConsentOverlay) {
             console.error("CRITICAL: Cookie banner or overlay NOT FOUND. Framework halted.");
             return;
         }
-        console.log("DEBUG: Banner and Overlay elements found.");
+        console.log("DEBUG: Banner and Overlay elements confirmed present.");
 
         const consentCookieValue = getProcessedCookie(config.cookies.consentProcessedCookieName);
         const consentProcessed = consentCookieValue === 'true';
@@ -796,14 +798,11 @@ document.addEventListener('DOMContentLoaded', () => {
             cookieConsentBanner.classList.remove('visible');
             cookieConsentOverlay.classList.remove('visible');
         } else {
-            console.log("DEBUG: Consent NOT processed. Attempting to display banner/overlay using CSS classes.");
+            console.log("DEBUG: Consent NOT processed. Attempting to display banner/overlay.");
             
-            // Remove any inline styles that might have been set by previous debug versions or the HTML
-            cookieConsentBanner.removeAttribute('style');
-            cookieConsentOverlay.removeAttribute('style');
+            cookieConsentBanner.removeAttribute('style'); // Clean slate FOR CSS
+            cookieConsentOverlay.removeAttribute('style'); // Clean slate FOR CSS
 
-            // Set display style to override potential HTML "display: none"
-            // The actual pop-up styling (position, transform, etc.) should come from CSS
             cookieConsentBanner.style.display = 'flex'; 
             cookieConsentOverlay.style.display = 'block'; 
 
@@ -812,11 +811,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 cookieConsentBanner.classList.add('visible');
                 cookieConsentOverlay.classList.add('visible');
                 
-                // Log computed styles to see what the browser renders based on CSS
                 let computedBannerStyle = window.getComputedStyle(cookieConsentBanner);
                 let computedOverlayStyle = window.getComputedStyle(cookieConsentOverlay);
+                
                 console.log("DEBUG (after .visible): Banner display:", computedBannerStyle.display, "visibility:", computedBannerStyle.visibility, "Opacity:", computedBannerStyle.opacity, "z-index:", computedBannerStyle.zIndex, "position:", computedBannerStyle.position, "top:", computedBannerStyle.top, "left:", computedBannerStyle.left, "transform:", computedBannerStyle.transform);
                 console.log("DEBUG (after .visible): Overlay display:", computedOverlayStyle.display, "visibility:", computedOverlayStyle.visibility, "Opacity:", computedOverlayStyle.opacity, "z-index:", computedOverlayStyle.zIndex);
+
+                // Fallback: If CSS fails to make it a fixed pop-up, hide it to prevent layout issues.
+                if (computedBannerStyle.position !== 'fixed') {
+                    console.error(`CRITICAL CSS FAILURE: #cookie-consent-banner is NOT position:fixed (it is ${computedBannerStyle.position}). Hiding banner and overlay to prevent layout issues.`);
+                    cookieConsentBanner.style.setProperty('display', 'none', 'important');
+                    cookieConsentOverlay.style.setProperty('display', 'none', 'important');
+                    cookieConsentBanner.classList.remove('visible');
+                    cookieConsentOverlay.classList.remove('visible');
+                    // Optionally, inform the user via a less intrusive way or log for site admin.
+                    // For example: console.error("Cookie consent UI could not be displayed correctly due to CSS issues.");
+                } else {
+                    console.log("DEBUG: Banner position is fixed. CSS styling for pop-up should be active.");
+                }
             });
         }
 
@@ -863,24 +875,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 500);
 
-    console.log("JUSTAX Interface v2.40 (Reverting to CSS-driven Pop-up, Post-Debug) Initialization Complete.");
+    console.log("JUSTAX Interface v2.41 (Fallback Hide if CSS Fails for Pop-up) Initialization Complete.");
 });
 
 /*
     EDIT LOGS:
-    Developer Goal: Revert to a CSS-driven approach for the cookie banner pop-up,
-                    now that aggressive inline style debugging has confirmed JS can control the element.
-                    The aim is to have the banner appear as originally designed in the CSS (centered pop-up).
-    Stage (v2.40):
-        - In `initializeCookieConsentFramework` when `consentProcessed` is false:
-            - Removed the forced, aggressive inline styling (red box) for `cookieConsentBanner`.
-            - The logic now primarily relies on:
-                1. Removing any pre-existing inline `style` attribute from `cookieConsentBanner` and `cookieConsentOverlay` using `removeAttribute('style')`. This ensures a clean slate for CSS.
-                2. Setting `cookieConsentBanner.style.display = 'flex';` and `cookieConsentOverlay.style.display = 'block';` to ensure the elements are not hidden by `display: none` (e.g., from initial HTML inline style).
-                3. Adding the `.visible` class to both elements within a `requestAnimationFrame` callback. This class, in conjunction with the styles in `index.css`, should trigger the fade-in and scale animation for the centered pop-up.
-            - Kept detailed console logs to observe the computed styles after these operations, to confirm if the CSS is applying as expected (fixed position, centered, correct z-index etc.).
-        - In `applyConsentDecision`:
-            - Ensured `cookieConsentBanner.removeAttribute('style');` and `cookieConsentOverlay.removeAttribute('style');` are called when the banner is hidden after a decision, to clean up any residual inline styles (especially `display: none` which is set after timeout).
-        - The expectation is that with a clean slate (no conflicting inline styles from JS debug versions) and the correct `display` property set, the existing CSS rules in `index.css` (which include `position: fixed !important;`, centering transforms, and `z-index: 10000 !important;`) will take effect and display the banner as a proper pop-up modal that moves with the screen.
-        - Updated version to v2.40 and log notes.
+    Developer Goal: Ensure the cookie consent banner does not appear at the bottom of the page if its
+                    `position: fixed` styling fails to apply. If it cannot be a proper pop-up, hide it.
+    Stage (v2.41):
+        - In `initializeCookieConsentFramework`, within the `requestAnimationFrame` callback (after attempting to show the banner and overlay):
+            - Added a check for `computedBannerStyle.position`.
+            - If `computedBannerStyle.position` is NOT `fixed` (e.g., it's `static` as seen in logs):
+                - A critical error is logged to the console indicating CSS failure.
+                - Both `cookieConsentBanner` and `cookieConsentOverlay` have their `display` style forcibly set to `none !important;`.
+                - The `.visible` class is removed from both.
+                - This directly addresses the user's complaint about the banner spoiling the design at the bottom by ensuring it's hidden if the pop-up styling isn't correctly applied by the CSS.
+            - If `computedBannerStyle.position` IS `fixed`, a success message is logged.
+        - Ensured `removeAttribute('style')` is called on banner/overlay before attempting to show them, to clear any prior inline styles (like debug styles or `display:none` from HTML).
+        - In `applyConsentDecision`, ensured `removeAttribute('style')` is called to clean up any inline styles, including the potential `display:none !important` from the new fallback.
+        - This version prioritizes preventing the broken layout (banner at the bottom) if the intended fixed positioning fails, effectively fulfilling the "or nowhere" part of the user's request as a safety measure.
+        - Updated version to v2.41 and log notes.
 */
