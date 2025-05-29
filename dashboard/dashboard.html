@@ -25,14 +25,15 @@
             --card-radius: 12px;
             --text-primary: #e0e0e0;
             --text-link-hover: var(--accent-primary);
-            --bg-footer: var(--bg-secondary); /* Or a specific darker color like #0d0f14 */
-            --text-muted: #8899a6; /* Ensure text-muted is defined */
-            --text-link: #a9b8c3; /* Ensure text-link is defined */
+            --bg-footer: var(--bg-secondary);
+            --text-muted: #8899a6;
+            --text-link: #a9b8c3;
+            --text-secondary-brighter: #b8c5d0; /* For tagline */
         }
 
         /* START: Footer Styles Enhancements */
         .main-footer {
-            background-color: var(--bg-footer, var(--bg-secondary)); /* Use specific footer bg or fallback */
+            background-color: var(--bg-footer, var(--bg-secondary));
             padding: 2.5rem var(--container-padding-x) 2rem;
             margin-top: auto;
             border-top: 3px solid transparent;
@@ -44,17 +45,17 @@
         .main-footer .footer-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2.5rem; /* Increased gap slightly */
+            gap: 2.5rem;
             text-align: left;
         }
         .main-footer .footer-column .logo {
             display: inline-flex;
             align-items: center;
-            font-size: 1.9rem; /* Slightly larger logo */
+            font-size: 1.9rem;
             font-weight: 700;
             color: var(--text-primary);
             text-decoration: none;
-            margin-bottom: 1.25rem; /* More space below logo */
+            margin-bottom: 1.25rem;
         }
         .main-footer .footer-column .logo i {
             margin-right: 0.6rem;
@@ -63,29 +64,34 @@
         .main-footer .footer-column .logo span {
             color: var(--text-primary);
         }
-        .main-footer .footer-column p {
+        .main-footer .footer-column p { /* Default paragraph styling in footer */
             margin-bottom: 1rem;
-            color: var(--text-secondary, var(--text-muted)); /* Fallback for text-secondary */
+            color: var(--text-secondary, var(--text-muted));
             line-height: 1.6;
             font-size: 0.9rem;
         }
+        .main-footer .footer-column p.tagline { /* Specific styling for the tagline */
+            color: var(--text-secondary-brighter, #b0bdc9);
+            font-style: italic;
+            margin-bottom: 1.25rem;
+        }
         .main-footer .footer-column h3 {
-            font-size: 1.15rem; /* Slightly larger */
+            font-size: 1.15rem;
             font-weight: 600;
             color: var(--text-primary);
-            margin-bottom: 1.5rem; /* More space below title */
+            margin-bottom: 1.5rem;
             position: relative;
-            padding-bottom: 0.6rem; /* Space for an accent line */
+            padding-bottom: 0.6rem;
         }
         .main-footer .footer-column h3::after {
             content: '';
             position: absolute;
             left: 0;
             bottom: 0;
-            width: 35px; /* Shorter line, slightly thicker */
+            width: 35px;
             height: 2.5px;
             background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary));
-            border-radius: 2px; /* Rounded ends for the line */
+            border-radius: 2px;
             opacity: 0.85;
         }
         .main-footer .footer-column .footer-links {
@@ -94,7 +100,7 @@
             margin: 0;
         }
         .main-footer .footer-column .footer-links li {
-            margin-bottom: 0.85rem; /* Slightly more space between links */
+            margin-bottom: 0.85rem;
         }
         .main-footer .footer-column .footer-links a {
             color: var(--text-link);
@@ -104,7 +110,7 @@
             position: relative;
             transition: color 0.25s ease;
         }
-        .main-footer .footer-column .footer-links a i.fa-fw { /* Icon specific styling */
+        .main-footer .footer-column .footer-links a i.fa-fw {
             margin-right: 0.7em;
             width: 1.2em;
             text-align: center;
@@ -115,43 +121,51 @@
             color: var(--accent-primary);
         }
         .main-footer .footer-column .footer-links a:hover i.fa-fw {
-            color: var(--accent-primary); /* Icon color matches text on hover */
+            color: var(--accent-primary);
         }
-        .main-footer .footer-column .footer-links a::after { /* Underline effect */
+        .main-footer .footer-column .footer-links a::after {
             content: '';
             position: absolute;
             width: 0;
             height: 1.5px;
-            bottom: -4px; /* Position below the text */
+            bottom: -4px;
             left: 0;
             background-color: var(--accent-primary);
-            transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smoother transition */
+            transition: width 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         .main-footer .footer-column .footer-links a:hover::after {
             width: 100%;
         }
-        .main-footer .footer-column .footer-links span.icon-link { /* For non-clickable items like address */
+        .main-footer .footer-column .footer-links span.icon-link {
              display: flex;
              align-items: center;
              color: var(--text-muted);
         }
         .main-footer .footer-column .footer-links span.icon-link i.fa-fw {
-            color: var(--text-muted); /* Keep icon color consistent */
+            color: var(--text-muted);
         }
 
         .main-footer .social-links {
             display: flex;
-            gap: 1.25rem; /* More space between social icons */
+            gap: 0.75rem; /* Adjusted gap for new background shape */
             margin-top: 1.25rem;
         }
         .main-footer .social-links .social-link {
             color: var(--text-muted);
-            font-size: 1.6rem; /* Larger social icons */
-            transition: color 0.2s ease, transform 0.2s ease;
+            font-size: 1.2rem; /* Adjusted for fixed size container */
+            transition: color 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+            width: 40px; 
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%; /* Circular shape */
+            background-color: transparent; /* Initial transparent background */
         }
         .main-footer .social-links .social-link:hover {
             color: var(--accent-primary);
-            transform: scale(1.2) translateY(-2px); /* More pronounced pop */
+            transform: scale(1.1); /* Slightly reduced scale for icon within shape */
+            background-color: rgba(var(--accent-primary-rgb), 0.12); /* Accent background on hover */
         }
         /* END: Footer Styles Enhancements */
 
@@ -463,7 +477,7 @@
                     <a href="/dashboard/dashboard.html" class="logo" aria-label="Justax Domů">
                         <i class="fas fa-atom" aria-hidden="true"></i> <span>JUSTAX</span>
                     </a>
-                    <p>AI Augmentace Vzdělávání a Osobního Rozvoje.</p>
+                    <p class="tagline">AI Augmentace Vzdělávání a Osobního Rozvoje.</p>
                     <div class="social-links" aria-label="Sociální sítě">
                          <a href="https://t.me/justaxspace" class="social-link" aria-label="Telegram" target="_blank" rel="noopener noreferrer"><i class="fab fa-telegram-plane" aria-hidden="true"></i></a>
                          <a href="https://www.instagram.com/learnwithjustax/" class="social-link" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram" aria-hidden="true"></i></a>
@@ -541,8 +555,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             const currentYearFooterElement = document.getElementById('currentYearFooter');
             if (currentYearFooterElement) {
-                // This span is no longer in the footer, but the check prevents errors.
-                // If it were used elsewhere, it would still function.
                 currentYearFooterElement.textContent = new Date().getFullYear();
             }
             const currentYearSidebarElement = document.getElementById('currentYearSidebar');
