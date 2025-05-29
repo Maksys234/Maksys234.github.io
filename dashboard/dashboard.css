@@ -74,7 +74,7 @@
      --gradient-warning: linear-gradient(135deg, var(--accent-orange), #f3722c);
      --gradient-info: linear-gradient(135deg, var(--accent-cyan), #277eed);
      --gradient-locked: linear-gradient(135deg, rgba(var(--text-muted-rgb),0.1), rgba(var(--text-muted-rgb),0.2));
-     --gradient-exp-bar: linear-gradient(90deg, var(--accent-secondary) 0%, var(--accent-primary) 70%, var(--accent-cyan) 100%); /* Updated for EXP bar */
+     --gradient-exp-bar: linear-gradient(90deg, var(--accent-secondary) 0%, var(--accent-primary) 60%, var(--accent-cyan) 100%); /* Richer EXP bar */
 
 
     /* Шрифты */
@@ -544,126 +544,149 @@ body.scrolled .dashboard-header {
 .welcome-image svg #paint0_linear_dash_db stop:first-child { stop-color: var(--accent-primary); stop-opacity: 0.15; }
 .welcome-image svg #paint0_linear_dash_db stop:last-child { stop-color: var(--accent-secondary); stop-opacity: 0; }
 
-/* ENHANCED Level/XP Widget Styles */
+/* FURTHER ENHANCED Level/XP Widget Styles */
 .level-xp-widget-container {
     width: 100%;
-    margin-top: 1.5rem; /* Reduced margin */
-    padding: 1.2rem 0 0 0; /* Top padding, no bottom padding for tight integration */
-    border-top: 1px solid var(--border-color-medium);
-    display: flex;
-    justify-content: center;
+    margin-top: 1.8rem; /* Adjusted spacing */
+    padding: 0; /* Container itself won't have padding, widget inside will */
+    border-top: 2px solid rgba(var(--accent-primary-rgb), 0.25); /* Sharper, glowing separator */
+    box-shadow: 0 -5px 15px -10px rgba(var(--accent-primary-rgb), 0.2); /* Subtle glow upwards */
 }
 
 .level-xp-widget-new {
-    width: 100%;
-    max-width: 550px; /* Wider for a more panel-like feel */
-    padding: 1.5rem 1.8rem; /* Generous padding */
-    background: linear-gradient(145deg, rgba(var(--dark-purple-accent-rgb), 0.9), rgba(var(--card-solid-rgb), 0.95)); /* Darker, techy gradient */
-    border-radius: var(--card-radius); /* Consistent rounding */
-    border: 1px solid var(--accent-primary-rgb); /* Glowing border */
-    box-shadow: 0 0 25px rgba(var(--accent-primary-rgb), 0.25), /* Outer glow */
-                inset 0 0 15px rgba(var(--black), 0.4), /* Inner depth */
-                0 2px 5px rgba(var(--black), 0.5); /* Drop shadow */
+    width: 100%; /* Full width of its container */
+    max-width: none; /* Override previous max-width */
+    padding: 1.8rem 2rem; /* Increased padding */
+    background: linear-gradient(155deg, rgba(var(--dark-purple-accent-rgb), 0.95) 0%, rgba(var(--card-solid-rgb), 0.98) 70%, rgba(var(--bg-secondary-rgb), 0.95) 100%);
+    border-radius: 0 0 var(--card-radius) var(--card-radius); /* Only round bottom corners to "close off" banner */
+    border: 1px solid var(--interface-border);
+    border-top: none; /* Remove top border as it's handled by container's border-top */
+    box-shadow: 0 8px 25px rgba(var(--black), 0.5), /* Deeper shadow */
+                inset 0 2px 8px rgba(var(--black), 0.6);
     text-align: center;
     position: relative;
-    /* clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px)); /* Angled corners */
+    /* Cyberpunk "panel cut" effect using clip-path or pseudo-elements can be complex.
+       Let's try pseudo-elements for corner details first. */
 }
-/* Optional: Decorative corner elements */
+
+/* Decorative Lines/Accents for the Widget Panel */
 .level-xp-widget-new::before,
 .level-xp-widget-new::after {
     content: '';
     position: absolute;
-    width: 15px;
-    height: 15px;
-    border-style: solid;
-    border-color: var(--accent-secondary);
-    opacity: 0.7;
-    z-index: 1;
-    transition: all 0.3s ease;
+    height: 80%; /* Adjust height of vertical lines */
+    width: 3px; /* Thickness of lines */
+    background: var(--accent-secondary);
+    opacity: 0.5;
+    box-shadow: 0 0 8px var(--accent-secondary-glow);
+    top: 10%; /* Centered vertically */
 }
-.level-xp-widget-new::before { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-radius: var(--card-radius) 0 0 0; }
-.level-xp-widget-new::after { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-radius: 0 0 var(--card-radius) 0; }
-.level-xp-widget-new:hover::before { top: -4px; left: -4px; border-color: var(--accent-pink); box-shadow: -2px -2px 8px var(--accent-pink-glow); }
-.level-xp-widget-new:hover::after { bottom: -4px; right: -4px; border-color: var(--accent-pink); box-shadow: 2px 2px 8px var(--accent-pink-glow); }
-
+.level-xp-widget-new::before { left: 15px; /* Position from left */ }
+.level-xp-widget-new::after { right: 15px; /* Position from right */ }
 
 .level-display {
     display: flex;
     align-items: baseline;
     justify-content: center;
-    margin-bottom: 1rem; /* More space */
-    border-bottom: 1px dashed rgba(var(--accent-primary-rgb), 0.3); /* Separator line */
-    padding-bottom: 1rem;
+    margin-bottom: 1.2rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid rgba(var(--accent-secondary-rgb), 0.3); /* Stronger separator */
+    gap: 0.8em; /* Gap between "Úroveň" and number */
 }
 .level-label {
-    font-size: 1rem; /* Larger label */
-    font-weight: 700; /* Bolder label */
+    font-size: 1.1rem; /* Slightly larger */
+    font-weight: 700;
     color: var(--accent-secondary);
     text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-right: 0.8em;
-    text-shadow: 0 0 8px var(--accent-secondary-glow); /* Label glow */
+    letter-spacing: 1.8px; /* Wider spacing */
+    text-shadow: 0 0 10px var(--accent-secondary-glow);
 }
 .level-value {
-    font-family: var(--font-mono); /* Digital font for level number */
-    font-size: 3rem; /* Larger level number */
+    font-family: 'Orbitron', var(--font-mono); /* More distinct digital font if Orbitron is loaded, else mono */
+    font-size: 3.5rem; /* Even larger */
     font-weight: 700;
     color: var(--accent-primary);
-    line-height: 1;
-    text-shadow: 0 0 20px var(--accent-glow), 0 0 8px var(--accent-cyan-glow), 0 2px 3px rgba(var(--black), 0.5); /* Stronger glow */
+    line-height: 0.9; /* Tighter line height for large font */
+    text-shadow: 0 0 25px var(--accent-glow), 0 0 10px var(--accent-cyan-glow), 0 0 3px var(--white), 0 3px 5px rgba(var(--black), 0.6); /* Multi-layered glow */
+    padding: 0 0.1em;
 }
-.xp-bar-container { width: 100%; margin-top: 0.8rem; }
+.xp-bar-container { width: 100%; max-width: 450px; margin: 1rem auto 0 auto; } /* Centered bar */
 .xp-bar-track {
     width: 100%;
-    height: 18px; /* Even thicker bar */
-    background: rgba(var(--black), 0.5); /* Very dark track */
-    border-radius: 9px;
+    height: 20px; /* Even thicker */
+    background: repeating-linear-gradient(
+        45deg,
+        rgba(var(--black), 0.5),
+        rgba(var(--black), 0.5) 3px, /* Thinner stripes */
+        rgba(var(--card-solid-rgb), 0.6) 3px,
+        rgba(var(--card-solid-rgb), 0.6) 6px /* Thinner stripes */
+    );
+    border-radius: 10px;
     overflow: hidden;
-    border: 2px solid rgba(var(--accent-primary-rgb), 0.3); /* Techy border for track */
-    box-shadow: inset 0 3px 8px rgba(var(--black), 0.7);
+    border: 2px solid var(--accent-secondary); /* Accent border */
+    box-shadow: inset 0 4px 10px rgba(var(--black), 0.75), 0 0 10px rgba(var(--accent-secondary-rgb), 0.2); /* Deeper inset, subtle outer glow */
     position: relative;
 }
 .xp-bar-progress {
     height: 100%;
     width: 0%;
-    background: var(--gradient-exp-bar); /* Use existing gradient, can be made more vibrant */
-    border-radius: 7px; /* Inner rounding */
-    transition: width 0.9s cubic-bezier(0.165, 0.84, 0.44, 1); /* Slower, smoother animation */
-    box-shadow: 0 0 15px rgba(var(--accent-primary-rgb), 0.7), 0 0 8px rgba(var(--accent-cyan-rgb), 0.5);
-    position: relative; /* For pseudo-elements */
+    background: var(--gradient-exp-bar); /* Maintained gradient */
+    border-radius: 8px; /* Slight inner radius */
+    transition: width 1s cubic-bezier(0.16, 1, 0.3, 1); /* Slower, more impactful animation */
+    box-shadow: 0 0 18px rgba(var(--accent-primary-rgb), 0.8), 0 0 10px rgba(var(--accent-cyan-rgb), 0.6), inset 0 0 5px rgba(var(--white-rgb),0.15); /* Stronger progress glow */
+    position: relative;
+    overflow: hidden; /* To contain pseudo-elements for effects */
 }
-/* Add subtle animated scanline/texture to progress */
+/* More pronounced animated stripes */
 .xp-bar-progress::after {
     content: '';
     position: absolute;
     top: 0; right: 0; bottom: 0; left: 0;
     background-image: linear-gradient(
-        -45deg,
-        rgba(var(--white-rgb), 0.08) 25%, transparent 25%,
-        transparent 50%, rgba(var(--white-rgb), 0.08) 50%,
-        rgba(var(--white-rgb), 0.08) 75%, transparent 75%,
+        -60deg, /* Steeper angle */
+        rgba(var(--white-rgb), 0.12) 25%, transparent 25%,
+        transparent 50%, rgba(var(--white-rgb), 0.12) 50%,
+        rgba(var(--white-rgb), 0.12) 75%, transparent 75%,
         transparent
     );
-    background-size: 15px 15px; /* Smaller, denser stripes */
+    background-size: 25px 25px; /* Larger, more visible stripes */
     z-index: 0;
-    opacity: 0.6; /* More subtle */
-    animation: animated-stripes 0.8s linear infinite; /* Slightly faster animation */
+    opacity: 0.7;
+    animation: animated-stripes 0.7s linear infinite; /* Faster animation */
+}
+/* Animated Pulsing Glow for XP Bar */
+.xp-bar-progress::before {
+    content: '';
+    position: absolute;
+    top: -2px; right: -2px; bottom: -2px; left: -2px;
+    border-radius: inherit;
+    background: radial-gradient(circle at center, rgba(var(--accent-primary-rgb), 0.5) 0%, transparent 70%);
+    animation: pulseGlow 2s infinite ease-in-out;
+    opacity: 0; /* Start hidden */
+    z-index: -1;
+}
+@keyframes pulseGlow {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.05); }
+}
+.xp-bar-progress:not([style="width: 0%;"])::before { /* Only show pulse if bar has progress */
+    opacity: 0.3; /* Initial opacity when progress > 0 */
 }
 
 .xp-text {
-    font-size: 0.95rem;
+    font-size: 1rem; /* Larger XP text */
     font-family: var(--font-mono);
     color: var(--text-light);
     text-align: center;
-    margin-top: 0.8rem;
-    letter-spacing: 1px; /* More spacing */
-    text-shadow: 0 0 5px rgba(var(--black), 0.8), 0 0 3px rgba(var(--accent-primary-rgb), 0.3); /* Text glow on dark bg */
+    margin-top: 1rem; /* More space */
+    letter-spacing: 1.2px;
+    text-shadow: 0 0 8px rgba(var(--black), 0.9), 0 0 5px rgba(var(--accent-primary-rgb), 0.4);
 }
-.xp-text span { font-weight: 600; }
+.xp-text span { font-weight: 700; }
 #dashboard-exp-percentage {
     color: var(--accent-lime);
     font-weight: 700;
-    text-shadow: 0 0 8px var(--accent-lime-glow);
+    text-shadow: 0 0 10px var(--accent-lime-glow);
 }
 /* --- END: Level/XP Widget Styles --- */
 
