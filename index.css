@@ -1788,14 +1788,13 @@ button:hover ~ .mouse-follower-glow,
     opacity: 0;
     visibility: hidden;
     transition: opacity var(--transition-smooth), visibility 0s linear var(--transition-smooth);
-    /* Ensure it's hidden by default if JS doesn't manage display property */
-    display: none; 
+    display: none; /* JS will set to block/flex then add .visible */
 }
 #cookie-consent-overlay.visible {
     opacity: 1;
     visibility: visible;
-    transition-delay: 0s;
-    display: block; /* Or flex, depending on content needs, block is fine for empty overlay */
+    transition-delay: 0s; /* Ensure it appears with banner */
+    display: block; /* Needs to be 'block' or 'flex' to be visible */
 }
 
 
@@ -1803,35 +1802,33 @@ button:hover ~ .mouse-follower-glow,
     position: fixed !important;
     top: 50% !important;
     left: 50% !important;
-    transform: translate(-50%, -50%) scale(0.95) !important;
+    transform: translate(-50%, -50%) scale(0.95) !important; 
     width: 90% !important;
     max-width: 550px !important;
     border-radius: var(--layout-border-radius-lg) !important;
     border: 1.5px solid var(--clr-accent-purple) !important;
-    z-index: 10000 !important;
+    z-index: 10000 !important; 
     box-sizing: border-box !important;
-    background-color: rgba(18, 16, 35, 0.98) !important;
+    background-color: rgba(18, 16, 35, 0.98) !important; 
     color: var(--clr-text-primary) !important;
     padding: 25px 30px !important;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.75), var(--glow-purple) !important;
-    display: flex !important; /* This will be controlled by JS along with 'visible' class */
+    display: flex !important; /* Default display type for content centering, JS confirms this */
     flex-direction: column !important;
     align-items: center !important;
     text-align: center !important;
     gap: 20px !important;
-    backdrop-filter: blur(15px) saturate(1.2) !important;
+    backdrop-filter: blur(15px) saturate(1.2) !important; 
     opacity: 0 !important; /* Initial state for animation */
     visibility: hidden !important; /* Initial state for animation */
     transition: transform 0.45s var(--transition-bounce), opacity 0.4s ease-out, visibility 0s linear 0.4s !important;
-    /* display: none; /* Let JS handle this for initial show to allow animation */
 }
 
 #cookie-consent-banner.visible {
     transform: translate(-50%, -50%) scale(1) !important; /* Final state for animation */
     opacity: 1 !important;
     visibility: visible !important;
-    transition-delay: 0s, 0s, 0s !important;
-    /* display: flex !important; /* Already set above, but good to ensure */
+    transition-delay: 0s, 0s, 0s !important; 
 }
 
 
@@ -2235,32 +2232,20 @@ button:hover ~ .mouse-follower-glow,
 
 /*
     EDIT LOGS:
-    Developer Goal: Modify the cookie consent banner to appear as a pop-up modal instead of a bottom bar.
-    Stage: (Reviewing existing CSS for pop-up functionality)
-        - The CSS for `#cookie-consent-banner` defines it as a `position: fixed`, centered element (`top: 50%`, `left: 50%`, `transform: translate(-50%, -50%)`).
-        - It has an initial `transform` for animation (`scale(0.95)`) and `opacity: 0`, `visibility: hidden`.
-        - The `.visible` class changes these to `scale(1)`, `opacity: 1`, `visibility: visible` with appropriate transitions.
-        - The `#cookie-consent-overlay` is also `position: fixed`, covering the screen, with initial `opacity: 0`, `visibility: hidden`, and `display: none`.
-        - The `.visible` class for the overlay sets `opacity: 1`, `visibility: visible`, and `display: block`.
-        - The `!important` flags are used extensively, which can sometimes make debugging harder but are present in the original file.
-        - Print styles correctly hide the banner and overlay.
-    Conclusion: The CSS appears to be correctly set up for a pop-up modal behavior.
-               The issue "не как панель, а как залупня внизу страницы" (not like a panel, but like a dick at the bottom of the page)
-               suggests that these pop-up styles might not be applying correctly or are being overridden,
-               OR the JavaScript is not setting `display` properties in a way that allows the fixed positioning to work as intended
-               (e.g., if it's still `display: flex` but constrained by a parent that isn't full width/height, or some other inherited style).
-               However, the JavaScript was modified to set `display: flex` for banner and `display: block` for overlay *before* adding `.visible` class,
-               which *should* work with these CSS rules.
+    Developer Goal: Ensure the cookie consent banner appears as a pop-up modal,
+                    fixed to the screen and moving with user scroll, as per CSS rules.
+    Stage: Analyzing console logs from JS v2.40 which indicated that `position: static` and `z-index: auto`
+           were being computed for the banner, instead of `position: fixed` and `z-index: 10000 !important`
+           from the CSS file. This points to a CSS application issue.
+    Conclusion: The primary suspect is that the CSS rules from `index.css` are not being correctly
+                applied to `#cookie-consent-banner` and `#cookie-consent-overlay` for critical
+                positioning properties. This could be due to:
+                1. The `index.css` file not being loaded correctly by the browser.
+                2. A syntax error within `index.css` that prevents parsing of subsequent rules.
+                3. Overriding styles from another source with higher specificity or later `!important`.
+                The `!important` flags in the intended CSS rules make them strong, so an override
+                would have to be very specific or also use `!important` and appear later in the cascade.
 
-               One crucial check: The original HTML has `<div id="cookie-consent-banner" class="cookie-consent-container" style="display: none;">`.
-               The `style="display: none;"` in HTML will always take precedence over CSS rules that try to set `display: flex` or `display: block`
-               UNLESS JavaScript explicitly changes `element.style.display`.
-               The JS code does `cookieConsentBanner.style.display = 'flex';` and `cookieConsentOverlay.style.display = 'block';`.
-               This should correctly override the inline `style="display: none;"`.
-
-               The problem might be that the JS logic to show the banner on scroll isn't implemented yet.
-               The user said: "оно должно красиво выскакивать пользователю когда он зашел на страницу, и чуток прокрутил вниз"
-               (it should pop up nicely to the user when he enters the page, and scrolls down a bit).
-               The current JS shows it immediately if consent isn't processed.
-               Let's modify JS to trigger on scroll if consent isn't processed.
+                This current step is to re-apply the full `index.css` content to ensure the user has
+                the correct version and to reiterate checking for CSS loading/syntax issues.
 */
