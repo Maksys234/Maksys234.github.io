@@ -765,3 +765,74 @@ ADD COLUMN IF NOT EXISTS answer_prefix TEXT,
 ADD COLUMN IF NOT EXISTS answer_suffix TEXT;
 ALTER TABLE exam_questions
 ADD COLUMN target_grade VARCHAR(10);
+-- 1. Helper function to calculate experience threshold (same as before)
+-- This mirrors the logic from your profile.js (BASE_XP=100, INCREMENT_XP=25)
+CREATE OR REPLACE FUNCTION get_total_exp_threshold(target_level INTEGER)
+RETURNS INTEGER AS $$
+DECLARE
+    total_exp INTEGER := 0;
+    level_iter INTEGER;
+    base_xp INTEGER := 100;
+    increment_xp INTEGER := 25;
+BEGIN
+    IF target_level <= 1 THEN
+        RETURN 0;
+    END IF;
+
+    FOR level_iter IN 1..(target_level - 1) LOOP
+        total_exp := total_exp + (base_xp + (increment_xp * (level_iter - 1)));
+    END LOOP;
+    RETURN total_exp;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- 2. Trigger function to handle level-up logic (corrected internal checks)
+CREATE OR REPLACE FUNCTION public.handle_level_up()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- This function is called for every INSERT or UPDATE on profiles (if pg_trigger_depth = 0).
+    -- We first check if it's an INSERT or if 'experience' or 'level' actually changed during an UPDATE.
+    IF (TG_OP = 'INSERT') OR 
+       (TG_OP = 'UPDATE' AND (NEW.experience IS DISTINCT FROM OLD.experience OR NEW.level IS DISTINCT FROM OLD.level)) THEN
+        
+        -- Loop to handle multiple level-ups if sufficient XP is gained.
+        -- For INSERTs, NEW.level will typically be the default (e.g., 1).
+        -- For UPDATEs, NEW.level is the value before this trigger function might modify it further in the loop.
+        WHILE NEW.experience >= get_total_exp_threshold(NEW.level + 1) LOOP
+            NEW.level := NEW.level + 1;
+            
+            -- Optional: Log the level-up event into the activities table
+            -- Ensure your 'activities' table structure and permissions allow this.
+            BEGIN
+                INSERT INTO public.activities (user_id, type, title, description, details, icon)
+                VALUES (
+                    NEW.id, 
+                    'level_up', 
+                    'Dosažena nová úroveň!', 
+                    'Gratulujeme k dosažení úrovně ' || NEW.level || '!', 
+                    jsonb_build_object('new_level', NEW.level, 'total_experience', NEW.experience),
+                    'fa-angle-double-up' -- Example icon from your CSS
+                );
+            EXCEPTION WHEN OTHERS THEN
+                RAISE WARNING 'Failed to insert level up activity for user % (level %): %', NEW.id, NEW.level, SQLERRM;
+            END;
+        END LOOP;
+    END IF;
+    
+    RETURN NEW; -- Return the (potentially modified) row to be inserted/updated
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER; -- Use SECURITY DEFINER if INSERT into activities requires elevated privileges
+
+-- 3. The Trigger (corrected WHEN clause)
+DROP TRIGGER IF EXISTS profiles_level_up_trigger ON public.profiles; -- Remove old trigger if it exists
+
+CREATE TRIGGER profiles_level_up_trigger
+BEFORE INSERT OR UPDATE ON public.profiles -- Using BEFORE to modify NEW record before it's written
+FOR EACH ROW
+WHEN (pg_trigger_depth() = 0) -- Prevents recursion if this function itself caused an update
+EXECUTE FUNCTION public.handle_level_up();
+
+-- Comments for clarity (optional)
+COMMENT ON FUNCTION get_total_exp_threshold(INTEGER) IS 'Calculates total XP needed for a target level (BASE_XP=100, INCREMENT_XP=25).';
+COMMENT ON FUNCTION public.handle_level_up() IS 'Trigger function for automatic user level-ups based on experience. Logs level-up activity.';
+COMMENT ON TRIGGER profiles_level_up_trigger ON public.profiles IS 'Automatically updates user level based on experience points before insert or update.';
