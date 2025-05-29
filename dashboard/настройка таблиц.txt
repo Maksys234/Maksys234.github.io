@@ -916,3 +916,83 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Комментарии для ясности (опционально)
 COMMENT ON FUNCTION public.handle_level_up() IS 'Trigger function for automatic user level-ups based on experience. Logs level-up activity and creates a user notification.';
+-- Файл: dashboard/настройка таблиц.txt (или для SQL-редактора Supabase)
+
+-- Убедитесь, что функция get_total_exp_threshold уже существует.
+-- (Код функции get_total_exp_threshold остается без изменений)
+CREATE OR REPLACE FUNCTION get_total_exp_threshold(target_level INTEGER)
+RETURNS INTEGER AS $$
+DECLARE
+    total_exp INTEGER := 0;
+    level_iter INTEGER;
+    base_xp INTEGER := 100;
+    increment_xp INTEGER := 25;
+BEGIN
+    IF target_level <= 1 THEN
+        RETURN 0;
+    END IF;
+    FOR level_iter IN 1..(target_level - 1) LOOP
+        total_exp := total_exp + (base_xp + (increment_xp * (level_iter - 1)));
+    END LOOP;
+    RETURN total_exp;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Обновленная функция триггера handle_level_up
+CREATE OR REPLACE FUNCTION public.handle_level_up()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'INSERT') OR
+       (TG_OP = 'UPDATE' AND (NEW.experience IS DISTINCT FROM OLD.experience OR NEW.level IS DISTINCT FROM OLD.level)) THEN
+
+        WHILE NEW.experience >= get_total_exp_threshold(NEW.level + 1) LOOP
+            NEW.level := NEW.level + 1;
+
+            -- *** УДАЛЕН БЛОК: Запись в таблицу activities ***
+            -- BEGIN
+            --     INSERT INTO public.activities (user_id, type, title, description, details, icon)
+            --     VALUES (
+            --         NEW.id,
+            --         'level_up',
+            --         'Dosažena nová úroveň!',
+            --         'Gratulujeme k dosažení úrovně ' || NEW.level || '!',
+            --         jsonb_build_object('new_level', NEW.level, 'total_experience', NEW.experience),
+            --         'fa-angle-double-up'
+            --     );
+            -- EXCEPTION WHEN OTHERS THEN
+            --     RAISE WARNING 'Failed to insert level up activity for user % (level %): %', NEW.id, NEW.level, SQLERRM;
+            -- END;
+            -- *** КОНЕЦ УДАЛЕННОГО БЛОКА ***
+
+            -- Создание уведомления о повышении уровня в user_notifications (этот блок остается)
+            BEGIN
+                INSERT INTO public.user_notifications (user_id, title, message, type, icon, link)
+                VALUES (
+                    NEW.id,
+                    'Postup na další úroveň!',
+                    'Gratulujeme! Dosáhl/a jste úrovně ' || NEW.level || '.',
+                    'level_up',
+                    'fa-angle-double-up',
+                    '/dashboard/profile.html'
+                );
+            EXCEPTION WHEN OTHERS THEN
+                RAISE WARNING 'Failed to insert level up user_notification for user % (level %): %', NEW.id, NEW.level, SQLERRM;
+            END;
+
+        END LOOP;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Триггер (убедитесь, что он существует и вызывает обновленную функцию)
+-- DROP TRIGGER IF EXISTS profiles_level_up_trigger ON public.profiles;
+-- CREATE TRIGGER profiles_level_up_trigger
+-- BEFORE INSERT OR UPDATE ON public.profiles
+-- FOR EACH ROW
+-- WHEN (pg_trigger_depth() = 0)
+-- EXECUTE FUNCTION public.handle_level_up();
+
+-- Комментарии для ясности (опционально)
+COMMENT ON FUNCTION public.handle_level_up() IS 'Trigger function for automatic user level-ups based on experience. Creates a user notification for level up.';
