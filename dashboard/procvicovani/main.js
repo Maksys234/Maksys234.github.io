@@ -344,14 +344,16 @@
             const avatarUrl = profile.avatar_url;
             let finalAvatarUrlToUse = null; // Correctly declare and initialize
 
-            if (avatarUrl) {
-                if (!avatarUrl.startsWith('http') && avatarUrl.includes('/')) {
+            if (avatarUrl) { // Only proceed if avatarUrl exists
+                if (!avatarUrl.startsWith('http') && avatarUrl.includes('/')) { // Check if it might be a relative path that needs sanitizing (specific logic from user, kept as is)
                     finalAvatarUrlToUse = sanitizeHTML(avatarUrl);
-                } else {
-                    finalAvatarUrlToUse = `${sanitizeHTML(avatarUrl)}?t=${new Date().getTime()}`;
+                } else { // This covers full URLs and other cases where avatarUrl is truthy
+                    finalAvatarUrlToUse = `${sanitizeHTML(avatarUrl)}?t=${new Date().getTime()}`; // Add cache buster
                 }
             }
+            // If avatarUrl was null or undefined, finalAvatarUrlToUse remains null.
             ui.sidebarAvatar.innerHTML = finalAvatarUrlToUse ? `<img src="${finalAvatarUrlToUse}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
+
 
             const img = ui.sidebarAvatar.querySelector('img');
             if (img) {
@@ -575,13 +577,27 @@
         setLoadingState('topicProgress', true);
         try {
             const { data, error } = await supabaseClient.rpc('get_user_topic_progress_summary', { p_user_id: state.currentUser.id });
-            if (error) throw error;
+            if (error) throw error; // This will be caught by the catch block
             renderTopicProgressTable(data || []);
         } catch (error) {
             console.error("Error loading topic progress:", error);
             if(ui.topicProgressTable) ui.topicProgressTable.style.display = 'none';
-            if(ui.topicProgressEmptyState) { ui.topicProgressEmptyState.innerHTML = '<i class="fas fa-exclamation-circle"></i><h3>Chyba načítání</h3><p>Nepodařilo se načíst pokrok v tématech.</p>'; ui.topicProgressEmptyState.style.display = 'flex';}
-        } finally { setLoadingState('topicProgress', false); }
+            if(ui.topicProgressEmptyState) {
+                let errorMessage = 'Nepodařilo se načíst pokrok v tématech.';
+                // Check if the error object or its message contains '404'
+                // Supabase JS client v2 might wrap errors, so check nested properties if necessary
+                const errString = JSON.stringify(error); // Simple way to check for 404 in the error object
+                if (error.status === 404 || (error.message && error.message.includes('404')) || errString.includes('"status":404')) {
+                    errorMessage = 'Chyba: Požadovaná funkce (get_user_topic_progress_summary) pro načtení pokroku v tématech nebyla nalezena na serveru. Ověřte prosím, že je SQL funkce správně vytvořena a nasazena ve vaší Supabase databázi.';
+                } else if (error && error.message) {
+                    errorMessage = `Nepodařilo se načíst pokrok v tématech: ${error.message}`;
+                }
+                ui.topicProgressEmptyState.innerHTML = `<i class="fas fa-exclamation-triangle"></i><h3>Chyba načítání</h3><p>${sanitizeHTML(errorMessage)}</p>`;
+                ui.topicProgressEmptyState.style.display = 'flex';
+            }
+        } finally {
+            setLoadingState('topicProgress', false);
+        }
     }
     function renderTopicProgressTable(topics) {
         if (!ui.topicProgressTableBody || !ui.topicProgressTable || !ui.topicProgressEmptyState) return;
@@ -603,6 +619,10 @@
         ui.contentTabs.forEach(tab => {
             const isCurrentTab = tab.dataset.tab === tabId;
             tab.classList.toggle('active', isCurrentTab);
+            // Assuming tab buttons have IDs like "tab-btn-practice", "tab-btn-current", etc.
+            // and content panes have IDs "practice-tab-content", "currentPlanSection", "vyuka-tab-content"
+            // The aria-controls should point to the content pane ID.
+            // The button itself (tab) will have its aria-selected state updated.
             tab.setAttribute('aria-selected', isCurrentTab ? 'true' : 'false');
         });
         document.querySelectorAll('#main-tab-content-area > .tab-content, #main-tab-content-area > .section').forEach(paneOrSection => {
@@ -617,7 +637,7 @@
 
         if (targetElement) {
             if (targetElement.classList.contains('tab-content')) { targetElement.classList.add('active'); targetElement.style.display = 'block'; }
-            else if (targetElement.classList.contains('section')) { targetElement.classList.add('visible-section'); if(ui.mainTabContentArea) ui.mainTabContentArea.style.display = 'flex'; } // .visible-section handles display
+            else if (targetElement.classList.contains('section')) { targetElement.classList.add('visible-section'); if(ui.mainTabContentArea) ui.mainTabContentArea.style.display = 'flex'; }
             console.log(`[Main Tab Switch] Activated element: #${targetElement.id}`);
         }
         if (tabId === 'practice-tab') { await loadDashboardStats(); await loadTopicProgress(); }
@@ -634,9 +654,6 @@
         }
     }
 
-    // =======================================================================================
-    //          LOGIC ADAPTED/MERGED FROM plan.js
-    // =======================================================================================
     const groupActivitiesByDayAndDateArray = (activities) => {
         state.allActivePlanActivitiesByDay = {}; state.sortedActivityDates = [];
         if (!activities || activities.length === 0) { state.planStartDate = null; state.planEndDate = null; return; }
@@ -730,7 +747,7 @@
         if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
         const node = ui.promptCreatePlanTemplate.content.cloneNode(true);
         const btn = node.querySelector('#createNewPlanFromPromptBtn');
-        if (btn) { btn.addEventListener('click', () => switchTabContent('create')); } // Use main.html's tab switcher
+        if (btn) { btn.addEventListener('click', () => switchTabContent('create')); }
         container.innerHTML = ''; container.appendChild(node); container.style.display = 'flex';
         console.log("[Render] Prompt Create Plan Rendered.");
     };
@@ -739,7 +756,7 @@
         if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
         const node = ui.noActivePlanTemplate.content.cloneNode(true);
         const linkToCreate = node.querySelector('.link-to-create-tab');
-        if(linkToCreate) linkToCreate.addEventListener('click', (e) => { e.preventDefault(); switchTabContent('create'); }); // Use main.html's tab switcher
+        if(linkToCreate) linkToCreate.addEventListener('click', (e) => { e.preventDefault(); switchTabContent('create'); });
         container.innerHTML = ''; container.appendChild(node); container.style.display = 'flex';
         console.log("[Render] No Active Plan Rendered.");
     };
@@ -752,13 +769,12 @@
         try {
             const { data, error } = await supabaseClient.from('user_diagnostics').select('id, completed_at, total_score, total_questions, topic_results, analysis').eq('user_id', userId).order('completed_at', { ascending: false }).limit(1);
             if (error) throw error;
-            state.latestDiagnosticTest = (data && data.length > 0) ? data[0] : false; // Store in state
+            state.latestDiagnosticTest = (data && data.length > 0) ? data[0] : false;
             return state.latestDiagnosticTest;
         } catch (error) { console.error("Error fetching latest diagnostic test:", error); state.latestDiagnosticTest = null; return null;
         } finally { if (showLoaderFlag && typeof setLoadingState === 'function') setLoadingState('create', false); }
     }
 
-    // Event Listeners Setup
     function setupEventListeners() {
         console.log("[SETUP Main] Setting up event listeners for main.html...");
         if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
@@ -770,7 +786,7 @@
         if (mainHtmlPageTabs.length > 0) {
             mainHtmlPageTabs.forEach(tab => {
                 tab.addEventListener('click', () => {
-                    switchTabContent(tab.dataset.tab); // Use main.html's tab switcher
+                    switchTabContent(tab.dataset.tab);
                 });
             });
         } else { console.warn("Main HTML page tabs (#tabs-wrapper .plan-tab) not found."); }
@@ -842,12 +858,10 @@
 
 })();
 // --- Developer Edit Log ---
-// Goal: Fix ReferenceError: finalAvatarUrl is not defined in `updateSidebarProfile`.
+// Goal: Improve error message in `loadTopicProgress` for 404 errors from Supabase RPC.
 // Stage:
-// 1. Identified the cause of the error: `finalAvatarUrl` was used without prior declaration in all code paths within `updateSidebarProfile` in the user's provided `procvicovani/main.js`.
-// 2. Corrected the `updateSidebarProfile` function by:
-//    - Declaring `let finalAvatarUrlToUse = null;` at the beginning of the relevant block.
-//    - Ensuring `finalAvatarUrlToUse` is assigned a value (either a sanitized URL, a URL with a cache buster, or remains `null`) based on `avatarUrl`.
-//    - Using `finalAvatarUrlToUse` for rendering the avatar image.
-// 3. Provided the complete `procvicovani/main.js` file with this fix.
-// 4. Retained the debug log `🚀🚀🚀 [Init Main - DEBUG] ...` in `initializeApp` to help confirm the correct script execution.
+// 1. Modified the `catch` block in `loadTopicProgress` function within `procvicovani/main.js`.
+// 2. Added a check for `error.status === 404` or if `error.message` contains "404" (or if stringified error contains "status":404) to provide a more specific message.
+// 3. The user-facing message now suggests checking the Supabase SQL function `get_user_topic_progress_summary` if a 404 is detected.
+// 4. General error messages are still shown for other types of errors.
+// 5. Retained all previous code and the debug log in `initializeApp`.
