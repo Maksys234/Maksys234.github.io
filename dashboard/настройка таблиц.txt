@@ -1467,8 +1467,8 @@ BEGIN
     WITH user_topic_activities AS (
         SELECT
             pa.topic_id,
-            et.name AS calculated_topic_name, -- Interní název v CTE
-            et.icon_class AS calculated_topic_icon, -- Interní název v CTE
+            et.name AS calculated_topic_name, 
+            et.icon_class AS calculated_topic_icon, 
             COUNT(pa.id) AS total_activities,
             SUM(CASE WHEN pa.completed THEN 1 ELSE 0 END) AS completed_activities,
             MAX(pa.updated_at) AS latest_activity_update
@@ -1483,21 +1483,22 @@ BEGIN
         GROUP BY
             pa.topic_id, et.name, et.icon_class
     )
-    -- Změny jsou pouze v tomto finálním SELECTu:
     SELECT
-        uta.calculated_topic_name AS topic_name, -- Změna zde: Přejmenování na topic_name
-        CASE
-            WHEN uta.total_activities > 0 THEN
-                 CAST(ROUND((uta.completed_activities::DECIMAL / uta.total_activities) * 100.0, 2) AS DOUBLE PRECISION)
-            ELSE
-                 CAST(0.0 AS DOUBLE PRECISION)
-        END AS progress_percentage,
-        uta.latest_activity_update AS last_studied_at,
-        uta.calculated_topic_icon AS topic_icon   -- Změna zde: Přejmenování na topic_icon
+        CAST(uta.calculated_topic_name AS TEXT) AS topic_name,
+        CAST(
+            CASE
+                WHEN uta.total_activities > 0 THEN
+                     ROUND((COALESCE(uta.completed_activities, 0)::DECIMAL / uta.total_activities) * 100.0, 2)
+                ELSE
+                     0.0
+            END
+        AS DOUBLE PRECISION) AS progress_percentage,
+        CAST(uta.latest_activity_update AS TIMESTAMPTZ) AS last_studied_at,
+        CAST(uta.calculated_topic_icon AS TEXT) AS topic_icon
     FROM
         user_topic_activities uta
     ORDER BY
-        uta.latest_activity_update DESC NULLS LAST, uta.calculated_topic_name; -- Řazení může zůstat podle calculated_topic_name
+        uta.latest_activity_update DESC NULLS LAST, 
+        uta.calculated_topic_name;
 END;
-$$ LANGUAGE plpgsql
-SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
