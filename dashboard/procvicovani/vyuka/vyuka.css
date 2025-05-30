@@ -1,3 +1,6 @@
+/* dashboard/procvicovani/vyuka/vyuka.css */
+/* Verze: REDESIGN podle image_22e89c.jpg + Úprava skeletonů */
+
 :root {
     --vyuka-bg-dark: #0D0F1A;
     --vyuka-bg-panel: #1A1C2A;
@@ -21,14 +24,13 @@
     --vyuka-shadow-medium: 0 5px 20px rgba(0, 0, 0, 0.3);
     --vyuka-glow-primary: 0 0 15px rgba(138, 63, 252, 0.5);
     --vyuka-glow-secondary: 0 0 15px rgba(0, 240, 255, 0.4);
-
     --bg-color: var(--vyuka-bg-dark);
 	--bg-secondary: #08051a;
 	--card-bg: var(--vyuka-bg-panel-transparent);
 	--card-solid: var(--vyuka-bg-panel);
 	--interface-border: var(--vyuka-border-color);
-	--accent-primary: var(--vyuka-accent-primary);
-	--accent-secondary: var(--vyuka-accent-secondary);
+	--accent-primary: var(--vyuka-accent-secondary);
+	--accent-secondary: var(--vyuka-accent-primary);
 	--accent-pink: var(--vyuka-accent-pink);
     --accent-cyan: var(--vyuka-accent-secondary);
     --accent-cyan-glow: var(--vyuka-glow-secondary);
@@ -45,10 +47,11 @@
 	--font-secondary: var(--vyuka-font-secondary);
     --shadow-card: var(--vyuka-shadow-medium);
     --shadow-hud: var(--vyuka-shadow-light);
-    --font-mono: 'Roboto Mono', monospace;
-    --vyuka-accent-lime: #7fff4d;
-    --vyuka-accent-lime-rgb: 127, 255, 77;
-    --vyuka-bg-dark-rgb: 13, 15, 26;
+    --vyuka-loader-size: 60px;
+    --vyuka-loader-border-size: 5px;
+    --vyuka-loader-color1: var(--vyuka-accent-secondary); /* Cyan */
+    --vyuka-loader-color2: var(--vyuka-accent-primary); /* Purple */
+    --vyuka-loader-color3: var(--vyuka-accent-pink);   /* Pink */
 }
 
 body.new-vyuka-layout {
@@ -67,7 +70,7 @@ body.new-vyuka-layout::-webkit-scrollbar {
     height: 8px;
 }
 body.new-vyuka-layout::-webkit-scrollbar-track {
-    background: rgba(var(--vyuka-bg-dark-rgb), 0.5);
+    background: rgba(var(--vyuka-bg-dark), 0.5);
 }
 body.new-vyuka-layout::-webkit-scrollbar-thumb {
     background-color: var(--vyuka-accent-primary);
@@ -127,6 +130,7 @@ h1, h2, h3 {
     margin-left: 0.5rem;
 }
 
+
 .vyuka-sidebar-ai-menu {
     list-style: none;
     padding: 0;
@@ -172,11 +176,11 @@ h1, h2, h3 {
     display: inline;
 }
 .vyuka-sidebar-ai-link:hover {
-    background-color: rgba(var(--accent-primary-rgb), 0.15);
+    background-color: rgba(var(--vyuka-accent-primary-rgb), 0.15);
     color: var(--vyuka-text-primary);
 }
 .vyuka-sidebar-ai-link.active {
-    background-color: rgba(var(--accent-primary-rgb), 0.25);
+    background-color: rgba(var(--vyuka-accent-primary-rgb), 0.25);
     color: var(--vyuka-accent-primary);
     font-weight: 600;
 }
@@ -205,10 +209,10 @@ h1, h2, h3 {
     transition: background-color 0.2s ease;
 }
 .vyuka-sidebar-ai.expanded .user-profile-ai {
-    background-color: rgba(var(--vyuka-bg-dark-rgb), 0.3);
+    background-color: rgba(var(--vyuka-bg-dark), 0.3);
 }
 .vyuka-sidebar-ai .user-profile-ai:hover {
-    background-color: rgba(var(--vyuka-bg-dark-rgb), 0.5);
+    background-color: rgba(var(--vyuka-bg-dark), 0.5);
 }
 .vyuka-sidebar-ai .user-profile-ai .user-avatar {
     width: 38px;
@@ -224,6 +228,7 @@ h1, h2, h3 {
     margin-right: 0.8rem;
     flex-shrink: 0;
 }
+.vyuka-sidebar-ai.expanded .user-profile-ai .user-avatar { }
 .vyuka-sidebar-ai .user-profile-ai .user-avatar img {
     width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
 }
@@ -295,7 +300,6 @@ h1, h2, h3 {
     display: none;
     color: var(--vyuka-text-muted);
     font-size: 1.5rem;
-    background: none; border:none; cursor: pointer;
 }
 .vyuka-header-left .sidebar-ai-desktop-toggle {
     color: var(--vyuka-text-muted);
@@ -565,6 +569,7 @@ h1, h2, h3 {
     font-weight: 500;
     border-bottom-right-radius: var(--vyuka-button-radius);
 }
+.message-avatar { display: none; }
 .message-bubble {
     padding: 0.8rem 1.2rem;
     border-radius: var(--vyuka-card-radius);
@@ -576,6 +581,7 @@ h1, h2, h3 {
 .message-bubble-content {
     display: flex; align-items: flex-start; gap: 0.5rem;
 }
+.message-timestamp { display: none; }
 
 .chat-input-area {
     flex-shrink: 0;
@@ -667,24 +673,71 @@ mjx-math { display: inline-block; white-space: normal; vertical-align: middle; }
 
 .initial-loading-overlay { position: fixed; inset: 0; background-color: var(--vyuka-bg-dark); z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; transition: opacity 0.5s ease-out; }
 .initial-loading-overlay.hidden { opacity: 0; pointer-events: none; }
-.initial-loading-overlay .loading-spinner { width: 40px; height: 40px; border: 5px solid rgba(var(--vyuka-accent-primary-rgb), 0.2); border-radius: 50%; border-top-color: var(--vyuka-accent-primary); animation: spin 1s linear infinite; }
-.initial-loading-overlay p { color: var(--vyuka-text-medium); font-size: 1.1rem; }
-@keyframes spin { to { transform: rotate(360deg); } }
+
+.initial-loading-overlay .loading-spinner {
+    width: var(--vyuka-loader-size);
+    height: var(--vyuka-loader-size);
+    border-radius: 50%;
+    position: relative;
+    animation: vyuka-rotate 2s linear infinite;
+}
+.initial-loading-overlay .loading-spinner::before,
+.initial-loading-overlay .loading-spinner::after {
+    content: "";
+    position: absolute;
+    border-radius: inherit;
+}
+.initial-loading-overlay .loading-spinner::before {
+    width: 100%; height: 100%;
+    background-image: conic-gradient(
+        var(--vyuka-loader-color1) 0deg, var(--vyuka-loader-color1) 90deg,
+        transparent 90deg, transparent 180deg,
+        var(--vyuka-loader-color2) 180deg, var(--vyuka-loader-color2) 270deg,
+        transparent 270deg, transparent 360deg
+    );
+    animation: vyuka-spin 1.2s linear infinite;
+}
+.initial-loading-overlay .loading-spinner::after {
+    width: calc(100% - (var(--vyuka-loader-border-size) * 2));
+    height: calc(100% - (var(--vyuka-loader-border-size) * 2));
+    background: var(--vyuka-bg-dark);
+    top: var(--vyuka-loader-border-size);
+    left: var(--vyuka-loader-border-size);
+}
+
+@keyframes vyuka-rotate { 100% { transform: rotate(360deg); } }
+@keyframes vyuka-spin {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(90deg); }
+  50% { transform: rotate(180deg); }
+  75% { transform: rotate(270deg); }
+}
+
+.initial-loading-overlay p {
+    color: var(--vyuka-text-medium);
+    font-size: 1.1rem;
+    font-family: var(--vyuka-font-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 1rem;
+    text-shadow: 0 0 5px rgba(var(--vyuka-accent-secondary-rgb), 0.3);
+}
+
 
 .toast-container { position: fixed; bottom: 1.8rem; right: 1.8rem; z-index: 1050; display: flex; flex-direction: column; gap: 0.9rem; max-width: 400px; pointer-events: none; }
 .toast { padding: 1.1rem 1.4rem; border-radius: var(--vyuka-card-radius); background: var(--vyuka-bg-panel); box-shadow: var(--vyuka-shadow-medium); display: flex; align-items: flex-start; color: var(--vyuka-text-primary); animation: toast-in 0.5s cubic-bezier(0.215, 0.610, 0.355, 1) forwards; pointer-events: auto; border: 1px solid var(--vyuka-border-color); border-left-width: 6px; opacity: 0; transform: translateX(110%); }
 .toast.show { opacity: 1; transform: translateX(0); }
-.toast.success { border-left-color: var(--vyuka-accent-lime); }
-.toast.error { border-left-color: var(--vyuka-accent-pink); }
-.toast.info { border-left-color: var(--vyuka-accent-primary); }
-.toast.warning { border-left-color: var(--vyuka-accent-orange); } /* Přidáno pro varování */
+.toast.success { border-left-color: var(--accent-lime); }
+.toast.error { border-left-color: var(--accent-pink); }
+.toast.info { border-left-color: var(--accent-primary); }
+.toast.warning { border-left-color: var(--accent-orange); }
 .toast-icon { margin-right: 0.9rem; font-size: 1.4rem; flex-shrink: 0; margin-top: 4px; filter: drop-shadow(0 0 4px currentColor); }
-.toast-content { flex: 1; } .toast-title { font-weight: 600; margin-bottom: 0.35rem; font-size: 1.05rem; color: var(--vyuka-text-heading); } .toast-message { font-size: 0.95rem; color: var(--vyuka-text-medium); line-height: 1.55; }
-.toast-close { background: none; border: none; cursor: pointer; color: var(--vyuka-text-muted); font-size: 1.5rem; padding: 0.1rem 0.2rem; margin-left: 0.7rem; line-height: 1; opacity: 0.75; transition: opacity 0.2s, color 0.2s, transform 0.2s ease; }
-.toast-close:hover { opacity: 1; color: var(--vyuka-accent-primary); transform: scale(1.1); }
+.toast-content { flex: 1; } .toast-title { font-weight: 600; margin-bottom: 0.35rem; font-size: 1.05rem; color: var(--text-heading); } .toast-message { font-size: 0.95rem; color: var(--text-medium); line-height: 1.55; }
+.toast-close { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.5rem; padding: 0.1rem 0.2rem; margin-left: 0.7rem; line-height: 1; opacity: 0.75; transition: opacity 0.2s, color 0.2s, transform 0.2s ease; }
+.toast-close:hover { opacity: 1; color: var(--accent-primary); transform: scale(1.1); }
 @keyframes toast-in { from { opacity: 0; transform: translateX(110%); } to { opacity: 1; transform: translateX(0); } }
 
-.modal-overlay { position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark-rgb), 0.85); display: none; align-items: center; justify-content: center; z-index: 1060; padding: 1rem; opacity: 0; transition: opacity 0.3s ease-out; backdrop-filter: blur(5px); pointer-events: none; }
+.modal-overlay { position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark), 0.85); display: none; align-items: center; justify-content: center; z-index: 1060; padding: 1rem; opacity: 0; transition: opacity 0.3s ease-out; backdrop-filter: blur(5px); pointer-events: none; }
 .modal-overlay.visible { display: flex; opacity: 1; pointer-events: auto; }
 .modal-content.card {
     background-color: var(--vyuka-bg-panel) !important;
@@ -698,7 +751,11 @@ mjx-math { display: inline-block; white-space: normal; vertical-align: middle; }
 .modal-title { font-size: 1.4rem; color: var(--text-light); margin-bottom: 1rem; font-weight: 600; }
 .modal-text { font-size: 1rem; color: var(--text-medium); margin-bottom: 2rem; line-height: 1.6; }
 .modal-actions { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
-.modal-actions .btn { min-width: 150px; }
+
+
+.offline-banner { display: none; background-color: var(--accent-orange); color: var(--text-fixed-dark); padding: 0.9rem; text-align: center; position: fixed; top: 0; left: 0; right: 0; z-index: 1050; font-size: 1rem; font-weight: 600; box-shadow: 0 5px 12px rgba(var(--accent-orange-rgb), 0.35); letter-spacing: 0.8px; }
+.offline-banner i { margin-right: 0.7rem; animation: blinkWarning 1.4s infinite ease-in-out; }
+@keyframes blinkWarning { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
 @media (max-width: 1200px) {
     .vyuka-main-content {
@@ -776,7 +833,7 @@ mjx-math { display: inline-block; white-space: normal; vertical-align: middle; }
     .vyuka-header-left .mobile-menu-toggle { display: block; }
     .vyuka-header-topic-info h1 { font-size: 1.1rem; }
     .vyuka-header-topic-info p { font-size: 0.8rem; }
-    .vyuka-header-right .btn-exit-vyuka .fa-times + span { display: none; }
+    .vyuka-header-right .btn-exit-vyuka span { display: none; }
     .vyuka-header-right .btn-exit-vyuka i { margin-right: 0; }
     .vyuka-header-right { gap: 0.5rem; }
 
@@ -802,25 +859,19 @@ mjx-math { display: inline-block; white-space: normal; vertical-align: middle; }
     }
 }
 
-.vyuka-footer {
-    margin-top: 0;
-    padding: 1.2rem var(--container-padding-x);
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 0.85rem;
-    border-top: 1px solid var(--border-color-light);
-    opacity: 0.75;
-    flex-shrink: 0;
-    background-color: var(--bg-secondary);
-}
-.vyuka-footer p { margin-bottom: 0;}
+/* Odstranění stylů pro starý sidebar, header, topic-bar, bottom-action-bar z původního dashboard.css a vyuka.css */
+/* Je důležité toto udělat opatrně, aby se neovlivnily jiné stránky, pokud je dashboard.css sdílený. */
+/* Prozatím předpokládáme, že třída .new-vyuka-layout bude dostatečně specifická. */
 
-/* Odstranění původních stylů, které by mohly kolidovat */
 body:not(.new-vyuka-layout) .sidebar,
 body:not(.new-vyuka-layout) .dashboard-header,
 body:not(.new-vyuka-layout) .topic-bar,
-body:not(.new-vyuka-layout) .main-content-wrapper > .call-interface, /* Cílení na přímého potomka */
-body:not(.new-vyuka-layout) .bottom-action-bar,
-body:not(.new-vyuka-layout) #ai-avatar-corner {
-    display: none !important; /* Skryjeme staré prvky, pokud není aplikován nový layout */
+body:not(.new-vyuka-layout) .main-content-wrapper, /* Pozor, pokud je wrapper používán i jinde */
+body:not(.new-vyuka-layout) .call-interface,
+body:not(.new-vyuka-layout) .ai-presenter-area,
+body:not(.new-vyuka-layout) .interaction-panel,
+body:not(.new-vyuka-layout) .bottom-action-bar {
+    /* Tyto selektory by se neměly aplikovat, pokud má body třídu .new-vyuka-layout */
+    /* Pokud dashboard.css je sdílený, je lepší přepsat styly v .new-vyuka-layout kontextu, */
+    /* než je globálně měnit/mazat. */
 }
