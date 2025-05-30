@@ -6,6 +6,7 @@
 // VERZE (USER REQUEST): Scroll fix, Plan display fix, Tab style already handled in CSS.
 // VERZE (Syntax Fix Attempt): Thorough syntax review to address "Unexpected token 'class'".
 // VERZE (ReferenceError Fix): Added getLatestDiagnosticTest function definition.
+// VERZE (ReferenceError Fix toggleSkeletonUI): Added toggleSkeletonUI function definition.
 
 (function() {
     'use strict';
@@ -50,7 +51,10 @@
         practiceTabContent: document.getElementById('practice-tab-content'),
         vyukaTabContent: document.getElementById('vyuka-tab-content'),
         statsCardsContainer: document.getElementById('stats-cards-container'),
+        statsCardsSkeletonContainer: document.getElementById('stats-cards-skeleton-container'),
         shortcutsGrid: document.getElementById('shortcuts-grid'),
+        shortcutGridReal: document.getElementById('shortcut-grid-real'), // Added for consistency
+        shortcutGridSkeletonContainer: document.getElementById('shortcut-grid-skeleton-container'), // Added
         topicProgressSection: document.getElementById('topic-progress-section'),
         topicProgressTableBody: document.getElementById('topic-progress-body'),
         topicProgressTableLoadingOverlay: document.getElementById('topic-progress-table-loading-overlay'),
@@ -90,9 +94,6 @@
         dayCardSkeleton: document.getElementById('dayCardSkeleton'),
         welcomeBannerReal: document.getElementById('welcome-banner-real'),
         welcomeBannerSkeleton: document.getElementById('welcome-banner-skeleton'),
-        statsCardsSkeletonContainer: document.getElementById('stats-cards-skeleton-container'),
-        shortcutGridReal: document.getElementById('shortcut-grid-real'),
-        shortcutGridSkeletonContainer: document.getElementById('shortcut-grid-skeleton-container'),
         activityListContainerWrapper: document.getElementById('recent-activities-container-wrapper'),
         activityListContainer: document.getElementById('activity-list-container'),
         activityListSkeletonContainer: document.getElementById('activity-list-skeleton-container'),
@@ -194,7 +195,7 @@
         return `${year}-${month}-${day}`;
     };
     const addDaysToDate = (dateString, days) => {
-        const date = new Date(dateString + 'T00:00:00'); // Ensure parsing as local date
+        const date = new Date(dateString + 'T00:00:00');
         date.setDate(date.getDate() + days);
         return dateToYYYYMMDD(date);
     };
@@ -271,18 +272,82 @@
             if(ui.sidebarToggleBtn) { ui.sidebarToggleBtn.title = isCollapsed ? 'Rozbalit panel' : 'Sbalit panel'; }
         } catch (error) { console.error("[ToggleSidebar] Chyba:", error); }
     }
-    const setLoadingState = (sectionKey, isLoadingFlag) => {
-        if (state.isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return;
-        if (sectionKey === 'all') { Object.keys(state.isLoading).forEach(key => { if(key !== 'all') state.isLoading[key] = isLoadingFlag; }); }
-        else { state.isLoading[sectionKey] = isLoadingFlag; }
-        console.log(`[Loading - Main] ${sectionKey}: ${isLoadingFlag}`);
 
-        if (sectionKey === 'stats' && ui.statsCardsContainer) {
-             if (ui.statsCardsSkeletonContainer && ui.statsCardsContainer) {
-                ui.statsCardsSkeletonContainer.style.display = isLoadingFlag ? 'grid' : 'none';
-                ui.statsCardsContainer.style.display = isLoadingFlag ? 'none' : 'grid';
-            }
-        } else if (sectionKey === 'topicProgress' && ui.topicProgressSection) {
+    // --- NEW: toggleSkeletonUI function (adapted from dashboard.js) ---
+    function toggleSkeletonUI(sectionKey, showSkeleton) {
+        console.log(`[Skeleton Toggle - Main.js] Section: ${sectionKey}, Show Skeleton: ${showSkeleton}`);
+        let skeletonContainer, realContainer, displayTypeIfReal = 'block';
+
+        switch (sectionKey) {
+            case 'welcomeBanner':
+                skeletonContainer = ui.welcomeBannerSkeleton;
+                realContainer = ui.welcomeBannerReal;
+                displayTypeIfReal = 'flex'; // welcome-banner-real is a flex container
+                break;
+            case 'stats':
+                skeletonContainer = ui.statsCardsSkeletonContainer;
+                realContainer = ui.statsCardsContainer;
+                displayTypeIfReal = 'grid'; // stats-cards-container is a grid
+                break;
+            case 'shortcuts':
+                skeletonContainer = ui.shortcutGridSkeletonContainer;
+                realContainer = ui.shortcutGridReal;
+                displayTypeIfReal = 'grid'; // shortcut-grid-real is a grid
+                break;
+            // Cases for 'activities' and 'creditHistory' are handled by DashboardLists.js's internal skeletons
+            // but their parent wrappers might be controlled here if needed.
+            case 'activities': // Manages the visibility of the entire section wrapper
+                skeletonContainer = ui.activityListSkeletonContainer; // This is for list items, use wrapper
+                realContainer = ui.activityListContainer;
+                if (ui.activityListContainerWrapper) { // Control the parent wrapper
+                    ui.activityListContainerWrapper.classList.toggle('loading-section', showSkeleton);
+                }
+                break;
+            case 'creditHistory': // Manages the visibility of the entire section wrapper
+                skeletonContainer = ui.creditHistorySkeletonContainer; // for list items
+                realContainer = ui.creditHistoryListContainer;
+                 if (ui.creditHistoryContainerWrapper) { // Control the parent wrapper
+                    ui.creditHistoryContainerWrapper.classList.toggle('loading-section', showSkeleton);
+                }
+                break;
+            default:
+                console.warn(`[Skeleton Toggle - Main.js] Unknown sectionKey: ${sectionKey}`);
+                return;
+        }
+
+        if (skeletonContainer) {
+            skeletonContainer.style.display = showSkeleton ? (skeletonContainer.classList.contains('stat-cards') || skeletonContainer.classList.contains('shortcut-grid') ? 'grid' : 'block') : 'none';
+        }
+        if (realContainer) {
+            realContainer.style.display = showSkeleton ? 'none' : displayTypeIfReal;
+        }
+    }
+    // --- END: toggleSkeletonUI function ---
+
+    const setLoadingState = (sectionKey, isLoadingFlag) => {
+        if (!ui || Object.keys(ui).length === 0) { console.error("[SetLoadingState] UI cache not ready."); return; }
+        if (state.isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return;
+
+        if (sectionKey === 'all') {
+            Object.keys(state.isLoading).forEach(key => {
+                if (key !== 'all') setLoadingState(key, isLoadingFlag); // Recursively call for individual sections
+            });
+            state.isLoading.all = isLoadingFlag; // Set the 'all' flag
+            console.log(`[SetLoadingState - Main.js] Section: all, isLoading: ${isLoadingFlag}`);
+            return;
+        }
+
+        state.isLoading[sectionKey] = isLoadingFlag;
+        console.log(`[SetLoadingState - Main.js] Section: ${sectionKey}, isLoading: ${isLoadingFlag}`);
+
+        // Use toggleSkeletonUI for sections that have it
+        const skeletonManagedSections = ['welcomeBanner', 'stats', 'shortcuts', 'activities', 'creditHistory'];
+        if (skeletonManagedSections.includes(sectionKey)) {
+            toggleSkeletonUI(sectionKey, isLoadingFlag);
+        }
+
+        // Handle other specific loading states
+        if (sectionKey === 'topicProgress' && ui.topicProgressSection) {
             ui.topicProgressTableLoadingOverlay?.classList.toggle('visible-loader', isLoadingFlag);
             ui.topicProgressTable?.classList.toggle('hidden-while-loading', isLoadingFlag);
         } else if (sectionKey === 'currentPlan' && ui.currentPlanSection) {
@@ -317,6 +382,9 @@
                 ui.initialLoader.classList.add('hidden');
                 setTimeout(() => { if(ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 500);
             }
+        } else if (sectionKey === 'goalModal' && ui.goalSelectionModal) {
+            const modalContent = ui.goalSelectionModal.querySelector('.modal-content');
+            if (modalContent) modalContent.classList.toggle('loading-state', isLoadingFlag); // Add/remove a class for visual feedback
         }
     };
     const renderMessage = (container, type = 'info', title, message, addButtons = []) => {
@@ -456,7 +524,7 @@
         try {
             const { data, error } = await supabaseClient
                 .from('user_diagnostics')
-                .select('id, completed_at, total_score, total_questions, topic_results, analysis') // Added analysis
+                .select('id, completed_at, total_score, total_questions, topic_results, analysis')
                 .eq('user_id', userId)
                 .order('completed_at', { ascending: false })
                 .limit(1);
@@ -642,6 +710,7 @@
     async function loadDashboardStats() {
         if (!state.currentUser || !supabaseClient) return;
         setLoadingState('stats', true);
+        // toggleSkeletonUI is now defined locally
         toggleSkeletonUI('stats', true);
         try {
             const statsToDisplay = userStatsData || state.currentProfile || {
@@ -686,13 +755,13 @@
 
         if (ui.totalPointsValue) {
             ui.totalPointsValue.innerHTML = `${stats.points ?? 0} <span id="latest-credit-change" class="latest-credit-change-span"></span>`;
-            const latestTx = fetchAndDisplayLatestCreditChange.latestTxData;
-            const latestCreditSpan = document.getElementById('latest-credit-change'); // get it each time
+            const latestTx = fetchAndDisplayLatestCreditChange.latestTxData; // Access potentially stored data
+            const latestCreditSpan = document.getElementById('latest-credit-change');
 
             if (latestTx && latestCreditSpan) {
                 const amount = latestTx.amount;
                 const description = latestTx.description || 'N/A';
-                const sign = amount > 0 ? '+' : (amount < 0 ? '' : ''); // Show empty sign for negative
+                const sign = amount > 0 ? '+' : (amount < 0 ? '' : '');
                 const colorClass = amount > 0 ? 'positive' : (amount < 0 ? 'negative' : 'neutral');
                 latestCreditSpan.innerHTML = `(<span class="${colorClass}" title="${sanitizeHTML(description)}">${sign}${amount}</span>)`;
                 latestCreditSpan.style.display = 'inline';
@@ -948,24 +1017,21 @@
     };
 
     const renderPromptCreatePlan = (container) => {
-        const templates = document.querySelectorAll('template');
-        let foundTemplate = null;
-        templates.forEach(t => {
-            if (t.id === 'promptCreatePlanTemplate') foundTemplate = t;
-        });
-        if (!container || !foundTemplate) {
-            console.error("Missing container or promptCreatePlanTemplate for renderPromptCreatePlan.");
+        // Templates are defined in plan.html, but main.html now handles this logic.
+        // This function assumes a template with id 'promptCreatePlanTemplate' is available in main.html
+        const promptTemplate = document.getElementById('promptCreatePlanTemplate');
+        if (!container || !promptTemplate) {
+            console.error("Missing container or promptCreatePlanTemplate for renderPromptCreatePlan in main.js.");
             return;
         }
-
         console.log("[Render] Rendering Prompt Create Plan...");
         if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
 
-        const node = foundTemplate.content.cloneNode(true);
+        const node = promptTemplate.content.cloneNode(true);
         const btn = node.getElementById('createNewPlanFromPromptBtn');
         if (btn) {
             btn.addEventListener('click', () => {
-                window.location.href = 'plan.html?tab=create';
+                window.location.href = 'plan.html?tab=create'; // Redirect to plan.html for creation
             });
         }
         container.innerHTML = '';
@@ -974,24 +1040,20 @@
         console.log("[Render] Prompt Create Plan Rendered.");
     };
     const renderNoActivePlan = (container) => {
-        const templates = document.querySelectorAll('template');
-        let foundTemplate = null;
-        templates.forEach(t => {
-            if (t.id === 'noActivePlanTemplate') foundTemplate = t;
-        });
-        if (!container || !foundTemplate) {
-            console.error("Missing container or noActivePlanTemplate for renderNoActivePlan.");
+        const noActivePlanTemplate = document.getElementById('noActivePlanTemplate');
+        if (!container || !noActivePlanTemplate) {
+            console.error("Missing container or noActivePlanTemplate for renderNoActivePlan in main.js.");
             return;
         }
         console.log("[Render] Rendering No Active Plan...");
         if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
 
-        const node = foundTemplate.content.cloneNode(true);
+        const node = noActivePlanTemplate.content.cloneNode(true);
         const linkToCreate = node.querySelector('.link-to-create-tab');
         if(linkToCreate) {
             linkToCreate.addEventListener('click', (e) => {
                 e.preventDefault();
-                window.location.href = 'plan.html?tab=create';
+                window.location.href = 'plan.html?tab=create'; // Redirect to plan.html for creation
             });
         }
         container.innerHTML = '';
@@ -1017,28 +1079,38 @@
         if (lowerTitle.includes('lekce') || lowerTitle.includes('teorie') || lowerTitle.includes('vysvětlení')) return activityVisuals.theory.icon;
         return activityVisuals.default.icon;
     };
-    async function getLatestDiagnosticTest(userId, showLoaderFlag = true) {
-        if (!userId || !supabaseClient) return null;
-        if (showLoaderFlag) setLoadingState('page', true);
+    // --- End of Merged Functions ---
+
+    // --- Function fetchAndDisplayLatestCreditChange (from dashboard.js, for stats card) ---
+    async function fetchAndDisplayLatestCreditChange(userId) {
+        console.log(`[CreditChange] Fetching latest credit change for user ${userId}...`);
+        // UI update for this is now handled within renderStatsCards using the returned/stored data
+        if (!supabaseClient || !userId) {
+            console.warn("[CreditChange] Missing Supabase or userId.");
+            fetchAndDisplayLatestCreditChange.latestTxData = null; // Clear previous
+            return null;
+        }
         try {
             const { data, error } = await supabaseClient
-                .from('user_diagnostics')
-                .select('id, completed_at, total_score, total_questions, topic_results, analysis')
+                .from('credit_transactions')
+                .select('amount, description, created_at')
                 .eq('user_id', userId)
-                .order('completed_at', { ascending: false })
-                .limit(1);
-            if (error) throw error;
-            state.latestDiagnosticTest = (data && data.length > 0) ? data[0] : false;
-            return state.latestDiagnosticTest;
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single(); // Expect one or zero rows
+
+            if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found, which is not an error here
+                throw error;
+            }
+            fetchAndDisplayLatestCreditChange.latestTxData = data; // Store for renderStatsCards
+            return data; // Return data for direct use if needed
         } catch (error) {
-            console.error("Error fetching latest diagnostic test:", error);
-            state.latestDiagnosticTest = null;
+            console.error('[CreditChange] Error fetching latest credit change:', error);
+            fetchAndDisplayLatestCreditChange.latestTxData = null;
             return null;
-        } finally {
-            if (showLoaderFlag) setLoadingState('page', false);
         }
     }
-    // --- End of Merged Functions ---
+    fetchAndDisplayLatestCreditChange.latestTxData = null; // Initialize static property
 
 
     function setupEventListeners() {
@@ -1265,21 +1337,18 @@
 
 })();
 // --- Developer Edit Log ---
-// Goal: Fix ReferenceError: getLatestDiagnosticTest is not defined in main.js.
+// Goal: Fix ReferenceError: toggleSkeletonUI is not defined in main.js.
 // Stage:
-// 1. Identified that `getLatestDiagnosticTest` was called in `checkUserInitialSetup` but was not defined within `main.js`.
-// 2. Copied the definition of `getLatestDiagnosticTest` from `plan.js` (where it was originally defined and used) into `main.js`.
-//    - This function queries the `user_diagnostics` table for the most recent test for the given user.
-//    - It updates `state.latestDiagnosticTest` with the fetched data (or `false` if no test is found, or `null` on error).
-//    - Includes a `showLoaderFlag` parameter to conditionally manage a page-level loader (though in this context, a more specific loader might be better if this function were to take long).
-// 3. Ensured all dependencies of `getLatestDiagnosticTest` (like `supabaseClient`, `setLoadingState`) are available in `main.js`.
-// 4. Verified that the function is now correctly defined before it's called by `checkUserInitialSetup`.
+// 1. Added the `toggleSkeletonUI` function definition to `main.js`. This function was previously in `dashboard.js` and is responsible for managing the display of skeleton loaders and real content sections.
+// 2. Adapted the `skeletonMap` within `toggleSkeletonUI` to reference UI elements relevant to `main.html` (e.g., `welcomeBannerSkeleton`, `statsCardsSkeletonContainer`, `shortcutGridSkeletonContainer`).
+// 3. Ensured that `setLoadingState` correctly calls this new local `toggleSkeletonUI` function for the appropriate sections.
+// 4. Maintained all other existing functions and logic from the previous version of `main.js`.
 // ---
 // List of all functions in this file:
 // formatDateForDisplay, getTodayDateString, dateToYYYYMMDD, addDaysToDate, formatDate, showToast,
 // sanitizeHTML, getInitials, openMenu, closeMenu, initTooltips, showGlobalError, hideGlobalError,
 // formatRelativeTime, updateCopyrightYear, initMouseFollower, initScrollAnimations, initHeaderScrollDetection,
-// updateOnlineStatus, applyInitialSidebarState, toggleSidebar, setLoadingState, renderMessage,
+// updateOnlineStatus, applyInitialSidebarState, toggleSidebar, toggleSkeletonUI, setLoadingState, renderMessage,
 // initializeSupabase, fetchUserProfile, fetchTitles, updateSidebarProfile, fetchNotifications,
 // renderNotifications, renderNotificationSkeletons, markNotificationRead, markAllNotificationsRead,
 // getLatestDiagnosticTest, checkUserInitialSetup, showGoalSelectionModal, hideGoalSelectionModal,
@@ -1288,5 +1357,5 @@
 // loadTopicProgress, renderTopicProgressTable, handleSort, switchTabContent, loadCurrentStudyPlanData,
 // groupActivitiesByDayAndDateArray, loadCurrentPlan, renderSingleDayPlan, updateNavigationButtonsState,
 // renderPromptCreatePlan, renderNoActivePlan, handleActivityCompletionToggle, updatePlanProgress,
-// getActivityIcon, setupEventListeners, initializeApp
+// getActivityIcon, fetchAndDisplayLatestCreditChange, setupEventListeners, initializeApp
 // ---
