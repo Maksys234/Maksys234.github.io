@@ -29,6 +29,51 @@
       gtag('js', new Date());
       gtag('config', 'G-L16EL1V2WV');
     </script>
+
+    <style>
+      /* Общие стили для более плавных анимаций появления элементов */
+      [data-animate]:not([data-animate-letters]) {
+        opacity: 0;
+        filter: blur(3px); /* Уменьшено размытие для более мягкого эффекта */
+        transform: perspective(1000px) translateY(30px) rotateY(5deg) scale(0.95); /* Уменьшены значения смещения и поворота */
+        transform-origin: center center;
+        transition-property: opacity, filter, transform;
+        transition-duration: 1s; /* Увеличена длительность для большей плавности */
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); /* Стандартная плавная функция */
+      }
+
+      [data-animate]:not([data-animate-letters]).animated {
+        opacity: 1;
+        filter: blur(0);
+        transform: perspective(1000px) translateY(0) rotateY(0) scale(1);
+      }
+
+      /* Стили для более плавных анимаций элементов в hero-секции */
+      .hero p[data-animate],
+      .hero .hero-buttons[data-animate] {
+        opacity: 0;
+        filter: blur(4px); /* Немного уменьшено размытие */
+        transform: translateY(25px) scale(0.98); /* Уменьшено смещение и масштабирование */
+        transition-property: opacity, filter, transform;
+        transition-duration: 1s; /* Увеличена длительность */
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .hero p[data-animate].animated,
+      .hero .hero-buttons[data-animate].animated {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateY(0) scale(1);
+      }
+
+      /* Опционально: если анимация букв в .hero h1 будет снова включена */
+      /*
+      .hero h1[data-animate-letters].is-revealing .letter-span {
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 0.8s;
+      }
+      */
+    </style>
 </head>
 <body class="dark">
 
