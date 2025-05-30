@@ -1,40 +1,36 @@
-/* dashboard/procvicovani/vyuka/vyuka.css */
-/* Verze: REDESIGN dle image_22e89c.jpg + Úprava skeletonů + Fullscreen Whiteboard/Chat */
-
 :root {
     --vyuka-bg-dark: #0D0F1A;
     --vyuka-bg-panel: #1A1C2A;
     --vyuka-bg-panel-transparent: rgba(26, 28, 42, 0.85);
     --vyuka-border-color: #2E303E;
-    --vyuka-accent-primary: #8A3FFC; /* Purple */
+    --vyuka-accent-primary: #8A3FFC;
     --vyuka-accent-primary-rgb: 138, 63, 252;
-    --vyuka-accent-secondary: #00F0FF; /* Cyan */
+    --vyuka-accent-secondary: #00F0FF;
     --vyuka-accent-secondary-rgb: 0, 240, 255;
     --vyuka-accent-pink: #FF7EB6;
-    --vyuka-accent-lime: #7FFF4D; /* Lime for positive status */
+    --vyuka-accent-lime: #7FFF4D;
     --vyuka-text-primary: #F3F4F6;
     --vyuka-text-secondary: #A0AEC0;
     --vyuka-text-muted: #718096;
     --vyuka-text-heading: var(--vyuka-text-primary);
-    --vyuka-sidebar-width-expanded: 250px; /* Mírně užší než původní dashboard sidebar */
+    --vyuka-sidebar-width-expanded: 250px;
     --vyuka-sidebar-width-collapsed: 60px;
-    --vyuka-header-height: 60px; /* Mírně menší header */
+    --vyuka-header-height: 60px;
     --vyuka-font-primary: 'Inter', sans-serif;
     --vyuka-font-secondary: 'Poppins', sans-serif;
     --vyuka-font-mono: 'Roboto Mono', monospace;
-    --vyuka-card-radius: 10px; /* Ostrřejší rohy */
+    --vyuka-card-radius: 10px;
     --vyuka-button-radius: 6px;
     --vyuka-shadow-light: 0 2px 8px rgba(0, 0, 0, 0.25);
     --vyuka-shadow-medium: 0 4px 15px rgba(0, 0, 0, 0.35);
     --vyuka-glow-primary: 0 0 12px rgba(var(--vyuka-accent-primary-rgb), 0.6);
     --vyuka-glow-secondary: 0 0 12px rgba(var(--vyuka-accent-secondary-rgb), 0.5);
-
     --bg-color: var(--vyuka-bg-dark);
 	--bg-secondary: #08051a;
 	--card-bg: var(--vyuka-bg-panel-transparent);
 	--card-solid: var(--vyuka-bg-panel);
 	--interface-border: var(--vyuka-border-color);
-	--accent-primary: var(--vyuka-accent-primary); /* Aktualizace globální proměnné */
+	--accent-primary: var(--vyuka-accent-primary);
 	--accent-secondary: var(--vyuka-accent-secondary);
 	--accent-pink: var(--vyuka-accent-pink);
     --accent-cyan: var(--vyuka-accent-secondary);
@@ -52,8 +48,7 @@
 	--font-secondary: var(--vyuka-font-secondary);
     --shadow-card: var(--vyuka-shadow-medium);
     --shadow-hud: var(--vyuka-shadow-light);
-
-    --vyuka-loader-size: 70px; /* Zvětšený loader */
+    --vyuka-loader-size: 70px;
     --vyuka-loader-border-size: 4px;
     --vyuka-loader-color1: var(--vyuka-accent-secondary);
     --vyuka-loader-color2: var(--vyuka-accent-primary);
@@ -83,7 +78,7 @@ h1, h2, h3 { font-family: var(--vyuka-font-secondary); color: var(--vyuka-text-h
     border-right: 1px solid var(--vyuka-border-color);
     display: flex;
     flex-direction: column;
-    padding: 0.8rem 0.4rem; /* Užší padding */
+    padding: 0.8rem 0.4rem;
     transition: width 0.25s ease-in-out;
     height: 100vh;
     position: fixed;
@@ -101,7 +96,7 @@ h1, h2, h3 { font-family: var(--vyuka-font-secondary); color: var(--vyuka-text-h
 .vyuka-sidebar-ai-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; overflow-x: hidden; }
 .vyuka-sidebar-ai-menu::-webkit-scrollbar { width: 4px; }
 .vyuka-sidebar-ai-menu::-webkit-scrollbar-thumb { background: var(--vyuka-accent-primary); border-radius: 2px; }
-.vyuka-sidebar-ai-item { margin-bottom: 0.3rem; } /* Menší mezery */
+.vyuka-sidebar-ai-item { margin-bottom: 0.3rem; }
 .vyuka-sidebar-ai-link { display: flex; align-items: center; padding: 0.75rem; color: var(--vyuka-text-secondary); text-decoration: none; border-radius: var(--vyuka-button-radius); transition: background-color 0.2s ease, color 0.2s ease; white-space: nowrap; overflow: hidden; }
 .vyuka-sidebar-ai-link i { font-size: 1.2rem; width: 24px; text-align: center; margin-right: 0; flex-shrink: 0; transition: margin-right 0.25s ease-in-out; }
 .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link i { margin-right: 0.7rem; }
@@ -153,13 +148,14 @@ h1, h2, h3 { font-family: var(--vyuka-font-secondary); color: var(--vyuka-text-h
     display: flex;
     flex-grow: 1;
     overflow: hidden;
-    padding: 1.2rem; /* Menší padding */
+    padding: 1.2rem;
     gap: 1.2rem;
     background-color: var(--vyuka-bg-dark);
+    height: calc(100% - var(--vyuka-header-height)); /* Toto je klíčové */
 }
 
 .vyuka-whiteboard-area {
-    flex: 7; /* Zvětšeno pro whiteboard */
+    flex: 7;
     background-color: var(--vyuka-bg-panel);
     border-radius: var(--vyuka-card-radius);
     border: 1px solid var(--vyuka-border-color);
@@ -168,11 +164,19 @@ h1, h2, h3 { font-family: var(--vyuka-font-secondary); color: var(--vyuka-text-h
     flex-direction: column;
     overflow: hidden;
     box-shadow: var(--vyuka-shadow-medium);
+    height: 100%; /* Rodič .vyuka-main-content má výšku */
 }
-#whiteboard-container { flex-grow: 1; overflow-y: auto; padding-right: 8px; margin-right: -8px; position: relative; }
+#whiteboard-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 8px;
+    margin-right: -8px;
+    position: relative;
+    min-height: 0; /* Důležité pro flex potomky */
+}
 #whiteboard-container::-webkit-scrollbar { width: 6px; }
 #whiteboard-container::-webkit-scrollbar-thumb { background: var(--vyuka-accent-secondary); border-radius: 3px;}
-#whiteboard-content { color: var(--vyuka-text-primary); }
+#whiteboard-content { color: var(--vyuka-text-primary); min-height: 100%; /* Aby se roztáhl, pokud je obsahu málo */ }
 #whiteboard-content h1, #whiteboard-content h2, #whiteboard-content h3 { color: var(--vyuka-accent-secondary); margin-top: 1.3em; margin-bottom: 0.7em; }
 #whiteboard-content code { background-color: rgba(var(--vyuka-text-muted-rgb), 0.15); padding: 0.15em 0.35em; border-radius: 3px; font-family: var(--vyuka-font-mono); color: var(--vyuka-accent-lime); }
 #whiteboard-content pre { background-color: rgba(var(--vyuka-bg-dark), 0.7); padding: 0.9em; border-radius: var(--vyuka-button-radius); overflow-x: auto; border: 1px solid var(--vyuka-border-color); }
@@ -190,7 +194,7 @@ h1, h2, h3 { font-family: var(--vyuka-font-secondary); color: var(--vyuka-text-h
 .vyuka-lesson-controls .btn { font-size: 0.85rem; padding: 0.5rem 1rem; }
 
 .vyuka-chat-panel {
-    flex: 3; /* Zmenšeno pro chat */
+    flex: 3;
     background-color: var(--vyuka-bg-panel);
     border-radius: var(--vyuka-card-radius);
     border: 1px solid var(--vyuka-border-color);
@@ -199,16 +203,17 @@ h1, h2, h3 { font-family: var(--vyuka-font-secondary); color: var(--vyuka-text-h
     flex-direction: column;
     overflow: hidden;
     box-shadow: var(--vyuka-shadow-medium);
-    min-width: 300px; /* Minimální šířka chatu */
+    min-width: 300px;
+    height: 100%; /* Rodič .vyuka-main-content má výšku */
 }
 .vyuka-chat-header { padding: 0.8rem 1.2rem; border-bottom: 1px solid var(--vyuka-border-color); background-color: rgba(var(--vyuka-dark-purple-accent-rgb), 0.5); flex-shrink: 0; }
 .vyuka-chat-header h3 { margin: 0; font-size: 1rem; font-weight: 600; color: var(--vyuka-text-heading); }
 .vyuka-chat-header h3 strong { color: var(--vyuka-accent-primary); text-shadow: var(--vyuka-glow-primary); }
 .vyuka-chat-header .placeholder { color: var(--vyuka-text-muted); font-style: italic; }
-.interaction-panel-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
-.interaction-panel-content #chat-tab-content { flex-grow: 1; display: flex; }
-.chat-area { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0.8rem; gap: 0.8rem; }
-.chat-messages { flex-grow: 1; overflow-y: auto; padding-right: 6px; margin-right: -6px; scroll-behavior: smooth; }
+.interaction-panel-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+.interaction-panel-content #chat-tab-content { flex-grow: 1; display: flex; flex-direction: column; min-height: 0; }
+.chat-area { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0.8rem; gap: 0.8rem; min-height: 0;}
+.chat-messages { flex-grow: 1; overflow-y: auto; padding-right: 6px; margin-right: -6px; scroll-behavior: smooth; min-height: 0;}
 .chat-messages::-webkit-scrollbar { width: 5px; }
 .chat-messages::-webkit-scrollbar-thumb { background: var(--vyuka-accent-secondary); border-radius: 2.5px;}
 .chat-message { display: flex; gap: 0.6rem; max-width: 88%; margin-bottom: 0.8rem; opacity: 0; transform: translateY(8px); animation: popInMessage 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
@@ -216,8 +221,10 @@ h1, h2, h3 { font-family: var(--vyuka-font-secondary); color: var(--vyuka-text-h
 .chat-message.user { margin-left: auto; flex-direction: row-reverse; }
 .chat-message.model .message-bubble { background-color: var(--vyuka-bg-dark); color: var(--vyuka-text-primary); border: 1px solid var(--vyuka-border-color); border-bottom-left-radius: var(--vyuka-button-radius); }
 .chat-message.user .message-bubble { background: var(--vyuka-accent-primary); color: var(--vyuka-bg-dark); font-weight: 500; border-bottom-right-radius: var(--vyuka-button-radius); }
+.message-avatar { display: none; }
 .message-bubble { padding: 0.7rem 1rem; border-radius: var(--vyuka-card-radius); line-height: 1.45; word-wrap: break-word; box-shadow: var(--vyuka-shadow-light); font-size: 0.85rem; }
 .message-bubble-content { display: flex; align-items: flex-start; gap: 0.4rem; }
+.message-timestamp { display: none; }
 .chat-input-area { flex-shrink: 0; padding-top: 0.8rem; border-top: 1px solid var(--vyuka-border-color); }
 .chat-input-wrapper { display: flex; gap: 0.4rem; background-color: var(--vyuka-bg-dark); border-radius: var(--vyuka-button-radius); padding: 0.25rem 0.4rem; border: 1px solid var(--vyuka-border-color); }
 .chat-input-wrapper:focus-within { border-color: var(--vyuka-accent-primary); box-shadow: var(--vyuka-glow-primary); }
@@ -242,38 +249,11 @@ mjx-math { display: inline-block; white-space: normal; vertical-align: middle; }
 
 .initial-loading-overlay { position: fixed; inset: 0; background-color: var(--vyuka-bg-dark); z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; transition: opacity 0.4s ease-out, visibility 0s 0.4s; }
 .initial-loading-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-.initial-loading-overlay .loading-spinner {
-    width: var(--vyuka-loader-size); height: var(--vyuka-loader-size);
-    border-radius: 50%; position: relative;
-    animation: vyuka-initial-rotate 2.5s linear infinite;
-}
-.initial-loading-overlay .loading-spinner::before {
-    content: ""; position: absolute; inset: 0; border-radius: inherit;
-    border: var(--vyuka-loader-border-size) solid transparent;
-    border-top-color: var(--vyuka-loader-color1);
-    border-right-color: var(--vyuka-loader-color2);
-    animation: vyuka-initial-spin 1s cubic-bezier(0.6, 0, 0.4, 1) infinite;
-    box-shadow: 0 0 8px var(--vyuka-loader-color1), 0 0 12px var(--vyuka-loader-color2) inset;
-}
+.initial-loading-overlay .loading-spinner { width: var(--vyuka-loader-size); height: var(--vyuka-loader-size); border-radius: 50%; position: relative; animation: vyuka-initial-rotate 2.5s linear infinite; }
+.initial-loading-overlay .loading-spinner::before { content: ""; position: absolute; inset: 0; border-radius: inherit; border: var(--vyuka-loader-border-size) solid transparent; border-top-color: var(--vyuka-loader-color1); border-right-color: var(--vyuka-loader-color2); animation: vyuka-initial-spin 1s cubic-bezier(0.6, 0, 0.4, 1) infinite; box-shadow: 0 0 8px var(--vyuka-loader-color1), 0 0 12px var(--vyuka-loader-color2) inset; }
 @keyframes vyuka-initial-rotate { 100% { transform: rotate(360deg); } }
-@keyframes vyuka-initial-spin {
-    0% { transform: rotate(0deg); border-top-color: var(--vyuka-loader-color1); border-right-color: var(--vyuka-loader-color2); }
-    25% { border-top-color: var(--vyuka-loader-color2); border-right-color: var(--vyuka-loader-color3); }
-    50% { transform: rotate(180deg); border-top-color: var(--vyuka-loader-color3); border-right-color: var(--vyuka-loader-color1); }
-    75% { border-top-color: var(--vyuka-loader-color1); border-right-color: var(--vyuka-loader-color2); }
-    100% { transform: rotate(360deg); border-top-color: var(--vyuka-loader-color1); border-right-color: var(--vyuka-loader-color2); }
-}
-.initial-loading-overlay p {
-    color: var(--vyuka-text-secondary); font-size: 1rem;
-    font-family: var(--vyuka-font-mono); text-transform: uppercase;
-    letter-spacing: 1.5px; margin-top: 1.5rem;
-    text-shadow: 0 0 5px rgba(var(--vyuka-accent-secondary-rgb), 0.3);
-    opacity: 0;
-    animation: typeWriterEffect 2.5s steps(30) 0.5s forwards, blinkCaret 0.7s infinite;
-    white-space: nowrap;
-    overflow: hidden;
-    border-right: 3px solid var(--vyuka-text-secondary); /* Kurziv */
-}
+@keyframes vyuka-initial-spin { 0% { transform: rotate(0deg); border-top-color: var(--vyuka-loader-color1); border-right-color: var(--vyuka-loader-color2); } 25% { border-top-color: var(--vyuka-loader-color2); border-right-color: var(--vyuka-loader-color3); } 50% { transform: rotate(180deg); border-top-color: var(--vyuka-loader-color3); border-right-color: var(--vyuka-loader-color1); } 75% { border-top-color: var(--vyuka-loader-color1); border-right-color: var(--vyuka-loader-color2); } 100% { transform: rotate(360deg); border-top-color: var(--vyuka-loader-color1); border-right-color: var(--vyuka-loader-color2); } }
+.initial-loading-overlay p { color: var(--vyuka-text-secondary); font-size: 1rem; font-family: var(--vyuka-font-mono); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 1.5rem; text-shadow: 0 0 5px rgba(var(--vyuka-accent-secondary-rgb), 0.3); opacity: 0; animation: typeWriterEffect 2.5s steps(30) 0.5s forwards, blinkCaret 0.7s infinite; white-space: nowrap; overflow: hidden; border-right: 3px solid var(--vyuka-text-secondary); }
 @keyframes typeWriterEffect { from { width: 0; opacity: 1; } to { width: 100%; opacity: 1; } }
 @keyframes blinkCaret { 50% { border-color: transparent; } }
 
@@ -306,12 +286,12 @@ mjx-math { display: inline-block; white-space: normal; vertical-align: middle; }
 .offline-banner i { margin-right: 0.6rem; animation: blinkWarning 1.3s infinite ease-in-out; }
 @keyframes blinkWarning { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
-.vyuka-footer { margin-top: auto; /* Zajistí, že patička bude na konci .vyuka-page-container */ }
+.vyuka-footer { margin-top: auto; }
 
 @media (max-width: 1200px) {
     .vyuka-main-content { flex-direction: column; }
     .vyuka-whiteboard-area, .vyuka-chat-panel { flex: none; width: 100%; }
-    .vyuka-chat-panel { max-height: 60vh; min-height: 300px; /* Zajistí, že chat nezmizí */ }
+    .vyuka-chat-panel { max-height: 60vh; min-height: 300px; }
 }
 
 @media (max-width: 992px) {
@@ -360,26 +340,11 @@ mjx-math { display: inline-block; white-space: normal; vertical-align: middle; }
     .sidebar-overlay-ai.active { opacity: 1; visibility: visible; transition-delay: 0s; }
 }
 
-/* Speciální styly pro tooltipster v novém designu */
-.tooltipster-sidetip.tooltipster-vyuka .tooltipster-box {
-    background: var(--vyuka-bg-panel);
-    border: 1px solid var(--vyuka-accent-primary);
-    border-radius: var(--vyuka-button-radius);
-    box-shadow: 0 0 15px rgba(var(--vyuka-accent-primary-rgb), 0.3);
-}
-.tooltipster-sidetip.tooltipster-vyuka .tooltipster-content {
-    color: var(--vyuka-text-primary);
-    padding: 0.5rem 0.8rem;
-    font-size: 0.8rem;
-}
-.tooltipster-sidetip.tooltipster-vyuka .tooltipster-arrow-background {
-    border-color: var(--vyuka-accent-primary); /* Nebo transparentní, pokud nechceme šipku */
-}
-.tooltipster-sidetip.tooltipster-vyuka .tooltipster-arrow-border {
-	border-color: var(--vyuka-accent-primary);
-}
+.tooltipster-sidetip.tooltipster-vyuka .tooltipster-box { background: var(--vyuka-bg-panel); border: 1px solid var(--vyuka-accent-primary); border-radius: var(--vyuka-button-radius); box-shadow: 0 0 15px rgba(var(--vyuka-accent-primary-rgb), 0.3); }
+.tooltipster-sidetip.tooltipster-vyuka .tooltipster-content { color: var(--vyuka-text-primary); padding: 0.5rem 0.8rem; font-size: 0.8rem; }
+.tooltipster-sidetip.tooltipster-vyuka .tooltipster-arrow-background { border-color: var(--vyuka-accent-primary); }
+.tooltipster-sidetip.tooltipster-vyuka .tooltipster-arrow-border { border-color: var(--vyuka-accent-primary); }
 .tooltipster-sidetip.tooltipster-vyuka.tooltipster-top .tooltipster-arrow-background,
-.tooltipster-sidetip.tooltipster-vyuka.tooltipster-top .tooltipster-arrow-border {
-	border-top-color: var(--vyuka-accent-primary);
-}
-/* ... další směry pro šipku ... */
+.tooltipster-sidetip.tooltipster-vyuka.tooltipster-top .tooltipster-arrow-border { border-top-color: var(--vyuka-accent-primary); }
+
+/* Původní dashboard.css styly, které by se zde mohly křížit, jsou implicitně přepsány specifičtějšími novými pravidly nebo pravidly v .new-vyuka-layout */
