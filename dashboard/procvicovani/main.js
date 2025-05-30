@@ -6,6 +6,7 @@
 // VERZE (ReferenceError Fix toggleSkeletonUI): Added toggleSkeletonUI function definition.
 // VERZE (userStatsData Fix): Corrected handling of userStatsData.
 // VERZE (Render Stats UI Check): Added checks for UI elements in renderStatsCards.
+// VERZE (DB Column Fix fetchUserProfile): Removed non-existent columns from profiles fetch.
 
 (function() {
     'use strict';
@@ -100,11 +101,9 @@
         creditHistoryContainerWrapper: document.getElementById('credit-history-container-wrapper'),
         creditHistoryListContainer: document.getElementById('credit-history-list-container'),
         creditHistorySkeletonContainer: document.getElementById('credit-history-skeleton-container'),
-        // IDs for stats cards - ensure these exist in main.html
         overallProgressValue: document.getElementById('overall-progress-value'),
         overallProgressFooter: document.getElementById('overall-progress-footer'),
         totalPointsValue: document.getElementById('total-points-value'),
-        // latestCreditChange: document.getElementById('latest-credit-change'), // This will be fetched after innerHTML is set
         totalPointsFooter: document.getElementById('total-points-footer'),
         streakValue: document.getElementById('streak-value'),
         streakFooter: document.getElementById('streak-footer')
@@ -415,20 +414,26 @@
         if (!userId || !supabaseClient) return null;
         setLoadingState('titles', true);
         try {
+            // Request only columns that exist in 'profiles' table according to 'настройка таблиц.txt'
             const { data, error } = await supabaseClient
                 .from('profiles')
-                .select('*, selected_title, preferences, longest_streak_days, learning_goal, points, streak_days, overall_progress_percentage, completed_exercises, completed_tests_count') // Added more fields needed for stats fallback
+                .select('id, updated_at, username, full_name, avatar_url, website, points, level, experience, streak_days, longest_streak_days, last_active_at, completed_lessons_count, completed_tests_count, completed_exercises_count, preferences, learning_goal, selected_title, first_name, last_name, daily_goal_completed_at')
                 .eq('id', userId)
                 .single();
-            if (error && error.code !== 'PGRST116') throw error;
+
+            if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found, not an error for single()
+                console.error("Profile fetch error (details):", error);
+                throw error;
+            }
             setLoadingState('titles', false);
             return data;
         } catch (e) {
-            console.error("Profile fetch error:", e);
+            console.error("Profile fetch error:", e); // Log the full error object
             setLoadingState('titles', false);
             return null;
         }
     }
+
 
     async function fetchTitles() {
         if (!supabaseClient) return [];
@@ -705,13 +710,13 @@
         if (!supabaseClient || !userId || !profileData) {
             console.error("[Stats] Chybí Supabase klient, ID uživatele nebo data profilu.");
             return { // Return a default structure consistent with what renderStatsCards expects
-                progress: profileData?.overall_progress_percentage ?? 0,
+                progress: profileData?.overall_progress_percentage ?? 0, // This will be undefined if not on profileData
                 progress_weekly: 0,
                 points: profileData?.points ?? 0,
                 points_weekly: 0,
                 streak_current: profileData?.streak_days ?? 0,
                 longest_streak_days: profileData?.longest_streak_days ?? 0,
-                completed_exercises: profileData?.completed_exercises ?? 0,
+                completed_exercises: profileData?.completed_exercises_count ?? 0, // Ensure correct name
                 completed_tests: profileData?.completed_tests_count ?? 0,
             };
         }
@@ -719,68 +724,69 @@
         try {
             const { data, error } = await supabaseClient
                 .from('user_stats')
-                .select('progress, progress_weekly, points_weekly, streak_longest, completed_tests')
+                .select('overall_progress_percentage, progress_weekly, points_weekly, streak_longest, completed_tests') // Corrected overall_progress_percentage here
                 .eq('user_id', userId)
                 .maybeSingle();
 
             if (error) {
                 console.warn("[Stats] Supabase chyba při načítání user_stats:", error.message);
+                // Fallback to profile data if user_stats fetch fails
                 return {
-                    progress: profileData.overall_progress_percentage ?? 0,
+                    progress: profileData.overall_progress_percentage ?? 0, // This still refers to profile's potentially non-existent field
                     progress_weekly: 0,
                     points: profileData.points ?? 0,
                     points_weekly: 0,
                     streak_current: profileData.streak_days ?? 0,
                     longest_streak_days: profileData.longest_streak_days ?? 0,
-                    completed_exercises: profileData.completed_exercises ?? 0,
+                    completed_exercises: profileData.completed_exercises_count ?? 0,
                     completed_tests: profileData.completed_tests_count ?? 0,
                 };
             }
+            // Merge fetched stats with profile data
             const finalStats = {
-                progress: data?.progress ?? profileData.overall_progress_percentage ?? 0,
+                progress: data?.overall_progress_percentage ?? 0, // Use from user_stats if available
                 progress_weekly: data?.progress_weekly ?? 0,
-                points: profileData.points ?? 0,
+                points: profileData.points ?? 0, // Always take points from profile
                 points_weekly: data?.points_weekly ?? 0,
-                streak_current: profileData.streak_days ?? 0,
+                streak_current: profileData.streak_days ?? 0, // Current streak from profile
                 longest_streak_days: profileData.longest_streak_days ?? data?.streak_longest ?? 0,
-                completed_exercises: profileData.completed_exercises ?? 0,
-                completed_tests: profileData.completed_tests_count ?? data?.completed_tests ?? 0,
+                completed_exercises: profileData.completed_exercises_count ?? 0, // Use correct name from profile
+                completed_tests: profileData.completed_tests_count ?? data?.completed_tests ?? 0, // Use correct name from profile
             };
             console.log("[Stats] Statistiky úspěšně načteny/sestaveny:", finalStats);
             return finalStats;
         } catch (error) {
             console.error("[Stats] Neočekávaná chyba při načítání user_stats:", error);
             return {
-                progress: profileData.overall_progress_percentage ?? 0,
+                progress: profileData.overall_progress_percentage ?? 0, // Fallback
                 progress_weekly: 0,
                 points: profileData.points ?? 0,
                 points_weekly: 0,
                 streak_current: profileData.streak_days ?? 0,
                 longest_streak_days: profileData.longest_streak_days ?? 0,
-                completed_exercises: profileData.completed_exercises ?? 0,
+                completed_exercises: profileData.completed_exercises_count ?? 0,
                 completed_tests: profileData.completed_tests_count ?? 0,
             };
         }
     }
 
+
     async function loadDashboardStats() {
         if (!state.currentUser || !supabaseClient || !state.currentProfile) {
             console.warn("[LoadStats] Chybí uživatel, Supabase klient nebo profil pro načtení statistik.");
-            renderStatsCards(null); // Render s chybovou hláškou nebo prázdnými daty
+            renderStatsCards(null);
             return;
         }
         setLoadingState('stats', true);
         try {
-            // `userStatsData` is now populated in initializeApp or refreshDataBtn
-            // If it's not available, fetch it, otherwise use the existing one.
-            if (!userStatsData) {
+            if (!userStatsData) { // Only fetch if not already populated
                 console.log("[LoadStats] userStatsData not available, fetching...");
                 userStatsData = await fetchUserStats(state.currentUser.id, state.currentProfile);
             }
-            renderStatsCards(userStatsData); // Pass the potentially updated userStatsData
+            renderStatsCards(userStatsData);
         } catch (error) {
-            console.error("Error in loadDashboardStats:", error); // Changed from "Error loading dashboard stats" to avoid confusion
-            renderStatsCards(null); // Render with error state
+            console.error("Error in loadDashboardStats:", error);
+            renderStatsCards(null);
         } finally {
             setLoadingState('stats', false);
         }
@@ -788,11 +794,12 @@
 
     function renderStatsCards(stats) {
         console.log("[UI Update] Aktualizace karet statistik:", stats);
-        // Robust checks for UI elements
-        const requiredElements = [ui.statsCardsContainer, ui.overallProgressValue, ui.totalPointsValue, ui.streakValue];
+        const requiredElements = [ui.overallProgressValue, ui.totalPointsValue, ui.streakValue];
+        // ui.statsCardsContainer is checked by the caller (toggleSkeletonUI) or should be.
+        // If statsCardsContainer itself is missing, other code would fail first.
         if (requiredElements.some(el => !el)) {
-            console.error("[Render Stats] Chybí klíčové UI elementy pro statistiky. Zkontrolujte ID v HTML.");
-            if (ui.statsCardsContainer) {
+            console.error("[Render Stats] Chybí klíčové UI elementy pro zobrazení hodnot statistik (např. overall-progress-value). Zkontrolujte ID v HTML.");
+            if (ui.statsCardsContainer) { // If container exists, show error in it.
                 ui.statsCardsContainer.innerHTML = '<p class="error-message card">Chyba: UI elementy pro statistiky nebyly nalezeny.</p>';
             }
             return;
@@ -800,7 +807,6 @@
 
         if (!stats) {
             console.warn("[UI Update Stats] Chybí data statistik, zobrazuji placeholder.");
-            // Clear existing cards or show placeholders
             ui.overallProgressValue.textContent = 'N/A';
             if (ui.overallProgressFooter) ui.overallProgressFooter.textContent = 'Data nedostupná';
             ui.totalPointsValue.textContent = 'N/A';
@@ -823,9 +829,8 @@
         }
 
         ui.totalPointsValue.innerHTML = `${stats.points ?? 0} <span id="latest-credit-change" class="latest-credit-change-span"></span>`;
-        // Get latestCreditSpan *after* setting innerHTML
         const latestCreditSpan = document.getElementById('latest-credit-change');
-        if (latestCreditSpan) { // Check if element was found
+        if (latestCreditSpan) {
             const latestTx = fetchAndDisplayLatestCreditChange.latestTxData;
             if (latestTx) {
                 const amount = latestTx.amount;
@@ -871,6 +876,8 @@
                 const errString = JSON.stringify(error);
                 if (error.code === '42883' || errString.includes('function get_user_topic_progress_summary(p_user_id => uuid) does not exist') || errString.includes('structure of query does not match function result type') ) {
                     errorMessage = 'Chyba: Funkce pro načtení pokroku v tématech (get_user_topic_progress_summary) má nesprávnou definici nebo neexistuje na serveru. Zkontrolujte SQL definici funkce a její návratové typy.';
+                } else if (error.code === 'PGRST200' && error.message.includes('failed to parse response value') && error.details?.includes('structure of query does not match function result type')){ // More specific check for Supabase JS v2 errors
+                    errorMessage = 'Chyba: Struktura dotazu neodpovídá výslednému typu SQL funkce (get_user_topic_progress_summary). Zkontrolujte názvy a typy sloupců v `RETURNS TABLE` a ve finálním `SELECT` vaší SQL funkce.';
                 }
                 throw new Error(errorMessage);
             }
@@ -904,6 +911,7 @@
             let progressColor = 'var(--accent-primary)';
             if (progress >= 75) progressColor = 'var(--accent-lime)';
             else if (progress < 40) progressColor = 'var(--accent-pink)';
+            // Ensure topic_icon and topic_name are used as per corrected SQL function
             row.innerHTML = `
                 <td><i class="fas ${topic.topic_icon || 'fa-question-circle'}" style="margin-right: 0.7em; color: ${progressColor};"></i>${sanitizeHTML(topic.topic_name)}</td>
                 <td>
@@ -1391,18 +1399,17 @@
 
 })();
 // --- Developer Edit Log ---
-// Goal: Fix ReferenceError: userStatsData is not defined and improve UI element checks.
+// Goal: Fix database column error in `fetchUserProfile`.
 // Stage:
-// 1. `userStatsData` Handling:
-//    - Moved `userStatsData` variable to be initialized as `null` in the IIFE scope.
-//    - `initializeApp` now explicitly calls `fetchUserStats` after `state.currentProfile` is loaded and assigns the result to the IIFE-scoped `userStatsData`.
-//    - `loadDashboardStats` now directly uses this `userStatsData`. If `userStatsData` is somehow null (e.g., initial fetch failed), it will attempt to re-fetch or use `state.currentProfile` as a fallback.
-//    - `fetchUserStats` was refined to better merge data from `user_stats` and `profiles`, providing a more complete stats object and clearer fallbacks. It also ensures it returns a consistent object structure even on errors.
-// 2. `renderStatsCards` Robustness:
-//    - Added explicit checks at the beginning of `renderStatsCards` to ensure all required `ui` elements for displaying stats (like `ui.overallProgressValue`, `ui.totalPointsValue`, etc.) are actually found. If not, it logs an error and exits early.
-//    - Ensured `document.getElementById('latest-credit-change')` is called *after* `ui.totalPointsValue.innerHTML` has been set, as 'latest-credit-change' is a span created within that innerHTML.
-// 3. SQL Function Mismatch:
-//    - The previous instructions for correcting the SQL function `get_user_topic_progress_summary` (aliasing `calculated_topic_icon` to `topic_icon`) remain crucial and must be performed in the Supabase SQL editor. The JS code was updated to reflect this expectation and provide a more specific error message if the RPC call fails due to this mismatch.
+// 1. Identified that `fetchUserProfile` was still trying to select `overall_progress_percentage`, `points`, `streak_days`, `completed_exercises`, and `completed_tests_count` from the `profiles` table.
+// 2. According to `настройка таблиц.txt`:
+//    - `overall_progress_percentage` is in `user_stats`.
+//    - `points` (as `credits`), `streak_days`, `longest_streak_days`, `completed_exercises_count`, `completed_tests_count` ARE in `profiles`.
+// 3. Corrected the `select` statement in `fetchUserProfile` to only include columns that genuinely exist in the `profiles` table.
+//    - Explicitly listed all columns from `profiles` that are needed, instead of relying solely on `*` plus extras, to avoid accidentally selecting non-existent columns.
+//    - The problematic `overall_progress_percentage` was removed from this specific fetch.
+// 4. Ensured that `fetchUserStats` is responsible for fetching `overall_progress_percentage` from `user_stats` and correctly merging it with data from `state.currentProfile` to form `userStatsData`.
+// 5. Ensured `renderStatsCards` correctly uses the fields from the combined `userStatsData`.
 // ---
 // List of all functions in this file:
 // formatDateForDisplay, getTodayDateString, dateToYYYYMMDD, addDaysToDate, formatDate, showToast,
