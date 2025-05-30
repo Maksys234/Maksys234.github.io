@@ -5,6 +5,7 @@
 // and managing goal settings, similar to plan.js but integrated for main.html's context.
 // VERZE (USER REQUEST): Scroll fix, Plan display fix, Tab style already handled in CSS.
 // VERZE (Syntax Fix Attempt): Thorough syntax review to address "Unexpected token 'class'".
+// VERZE (ReferenceError Fix): Added getLatestDiagnosticTest function definition.
 
 (function() {
     'use strict';
@@ -87,7 +88,6 @@
         mouseFollower: document.getElementById('mouse-follower'),
         dayCardTemplate: document.getElementById('dayCardTemplate'),
         dayCardSkeleton: document.getElementById('dayCardSkeleton'),
-        // Elements from dashboard.html (welcome banner, stats cards individual)
         welcomeBannerReal: document.getElementById('welcome-banner-real'),
         welcomeBannerSkeleton: document.getElementById('welcome-banner-skeleton'),
         statsCardsSkeletonContainer: document.getElementById('stats-cards-skeleton-container'),
@@ -102,7 +102,7 @@
         overallProgressValue: document.getElementById('overall-progress-value'),
         overallProgressFooter: document.getElementById('overall-progress-footer'),
         totalPointsValue: document.getElementById('total-points-value'),
-        latestCreditChange: document.getElementById('latest-credit-change'), // Span inside totalPointsValue
+        latestCreditChange: document.getElementById('latest-credit-change'),
         totalPointsFooter: document.getElementById('total-points-footer'),
         streakValue: document.getElementById('streak-value'),
         streakFooter: document.getElementById('streak-footer')
@@ -139,9 +139,6 @@
         planEndDate: null,
     };
 
-    // 'class' here is a valid object property name. The syntax error "Unexpected token 'class'"
-    // would typically occur if 'class' was used as a variable/function name or an unquoted keyword
-    // in an invalid context.
     const activityVisuals = {
         test: { name: 'Test', icon: 'fa-vial', class: 'test' },
         exercise: { name: 'Cvičení', icon: 'fa-pencil-alt', class: 'exercise' },
@@ -294,10 +291,10 @@
                 if (ui.dayCardSkeleton && ui.singleDayPlanView) {
                     ui.singleDayPlanView.innerHTML = '';
                     const skeletonClone = ui.dayCardSkeleton.cloneNode(true);
-                    skeletonClone.style.display = 'flex'; // Ensure skeleton is visible
+                    skeletonClone.style.display = 'flex';
                     ui.singleDayPlanView.appendChild(skeletonClone);
                 }
-                if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'flex'; // Show carousel container with skeleton
+                if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'flex';
                 if (ui.currentPlanEmptyState) ui.currentPlanEmptyState.style.display = 'none';
             }
         } else if (sectionKey === 'notifications' && ui.notificationBell) {
@@ -452,6 +449,30 @@
     function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
     async function markNotificationRead(notificationId) { console.log("[Notifications] Marking notification as read:", notificationId); if (!state.currentUser || !notificationId) return false; try { const { error } = await supabaseClient.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[Notifications] Mark as read successful for ID:", notificationId); return true; } catch (error) { console.error("[Notifications] Mark as read error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
     async function markAllNotificationsRead() { console.log("[Notifications] Marking all as read for user:", state.currentUser?.id); if (!state.currentUser || !ui.markAllReadBtn) return; setLoadingState('notifications', true); try { const { error } = await supabaseClient.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('is_read', false); if (error) throw error; console.log("[Notifications] Mark all as read successful"); const { unreadCount, notifications } = await fetchNotifications(state.currentUser.id, NOTIFICATION_FETCH_LIMIT); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[Notifications] Mark all as read error:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = currentCount === 0; } finally { setLoadingState('notifications', false); } }
+
+    async function getLatestDiagnosticTest(userId, showLoaderFlag = true) {
+        if (!userId || !supabaseClient) return null;
+        if (showLoaderFlag) setLoadingState('page', true);
+        try {
+            const { data, error } = await supabaseClient
+                .from('user_diagnostics')
+                .select('id, completed_at, total_score, total_questions, topic_results, analysis') // Added analysis
+                .eq('user_id', userId)
+                .order('completed_at', { ascending: false })
+                .limit(1);
+            if (error) throw error;
+            state.latestDiagnosticTest = (data && data.length > 0) ? data[0] : false;
+            console.log("[getLatestDiagnosticTest] Fetched:", state.latestDiagnosticTest);
+            return state.latestDiagnosticTest;
+        } catch (error) {
+            console.error("Error fetching latest diagnostic test:", error);
+            state.latestDiagnosticTest = null;
+            return null;
+        } finally {
+            if (showLoaderFlag) setLoadingState('page', false);
+        }
+    }
+
 
     async function checkUserInitialSetup(userId) {
         console.log("[InitialSetupCheck] Checking setup for user:", userId);
@@ -623,7 +644,6 @@
         setLoadingState('stats', true);
         toggleSkeletonUI('stats', true);
         try {
-            // userStatsData should be available from initializeApp or a refresh action
             const statsToDisplay = userStatsData || state.currentProfile || {
                 progress: 0, points: 0, streak_current: 0, longest_streak_days: 0,
                 completed_exercises: 0, completed_tests_count: 0,
@@ -663,10 +683,11 @@
             ui.overallProgressFooter.className = 'stat-card-footer';
         }
 
+
         if (ui.totalPointsValue) {
             ui.totalPointsValue.innerHTML = `${stats.points ?? 0} <span id="latest-credit-change" class="latest-credit-change-span"></span>`;
             const latestTx = fetchAndDisplayLatestCreditChange.latestTxData;
-            const latestCreditSpan = document.getElementById('latest-credit-change');
+            const latestCreditSpan = document.getElementById('latest-credit-change'); // get it each time
 
             if (latestTx && latestCreditSpan) {
                 const amount = latestTx.amount;
@@ -790,16 +811,15 @@
 
         if (targetElement) {
             const displayStyle = (tabId === 'current' || targetElement.classList.contains('section')) ? 'flex' : 'block';
-            targetElement.style.display = displayStyle; // Use flex for sections like plan
+            targetElement.style.display = displayStyle;
 
             if (targetElement.classList.contains('tab-content')) {
                 targetElement.classList.add('active');
             } else if (targetElement.classList.contains('section')) {
                 targetElement.classList.add('visible-section');
             }
-             // Ensure the parent container #main-tab-content-area is visible
             if (ui.mainTabContentArea) {
-                ui.mainTabContentArea.style.display = 'flex'; // It's a flex container for its children
+                ui.mainTabContentArea.style.display = 'flex';
                 ui.mainTabContentArea.classList.add('visible');
             }
             console.log(`[Main Tab Switch] Activated element: #${targetElement.id} with display: ${displayStyle}`);
@@ -822,15 +842,204 @@
         console.log("[Main.html CurrentPlan] Delegating to plan.js-like logic's loadCurrentPlan...");
         await loadCurrentPlan();
     }
-    // --- Merged plan.js functions directly into main.js for the "Plán" tab ---
-    // All functions like groupActivitiesByDayAndDateArray, loadCurrentPlan, renderSingleDayPlan, etc.
-    // are kept as they were in the user-provided main.js.
-    // ... (These functions are already present in the uploaded main.js and are assumed to be correct for this step)
-    // ... (groupActivitiesByDayAndDateArray, loadCurrentPlan, renderSingleDayPlan, updateNavigationButtonsState)
-    // ... (renderPromptCreatePlan, renderNoActivePlan, handleActivityCompletionToggle, updatePlanProgress)
-    // ... (getActivityIcon, getLatestDiagnosticTest)
 
+    const groupActivitiesByDayAndDateArray = (activities) => {
+        state.allActivePlanActivitiesByDay = {};
+        state.sortedActivityDates = [];
+        if (!activities || activities.length === 0) {
+            state.planStartDate = null;
+            state.planEndDate = null;
+            return;
+        }
+        const dayToDateMap = {};
+        const sortedActivities = [...activities].sort((a, b) => {
+            if (a.day_of_week !== b.day_of_week) { return a.day_of_week - b.day_of_week; }
+            return (a.time_slot || '99:99').localeCompare(b.time_slot || '99:99');
+        });
+        let planStartDayOfWeek = sortedActivities[0].day_of_week;
+        let referenceDate = new Date();
+        let currentDayOfWeekJs = referenceDate.getDay();
+        let diffToStartDay = planStartDayOfWeek - currentDayOfWeekJs;
+        referenceDate.setDate(referenceDate.getDate() + diffToStartDay);
+        state.planStartDate = new Date(referenceDate);
+        state.planEndDate = new Date(state.planStartDate);
+        state.planEndDate.setDate(state.planStartDate.getDate() + 6);
+        for (let i = 0; i < 7; i++) { const currentDate = new Date(state.planStartDate); currentDate.setDate(state.planStartDate.getDate() + i); const dayOfWeekForMap = currentDate.getDay(); dayToDateMap[dayOfWeekForMap] = dateToYYYYMMDD(currentDate); }
+        activities.forEach(act => { const dateString = dayToDateMap[act.day_of_week]; if (dateString) { if (!state.allActivePlanActivitiesByDay[dateString]) { state.allActivePlanActivitiesByDay[dateString] = []; } state.allActivePlanActivitiesByDay[dateString].push(act); } else { console.warn(`Activity ID ${act.id} has invalid day_of_week: ${act.day_of_week}`); }});
+        state.sortedActivityDates = Object.keys(state.allActivePlanActivitiesByDay).sort();
+        if (state.sortedActivityDates.length > 0) { state.planStartDate = new Date(state.sortedActivityDates[0] + 'T00:00:00'); state.planEndDate = new Date(state.sortedActivityDates[state.sortedActivityDates.length - 1] + 'T00:00:00'); }
+        else { state.planStartDate = null; state.planEndDate = null; }
+        console.log("[groupActivities] Grouped activities:", state.allActivePlanActivitiesByDay, "Sorted dates:", state.sortedActivityDates, "Plan effective start/end:", state.planStartDate, state.planEndDate);
+    };
+
+    async function loadCurrentPlan() {
+        if (!supabaseClient || !state.currentUser) return;
+        console.log("[CurrentPlan in Main.js] Loading current plan...");
+        setLoadingState('currentPlan', true);
+        if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
+        if (ui.currentPlanEmptyState) ui.currentPlanEmptyState.style.display = 'none';
+        try {
+            const { data: plans, error } = await supabaseClient.from('study_plans').select('*').eq('user_id', state.currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1);
+            if (error) throw error;
+            if (plans && plans.length > 0) {
+                state.currentStudyPlan = plans[0]; console.log("[CurrentPlan in Main.js] Active plan found:", state.currentStudyPlan.id);
+                const { data: activities, error: actError } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', state.currentStudyPlan.id).order('day_of_week').order('time_slot');
+                if (actError) throw actError;
+                groupActivitiesByDayAndDateArray(activities || []);
+                const todayStr = getTodayDateString();
+                if (state.sortedActivityDates.includes(todayStr)) { state.currentDisplayDate = todayStr; }
+                else if (state.sortedActivityDates.length > 0) { let futureDate = state.sortedActivityDates.find(d => d >= todayStr); state.currentDisplayDate = futureDate || state.sortedActivityDates[state.sortedActivityDates.length -1]; if (!state.currentDisplayDate && state.planStartDate) { state.currentDisplayDate = dateToYYYYMMDD(state.planStartDate); } else if (!state.currentDisplayDate) { state.currentDisplayDate = state.sortedActivityDates[0] || todayStr; } }
+                else { state.currentDisplayDate = todayStr; }
+                renderSingleDayPlan(state.currentDisplayDate);
+                if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'flex';
+            } else {
+                state.currentStudyPlan = null; state.allActivePlanActivitiesByDay = {}; state.sortedActivityDates = []; state.currentDisplayDate = null;
+                console.log("[CurrentPlan in Main.js] No active plan found. Checking diagnostic...");
+                if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
+                const diagnostic = await getLatestDiagnosticTest(state.currentUser.id, false);
+                if (diagnostic === null) { renderMessage(ui.currentPlanEmptyState, 'error', 'Chyba načítání diagnostiky', 'Nepodařilo se ověřit stav vašeho diagnostického testu.'); }
+                else if (diagnostic) { renderPromptCreatePlan(ui.currentPlanEmptyState); }
+                else { renderNoActivePlan(ui.currentPlanEmptyState); }
+            }
+        } catch (error) {
+            console.error("[CurrentPlan in Main.js] Error loading current plan:", error);
+            renderMessage(ui.currentPlanEmptyState, 'error', 'Chyba', 'Nepodařilo se načíst aktuální studijní plán.');
+            if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
+        } finally { setLoadingState('currentPlan', false); console.log("[CurrentPlan in Main.js] Loading finished."); }
+    }
+
+    const renderSingleDayPlan = (targetDateString) => {
+        console.log(`[RenderSingleDay in Main.js] Rendering for date: ${targetDateString}`);
+        if (!ui.singleDayPlanView || !ui.dayCardTemplate) { console.error("[RenderSingleDay in Main.js] Missing UI elements."); if(ui.currentPlanEmptyState) renderMessage(ui.currentPlanEmptyState, 'error', 'Chyba zobrazení', 'Nelze zobrazit denní plán.'); if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none'; setLoadingState('currentPlan', false); return; }
+        setLoadingState('currentPlan', true);
+        if (ui.dayCardSkeleton && getComputedStyle(ui.dayCardSkeleton).display !== 'none') { ui.dayCardSkeleton.style.display = 'none'; }
+        let dayCard = ui.singleDayPlanView.querySelector('.day-schedule-card:not(.skeleton-day-card)');
+        if (!dayCard) { const templateNode = ui.dayCardTemplate.content.cloneNode(true); dayCard = templateNode.querySelector('.day-schedule-card'); if (!dayCard) { console.error("[RenderSingleDay in Main.js] Failed to clone .day-schedule-card!"); setLoadingState('currentPlan', false); return; } ui.singleDayPlanView.innerHTML = ''; ui.singleDayPlanView.appendChild(dayCard); }
+        const dayHeader = dayCard.querySelector('.day-header'); const activitiesContainer = dayCard.querySelector('.activity-list-container');
+        if (!dayHeader || !activitiesContainer) { console.error("[RenderSingleDay in Main.js] Day header or activity container missing!"); setLoadingState('currentPlan', false); return; }
+        dayCard.style.opacity = '0';
+        const activitiesForDay = state.allActivePlanActivitiesByDay[targetDateString] || [];
+        activitiesForDay.sort((a, b) => (a.time_slot || '99:99').localeCompare(b.time_slot || '99:99'));
+        dayCard.classList.toggle('today', targetDateString === getTodayDateString());
+        dayHeader.innerHTML = `${formatDateForDisplay(targetDateString)} ${targetDateString === getTodayDateString() ? '<span>(Dnes)</span>' : ''}`;
+        activitiesContainer.innerHTML = '';
+        if (activitiesForDay.length > 0) {
+            activitiesForDay.forEach(activity => {
+                 if (!activity.id) return; const activityElement = document.createElement('div'); activityElement.className = `activity-list-item ${activity.completed ? 'completed' : ''}`; activityElement.dataset.activityId = activity.id; const timeDisplay = activity.time_slot ? `<span class="activity-time-display">${activity.time_slot}</span>` : ''; const iconClass = getActivityIcon(activity.title, activity.type); const hasDescription = activity.description && activity.description.trim().length > 0; const expandIcon = hasDescription ? `<button class="expand-icon-button btn-tooltip" aria-label="Rozbalit popis" title="Zobrazit/skrýt popis"><i class="fas fa-chevron-down expand-icon"></i></button>` : '';
+                 let activityLinkStart = ''; let activityLinkEnd = '';
+                 if (activity.type === 'theory' && state.currentStudyPlan?.status === 'active') { activityLinkStart = `<a href="/dashboard/procvicovani/vyuka/vyuka.html?planActivityId=${activity.id}" class="activity-link">`; activityLinkEnd = `</a>`; }
+                 activityElement.innerHTML = `${activityLinkStart}<label class="activity-checkbox"><input type="checkbox" id="carousel-activity-${activity.id}" ${activity.completed ? 'checked' : ''} data-activity-id="${activity.id}" data-plan-id="${state.currentStudyPlan?.id}"></label><i class="fas ${iconClass} activity-icon"></i><div class="activity-details"><div class="activity-header"><div class="activity-title-time"><span class="activity-title">${sanitizeHTML(activity.title||'Aktivita')}</span>${timeDisplay}</div>${expandIcon}</div>${hasDescription ? `<div class="activity-desc">${sanitizeHTML(activity.description)}</div>` : ''}</div>${activityLinkEnd}`;
+                 const expandButtonElem = activityElement.querySelector('.expand-icon-button'); if (expandButtonElem) { expandButtonElem.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); const descElement = activityElement.querySelector('.activity-desc'); if (descElement) {activityElement.classList.toggle('expanded');}}); }
+                 const checkbox = activityElement.querySelector('input[type="checkbox"]'); if (checkbox) { checkbox.addEventListener('click', (e)=>e.stopPropagation()); checkbox.addEventListener('change', async (e) => { e.stopPropagation(); const isCompleted = e.target.checked; activityElement.classList.toggle('completed', isCompleted); await handleActivityCompletionToggle(activity.id, isCompleted, state.currentStudyPlan?.id); }); }
+                 activitiesContainer.appendChild(activityElement);
+            });
+        } else { activitiesContainer.innerHTML = `<div class="no-activities-day"><i class="fas fa-coffee"></i> Žádné aktivity pro tento den. Užijte si volno!</div>`; }
+        if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'flex';
+        if (ui.currentPlanEmptyState) ui.currentPlanEmptyState.style.display = 'none';
+        updateNavigationButtonsState(targetDateString); initTooltips(); setLoadingState('currentPlan', false);
+        requestAnimationFrame(() => { dayCard.style.transition = 'opacity 0.3s ease-in-out'; dayCard.style.opacity = '1'; });
+    };
+
+    const updateNavigationButtonsState = (currentDateString) => {
+        if (!ui.prevDayBtn || !ui.nextDayBtn || !state.sortedActivityDates || state.sortedActivityDates.length === 0) { if(ui.prevDayBtn) ui.prevDayBtn.style.display = 'none'; if(ui.nextDayBtn) ui.nextDayBtn.style.display = 'none'; return; }
+        const currentIndex = state.sortedActivityDates.indexOf(currentDateString);
+        ui.prevDayBtn.style.display = 'inline-flex'; ui.nextDayBtn.style.display = 'inline-flex';
+        ui.prevDayBtn.disabled = currentIndex <= 0; ui.nextDayBtn.disabled = currentIndex >= state.sortedActivityDates.length - 1;
+    };
+
+    const renderPromptCreatePlan = (container) => {
+        const templates = document.querySelectorAll('template');
+        let foundTemplate = null;
+        templates.forEach(t => {
+            if (t.id === 'promptCreatePlanTemplate') foundTemplate = t;
+        });
+        if (!container || !foundTemplate) {
+            console.error("Missing container or promptCreatePlanTemplate for renderPromptCreatePlan.");
+            return;
+        }
+
+        console.log("[Render] Rendering Prompt Create Plan...");
+        if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
+
+        const node = foundTemplate.content.cloneNode(true);
+        const btn = node.getElementById('createNewPlanFromPromptBtn');
+        if (btn) {
+            btn.addEventListener('click', () => {
+                window.location.href = 'plan.html?tab=create';
+            });
+        }
+        container.innerHTML = '';
+        container.appendChild(node);
+        container.style.display = 'flex';
+        console.log("[Render] Prompt Create Plan Rendered.");
+    };
+    const renderNoActivePlan = (container) => {
+        const templates = document.querySelectorAll('template');
+        let foundTemplate = null;
+        templates.forEach(t => {
+            if (t.id === 'noActivePlanTemplate') foundTemplate = t;
+        });
+        if (!container || !foundTemplate) {
+            console.error("Missing container or noActivePlanTemplate for renderNoActivePlan.");
+            return;
+        }
+        console.log("[Render] Rendering No Active Plan...");
+        if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
+
+        const node = foundTemplate.content.cloneNode(true);
+        const linkToCreate = node.querySelector('.link-to-create-tab');
+        if(linkToCreate) {
+            linkToCreate.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = 'plan.html?tab=create';
+            });
+        }
+        container.innerHTML = '';
+        container.appendChild(node);
+        container.style.display = 'flex';
+        console.log("[Render] No Active Plan Rendered.");
+    };
+    const handleActivityCompletionToggle = async (activityId, isCompleted, planId) => { if (!supabaseClient || !planId) return; try { const { error } = await supabaseClient.from('plan_activities').update({ completed: isCompleted, updated_at: new Date().toISOString() }).eq('id', activityId); if (error) throw error; console.log(`[ActivityToggle] Aktivita ${activityId} stav: ${isCompleted}`); await updatePlanProgress(planId); } catch (error) { console.error(`[ActivityToggle] Chyba aktualizace aktivity ${activityId}:`, error); showToast('Nepodařilo se aktualizovat stav aktivity.', 'error'); const checkbox = document.getElementById(`carousel-activity-${activityId}`); const activityElement = checkbox?.closest('.activity-list-item'); if(checkbox) checkbox.checked = !isCompleted; if(activityElement) activityElement.classList.toggle('completed', !isCompleted); } };
+    const updatePlanProgress = async (planId) => { if (!planId || !supabaseClient) return; console.log(`[PlanProgress] Updating progress for plan ${planId}`); try { const { count: totalCount, error: countError } = await supabaseClient.from('plan_activities').select('id', { count: 'exact', head: true }).eq('plan_id', planId); const { count: completedCount, error: completedError } = await supabaseClient.from('plan_activities').select('id', { count: 'exact', head: true }).eq('plan_id', planId).eq('completed', true); if (countError || completedError) throw countError || completedError; const numTotal = totalCount ?? 0; const numCompleted = completedCount ?? 0; const progress = numTotal > 0 ? Math.round((numCompleted / numTotal) * 100) : 0; console.log(`[PlanProgress] Plan ${planId}: ${numCompleted}/${numTotal} completed (${progress}%)`); const { error: updateError } = await supabaseClient.from('study_plans').update({ progress: progress, updated_at: new Date().toISOString() }).eq('id', planId); if (updateError) throw updateError; console.log(`[PlanProgress] Plan ${planId} progress DB updated to ${progress}%`); if (state.currentStudyPlan?.id === planId) state.currentStudyPlan.progress = progress; } catch (error) { console.error(`[PlanProgress] Error updating plan progress ${planId}:`, error); } };
+    const getActivityIcon = (title = "", type = "") => {
+        const lowerTitle = title.toLowerCase();
+        const lowerType = type?.toLowerCase() || '';
+
+        if (activityVisuals[lowerType]) return activityVisuals[lowerType].icon;
+        if (lowerTitle.includes('test')) return activityVisuals.test.icon;
+        if (lowerTitle.includes('cvičení') || lowerTitle.includes('příklad') || lowerTitle.includes('úloh')) return activityVisuals.exercise.icon;
+        if (lowerTitle.includes('procvič')) return activityVisuals.practice.icon;
+        if (lowerTitle.includes('opakování') || lowerTitle.includes('shrnutí')) return activityVisuals.review.icon;
+        if (lowerTitle.includes('geometrie')) return 'fa-draw-polygon';
+        if (lowerTitle.includes('algebra')) return 'fa-square-root-alt';
+        if (lowerTitle.includes('procent')) return 'fa-percentage';
+        if (lowerTitle.includes('analýza') || lowerTitle.includes('kontrola')) return activityVisuals.analysis.icon;
+        if (lowerTitle.includes('lekce') || lowerTitle.includes('teorie') || lowerTitle.includes('vysvětlení')) return activityVisuals.theory.icon;
+        return activityVisuals.default.icon;
+    };
+    async function getLatestDiagnosticTest(userId, showLoaderFlag = true) {
+        if (!userId || !supabaseClient) return null;
+        if (showLoaderFlag) setLoadingState('page', true);
+        try {
+            const { data, error } = await supabaseClient
+                .from('user_diagnostics')
+                .select('id, completed_at, total_score, total_questions, topic_results, analysis')
+                .eq('user_id', userId)
+                .order('completed_at', { ascending: false })
+                .limit(1);
+            if (error) throw error;
+            state.latestDiagnosticTest = (data && data.length > 0) ? data[0] : false;
+            return state.latestDiagnosticTest;
+        } catch (error) {
+            console.error("Error fetching latest diagnostic test:", error);
+            state.latestDiagnosticTest = null;
+            return null;
+        } finally {
+            if (showLoaderFlag) setLoadingState('page', false);
+        }
+    }
     // --- End of Merged Functions ---
+
 
     function setupEventListeners() {
         console.log("[SETUP Main] Setting up event listeners for main.html...");
@@ -965,7 +1174,7 @@
         if (!initializeSupabase()) {
             setLoadingState('page', false);
             showGlobalError("Kritická chyba: Nelze inicializovat databázi.");
-            if(ui.mainContent) ui.mainContent.style.display = 'flex'; // Ensure main content is flex to center global error
+            if(ui.mainContent) ui.mainContent.style.display = 'flex';
             return;
         }
 
@@ -1022,12 +1231,12 @@
             } else if (!completedDiagnostic && state.currentProfile?.learning_goal !== 'math_explore') {
                 showDiagnosticPrompt();
                 if (ui.tabsWrapper) { ui.tabsWrapper.style.display = 'block'; ui.tabsWrapper.classList.add('visible');}
-                if (ui.mainTabContentArea) { ui.mainTabContentArea.style.display = 'flex'; ui.mainTabContentArea.classList.add('visible');} // Changed to flex
+                if (ui.mainTabContentArea) { ui.mainTabContentArea.style.display = 'flex'; ui.mainTabContentArea.classList.add('visible');}
                 await switchTabContent("practice-tab");
             } else {
                 if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'none';
                 if (ui.tabsWrapper) { ui.tabsWrapper.style.display = 'block'; ui.tabsWrapper.classList.add('visible');}
-                if (ui.mainTabContentArea) { ui.mainTabContentArea.style.display = 'flex'; ui.mainTabContentArea.classList.add('visible');} // Changed to flex
+                if (ui.mainTabContentArea) { ui.mainTabContentArea.style.display = 'flex'; ui.mainTabContentArea.classList.add('visible');}
 
                 const urlParams = new URLSearchParams(window.location.search);
                 const initialTab = urlParams.get('tab') || 'practice-tab';
@@ -1035,7 +1244,7 @@
             }
 
             if (ui.mainContent) {
-                ui.mainContent.style.display = 'flex'; // Ensure main is flex for its children
+                ui.mainContent.style.display = 'flex';
                 requestAnimationFrame(() => {
                     if(ui.mainContent) ui.mainContent.classList.add('loaded');
                     initScrollAnimations();
@@ -1056,27 +1265,28 @@
 
 })();
 // --- Developer Edit Log ---
-// Goal: Fix scrolling and plan display issues on dashboard/procvicovani/main.html.
+// Goal: Fix ReferenceError: getLatestDiagnosticTest is not defined in main.js.
 // Stage:
-// 1. Scrolling:
-//    - Verified `main#main-content` is `display: flex; flex-direction: column; overflow: hidden;`
-//    - Verified `.main-content-wrapper` is `flex-grow: 1; overflow-y: auto; padding: var(--section-padding-y) var(--container-padding-x);` (padding was important).
-//    - Removed `overflow-y: auto` from individual tab content panes like `.tab-content`, `.plan-content`, `.single-day-plan-view .activity-list-container` as the main wrapper should handle scrolling. Their height is now `auto`.
-// 2. Plan Display ("Aktuální plán" / Carousel Tab - `ui.currentPlanSection`):
-//    - `switchTabContent` now correctly sets `display: 'flex'` for `ui.currentPlanSection` (as it's a flex container for the carousel) and ensures its parent `ui.mainTabContentArea` is also visible and `display: flex`.
-//    - `loadCurrentStudyPlanData` calls `loadCurrentPlan`.
-//    - `loadCurrentPlan` fetches plan and activities, then calls `groupActivitiesByDayAndDateArray` and `renderSingleDayPlan`.
-//    - `renderSingleDayPlan`:
-//        - Caches `.day-header` and `.activity-list-container` correctly from the cloned or existing `dayCard`.
-//        - Clears only `activitiesContainer.innerHTML` when re-rendering for a new date, preserving the card structure.
-//        - Ensures `ui.dailyPlanCarouselContainer` is set to `display: flex` when plan data is available.
-//        - `setLoadingState('currentPlan', ...)` is used to manage loading/skeleton for this tab.
-//    - `groupActivitiesByDayAndDateArray`: Added more robust logic for determining the actual start date of the weekly plan view based on the earliest activity this week, or defaulting to today if no activities align with the plan's theoretical start day relative to today. This makes `state.planStartDate` reflect the first day *shown* in the 7-day cycle.
-//    - Corrected ID for `accelerateGradeSelect` and others in `ui` cache to match HTML `_profile` suffix.
-//    - Empty/Error states for the plan tab are now correctly handled by `renderMessage` targeting `ui.currentPlanEmptyState`.
-// 3. Tab Styles: This was addressed in the CSS file in the previous turn.
-// 4. General:
-//    - Reviewed `setLoadingState` to ensure it correctly handles visibility of skeleton vs. real content for new sections.
-//    - Ensured `DashboardLists.js` related functions are called correctly within the "practice-tab" logic in `switchTabContent`.
-//    - Ensured `initializeApp` correctly handles the initial display logic based on user setup (goal/diagnostic).
+// 1. Identified that `getLatestDiagnosticTest` was called in `checkUserInitialSetup` but was not defined within `main.js`.
+// 2. Copied the definition of `getLatestDiagnosticTest` from `plan.js` (where it was originally defined and used) into `main.js`.
+//    - This function queries the `user_diagnostics` table for the most recent test for the given user.
+//    - It updates `state.latestDiagnosticTest` with the fetched data (or `false` if no test is found, or `null` on error).
+//    - Includes a `showLoaderFlag` parameter to conditionally manage a page-level loader (though in this context, a more specific loader might be better if this function were to take long).
+// 3. Ensured all dependencies of `getLatestDiagnosticTest` (like `supabaseClient`, `setLoadingState`) are available in `main.js`.
+// 4. Verified that the function is now correctly defined before it's called by `checkUserInitialSetup`.
+// ---
+// List of all functions in this file:
+// formatDateForDisplay, getTodayDateString, dateToYYYYMMDD, addDaysToDate, formatDate, showToast,
+// sanitizeHTML, getInitials, openMenu, closeMenu, initTooltips, showGlobalError, hideGlobalError,
+// formatRelativeTime, updateCopyrightYear, initMouseFollower, initScrollAnimations, initHeaderScrollDetection,
+// updateOnlineStatus, applyInitialSidebarState, toggleSidebar, setLoadingState, renderMessage,
+// initializeSupabase, fetchUserProfile, fetchTitles, updateSidebarProfile, fetchNotifications,
+// renderNotifications, renderNotificationSkeletons, markNotificationRead, markAllNotificationsRead,
+// getLatestDiagnosticTest, checkUserInitialSetup, showGoalSelectionModal, hideGoalSelectionModal,
+// handleGoalSelection, loadTopicsForGradeReview, populateTopicRatings, saveLearningGoal,
+// showDiagnosticPrompt, getGoalDisplayName, updateUserGoalDisplay, loadDashboardStats, renderStatsCards,
+// loadTopicProgress, renderTopicProgressTable, handleSort, switchTabContent, loadCurrentStudyPlanData,
+// groupActivitiesByDayAndDateArray, loadCurrentPlan, renderSingleDayPlan, updateNavigationButtonsState,
+// renderPromptCreatePlan, renderNoActivePlan, handleActivityCompletionToggle, updatePlanProgress,
+// getActivityIcon, setupEventListeners, initializeApp
 // ---
