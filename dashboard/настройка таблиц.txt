@@ -1129,3 +1129,129 @@ BEGIN
     RETURN QUERY SELECT new_streak_days, new_longest_streak_days, new_last_login, log_message;
 END;
 $$;
+-- Tabulka pro konfiguraci jednotlivých měsíčních kalendářů odměn
+CREATE TABLE monthly_rewards_config (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    month_year_key TEXT NOT NULL UNIQUE, -- Klíč ve formátu "YYYY-MM", např. "2025-05"
+    month_display_name TEXT NOT NULL,    -- Zobrazovaný název, např. "Květen 2025", který můžeš sám zadat
+    is_active BOOLEAN DEFAULT FALSE,     -- Označuje, zda je tato konfigurace aktuálně aktivní
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+COMMENT ON COLUMN monthly_rewards_config.month_year_key IS 'Klíč měsíce a roku ve formátu YYYY-MM, např. 2025-05. Musí být unikátní.';
+COMMENT ON COLUMN monthly_rewards_config.month_display_name IS 'Uživatelsky přívětivý název měsíce, např. Květen 2025.';
+COMMENT ON COLUMN monthly_rewards_config.is_active IS 'Pokud TRUE, tento kalendář se použije pro zobrazení.';
+
+-- Tabulka pro definici odměn pro jednotlivé dny v měsíčním kalendáři
+CREATE TABLE monthly_reward_days (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    config_id UUID NOT NULL REFERENCES monthly_rewards_config(id) ON DELETE CASCADE, -- Odkaz na konkrétní měsíční konfiguraci
+    day_number INT NOT NULL CHECK (day_number >= 1 AND day_number <= 31), -- Den v měsíci (1-31)
+    reward_type TEXT NOT NULL,                 -- Typ odměny: 'xp', 'credits', 'title', 'bundle', 'avatar_frame', 'item', atd.
+    reward_value INT,                          -- Hodnota pro xp, credits
+    reward_key TEXT,                           -- Klíč pro tituly, předměty (např. 'majovy_poutnik')
+    reward_name TEXT NOT NULL,                 -- Název odměny (např. 'Bonusové ZK', 'Májový Poutník')
+    reward_icon TEXT,                          -- Ikona pro odměnu (např. 'fas fa-star')
+    reward_description TEXT,                   -- Popis odměny pro daný den
+    created_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE (config_id, day_number)             -- Každý den v rámci jedné konfigurace může být jen jednou
+);
+
+COMMENT ON COLUMN monthly_reward_days.config_id IS 'Odkazuje na ID z tabulky monthly_rewards_config.';
+COMMENT ON COLUMN monthly_reward_days.day_number IS 'Číslo dne v měsíci (1 až 31).';
+COMMENT ON COLUMN monthly_reward_days.reward_type IS 'Typ odměny, např. xp, credits, title, bundle.';
+COMMENT ON COLUMN monthly_reward_days.reward_value IS 'Číselná hodnota odměny (pokud relevantní, např. počet XP nebo kreditů).';
+COMMENT ON COLUMN monthly_reward_days.reward_key IS 'Unikátní klíč odměny (pokud relevantní, např. pro titul).';
+COMMENT ON COLUMN monthly_reward_days.reward_name IS 'Zobrazovaný název odměny.';
+COMMENT ON COLUMN monthly_reward_days.reward_icon IS 'CSS třída ikony pro odměnu.';
+COMMENT ON COLUMN monthly_reward_days.reward_description IS 'Delší popis odměny pro daný den.';
+
+
+-- Tabulka pro položky v rámci odměny typu "bundle" (balíček více odměn)
+CREATE TABLE monthly_reward_bundle_items (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    reward_day_id UUID NOT NULL REFERENCES monthly_reward_days(id) ON DELETE CASCADE, -- Odkaz na den, který má odměnu typu "bundle"
+    item_reward_type TEXT NOT NULL,           -- Typ položky v balíčku: 'xp', 'credits', 'title', atd.
+    item_reward_value INT,                    -- Hodnota položky
+    item_reward_key TEXT,                     -- Klíč položky
+    item_reward_name TEXT NOT NULL,           -- Název položky
+    item_reward_icon TEXT,                    -- Ikona položky v balíčku
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+COMMENT ON COLUMN monthly_reward_bundle_items.reward_day_id IS 'Odkazuje na ID z tabulky monthly_reward_days, kde reward_type je bundle.';
+COMMENT ON COLUMN monthly_reward_bundle_items.item_reward_type IS 'Typ odměny v rámci balíčku.';
+COMMENT ON COLUMN monthly_reward_bundle_items.item_reward_value IS 'Hodnota odměny v rámci balíčku.';
+COMMENT ON COLUMN monthly_reward_bundle_items.item_reward_key IS 'Klíč odměny v rámci balíčku.';
+COMMENT ON COLUMN monthly_reward_bundle_items.item_reward_name IS 'Název odměny v rámci balíčku.';
+COMMENT ON COLUMN monthly_reward_bundle_items.item_reward_icon IS 'Ikona pro položku v balíčku.';
+
+
+-- Tabulka pro konfiguraci milníků studijní série
+CREATE TABLE streak_milestones_config (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    milestone_day INT NOT NULL UNIQUE CHECK (milestone_day > 0), -- Počet dní série pro dosažení milníku (např. 3, 7, 30)
+    milestone_name TEXT NOT NULL,               -- Název milníku (např. "Ohnivý Začátek")
+    milestone_description TEXT,                 -- Popis milníku
+    milestone_icon TEXT,                        -- Ikona pro milník (např. 'fas fa-fire-alt')
+    reward_key_internal TEXT UNIQUE,            -- Interní klíč pro programatické účely (např. 'streak_3_days')
+    is_active BOOLEAN DEFAULT TRUE,             -- Zda je milník aktivní
+    display_order INT DEFAULT 0,                -- Pro případné řazení v UI
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+COMMENT ON COLUMN streak_milestones_config.milestone_day IS 'Počet dní série potřebných k dosažení tohoto milníku.';
+COMMENT ON COLUMN streak_milestones_config.milestone_name IS 'Název milníku, např. Týdenní Vytrvalec.';
+COMMENT ON COLUMN streak_milestones_config.milestone_description IS 'Popis toho, co uživatel dosáhl.';
+COMMENT ON COLUMN streak_milestones_config.milestone_icon IS 'CSS třída ikony pro milník.';
+COMMENT ON COLUMN streak_milestones_config.reward_key_internal IS 'Unikátní interní klíč pro tento milník, např. streak_7_days.';
+COMMENT ON COLUMN streak_milestones_config.display_order IS 'Pořadí pro zobrazení, nižší čísla první.';
+
+
+-- Tabulka pro definici konkrétních odměn za jednotlivé milníky série
+CREATE TABLE streak_milestone_rewards (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    milestone_config_id UUID NOT NULL REFERENCES streak_milestones_config(id) ON DELETE CASCADE, -- Odkaz na konfiguraci milníku
+    reward_type TEXT NOT NULL,                  -- Typ odměny: 'xp', 'credits', 'title', 'avatar_frame', 'item', atd.
+    reward_value INT,                           -- Hodnota pro xp, credits
+    reward_key TEXT,                            -- Klíč pro tituly, předměty
+    reward_name TEXT NOT NULL,                  -- Název odměny (např. '+50 ZK', 'Titul: Železná Vůle')
+    reward_icon_item TEXT,                      -- Ikona pro samotnou položku odměny (např. 'fas fa-star')
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+COMMENT ON COLUMN streak_milestone_rewards.milestone_config_id IS 'Odkazuje na ID z tabulky streak_milestones_config.';
+COMMENT ON COLUMN streak_milestone_rewards.reward_type IS 'Typ odměny udělené za milník.';
+COMMENT ON COLUMN streak_milestone_rewards.reward_value IS 'Číselná hodnota odměny (pokud relevantní).';
+COMMENT ON COLUMN streak_milestone_rewards.reward_key IS 'Unikátní klíč odměny (pokud relevantní, např. pro titul).';
+COMMENT ON COLUMN streak_milestone_rewards.reward_name IS 'Zobrazovaný název odměny.';
+COMMENT ON COLUMN streak_milestone_rewards.reward_icon_item IS 'CSS třída ikony pro položku odměny.';
+
+-- Povolení RLS (Row Level Security) na tabulkách - DŮLEŽITÉ pro bezpečnost
+-- (Politiky si musíš nastavit sám podle toho, kdo má mít jaký přístup)
+ALTER TABLE monthly_rewards_config ENABLE ROW LEVEL SECURITY;
+ALTER TABLE monthly_reward_days ENABLE ROW LEVEL SECURITY;
+ALTER TABLE monthly_reward_bundle_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE streak_milestones_config ENABLE ROW LEVEL SECURITY;
+ALTER TABLE streak_milestone_rewards ENABLE ROW LEVEL SECURITY;
+
+-- Příklad politik (velmi základní, POUZE PRO ČTENÍ PRO VŠECHNY PŘIHLÁŠENÉ UŽIVATELE - uprav dle potřeby!)
+-- Pro produkci budeš potřebovat detailnější politiky, kdo může co číst a zapisovat.
+-- Tyto politiky umožní všem přihlášeným uživatelům číst konfigurační data.
+-- Pro zápis (administraci odměn) bys měl vytvořit specifické politiky pro administrátory
+-- nebo provádět zápisy pomocí admin klíče ze server-side logiky.
+
+CREATE POLICY "Public read access for monthly_rewards_config" ON monthly_rewards_config
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Public read access for monthly_reward_days" ON monthly_reward_days
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Public read access for monthly_reward_bundle_items" ON monthly_reward_bundle_items
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Public read access for streak_milestones_config" ON streak_milestones_config
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Public read access for streak_milestone_rewards" ON streak_milestone_rewards
+    FOR SELECT USING (auth.role() = 'authenticated');
