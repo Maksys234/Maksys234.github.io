@@ -1,5 +1,5 @@
 // dashboard.js
-// Verze: 27.0.7 - Opravy pro chybějící HTML prvky a logování.
+// Verze: 27.0.8 - Oprava zobrazení sekcí Nedávná aktivita a Historie Kreditů.
 // EDIT LOG: Developer Action -> Fixing ReferenceError: loadDashboardData is not defined.
 // EDIT LOG: Stage -> Re-added the loadDashboardData function and ensured its dependencies are present.
 // EDIT LOG: Developer Goal -> Fix errors reported by user regarding missing HTML elements in dashboard.js.
@@ -7,6 +7,9 @@
 // EDIT LOG: 1. Modified `cacheDOMElements` to ensure `overallProgressValue`, `overallProgressDesc`, `overallProgressFooter`, `currentYearFooter` are non-critical.
 // EDIT LOG: 2. Modified `updateStatsCards` to conditionally update progress-related elements only if they exist in `ui` cache.
 // EDIT LOG: 3. Modified `updateCopyrightYear` to conditionally update `ui.currentYearFooter` only if it exists.
+// EDIT LOG: 4. Added `updateWelcomeBannerAndLevel` function that specifically handles updating the Level/XP widget, separating this logic from the more generic `updateStatsCards`.
+// EDIT LOG: 5. Modified `loadDashboardData` to call `updateWelcomeBannerAndLevel` after `currentProfile` is updated.
+// EDIT LOG: 6. Reinstated `setLoadingState('activities', false)` and `setLoadingState('creditHistory', false)` in `loadDashboardData`'s `finally` block.
 (function() {
     'use strict';
 
@@ -204,6 +207,7 @@
             { key: 'dashboardExpRequired', id: 'dashboard-exp-required', critical: false }, // Specific for Level/XP
             { key: 'dashboardExpPercentage', id: 'dashboard-exp-percentage', critical: false }, // Specific for Level/XP
             { key: 'overallProgressValue', id: 'overall-progress-value', critical: false }, // Keep for logs, handle absence
+            { key: 'overallProgressDesc', id: 'overall-progress-desc', critical: false }, // Keep for logs, handle absence
             { key: 'overallProgressFooter', id: 'overall-progress-footer', critical: false }, // Keep for logs, handle absence
             { key: 'pointsCard', id: 'points-card', critical: false },
             { key: 'totalPointsValue', id: 'total-points-value', critical: false },
@@ -244,7 +248,7 @@
             if (element) {
                 ui[def.key] = element;
             } else {
-                ui[def.key] = null;
+                ui[def.key] = null; // Set to null if not found
                 if (def.critical) notFoundCritical.push(`${def.key} (ID/Query: ${def.id || def.query})`);
                 else console.warn(`[CACHE DOM] Non-critical element not found: ${def.key}`);
             }
@@ -440,32 +444,38 @@
     // --- START: UI Update Functions ---
     function updateSidebarProfile(profile) { if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { cacheDOMElements(); if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { console.warn("[UI Update Sidebar] Sidebar elements not found in cache."); return; } } console.log("[UI Update] Aktualizace sidebaru..."); if (profile) { const firstName = profile.first_name ?? ''; const displayName = firstName || profile.username || currentUser?.email?.split('@')[0] || 'Pilot'; ui.sidebarName.textContent = sanitizeHTML(displayName); const initials = getInitials(profile); const avatarUrl = profile.avatar_url; ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials); const sidebarImg = ui.sidebarAvatar.querySelector('img'); if (sidebarImg) { sidebarImg.onerror = () => { ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); }; } const selectedTitleKey = profile.selected_title; let displayTitle = 'Pilot'; if (selectedTitleKey && allTitles && allTitles.length > 0) { const foundTitle = allTitles.find(t => t.title_key === selectedTitleKey); if (foundTitle && foundTitle.name) displayTitle = foundTitle.name; else console.warn(`[UI Update Sidebar] Title key "${selectedTitleKey}" not found in titles list.`); } else if (selectedTitleKey) { console.warn(`[UI Update Sidebar] Selected title key present, but titles list is empty or not loaded.`); } ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle); ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle)); if (ui.welcomeTitle) ui.welcomeTitle.textContent = `Vítej zpět, ${sanitizeHTML(displayName)}!`; console.log("[UI Update] Sidebar aktualizován."); } else { console.warn("[UI Update Sidebar] Missing profile data. Setting defaults."); ui.sidebarName.textContent = "Nepřihlášen"; ui.sidebarAvatar.textContent = '?'; if (ui.sidebarUserTitle) ui.sidebarUserTitle.textContent = 'Pilot'; if (ui.sidebarUserTitle) ui.sidebarUserTitle.removeAttribute('title'); if (ui.welcomeTitle) ui.welcomeTitle.textContent = `Vítejte!`; } }
 
-    // Opravená funkce updateStatsCards
     function updateStatsCards(stats) {
         console.log("[UI Update] Aktualizace karet statistik:", stats);
         const statElements = {
-            progress: { value: ui.overallProgressValue, footer: ui.overallProgressFooter }, // Removed desc
-            points: { value: ui.totalPointsValue, footer: ui.totalPointsFooter }, // Removed desc
-            streak: { value: ui.streakValue, footer: ui.streakFooter } // Removed desc
+            progress: { value: ui.overallProgressValue, footer: ui.overallProgressFooter },
+            points: { value: ui.totalPointsValue, footer: ui.totalPointsFooter },
+            streak: { value: ui.streakValue, footer: ui.streakFooter }
         };
-        const cards = [ui.progressCard, ui.pointsCard, ui.streakCard];
+        const cards = [ui.progressCard, ui.pointsCard, ui.streakCard]; // Note: progressCard is Level/XP card
 
-        // Kontrola existence všech základních elementů
-        let allElementsExist = true;
-        for (const key in statElements) {
-            if (!statElements[key].value || !statElements[key].footer) {
-                console.warn(`[UI Update Stats] Chybějící prvek pro statistiku '${key}': value: ${!!statElements[key].value}, footer: ${!!statElements[key].footer}`);
-                if (key === 'progress') { // If progress elements are missing, don't try to update them
-                    statElements[key].value = null; // Mark as non-existent
-                    statElements[key].footer = null;
-                } else {
-                    allElementsExist = false; // For other stats, this is an error
-                }
-            }
+        let criticalElementsMissing = false;
+        if (!statElements.points.value || !statElements.points.footer) {
+            console.warn("[UI Update Stats] Chybějící elementy pro 'points'.");
+            criticalElementsMissing = true;
+        }
+        if (!statElements.streak.value || !statElements.streak.footer) {
+            console.warn("[UI Update Stats] Chybějící elementy pro 'streak'.");
+            criticalElementsMissing = true;
         }
 
-        if (!allElementsExist && !statElements.progress.value) { // If non-progress elements are missing
-            console.error("[UI Update Stats] Chybějící elementy statistik pro body nebo sérii. Aktualizace přerušena.");
+        // Ošetření pro overallProgressValue, pokud neexistuje (jak je z logů)
+        if (!statElements.progress.value) {
+            console.log("[UI Update Stats] Element 'overallProgressValue' nenalezen, tato část se neaktualizuje.");
+            statElements.progress.value = null; // Označíme jako neexistující
+        }
+        if (!statElements.progress.footer) {
+            console.log("[UI Update Stats] Element 'overallProgressFooter' nenalezen, tato část se neaktualizuje.");
+            statElements.progress.footer = null; // Označíme jako neexistující
+        }
+
+
+        if (criticalElementsMissing && !statElements.progress.value) { // Only critical if points/streak elements are missing
+            console.error("[UI Update Stats] Kritické elementy statistik chybí. Aktualizace přerušena.");
             cards.forEach(card => card?.classList.remove('loading'));
             return;
         }
@@ -480,14 +490,15 @@
         if (!stats) {
             console.warn("[UI Update Stats] Chybí data statistik, zobrazuji placeholder.");
             if(statElements.progress.value) statElements.progress.value.textContent = '- %';
-            if(ui.totalPointsValue) { ui.totalPointsValue.innerHTML = `- <span id="latest-credit-change" style="font-size: 0.5em; color: var(--text-medium); vertical-align: middle; margin-left: 0.5em; display: none;"></span>`; }
+            if(ui.totalPointsValue) { ui.totalPointsValue.innerHTML = `- <span id="latest-credit-change" style="font-size: 0.5em; color: var(--text-medium); vertical-align: middle; margin-left: 0.5em; display: none;"></span>`; } else { console.warn("totalPointsValue is null in UI cache"); }
             if(statElements.streak.value) statElements.streak.value.textContent = '-';
             if(statElements.progress.footer) statElements.progress.footer.innerHTML = `<i class="fas fa-minus"></i> Načítání...`;
-            if(statElements.points.footer) statElements.points.footer.innerHTML = `<i class="fas fa-minus"></i> Načítání...`;
-            if(statElements.streak.footer) statElements.streak.footer.innerHTML = `MAX: - dní`;
+            if(statElements.points.footer) statElements.points.footer.innerHTML = `<i class="fas fa-minus"></i> Načítání...`; else { console.warn("totalPointsFooter is null in UI cache"); }
+            if(statElements.streak.footer) statElements.streak.footer.innerHTML = `MAX: - dní`; else { console.warn("streakFooter is null in UI cache"); }
             return;
         }
 
+        // Aktualizace "Overall Progress" - pouze pokud elementy existují
         if (statElements.progress.value && statElements.progress.footer) {
             statElements.progress.value.textContent = `${stats.progress ?? 0}%`;
             const weeklyProgress = stats.progress_weekly ?? 0;
@@ -503,56 +514,52 @@
                 progressFooterHTML = `<i class="fas fa-minus"></i> ±0% týdně`;
             }
             statElements.progress.footer.innerHTML = progressFooterHTML;
-        } else {
-            console.log("[UI Update Stats] Prvky pro 'overallProgress' nebyly nalezeny, tato část se neaktualizuje.");
         }
 
+        // Aktualizace "Total Points"
+        if (ui.totalPointsValue && statElements.points.footer) {
+            const pointsValue = stats.points ?? 0;
+            ui.totalPointsValue.textContent = `${pointsValue} `; // Note the space for the span
 
-        const pointsValue = stats.points ?? 0;
-        // Reset content before potentially adding span
-        ui.totalPointsValue.textContent = `${pointsValue} `; // Note the space for the span
-        if (ui.latestCreditChange) { // Ensure ui.latestCreditChange is cached correctly
-            ui.latestCreditChange.innerHTML = ''; // Clear previous content if any
-            ui.latestCreditChange.style.display = 'none'; // Default to hidden
-        }
+            const latestTx = fetchAndDisplayLatestCreditChange.latestTxData;
+            if (latestTx && latestTx.amount !== undefined) {
+                const amount = latestTx.amount;
+                const description = latestTx.description || `Transakce`;
+                const sign = amount > 0 ? '+' : (amount < 0 ? '' : '');
+                const amountColorClass = amount > 0 ? 'positive' : (amount < 0 ? 'negative' : '');
+                let displayDescription = description;
+                const maxDescLengthFooter = 20;
+                if (displayDescription.length > maxDescLengthFooter) {
+                    displayDescription = displayDescription.substring(0, maxDescLengthFooter - 3) + "...";
+                }
+                let iconClassFooter = 'fa-history';
+                if (amount > 0) iconClassFooter = 'fa-arrow-up';
+                else if (amount < 0) iconClassFooter = 'fa-arrow-down';
 
-
-        const latestTx = fetchAndDisplayLatestCreditChange.latestTxData;
-
-        if (latestTx && latestTx.amount !== undefined) {
-            const amount = latestTx.amount;
-            const description = latestTx.description || `Transakce`;
-            const sign = amount > 0 ? '+' : (amount < 0 ? '' : '');
-            const amountColorClass = amount > 0 ? 'positive' : (amount < 0 ? 'negative' : '');
-            let displayDescription = description;
-            const maxDescLengthFooter = 20;
-            if (displayDescription.length > maxDescLengthFooter) {
-                displayDescription = displayDescription.substring(0, maxDescLengthFooter - 3) + "...";
-            }
-            let iconClassFooter = 'fa-history';
-            if (amount > 0) iconClassFooter = 'fa-arrow-up';
-            else if (amount < 0) iconClassFooter = 'fa-arrow-down';
-
-            statElements.points.footer.innerHTML = `<i class="fas ${iconClassFooter}"></i> <span title="${sanitizeHTML(description)}: ${sign}${amount}">${sanitizeHTML(displayDescription)}: <span style="font-weight:bold;" class="${amountColorClass}">${sign}${amount}</span></span>`;
-            statElements.points.footer.classList.remove('positive', 'negative');
-            if (amount > 0) statElements.points.footer.classList.add('positive');
-            if (amount < 0) statElements.points.footer.classList.add('negative');
-        } else {
-            const weeklyPoints = stats.points_weekly ?? 0;
-            statElements.points.footer.classList.remove('positive', 'negative');
-            if (weeklyPoints !== 0 && weeklyPoints != null) {
-                statElements.points.footer.innerHTML = weeklyPoints > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyPoints} týdně` : `<i class="fas fa-arrow-down"></i> ${weeklyPoints} týdně`;
-                if (weeklyPoints > 0) statElements.points.footer.classList.add('positive');
-                else statElements.points.footer.classList.add('negative');
+                statElements.points.footer.innerHTML = `<i class="fas ${iconClassFooter}"></i> <span title="${sanitizeHTML(description)}: ${sign}${amount}">${sanitizeHTML(displayDescription)}: <span style="font-weight:bold;" class="${amountColorClass}">${sign}${amount}</span></span>`;
+                statElements.points.footer.classList.remove('positive', 'negative');
+                if (amount > 0) statElements.points.footer.classList.add('positive');
+                if (amount < 0) statElements.points.footer.classList.add('negative');
             } else {
-                statElements.points.footer.innerHTML = `<i class="fas fa-minus"></i> Žádná změna bodů`;
+                const weeklyPoints = stats.points_weekly ?? 0;
+                statElements.points.footer.classList.remove('positive', 'negative');
+                if (weeklyPoints !== 0 && weeklyPoints != null) {
+                    statElements.points.footer.innerHTML = weeklyPoints > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyPoints} týdně` : `<i class="fas fa-arrow-down"></i> ${weeklyPoints} týdně`;
+                    if (weeklyPoints > 0) statElements.points.footer.classList.add('positive');
+                    else statElements.points.footer.classList.add('negative');
+                } else {
+                    statElements.points.footer.innerHTML = `<i class="fas fa-minus"></i> Žádná změna bodů`;
+                }
             }
         }
 
-        statElements.streak.value.textContent = stats.streak_current ?? 0;
-        statElements.streak.footer.innerHTML = `MAX: ${stats.longest_streak_days ?? 0} dní`;
-        if ((stats.streak_current ?? 0) > 0 && (stats.streak_current !== stats.longest_streak_days)) {
-             statElements.streak.footer.innerHTML += ` <span style="color:var(--text-muted); font-size:0.9em;">(Aktuální: ${stats.streak_current ?? 0})</span>`;
+        // Aktualizace "Streak"
+        if (statElements.streak.value && statElements.streak.footer) {
+            statElements.streak.value.textContent = stats.streak_current ?? 0;
+            statElements.streak.footer.innerHTML = `MAX: ${stats.longest_streak_days ?? 0} dní`;
+            if ((stats.streak_current ?? 0) > 0 && (stats.streak_current !== stats.longest_streak_days)) {
+                 statElements.streak.footer.innerHTML += ` <span style="color:var(--text-muted); font-size:0.9em;">(Aktuální: ${stats.streak_current ?? 0})</span>`;
+            }
         }
         console.log("[UI Update] Karty statistik aktualizovány.");
     }
@@ -567,12 +574,9 @@
             ui.welcomeTitle.textContent = `Vítej zpět, ${sanitizeHTML(displayName)}!`;
         }
 
-        // XP a Level logika
         const currentLevel = profile.level ?? 1;
         const currentExperience = profile.experience ?? 0;
 
-        // Tyto funkce musí být definovány nebo dostupné v tomto scope
-        // Přesunul jsem je pro jednoduchost přímo sem, ale mohou být i globální/importované
         function getExpForLevel(level) {
             if (level <= 0) return 0;
             const BASE_XP = 100;
@@ -597,8 +601,8 @@
 
         if (expNeededForSpan > 0) {
             percentage = Math.min(100, Math.max(0, Math.round((currentExpInLevelSpan / expNeededForSpan) * 100)));
-        } else if (currentLevel > 0) { // Pokud je to maximální definovaná úroveň nebo chyba v logice
-            percentage = 100; // Nebo 0, pokud je to chyba
+        } else if (currentLevel > 0) {
+            percentage = 100;
         }
 
         console.log(`[UI Update Level] Level: ${currentLevel}, XP: ${currentExperience}`);
@@ -650,7 +654,6 @@
         }
     }
 
-    // Přidána funkce loadDashboardData (původně chyběla)
     async function loadDashboardData(user, profile) {
         const startTime = performance.now();
         if (!user || !profile) {
@@ -666,12 +669,12 @@
         setLoadingState('creditHistory', true);
 
         try {
-            await checkAndUpdateLoginStreak(); // Zkontroluje a aktualizuje sérii přihlášení
+            await checkAndUpdateLoginStreak();
             const claimedMilestones = await fetchClaimedStreakMilestones(user.id);
             currentProfile.claimed_streak_milestones = claimedMilestones;
 
-            updateSidebarProfile(currentProfile); // Aktualizuje sidebar
-            updateWelcomeBannerAndLevel(currentProfile); // Aktualizuje uvítací banner a úroveň/XP
+            updateSidebarProfile(currentProfile);
+            updateWelcomeBannerAndLevel(currentProfile);
 
             console.log("[MAIN] loadDashboardData: Paralelní načítání...");
 
@@ -698,7 +701,7 @@
             } else {
                 console.error("❌ Chyba při načítání statistik:", statsResult.reason);
                 showError("Nepodařilo se načíst statistiky.", false);
-                updateStatsCards(currentProfile); // Zobrazí alespoň data z profilu
+                updateStatsCards(currentProfile);
             }
 
             if (notificationsResult.status === 'fulfilled' && notificationsResult.value) {
@@ -710,25 +713,28 @@
             }
 
             if (dashboardListsResult.status === 'rejected') {
-                console.error("❌ Chyba při DashboardLists.loadAndRenderAll:", dashboardListsResult.reason);
+                console.error("❌ Chyba при DashboardLists.loadAndRenderAll:", dashboardListsResult.reason);
             }
-
 
             const endTime = performance.now();
             console.log(`[MAIN] loadDashboardData: Data načtena a zobrazena. Time: ${(endTime - startTime).toFixed(2)}ms`);
         } catch (error) {
             console.error('[MAIN] loadDashboardData: Zachycena hlavní chyba:', error);
             showError('Nepodařilo se kompletně načíst data nástěnky: ' + error.message);
-            updateStatsCards(currentProfile); // Zobrazí alespoň co má z profilu
+            updateStatsCards(currentProfile);
             renderNotifications(0, []);
-            // Selhání seznamů je ošetřeno v DashboardLists.js
+            if (typeof DashboardLists !== 'undefined') {
+                if (typeof DashboardLists.renderActivities === 'function') DashboardLists.renderActivities(null);
+                if (typeof DashboardLists.renderCreditHistory === 'function') DashboardLists.renderCreditHistory(null);
+            }
             if (ui.latestCreditChange) ui.latestCreditChange.style.display = 'none';
             if (ui.totalPointsFooter) ui.totalPointsFooter.innerHTML = `<i class="fas fa-exclamation-circle"></i> Chyba`;
 
         } finally {
             setLoadingState('stats', false);
             setLoadingState('notifications', false);
-            // Stavy pro activities a creditHistory jsou řízeny v DashboardLists.js
+            setLoadingState('activities', false); // Reinstated
+            setLoadingState('creditHistory', false); // Reinstated
             if (typeof initTooltips === 'function') initTooltips();
             console.log("[MAIN] loadDashboardData: Blok finally dokončen.");
         }
@@ -737,7 +743,7 @@
 
     async function initializeApp() {
         const totalStartTime = performance.now();
-        console.log("[INIT Dashboard] initializeApp: Start v27.0.7");
+        console.log("[INIT Dashboard] initializeApp: Start v27.0.8"); // Updated version
         let stepStartTime = performance.now();
 
         cacheDOMElements();
@@ -875,7 +881,7 @@
                     toggleSkeletonUI('stats', false);
                     toggleSkeletonUI('shortcuts', false);
 
-                    await loadDashboardData(currentUser, currentProfile); // Odkomentováno
+                    await loadDashboardData(currentUser, currentProfile);
                     console.log(`[INIT Dashboard] loadDashboardData Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
 
                     requestAnimationFrame(() => {
@@ -948,17 +954,4 @@
     window.DashboardApp = {
         showToast,
     };
-// EDIT LOG: Developer Goal -> Fix errors reported by user regarding missing HTML elements in dashboard.js.
-// EDIT LOG: Stage ->
-// EDIT LOG: 1. Modified `cacheDOMElements`:
-// EDIT LOG:    - Ensured `overallProgressValue`, `overallProgressDesc`, `overallProgressFooter`, `currentYearFooter` are explicitly set to `null` in `ui` object if `document.getElementById` returns null.
-// EDIT LOG:    - Added specific caching for Level/XP widget elements: `dashboardLevelWidget`, `dashboardExpProgressBar`, `dashboardExpCurrent`, `dashboardExpRequired`, `dashboardExpPercentage`.
-// EDIT LOG: 2. Modified `updateStatsCards`:
-// EDIT LOG:    - Added checks to see if `statElements.progress.value`, `statElements.progress.footer` (and implicitly `statElements.progress.desc` if it were used) exist in the `ui` object before attempting to access their properties (like `textContent` or `innerHTML`).
-// EDIT LOG:    - This prevents errors if these elements are not found (as per logs for `overallProgressValue` and `overallProgressFooter`).
-// EDIT LOG:    - The logic for `points` and `streak` cards should now correctly find their respective value and footer elements as their IDs in HTML (`total-points-value`, `streak-value`) appear to be correctly cached.
-// EDIT LOG: 3. Modified `updateCopyrightYear`:
-// EDIT LOG:    - Ensured `ui.currentYearFooter.textContent` is only accessed if `ui.currentYearFooter` is not null (already correctly handled in the provided code snippet).
-// EDIT LOG: 4. Added `updateWelcomeBannerAndLevel` function that specifically handles updating the Level/XP widget, separating this logic from the more generic `updateStatsCards`. This function uses the newly cached Level/XP elements.
-// EDIT LOG: 5. Modified `loadDashboardData` to call `updateWelcomeBannerAndLevel` after `currentProfile` is updated.
 })();
