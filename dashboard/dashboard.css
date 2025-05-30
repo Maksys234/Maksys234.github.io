@@ -27,13 +27,12 @@
     --accent-cyan-glow: rgba(var(--accent-cyan-rgb), 0.6);
     --accent-glow: rgba(var(--accent-primary-rgb), 0.6);
     --accent-secondary-glow: rgba(var(--accent-secondary-rgb), 0.5);
-    --accent-pink-glow: rgba(var(--accent-pink-rgb), 0.4);
-    --accent-lime-glow: rgba(var(--accent-lime-rgb), 0.5);
+    --accent-pink-glow: rgba(var(--accent-pink-rgb), 0.5); /* Increased glow for pink */
+    --accent-lime-glow: rgba(var(--accent-lime-rgb), 0.6); /* Increased glow for lime */
     --accent-border-glow: rgba(var(--accent-primary-rgb), 0.7);
     --accent-orange: #f8961e; /* Оранжевый для Warning */
     --accent-orange-rgb: 248, 150, 30;
-    --accent-orange-glow: rgba(var(--accent-orange-rgb), 0.5);
-
+    --accent-orange-glow: rgba(var(--accent-orange-rgb), 0.6); /* Increased glow for orange */
 
     /* Текст */
     --text-light: #f1f5f9; /* Почти белый */
@@ -74,7 +73,7 @@
      --gradient-warning: linear-gradient(135deg, var(--accent-orange), #f3722c);
      --gradient-info: linear-gradient(135deg, var(--accent-cyan), #277eed);
      --gradient-locked: linear-gradient(135deg, rgba(var(--text-muted-rgb),0.1), rgba(var(--text-muted-rgb),0.2));
-     --gradient-exp-bar: linear-gradient(90deg, var(--accent-secondary) 0%, var(--accent-primary) 60%, var(--accent-cyan) 100%); /* Richer EXP bar */
+     --gradient-exp-bar: linear-gradient(90deg, var(--accent-secondary) 0%, var(--accent-primary) 70%, var(--accent-cyan) 100%); /* Richer EXP bar, primary longer */
 
 
     /* Шрифты */
@@ -90,6 +89,11 @@
     --shadow-card-hover-enhanced: 0 18px 50px rgba(0, 0, 0, 0.45), 0 0 30px var(--accent-glow), inset 0 0 15px rgba(var(--accent-primary-rgb), 0.15);
     --shadow-hud: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 2px rgba(var(--accent-primary-rgb), 0.1); /* Тень для элементов интерфейса */
     --shadow-text-glow: 0 0 8px rgba(var(--accent-primary-rgb), 0.6); /* Свечение текста */
+    --shadow-text-glow-strong: 0 0 5px var(--white), 0 0 10px var(--accent-cyan-glow), 0 0 15px var(--accent-cyan-glow), 0 0 20px var(--accent-cyan-glow);
+    --shadow-text-glow-orange: 0 0 5px var(--white), 0 0 10px var(--accent-orange-glow), 0 0 15px var(--accent-orange-glow), 0 0 20px var(--accent-orange-glow);
+    --shadow-text-glow-pink: 0 0 5px var(--white), 0 0 10px var(--accent-pink-glow), 0 0 15px var(--accent-pink-glow), 0 0 20px var(--accent-pink-glow);
+    --shadow-text-glow-lime: 0 0 5px var(--white), 0 0 10px var(--accent-lime-glow), 0 0 15px var(--accent-lime-glow), 0 0 20px var(--accent-lime-glow);
+
 
     /* Размеры и переходы */
     --sidebar-width: 260px;
@@ -547,138 +551,192 @@ body.scrolled .dashboard-header {
 /* Level/XP Widget Container - Removed banner-specific styles */
 .level-xp-widget-container {
     width: 100%;
-    /* margin-top: 1.8rem; REMOVED */
-    padding: 0; /* No padding needed if it's inside a card */
-    /* border-top: 2px solid rgba(var(--accent-primary-rgb), 0.25); REMOVED */
-    /* box-shadow: 0 -5px 15px -10px rgba(var(--accent-primary-rgb), 0.2); REMOVED */
+    padding: 0;
     display: flex;
     justify-content: center;
 }
 
-/* Level/XP Widget - Styles adapted for card integration */
-.stat-card#progress-card .level-xp-widget-new { /* Target widget inside the specific card */
-    width: 100%; /* Full width of card content area */
+/* --- START: Glow Up Design for Level & XP Widget --- */
+.stat-card#progress-card .level-xp-widget-new {
+    width: 100%;
     max-width: none;
-    padding: 1rem 1.2rem; /* Adjusted padding for card context */
-    background: transparent; /* Inherit card background or make slightly different */
-    border-radius: 0; /* No specific radius, will follow card's padding */
-    border: none; /* No border, card has one */
-    box-shadow: none; /* No specific shadow, card has one */
+    padding: 1.2rem 1.5rem; /* Increased padding */
+    background: transparent;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
     text-align: center;
     position: relative;
 }
 
-.stat-card#progress-card .level-xp-widget-new::before,
-.stat-card#progress-card .level-xp-widget-new::after {
-    display: none; /* Remove decorative lines if they don't fit well in card */
-}
-
 .stat-card#progress-card .level-display {
-    margin-bottom: 0.8rem; /* Adjusted spacing */
-    padding-bottom: 0.8rem;
-    border-bottom: 1px dashed rgba(var(--accent-secondary-rgb), 0.25); /* Lighter separator */
-    gap: 0.6em;
+    margin-bottom: 1rem; /* Increased spacing */
+    padding-bottom: 1rem;
+    border-bottom: 1px dashed var(--accent-primary); /* Glowing separator */
+    gap: 0.8em;
+    display: flex; /* Ensure flex layout */
+    flex-direction: column; /* Stack label and value */
+    align-items: center; /* Center items */
 }
 .stat-card#progress-card .level-label {
-    font-size: 0.85rem; /* Scaled down */
-    letter-spacing: 1px;
-    text-shadow: 0 0 6px rgba(var(--accent-secondary-rgb), 0.3);
+    font-size: 0.9rem; /* Slightly larger */
+    letter-spacing: 1.2px;
+    color: var(--text-light); /* Brighter label */
+    text-shadow: 0 0 8px rgba(var(--accent-secondary-rgb), 0.4);
 }
 .stat-card#progress-card .level-value {
-    font-size: 2.5rem; /* Scaled down */
+    font-size: 3.8rem; /* Significantly larger level value */
+    font-weight: 800; /* Bolder */
+    font-family: 'Orbitron', var(--font-secondary); /* Techy font if available, fallback */
     line-height: 1;
-    text-shadow: 0 0 15px var(--accent-glow), 0 0 6px var(--accent-cyan-glow), 0 1px 3px rgba(var(--black), 0.5);
+    color: var(--accent-cyan); /* Use main accent color */
+    text-shadow: var(--shadow-text-glow-strong); /* Strong glow */
+    transition: transform 0.3s ease, text-shadow 0.3s ease;
 }
+.stat-card#progress-card .level-value:hover {
+    transform: scale(1.05);
+    text-shadow: 0 0 8px var(--white), 0 0 15px var(--accent-cyan-glow), 0 0 25px var(--accent-cyan-glow), 0 0 35px var(--accent-cyan-glow), 0 0 45px var(--accent-primary-rgb);
+}
+
 .stat-card#progress-card .xp-bar-container {
     width: 100%;
-    max-width: 100%; /* Take full width of card's content area */
-    margin: 0.8rem auto 0 auto;
+    max-width: 100%;
+    margin: 1rem auto 0 auto; /* Spacing around bar */
 }
 .stat-card#progress-card .xp-bar-track {
-    height: 14px; /* Scaled down */
-    border-radius: 7px;
-    border: 1px solid rgba(var(--accent-secondary-rgb), 0.2);
-    box-shadow: inset 0 2px 6px rgba(var(--black), 0.6);
+    height: 18px; /* Thicker bar */
+    border-radius: 9px;
+    border: 1px solid rgba(var(--accent-primary-rgb), 0.4); /* Glowing border */
+    box-shadow: inset 0 2px 8px rgba(var(--black), 0.7), 0 0 10px rgba(var(--accent-primary-rgb), 0.2); /* Inner and outer glow */
+    padding: 2px; /* Padding for progress fill */
+    background-color: rgba(var(--dark-purple-accent-rgb), 0.5);
 }
 .stat-card#progress-card .xp-bar-progress {
-    border-radius: 6px; /* Inner rounding */
-    box-shadow: 0 0 12px rgba(var(--accent-primary-rgb), 0.5), 0 0 6px rgba(var(--accent-cyan-rgb), 0.3), inset 0 0 4px rgba(var(--white-rgb),0.1);
+    border-radius: 7px; /* Inner rounding matching track - padding */
+    background: var(--gradient-exp-bar); /* Use defined gradient */
+    box-shadow: 0 0 15px rgba(var(--accent-primary-rgb), 0.7), /* Stronger glow for fill */
+                0 0 8px rgba(var(--accent-cyan-rgb), 0.5),
+                inset 0 0 6px rgba(var(--white-rgb),0.2),
+                0 0 25px var(--accent-secondary-glow); /* Added secondary glow pulse */
+    animation: pulseBarGlow 2.5s infinite ease-in-out;
 }
-.stat-card#progress-card .xp-bar-progress::after {
-    background-size: 12px 12px; /* Smaller stripes */
-    opacity: 0.5;
-    animation-duration: 1s; /* Slower animation for smaller bar */
+@keyframes pulseBarGlow {
+    0%, 100% { box-shadow: 0 0 15px rgba(var(--accent-primary-rgb), 0.7), 0 0 8px rgba(var(--accent-cyan-rgb), 0.5), inset 0 0 6px rgba(var(--white-rgb),0.2), 0 0 25px var(--accent-secondary-glow); }
+    50% { box-shadow: 0 0 20px rgba(var(--accent-primary-rgb), 0.9), 0 0 12px rgba(var(--accent-cyan-rgb), 0.7), inset 0 0 8px rgba(var(--white-rgb),0.3), 0 0 35px var(--accent-secondary-glow); }
 }
-.stat-card#progress-card .xp-bar-progress::before {
-    /* Pulse glow might be too much for small card, disable or make very subtle */
-    display: none; /* Or opacity: 0.1; transform: scale(1.02); animation-duration: 3s; */
+
+.stat-card#progress-card .xp-bar-progress::after { /* Animated stripes for more tech feel */
+    background-size: 20px 20px; /* Larger stripes */
+    opacity: 0.3; /* More subtle stripes */
+    animation-duration: 0.8s;
 }
+
 .stat-card#progress-card .xp-text {
-    font-size: 0.8rem; /* Scaled down */
-    margin-top: 0.6rem;
-    letter-spacing: 0.8px;
-    text-shadow: 0 0 4px rgba(var(--black), 0.7), 0 0 2px rgba(var(--accent-primary-rgb), 0.2);
+    font-size: 0.9rem; /* Larger XP text */
+    margin-top: 0.8rem; /* Increased spacing */
+    letter-spacing: 1px;
+    font-weight: 500;
+    color: var(--text-light); /* Brighter text */
+    text-shadow: 0 0 6px rgba(var(--accent-primary-rgb), 0.5); /* Glow for XP text */
 }
 .stat-card#progress-card #dashboard-exp-percentage {
-    text-shadow: 0 0 6px var(--accent-lime-glow);
+    font-weight: 700;
+    color: var(--accent-lime); /* Use lime for percentage */
+    text-shadow: 0 0 8px var(--accent-lime-glow), 0 0 4px var(--white);
 }
+/* --- END: Glow Up Design for Level & XP Widget --- */
 
 
 .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.8rem; }
 .stat-card {
     min-height: 190px; position: relative; display: flex; flex-direction: column;
-    padding: 1.5rem; /* Default padding for stat cards */
+    padding: 1.5rem;
 }
-/* Ensure title is above the new widget content in the card */
 .stat-card#progress-card .stat-card-header {
-    padding: 0 0 0.5rem 0; /* No extra padding for the header itself */
-    margin-bottom: 0.8rem; /* Space between title and widget */
-    border-bottom: 1px solid var(--border-color-light); /* Separator for title */
-    width: 100%; /* Make header full width */
+    padding: 0 0 0.5rem 0;
+    margin-bottom: 0.8rem;
+    border-bottom: 1px solid var(--border-color-light);
+    width: 100%;
 }
-.stat-card#progress-card .stat-card-title {
-    /* Styles for the new title "Úroveň & XP" */
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: var(--text-muted);
+.stat-card .stat-card-title { /* General and specific to progress card title */
+    font-size: 1rem; /* Slightly larger title */
+    font-weight: 600; /* Bolder title */
+    color: var(--text-light); /* Brighter title */
     text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 0; /* Remove default margin from h3 */
+    letter-spacing: 1px; /* Wider spacing */
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.6em; /* Spacing for icon */
+    text-shadow: 0 0 5px rgba(var(--accent-secondary-rgb), 0.3); /* Subtle title glow */
 }
 .stat-card#progress-card .stat-card-title i {
-    color: var(--accent-secondary); /* Or a new icon color */
-    text-shadow: 0 0 6px var(--accent-secondary-glow);
+    color: var(--accent-secondary);
+    text-shadow: 0 0 8px var(--accent-secondary-glow);
 }
-
 
 .stat-card-content { display: flex; align-items: flex-start; justify-content: space-between; flex-grow: 1; visibility: visible; }
 .stat-card-info { flex-grow: 1; z-index: 1; }
-/* .stat-card-title defined above for progress-card, general can be here */
-.stat-card:not(#progress-card) .stat-card-title {
-    font-size: 0.9rem; font-weight: 500; color: var(--text-muted); margin-bottom: 0.5rem;
-    display: flex; align-items: center; gap: 0.5em; text-transform: uppercase; letter-spacing: 0.8px;
-}
-.stat-card:not(#progress-card) .stat-card-title i { font-size: 1em; }
-.points-card .stat-card-title i { color: var(--accent-orange); }
-.streak-card .stat-card-title i { color: var(--accent-pink); }
 
-.stat-card-value {
-    font-size: 2.3rem; font-weight: 700; color: var(--text-heading); margin-bottom: 0.5rem;
-    min-height: 38px; line-height: 1.2; text-shadow: 0 0 8px rgba(var(--white-rgb, 255,255,255), 0.3);
+/* --- START: Glow Up for other Stat Cards (Points, Streak) --- */
+.stat-card:not(#progress-card) .stat-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-light);
+    margin-bottom: 0.7rem; /* More space */
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
+.points-card .stat-card-title i { color: var(--accent-orange); text-shadow: 0 0 8px var(--accent-orange-glow); }
+.streak-card .stat-card-title i { color: var(--accent-pink); text-shadow: 0 0 8px var(--accent-pink-glow); }
+
+.stat-card-value { /* General stat value styling */
+    font-size: 2.8rem; /* Larger value */
+    font-weight: 700; /* Bolder */
+    font-family: 'Orbitron', var(--font-secondary); /* Techy font */
+    color: var(--text-heading);
+    margin-bottom: 0.5rem;
+    min-height: 45px; /* Adjust height */
+    line-height: 1.1;
+    transition: transform 0.3s ease, text-shadow 0.3s ease;
+}
+.stat-card-value:hover {
+    transform: scale(1.03);
+}
+
+/* Specific glows for points and streak */
+#total-points-value {
+    color: var(--accent-orange);
+    text-shadow: var(--shadow-text-glow-orange);
+}
+#total-points-value:hover {
+    text-shadow: 0 0 8px var(--white), 0 0 18px var(--accent-orange-glow), 0 0 30px var(--accent-orange-glow), 0 0 40px var(--accent-orange-glow);
+}
+
+#streak-value {
+    color: var(--accent-pink);
+    text-shadow: var(--shadow-text-glow-pink);
+}
+#streak-value:hover {
+    text-shadow: 0 0 8px var(--white), 0 0 18px var(--accent-pink-glow), 0 0 30px var(--accent-pink-glow), 0 0 40px var(--accent-pink-glow);
+}
+/* --- END: Glow Up for other Stat Cards --- */
+
 .stat-card-change { font-size: 0.88rem; color: var(--text-muted); min-height: 20px; display: inline-flex; align-items: center; gap: 0.4em; font-weight: 500; }
-.stat-card-change.positive { color: var(--accent-lime); }
-.stat-card-change.negative { color: var(--accent-pink); }
+.stat-card-change.positive { color: var(--accent-lime); text-shadow: 0 0 5px var(--accent-lime-glow); }
+.stat-card-change.negative { color: var(--accent-pink); text-shadow: 0 0 5px var(--accent-pink-glow); }
 .stat-card-change i { font-size: 0.85em; }
 .stat-card-icon-bg {
      position: absolute; right: 1rem; bottom: 1rem; font-size: 4rem;
      opacity: 0.08;
      color: var(--accent-primary);
-     z-index: 0; transition: opacity 0.3s ease, color 0.3s ease;
+     z-index: 0; transition: opacity 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
-.stat-card:hover .stat-card-icon-bg { opacity: 0.15; color: var(--accent-cyan); }
-/* .progress-icon i::before { content: "\f080"; } -- Replaced by Level/XP icon */
-.stat-card#progress-card .stat-card-icon-bg i::before { content: "\f521"; } /* Example: fa-user-shield or fa-khanda */
+.stat-card:hover .stat-card-icon-bg { opacity: 0.18; color: var(--accent-cyan); transform: scale(1.1) rotate(-5deg); }
+.stat-card#progress-card .stat-card-icon-bg i::before { content: "\f521"; }
 .points-icon i::before { content: "\f005"; }
 .streak-icon i::before { content: "\f7e4"; }
 
