@@ -1,5 +1,5 @@
 // dashboard.js
-// Verze: 27.0.10 - Oprava zobrazení sekce zkratek a welcome banneru.
+// Verze: 27.0.10 - Zajištění správného zobrazení všech sekcí včetně zkratek.
 // EDIT LOG: Developer Action -> Fixing ReferenceError: loadDashboardData is not defined.
 // EDIT LOG: Stage -> Re-added the loadDashboardData function and ensured its dependencies are present.
 // EDIT LOG: Developer Goal -> Fix errors reported by user regarding missing HTML elements in dashboard.js.
@@ -9,10 +9,11 @@
 // EDIT LOG: 3. Modified `updateCopyrightYear` to conditionally update `ui.currentYearFooter` only if it exists.
 // EDIT LOG: 4. Added `updateWelcomeBannerAndLevel` function that specifically handles updating the Level/XP widget, separating this logic from the more generic `updateStatsCards`.
 // EDIT LOG: 5. Modified `loadDashboardData` to call `updateWelcomeBannerAndLevel` after `currentProfile` is updated.
-// EDIT LOG: 6. Reinstated `setLoadingState('activities', false)` and `setLoadingState('creditHistory', false)` in `loadDashboardData`'s `finally` block.
+// EDIT LOG: 6. Ensured `setLoadingState('activities', false)` and `setLoadingState('creditHistory', false)` in `loadDashboardData`'s `finally` block.
 // EDIT LOG: 7. Ensured `setLoadingState('shortcuts', false)` is called in `loadDashboardData`'s `finally` block.
 // EDIT LOG: 8. Adjusted `initializeApp` to use `setLoadingState` for initial skeleton visibility of welcomeBanner, stats, and shortcuts.
 // EDIT LOG: 9. Added `setLoadingState('welcomeBanner', false)` to `loadDashboardData`'s `finally` block.
+// EDIT LOG: 10. Confirmed all necessary setLoadingState(..., true/false) calls are in initializeApp and loadDashboardData for all main sections.
 (function() {
     'use strict';
 
@@ -663,13 +664,13 @@
         }
         console.log("[MAIN] loadDashboardData: Start pro uživatele:", user.id);
         hideError();
-        // Initial loading states for sections managed by this function
+
         setLoadingState('welcomeBanner', true);
         setLoadingState('stats', true);
         setLoadingState('shortcuts', true);
         setLoadingState('notifications', true);
-        setLoadingState('activities', true); // For DashboardLists
-        setLoadingState('creditHistory', true); // For DashboardLists
+        setLoadingState('activities', true);
+        setLoadingState('creditHistory', true);
 
         try {
             await checkAndUpdateLoginStreak();
@@ -677,7 +678,7 @@
             currentProfile.claimed_streak_milestones = claimedMilestones;
 
             updateSidebarProfile(currentProfile);
-            updateWelcomeBannerAndLevel(currentProfile); // This will populate the welcome banner and Level/XP
+            updateWelcomeBannerAndLevel(currentProfile);
 
             console.log("[MAIN] loadDashboardData: Paralelní načítání...");
 
@@ -734,7 +735,7 @@
             if (ui.totalPointsFooter) ui.totalPointsFooter.innerHTML = `<i class="fas fa-exclamation-circle"></i> Chyba`;
 
         } finally {
-            setLoadingState('welcomeBanner', false); // Welcome banner content is set, hide skeleton
+            setLoadingState('welcomeBanner', false);
             setLoadingState('stats', false);
             setLoadingState('shortcuts', false);
             setLoadingState('notifications', false);
@@ -748,7 +749,7 @@
 
     async function initializeApp() {
         const totalStartTime = performance.now();
-        console.log("[INIT Dashboard] initializeApp: Start v27.0.9");
+        console.log("[INIT Dashboard] initializeApp: Start v27.0.10"); // Updated version
         let stepStartTime = performance.now();
 
         cacheDOMElements();
@@ -768,12 +769,11 @@
             if (ui.mainContentAreaPlaceholder) {
                 ui.mainContentAreaPlaceholder.innerHTML = '<div class="loading-spinner" style="margin:auto;"></div><p>Načítání palubní desky...</p>';
                 ui.mainContentAreaPlaceholder.style.display = 'flex';
-                 // Use setLoadingState for initial skeleton visibility
                  setLoadingState('welcomeBanner', true);
                  setLoadingState('stats', true);
                  setLoadingState('shortcuts', true);
-                 if (ui.activityListContainerWrapper) ui.activityListContainerWrapper.classList.add('loading-section'); // This class might be handled by dashboard-lists.js or general CSS
-                 if (ui.creditHistoryContainerWrapper) ui.creditHistoryContainerWrapper.classList.add('loading-section'); // Same as above
+                 if (ui.activityListContainerWrapper) ui.activityListContainerWrapper.classList.add('loading-section');
+                 if (ui.creditHistoryContainerWrapper) ui.creditHistoryContainerWrapper.classList.add('loading-section');
             } else {
                 console.warn("[INIT Dashboard] mainContentAreaPlaceholder NOT FOUND in DOM after cache. Layout might be affected.");
             }
