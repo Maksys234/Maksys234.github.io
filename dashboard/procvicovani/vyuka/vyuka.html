@@ -11,7 +11,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // --- MathJax Configuration (v16 - Reviewed) ---
         if (typeof window.MathJax === 'undefined') {
             window.MathJax = {
                 tex: {
@@ -48,10 +47,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <link rel="stylesheet" href="vyuka.css">
-    <link rel="stylesheet" href="../../dashboard.css"> {/* Ponecháváme pro případné sdílené styly, ale budeme přepisovat v vyuka.css */}
+    <link rel="stylesheet" href="../../dashboard.css">
 
 </head>
-<body class="dark new-vyuka-layout"> {/* Přidána třída pro nový layout */}
+<body class="dark new-vyuka-layout">
     <div class="initial-loading-overlay" id="initial-loader">
          <div class="loading-spinner"></div>
          <p>NAČÍTÁNÍ VÝUKOVÉHO MODULU...</p>
@@ -59,7 +58,6 @@
 
      <div class="offline-banner" id="offline-banner"> <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO.</div>
 
-    {/* Nový levý navigační panel (transformovaný sidebar) */}
     <aside class="vyuka-sidebar-ai" id="vyuka-sidebar-ai">
         <div class="vyuka-sidebar-ai-header">
             <a href="/dashboard/dashboard.html" class="vyuka-sidebar-ai-logo">
@@ -67,7 +65,6 @@
             </a>
         </div>
         <ul class="vyuka-sidebar-ai-menu">
-            {/* Ikony z designu - mapování na existující odkazy nebo nové funkce */}
             <li class="vyuka-sidebar-ai-item btn-tooltip" title="Zpět na přehled">
                 <a href="/dashboard/procvicovani/main.html" class="vyuka-sidebar-ai-link">
                     <i class="fas fa-arrow-left"></i> <span class="link-text">Přehled</span>
@@ -98,7 +95,6 @@
                     <i class="fas fa-database"></i> <span class="link-text">Databanka</span>
                 </a>
             </li>
-             {/* Placeholder ikony z designu, pokud nemají přímé mapování */}
             <li class="vyuka-sidebar-ai-item btn-tooltip" title="Historie lekce (placeholder)">
                 <a href="#" class="vyuka-sidebar-ai-link">
                     <i class="fas fa-history"></i> <span class="link-text">Historie</span>
@@ -134,9 +130,7 @@
         </div>
     </aside>
 
-    {/* Hlavní kontejner stránky (nahrazuje main#main-content pro nový layout) */}
     <div class="vyuka-page-container" id="vyuka-page-container">
-        {/* Nový horní header */}
         <header class="vyuka-header" id="vyuka-header">
             <div class="vyuka-header-left">
                 <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
@@ -146,8 +140,8 @@
                     <i class="fas fa-chevron-left"></i>
                 </button>
                 <div class="vyuka-header-topic-info">
-                    <h1 id="vyuka-subject-title">Mathematics</h1> {/* Dynamicky z JS */}
-                    <p id="vyuka-topic-subtitle">Advanced Calculus</p> {/* Dynamicky z JS */}
+                    <h1 id="vyuka-subject-title">Mathematics</h1>
+                    <p id="vyuka-topic-subtitle">Advanced Calculus</p>
                 </div>
             </div>
             <div class="vyuka-header-right">
@@ -186,22 +180,17 @@
             </div>
         </header>
 
-        {/* Hlavní obsahová oblast */}
         <main class="vyuka-main-content" id="vyuka-main-content">
             <div class="error-container" id="global-error" style="display: none;"></div>
 
-            {/* Střední část pro whiteboard */}
             <div class="vyuka-whiteboard-area" id="ai-presenter-area">
-                {/* Původní #whiteboard-container a #whiteboard-content */}
                 <div id="whiteboard-container">
                     <div id="whiteboard-content">
-                        {/* Obsah tabule se generuje dynamicky */}
                     </div>
                      <div id="board-speaking-indicator">
                         <span class="dot"></span><span class="dot"></span><span class="dot"></span>
                     </div>
                 </div>
-                {/* Ovládací prvky lekce (původně .bottom-action-bar) - potřeba zvážit umístění */}
                 <div class="vyuka-lesson-controls">
                      <button class="btn btn-primary btn-tooltip" id="continue-btn" style="display: none;" title="Požádat AI o další část vysvětlení">
                          <i class="fas fa-forward"></i> Pokračovat s Lekcí
@@ -212,17 +201,14 @@
                       <button id="stop-speech-btn" class="btn btn-warning btn-tooltip" title="Zastavit aktuální čtení textu" disabled>
                          <i class="fas fa-stop-circle"></i> Zastavit Řeč
                      </button>
-                     {/* Sem případně přesunout další ovládací prvky z bottom-action-bar */}
                 </div>
             </div>
 
-            {/* Pravý panel pro Chat */}
             <aside class="vyuka-chat-panel" id="vyuka-chat-panel">
                 <div class="vyuka-chat-header">
                     <h3 id="current-topic-display"><span class="placeholder">Načítám téma...</span></h3>
                 </div>
-                {/* Původní #interaction-panel a #chat-tab-content */}
-                <div class="interaction-panel-content"> {/* Nový wrapper pro obsah chatu */}
+                <div class="interaction-panel-content">
                     <div id="chat-tab-content" class="tab-content active">
                         <section class="chat-area">
                              <div class="chat-messages" id="chat-messages">
@@ -291,12 +277,9 @@
                 </div>
             </div>
         </footer>
-    </div> {/* Konec .vyuka-page-container */}
+    </div>
 
     <div class="toast-container" id="toast-container"></div>
-
-    {/* Původní #ai-avatar-corner je nyní součástí nového designu jako #vyuka-header-avatar */}
-    {/* <div id="ai-avatar-corner"> <i class="fas fa-robot"></i> </div> */}
 
     <div id="mouse-follower" class="mouse-follower-glow"></div>
 
@@ -318,14 +301,11 @@
     <script src="vyuka-ai-interaction.js" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Přejmenováno: const currentYearFooterElement = document.getElementById('currentYearFooter');
-            // Načítání roku pro patičku bude řešeno v dashboard.js nebo core.js globálně
-            // Pokud je tento skript specifický jen pro tuto stránku, můžeme zde nechat:
-            const currentYearFooterVyuka = document.querySelector('.vyuka-footer #currentYearFooter'); // Specifický selektor
+            const currentYearFooterVyuka = document.querySelector('.vyuka-footer #currentYearFooter');
             if (currentYearFooterVyuka) {
                 currentYearFooterVyuka.textContent = new Date().getFullYear();
             }
-            const currentYearSidebarVyuka = document.querySelector('.vyuka-sidebar-ai #currentYearSidebar'); // Specifický selektor
+            const currentYearSidebarVyuka = document.querySelector('.vyuka-sidebar-ai #currentYearSidebar');
              if (currentYearSidebarVyuka) {
                  currentYearSidebarVyuka.textContent = new Date().getFullYear();
              }
