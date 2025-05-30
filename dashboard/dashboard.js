@@ -1,5 +1,5 @@
 // dashboard.js
-// Verze: 27.0.8 - Oprava zobrazení sekcí Nedávná aktivita a Historie Kreditů.
+// Verze: 27.0.10 - Oprava zobrazení sekce zkratek a welcome banneru.
 // EDIT LOG: Developer Action -> Fixing ReferenceError: loadDashboardData is not defined.
 // EDIT LOG: Stage -> Re-added the loadDashboardData function and ensured its dependencies are present.
 // EDIT LOG: Developer Goal -> Fix errors reported by user regarding missing HTML elements in dashboard.js.
@@ -10,6 +10,9 @@
 // EDIT LOG: 4. Added `updateWelcomeBannerAndLevel` function that specifically handles updating the Level/XP widget, separating this logic from the more generic `updateStatsCards`.
 // EDIT LOG: 5. Modified `loadDashboardData` to call `updateWelcomeBannerAndLevel` after `currentProfile` is updated.
 // EDIT LOG: 6. Reinstated `setLoadingState('activities', false)` and `setLoadingState('creditHistory', false)` in `loadDashboardData`'s `finally` block.
+// EDIT LOG: 7. Ensured `setLoadingState('shortcuts', false)` is called in `loadDashboardData`'s `finally` block.
+// EDIT LOG: 8. Adjusted `initializeApp` to use `setLoadingState` for initial skeleton visibility of welcomeBanner, stats, and shortcuts.
+// EDIT LOG: 9. Added `setLoadingState('welcomeBanner', false)` to `loadDashboardData`'s `finally` block.
 (function() {
     'use strict';
 
@@ -200,15 +203,15 @@
             { key: 'startPracticeBtn', id: 'start-practice-btn', critical: false },
             { key: 'openMonthlyModalBtn', id: 'open-monthly-modal-btn', critical: false },
             { key: 'openStreakModalBtn', id: 'open-streak-modal-btn', critical: false },
-            { key: 'progressCard', id: 'progress-card', critical: false }, // For Level/XP widget
-            { key: 'dashboardLevelWidget', id: 'dashboard-level-widget', critical: false }, // Specific for Level/XP
-            { key: 'dashboardExpProgressBar', id: 'dashboard-exp-progress-bar', critical: false }, // Specific for Level/XP
-            { key: 'dashboardExpCurrent', id: 'dashboard-exp-current', critical: false }, // Specific for Level/XP
-            { key: 'dashboardExpRequired', id: 'dashboard-exp-required', critical: false }, // Specific for Level/XP
-            { key: 'dashboardExpPercentage', id: 'dashboard-exp-percentage', critical: false }, // Specific for Level/XP
-            { key: 'overallProgressValue', id: 'overall-progress-value', critical: false }, // Keep for logs, handle absence
-            { key: 'overallProgressDesc', id: 'overall-progress-desc', critical: false }, // Keep for logs, handle absence
-            { key: 'overallProgressFooter', id: 'overall-progress-footer', critical: false }, // Keep for logs, handle absence
+            { key: 'progressCard', id: 'progress-card', critical: false },
+            { key: 'dashboardLevelWidget', id: 'dashboard-level-widget', critical: false },
+            { key: 'dashboardExpProgressBar', id: 'dashboard-exp-progress-bar', critical: false },
+            { key: 'dashboardExpCurrent', id: 'dashboard-exp-current', critical: false },
+            { key: 'dashboardExpRequired', id: 'dashboard-exp-required', critical: false },
+            { key: 'dashboardExpPercentage', id: 'dashboard-exp-percentage', critical: false },
+            { key: 'overallProgressValue', id: 'overall-progress-value', critical: false },
+            { key: 'overallProgressDesc', id: 'overall-progress-desc', critical: false },
+            { key: 'overallProgressFooter', id: 'overall-progress-footer', critical: false },
             { key: 'pointsCard', id: 'points-card', critical: false },
             { key: 'totalPointsValue', id: 'total-points-value', critical: false },
             { key: 'latestCreditChange', id: 'latest-credit-change', critical: false },
@@ -230,7 +233,7 @@
             { key: 'toastContainer', id: 'toast-container', critical: false },
             { key: 'offlineBanner', id: 'offline-banner', critical: false },
             { key: 'mouseFollower', id: 'mouse-follower', critical: false },
-            { key: 'currentYearFooter', id: 'currentYearFooter', critical: false }, // Keep for logs
+            { key: 'currentYearFooter', id: 'currentYearFooter', critical: false },
             { key: 'welcomeBannerReal', id: 'welcome-banner-real', critical: false },
             { key: 'welcomeBannerSkeleton', id: 'welcome-banner-skeleton', critical: false },
             { key: 'statsCardsSkeletonContainer', id: 'stats-cards-skeleton-container', critical: false },
@@ -444,6 +447,7 @@
     // --- START: UI Update Functions ---
     function updateSidebarProfile(profile) { if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { cacheDOMElements(); if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) { console.warn("[UI Update Sidebar] Sidebar elements not found in cache."); return; } } console.log("[UI Update] Aktualizace sidebaru..."); if (profile) { const firstName = profile.first_name ?? ''; const displayName = firstName || profile.username || currentUser?.email?.split('@')[0] || 'Pilot'; ui.sidebarName.textContent = sanitizeHTML(displayName); const initials = getInitials(profile); const avatarUrl = profile.avatar_url; ui.sidebarAvatar.innerHTML = avatarUrl ? `<img src="${sanitizeHTML(avatarUrl)}?t=${Date.now()}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials); const sidebarImg = ui.sidebarAvatar.querySelector('img'); if (sidebarImg) { sidebarImg.onerror = () => { ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); }; } const selectedTitleKey = profile.selected_title; let displayTitle = 'Pilot'; if (selectedTitleKey && allTitles && allTitles.length > 0) { const foundTitle = allTitles.find(t => t.title_key === selectedTitleKey); if (foundTitle && foundTitle.name) displayTitle = foundTitle.name; else console.warn(`[UI Update Sidebar] Title key "${selectedTitleKey}" not found in titles list.`); } else if (selectedTitleKey) { console.warn(`[UI Update Sidebar] Selected title key present, but titles list is empty or not loaded.`); } ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle); ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle)); if (ui.welcomeTitle) ui.welcomeTitle.textContent = `Vítej zpět, ${sanitizeHTML(displayName)}!`; console.log("[UI Update] Sidebar aktualizován."); } else { console.warn("[UI Update Sidebar] Missing profile data. Setting defaults."); ui.sidebarName.textContent = "Nepřihlášen"; ui.sidebarAvatar.textContent = '?'; if (ui.sidebarUserTitle) ui.sidebarUserTitle.textContent = 'Pilot'; if (ui.sidebarUserTitle) ui.sidebarUserTitle.removeAttribute('title'); if (ui.welcomeTitle) ui.welcomeTitle.textContent = `Vítejte!`; } }
 
+    // Opravená funkce updateStatsCards
     function updateStatsCards(stats) {
         console.log("[UI Update] Aktualizace karet statistik:", stats);
         const statElements = {
@@ -451,7 +455,7 @@
             points: { value: ui.totalPointsValue, footer: ui.totalPointsFooter },
             streak: { value: ui.streakValue, footer: ui.streakFooter }
         };
-        const cards = [ui.progressCard, ui.pointsCard, ui.streakCard]; // Note: progressCard is Level/XP card
+        const cards = [ui.progressCard, ui.pointsCard, ui.streakCard];
 
         let criticalElementsMissing = false;
         if (!statElements.points.value || !statElements.points.footer) {
@@ -463,18 +467,17 @@
             criticalElementsMissing = true;
         }
 
-        // Ošetření pro overallProgressValue, pokud neexistuje (jak je z logů)
         if (!statElements.progress.value) {
             console.log("[UI Update Stats] Element 'overallProgressValue' nenalezen, tato část se neaktualizuje.");
-            statElements.progress.value = null; // Označíme jako neexistující
+            statElements.progress.value = null;
         }
         if (!statElements.progress.footer) {
             console.log("[UI Update Stats] Element 'overallProgressFooter' nenalezen, tato část se neaktualizuje.");
-            statElements.progress.footer = null; // Označíme jako neexistující
+            statElements.progress.footer = null;
         }
 
 
-        if (criticalElementsMissing && !statElements.progress.value) { // Only critical if points/streak elements are missing
+        if (criticalElementsMissing && !statElements.progress.value) {
             console.error("[UI Update Stats] Kritické elementy statistik chybí. Aktualizace přerušena.");
             cards.forEach(card => card?.classList.remove('loading'));
             return;
@@ -498,7 +501,6 @@
             return;
         }
 
-        // Aktualizace "Overall Progress" - pouze pokud elementy existují
         if (statElements.progress.value && statElements.progress.footer) {
             statElements.progress.value.textContent = `${stats.progress ?? 0}%`;
             const weeklyProgress = stats.progress_weekly ?? 0;
@@ -516,10 +518,9 @@
             statElements.progress.footer.innerHTML = progressFooterHTML;
         }
 
-        // Aktualizace "Total Points"
         if (ui.totalPointsValue && statElements.points.footer) {
             const pointsValue = stats.points ?? 0;
-            ui.totalPointsValue.textContent = `${pointsValue} `; // Note the space for the span
+            ui.totalPointsValue.textContent = `${pointsValue} `;
 
             const latestTx = fetchAndDisplayLatestCreditChange.latestTxData;
             if (latestTx && latestTx.amount !== undefined) {
@@ -553,7 +554,6 @@
             }
         }
 
-        // Aktualizace "Streak"
         if (statElements.streak.value && statElements.streak.footer) {
             statElements.streak.value.textContent = stats.streak_current ?? 0;
             statElements.streak.footer.innerHTML = `MAX: ${stats.longest_streak_days ?? 0} dní`;
@@ -663,10 +663,13 @@
         }
         console.log("[MAIN] loadDashboardData: Start pro uživatele:", user.id);
         hideError();
+        // Initial loading states for sections managed by this function
+        setLoadingState('welcomeBanner', true);
         setLoadingState('stats', true);
+        setLoadingState('shortcuts', true);
         setLoadingState('notifications', true);
-        setLoadingState('activities', true);
-        setLoadingState('creditHistory', true);
+        setLoadingState('activities', true); // For DashboardLists
+        setLoadingState('creditHistory', true); // For DashboardLists
 
         try {
             await checkAndUpdateLoginStreak();
@@ -674,7 +677,7 @@
             currentProfile.claimed_streak_milestones = claimedMilestones;
 
             updateSidebarProfile(currentProfile);
-            updateWelcomeBannerAndLevel(currentProfile);
+            updateWelcomeBannerAndLevel(currentProfile); // This will populate the welcome banner and Level/XP
 
             console.log("[MAIN] loadDashboardData: Paralelní načítání...");
 
@@ -731,10 +734,12 @@
             if (ui.totalPointsFooter) ui.totalPointsFooter.innerHTML = `<i class="fas fa-exclamation-circle"></i> Chyba`;
 
         } finally {
+            setLoadingState('welcomeBanner', false); // Welcome banner content is set, hide skeleton
             setLoadingState('stats', false);
+            setLoadingState('shortcuts', false);
             setLoadingState('notifications', false);
-            setLoadingState('activities', false); // Reinstated
-            setLoadingState('creditHistory', false); // Reinstated
+            setLoadingState('activities', false);
+            setLoadingState('creditHistory', false);
             if (typeof initTooltips === 'function') initTooltips();
             console.log("[MAIN] loadDashboardData: Blok finally dokončen.");
         }
@@ -743,7 +748,7 @@
 
     async function initializeApp() {
         const totalStartTime = performance.now();
-        console.log("[INIT Dashboard] initializeApp: Start v27.0.8"); // Updated version
+        console.log("[INIT Dashboard] initializeApp: Start v27.0.9");
         let stepStartTime = performance.now();
 
         cacheDOMElements();
@@ -763,19 +768,15 @@
             if (ui.mainContentAreaPlaceholder) {
                 ui.mainContentAreaPlaceholder.innerHTML = '<div class="loading-spinner" style="margin:auto;"></div><p>Načítání palubní desky...</p>';
                 ui.mainContentAreaPlaceholder.style.display = 'flex';
-                 toggleSkeletonUI('welcomeBanner', true);
-                 toggleSkeletonUI('stats', true);
-                 toggleSkeletonUI('shortcuts', true);
-                 if (ui.activityListContainerWrapper) ui.activityListContainerWrapper.classList.add('loading-section');
-                 if (ui.creditHistoryContainerWrapper) ui.creditHistoryContainerWrapper.classList.add('loading-section');
+                 // Use setLoadingState for initial skeleton visibility
+                 setLoadingState('welcomeBanner', true);
+                 setLoadingState('stats', true);
+                 setLoadingState('shortcuts', true);
+                 if (ui.activityListContainerWrapper) ui.activityListContainerWrapper.classList.add('loading-section'); // This class might be handled by dashboard-lists.js or general CSS
+                 if (ui.creditHistoryContainerWrapper) ui.creditHistoryContainerWrapper.classList.add('loading-section'); // Same as above
             } else {
                 console.warn("[INIT Dashboard] mainContentAreaPlaceholder NOT FOUND in DOM after cache. Layout might be affected.");
             }
-            if (ui.welcomeBannerReal) ui.welcomeBannerReal.style.display = 'none';
-            if (ui.statsCardsContainer) ui.statsCardsContainer.style.display = 'none';
-            if (ui.shortcutGridReal) ui.shortcutGridReal.style.display = 'none';
-            if (ui.activityListContainer) ui.activityListContainer.style.display = 'none';
-            if (ui.creditHistoryListContainer) ui.creditHistoryListContainer.style.display = 'none';
 
             if (initialLoaderElement) {
                 initialLoaderElement.classList.add('hidden');
@@ -876,10 +877,6 @@
                         console.error("Modul DashboardLists není definován nebo nemá funkci initialize!");
                         setLoadingState('activities', false); setLoadingState('creditHistory', false);
                     }
-
-                    toggleSkeletonUI('welcomeBanner', false);
-                    toggleSkeletonUI('stats', false);
-                    toggleSkeletonUI('shortcuts', false);
 
                     await loadDashboardData(currentUser, currentProfile);
                     console.log(`[INIT Dashboard] loadDashboardData Time: ${(performance.now() - stepStartTime).toFixed(2)}ms`);
