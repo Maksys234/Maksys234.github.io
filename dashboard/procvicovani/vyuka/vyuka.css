@@ -1,693 +1,834 @@
-/* --- START: Cyberpunk CSS Theme (Adapted for vyuka.html) --- */
-/* --- Версия 23: Larger board, smaller chat panel (flex-grow), smaller chat internals --- */
-/* --- ИСПРАВЛЕНИЕ v25: Корректировка overflow и высоты для исправления сжатия панелей --- */
-/* --- РЕДИЗАЙН v26: Новый интерфейс по макету image_245141.jpg --- */
-/* --- ИСПРАВЛЕНИЕ v28: Фикс вертикального сжатия, приоритет высоты для .call-interface --- */
+/* dashboard/procvicovani/vyuka/vyuka.css */
+/* Verze: REDESIGN podle image_22e89c.jpg */
 
-/* --- Global Settings & Variables (Enhanced) --- */
+/* --- Základní proměnné a reset (může být částečně z dashboard.css) --- */
 :root {
-	/* Base */
-	--bg-color: #02010a;
+    /* Hlavní paleta barev odvozená z obrázku a původního dashboard.css */
+    --vyuka-bg-dark: #0D0F1A; /* Tmavě modrofialové pozadí */
+    --vyuka-bg-panel: #1A1C2A; /* Pozadí panelů, mírně světlejší */
+    --vyuka-bg-panel-transparent: rgba(26, 28, 42, 0.85); /* Transparentnější verze */
+    --vyuka-border-color: #2E303E; /* Hranice panelů */
+    --vyuka-accent-primary: #8A3FFC; /* Fialový akcent (jako AI tutor chat) */
+    --vyuka-accent-secondary: #00F0FF; /* Světle modrý/tyrkysový akcent (jako grafy) */
+    --vyuka-accent-pink: #FF7EB6; /* Růžový akcent (jako grafy) */
+
+    --vyuka-text-primary: #F3F4F6; /* Světlý text */
+    --vyuka-text-secondary: #A0AEC0; /* Mírně tmavší text */
+    --vyuka-text-muted: #718096; /* Tlumený text */
+    --vyuka-text-heading: var(--vyuka-text-primary);
+
+    --vyuka-sidebar-width-expanded: 260px;
+    --vyuka-sidebar-width-collapsed: 70px; /* Šířka sbaleného nového AI sidebaru */
+    --vyuka-header-height: 65px;
+
+    --vyuka-font-primary: 'Inter', sans-serif;
+    --vyuka-font-secondary: 'Poppins', sans-serif;
+
+    --vyuka-card-radius: 12px;
+    --vyuka-button-radius: 8px;
+    --vyuka-shadow-light: 0 2px 10px rgba(0, 0, 0, 0.2);
+    --vyuka-shadow-medium: 0 5px 20px rgba(0, 0, 0, 0.3);
+    --vyuka-glow-primary: 0 0 15px rgba(138, 63, 252, 0.5);
+    --vyuka-glow-secondary: 0 0 15px rgba(0, 240, 255, 0.4);
+
+    /* Původní proměnné, které mohou být stále relevantní nebo přepsány */
+    --bg-color: var(--vyuka-bg-dark);
 	--bg-secondary: #08051a;
-	--bg-secondary-rgb: 8, 5, 26;
-	--card-bg: rgba(18, 10, 55, 0.9);
-	--card-solid: #120a37;
-	--card-solid-rgb: 18, 10, 55;
-	--interface-bg: rgba(8, 5, 26, 0.94);
-	--interface-border: rgba(0, 240, 255, 0.45);
-	--dark-purple-accent: #1a0f4a;
-	--dark-purple-accent-rgb: 26, 15, 74;
-
-	/* Accents */
-	--accent-primary: #00f0ff;
-	--accent-primary-rgb: 0, 240, 255;
-	--accent-secondary: #a85eff;
-	--accent-secondary-rgb: 168, 94, 255;
-	--accent-pink: #ff33cc;
-	--accent-pink-rgb: 255, 51, 204;
-	--accent-lime: #7fff4d;
-	--accent-lime-rgb: 127, 255, 77;
-	--accent-cyan: var(--accent-primary);
-	--accent-cyan-rgb: var(--accent-primary-rgb);
-	--accent-cyan-glow: rgba(var(--accent-cyan-rgb), 0.75);
-	--accent-glow: rgba(var(--accent-primary-rgb), 0.75);
-	--accent-secondary-glow: rgba(var(--accent-secondary-rgb), 0.65);
-	--accent-pink-glow: rgba(var(--accent-pink-rgb), 0.55);
-	--accent-lime-glow: rgba(var(--accent-lime-rgb), 0.65);
-	--accent-border-glow: rgba(var(--accent-primary-rgb), 0.85);
-	--accent-orange: #ff9933;
-	--accent-orange-rgb: 255, 153, 51;
-	--accent-orange-glow: rgba(var(--accent-orange-rgb), 0.65);
-
-	/* Text */
-	--text-light: #f5f7fa;
-	--text-medium: #c0c8e7;
-	--text-muted: #8899cc;
-	--text-muted-rgb: 136, 153, 204;
-	--text-heading: #ffffff;
-	--text-link: var(--accent-primary);
-	--text-link-hover: #ffffff;
-	--text-fixed-dark: #02010a;
-	--white: #ffffff;
-	--white-rgb: 255, 255, 255;
-	--black: #000000;
-
-	/* Borders */
-	--border-color-light: rgba(var(--accent-secondary-rgb), 0.30);
-	--border-color-medium: rgba(var(--accent-secondary-rgb), 0.50);
-	--border-color-strong: rgba(var(--accent-primary-rgb), 0.70);
-	--border-interactive: var(--accent-primary);
-	--border-glow-gradient: linear-gradient(90deg, transparent, var(--accent-primary), var(--accent-pink), var(--accent-primary), transparent);
-	--border-anim-gradient: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary), var(--accent-pink), var(--accent-secondary));
-    --presenter-border-color: var(--accent-cyan); 
-    --presenter-border-glow-color: var(--accent-lime);
-
-	/* Gradients */
-	--gradient-header: linear-gradient(180deg, rgba(3, 2, 12, 0.98) 0%, rgba(3, 2, 12, 0.92) 100%);
-	--gradient-border-anim: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary), var(--accent-pink), var(--accent-primary), var(--accent-secondary));
-	--gradient-button: linear-gradient(100deg, var(--accent-secondary) 0%, var(--accent-primary) 100%);
-	--gradient-button-hover: linear-gradient(100deg, var(--accent-primary) 0%, var(--accent-pink) 100%);
-	--gradient-sidebar: linear-gradient(190deg, var(--bg-secondary) 0%, var(--dark-purple-accent) 100%);
-	--gradient-success: linear-gradient(135deg, var(--accent-lime), #45a247);
-	--gradient-danger: linear-gradient(135deg, var(--accent-pink), #b5179e);
-	--gradient-warning: linear-gradient(135deg, var(--accent-orange), #f3722c);
-	--gradient-info: linear-gradient(135deg, var(--accent-cyan), #277eed);
-	--gradient-cta: linear-gradient(110deg, var(--accent-secondary) 0%, var(--accent-pink) 100%);
-    --presenter-border-glow: conic-gradient(from 180deg at 50% 50%, var(--accent-pink) 0%, var(--accent-secondary) 25%, var(--accent-primary) 50%, var(--accent-lime) 75%, var(--accent-pink) 100%);
-
-
-	/* Fonts */
-	--font-primary: 'Inter', sans-serif;
-	--font-secondary: 'Poppins', sans-serif;
-	--font-mono: 'Roboto Mono', monospace;
-
-	/* Shadows */
-	--shadow-glow: 0 0 30px var(--accent-glow);
-	--shadow-card: 0 15px 45px rgba(0, 0, 0, 0.5);
-	--shadow-interactive: 0 8px 25px rgba(var(--accent-primary-rgb), 0.45);
-	--shadow-interactive-hover: 0 12px 35px rgba(var(--accent-pink-rgb), 0.50);
-	--shadow-card-hover-enhanced: 0 20px 60px rgba(0, 0, 0, 0.55), 0 0 40px var(--accent-glow), inset 0 0 18px rgba(var(--accent-primary-rgb), 0.2);
-	--shadow-hud: 0 5px 18px rgba(0,0,0,0.35), inset 0 1px 3px rgba(var(--accent-primary-rgb), 0.15);
-	--shadow-text-glow: 0 0 10px rgba(var(--accent-primary-rgb), 0.75);
-	--shadow-sm: 0 2px 5px rgba(0, 0, 0, 0.25);
-	--shadow-md: 0 6px 15px rgba(0, 0, 0, 0.35);
-
-	/* Sizes & Transitions */
-	--sidebar-width: 260px;
-	--card-radius: 16px; 
-	--button-radius: 10px; 
-	--form-element-radius: 8px;
-	--section-padding-y: clamp(1.8rem, 4.5vh, 2.8rem); 
-	--container-padding-x: 1.8rem; 
-	--transition-speed: 0.3s;
-	--transition-fast: all 0.25s ease-out; 
-	--transition-medium: all 0.4s ease-out; 
-	--transition-long: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
-	--transition-bounce: all 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-	--transition-entrance: all 0.7s cubic-bezier(0.165, 0.84, 0.44, 1);
-
-	/* Skeleton Loader Colors */
-	--skeleton-bg: rgba(var(--accent-secondary-rgb), 0.12);
-	--skeleton-highlight: rgba(var(--accent-secondary-rgb), 0.22);
-
-	/* Board Colors (Dark Theme Default) */
-	--board-bg: var(--card-solid);
-	--board-border: var(--border-color-medium);
-	--board-text: var(--text-medium);
-	--board-heading: var(--accent-primary);
-	--board-code-bg: rgba(var(--white-rgb), 0.06);
-	--board-code-text: var(--accent-lime);
-	--board-pre-bg: rgba(var(--black), 0.35);
-	--board-blockquote-border: var(--accent-secondary);
-	--board-blockquote-text: var(--text-muted);
-	--board-table-border: var(--border-color-light);
-	--board-table-header-bg: rgba(var(--white-rgb), 0.04);
-	--board-highlight: rgba(var(--accent-primary-rgb), 0.12);
-	--board-highlight-dark: var(--board-highlight);
-
-
-	/* Board Colors (Light Theme Override) */
-	--board-bg-light: #f8f9fa;
-	--board-border-light: #ced4da;
-	--board-text-light: #212529;
-	--board-heading-light: #4361ee;
-	--board-code-bg-light: #e9ecef;
-	--board-code-text-light: #d63384;
-	--board-pre-bg-light: #f1f3f5;
-	--board-blockquote-border-light: #adb5bd;
-	--board-blockquote-text-light: #6c757d;
-	--board-table-border-light: #dee2e6;
-	--board-table-header-bg-light: #f8f9fa;
-	--board-highlight-light: rgba(0, 123, 255, 0.08);
-
-	/* Chat Colors (Dark Theme Default) */
-	--chat-bg: #0c0822; 
-	--chat-header-bg: rgba(var(--dark-purple-accent-rgb), 0.5);
-	--chat-input-area-bg: rgba(var(--dark-purple-accent-rgb), 0.4);
-	--chat-input-bg: rgba(var(--accent-secondary-rgb), 0.1);
-	--chat-input-border: var(--border-color-medium);
-	--chat-input-text: var(--text-light);
-	--chat-bubble-model-bg: var(--dark-purple-accent);
-	--chat-bubble-model-text: var(--text-medium);
-	--chat-bubble-user-bg: var(--gradient-button);
-	--chat-bubble-user-text: var(--text-fixed-dark);
-	--chat-thinking-dot-color: var(--text-muted);
-	--chat-scrollbar-track: transparent;
-	--chat-scrollbar-thumb: rgba(var(--accent-primary-rgb), 0.4);
-	--chat-scrollbar-thumb-hover: rgba(var(--accent-primary-rgb), 0.6);
-
-	/* Chat Colors (Light Theme Override) */
-	--chat-bg-light: #f8f9fa; 
-	--chat-header-bg-light: #e9ecef;
-	--chat-input-area-bg-light: #f1f3f5;
-	--chat-input-bg-light: #ffffff;
-	--chat-input-border-light: #ced4da;
-	--chat-input-text-light: #212529;
-	--chat-bubble-model-bg-light: #e9ecef;
-	--chat-bubble-model-text-light: #212529;
-	--chat-bubble-user-bg-light: linear-gradient(100deg, #4a90e2, #50e3c2);
-	--chat-bubble-user-text-light: #ffffff;
-	--chat-thinking-dot-color-light: #6c757d;
-	--chat-scrollbar-track-light: rgba(0,0,0,0.05);
-	--chat-scrollbar-thumb-light: #adb5bd;
-	--chat-scrollbar-thumb-hover-light: #868e96;
+	--card-bg: var(--vyuka-bg-panel-transparent);
+	--card-solid: var(--vyuka-bg-panel);
+	--interface-border: var(--vyuka-border-color);
+	--accent-primary: var(--vyuka-accent-secondary); /* Původní primary byl cyan, nový design má více fialové */
+	--accent-secondary: var(--vyuka-accent-primary); /* Fialová z obrázku */
+	--accent-pink: var(--vyuka-accent-pink);
+    --accent-cyan: var(--vyuka-accent-secondary); /* Cyan jako sekundární akcent */
+    --accent-cyan-glow: var(--vyuka-glow-secondary);
+	--accent-glow: var(--vyuka-glow-primary);
+	--text-light: var(--vyuka-text-primary);
+	--text-medium: var(--vyuka-text-secondary);
+	--text-muted: var(--vyuka-text-muted);
+	--text-heading: var(--vyuka-text-heading);
+	--border-color-light: var(--vyuka-border-color);
+	--border-color-medium: var(--vyuka-border-color); /* Sjednocení */
+    --card-radius: var(--vyuka-card-radius);
+	--button-radius: var(--vyuka-button-radius);
+    --font-primary: var(--vyuka-font-primary);
+	--font-secondary: var(--vyuka-font-secondary);
+    --shadow-card: var(--vyuka-shadow-medium);
+    --shadow-hud: var(--vyuka-shadow-light);
 }
 
-/* Light Theme Overrides - zůstávají stejné */
-html.light { /* ... (zkráceno, žádné změny zde) ... */ }
-html.light body { color: var(--text-fixed-dark); }
-html.light .sidebar { background: var(--gradient-sidebar); border-right-color: var(--border-color-medium); color: #495057; }
-html.light .sidebar-logo { color: #343a40; text-shadow: none; }
-html.light .sidebar-link { color: #495057; }
-html.light .sidebar-link i { color: #6c757d; }
-html.light .sidebar-link:hover { background-color: rgba(var(--accent-primary-rgb), 0.08); color: var(--accent-primary); }
-html.light .sidebar-link.active { background-color: rgba(var(--accent-primary-rgb), 0.15); color: var(--accent-primary); border-left-color: var(--accent-primary); box-shadow: none; }
-html.light .sidebar-link.active i { color: var(--accent-primary); }
-html.light .user-profile { background-color: #f8f9fa; border-color: var(--border-color-light); }
-html.light .user-avatar { background-color: var(--accent-primary); border-color: rgba(var(--accent-primary-rgb), 0.4); color: var(--white);}
-html.light .user-name { color: #343a40; }
-html.light .user-role { color: #6c757d; }
-html.light .sidebar-footer { color: #6c757d; }
-html.light main { background-color: var(--bg-color); }
-html.light .dashboard-header { background-color: rgba(var(--bg-secondary-rgb), 0.85); border-color: var(--border-color-light); color: var(--text-fixed-dark); }
-html.light body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb), 0.95); box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
-html.light .header-content h1 { color: var(--text-heading); text-shadow: none; }
-html.light .mobile-menu-toggle { color: var(--text-medium); }
-html.light .topic-bar { background-color: #e9ecef; border-color: var(--border-color-medium); }
-html.light #current-topic-display { color: var(--text-medium); }
-html.light #current-topic-display strong { color: var(--accent-primary); text-shadow: none; }
-html.light .ai-presenter-area { background-color: var(--card-solid-light, #fff); border: 2px solid var(--presenter-border-color, #007bff); box-shadow: 0 0 15px rgba(var(--accent-primary-rgb), 0.3); }
-html.light .ai-presenter-area::before { display:none; }
-html.light .ai-presenter-header { background-color: #f8f9fa; border-color: var(--border-color-light); }
-html.light .ai-presenter-header h2 { color: var(--text-heading); }
-html.light .ai-avatar-placeholder { background: var(--gradient-button); border-color: rgba(var(--black), 0.1); }
-html.light #whiteboard-container { background-color: var(--board-bg-light); border-color: var(--board-border-light); color: var(--board-text-light); }
-html.light #whiteboard-content h1, html.light #whiteboard-content h2, html.light #whiteboard-content h3 { color: var(--board-heading-light); }
-html.light #whiteboard-content code { background-color: var(--board-code-bg-light); color: var(--board-code-text-light); }
-html.light #whiteboard-content pre { background-color: var(--board-pre-bg-light); }
-html.light .interaction-panel { background-color: var(--chat-bg-light); border-color: var(--border-color-light); }
-html.light .interaction-tabs { background-color: #f8f9fa; }
-html.light .interaction-tab.active { border-bottom-color: var(--accent-primary); }
-html.light .chat-header { background-color: var(--chat-header-bg-light); }
-html.light .chat-messages { scrollbar-color: var(--chat-scrollbar-thumb-light) var(--chat-scrollbar-track-light); }
-html.light .chat-input-area { background-color: var(--chat-input-area-bg-light); }
-html.light .chat-input { background-color: var(--chat-input-bg-light); color: var(--chat-input-text-light); border-color: var(--chat-input-border-light); }
-html.light .bottom-action-bar { background-color: #e9ecef; border-top-color: var(--border-color-medium); }
-html.light .bottom-action-bar .btn-icon-only { background-color: #fff; border-color: var(--border-color-medium); color: var(--text-medium); }
-html.light .bottom-action-bar .btn-icon-only:hover:not(:disabled) { background-color: #f8f9fa; color: var(--accent-primary); }
-html.light .page-indicator-dot { background-color: #adb5bd; }
-html.light .page-indicator-dot.active { background-color: var(--accent-primary); }
-html.light .dashboard-footer, html.light .main-footer { color: #6c757d; border-color: var(--border-color-light); }
-
-/* --- Base Styles --- */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; font-size: 16px; -webkit-text-size-adjust: 100%; }
-body {
-	background-color: var(--bg-color); color: var(--text-medium); font-family: var(--font-primary);
-	line-height: 1.7; min-height: 100vh; display: flex; overflow: hidden;
-	-webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; position: relative;
+/* Reset a základní styly těla */
+body.new-vyuka-layout {
+    font-family: var(--vyuka-font-primary);
+    background-color: var(--vyuka-bg-dark);
+    color: var(--vyuka-text-primary);
+    margin: 0;
+    padding: 0;
+    display: flex; /* Pro layout sidebar + page-container */
+    overflow: hidden; /* Zabráníme scrollbaru na body */
+    min-height: 100vh;
 }
-body::before { content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -3; background-image: linear-gradient(rgba(var(--accent-secondary-rgb), 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--accent-secondary-rgb), 0.05) 1px, transparent 1px); background-size: 45px 45px; opacity: 0.7; animation: bg-grid-pan 120s linear infinite; pointer-events: none; }
-body::after { content: ""; position: fixed; inset: 0; width: 100%; height: 100%; z-index: -2; background: linear-gradient( to bottom, rgba(10, 7, 31, 0) 50%, rgba(0, 0, 0, 0.09) 50% ); background-size: 100% 4px; opacity: 0.2; animation: scanlines 28s linear infinite; pointer-events: none; }
-@keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 900px 450px; } }
-@keyframes scanlines { from { background-position: 0 0; } to { background-position: 0 80px; } }
 
-/* Typography & Basic Elements - zůstávají stejné */
-h1, h2, h3, h4, h5, h6 { font-family: var(--font-secondary); font-weight: 600; color: var(--text-heading); line-height: 1.35; margin-bottom: 1em; text-shadow: 0 1px 4px rgba(0,0,0,0.4); }
-h1 { font-size: clamp(1.7rem, 3.2vw, 2rem); font-weight: 700; text-shadow: 0 0 12px var(--accent-glow); }
-h2 { font-size: clamp(1.4rem, 2.6vw, 1.6rem); margin-bottom: 1.5rem; }
-p { margin-bottom: 1.2rem; font-size: clamp(0.95rem, 1.9vw, 1.05rem); max-width: 750px; color: var(--text-medium); }
-a { color: var(--text-link); text-decoration: none; transition: color var(--transition-fast), text-shadow 0.3s ease; }
-a:hover { color: var(--text-link-hover); text-shadow: var(--shadow-text-glow); filter: brightness(1.1); }
-a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid var(--accent-primary); outline-offset: 5px; border-radius: 6px; box-shadow: 0 0 15px var(--accent-glow); }
-:is(a, button, input, textarea, select):focus { outline: none; }
-::-webkit-scrollbar { width: 9px; height: 9px; }
-::-webkit-scrollbar-track { background: rgba(var(--accent-secondary-rgb), 0.1); border-radius: 5px;}
-::-webkit-scrollbar-thumb { background-color: rgba(var(--accent-primary-rgb), 0.6); border-radius: 5px; border: 2px solid transparent; background-clip: content-box; }
-::-webkit-scrollbar-thumb:hover { background-color: rgba(var(--accent-primary-rgb), 0.9); }
-body { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0.6) rgba(var(--accent-secondary-rgb), 0.1); }
+body.new-vyuka-layout::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+body.new-vyuka-layout::-webkit-scrollbar-track {
+    background: rgba(var(--vyuka-bg-dark), 0.5);
+}
+body.new-vyuka-layout::-webkit-scrollbar-thumb {
+    background-color: var(--vyuka-accent-primary);
+    border-radius: 4px;
+}
 
-/* Buttons - zůstávají stejné */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.6em; padding: 0.7rem 1.4rem; background: transparent; color: var(--accent-primary); border: 2px solid var(--accent-primary); border-radius: var(--button-radius); font-family: var(--font-secondary); font-weight: 600; font-size: 0.95rem; text-align: center; text-transform: uppercase; letter-spacing: 1.1px; cursor: pointer; transition: all var(--transition-medium), transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94); position: relative; overflow: hidden; z-index: 1; box-shadow: 0 0 14px -4px var(--accent-glow), inset 0 0 9px -6px var(--accent-glow); backdrop-filter: blur(3px); will-change: transform, box-shadow, color, border-color; }
-.btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--gradient-button); transition: left 0.4s ease-in-out; z-index: -1; }
-.btn:hover:not(:disabled) { color: var(--text-fixed-dark); border-color: var(--accent-secondary); box-shadow: 0 0 25px var(--accent-secondary-glow), inset 0 0 12px rgba(var(--accent-secondary-rgb), 0.2); transform: translateY(-4px) scale(1.02); filter: brightness(1.1); }
-.btn:hover:not(:disabled)::before { left: 0; background: var(--gradient-button-hover); }
-.btn:active:not(:disabled) { transform: translateY(-1px) scale(0.98); box-shadow: 0 0 8px var(--accent-secondary-glow), inset 0 0 15px rgba(0,0,0,0.4); transition-duration: 0.1s; filter: brightness(0.95); }
-.btn:disabled { opacity: 0.45; cursor: not-allowed; background-color: transparent !important; border-color: var(--text-muted) !important; color: var(--text-muted) !important; box-shadow: none !important; filter: grayscale(50%); }
-.btn:disabled::before { display: none; }
-.btn i { transition: transform 0.3s ease; margin-right: 0.5em;}
-.btn:hover:not(:disabled) i { transform: scale(1.15); }
-.btn i.fa-spinner { animation: spin 1s linear infinite; transform: none !important; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.btn-primary { background: var(--gradient-button); border-color: transparent; color: var(--text-fixed-dark); box-shadow: 0 0 18px -2px var(--accent-glow); }
-.btn-primary::before { display: none; }
-.btn-primary:hover:not(:disabled) { background: var(--gradient-button-hover); border-color: transparent; color: var(--white); box-shadow: 0 0 25px var(--accent-pink-glow); transform: translateY(-4px) scale(1.02); }
-.btn-secondary { background-color: rgba(var(--accent-secondary-rgb), 0.12); color: var(--text-medium); border: 1px solid rgba(var(--accent-secondary-rgb), 0.35); box-shadow: none; }
-.btn-secondary::before { display: none; }
-.btn-secondary:hover:not(:disabled) { background-color: rgba(var(--accent-secondary-rgb), 0.25); border-color: rgba(var(--accent-secondary-rgb), 0.6); color: var(--text-light); box-shadow: 0 0 18px rgba(var(--accent-secondary-rgb), 0.25); transform: translateY(-3px) scale(1.01); }
-.btn-success { background: var(--gradient-success); color: var(--text-fixed-dark); border: none; box-shadow: 0 0 18px -2px var(--accent-lime-glow); }
-.btn-success::before { display: none; }
-.btn-success:hover:not(:disabled) { box-shadow: 0 0 25px var(--accent-lime-glow); filter: brightness(1.1); }
-.btn-warning { background: var(--gradient-warning); color: var(--text-fixed-dark); border: none; box-shadow: 0 0 18px -2px var(--accent-orange-glow); }
-.btn-warning::before { display: none; }
-.btn-warning:hover:not(:disabled) { box-shadow: 0 0 25px var(--accent-orange-glow); filter: brightness(1.1); }
-.btn-sm { padding: 0.5rem 1rem; font-size: 0.85rem; }
-.btn-icon-only { padding: 0.5rem; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border-color-medium); color: var(--text-muted); background-color: rgba(var(--bg-secondary-rgb), 0.3); box-shadow: none; line-height: 1; display: inline-flex; align-items: center; justify-content: center; }
-.btn-icon-only i { margin-right: 0; font-size: 1rem; }
-.btn-icon-only:hover:not(:disabled) { background-color: rgba(var(--accent-primary-rgb), 0.15); border-color: var(--accent-primary); color: var(--accent-primary); box-shadow: 0 0 12px rgba(var(--accent-glow), 0.5); transform: translateY(-2px) scale(1.05); }
+h1, h2, h3 {
+    font-family: var(--vyuka-font-secondary);
+    color: var(--vyuka-text-heading);
+}
 
+/* Globální třídy (můžeme převzít z dashboard.css nebo definovat nové) */
+.btn-tooltip { /* Zůstává pro tooltipster */ }
 
-/* Sidebar - zůstává stejný */
-.sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: var(--gradient-sidebar); color: var(--text-medium); padding: 1.5rem 1rem; display: flex; flex-direction: column; z-index: 1000; box-shadow: 8px 0 35px rgba(0, 0, 0, 0.5); border-right: 1px solid var(--border-color-light); transition: transform var(--transition-medium) ease, width var(--transition-medium) ease; }
-.sidebar-header { display: flex; align-items: center; margin-bottom: 2.5rem; padding: 0 0.5rem; position: relative; min-height: 45px; }
-#sidebar-close-toggle { display: none; position: absolute; right: 0px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); font-size: 1.8rem; cursor: pointer; padding: 0.5rem; line-height: 1; transition: color 0.2s ease, transform 0.2s ease; }
-#sidebar-close-toggle:hover { color: var(--accent-primary); transform: translateY(-50%) scale(1.1); }
-.sidebar-logo { font-size: 1.8rem; font-weight: 700; color: var(--text-heading); text-decoration: none; display: flex; align-items: center; gap: 0.8rem; text-shadow: 0 0 10px var(--accent-secondary-glow); }
-.sidebar-logo i { font-size: 1.9rem; color: var(--accent-secondary); transition: transform 0.3s ease; }
-.sidebar-logo:hover i { transform: rotate(-10deg) scale(1.1); }
-.sidebar-logo span { transition: opacity 0.2s ease; }
-.sidebar-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; }
-.sidebar-item { margin-bottom: 0.6rem; }
-.sidebar-link { display: flex; align-items: center; padding: 0.9rem 1.1rem; color: var(--text-medium); text-decoration: none; border-radius: var(--button-radius); transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, border-left-color 0.3s ease, transform 0.2s ease; font-weight: 500; position: relative; border-left: 4px solid transparent; }
-.sidebar-link i { margin-right: 0.9rem; font-size: 1.3rem; width: 25px; text-align: center; transition: color 0.3s ease, transform 0.3s ease; color: var(--text-muted); }
-.sidebar-link span { transition: opacity 0.2s ease; }
-.sidebar-link:hover { background-color: rgba(var(--accent-primary-rgb), 0.12); color: var(--text-light); box-shadow: inset 4px 0 10px -3px rgba(var(--accent-primary-rgb), 0.35); transform: translateX(5px); }
-.sidebar-link:hover i { color: var(--accent-primary); transform: scale(1.1); }
-.sidebar-link.active { background-color: rgba(var(--accent-primary-rgb), 0.2); color: var(--white); font-weight: 600; border-left-color: var(--accent-primary); box-shadow: inset 5px 0 12px -3px rgba(var(--accent-primary-rgb), 0.5), 0 0 10px rgba(var(--accent-primary-rgb), 0.1); }
-.sidebar-link.active i { color: var(--accent-primary); }
-.user-profile { display: flex; align-items: center; padding: 1.1rem; margin-top: 1.5rem; background-color: rgba(var(--accent-secondary-rgb), 0.15); border-radius: 12px; border: 1px solid var(--border-color-medium); flex-shrink: 0; }
-.user-avatar { width: 45px; height: 45px; border-radius: 50%; background-color: var(--accent-secondary); display: flex; align-items: center; justify-content: center; margin-right: 0.9rem; font-weight: 600; font-size: 1.2rem; overflow: hidden; color: var(--white); border: 2px solid rgba(var(--accent-primary-rgb), 0.4); flex-shrink: 0; box-shadow: 0 0 10px rgba(var(--accent-secondary-rgb), 0.5); }
-.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.user-info { flex-grow: 1; overflow: hidden; }
-.user-name { font-weight: 600; font-size: 1.05rem; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-role { font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; }
-.sidebar-footer { margin-top: 1.5rem; padding: 1rem; font-size: 0.8rem; color: var(--text-muted); text-align: center; flex-shrink: 0; opacity: 0.75; }
+/* --- Nový Layout Stránky Výuky --- */
 
-/* Main Content Layout - zůstává stejný */
-main { flex: 1; margin-left: var(--sidebar-width); transition: margin-left var(--transition-medium) ease; width: calc(100% - var(--sidebar-width)); height: 100vh; display: flex; flex-direction: column; overflow: hidden; background-color: var(--bg-color); }
-main.loaded { animation: fadeInMain 0.6s ease-out forwards; }
-@keyframes fadeInMain { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+/* Levý AI Sidebar (nový) */
+.vyuka-sidebar-ai {
+    width: var(--vyuka-sidebar-width-collapsed);
+    background-color: var(--vyuka-bg-panel);
+    border-right: 1px solid var(--vyuka-border-color);
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 0.5rem;
+    transition: width 0.3s ease-in-out;
+    height: 100vh;
+    position: fixed; /* Nebo sticky, pokud má být součást layoutu */
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
 
-/* Header - zůstává stejný */
-.dashboard-header { padding: 1rem var(--container-padding-x); background-color: rgba(var(--bg-secondary-rgb), 0.75); backdrop-filter: blur(15px); border-radius: 0 0 var(--card-radius) var(--card-radius); box-shadow: var(--shadow-hud); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: sticky; top: 0; z-index: 900; border-bottom: 1px solid var(--border-color-light); transition: background-color 0.3s ease, box-shadow 0.3s ease; flex-shrink: 0; }
-body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb), 0.9); box-shadow: 0 8px 25px rgba(0,0,0,0.4); }
-.header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; width: 100%; }
-.header-content > div:first-child { display: flex; align-items: center; gap: 1rem; flex-grow: 1; }
-.mobile-menu-toggle { display: none; background: none; border: none; color: var(--text-medium); font-size: 1.7rem; cursor: pointer; padding: 0.5rem; margin-right: 0.5rem; z-index: 1010; transition: color 0.2s ease; }
-.mobile-menu-toggle:hover { color: var(--accent-primary); }
-.header-content h1 { font-size: 1.8rem; font-weight: 700; color: var(--text-heading); margin: 0; text-shadow: 0 0 12px var(--accent-glow); }
-.header-content h1 i { margin-right: 0.5em; }
-.header-actions { display: flex; align-items: center; gap: 0.85rem; flex-shrink: 0; }
+.vyuka-sidebar-ai.expanded {
+    width: var(--vyuka-sidebar-width-expanded);
+}
 
-/* Notifications - zůstávají stejné */
-/* ... (styles for .notifications, .notification-bell, etc.) ... */
-.notifications { position: relative; }
-.notification-bell { cursor: pointer; padding: 0.7rem; position: relative; display: inline-block; line-height: 1; transition: transform 0.2s ease; }
-.notification-bell:hover { transform: scale(1.05); }
-.notification-bell i { font-size: 1.5rem; color: var(--text-muted); transition: color 0.2s, filter 0.3s ease; }
-.notification-bell:hover i { color: var(--accent-primary); filter: drop-shadow(0 0 5px var(--accent-glow)); }
-.notification-badge { position: absolute; top: 0px; right: 0px; width: 19px; height: 19px; background-color: var(--accent-pink); color: var(--white); font-size: 0.7rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; border: 2px solid var(--bg-secondary); pointer-events: none; opacity: 0; transform: scale(0.5); transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 0 10px var(--accent-pink-glow); }
-.notification-badge.visible { opacity: 1; transform: scale(1); }
-.notifications-dropdown-wrapper { position: absolute; top: calc(100% + 15px); right: -10px; width: 390px; background-color: var(--interface-bg); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border-color-medium); z-index: 1010; opacity: 0; visibility: hidden; transform: translateY(18px) scale(0.97); transform-origin: top right; transition: opacity 0.35s ease, transform 0.35s ease, visibility 0s 0.35s; backdrop-filter: blur(6px); }
-.notifications-dropdown-wrapper.active { opacity: 1; visibility: visible; transform: translateY(0) scale(1); transition-delay: 0s; }
-.notifications-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color-light); display: flex; justify-content: space-between; align-items: center; }
-.notifications-title { font-size: 1.05rem; font-weight: 600; color: var(--text-light); text-shadow: 0 0 5px var(--accent-secondary-glow); }
-.mark-all-read-btn { font-size: 0.8rem; color: var(--accent-primary); background: none; border: none; cursor: pointer; font-weight: 500; padding: 0.25rem 0; opacity: 0.8; transition: opacity 0.2s, color 0.2s; }
-.mark-all-read-btn:hover:not(:disabled) { text-decoration: underline; opacity: 1; color: var(--white); }
-.mark-all-read-btn:disabled { opacity: 0.4; cursor: not-allowed; text-decoration: none !important; color: var(--text-muted) !important; }
-#notifications-list { max-height: 360px; overflow-y: auto; padding: 0.5rem 0; }
-#notifications-list::-webkit-scrollbar { width: 7px; }
-#notifications-list::-webkit-scrollbar-track { background: transparent; }
-#notifications-list::-webkit-scrollbar-thumb { background-color: var(--border-color-medium); border-radius: 3.5px; }
-.notification-item { display: flex; padding: 1rem 1.25rem; gap: 1rem; border-bottom: 1px solid var(--border-color-light); transition: background-color 0.25s ease, transform 0.2s ease; cursor: pointer; position: relative; }
-.notification-item:last-child { border-bottom: none; }
-.notification-item:hover { background-color: rgba(var(--accent-primary-rgb), 0.1); transform: translateX(4px); }
-.notification-item.is-read { opacity: 0.65; }
-.notification-item.is-read:hover { opacity: 0.85; }
-.notification-item.is-read .unread-dot { display: none; }
-.notification-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.1rem; color: var(--white); box-shadow: 0 3px 6px rgba(0,0,0,0.25); }
-.notification-icon.info { background-color: var(--accent-primary); } .notification-icon.success { background-color: var(--accent-lime); color: var(--text-fixed-dark); } .notification-icon.warning { background-color: var(--accent-orange); } .notification-icon.danger { background-color: var(--accent-pink); } .notification-icon.badge { background: linear-gradient(45deg, var(--accent-orange), var(--accent-pink)); } .notification-icon.level_up { background: linear-gradient(45deg, var(--accent-pink), var(--accent-secondary)); } .notification-icon.plan_generated { background: linear-gradient(45deg, var(--accent-secondary), var(--accent-cyan)); } .notification-icon.exercise { background: linear-gradient(45deg, #2a9d8f, var(--accent-lime)); } .notification-icon.test { background: linear-gradient(45deg, var(--accent-secondary), var(--accent-pink)); } .notification-icon.default { background-color: var(--text-muted); }
-.notification-content { flex-grow: 1; }
-.notification-title { font-weight: 600; color: var(--text-light); margin-bottom: 0.3rem; font-size: 1rem; }
-.notification-message { font-size: 0.9rem; color: var(--text-medium); line-height: 1.5; margin-bottom: 0.35rem; }
-.notification-time { font-size: 0.8rem; color: var(--text-muted); }
-.unread-dot { position: absolute; top: 50%; right: 1.25rem; transform: translateY(-50%); width: 10px; height: 10px; background-color: var(--accent-primary); border-radius: 50%; box-shadow: 0 0 10px var(--accent-glow); animation: pulseDot 1.8s infinite ease-in-out; }
-@keyframes pulseDot { 0%, 100% { transform: translateY(-50%) scale(1); opacity: 1; } 50% { transform: translateY(-50%) scale(1.2); opacity: 0.7; } }
-.notifications-footer { padding: 0.8rem 1.25rem; border-top: 1px solid var(--border-color-light); text-align: center; background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.6); border-radius: 0 0 12px 12px; }
-.view-all-notifications-link { font-size: 0.9rem; color: var(--accent-primary); text-decoration: none; font-weight: 500; transition: color 0.2s ease; }
-.view-all-notifications-link:hover { color: var(--white); text-decoration: underline; }
-#no-notifications-msg { padding: 2.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.95rem; display: none; }
+.vyuka-sidebar-ai-header {
+    padding: 0.5rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.vyuka-sidebar-ai-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: var(--vyuka-text-heading);
+    text-decoration: none;
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+.vyuka-sidebar-ai-logo i {
+    color: var(--vyuka-accent-primary);
+    font-size: 1.8rem;
+}
+.vyuka-sidebar-ai-logo span {
+    display: none; /* Skryté ve sbaleném stavu */
+}
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-logo span {
+    display: inline;
+}
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-logo i {
+    margin-left: 0.5rem; /* Malý posun, když je rozbaleno */
+}
 
 
-/* Topic Bar - zůstává stejný */
-.topic-bar { padding: 0.9rem var(--container-padding-x); background-color: var(--dark-purple-accent); border-bottom: 1px solid var(--border-color-light); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; flex-shrink: 0; min-height: 65px; }
-#current-topic-display { font-size: 1.15rem; font-weight: 500; color: var(--text-medium); flex-grow: 1; }
-#current-topic-display strong { color: var(--accent-primary); font-weight: 600; text-shadow: var(--shadow-text-glow); }
-#current-topic-display .placeholder { font-style: italic; color: var(--text-muted); animation: subtlePulse 2s infinite ease-in-out; }
-@keyframes subtlePulse { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; } }
-#current-topic-display .fa-spinner { margin-right: 0.6rem; animation: spin 1.5s linear infinite; }
-
-/* --- РЕДИЗАЙН v28: Vyuka Main Content Area & Call Interface --- */
-.main-content-wrapper {
-    padding: 0; /* HTML inline style for padding-top:0 should be respected if this file is loaded after it */
+.vyuka-sidebar-ai-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
     flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden; /* Let children manage scroll, this wrapper ensures vertical structure */
-    min-height: 0;
-    /* Removed gap, spacing handled by margin on .call-interface or .bottom-action-bar */
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+.vyuka-sidebar-ai-menu::-webkit-scrollbar { width: 4px; }
+.vyuka-sidebar-ai-menu::-webkit-scrollbar-thumb { background: var(--vyuka-accent-primary); border-radius: 2px; }
+
+.vyuka-sidebar-ai-item {
+    margin-bottom: 0.5rem;
 }
 
-.call-interface {
-    flex-grow: 1; /* Takes up available vertical space before bottom-action-bar */
+.vyuka-sidebar-ai-link {
     display: flex;
-    flex-direction: row; /* Board left, Chat right */
-    min-height: 0; /* Critical for flex children to shrink/grow correctly */
-    padding: 1.5rem; /* Padding for the entire call interface area */
-    gap: 1.5rem; /* Gap between board and chat */
-}
-
-.ai-presenter-area {
-    flex: 7; /* Board takes ~70% width */
-    /* flex-basis: 70%; */
-    display: flex;
-    flex-direction: column;
-    background-color: var(--card-solid);
-    border-radius: var(--card-radius);
+    align-items: center;
+    padding: 0.9rem 0.8rem; /* Vertikální padding větší pro klikatelnost */
+    color: var(--vyuka-text-secondary);
+    text-decoration: none;
+    border-radius: var(--vyuka-button-radius);
+    transition: background-color 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
     overflow: hidden;
-    min-height: 0;
-    position: relative;
-    /* Padding is now inside, or on #whiteboard-container */
-    padding: 0; /* Remove direct padding, use 2px from ::before for border effect */
-    border: none; 
-    box-shadow: 0 0 35px rgba(var(--presenter-border-glow-color, var(--accent-lime-rgb)), 0.35),
-                inset 0 0 10px rgba(var(--card-solid-rgb),0.5); /* Softer outer glow, inner shadow */
 }
-
-.ai-presenter-area::before {
-    content: "";
-    position: absolute;
-    inset: -2px; /* Make it slightly outside to give border thickness */
-    border-radius: calc(var(--card-radius) + 2px); /* Adjust for inset */
-    padding: 2px; 
-    background: var(--presenter-border-glow);
-    background-size: 300% 300%; 
-    -webkit-mask: 
-        linear-gradient(#fff 0 0) content-box, 
-        linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-            mask-composite: exclude;
-    animation: borderGlowRotate 7s linear infinite; /* Slightly slower rotation */
-    z-index: 0; 
-    opacity: 0.8; /* Make it a bit more subtle */
+.vyuka-sidebar-ai-link i {
+    font-size: 1.3rem; /* Větší ikony */
+    width: 28px; /* Zarovnání ikon */
+    text-align: center;
+    margin-right: 0.8rem; /* Odsazení pro text, když je vidět */
+    flex-shrink: 0;
 }
-
-@keyframes borderGlowRotate { /* Kept same as before */
-    0% { background-position: 0% 50%; transform: rotate(0deg); }
-    50% { background-position: 100% 50%; transform: rotate(180deg); }
-    100% { background-position: 0% 50%; transform: rotate(360deg); }
+.vyuka-sidebar-ai-link .link-text {
+    display: none; /* Skryté ve sbaleném stavu */
+    font-size: 0.9rem;
+    font-weight: 500;
 }
-
-.ai-presenter-header, #whiteboard-container {
-    position: relative; 
-    z-index: 1;
-    background-color: var(--card-solid); /* Ensure content BG covers the ::before element */
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link i {
+    margin-right: 0.8rem;
 }
-/* Padding for inner content of presenter area */
-.ai-presenter-header { 
-    padding: 0.9rem 1.3rem; /* Keep its padding */
-    border-radius: var(--card-radius) var(--card-radius) 0 0; 
-    border-bottom: 1px solid var(--border-color-light); /* Restore bottom border for header */
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link .link-text {
+    display: inline;
 }
-#whiteboard-container { 
-    padding: 1.5rem;  /* Keep its padding */
-    border-radius: 0 0 var(--card-radius) var(--card-radius); 
-    border: none; /* No border here, parent .ai-presenter-area handles visual border */
+.vyuka-sidebar-ai-link:hover {
+    background-color: rgba(var(--vyuka-accent-primary-rgb), 0.15);
+    color: var(--vyuka-text-primary);
+}
+.vyuka-sidebar-ai-link.active {
+    background-color: rgba(var(--vyuka-accent-primary-rgb), 0.25);
+    color: var(--vyuka-accent-primary);
+    font-weight: 600;
+}
+.vyuka-sidebar-ai-link.active i {
+    color: var(--vyuka-accent-primary);
 }
 
 
-.interaction-panel {
-    flex: 3; /* Chat takes ~30% width */
-    /* flex-basis: 30%; */
-    min-width: 300px; /* Min width for chat readability */
-    max-width: 420px; /* Max width to prevent it from becoming too wide */
+.vyuka-sidebar-ai-footer {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid var(--vyuka-border-color);
     display: flex;
     flex-direction: column;
-    background-color: var(--chat-bg); /* Distinct chat background */
-    border-radius: var(--card-radius);
-    box-shadow: var(--shadow-hud);
-    overflow: hidden;
-    border: 1px solid var(--border-color-medium); /* Slightly stronger border for chat */
-    min-height: 0;
+    align-items: center; /* Centrování pro sbalený stav */
+}
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-footer {
+    align-items: stretch; /* Zarovnání do stran pro rozbalený stav */
 }
 
-/* --- NEW: Bottom Action Bar --- */
-.bottom-action-bar {
-    flex-shrink: 0; 
-    padding: 0.8rem 1.5rem; 
-    background-color: var(--bg-secondary); 
-    border-top: 1px solid var(--border-color-medium);
+.vyuka-sidebar-ai .user-profile-ai { /* Použijeme existující ID, ale novou třídu pro specifické styly */
     display: flex;
+    align-items: center;
+    padding: 0.8rem 0.5rem;
+    margin-bottom: 0.5rem;
+    border-radius: var(--vyuka-button-radius);
+    transition: background-color 0.2s ease;
+}
+.vyuka-sidebar-ai.expanded .user-profile-ai {
+    background-color: rgba(var(--vyuka-bg-dark), 0.3);
+}
+.vyuka-sidebar-ai .user-profile-ai:hover {
+    background-color: rgba(var(--vyuka-bg-dark), 0.5);
+}
+.vyuka-sidebar-ai .user-profile-ai .user-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: var(--vyuka-accent-secondary); /* Z dashboard.css */
+    color: var(--vyuka-text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-right: 0.8rem;
+    flex-shrink: 0;
+}
+.vyuka-sidebar-ai.expanded .user-profile-ai .user-avatar {
+    /* Velikost může zůstat */
+}
+.vyuka-sidebar-ai .user-profile-ai .user-avatar img {
+    width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+}
+.vyuka-sidebar-ai .user-profile-ai .user-info {
+    display: none; /* Skryté ve sbaleném stavu */
+    flex-direction: column;
+    line-height: 1.3;
+}
+.vyuka-sidebar-ai.expanded .user-profile-ai .user-info {
+    display: flex;
+}
+.vyuka-sidebar-ai .user-profile-ai .user-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--vyuka-text-primary);
+}
+.vyuka-sidebar-ai .user-profile-ai .user-role {
+    font-size: 0.75rem;
+    color: var(--vyuka-text-muted);
+}
+
+.vyuka-sidebar-ai-toggle {
+    background: none;
+    border: none;
+    color: var(--vyuka-text-muted);
+    font-size: 1.3rem;
+    padding: 0.8rem;
+    cursor: pointer;
+    border-radius: var(--vyuka-button-radius);
+    width: 100%;
+    text-align: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+.vyuka-sidebar-ai-toggle:hover {
+    background-color: rgba(var(--vyuka-accent-primary-rgb), 0.1);
+    color: var(--vyuka-accent-primary);
+}
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-toggle {
+     /* Může být jiné chování, např. šipka */
+}
+
+
+/* Kontejner pro hlavní obsah a pravý panel */
+.vyuka-page-container {
+    flex-grow: 1;
+    margin-left: var(--vyuka-sidebar-width-collapsed); /* Defaultní odsazení */
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden; /* Zabrání scrollbaru na tomto kontejneru */
+    transition: margin-left 0.3s ease-in-out;
+}
+.vyuka-sidebar-ai.expanded ~ .vyuka-page-container {
+    margin-left: var(--vyuka-sidebar-width-expanded);
+}
+
+/* Nový horní Header */
+.vyuka-header {
+    height: var(--vyuka-header-height);
+    background-color: var(--vyuka-bg-panel);
+    border-bottom: 1px solid var(--vyuka-border-color);
+    display: flex;
+    align-items: center;
     justify-content: space-between;
+    padding: 0 1.5rem;
+    flex-shrink: 0; /* Aby se header nezmenšoval */
+    box-shadow: var(--vyuka-shadow-light);
+}
+.vyuka-header-left {
+    display: flex;
     align-items: center;
     gap: 1rem;
-    border-radius: var(--card-radius); 
-    box-shadow: 0 -3px 15px rgba(0,0,0,0.25), inset 0 1px 0 rgba(var(--white-rgb), 0.05); 
-    margin: 1.5rem var(--container-padding-x) 0; /* Added margin to space from .call-interface and align with page padding */
 }
-/* ... (styles for .bottom-action-bar-left, center, right, .btn, .page-indicator-dot - остаются как были) ... */
-.bottom-action-bar-left,
-.bottom-action-bar-center,
-.bottom-action-bar-right {
+.vyuka-header-left .mobile-menu-toggle { /* Z dashboard.css, pokud relevantní */
+    display: none; /* Skryté na desktopu */
+    color: var(--vyuka-text-muted);
+    font-size: 1.5rem;
+}
+.vyuka-header-left .sidebar-ai-desktop-toggle { /* Nové tlačítko pro desktop AI sidebar */
+    color: var(--vyuka-text-muted);
+    font-size: 1.2rem;
+    background: none; border: none; cursor: pointer; padding: 0.5rem;
+}
+.vyuka-header-left .sidebar-ai-desktop-toggle i.fa-chevron-right {
+    display: none;
+}
+.vyuka-sidebar-ai.expanded ~ .vyuka-page-container .vyuka-header .sidebar-ai-desktop-toggle i.fa-chevron-left {
+    display: none;
+}
+.vyuka-sidebar-ai.expanded ~ .vyuka-page-container .vyuka-header .sidebar-ai-desktop-toggle i.fa-chevron-right {
+    display: inline-block;
+}
+
+
+.vyuka-header-topic-info h1 {
+    font-size: 1.3rem;
+    margin: 0;
+    font-weight: 600;
+    color: var(--vyuka-text-heading);
+}
+.vyuka-header-topic-info p {
+    font-size: 0.85rem;
+    margin: 0;
+    color: var(--vyuka-text-secondary);
+}
+
+.vyuka-header-right {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 1rem;
 }
-.bottom-action-bar-center {
-    flex-grow: 1;
-    justify-content: center;
+.vyuka-header-right .btn-icon-only { /* Pro placeholder nastavení */
+    color: var(--vyuka-text-muted);
 }
-.bottom-action-bar .btn {
+.vyuka-header-right .notifications { /* Existující notifikace */
+    position: relative;
+}
+.vyuka-user-menu {
+    position: relative;
+    cursor: pointer;
+}
+.vyuka-header-avatar-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--vyuka-accent-primary);
+}
+.vyuka-user-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background-color: var(--vyuka-bg-panel);
+    border: 1px solid var(--vyuka-border-color);
+    border-radius: var(--vyuka-card-radius);
+    box-shadow: var(--vyuka-shadow-medium);
+    width: 180px;
+    z-index: 1010;
+    padding: 0.5rem 0;
+}
+.vyuka-user-menu:hover .vyuka-user-dropdown,
+.vyuka-user-dropdown:hover { /* Zobrazí se při hoveru */
+    display: block;
+}
+.vyuka-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.7rem 1rem;
+    color: var(--vyuka-text-secondary);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+.vyuka-dropdown-item:hover {
+    background-color: rgba(var(--vyuka-accent-primary-rgb), 0.1);
+    color: var(--vyuka-text-primary);
+}
+.vyuka-dropdown-item i {
+    width: 18px;
+    text-align: center;
+}
+.btn-exit-vyuka { /* Tlačítko Ukončit */
     font-size: 0.85rem;
     padding: 0.5rem 1rem;
-    border-radius: var(--button-radius);
-}
-.bottom-action-bar .btn i { margin-right: 0.4em; }
-
-.bottom-action-bar .btn-icon-only {
-    width: 34px; height: 34px;
-    font-size: 0.8rem;
-    background-color: rgba(var(--interface-border), 0.2);
-    border-color: rgba(var(--interface-border), 0.4);
-    color: var(--text-medium);
-}
-.bottom-action-bar .btn-icon-only:hover:not(:disabled) {
-    background-color: rgba(var(--accent-primary-rgb), 0.25);
-    color: var(--accent-primary);
-    border-color: var(--accent-primary);
 }
 
-.page-indicator-dot {
-    width: 9px; height: 9px;
-    background-color: rgba(var(--white-rgb), 0.15);
-    border: 1px solid rgba(var(--white-rgb), 0.1);
-    border-radius: 50%;
-    transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
-}
-.page-indicator-dot.active {
-    background-color: var(--accent-primary);
-    box-shadow: 0 0 10px var(--accent-glow);
-    border-color: rgba(var(--accent-primary-rgb), 0.5);
+/* Hlavní obsahová oblast (whiteboard + chat) */
+.vyuka-main-content {
+    display: flex;
+    flex-grow: 1;
+    overflow: hidden; /* Důležité, aby vnitřní části mohly scrollovat */
+    padding: 1.5rem;
+    gap: 1.5rem;
+    background-color: var(--vyuka-bg-dark); /* Pozadí pod panely */
 }
 
-/* --- Floating AI Avatar (РЕДИЗАЙН v28: Скрыт) --- */
-#ai-avatar-corner { display: none; }
+/* Oblast Whiteboardu (střed) */
+.vyuka-whiteboard-area {
+    flex: 3; /* Větší část prostoru */
+    background-color: var(--vyuka-bg-panel);
+    border-radius: var(--vyuka-card-radius);
+    border: 1px solid var(--vyuka-border-color);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: var(--vyuka-shadow-medium);
+}
+#whiteboard-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 10px; /* Prostor pro scrollbar */
+    margin-right: -10px; /* Kompenzace paddingu */
+    position: relative; /* Pro board-speaking-indicator */
+}
+#whiteboard-container::-webkit-scrollbar { width: 6px; }
+#whiteboard-container::-webkit-scrollbar-thumb { background: var(--vyuka-accent-secondary); border-radius: 3px;}
 
-/* ... (Остальные стили: .ai-presenter-header h2, .chat-area, .message-*, .initial-chat-interface, Modals, Loaders, Footer, Responsive etc. остаются как были в v27, за исключением того, что закомментированы ранее) ... */
-.ai-presenter-header { padding: 0.9rem 1.3rem; border-bottom: 1px solid var(--border-color-light); display: flex; align-items: center; justify-content: flex-start; background-color: transparent; flex-shrink: 0; min-height: 60px; }
-.ai-presenter-header h2 { font-size: 1.2rem; font-weight: 600; color: var(--text-light); margin: 0; }
-.ai-avatar-placeholder { width: 42px; height: 42px; border-radius: 50%; background: var(--gradient-cta); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; border: 2px solid rgba(var(--white-rgb), 0.15); box-shadow: 0 0 10px rgba(var(--accent-pink-rgb), 0.3); }
-#ai-status-text { font-size: 0.9rem; color: var(--text-muted); margin: 0; font-weight: 500; }
-.interaction-panel { padding: 0; }
-.interaction-tabs { display: flex; border-bottom: 1px solid var(--border-color-medium); background-color: rgba(var(--dark-purple-accent-rgb), 0.5); flex-shrink: 0; border-radius: var(--card-radius) var(--card-radius) 0 0; }
-.interaction-tab { flex: 1; text-align: center; padding: 0.8rem 1rem; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.3s ease; border-bottom: 3px solid transparent; font-size: 0.9rem; position: relative; display: flex; align-items: center; justify-content: center; gap: 0.6rem; }
-.interaction-tab:hover { color: var(--text-light); background-color: rgba(var(--accent-primary-rgb), 0.07); }
-.interaction-tab.active { color: var(--accent-primary); border-bottom-color: var(--accent-primary); font-weight: 700; text-shadow: 0 0 8px var(--accent-glow); }
-.interaction-tab i { font-size: 1.1em; }
-.interaction-content-area { flex-grow: 1; overflow: hidden; position: relative; min-height: 0; background-color: transparent; border-radius: 0 0 var(--card-radius) var(--card-radius); }
-.tab-content { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; visibility: hidden; opacity: 0; transition: opacity 0.4s ease, visibility 0s 0.4s; }
-.tab-content.active { visibility: visible; opacity: 1; transition-delay: 0s; animation: fadeInContent 0.5s ease-out forwards; }
-@keyframes fadeInContent { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-#chat-tab-content { display: flex; flex-direction: column; height: 100%; background-color: var(--chat-bg); border-radius: 0 0 var(--card-radius) var(--card-radius); }
-.chat-header { padding: 0.8rem 1.1rem; border-bottom: 1px solid var(--border-color-light); background-color: var(--chat-header-bg); font-size: 1.05rem; font-weight: 600; color: var(--text-light); display: flex; align-items: center; gap: 0.7rem; flex-shrink: 0; }
-.chat-header i { color: var(--accent-secondary); text-shadow: 0 0 6px var(--accent-secondary-glow); }
-.chat-area { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
-.chat-messages { flex-grow: 1; padding: 1rem; overflow-y: auto; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--chat-scrollbar-thumb) var(--chat-scrollbar-track); }
-.chat-messages::-webkit-scrollbar { width: 7px; }
-.chat-messages::-webkit-scrollbar-track { background: var(--chat-scrollbar-track); }
-.chat-messages::-webkit-scrollbar-thumb { background-color: var(--chat-scrollbar-thumb); border-radius: 3.5px; }
-.chat-messages::-webkit-scrollbar-thumb:hover { background-color: var(--chat-scrollbar-thumb-hover); }
-.chat-message { display: flex; gap: 0.8rem; max-width: 92%; align-items: flex-end; margin-bottom: 1rem; animation: popInMessage 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; opacity: 0; transform: scale(0.95); }
+#whiteboard-content {
+    /* Styly pro obsah whiteboardu (nadpisy, kód, MathJax) z původního CSS mohou být relevantní */
+    color: var(--vyuka-text-primary);
+}
+#whiteboard-content h1, #whiteboard-content h2, #whiteboard-content h3 {
+    color: var(--vyuka-accent-secondary);
+    margin-top: 1.5em; margin-bottom: 0.8em;
+}
+#whiteboard-content code {
+    background-color: rgba(var(--vyuka-text-muted-rgb), 0.15);
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    color: var(--vyuka-accent-lime);
+}
+#whiteboard-content pre {
+    background-color: rgba(var(--vyuka-bg-dark), 0.7);
+    padding: 1em;
+    border-radius: var(--vyuka-button-radius);
+    overflow-x: auto;
+    border: 1px solid var(--vyuka-border-color);
+}
+#whiteboard-content pre code { background: none; padding: 0; color: var(--vyuka-text-medium); }
+#whiteboard-content blockquote {
+    border-left: 4px solid var(--vyuka-accent-pink);
+    margin-left: 0;
+    padding-left: 1em;
+    color: var(--vyuka-text-muted);
+    font-style: italic;
+}
+#whiteboard-content .whiteboard-chunk { /* Přidáno pro animaci a odsazení */
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeInChunk 0.5s ease-out forwards;
+}
+@keyframes fadeInChunk { to { opacity: 1; transform: translateY(0); } }
+
+#board-speaking-indicator { /* Upraveno z původního CSS */
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none; /* Skryté defaultně */
+    gap: 5px;
+}
+#board-speaking-indicator.active { display: flex; }
+#board-speaking-indicator .dot {
+    width: 10px; height: 10px; background-color: var(--vyuka-accent-secondary);
+    border-radius: 50%; animation: speakPulse 1.2s infinite ease-in-out;
+}
+#board-speaking-indicator .dot:nth-child(2) { animation-delay: 0.2s; }
+#board-speaking-indicator .dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes speakPulse { 0%, 80%, 100% { transform: scale(0.5); opacity: 0.5; } 40% { transform: scale(1); opacity: 1; } }
+
+.vyuka-lesson-controls { /* Nový kontejner pro ovládací prvky lekce */
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--vyuka-border-color);
+    display: flex;
+    gap: 1rem;
+    justify-content: center; /* Nebo flex-end */
+    margin-top: auto; /* Zatlačí dolů, pokud je .vyuka-whiteboard-area flex kontejner */
+    flex-shrink: 0;
+}
+.vyuka-lesson-controls .btn {
+    font-size: 0.9rem;
+    padding: 0.6rem 1.2rem;
+}
+
+/* Pravý Chat Panel */
+.vyuka-chat-panel {
+    flex: 2; /* Menší část prostoru */
+    background-color: var(--vyuka-bg-panel);
+    border-radius: var(--vyuka-card-radius);
+    border: 1px solid var(--vyuka-border-color);
+    padding: 0; /* Padding bude řešen vnitřními elementy */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: var(--vyuka-shadow-medium);
+}
+.vyuka-chat-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--vyuka-border-color);
+    background-color: rgba(var(--vyuka-dark-purple-accent-rgb), 0.5);
+    flex-shrink: 0;
+}
+.vyuka-chat-header h3 { /* Pro #current-topic-display */
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--vyuka-text-heading);
+}
+.vyuka-chat-header h3 strong {
+    color: var(--vyuka-accent-primary);
+    text-shadow: var(--vyuka-glow-primary);
+}
+.vyuka-chat-header .placeholder { color: var(--vyuka-text-muted); font-style: italic; }
+
+.interaction-panel-content { /* Nový wrapper pro chat, aby chat-area mohla růst */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Zajistí, že scrollbar bude v chat-messages */
+}
+.interaction-panel-content #chat-tab-content { /* Mělo by být aktivní defaultně */
+    flex-grow: 1;
+    display: flex; /* Už je flex, aby chat-area mohla růst */
+    /* position, inset, visibility, opacity, animation - pokud by byly taby, ale nejsou */
+}
+
+.chat-area { /* Z původního CSS, upraveno */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 1rem; /* Odsazení pro celý chat */
+    gap: 1rem; /* Mezera mezi messages a input area */
+}
+.chat-messages { /* Z původního CSS, upraveno */
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 8px; /* Prostor pro scrollbar */
+    margin-right: -8px; /* Kompenzace paddingu */
+    scroll-behavior: smooth;
+}
+.chat-messages::-webkit-scrollbar { width: 6px; }
+.chat-messages::-webkit-scrollbar-thumb { background: var(--vyuka-accent-secondary); border-radius: 3px;}
+
+/* Styly pro chatovací zprávy (převzít a upravit z původního .chat-message, .message-bubble atd.) */
+.chat-message {
+    display: flex;
+    gap: 0.8rem;
+    max-width: 85%;
+    margin-bottom: 1rem;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: popInMessage 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+@keyframes popInMessage { to { opacity: 1; transform: translateY(0); } }
+
 .chat-message.user { margin-left: auto; flex-direction: row-reverse; }
-.message-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.3); border: 2px solid rgba(var(--white-rgb), 0.08); background-color: var(--accent-secondary); color: var(--white); }
-.chat-message.user .message-avatar { background: var(--gradient-success); color: var(--text-fixed-dark); }
-.chat-message.model .message-avatar { background: var(--gradient-button); color: var(--text-fixed-dark); }
-.message-bubble { padding: 0.6rem 0.9rem; border-radius: 14px; line-height: 1.5; word-wrap: break-word; box-shadow: 0 1px 4px rgba(0,0,0,0.15); position: relative; font-size: 0.92rem; }
-.message-bubble-content { display: flex; align-items: flex-start; gap: 0.4rem; }
-.chat-message.model .message-bubble { background: var(--chat-bubble-model-bg); color: var(--chat-bubble-model-text); border: 1px solid var(--border-color-light); border-bottom-left-radius: 7px; }
-.chat-message.user .message-bubble { background: var(--chat-bubble-user-bg); color: var(--chat-bubble-user-text); border: none; border-bottom-right-radius: 7px; }
-.message-timestamp { font-size: 0.65rem; color: var(--text-muted); margin-top: 3px; display: block; text-align: left; opacity: 0.65; }
-.chat-input-area { flex-shrink: 0; padding: 0.7rem 1rem; background-color: var(--chat-input-area-bg); border-top: 1px solid var(--border-color-medium); display: flex; flex-direction: column; gap: 0.4rem; }
-.chat-input { padding: 0.6rem 1rem; font-size: 0.9rem; max-height: 90px; }
-.send-button { height: 36px; padding: 0 0.9rem; }
-.chat-controls { padding: 0.3rem 0.4rem 0.6rem 0.4rem; gap: 0.4rem; }
-.chat-controls button { font-size: 0.8rem; padding: 3px 6px; }
-#mic-btn { font-size: 1.1em; padding: 0.4rem;}
-.initial-chat-interface { padding: 1.5rem 1rem; }
-.ai-greeting-avatar { font-size: 3rem; }
-.initial-chat-title { font-size: 1.2rem; }
+.chat-message.model .message-bubble {
+    background-color: var(--vyuka-bg-dark); /* Tmavší bublina pro AI */
+    color: var(--vyuka-text-primary);
+    border: 1px solid var(--vyuka-border-color);
+    border-bottom-left-radius: var(--vyuka-button-radius);
+}
+.chat-message.user .message-bubble {
+    background: var(--vyuka-accent-primary);
+    color: var(--vyuka-bg-dark); /* Tmavý text na světlém pozadí */
+    font-weight: 500;
+    border-bottom-right-radius: var(--vyuka-button-radius);
+}
+.message-avatar { /* Nepoužíváno v tomto designu, ale pro případ */ display: none; }
+.message-bubble {
+    padding: 0.8rem 1.2rem;
+    border-radius: var(--vyuka-card-radius);
+    line-height: 1.5;
+    word-wrap: break-word;
+    box-shadow: var(--vyuka-shadow-light);
+    font-size: 0.9rem;
+}
+.message-bubble-content { /* Pokud by obsahoval např. tlačítko TTS */
+    display: flex; align-items: flex-start; gap: 0.5rem;
+}
+.message-timestamp { display: none; /* Skryjeme pro čistší vzhled */ }
+
+.chat-input-area { /* Z původního CSS, upraveno */
+    flex-shrink: 0;
+    padding-top: 1rem; /* Oddělení od zpráv */
+    border-top: 1px solid var(--vyuka-border-color);
+}
+.chat-input-wrapper {
+    display: flex;
+    gap: 0.5rem;
+    background-color: var(--vyuka-bg-dark); /* Tmavší pozadí pro input */
+    border-radius: var(--vyuka-button-radius);
+    padding: 0.3rem 0.5rem;
+    border: 1px solid var(--vyuka-border-color);
+}
+.chat-input-wrapper:focus-within {
+    border-color: var(--vyuka-accent-primary);
+    box-shadow: var(--vyuka-glow-primary);
+}
+.chat-input {
+    flex-grow: 1;
+    border: none;
+    background: transparent;
+    color: var(--vyuka-text-primary);
+    padding: 0.7rem;
+    resize: none;
+    font-family: var(--vyuka-font-primary);
+    font-size: 0.9rem;
+    max-height: 100px; /* Omezení výšky */
+}
+.chat-input:focus { outline: none; }
+.send-button {
+    background-color: var(--vyuka-accent-primary);
+    color: var(--vyuka-bg-dark);
+    border: none;
+    border-radius: var(--vyuka-button-radius);
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+    transition: background-color 0.2s ease;
+}
+.send-button:hover:not(:disabled) { background-color: var(--vyuka-accent-secondary); }
+.send-button:disabled { background-color: var(--vyuka-text-muted); opacity: 0.6; }
+
+.chat-controls { /* Z původního CSS, upraveno */
+    display: flex;
+    gap: 0.8rem;
+    padding-top: 0.8rem;
+    justify-content: flex-start;
+}
+.chat-controls button {
+    background: none;
+    border: 1px solid var(--vyuka-border-color);
+    color: var(--vyuka-text-muted);
+    padding: 0.5rem;
+    border-radius: 50%; /* Kulatá tlačítka */
+    width: 36px; height: 36px;
+    font-size: 1rem;
+}
+.chat-controls button:hover:not(:disabled) {
+    color: var(--vyuka-accent-primary);
+    border-color: var(--vyuka-accent-primary);
+    background-color: rgba(var(--vyuka-accent-primary-rgb), 0.1);
+}
+.chat-controls span { color: var(--vyuka-border-color); align-self: center; }
+
+.initial-chat-interface { /* Upraveno pro nový design */
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--vyuka-text-muted);
+    flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+}
+.ai-greeting-avatar { font-size: 3.5rem; margin-bottom: 1rem; color: var(--vyuka-accent-secondary); filter: drop-shadow(var(--vyuka-glow-primary)); }
+.initial-chat-title { font-size: 1.2rem; color: var(--vyuka-text-heading); margin-bottom: 0.5rem; }
 .initial-chat-message { font-size: 0.9rem; }
-.initial-chat-status { font-size: 0.8rem; padding: 0.3rem 0.8rem; }
+.initial-chat-status { font-size: 0.8rem; padding: 0.3rem 0.8rem; background: rgba(var(--vyuka-accent-lime-rgb), 0.1); color: var(--vyuka-accent-lime); border-radius: 15px; display: inline-flex; align-items: center; gap: 0.4em; margin-top: 1rem; }
+.initial-chat-status .status-dot.online { background-color: var(--vyuka-accent-lime); box-shadow: 0 0 8px var(--vyuka-accent-lime); }
 
-/* Footer, Modals, Loaders, etc. - unchanged */
-.main-footer { margin-top: 0; padding: 1.2rem var(--container-padding-x); text-align: center; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--border-color-light); opacity: 0.75; flex-shrink: 0; background-color: var(--bg-secondary); }
-.initial-loading-overlay { position: fixed; inset: 0; background-color: var(--bg-color); z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; transition: opacity 0.5s ease-out; }
-.initial-loading-overlay.hidden { opacity: 0; pointer-events: none; }
-.initial-loading-overlay .loading-spinner { width: 40px; height: 40px; border: 5px solid rgba(var(--accent-primary-rgb), 0.2); border-radius: 50%; border-top-color: var(--accent-primary); animation: spin 1s linear infinite; }
-.initial-loading-overlay p { color: var(--text-medium); font-size: 1.1rem; }
-.offline-banner { display: none; background-color: var(--accent-orange); color: var(--text-fixed-dark); padding: 0.9rem; text-align: center; position: fixed; top: 0; left: 0; right: 0; z-index: 1050; font-size: 1rem; font-weight: 600; box-shadow: 0 5px 12px rgba(var(--accent-orange-rgb), 0.35); letter-spacing: 0.8px; }
-.offline-banner i { margin-right: 0.7rem; animation: blinkWarning 1.4s infinite ease-in-out; }
-@keyframes blinkWarning { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-.toast-container { position: fixed; bottom: 1.8rem; right: 1.8rem; z-index: 1050; display: flex; flex-direction: column; gap: 0.9rem; max-width: 400px; pointer-events: none; }
-.toast { padding: 1.1rem 1.4rem; border-radius: 14px; background: var(--interface-bg); box-shadow: var(--shadow-card); display: flex; align-items: flex-start; color: var(--text-light); animation: toast-in 0.5s cubic-bezier(0.215, 0.610, 0.355, 1) forwards; pointer-events: auto; border: 1px solid var(--border-color-medium); border-left-width: 6px; opacity: 0; transform: translateX(110%); backdrop-filter: blur(5px); }
-.toast.show { opacity: 1; transform: translateX(0); }
-.toast.success { border-left-color: var(--accent-lime); box-shadow: 0 5px 15px rgba(var(--accent-lime-rgb), 0.2); }
-.toast.error { border-left-color: var(--accent-pink); box-shadow: 0 5px 15px rgba(var(--accent-pink-rgb), 0.2); }
-.toast.info { border-left-color: var(--accent-primary); box-shadow: 0 5px 15px rgba(var(--accent-primary-rgb), 0.2); }
-.toast.warning { border-left-color: var(--accent-orange); box-shadow: 0 5px 15px rgba(var(--accent-orange-rgb), 0.2); }
-.toast-icon { margin-right: 0.9rem; font-size: 1.4rem; flex-shrink: 0; margin-top: 4px; filter: drop-shadow(0 0 4px currentColor); }
-.toast-content { flex: 1; } .toast-title { font-weight: 600; margin-bottom: 0.35rem; font-size: 1.05rem; color: var(--text-heading); } .toast-message { font-size: 0.95rem; color: var(--text-medium); line-height: 1.55; }
-.toast-close { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.5rem; padding: 0.1rem 0.2rem; margin-left: 0.7rem; line-height: 1; opacity: 0.75; transition: opacity 0.2s, color 0.2s, transform 0.2s ease; }
-.toast-close:hover { opacity: 1; color: var(--accent-primary); transform: scale(1.1); }
-@keyframes toast-in { from { opacity: 0; transform: translateX(110%); } to { opacity: 1; transform: translateX(0); } }
-.modal-overlay { position: fixed; inset: 0; background-color: rgba(var(--bg-secondary-rgb), 0.8); display: none; align-items: center; justify-content: center; z-index: 1060; padding: 1rem; opacity: 0; transition: opacity 0.3s ease-out; backdrop-filter: blur(8px); pointer-events: none; }
-.modal-overlay.visible { display: flex; opacity: 1; pointer-events: auto; }
-.modal-content { background-color: var(--card-bg); border: 1px solid var(--border-color-medium); border-radius: var(--card-radius); padding: 2.5rem; width: 100%; max-width: 500px; text-align: center; box-shadow: var(--shadow-card); position: relative; transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease-out; opacity: 0; }
-.modal-overlay.visible .modal-content { transform: scale(1); opacity: 1; }
-.modal-close-btn { position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.8rem; color: var(--text-muted); cursor: pointer; padding: 0.3rem; line-height: 1; transition: color 0.2s ease, transform 0.2s ease; }
-.modal-close-btn:hover { color: var(--accent-primary); transform: scale(1.1); }
-.modal-icon { font-size: 3rem; color: var(--accent-secondary); margin-bottom: 1.2rem; text-shadow: 0 0 10px var(--accent-secondary-glow); }
-.modal-title { font-size: 1.4rem; color: var(--text-light); margin-bottom: 1rem; font-weight: 600; }
-.modal-text { font-size: 1rem; color: var(--text-medium); margin-bottom: 2rem; line-height: 1.6; }
-.modal-actions { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
-
-/* Responsiveness - zůstává прежним, но может потребовать корректировок */
-.sidebar-overlay { display: none; position: fixed; inset: 0; background-color: rgba(3, 2, 12, 0.7); z-index: 999; opacity: 0; transition: opacity var(--transition-medium) ease; backdrop-filter: blur(5px); }
-.sidebar-overlay.active { display: block; opacity: 1; }
-
-@media (max-width: 1200px) {
-    .call-interface { padding: 1.2rem; gap: 1.2rem; }
-    .ai-presenter-area { flex-basis: 65%; min-width: 380px; } 
-    .interaction-panel { flex-basis: 35%; min-width: 300px; }
-    .bottom-action-bar { padding: 0.8rem 1.2rem; }
+/* Styly pro MathJax a další specifické prvky (převzít a případně upravit) */
+#whiteboard-content mjx-container {
+    background: rgba(var(--vyuka-bg-dark), 0.5);
+    border: 1px solid var(--vyuka-border-color);
+    padding: 0.8rem 1rem;
+    border-radius: var(--vyuka-button-radius);
+    display: block;
+    margin: 1rem 0;
+    overflow-x: auto;
 }
-@media (max-width: 992px) {
-	:root { --sidebar-width: 85px; }
-	main { margin-left: 85px; width: calc(100% - 85px); }
-	.sidebar { width: 85px; }
-	.sidebar-logo span, .sidebar-link span, .user-info, .sidebar-footer { display: none; }
-	.sidebar-link i { margin-right: 0; font-size: 1.6rem; }
-	.sidebar-logo i { margin-right: 0; }
-	.sidebar-header, .sidebar-link { justify-content: center; }
-	.user-profile { justify-content: center; padding: 0.8rem; }
-	.user-avatar { margin-right: 0; width: 45px; height: 45px; }
-	.mobile-menu-toggle#main-mobile-menu-toggle { display: block; }
-	#sidebar-close-toggle { display: none !important; }
-
-	.call-interface { flex-direction: column; height: auto; padding: 0.8rem; gap: 0.8rem; }
-	.ai-presenter-area { flex-basis: auto; min-height: 350px; order: 1; width: 100%; }
-	.interaction-panel { flex-basis: auto; min-height: 300px; order: 2; width: 100%; max-width: none; }
-    .bottom-action-bar { flex-direction: column; gap: 0.8rem; align-items: stretch; }
-    .bottom-action-bar-left, .bottom-action-bar-center, .bottom-action-bar-right { justify-content: center; }
-    .bottom-action-bar .btn { flex-grow: 1; }
-}
-@media (max-width: 576px) {
-	:root { --sidebar-width: 0; }
-	main { margin-left: 0; width: 100%; }
-	.sidebar { transform: translateX(-110%); z-index: 1100; width: 280px; }
-	.sidebar.active { transform: translateX(0); }
-	.sidebar.active .sidebar-logo span, .sidebar.active .sidebar-link span, .sidebar.active .user-info, .sidebar.active .sidebar-footer { display: block; }
-	.sidebar.active .sidebar-link i { margin-right: 0.85rem; font-size: 1.25rem; }
-	.sidebar.active .sidebar-header, .sidebar.active .sidebar-link { justify-content: flex-start; }
-	.sidebar.active .user-profile { padding: 1rem; }
-	.sidebar.active .user-avatar { margin-right: 0.85rem; width: 42px; height: 42px; }
-	.sidebar.active #sidebar-close-toggle { display: block; }
-	.header-content h1 { font-size: 1.4rem; }
-	.header-actions { gap: 0.5rem; }
-	.header-actions .btn { padding: 0.5rem 0.8rem; font-size: 0.8rem; }
-	.header-actions .btn span { display: none; }
-	.topic-bar { padding: 0.6rem var(--container-padding-x); min-height: 50px; }
-	#current-topic-display { font-size: 1rem; }
-	.call-interface { padding: 0.5rem; gap: 0.5rem; }
-	.ai-presenter-area { min-height: 300px; }
-	.interaction-panel { min-height: 250px; }
-	.chat-input { padding: 0.6rem 1rem; font-size: 0.9rem; }
-	.send-button { height: 36px; padding: 0 0.9rem; }
-    .message-bubble { padding: 0.6rem 0.9rem; font-size: 0.92rem; }
-    .message-avatar { width: 32px; height: 32px; font-size: 0.85rem; }
-	.toast-container { max-width: calc(100% - 1.5rem); }
-    .modal-content { padding: 1.5rem; max-width: calc(100% - 2rem); }
-    .modal-actions { flex-direction: column; }
-    .bottom-action-bar .btn { font-size: 0.8rem; padding: 0.5rem 1rem; }
-    .bottom-action-bar .btn i { margin-right: 0.3em;}
-    .page-indicator-dot { width: 8px; height: 8px; }
-}
-
-/* Reduced Motion - zůstává прежним */
-@media (prefers-reduced-motion: reduce) {
-	html { scroll-behavior: auto; }
-	*, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; animation-delay: -0.01ms !important; transition-delay: 0ms !important; will-change: auto !important; }
-	.sidebar { transition: transform 0.01ms !important; }
-	main.loaded { animation: none !important; }
-	.call-interface { animation: none !important; }
-	body::before, body::after { animation: none !important; }
-	.loading-spinner, .initial-loading-overlay .loading-spinner { animation: none !important; }
-	.btn:hover:not(:disabled), .btn-primary:hover:not(:disabled), .btn-secondary:hover:not(:disabled) { transform: none !important; }
-	#board-speaking-indicator .dot { animation: none !important; }
-	.typing-dot { animation: none !important; }
-	#mic-btn.listening { animation: none !important; }
-	.toast.show { transform: translateX(0) !important; }
-	.chat-message, .whiteboard-chunk { animation: none !important; opacity: 1 !important; transform: none !important; }
-	.modal-overlay, .modal-content { transition: none !important; }
-    .modal-overlay.visible { opacity: 1 !important; }
-    .modal-overlay.visible .modal-content { transform: none !important; }
-    .ai-greeting-avatar { animation: none !important; }
-    .initial-chat-status .status-dot { animation: none !important; }
-    .unread-dot { animation: none !important; }
-    .ai-presenter-area::before { animation: none !important; }
-}
-
-/* MathJax specific styles - zůstávají прежними */
-#whiteboard-content mjx-container { background: rgba(var(--accent-primary-rgb), 0.04); border: 1px solid var(--border-color-medium); padding: 0.6rem; border-radius: 8px; display: block; margin: 1rem 0; overflow-x: auto; overflow-y: hidden; }
 mjx-math { display: inline-block; white-space: normal; vertical-align: middle; }
-#whiteboard-content mjx-math { color: var(--accent-cyan); font-size: 1.1em !important; }
+#whiteboard-content mjx-math { color: var(--vyuka-accent-cyan); font-size: 1.1em !important; }
+
+/* Původní overlaye a modály - jejich styly mohou zůstat, pokud se používají */
+.initial-loading-overlay, .offline-banner, .toast-container, .modal-overlay, .modal-content {
+    /* Zde mohou být existující styly z původního vyuka.css, pokud jsou stále relevantní */
+    /* Například .initial-loading-overlay: */
+}
+.initial-loading-overlay { position: fixed; inset: 0; background-color: var(--vyuka-bg-dark); z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; transition: opacity 0.5s ease-out; }
+.initial-loading-overlay.hidden { opacity: 0; pointer-events: none; }
+.initial-loading-overlay .loading-spinner { width: 40px; height: 40px; border: 5px solid rgba(var(--vyuka-accent-primary-rgb), 0.2); border-radius: 50%; border-top-color: var(--vyuka-accent-primary); animation: spin 1s linear infinite; }
+.initial-loading-overlay p { color: var(--vyuka-text-medium); font-size: 1.1rem; }
+
+.toast-container { position: fixed; bottom: 1.8rem; right: 1.8rem; z-index: 1050; display: flex; flex-direction: column; gap: 0.9rem; max-width: 400px; pointer-events: none; }
+.toast { padding: 1.1rem 1.4rem; border-radius: var(--vyuka-card-radius); background: var(--vyuka-bg-panel); box-shadow: var(--vyuka-shadow-medium); display: flex; align-items: flex-start; color: var(--vyuka-text-primary); animation: toast-in 0.5s cubic-bezier(0.215, 0.610, 0.355, 1) forwards; pointer-events: auto; border: 1px solid var(--vyuka-border-color); border-left-width: 6px; opacity: 0; transform: translateX(110%); }
+.toast.show { opacity: 1; transform: translateX(0); }
+/* ... další styly pro toast ... */
+
+/* Modály (jako completionSuggestionOverlay) */
+.modal-overlay { position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark), 0.85); display: none; align-items: center; justify-content: center; z-index: 1060; padding: 1rem; opacity: 0; transition: opacity 0.3s ease-out; backdrop-filter: blur(5px); pointer-events: none; }
+.modal-overlay.visible { display: flex; opacity: 1; pointer-events: auto; }
+.modal-content.card { /* .card je z dashboard.css */
+    background-color: var(--vyuka-bg-panel) !important; /* Přepsání pokud .card má jiný bg */
+    max-width: 500px; text-align: center;
+    transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease-out; opacity: 0;
+}
+.modal-overlay.visible .modal-content.card { transform: scale(1); opacity: 1; }
+/* ... další styly pro modály ... */
+
+
+/* Responzivní úpravy */
+@media (max-width: 1200px) {
+    .vyuka-main-content {
+        flex-direction: column; /* Whiteboard a chat pod sebou */
+    }
+    .vyuka-whiteboard-area, .vyuka-chat-panel {
+        flex: none; /* Zrušíme flex-grow/shrink */
+        width: 100%;
+    }
+    .vyuka-chat-panel {
+        max-height: 50vh; /* Omezíme výšku chatu na menších obrazovkách */
+    }
+}
+
+@media (max-width: 992px) {
+    .vyuka-sidebar-ai {
+        width: var(--vyuka-sidebar-width-collapsed); /* Defaultně sbalený na tabletu */
+    }
+    .vyuka-sidebar-ai.expanded {
+        width: var(--vyuka-sidebar-width-expanded);
+        box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    }
+     .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-logo span,
+     .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link .link-text,
+     .vyuka-sidebar-ai:not(.expanded) .user-profile-ai .user-info {
+        display: none;
+    }
+     .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link i,
+     .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-logo i {
+        margin-right: 0;
+    }
+    .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-header,
+    .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link {
+        justify-content: center;
+    }
+
+    .vyuka-page-container {
+        margin-left: var(--vyuka-sidebar-width-collapsed);
+    }
+    .vyuka-sidebar-ai.expanded ~ .vyuka-page-container {
+        margin-left: var(--vyuka-sidebar-width-expanded);
+    }
+    .vyuka-header-left .sidebar-ai-desktop-toggle { display: block; } /* Zobrazíme desktop toggle */
+    .vyuka-header-left .mobile-menu-toggle { display: none; } /* Skryjeme mobilní, pokud máme desktopový */
+}
+
+@media (max-width: 768px) {
+    .vyuka-sidebar-ai { /* Na mobilu bude fungovat jako overlay */
+        transform: translateX(-100%);
+        width: var(--vyuka-sidebar-width-expanded); /* Plná šířka při otevření */
+        z-index: 1002; /* Nad obsahem */
+    }
+    .vyuka-sidebar-ai.active-mobile { /* Nová třída pro mobilní zobrazení */
+        transform: translateX(0);
+    }
+    .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-logo span,
+    .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link .link-text,
+    .vyuka-sidebar-ai.active-mobile .user-profile-ai .user-info {
+        display: inline; /* Nebo flex, podle potřeby */
+    }
+     .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link i {
+        margin-right: 0.8rem;
+    }
+    .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-header,
+    .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link {
+        justify-content: flex-start;
+    }
+
+
+    .vyuka-page-container {
+        margin-left: 0; /* Žádné odsazení, sidebar je overlay */
+        width: 100%;
+    }
+    .vyuka-header { padding: 0 1rem; }
+    .vyuka-header-left .sidebar-ai-desktop-toggle { display: none; } /* Skryjeme desktop toggle */
+    .vyuka-header-left .mobile-menu-toggle { display: block; } /* Zobrazíme mobilní */
+    .vyuka-header-topic-info h1 { font-size: 1.1rem; }
+    .vyuka-header-topic-info p { font-size: 0.8rem; }
+    .vyuka-header-right .btn-exit-vyuka span { display: none; } /* Skryjeme text u "Ukončit" */
+    .vyuka-header-right .btn-exit-vyuka i { margin-right: 0; }
+    .vyuka-header-right { gap: 0.5rem; }
+
+    .vyuka-main-content { padding: 1rem; gap: 1rem; }
+    .vyuka-whiteboard-area, .vyuka-chat-panel { padding: 1rem; }
+    .vyuka-lesson-controls { flex-direction: column; }
+    .vyuka-lesson-controls .btn { width: 100%; }
+
+    /* Sidebar overlay pro mobilní verzi AI sidebaru */
+    .sidebar-overlay-ai {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(var(--vyuka-bg-dark-rgb), 0.6);
+        z-index: 1001;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0s 0.3s;
+        backdrop-filter: blur(4px);
+    }
+    .sidebar-overlay-ai.active {
+        opacity: 1;
+        visibility: visible;
+        transition-delay: 0s;
+    }
+}
+
+/* Původní ".sidebar-overlay" (pro globální sidebar) se zde nepoužívá, pokud AI sidebar je fixní. */
+/* Pokud by AI sidebar byl také ovládaný přes overlay, potřebovali bychom novou třídu, např. .sidebar-overlay-ai */
