@@ -1,5 +1,5 @@
 // dashboard.js
-// Verze: 27.0.13 - Zajištění definice updateSidebarProfile, oprava ReferenceError.
+// Verze: 27.0.14 - Oprava logiky vyzvedávání milníků série a zajištění konzistence UI.
 // EDIT LOG: Developer Goal -> Modify dashboard.js to fetch Monthly Rewards and Streak Milestones configurations from Supabase tables.
 // EDIT LOG: Stage ->
 // EDIT LOG: 1. Added new functions: fetchActiveMonthlyRewardsCalendarFromDB, fetchAllStreakMilestonesFromDB.
@@ -8,9 +8,9 @@
 // EDIT LOG: 4. Modified renderStreakMilestones to use data fetched from Supabase.
 // EDIT LOG: 5. Commented out old hardcoded mayRewardsConfig and STREAK_MILESTONES_CONFIG.
 // EDIT LOG: 6. Ensured loading states for modals are handled.
-// EDIT LOG: (Zachovány všechny předchozí opravy a funkce z v27.0.10)
 // EDIT LOG: 7. Opraven PROFILE_COLUMNS_TO_SELECT odstraněním claimed_streak_milestones.
 // EDIT LOG: 8. Znovu zajištěna přítomnost a správné volání funkce updateSidebarProfile.
+// EDIT LOG: 9. Oprava v handleStreakMilestoneClaim pro okamžitou aktualizaci currentProfile.claimed_streak_milestones.
 
 (function() {
     'use strict';
@@ -195,7 +195,7 @@
     function showModal(modalId) { const modal = document.getElementById(modalId); if (modal) { console.log(`[Modal] Opening modal: ${modalId}`); modal.style.display = 'flex'; if (modalId === 'monthly-reward-modal' && typeof renderMonthlyCalendar === 'function') { setLoadingState('monthlyRewards', true); renderMonthlyCalendar().finally(() => setLoadingState('monthlyRewards', false)); } else if (modalId === 'streak-milestones-modal' && typeof renderStreakMilestones === 'function') { setLoadingState('streakMilestones', true); renderStreakMilestones().finally(() => setLoadingState('streakMilestones', false)); } requestAnimationFrame(() => { modal.classList.add('active'); }); } else { console.error(`Modal element not found: #${modalId}`); } }
     function hideModal(modalId) { const modal = document.getElementById(modalId); if (modal) { console.log(`[Modal] Closing modal: ${modalId}`); modal.classList.remove('active'); setTimeout(() => { modal.style.display = 'none'; }, 300); } }
     function withTimeout(promise, ms, timeoutError = new Error('Operace vypršela')) { const timeoutPromise = new Promise((_, reject) => { setTimeout(() => reject(timeoutError), ms); }); return Promise.race([promise, timeoutPromise]); }
-    function updateCopyrightYear() { const currentYearSpan = ui.currentYearFooter; const currentYearSidebar = ui.currentYearSidebar; const year = new Date().getFullYear(); if (currentYearSpan) { currentYearSpan.textContent = year; } /* else { console.warn("[Copyright] Element currentYearFooter nenalezen.");} */ if (currentYearSidebar) { currentYearSidebar.textContent = year; } }
+    function updateCopyrightYear() { const currentYearSpan = ui.currentYearFooter; const currentYearSidebar = ui.currentYearSidebar; const year = new Date().getFullYear(); if (currentYearSpan) { currentYearSpan.textContent = year; } if (currentYearSidebar) { currentYearSidebar.textContent = year; } }
     function initTooltips() { try { if (window.jQuery && typeof window.jQuery.fn.tooltipster === 'function') { window.jQuery('.btn-tooltip.tooltipstered').each(function() { if (document.body.contains(this)) { try { window.jQuery(this).tooltipster('destroy'); } catch (destroyError) { console.warn("Tooltipster destroy error:", destroyError); } } }); window.jQuery('.btn-tooltip').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 150, distance: 6, side: 'top' }); console.log("[Tooltips] Initialized/Re-initialized."); } else { console.warn("[Tooltips] jQuery or Tooltipster library not loaded."); } } catch (e) { console.error("[Tooltips] Error initializing Tooltipster:", e); } }
     function initMouseFollower() { const follower = ui.mouseFollower; if (!follower || window.innerWidth <= 576) return; let hasMoved = false; const updatePosition = (event) => { if (!hasMoved) { document.body.classList.add('mouse-has-moved'); hasMoved = true; } requestAnimationFrame(() => { follower.style.left = `${event.clientX}px`; follower.style.top = `${event.clientY}px`; }); }; window.addEventListener('mousemove', updatePosition, { passive: true }); document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; }); document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; }); window.addEventListener('touchstart', () => { if(follower) follower.style.display = 'none'; }, { passive: true, once: true }); };
     function initHeaderScrollDetection() { let lastScrollY = window.scrollY; const mainEl = ui.mainContent; if (!mainEl) return; mainEl.addEventListener('scroll', () => { const currentScrollY = mainEl.scrollTop; document.body.classList.toggle('scrolled', currentScrollY > 50); lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; }, { passive: true }); if (mainEl && mainEl.scrollTop > 50) document.body.classList.add('scrolled'); };
@@ -442,7 +442,7 @@
             console.error("[DB Rewards] Chyba při načítání konfigurace milníků série z DB:", error);
             return [];
         } finally {
-            // setLoadingState('rewardsConfig', false); // Bude voláno v initializeApp
+             // setLoadingState('rewardsConfig', false); // Bude voláno v initializeApp
         }
     }
     // --- END: NOVÉ FUNKCE PRO NAČÍTÁNÍ KONFIGURACÍ ODMĚN Z DATABÁZE ---
@@ -452,9 +452,9 @@
     function updateSidebarProfile(profile) {
         console.log("[Sidebar Update] Updating sidebar profile. Profile:", profile, "Titles:", allTitles?.length);
         if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) {
-            cacheDOMElements(); // Zkusíme znovu načíst, pokud chybí
+            cacheDOMElements();
             if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) {
-                console.warn("[UI Update Sidebar] Sidebar elements not found in cache even after re-cache.");
+                console.warn("[UI Update Sidebar] Sidebar elements not found in cache.");
                 return;
             }
         }
@@ -527,18 +527,19 @@
             criticalElementsMissing = true;
         }
 
+        // Overall progress je nyní non-critical
         if (!statElements.progress.value) {
             console.log("[UI Update Stats] Element 'overallProgressValue' nenalezen, tato část se neaktualizuje.");
-            statElements.progress.value = null;
+            statElements.progress.value = null; // Označíme, že chybí
         }
         if (!statElements.progress.footer) {
             console.log("[UI Update Stats] Element 'overallProgressFooter' nenalezen, tato část se neaktualizuje.");
-            statElements.progress.footer = null;
+            statElements.progress.footer = null; // Označíme, že chybí
         }
 
 
-        if (criticalElementsMissing && !statElements.progress.value) {
-            console.error("[UI Update Stats] Kritické elementy statistik chybí. Aktualizace přerušena.");
+        if (criticalElementsMissing) { // Pokud chybí body NEBO série
+            console.error("[UI Update Stats] Kritické elementy statistik (points/streak) chybí. Aktualizace přerušena.");
             cards.forEach(card => card?.classList.remove('loading'));
             return;
         }
@@ -659,7 +660,7 @@
 
         if (expNeededForSpan > 0) {
             percentage = Math.min(100, Math.max(0, Math.round((currentExpInLevelSpan / expNeededForSpan) * 100)));
-        } else if (currentLevel > 0) { // Pokud je expNeededForSpan 0 (max level), a currentLevel > 0
+        } else if (currentLevel > 0) {
             percentage = 100;
         }
 
@@ -728,7 +729,7 @@
             const dayCell = document.createElement('div');
             dayCell.className = 'calendar-day';
 
-            if (day > daysInConfigMonth) { // Den je mimo aktuální měsíc konfigurace
+            if (day > daysInConfigMonth) {
                 dayCell.classList.add('no-reward', 'empty-calendar-cell');
                 dayCell.innerHTML = `<span class="day-number">${day}</span><div class="empty-day-placeholder"></div>`;
             } else {
@@ -754,7 +755,7 @@
                 if (isToday) dayCell.classList.add('today');
 
                 const rewardIconClass = dayData?.reward_icon || 'fas fa-question-circle';
-                const rewardNameText = dayData?.reward_name || (dayData ? 'Odměna' : 'Žádná odměna');
+                const rewardNameText = dayData?.reward_name || (dayData ? 'Odměna' : '');
                 let rewardValueHTML = '';
                 if (dayData?.reward_type === 'xp' && dayData.reward_value) rewardValueHTML = `<div class="reward-value">${dayData.reward_value} ZK</div>`;
                 else if (dayData?.reward_type === 'credits' && dayData.reward_value) rewardValueHTML = `<div class="reward-value">${dayData.reward_value} Kr.</div>`;
@@ -877,6 +878,9 @@
             if (refreshedProfile) {
                 currentProfile = refreshedProfile;
                 updateSidebarProfile(currentProfile);
+                // Zajistíme, že userStatsData je aktuální před voláním updateStatsCards
+                userStatsData = await fetchUserStats(currentUser.id, currentProfile);
+                await fetchAndDisplayLatestCreditChange(currentUser.id); // Aktualizuje i lastCreditTransaction
                 updateStatsCards(userStatsData);
                 updateWelcomeBannerAndLevel(currentProfile);
             } else {
@@ -926,8 +930,7 @@
         if (ui.modalMilestonesEmpty) ui.modalMilestonesEmpty.style.display = 'none';
         const milestonesFragment = document.createDocumentFragment();
 
-        // Použijeme currentProfile.claimed_streak_milestones, které bylo naplněno v initializeApp
-        const claimedMilestoneInternalKeys = currentProfile.claimed_streak_milestones || [];
+        const claimedMilestoneInternalKeys = currentProfile.claimed_streak_milestones || []; // Toto by mělo být pole klíčů
 
         allConfiguredStreakMilestones.forEach(milestone => {
             const isClaimed = claimedMilestoneInternalKeys.includes(milestone.reward_key_internal);
@@ -996,8 +999,8 @@
             return;
         }
 
-        const claimedMilestoneKeys = currentProfile.claimed_streak_milestones || [];
-        if (claimedMilestoneKeys.includes(rewardKeyInternal)) {
+        const claimedMilestoneInternalKeys = currentProfile.claimed_streak_milestones || [];
+        if (claimedMilestoneInternalKeys.includes(rewardKeyInternal)) {
             showToast('Již vyzvednuto', 'Tento milník již byl vyzvednut.', 'info');
             return;
         }
@@ -1036,7 +1039,7 @@
             }
             console.log('[Claim Milestone] Odměny za milník úspěšně zaznamenány do user_claimed_rewards_log.');
 
-            // Záznam do tabulky 'claimed_streak_milestones' pro UI a prevenci duplicitního claimu
+            // Záznam do tabulky 'claimed_streak_milestones'
             const { error: claimLogError } = await supabase
                 .from('claimed_streak_milestones')
                 .insert({
@@ -1051,24 +1054,44 @@
 
             // Aktualizace last_milestone_claimed v profilu
             const newLastMilestoneDay = Math.max(currentProfile.last_milestone_claimed || 0, milestoneConfig.milestone_day);
+            let profileUpdateData = { updated_at: new Date().toISOString() };
             if (newLastMilestoneDay > (currentProfile.last_milestone_claimed || 0)) {
-                const { error: profileUpdateError } = await supabase
-                    .from('profiles')
-                    .update({
-                        last_milestone_claimed: newLastMilestoneDay,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', currentUser.id);
-                if (profileUpdateError) throw new Error(`Nepodařilo se aktualizovat profil s nejvyšším vyzvednutým milníkem: ${profileUpdateError.message}`);
+                profileUpdateData.last_milestone_claimed = newLastMilestoneDay;
+            }
+            // Explicitní aktualizace pole claimed_streak_milestones v profilu není nutná,
+            // pokud se spoléháme na fetchClaimedStreakMilestones při každém načtení/renderu.
+            // Ale pro okamžitou reakci UI po claimu přidáme klíč do lokální kopie.
+            if (!currentProfile.claimed_streak_milestones) {
+                currentProfile.claimed_streak_milestones = [];
+            }
+            if (!currentProfile.claimed_streak_milestones.includes(milestoneConfig.reward_key_internal)) {
+                currentProfile.claimed_streak_milestones.push(milestoneConfig.reward_key_internal);
+                // Pokud bychom chtěli ukládat pole do `profiles.claimed_streak_milestones`:
+                // profileUpdateData.claimed_streak_milestones = currentProfile.claimed_streak_milestones;
             }
 
-            // Re-fetch profile
+
+            if (Object.keys(profileUpdateData).length > 1) { // updated_at je tam vždy
+                const { error: profileUpdateError } = await supabase
+                    .from('profiles')
+                    .update(profileUpdateData)
+                    .eq('id', currentUser.id);
+                if (profileUpdateError) throw new Error(`Nepodařilo se aktualizovat profil: ${profileUpdateError.message}`);
+            }
+
+
+            // Re-fetch profile pro jistotu (DB trigger mohl změnit body/XP)
             const refreshedProfile = await fetchUserProfile(currentUser.id);
             if (refreshedProfile) {
                 currentProfile = refreshedProfile;
+                // Znovu načteme i claimed_streak_milestones, protože mohlo být změněno (i když by mělo být jen přidáno)
                 const updatedClaimedKeys = await fetchClaimedStreakMilestones(currentUser.id);
                 currentProfile.claimed_streak_milestones = updatedClaimedKeys;
+
                 updateSidebarProfile(currentProfile);
+                 // Zajistíme, že userStatsData je aktuální před voláním updateStatsCards
+                userStatsData = await fetchUserStats(currentUser.id, currentProfile);
+                await fetchAndDisplayLatestCreditChange(currentUser.id);
                 updateStatsCards(userStatsData);
                 updateWelcomeBannerAndLevel(currentProfile);
             }
@@ -1088,7 +1111,7 @@
 
 
     // --- START: Event Listeners Setup ---
-    function setupEventListeners() { const startTime = performance.now(); console.log("[SETUP] setupEventListeners: Start"); if (!ui || Object.keys(ui).length === 0) { console.error("[SETUP] UI cache is empty! Cannot setup listeners."); return; } const listenersAdded = new Set(); const safeAddListener = (element, eventType, handler, key) => { if (element) { element.removeEventListener(eventType, handler); element.addEventListener(eventType, handler); listenersAdded.add(key); } else { console.warn(`[SETUP] Element not found for listener: ${key}`); } }; safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle'); safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle'); safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay'); safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn'); document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); }); safeAddListener(ui.startPracticeBtn, 'click', () => { window.location.href = '/dashboard/procvicovani/main.html'; }, 'startPracticeBtn'); safeAddListener(ui.openMonthlyModalBtn, 'click', () => showModal('monthly-reward-modal'), 'openMonthlyModalBtn'); safeAddListener(ui.openStreakModalBtn, 'click', () => showModal('streak-milestones-modal'), 'openStreakModalBtn'); safeAddListener(ui.refreshDataBtn, 'click', async () => { if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné se přihlásit.", "error"); return; } if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; } const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'RELOADING...'; ui.refreshDataBtn.disabled = true; await initializeApp(); /* Changed from loadDashboardData to full re-init for configs */ if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'RELOAD'; ui.refreshDataBtn.disabled = false; }, 'refreshDataBtn'); safeAddListener(ui.notificationBell, 'click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell'); safeAddListener(ui.markAllReadBtn, 'click', markAllNotificationsRead, 'markAllReadBtn'); safeAddListener(ui.notificationsList, 'click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount?.textContent?.replace('+', '') || '0'; const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); if(ui.notificationCount) { ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); } if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }, 'notificationsList'); document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown?.classList.remove('active'); } }); safeAddListener(ui.closeMonthlyModalBtn, 'click', () => hideModal('monthly-reward-modal'), 'closeMonthlyModalBtn'); safeAddListener(ui.monthlyRewardModal, 'click', (event) => { if (event.target === ui.monthlyRewardModal) { hideModal('monthly-reward-modal'); } }, 'monthlyRewardModal'); safeAddListener(ui.closeStreakModalBtn, 'click', () => hideModal('streak-milestones-modal'), 'closeStreakModalBtn'); safeAddListener(ui.streakMilestonesModal, 'click', (event) => { if (event.target === ui.streakMilestonesModal) { hideModal('streak-milestones-modal'); } }, 'streakMilestonesModal'); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); if (ui.mainContent) ui.mainContent.addEventListener('scroll', initHeaderScrollDetection, { passive: true }); const endTime = performance.now(); console.log(`[SETUP] Event listeners set up. Added: ${[...listenersAdded].length}. Time: ${(endTime - startTime).toFixed(2)}ms`); }
+    function setupEventListeners() { const startTime = performance.now(); console.log("[SETUP] setupEventListeners: Start"); if (!ui || Object.keys(ui).length === 0) { console.error("[SETUP] UI cache is empty! Cannot setup listeners."); return; } const listenersAdded = new Set(); const safeAddListener = (element, eventType, handler, key) => { if (element) { element.removeEventListener(eventType, handler); element.addEventListener(eventType, handler); listenersAdded.add(key); } else { console.warn(`[SETUP] Element not found for listener: ${key}`); } }; safeAddListener(ui.mainMobileMenuToggle, 'click', openMenu, 'mainMobileMenuToggle'); safeAddListener(ui.sidebarCloseToggle, 'click', closeMenu, 'sidebarCloseToggle'); safeAddListener(ui.sidebarOverlay, 'click', closeMenu, 'sidebarOverlay'); safeAddListener(ui.sidebarToggleBtn, 'click', toggleSidebar, 'sidebarToggleBtn'); document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 992) closeMenu(); }); }); safeAddListener(ui.startPracticeBtn, 'click', () => { window.location.href = '/dashboard/procvicovani/main.html'; }, 'startPracticeBtn'); safeAddListener(ui.openMonthlyModalBtn, 'click', () => showModal('monthly-reward-modal'), 'openMonthlyModalBtn'); safeAddListener(ui.openStreakModalBtn, 'click', () => showModal('streak-milestones-modal'), 'openStreakModalBtn'); safeAddListener(ui.refreshDataBtn, 'click', async () => { if (!currentUser || !currentProfile) { showToast("Chyba", "Pro obnovení je nutné se přihlásit.", "error"); return; } if (Object.values(isLoading).some(state => state)) { showToast("PROBÍHÁ SYNCHRONIZACE", "Data se již načítají.", "info"); return; } const icon = ui.refreshDataBtn.querySelector('i'); const text = ui.refreshDataBtn.querySelector('.refresh-text'); if (icon) icon.classList.add('fa-spin'); if (text) text.textContent = 'RELOADING...'; ui.refreshDataBtn.disabled = true; await initializeApp(); if (icon) icon.classList.remove('fa-spin'); if (text) text.textContent = 'RELOAD'; ui.refreshDataBtn.disabled = false; }, 'refreshDataBtn'); safeAddListener(ui.notificationBell, 'click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }, 'notificationBell'); safeAddListener(ui.markAllReadBtn, 'click', markAllNotificationsRead, 'markAllReadBtn'); safeAddListener(ui.notificationsList, 'click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); const currentCountText = ui.notificationCount?.textContent?.replace('+', '') || '0'; const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); if(ui.notificationCount) { ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); } if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }, 'notificationsList'); document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown?.classList.remove('active'); } }); safeAddListener(ui.closeMonthlyModalBtn, 'click', () => hideModal('monthly-reward-modal'), 'closeMonthlyModalBtn'); safeAddListener(ui.monthlyRewardModal, 'click', (event) => { if (event.target === ui.monthlyRewardModal) { hideModal('monthly-reward-modal'); } }, 'monthlyRewardModal'); safeAddListener(ui.closeStreakModalBtn, 'click', () => hideModal('streak-milestones-modal'), 'closeStreakModalBtn'); safeAddListener(ui.streakMilestonesModal, 'click', (event) => { if (event.target === ui.streakMilestonesModal) { hideModal('streak-milestones-modal'); } }, 'streakMilestonesModal'); window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus); if (ui.mainContent) ui.mainContent.addEventListener('scroll', initHeaderScrollDetection, { passive: true }); const endTime = performance.now(); console.log(`[SETUP] Event listeners set up. Added: ${[...listenersAdded].length}. Time: ${(endTime - startTime).toFixed(2)}ms`); }
     // --- END: Event Listeners Setup ---
 
     // --- START: App Initialization (UPRAVENO PRO NAČÍTÁNÍ KONFIGURACÍ Z DB) ---
@@ -1132,7 +1155,6 @@
 
         try {
             await checkAndUpdateLoginStreak();
-            // currentProfile.claimed_streak_milestones je již načteno v initializeApp
 
             updateSidebarProfile(currentProfile);
             updateWelcomeBannerAndLevel(currentProfile);
@@ -1346,7 +1368,7 @@
                     }
 
 
-                    updateSidebarProfile(currentProfile); // Toto by mělo být definováno a funkční
+                    updateSidebarProfile(currentProfile);
                     updateCopyrightYear();
                     updateOnlineStatus();
 
@@ -1397,7 +1419,7 @@
                     userFriendlyMessage = "Chyba sítě. Zkontrolujte své internetové připojení a zkuste to znovu.";
                 }
                 showError(userFriendlyMessage, false, ui.mainContentAreaPlaceholder);
-                if (ui.mainContent) ui.mainContent.style.display = 'block'; // Změněno na block, aby se zobrazila chyba
+                if (ui.mainContent) ui.mainContent.style.display = 'block';
             }
 
             const totalEndTime = performance.now();
