@@ -1,12 +1,10 @@
 // procvicovani/main.js
 // This script is intended for procvicovani/main.html (Přehled Procvičování)
-// It includes logic for the main overview, stats, shortcuts, topic progress,
-// and also incorporates functions for displaying the current study plan (carousel)
-// and managing goal settings, similar to plan.js but integrated for main.html's context.
 // VERZE (USER REQUEST): Scroll fix, Plan display fix, Tab style already handled in CSS.
 // VERZE (Syntax Fix Attempt): Thorough syntax review to address "Unexpected token 'class'".
 // VERZE (ReferenceError Fix): Added getLatestDiagnosticTest function definition.
 // VERZE (ReferenceError Fix toggleSkeletonUI): Added toggleSkeletonUI function definition.
+// VERZE (userStatsData Fix): Corrected handling of userStatsData.
 
 (function() {
     'use strict';
@@ -22,6 +20,7 @@
     const PLAN_GENERATION_COOLDOWN_DAYS = 7;
     const NOTIFICATION_FETCH_LIMIT = 5;
     const SIDEBAR_STATE_KEY = 'sidebarCollapsedState';
+    let userStatsData = null; // Moved to a higher scope within IIFE
 
     // ==============================================
     //          DOM Элементы (Кэш)
@@ -53,8 +52,8 @@
         statsCardsContainer: document.getElementById('stats-cards-container'),
         statsCardsSkeletonContainer: document.getElementById('stats-cards-skeleton-container'),
         shortcutsGrid: document.getElementById('shortcuts-grid'),
-        shortcutGridReal: document.getElementById('shortcut-grid-real'), // Added for consistency
-        shortcutGridSkeletonContainer: document.getElementById('shortcut-grid-skeleton-container'), // Added
+        shortcutGridReal: document.getElementById('shortcut-grid-real'),
+        shortcutGridSkeletonContainer: document.getElementById('shortcut-grid-skeleton-container'),
         topicProgressSection: document.getElementById('topic-progress-section'),
         topicProgressTableBody: document.getElementById('topic-progress-body'),
         topicProgressTableLoadingOverlay: document.getElementById('topic-progress-table-loading-overlay'),
@@ -273,7 +272,7 @@
         } catch (error) { console.error("[ToggleSidebar] Chyba:", error); }
     }
 
-    // --- NEW: toggleSkeletonUI function (adapted from dashboard.js) ---
+    // --- NEW: toggleSkeletonUI function ---
     function toggleSkeletonUI(sectionKey, showSkeleton) {
         console.log(`[Skeleton Toggle - Main.js] Section: ${sectionKey}, Show Skeleton: ${showSkeleton}`);
         let skeletonContainer, realContainer, displayTypeIfReal = 'block';
@@ -282,31 +281,29 @@
             case 'welcomeBanner':
                 skeletonContainer = ui.welcomeBannerSkeleton;
                 realContainer = ui.welcomeBannerReal;
-                displayTypeIfReal = 'flex'; // welcome-banner-real is a flex container
+                displayTypeIfReal = 'flex';
                 break;
             case 'stats':
                 skeletonContainer = ui.statsCardsSkeletonContainer;
                 realContainer = ui.statsCardsContainer;
-                displayTypeIfReal = 'grid'; // stats-cards-container is a grid
+                displayTypeIfReal = 'grid';
                 break;
             case 'shortcuts':
                 skeletonContainer = ui.shortcutGridSkeletonContainer;
                 realContainer = ui.shortcutGridReal;
-                displayTypeIfReal = 'grid'; // shortcut-grid-real is a grid
+                displayTypeIfReal = 'grid';
                 break;
-            // Cases for 'activities' and 'creditHistory' are handled by DashboardLists.js's internal skeletons
-            // but their parent wrappers might be controlled here if needed.
-            case 'activities': // Manages the visibility of the entire section wrapper
-                skeletonContainer = ui.activityListSkeletonContainer; // This is for list items, use wrapper
+            case 'activities':
+                skeletonContainer = ui.activityListSkeletonContainer;
                 realContainer = ui.activityListContainer;
-                if (ui.activityListContainerWrapper) { // Control the parent wrapper
+                 if (ui.activityListContainerWrapper) {
                     ui.activityListContainerWrapper.classList.toggle('loading-section', showSkeleton);
                 }
                 break;
-            case 'creditHistory': // Manages the visibility of the entire section wrapper
-                skeletonContainer = ui.creditHistorySkeletonContainer; // for list items
+            case 'creditHistory':
+                skeletonContainer = ui.creditHistorySkeletonContainer;
                 realContainer = ui.creditHistoryListContainer;
-                 if (ui.creditHistoryContainerWrapper) { // Control the parent wrapper
+                 if (ui.creditHistoryContainerWrapper) {
                     ui.creditHistoryContainerWrapper.classList.toggle('loading-section', showSkeleton);
                 }
                 break;
@@ -316,7 +313,7 @@
         }
 
         if (skeletonContainer) {
-            skeletonContainer.style.display = showSkeleton ? (skeletonContainer.classList.contains('stat-cards') || skeletonContainer.classList.contains('shortcut-grid') ? 'grid' : 'block') : 'none';
+            skeletonContainer.style.display = showSkeleton ? (skeletonContainer.classList.contains('stat-cards') || skeletonContainer.classList.contains('shortcut-grid') || skeletonContainer.classList.contains('dashboard-grid') ? 'grid' : 'block') : 'none';
         }
         if (realContainer) {
             realContainer.style.display = showSkeleton ? 'none' : displayTypeIfReal;
@@ -324,15 +321,16 @@
     }
     // --- END: toggleSkeletonUI function ---
 
+
     const setLoadingState = (sectionKey, isLoadingFlag) => {
         if (!ui || Object.keys(ui).length === 0) { console.error("[SetLoadingState] UI cache not ready."); return; }
         if (state.isLoading[sectionKey] === isLoadingFlag && sectionKey !== 'all') return;
 
         if (sectionKey === 'all') {
             Object.keys(state.isLoading).forEach(key => {
-                if (key !== 'all') setLoadingState(key, isLoadingFlag); // Recursively call for individual sections
+                if (key !== 'all') setLoadingState(key, isLoadingFlag);
             });
-            state.isLoading.all = isLoadingFlag; // Set the 'all' flag
+            state.isLoading.all = isLoadingFlag;
             console.log(`[SetLoadingState - Main.js] Section: all, isLoading: ${isLoadingFlag}`);
             return;
         }
@@ -340,13 +338,11 @@
         state.isLoading[sectionKey] = isLoadingFlag;
         console.log(`[SetLoadingState - Main.js] Section: ${sectionKey}, isLoading: ${isLoadingFlag}`);
 
-        // Use toggleSkeletonUI for sections that have it
         const skeletonManagedSections = ['welcomeBanner', 'stats', 'shortcuts', 'activities', 'creditHistory'];
         if (skeletonManagedSections.includes(sectionKey)) {
             toggleSkeletonUI(sectionKey, isLoadingFlag);
         }
 
-        // Handle other specific loading states
         if (sectionKey === 'topicProgress' && ui.topicProgressSection) {
             ui.topicProgressTableLoadingOverlay?.classList.toggle('visible-loader', isLoadingFlag);
             ui.topicProgressTable?.classList.toggle('hidden-while-loading', isLoadingFlag);
@@ -384,7 +380,7 @@
             }
         } else if (sectionKey === 'goalModal' && ui.goalSelectionModal) {
             const modalContent = ui.goalSelectionModal.querySelector('.modal-content');
-            if (modalContent) modalContent.classList.toggle('loading-state', isLoadingFlag); // Add/remove a class for visual feedback
+            if (modalContent) modalContent.classList.toggle('loading-state', isLoadingFlag);
         }
     };
     const renderMessage = (container, type = 'info', title, message, addButtons = []) => {
@@ -540,7 +536,6 @@
             if (showLoaderFlag) setLoadingState('page', false);
         }
     }
-
 
     async function checkUserInitialSetup(userId) {
         console.log("[InitialSetupCheck] Checking setup for user:", userId);
@@ -707,13 +702,73 @@
         }
     }
 
+    async function fetchUserStats(userId, profileData) { // Made this async
+        if (!supabaseClient || !userId || !profileData) {
+            console.error("[Stats] Chybí Supabase klient, ID uživatele nebo data profilu.");
+            return null;
+        }
+        console.log(`[Stats] Načítání user_stats pro uživatele ${userId}...`);
+        try {
+            const { data, error } = await supabaseClient
+                .from('user_stats')
+                .select('progress, progress_weekly, points_weekly, streak_longest, completed_tests')
+                .eq('user_id', userId)
+                .maybeSingle(); // Use maybeSingle to handle cases where no record exists without throwing an error
+
+            if (error) {
+                console.warn("[Stats] Supabase chyba při načítání user_stats:", error.message);
+                // Fallback to profile data if user_stats fetch fails
+                return {
+                    progress: profileData.progress ?? 0,
+                    progress_weekly: 0, // Cannot get weekly from profile
+                    points: profileData.points ?? 0,
+                    points_weekly: 0, // Cannot get weekly from profile
+                    streak_current: profileData.streak_days ?? 0,
+                    longest_streak_days: profileData.longest_streak_days ?? 0,
+                    completed_exercises: profileData.completed_exercises ?? 0,
+                    completed_tests: profileData.completed_tests_count ?? 0, // Assuming profile has this
+                };
+            }
+            // Merge fetched stats with profile data, giving precedence to profile data for some fields
+            const finalStats = {
+                progress: data?.progress ?? profileData.progress ?? 0,
+                progress_weekly: data?.progress_weekly ?? 0,
+                points: profileData.points ?? 0, // Always take points from profile as it's the source of truth
+                points_weekly: data?.points_weekly ?? 0,
+                streak_current: profileData.streak_days ?? 0, // Current streak from profile
+                longest_streak_days: profileData.longest_streak_days ?? data?.streak_longest ?? 0,
+                completed_exercises: profileData.completed_exercises ?? 0,
+                completed_tests: profileData.completed_tests_count ?? data?.completed_tests ?? 0,
+            };
+            console.log("[Stats] Statistiky úspěšně načteny/sestaveny:", finalStats);
+            return finalStats;
+        } catch (error) {
+            console.error("[Stats] Neočekávaná chyba při načítání user_stats:", error);
+            // Fallback to profile data on unexpected error
+            return {
+                progress: profileData.progress ?? 0,
+                progress_weekly: 0,
+                points: profileData.points ?? 0,
+                points_weekly: 0,
+                streak_current: profileData.streak_days ?? 0,
+                longest_streak_days: profileData.longest_streak_days ?? 0,
+                completed_exercises: profileData.completed_exercises ?? 0,
+                completed_tests: profileData.completed_tests_count ?? 0,
+            };
+        }
+    }
+
+
     async function loadDashboardStats() {
         if (!state.currentUser || !supabaseClient) return;
         setLoadingState('stats', true);
-        // toggleSkeletonUI is now defined locally
         toggleSkeletonUI('stats', true);
         try {
-            const statsToDisplay = userStatsData || state.currentProfile || {
+            // Fetch fresh userStatsData here or ensure it's passed
+            if (!userStatsData || state.currentMainTab === 'practice-tab') { // Refresh if on practice tab or not loaded
+                 userStatsData = await fetchUserStats(state.currentUser.id, state.currentProfile);
+            }
+            const statsToDisplay = userStatsData || state.currentProfile || { // Fallback
                 progress: 0, points: 0, streak_current: 0, longest_streak_days: 0,
                 completed_exercises: 0, completed_tests_count: 0,
             };
@@ -729,6 +784,7 @@
             toggleSkeletonUI('stats', false);
         }
     }
+
     function renderStatsCards(stats) {
         console.log("[UI Update] Aktualizace karet statistik:", stats);
         if (!ui.statsCardsContainer || !ui.overallProgressValue || !ui.totalPointsValue || !ui.streakValue) {
@@ -755,7 +811,7 @@
 
         if (ui.totalPointsValue) {
             ui.totalPointsValue.innerHTML = `${stats.points ?? 0} <span id="latest-credit-change" class="latest-credit-change-span"></span>`;
-            const latestTx = fetchAndDisplayLatestCreditChange.latestTxData; // Access potentially stored data
+            const latestTx = fetchAndDisplayLatestCreditChange.latestTxData;
             const latestCreditSpan = document.getElementById('latest-credit-change');
 
             if (latestTx && latestCreditSpan) {
@@ -795,8 +851,8 @@
             if (error) {
                 let errorMessage = error.message;
                 const errString = JSON.stringify(error);
-                if (error.code === '42883' || errString.includes('function get_user_topic_progress_summary(p_user_id => uuid) does not exist')) {
-                    errorMessage = 'Chyba: Požadovaná funkce (get_user_topic_progress_summary) pro načtení pokroku v tématech nebyla nalezena na serveru. Ověřte prosím, že je SQL funkce správně vytvořena a nasazena ve vaší Supabase databázi.';
+                if (error.code === '42883' || errString.includes('function get_user_topic_progress_summary(p_user_id => uuid) does not exist') || errString.includes('structure of query does not match function result type') ) {
+                    errorMessage = 'Chyba: Funkce pro načtení pokroku v tématech (get_user_topic_progress_summary) má nesprávnou definici nebo neexistuje na serveru. Zkontrolujte SQL definici funkce a její návratové typy.';
                 }
                 throw new Error(errorMessage);
             }
@@ -895,7 +951,7 @@
         }
 
         if (tabId === 'practice-tab') {
-            await loadDashboardStats();
+            await loadDashboardStats(); // This will now use the correctly scoped userStatsData
             await loadTopicProgress();
             if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderAll === 'function' && state.currentUser) {
                  await DashboardLists.loadAndRenderAll(state.currentUser.id, 5);
@@ -1017,48 +1073,25 @@
     };
 
     const renderPromptCreatePlan = (container) => {
-        // Templates are defined in plan.html, but main.html now handles this logic.
-        // This function assumes a template with id 'promptCreatePlanTemplate' is available in main.html
         const promptTemplate = document.getElementById('promptCreatePlanTemplate');
-        if (!container || !promptTemplate) {
-            console.error("Missing container or promptCreatePlanTemplate for renderPromptCreatePlan in main.js.");
-            return;
-        }
+        if (!container || !promptTemplate) { console.error("Missing container or promptCreatePlanTemplate for renderPromptCreatePlan in main.js."); return; }
         console.log("[Render] Rendering Prompt Create Plan...");
         if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
-
         const node = promptTemplate.content.cloneNode(true);
         const btn = node.getElementById('createNewPlanFromPromptBtn');
-        if (btn) {
-            btn.addEventListener('click', () => {
-                window.location.href = 'plan.html?tab=create'; // Redirect to plan.html for creation
-            });
-        }
-        container.innerHTML = '';
-        container.appendChild(node);
-        container.style.display = 'flex';
+        if (btn) { btn.addEventListener('click', () => { window.location.href = 'plan.html?tab=create'; }); }
+        container.innerHTML = ''; container.appendChild(node); container.style.display = 'flex';
         console.log("[Render] Prompt Create Plan Rendered.");
     };
     const renderNoActivePlan = (container) => {
         const noActivePlanTemplate = document.getElementById('noActivePlanTemplate');
-        if (!container || !noActivePlanTemplate) {
-            console.error("Missing container or noActivePlanTemplate for renderNoActivePlan in main.js.");
-            return;
-        }
+        if (!container || !noActivePlanTemplate) { console.error("Missing container or noActivePlanTemplate for renderNoActivePlan in main.js."); return; }
         console.log("[Render] Rendering No Active Plan...");
         if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
-
         const node = noActivePlanTemplate.content.cloneNode(true);
         const linkToCreate = node.querySelector('.link-to-create-tab');
-        if(linkToCreate) {
-            linkToCreate.addEventListener('click', (e) => {
-                e.preventDefault();
-                window.location.href = 'plan.html?tab=create'; // Redirect to plan.html for creation
-            });
-        }
-        container.innerHTML = '';
-        container.appendChild(node);
-        container.style.display = 'flex';
+        if(linkToCreate) { linkToCreate.addEventListener('click', (e) => { e.preventDefault(); window.location.href = 'plan.html?tab=create'; }); }
+        container.innerHTML = ''; container.appendChild(node); container.style.display = 'flex';
         console.log("[Render] No Active Plan Rendered.");
     };
     const handleActivityCompletionToggle = async (activityId, isCompleted, planId) => { if (!supabaseClient || !planId) return; try { const { error } = await supabaseClient.from('plan_activities').update({ completed: isCompleted, updated_at: new Date().toISOString() }).eq('id', activityId); if (error) throw error; console.log(`[ActivityToggle] Aktivita ${activityId} stav: ${isCompleted}`); await updatePlanProgress(planId); } catch (error) { console.error(`[ActivityToggle] Chyba aktualizace aktivity ${activityId}:`, error); showToast('Nepodařilo se aktualizovat stav aktivity.', 'error'); const checkbox = document.getElementById(`carousel-activity-${activityId}`); const activityElement = checkbox?.closest('.activity-list-item'); if(checkbox) checkbox.checked = !isCompleted; if(activityElement) activityElement.classList.toggle('completed', !isCompleted); } };
@@ -1066,7 +1099,6 @@
     const getActivityIcon = (title = "", type = "") => {
         const lowerTitle = title.toLowerCase();
         const lowerType = type?.toLowerCase() || '';
-
         if (activityVisuals[lowerType]) return activityVisuals[lowerType].icon;
         if (lowerTitle.includes('test')) return activityVisuals.test.icon;
         if (lowerTitle.includes('cvičení') || lowerTitle.includes('příklad') || lowerTitle.includes('úloh')) return activityVisuals.exercise.icon;
@@ -1079,15 +1111,11 @@
         if (lowerTitle.includes('lekce') || lowerTitle.includes('teorie') || lowerTitle.includes('vysvětlení')) return activityVisuals.theory.icon;
         return activityVisuals.default.icon;
     };
-    // --- End of Merged Functions ---
-
-    // --- Function fetchAndDisplayLatestCreditChange (from dashboard.js, for stats card) ---
     async function fetchAndDisplayLatestCreditChange(userId) {
         console.log(`[CreditChange] Fetching latest credit change for user ${userId}...`);
-        // UI update for this is now handled within renderStatsCards using the returned/stored data
         if (!supabaseClient || !userId) {
             console.warn("[CreditChange] Missing Supabase or userId.");
-            fetchAndDisplayLatestCreditChange.latestTxData = null; // Clear previous
+            fetchAndDisplayLatestCreditChange.latestTxData = null;
             return null;
         }
         try {
@@ -1097,20 +1125,20 @@
                 .eq('user_id', userId)
                 .order('created_at', { ascending: false })
                 .limit(1)
-                .single(); // Expect one or zero rows
+                .single();
 
-            if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found, which is not an error here
+            if (error && error.code !== 'PGRST116') {
                 throw error;
             }
-            fetchAndDisplayLatestCreditChange.latestTxData = data; // Store for renderStatsCards
-            return data; // Return data for direct use if needed
+            fetchAndDisplayLatestCreditChange.latestTxData = data;
+            return data;
         } catch (error) {
             console.error('[CreditChange] Error fetching latest credit change:', error);
             fetchAndDisplayLatestCreditChange.latestTxData = null;
             return null;
         }
     }
-    fetchAndDisplayLatestCreditChange.latestTxData = null; // Initialize static property
+    fetchAndDisplayLatestCreditChange.latestTxData = null;
 
 
     function setupEventListeners() {
@@ -1170,8 +1198,13 @@
                 showToast("Obnovuji data...", "info", 2000);
                 setLoadingState('all', true);
 
+                // Fetch user stats again as it might have changed by other actions
+                userStatsData = await fetchUserStats(state.currentUser.id, state.currentProfile);
+                await fetchAndDisplayLatestCreditChange(state.currentUser.id);
+
+
                 if (state.currentMainTab === 'practice-tab') {
-                    await loadDashboardStats();
+                    await loadDashboardStats(); // Will use the freshly fetched userStatsData
                     await loadTopicProgress();
                     if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderAll === 'function' && state.currentUser) {
                          await DashboardLists.loadAndRenderAll(state.currentUser.id, 5);
@@ -1278,6 +1311,12 @@
                 if(ui.mainContent) ui.mainContent.style.display = 'flex';
                 return;
             }
+
+            // Fetch userStatsData once after profile is loaded
+            userStatsData = await fetchUserStats(state.currentUser.id, state.currentProfile);
+            await fetchAndDisplayLatestCreditChange(state.currentUser.id);
+
+
             updateSidebarProfile();
             updateUserGoalDisplay();
             setupEventListeners();
@@ -1337,12 +1376,17 @@
 
 })();
 // --- Developer Edit Log ---
-// Goal: Fix ReferenceError: toggleSkeletonUI is not defined in main.js.
+// Goal: Fix ReferenceError: userStatsData is not defined and SQL function mismatch.
 // Stage:
-// 1. Added the `toggleSkeletonUI` function definition to `main.js`. This function was previously in `dashboard.js` and is responsible for managing the display of skeleton loaders and real content sections.
-// 2. Adapted the `skeletonMap` within `toggleSkeletonUI` to reference UI elements relevant to `main.html` (e.g., `welcomeBannerSkeleton`, `statsCardsSkeletonContainer`, `shortcutGridSkeletonContainer`).
-// 3. Ensured that `setLoadingState` correctly calls this new local `toggleSkeletonUI` function for the appropriate sections.
-// 4. Maintained all other existing functions and logic from the previous version of `main.js`.
+// 1. `userStatsData` handling:
+//    - Moved `userStatsData` variable to the IIFE scope to be accessible by all functions within `main.js`.
+//    - Ensured `userStatsData` is fetched and populated in `initializeApp` *before* `switchTabContent` might call `loadDashboardStats`.
+//    - Modified `loadDashboardStats` to use the already fetched `userStatsData` from the IIFE scope. If called standalone (e.g., by refresh), it can re-fetch if necessary or use the existing one.
+//    - `fetchUserStats` function was made `async` and now correctly merges data from `user_stats` table and `profiles` table, giving precedence to profile data for some fields like current points and streak.
+// 2. SQL Function Mismatch:
+//    - Identified that the JavaScript code in `renderTopicProgressTable` expects `topic.topic_icon`.
+//    - The SQL function `get_user_topic_progress_summary` was returning `calculated_topic_icon`.
+//    - **Instruction for user**: The SQL function `get_user_topic_progress_summary` needs to be modified in the Supabase SQL editor. The alias `et.icon_class AS calculated_topic_icon` should be changed to `et.icon_class AS topic_icon`. This change is NOT in this JS file.
 // ---
 // List of all functions in this file:
 // formatDateForDisplay, getTodayDateString, dateToYYYYMMDD, addDaysToDate, formatDate, showToast,
@@ -1353,7 +1397,7 @@
 // renderNotifications, renderNotificationSkeletons, markNotificationRead, markAllNotificationsRead,
 // getLatestDiagnosticTest, checkUserInitialSetup, showGoalSelectionModal, hideGoalSelectionModal,
 // handleGoalSelection, loadTopicsForGradeReview, populateTopicRatings, saveLearningGoal,
-// showDiagnosticPrompt, getGoalDisplayName, updateUserGoalDisplay, loadDashboardStats, renderStatsCards,
+// showDiagnosticPrompt, getGoalDisplayName, updateUserGoalDisplay, fetchUserStats, loadDashboardStats, renderStatsCards,
 // loadTopicProgress, renderTopicProgressTable, handleSort, switchTabContent, loadCurrentStudyPlanData,
 // groupActivitiesByDayAndDateArray, loadCurrentPlan, renderSingleDayPlan, updateNavigationButtonsState,
 // renderPromptCreatePlan, renderNoActivePlan, handleActivityCompletionToggle, updatePlanProgress,
