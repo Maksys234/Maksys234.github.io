@@ -1,6 +1,6 @@
 /* --- START: Cyberpunk CSS Theme (Adapted for vyuka.html) --- */
 /* --- Версия 23: Larger board, smaller chat panel (flex-grow), smaller chat internals --- */
-/* --- ИСПРАВЛЕНИЕ v24: Изменение overflow для main-content-wrapper --- */
+/* --- ИСПРАВЛЕНИЕ v25: Корректировка overflow и высоты для исправления сжатия панелей --- */
 
 /* --- Global Settings & Variables (Enhanced) --- */
 :root {
@@ -413,22 +413,32 @@ body { scrollbar-width: thin; scrollbar-color: rgba(var(--accent-primary-rgb), 0
 .sidebar-footer { margin-top: 1.5rem; padding: 1rem; font-size: 0.8rem; color: var(--text-muted); text-align: center; flex-shrink: 0; opacity: 0.75; }
 
 /* --- Main Content Layout --- */
-main { flex: 1; margin-left: var(--sidebar-width); transition: margin-left var(--transition-medium) ease; width: calc(100% - var(--sidebar-width)); height: 100vh; display: flex; flex-direction: column; overflow: hidden; background-color: var(--bg-color); }
+main {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    transition: margin-left var(--transition-medium) ease;
+    width: calc(100% - var(--sidebar-width));
+    height: 100vh; /* Full viewport height */
+    display: flex;
+    flex-direction: column; /* Stack header, topic-bar, content-wrapper, footer */
+    overflow: hidden; /* Prevent main from scrolling, children will handle scroll */
+    background-color: var(--bg-color);
+}
 main.loaded { animation: fadeInMain 0.6s ease-out forwards; }
 @keyframes fadeInMain { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
 /* --- Header --- */
-.dashboard-header { padding: 1rem var(--container-padding-x); background-color: rgba(var(--bg-secondary-rgb), 0.75); backdrop-filter: blur(15px); border-radius: 0 0 var(--card-radius) var(--card-radius); box-shadow: var(--shadow-hud); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: sticky; top: 0; z-index: 900; border-bottom: 1px solid var(--border-color-light); transition: background-color 0.3s ease, box-shadow 0.3s ease; flex-shrink: 0; /* Prevent header from shrinking */ }
+.dashboard-header { padding: 1rem var(--container-padding-x); background-color: rgba(var(--bg-secondary-rgb), 0.75); backdrop-filter: blur(15px); border-radius: 0 0 var(--card-radius) var(--card-radius); box-shadow: var(--shadow-hud); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; position: sticky; top: 0; z-index: 900; border-bottom: 1px solid var(--border-color-light); transition: background-color 0.3s ease, box-shadow 0.3s ease; flex-shrink: 0; }
 body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb), 0.9); box-shadow: 0 8px 25px rgba(0,0,0,0.4); }
 .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; width: 100%; }
 .header-content > div:first-child { display: flex; align-items: center; gap: 1rem; flex-grow: 1; }
 .mobile-menu-toggle { display: none; background: none; border: none; color: var(--text-medium); font-size: 1.7rem; cursor: pointer; padding: 0.5rem; margin-right: 0.5rem; z-index: 1010; transition: color 0.2s ease; }
 .mobile-menu-toggle:hover { color: var(--accent-primary); }
 .header-content h1 { font-size: 1.8rem; font-weight: 700; color: var(--text-heading); margin: 0; text-shadow: 0 0 12px var(--accent-glow); }
-.header-content h1 i { margin-right: 0.5em; } /* Added */
+.header-content h1 i { margin-right: 0.5em; }
 .header-actions { display: flex; align-items: center; gap: 0.85rem; flex-shrink: 0; }
 
-/* --- START: Notification Styles (Enhanced) --- */
+/* --- Notification Styles (Enhanced) --- */
 .notifications { position: relative; }
 .notification-bell { cursor: pointer; padding: 0.7rem; position: relative; display: inline-block; line-height: 1; transition: transform 0.2s ease; }
 .notification-bell:hover { transform: scale(1.05); }
@@ -475,24 +485,32 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 @keyframes subtlePulse { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; } }
 #current-topic-display .fa-spinner { margin-right: 0.6rem; animation: spin 1.5s linear infinite; }
 
-/* --- Vyuka Main Content Area --- */
+/* --- Vyuka Main Content Area (CSS FIX v25) --- */
 .main-content-wrapper {
-    padding: 0; /* HTML má style="padding-top: 0;" - toto bude mít přednost pokud je inline */
-    flex-grow: 1;
+    padding: 0; /* Inline HTML style 'padding-top:0' will apply */
+    flex-grow: 1; /* This element should grow to fill space in 'main' */
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Může zůstat, pokud děti správně spravují svůj overflow */
-    min-height: 0; /* Crucial for flexbox layout */
+    overflow-y: auto; /* Allow this wrapper to scroll IF its content (call-interface) is too tall */
+    overflow-x: hidden;
+    min-height: 0;
 }
 
 .call-interface {
-    flex-grow: 1;
+    flex-grow: 1; /* Allow call-interface to grow within main-content-wrapper */
+    /* OR try height: 100%; if main-content-wrapper handles scrolling and has a defined height from flex-grow */
+    /* height: 100%; */
     display: flex;
-    overflow: hidden; /* Důležité, aby vnitřní části správně fungovaly se scroll */
-    padding: 1.8rem var(--container-padding-x);
+    /* overflow: hidden; -- Keep this if children manage their own scroll (which they do) */
+    /* Let's try removing it temporarily to see if it's the cause */
+    overflow: visible; /* Changed from hidden to visible for testing */
+    padding: 1.8rem var(--container-padding-x); /* Padding is applied here */
     gap: 1.8rem;
-    min-height: 0; /* Důležité pro flex children */
+    min-height: 0; /* Essential for flex children to shrink correctly */
 }
+
+/* --- END CSS FIX v25 --- */
+
 
 /* Flex-grow pro panely, jak bylo v v23 */
 .ai-presenter-area { flex: 5 1 0%; display: flex; flex-direction: column; background-color: var(--card-bg); border-radius: var(--card-radius); box-shadow: var(--shadow-hud); overflow: hidden; border: 1px solid var(--border-color-light); min-height: 0; position: relative; min-width: 500px; transition: box-shadow var(--transition-medium); }
@@ -627,17 +645,16 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 @keyframes pulseAvatarSpeaking { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.9; } 100% { transform: scale(1); opacity: 1; } }
 
 /* --- Footer --- */
-/* Styles for .dashboard-footer and .main-footer are similar; ensure they look good here */
-.main-footer { /* Assuming this class is used as copied from dashboard.html */
-    margin-top: auto; /* Pushes to bottom of flex container (main#main-content) */
+.main-footer {
+    margin-top: auto;
     padding: 1.8rem var(--container-padding-x);
     text-align: center;
     color: var(--text-muted);
     font-size: 0.9rem;
     border-top: 1px solid var(--border-color-light);
     opacity: 0.75;
-    flex-shrink: 0; /* Prevent footer from shrinking */
-    background-color: var(--bg-secondary); /* Ensuring it has a background */
+    flex-shrink: 0;
+    background-color: var(--bg-secondary);
 }
 .main-footer .container { max-width: 1100px; margin: 0 auto; }
 .main-footer .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; text-align: left; }
@@ -792,17 +809,17 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 	.typing-dot { animation: none !important; }
 	#mic-btn.listening { animation: none !important; }
 	.toast.show { transform: translateX(0) !important; }
-	.chat-message, .whiteboard-chunk { animation: none !important; opacity: 1 !important; transform: none !important; } /* Disable message pop-in */
-	.modal-overlay, .modal-content { transition: none !important; } /* Disable modal animations */
+	.chat-message, .whiteboard-chunk { animation: none !important; opacity: 1 !important; transform: none !important; }
+	.modal-overlay, .modal-content { transition: none !important; }
     .modal-overlay.visible { opacity: 1 !important; }
     .modal-overlay.visible .modal-content { transform: none !important; }
-    .ai-greeting-avatar { animation: none !important; } /* Disable avatar float */
-    .initial-chat-status .status-dot { animation: none !important; } /* Disable status dot pulse */
-    .unread-dot { animation: none !important; } /* Disable notification dot pulse */
+    .ai-greeting-avatar { animation: none !important; }
+    .initial-chat-status .status-dot { animation: none !important; }
+    .unread-dot { animation: none !important; }
 }
 /* --- END: Cyberpunk CSS Theme --- */
 
-/* --- START MODIFICATION v19/v20: MathJax specific styles --- */
+/* --- MathJax specific styles --- */
 #whiteboard-content mjx-container {
     background: rgba(var(--accent-primary-rgb), 0.04);
     border: 1px solid var(--border-color-medium);
@@ -819,4 +836,3 @@ mjx-math {
     vertical-align: middle;
 }
 #whiteboard-content mjx-math { color: var(--accent-cyan); font-size: 1.1em !important; }
-/* --- END MODIFICATION v19/v20: MathJax specific styles --- */
