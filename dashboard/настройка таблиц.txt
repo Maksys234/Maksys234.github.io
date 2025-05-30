@@ -1255,3 +1255,202 @@ CREATE POLICY "Public read access for streak_milestones_config" ON streak_milest
 
 CREATE POLICY "Public read access for streak_milestone_rewards" ON streak_milestone_rewards
     FOR SELECT USING (auth.role() = 'authenticated');
+-- Krok 1: Vytvoření nové tabulky pro logování vyzvednutých odměn
+CREATE TABLE user_claimed_rewards_log (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    reward_source_type TEXT NOT NULL, -- 'monthly', 'streak_milestone', 'event', 'manual_grant', atd.
+    source_config_description TEXT,   -- Např. "Měsíční kalendář: Červen 2025, Den 5" nebo "Milník série: 7 dní"
+    
+    reward_type TEXT NOT NULL,        -- 'xp', 'credits', 'title', 'avatar_frame', 'item_bundle'
+    reward_value INT,                 -- Hodnota pro xp, credits
+    reward_key TEXT,                  -- Klíč pro tituly, itemy (např. 'majovy_poutnik')
+    reward_name_granted TEXT NOT NULL,-- Název odměny, jak byla udělena
+    
+    bundle_item_types TEXT[],
+    bundle_item_values INT[],
+    bundle_item_keys TEXT[],
+    bundle_item_names TEXT[],
+
+    claimed_at TIMESTAMPTZ DEFAULT now(),
+    processed_by_trigger BOOLEAN DEFAULT FALSE,
+    trigger_processed_at TIMESTAMPTZ,
+    notes TEXT
+);
+
+COMMENT ON TABLE user_claimed_rewards_log IS 'Centrální log všech odměn vyzvednutých uživateli.';
+COMMENT ON COLUMN user_claimed_rewards_log.reward_source_type IS 'Typ zdroje odměny, např. monthly, streak_milestone.';
+COMMENT ON COLUMN user_claimed_rewards_log.source_config_description IS 'Textový popis zdroje odměny pro snadnou identifikaci.';
+COMMENT ON COLUMN user_claimed_rewards_log.reward_type IS 'Typ udělené odměny (xp, credits, title, atd.).';
+COMMENT ON COLUMN user_claimed_rewards_log.processed_by_trigger IS 'Označuje, zda trigger úspěšně zpracoval tuto odměnu.';
+
+-- Krok 2: Pomocné databázové funkce pro výpočet XP a úrovní
+CREATE OR REPLACE FUNCTION db_get_xp_for_level(level_num INT)
+RETURNS INT
+LANGUAGE plpgsql
+IMMUTABLE
+AS $$
+DECLARE
+    BASE_XP INT := 100;
+    INCREMENT_XP INT := 25;
+BEGIN
+    IF level_num <= 0 THEN
+        RETURN 0;
+    END IF;
+    RETURN BASE_XP + (INCREMENT_XP * (level_num - 1));
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION db_get_total_xp_threshold(target_level INT)
+RETURNS INT
+LANGUAGE plpgsql
+IMMUTABLE
+AS $$
+DECLARE
+    total_exp INT := 0;
+    i INT;
+BEGIN
+    IF target_level <= 1 THEN
+        RETURN 0;
+    END IF;
+    FOR i IN 1..(target_level - 1) LOOP
+        total_exp := total_exp + db_get_xp_for_level(i);
+    END LOOP;
+    RETURN total_exp;
+END;
+$$;
+
+-- Krok 3: Hlavní databázová funkce pro zpracování a udělení odměny
+CREATE OR REPLACE FUNCTION grant_reward_to_user_profile()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER 
+AS $$
+DECLARE
+    profile_experience INT;
+    profile_level INT;
+    profile_points INT;
+    profile_purchased_titles TEXT[];
+    profile_selected_title TEXT;
+    new_experience INT;
+    new_level INT;
+    xp_for_next_level INT;
+    leveled_up BOOLEAN := FALSE;
+    initial_level INT;
+    i INT;
+BEGIN
+    SELECT experience, level, points, purchased_titles, selected_title
+    INTO profile_experience, profile_level, profile_points, profile_purchased_titles, profile_selected_title
+    FROM public.profiles
+    WHERE id = NEW.user_id;
+
+    initial_level := profile_level;
+
+    RAISE NOTICE '[TRIGGER] Zpracování odměny pro user_id: %, typ: %, hodnota: %, klíč: %', NEW.user_id, NEW.reward_type, NEW.reward_value, NEW.reward_key;
+
+    IF NEW.reward_type = 'xp' AND NEW.reward_value IS NOT NULL THEN
+        profile_experience := profile_experience + NEW.reward_value;
+    ELSIF NEW.reward_type = 'credits' AND NEW.reward_value IS NOT NULL THEN
+        profile_points := profile_points + NEW.reward_value;
+        INSERT INTO public.credit_transactions (user_id, transaction_type, amount, description, balance_after_transaction, reference_activity_id)
+        VALUES (NEW.user_id, 'reward_grant', NEW.reward_value, NEW.reward_name_granted, profile_points, NEW.id);
+    ELSIF NEW.reward_type = 'title' AND NEW.reward_key IS NOT NULL THEN
+        IF profile_purchased_titles IS NULL OR NOT (profile_purchased_titles @> ARRAY[NEW.reward_key]) THEN
+            profile_purchased_titles := array_append(COALESCE(profile_purchased_titles, ARRAY[]::TEXT[]), NEW.reward_key);
+            IF profile_selected_title IS NULL THEN
+                profile_selected_title := NEW.reward_key;
+            END IF;
+        END IF;
+    END IF;
+
+    IF NEW.reward_type = 'item_bundle' AND NEW.bundle_item_types IS NOT NULL THEN
+        RAISE NOTICE '[TRIGGER] Zpracování balíčku pro user_id: %', NEW.user_id;
+        FOR i IN 1..array_length(NEW.bundle_item_types, 1) LOOP
+            RAISE NOTICE '[TRIGGER] Položka balíčku %: typ: %, hodnota: %, klíč: %', i, NEW.bundle_item_types[i], NEW.bundle_item_values[i], NEW.bundle_item_keys[i];
+            IF NEW.bundle_item_types[i] = 'xp' AND NEW.bundle_item_values[i] IS NOT NULL THEN
+                profile_experience := profile_experience + NEW.bundle_item_values[i];
+            ELSIF NEW.bundle_item_types[i] = 'credits' AND NEW.bundle_item_values[i] IS NOT NULL THEN
+                profile_points := profile_points + NEW.bundle_item_values[i];
+                INSERT INTO public.credit_transactions (user_id, transaction_type, amount, description, balance_after_transaction, reference_activity_id)
+                VALUES (NEW.user_id, 'reward_grant_bundle', NEW.bundle_item_values[i], NEW.bundle_item_names[i] || ' (z balíčku: ' || NEW.reward_name_granted || ')', profile_points, NEW.id);
+            ELSIF NEW.bundle_item_types[i] = 'title' AND NEW.bundle_item_keys[i] IS NOT NULL THEN
+                 IF profile_purchased_titles IS NULL OR NOT (profile_purchased_titles @> ARRAY[NEW.bundle_item_keys[i]]) THEN
+                    profile_purchased_titles := array_append(COALESCE(profile_purchased_titles, ARRAY[]::TEXT[]), NEW.bundle_item_keys[i]);
+                    IF profile_selected_title IS NULL THEN
+                        profile_selected_title := NEW.bundle_item_keys[i];
+                    END IF;
+                END IF;
+            END IF;
+        END LOOP;
+    END IF;
+    
+    new_level := profile_level;
+    xp_for_next_level := db_get_total_xp_threshold(new_level + 1);
+
+    WHILE profile_experience >= xp_for_next_level AND xp_for_next_level > 0 LOOP -- Přidána podmínka xp_for_next_level > 0 pro prevenci nekonečné smyčky na max levelu
+        new_level := new_level + 1;
+        leveled_up := TRUE;
+        RAISE NOTICE '[TRIGGER] User % leveled up to %!', NEW.user_id, new_level;
+        xp_for_next_level := db_get_total_xp_threshold(new_level + 1);
+        IF xp_for_next_level = 0 AND new_level > 1 THEN 
+             RAISE NOTICE '[TRIGGER] Max level threshold reached or get_total_xp_threshold returned 0 for level %', new_level + 1;
+             EXIT; 
+        END IF;
+    END LOOP;
+
+    UPDATE public.profiles
+    SET
+        experience = profile_experience,
+        level = new_level,
+        points = profile_points,
+        purchased_titles = profile_purchased_titles,
+        selected_title = profile_selected_title,
+        updated_at = now()
+    WHERE id = NEW.user_id;
+
+    RAISE NOTICE '[TRIGGER] Profil aktualizován pro user_id: %. Nové XP: %, Level: %, Kredity: %', NEW.user_id, profile_experience, new_level, profile_points;
+
+    IF leveled_up THEN
+        INSERT INTO public.activities (user_id, type, title, description, details, icon)
+        VALUES (NEW.user_id, 'level_up', 'Postup na novou úroveň!', 'Gratulujeme k dosažení úrovně ' || new_level || '.', jsonb_build_object('new_level', new_level, 'old_level', initial_level), 'fa-angle-double-up');
+        RAISE NOTICE '[TRIGGER] Level up aktivita zalogována pro user_id: %, nová úroveň: %', NEW.user_id, new_level;
+    END IF;
+    
+    UPDATE public.user_claimed_rewards_log
+    SET processed_by_trigger = TRUE, trigger_processed_at = now()
+    WHERE id = NEW.id;
+
+    RETURN NEW;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE WARNING '[TRIGGER ERROR] grant_reward_to_user_profile: % - SQLSTATE: %', SQLERRM, SQLSTATE;
+        RETURN NEW; 
+END;
+$$;
+
+-- Krok 4: Vytvoření triggeru
+CREATE TRIGGER on_new_claimed_reward_trigger
+AFTER INSERT ON public.user_claimed_rewards_log
+FOR EACH ROW
+WHEN (NEW.processed_by_trigger = FALSE)
+EXECUTE FUNCTION public.grant_reward_to_user_profile();
+
+-- Povolení RLS na nové tabulce
+ALTER TABLE user_claimed_rewards_log ENABLE ROW LEVEL SECURITY;
+
+-- Politiky pro user_claimed_rewards_log (upraveno bez sloupce 'role')
+DROP POLICY IF EXISTS "Allow admin to see all claimed rewards" ON public.user_claimed_rewards_log;
+DROP POLICY IF EXISTS "Allow user to insert their own claimed rewards" ON public.user_claimed_rewards_log;
+DROP POLICY IF EXISTS "Allow user to read their own claimed rewards" ON public.user_claimed_rewards_log;
+
+CREATE POLICY "Allow user to insert their own claimed rewards"
+ON public.user_claimed_rewards_log
+FOR INSERT
+TO authenticated
+WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Allow user to read their own claimed rewards"
+ON public.user_claimed_rewards_log
+FOR SELECT
+TO authenticated
+USING (auth.uid() = user_id);
