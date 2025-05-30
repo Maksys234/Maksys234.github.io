@@ -1043,12 +1043,12 @@ FOR EACH ROW
 EXECUTE FUNCTION public.update_user_badges_count();
 
 COMMENT ON TRIGGER trg_after_user_badge_change ON public.user_badges IS 'Updates profiles.badges_count whenever a user''s badge record is added, modified, or removed.';
-CREATE OR REPLACE FUNCTION get_user_topic_progress_summary(p_user_id uuid)
+CREATE OR REPLACE FUNCTION public.get_user_topic_progress_summary(p_user_id uuid)
 RETURNS TABLE (
     topic_name TEXT,
     progress_percentage DOUBLE PRECISION,
     last_studied_at TIMESTAMPTZ,
-    topic_icon TEXT  -- Это имя столбца, которое ожидает ваш JavaScript (main.js)
+    topic_icon TEXT  -- Toto jméno sloupce očekává váš JavaScript (main.js)
 )
 AS $$
 BEGIN
@@ -1057,18 +1057,20 @@ BEGIN
         SELECT
             pa.topic_id,
             et.name AS calculated_topic_name,
-            et.icon_class AS calculated_topic_icon, -- Используем ваш столбец 'icon_class'
+            et.icon_class AS calculated_topic_icon, -- Používáme váš sloupec 'icon_class'
             COUNT(pa.id) AS total_activities,
             SUM(CASE WHEN pa.completed THEN 1 ELSE 0 END) AS completed_activities,
             MAX(pa.updated_at) AS latest_activity_update
         FROM
             public.plan_activities pa
         JOIN
+            public.study_plans sp ON pa.plan_id = sp.id -- Přidán JOIN na study_plans
+        JOIN
             public.exam_topics et ON pa.topic_id = et.id
         WHERE
-            pa.user_id = p_user_id
+            sp.user_id = p_user_id -- Filtrace přes study_plans.user_id
         GROUP BY
-            pa.topic_id, et.name, et.icon_class -- Группируем также по icon_class
+            pa.topic_id, et.name, et.icon_class -- Skupinujeme také podle icon_class
     )
     SELECT
         uta.calculated_topic_name,
@@ -1077,7 +1079,7 @@ BEGIN
             ELSE 0.0
         END AS progress_percentage,
         uta.latest_activity_update AS last_studied_at,
-        uta.calculated_topic_icon   -- Возвращаем значение из et.icon_class
+        uta.calculated_topic_icon   -- Vracíme hodnotu z et.icon_class
     FROM
         user_topic_activities uta
     ORDER BY
@@ -1086,5 +1088,5 @@ END;
 $$ LANGUAGE plpgsql
 SECURITY DEFINER;
 
--- Не забудьте предоставить права на выполнение, если вы заменяете функцию (обычно права сохраняются, но лучше проверить):
+-- Poskytnutí práv na provedení funkce (ujistěte se, že je to správné pro vaše RLS)
 GRANT EXECUTE ON FUNCTION public.get_user_topic_progress_summary(uuid) TO authenticated;
