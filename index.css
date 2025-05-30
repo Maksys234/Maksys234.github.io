@@ -606,14 +606,15 @@ section:has(.section-title.animated) .section-title span::after,
 	flex-wrap: wrap;
 }
 
+/* UPDATED Hero Animation Styles */
 .hero p[data-animate],
 .hero .hero-buttons[data-animate] {
 	opacity: 0;
-	filter: blur(8px);
-	transform: translateY(35px) scale(0.97);
+	filter: blur(4px); /* Reduced blur */
+	transform: translateY(25px) scale(0.98); /* Simplified transform */
 	transition-property: opacity, filter, transform;
-    transition-duration: 0.9s;
-    transition-timing-function: var(--transition-slow);
+    transition-duration: 1s; /* Slightly longer duration */
+    transition-timing-function: var(--transition-smooth); /* Using CSS variable for timing function */
 }
 .hero p[data-animate].animated,
 .hero .hero-buttons[data-animate].animated {
@@ -1473,31 +1474,34 @@ button:hover ~ .mouse-follower-glow,
 }
 
 
-/* General Animation for elements with data-animate (non-letter ones) */
+/* UPDATED General Animation for elements with data-animate (non-letter ones) */
 [data-animate]:not([data-animate-letters]) {
 	opacity: 0;
-	filter: blur(6px);
-	transform: perspective(1300px) translateY(45px) rotateY(12deg) scale(0.93); /* 3D pop-in effect */
+	filter: blur(3px); /* Reduced blur */
+	transform: perspective(1000px) translateY(30px) rotateY(5deg) scale(0.95); /* Simplified transform */
 	transform-origin: center center;
 	transition-property: opacity, filter, transform;
-    transition-duration: 0.8s; /* Default from existing */
-    transition-timing-function: var(--transition-slow); /* Use variable */
+    transition-duration: 1s; /* Slightly longer duration */
+    transition-timing-function: var(--transition-smooth); /* Using CSS variable for timing function */
 }
 [data-animate]:not([data-animate-letters]).animated {
 	opacity: 1;
 	filter: blur(0);
-	transform: perspective(1300px) translateY(0) rotateY(0) scale(1); /* Reset to normal */
+	transform: perspective(1000px) translateY(0) rotateY(0) scale(1); /* Reset to normal */
 }
 
 /* Specific animation for how-it-works steps if needed to override general */
+/* This uses the general [data-animate] rule now, for consistency. If specific overrides are needed, they can be re-added. */
+/*
 .how-it-works-step[data-animate] {
-    transform: perspective(900px) translateY(35px) scale(0.88); /* Existing specialized transform */
+    transform: perspective(900px) translateY(35px) scale(0.88);
     filter: blur(5px);
 }
 .how-it-works-step[data-animate].animated {
-    transform: perspective(900px) translateY(0) scale(1); /* Reset to normal */
+    transform: perspective(900px) translateY(0) scale(1);
     filter: blur(0);
 }
+*/
 
 
 .yuki-special-section { /* Yuki section styling */
@@ -1696,13 +1700,16 @@ button:hover ~ .mouse-follower-glow,
 		 animation-play-state: running;
 	}
 
-	[data-animate]:not([data-animate-letters]).animated { /* Simpler animation for mobile */
+	/* Mobile animations are now using the updated general [data-animate] rules from above */
+    /*
+	[data-animate]:not([data-animate-letters]).animated {
 		transform: translateY(0) scale(1); filter: blur(0); opacity: 1;
 	}
-    [data-animate]:not([data-animate-letters]) { /* Simpler initial state */
+    [data-animate]:not([data-animate-letters]) {
 		transform: translateY(28px); filter: blur(4px); opacity: 0;
 		transform-origin: center center;
 	}
+    */
 
 	.footer-grid { grid-template-columns: 1fr; text-align: center; gap: 38px; }
 	.social-links { justify-content: center; }
@@ -1764,7 +1771,7 @@ button:hover ~ .mouse-follower-glow,
     .testimonial-slider-container { overflow: visible !important; box-shadow: none !important; }
     .testimonial-slider-track { display: block !important; transform: none !important; }
     .testimonial-card { border: 1px solid #ccc !important; box-shadow: none !important; backdrop-filter: none !important; background: #f9f9f9 !important; padding: 1cm !important; break-inside: avoid !important; width: 100% !important; margin-bottom: 1cm !important; margin-right: 0 !important; page-break-inside: avoid !important; }
-    .hero p, .hero .hero-buttons, .section-subtitle, .ai-explanation { display: none !important; }
+    .hero p, .hero .hero-buttons, .section-subtitle, .ai-explanation { display: none !important; } /* These hero elements were already hidden in general [data-animate] rules, now the specific hero animation rules are updated. */
     .logo span, .logo i { color: #000 !important; filter: none !important; }
     .yuki-photo { border: 2px solid #666 !important; box-shadow: none !important; float: right; margin-left: 1cm; width: 3cm !important; height: 3cm !important; }
     .feature-icon, .how-it-works-icon { display: none !important; }
