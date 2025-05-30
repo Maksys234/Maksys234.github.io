@@ -2,29 +2,30 @@
 /* --- Версия 23: Larger board, smaller chat panel (flex-grow), smaller chat internals --- */
 /* --- ИСПРАВЛЕНИЕ v25: Корректировка overflow и высоты для исправления сжатия панелей --- */
 /* --- РЕДИЗАЙН v26: Новый интерфейс по макету image_245141.jpg --- */
+/* --- ИСПРАВЛЕНИЕ v27: Корректировка высоты и пропорций панелей, скрытие аватара --- */
 
 /* --- Global Settings & Variables (Enhanced) --- */
 :root {
 	/* Base */
-	--bg-color: #02010a; /* Slightly darker */
-	--bg-secondary: #08051a; /* Darker secondary */
+	--bg-color: #02010a;
+	--bg-secondary: #08051a;
 	--bg-secondary-rgb: 8, 5, 26;
-	--card-bg: rgba(18, 10, 55, 0.9); /* More purple, slightly more opaque */
+	--card-bg: rgba(18, 10, 55, 0.9);
 	--card-solid: #120a37;
 	--card-solid-rgb: 18, 10, 55;
-	--interface-bg: rgba(8, 5, 26, 0.94); /* Darker interface */
-	--interface-border: rgba(0, 240, 255, 0.45); /* Slightly stronger border */
-	--dark-purple-accent: #1a0f4a; /* Darker purple */
+	--interface-bg: rgba(8, 5, 26, 0.94);
+	--interface-border: rgba(0, 240, 255, 0.45);
+	--dark-purple-accent: #1a0f4a;
 	--dark-purple-accent-rgb: 26, 15, 74;
 
 	/* Accents */
-	--accent-primary: #00f0ff; /* Brighter Cyan */
+	--accent-primary: #00f0ff;
 	--accent-primary-rgb: 0, 240, 255;
-	--accent-secondary: #a85eff; /* Slightly brighter Purple */
+	--accent-secondary: #a85eff;
 	--accent-secondary-rgb: 168, 94, 255;
-	--accent-pink: #ff33cc; /* Brighter Pink */
+	--accent-pink: #ff33cc;
 	--accent-pink-rgb: 255, 51, 204;
-	--accent-lime: #7fff4d; /* Brighter Lime */
+	--accent-lime: #7fff4d;
 	--accent-lime-rgb: 127, 255, 77;
 	--accent-cyan: var(--accent-primary);
 	--accent-cyan-rgb: var(--accent-primary-rgb);
@@ -34,14 +35,14 @@
 	--accent-pink-glow: rgba(var(--accent-pink-rgb), 0.55);
 	--accent-lime-glow: rgba(var(--accent-lime-rgb), 0.65);
 	--accent-border-glow: rgba(var(--accent-primary-rgb), 0.85);
-	--accent-orange: #ff9933; /* Brighter Orange */
+	--accent-orange: #ff9933;
 	--accent-orange-rgb: 255, 153, 51;
 	--accent-orange-glow: rgba(var(--accent-orange-rgb), 0.65);
 
 	/* Text */
 	--text-light: #f5f7fa;
-	--text-medium: #c0c8e7; /* Adjusted medium */
-	--text-muted: #8899cc; /* Adjusted muted */
+	--text-medium: #c0c8e7;
+	--text-muted: #8899cc;
 	--text-muted-rgb: 136, 153, 204;
 	--text-heading: #ffffff;
 	--text-link: var(--accent-primary);
@@ -52,12 +53,14 @@
 	--black: #000000;
 
 	/* Borders */
-	--border-color-light: rgba(var(--accent-secondary-rgb), 0.30); /* Slightly lighter */
+	--border-color-light: rgba(var(--accent-secondary-rgb), 0.30);
 	--border-color-medium: rgba(var(--accent-secondary-rgb), 0.50);
 	--border-color-strong: rgba(var(--accent-primary-rgb), 0.70);
 	--border-interactive: var(--accent-primary);
 	--border-glow-gradient: linear-gradient(90deg, transparent, var(--accent-primary), var(--accent-pink), var(--accent-primary), transparent);
 	--border-anim-gradient: linear-gradient(90deg, var(--accent-secondary), var(--accent-primary), var(--accent-pink), var(--accent-secondary));
+    --presenter-border-color: var(--accent-cyan); /* Color for the main presenter border */
+    --presenter-border-glow-color: var(--accent-lime);
 
 	/* Gradients */
 	--gradient-header: linear-gradient(180deg, rgba(3, 2, 12, 0.98) 0%, rgba(3, 2, 12, 0.92) 100%);
@@ -70,7 +73,8 @@
 	--gradient-warning: linear-gradient(135deg, var(--accent-orange), #f3722c);
 	--gradient-info: linear-gradient(135deg, var(--accent-cyan), #277eed);
 	--gradient-cta: linear-gradient(110deg, var(--accent-secondary) 0%, var(--accent-pink) 100%);
-    --presenter-border-glow: linear-gradient(135deg, var(--accent-primary), var(--accent-lime), var(--accent-pink), var(--accent-secondary), var(--accent-primary)); /* For presenter glow */
+    --presenter-border-glow: conic-gradient(from 180deg at 50% 50%, var(--accent-pink) 0%, var(--accent-secondary) 25%, var(--accent-primary) 50%, var(--accent-lime) 75%, var(--accent-pink) 100%);
+
 
 	/* Fonts */
 	--font-primary: 'Inter', sans-serif;
@@ -137,11 +141,11 @@
 	--board-highlight-light: rgba(0, 123, 255, 0.08);
 
 	/* Chat Colors (Dark Theme Default) */
-	--chat-bg: var(--card-bg);
-	--chat-header-bg: rgba(var(--dark-purple-accent-rgb), 0.4);
-	--chat-input-area-bg: rgba(var(--dark-purple-accent-rgb), 0.3);
-	--chat-input-bg: rgba(var(--accent-secondary-rgb), 0.09);
-	--chat-input-border: var(--border-color-light);
+	--chat-bg: #0c0822; /* Darker, more distinct chat background */
+	--chat-header-bg: rgba(var(--dark-purple-accent-rgb), 0.5);
+	--chat-input-area-bg: rgba(var(--dark-purple-accent-rgb), 0.4);
+	--chat-input-bg: rgba(var(--accent-secondary-rgb), 0.1);
+	--chat-input-border: var(--border-color-medium);
 	--chat-input-text: var(--text-light);
 	--chat-bubble-model-bg: var(--dark-purple-accent);
 	--chat-bubble-model-text: var(--text-medium);
@@ -153,8 +157,8 @@
 	--chat-scrollbar-thumb-hover: rgba(var(--accent-primary-rgb), 0.6);
 
 	/* Chat Colors (Light Theme Override) */
-	--chat-bg-light: #ffffff;
-	--chat-header-bg-light: #f8f9fa;
+	--chat-bg-light: #f8f9fa; /* Lighter chat background for light theme */
+	--chat-header-bg-light: #e9ecef;
 	--chat-input-area-bg-light: #f1f3f5;
 	--chat-input-bg-light: #ffffff;
 	--chat-input-border-light: #ced4da;
@@ -179,22 +183,22 @@ html.light {
 	--card-solid-rgb: 255, 255, 255;
 	--interface-bg: #f8f9fa;
 	--interface-border: #dee2e6;
-	--dark-purple-accent: #e9ecef; /* Light gray */
+	--dark-purple-accent: #e9ecef;
 	--dark-purple-accent-rgb: 233, 236, 239;
-	--accent-primary: #007bff; /* Standard Bootstrap Blue */
+	--accent-primary: #007bff;
 	--accent-primary-rgb: 0, 123, 255;
-	--accent-secondary: #6f42c1; /* Bootstrap Purple */
+	--accent-secondary: #6f42c1;
 	--accent-secondary-rgb: 111, 66, 193;
-	--accent-pink: #d63384; /* Bootstrap Pink */
+	--accent-pink: #d63384;
 	--accent-pink-rgb: 214, 51, 132;
-	--accent-lime: #198754; /* Bootstrap Green */
+	--accent-lime: #198754;
 	--accent-lime-rgb: 25, 135, 84;
-	--accent-orange: #fd7e14; /* Bootstrap Orange */
+	--accent-orange: #fd7e14;
 	--accent-orange-rgb: 253, 126, 20;
-	--text-light: #212529; /* Dark text */
+	--text-light: #212529;
 	--text-medium: #495057;
 	--text-muted: #6c757d;
-	--text-heading: #1e2a3a; /* Darker heading */
+	--text-heading: #1e2a3a;
 	--text-link: var(--accent-primary);
 	--text-link-hover: #0056b3;
 	--text-fixed-dark: #212529;
@@ -223,7 +227,7 @@ html.light {
 	--board-blockquote-text: var(--board-blockquote-text-light);
 	--board-highlight: var(--board-highlight-light);
 	/* Chat */
-	--chat-bg: var(--chat-bg-light);
+	--chat-bg: var(--chat-bg-light); /* Use specific light chat background */
 	--chat-header-bg: var(--chat-header-bg-light);
 	--chat-input-area-bg: var(--chat-input-area-bg-light);
 	--chat-input-bg: var(--chat-input-bg-light);
@@ -237,8 +241,13 @@ html.light {
 	--chat-scrollbar-track: var(--chat-scrollbar-track-light);
 	--chat-scrollbar-thumb: var(--chat-scrollbar-thumb-light);
 	--chat-scrollbar-thumb-hover: var(--chat-scrollbar-thumb-hover-light);
+
+    /* Light theme for new layout elements */
+    --presenter-border-color: #007bff;
+    --presenter-border-glow-color: #198754;
 }
 html.light body { color: var(--text-fixed-dark); }
+/* Další Light Theme Overrides - zůstávají stejné, ale zkráceny pro přehlednost */
 html.light .sidebar { background: var(--gradient-sidebar); border-right-color: var(--border-color-medium); color: #495057; }
 html.light .sidebar-logo { color: #343a40; text-shadow: none; }
 html.light .sidebar-link { color: #495057; }
@@ -259,78 +268,31 @@ html.light .mobile-menu-toggle { color: var(--text-medium); }
 html.light .topic-bar { background-color: #e9ecef; border-color: var(--border-color-medium); }
 html.light #current-topic-display { color: var(--text-medium); }
 html.light #current-topic-display strong { color: var(--accent-primary); text-shadow: none; }
-/* Light theme for new layout */
-html.light .ai-presenter-area { background-color: var(--card-bg); border-color: var(--border-color-light); box-shadow: var(--shadow-hud); }
+/* Light theme for new layout - presenter & chat */
+html.light .ai-presenter-area { background-color: var(--card-solid-light, #fff); border: 2px solid var(--presenter-border-color, #007bff); box-shadow: 0 0 15px rgba(var(--accent-primary-rgb), 0.3); }
+html.light .ai-presenter-area::before { display:none; } /* Hide ::before glow for light theme or define light version */
 html.light .ai-presenter-header { background-color: #f8f9fa; border-color: var(--border-color-light); }
 html.light .ai-presenter-header h2 { color: var(--text-heading); }
 html.light .ai-avatar-placeholder { background: var(--gradient-button); border-color: rgba(var(--black), 0.1); }
 html.light #whiteboard-container { background-color: var(--board-bg-light); border-color: var(--board-border-light); color: var(--board-text-light); }
-html.light .whiteboard-chunk { border-color: var(--border-color-light); }
-html.light .whiteboard-chunk.speaking-highlight { background-color: var(--board-highlight-light); }
-html.light #whiteboard-content h1, html.light #whiteboard-content h2, html.light #whiteboard-content h3 { color: var(--board-heading-light); border-color: var(--border-color-medium); }
-html.light #whiteboard-content h3 { color: var(--accent-secondary); }
-html.light #whiteboard-content code { background-color: var(--board-code-bg-light); color: var(--board-code-text-light); border-color: transparent; }
-html.light #whiteboard-content pre { background-color: var(--board-pre-bg-light); border-color: var(--border-color-light); box-shadow: none; }
-html.light #whiteboard-content pre code { color: #212529; }
-html.light #whiteboard-content blockquote { border-left-color: var(--board-blockquote-border-light); background-color: #f8f9fa; color: var(--board-blockquote-text-light); }
-html.light #whiteboard-content hr { border-top-color: var(--border-color-medium); }
-html.light #whiteboard-content table, html.light #whiteboard-content th, html.light #whiteboard-content td { border-color: var(--board-table-border-light); }
-html.light #whiteboard-content th { background-color: var(--board-table-header-bg-light); color: var(--text-heading); }
-html.light #whiteboard-content mjx-math { color: inherit; }
-html.light #board-speaking-indicator { background-color: rgba(0, 123, 255, 0.1); border-color: rgba(0, 123, 255, 0.2); }
-html.light #board-speaking-indicator .dot { background-color: var(--accent-primary); filter: none; }
-html.light .interaction-panel { background-color: var(--chat-bg-light); border-color: var(--border-color-light); }
-html.light .interaction-tabs { background-color: #f8f9fa; border-color: var(--border-color-medium); }
-html.light .interaction-tab { color: var(--text-muted); }
-html.light .interaction-tab:hover { color: var(--accent-primary); background-color: #e9ecef; }
-html.light .interaction-tab.active { color: var(--accent-primary); border-bottom-color: var(--accent-primary); }
-html.light .interaction-content-area, html.light #chat-tab-content { background-color: var(--chat-bg-light); }
-html.light .chat-header { background-color: var(--chat-header-bg-light); border-color: var(--border-color-medium); color: var(--text-heading); }
-html.light .chat-header i { color: var(--accent-secondary); text-shadow: none; }
+html.light #whiteboard-content h1, html.light #whiteboard-content h2, html.light #whiteboard-content h3 { color: var(--board-heading-light); }
+html.light #whiteboard-content code { background-color: var(--board-code-bg-light); color: var(--board-code-text-light); }
+html.light #whiteboard-content pre { background-color: var(--board-pre-bg-light); }
+html.light .interaction-panel { background-color: var(--chat-bg-light); border-color: var(--border-color-light); } /* Chat specific */
+html.light .interaction-tabs { background-color: #f8f9fa; }
+html.light .interaction-tab.active { border-bottom-color: var(--accent-primary); }
+html.light .chat-header { background-color: var(--chat-header-bg-light); }
 html.light .chat-messages { scrollbar-color: var(--chat-scrollbar-thumb-light) var(--chat-scrollbar-track-light); }
-html.light .chat-messages::-webkit-scrollbar-track { background: var(--chat-scrollbar-track-light); }
-html.light .chat-messages::-webkit-scrollbar-thumb { background-color: var(--chat-scrollbar-thumb-light); }
-html.light .chat-messages::-webkit-scrollbar-thumb:hover { background-color: var(--chat-scrollbar-thumb-hover-light); }
-html.light .message-avatar { border-color: var(--white); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-html.light .chat-message.user .message-avatar { background: var(--gradient-success); color: var(--white);}
-html.light .chat-message.model .message-avatar { background: var(--gradient-button); }
-html.light .chat-message.model .message-bubble { background: var(--chat-bubble-model-bg-light); color: var(--chat-bubble-model-text-light); border-color: var(--border-color-light); }
-html.light .chat-message.user .message-bubble { background: var(--chat-bubble-user-bg-light); color: var(--chat-bubble-user-text-light); border: none; }
-html.light .message-timestamp { color: #6c757d; }
-html.light .message-thinking-indicator { background: var(--chat-bubble-model-bg-light); border-color: var(--border-color-light); box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
-html.light .typing-dot { background-color: var(--chat-thinking-dot-color-light); }
-html.light .chat-input-area { background-color: var(--chat-input-area-bg-light); border-color: var(--border-color-medium); }
-html.light .chat-input { background-color: var(--chat-input-bg-light); color: var(--chat-input-text-light); border-color: var(--chat-input-border-light); box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
-html.light .chat-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25), inset 0 1px 2px rgba(0,0,0,0.05); background-color: #fff; }
-html.light .chat-input::placeholder { color: #6c757d; }
-html.light .send-button { background: var(--gradient-button); color: #fff; box-shadow: 0 3px 8px rgba(0, 123, 255, 0.3); }
-html.light .send-button:hover:not(:disabled) { background: var(--gradient-button-hover); box-shadow: 0 4px 12px rgba(var(--accent-secondary-rgb), 0.3); }
-html.light .send-button:disabled { background: #6c757d; box-shadow: none; }
-html.light .chat-controls { border-color: var(--border-color-medium); }
-html.light .chat-controls button { color: #6c757d; }
-html.light .chat-controls button:hover:not(:disabled) { color: var(--accent-primary); }
-html.light #mic-btn { color: #495057; }
-html.light #mic-btn:hover:not(:disabled) { color: var(--accent-primary); background-color: #e9ecef; }
-html.light #mic-btn.listening { color: var(--accent-pink); }
-html.light .tts-listen-btn { color: #6c757d; }
-html.light .tts-listen-btn:hover { color: var(--accent-primary); }
-html.light #ai-avatar-corner { background: var(--gradient-button); border-color: rgba(var(--accent-primary-rgb), 0.6); box-shadow: 0 3px 10px rgba(0, 123, 255, 0.2); color: white; }
-html.light #ai-avatar-corner.thinking { border-color: var(--accent-secondary); animation-name: pulseAvatarLight; }
-html.light #ai-avatar-corner.speaking { border-color: var(--accent-lime); box-shadow: 0 4px 15px rgba(var(--accent-lime-rgb), 0.4); animation-name: pulseAvatarLight; }
-@keyframes pulseAvatarLight { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.04); opacity: 1; } }
-html.light .toast { background-color: #fff; color: #212529; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-html.light .toast-title { color: #343a40; } html.light .toast-message { color: #495057; } html.light .toast-close { color: #6c757d; }
-html.light .toast-close:hover { color: #343a40; }
-html.light .dashboard-footer, html.light .main-footer { color: #6c757d; border-color: var(--border-color-light); } /* Added .main-footer */
-html.light .initial-chat-interface { border-color: #e9ecef; background-color: #f8f9fa; }
-html.light .initial-chat-title { color: #343a40; }
-html.light .initial-chat-message { color: #6c757d; }
-html.light .initial-chat-status .status-dot.online { background-color: #198754; }
-html.light .initial-chat-status { color: #495057; }
+html.light .chat-input-area { background-color: var(--chat-input-area-bg-light); }
+html.light .chat-input { background-color: var(--chat-input-bg-light); color: var(--chat-input-text-light); border-color: var(--chat-input-border-light); }
+/* Light theme for bottom action bar */
 html.light .bottom-action-bar { background-color: #e9ecef; border-top-color: var(--border-color-medium); }
-html.light .bottom-action-bar .btn { /* Assuming standard button styles are desired */ }
-html.light .page-indicator-dot { background-color: rgba(0,0,0,0.2); }
+html.light .bottom-action-bar .btn-icon-only { background-color: #fff; border-color: var(--border-color-medium); color: var(--text-medium); }
+html.light .bottom-action-bar .btn-icon-only:hover:not(:disabled) { background-color: #f8f9fa; color: var(--accent-primary); }
+html.light .page-indicator-dot { background-color: #adb5bd; }
 html.light .page-indicator-dot.active { background-color: var(--accent-primary); }
+html.light .dashboard-footer, html.light .main-footer { color: #6c757d; border-color: var(--border-color-light); }
+html.light #ai-avatar-corner { display: none; } /* Skryjeme i ve světlém režimu */
 
 
 /* --- Base Styles --- */
@@ -479,168 +441,229 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 @keyframes subtlePulse { 0%, 100% { opacity: 0.8; } 50% { opacity: 1; } }
 #current-topic-display .fa-spinner { margin-right: 0.6rem; animation: spin 1.5s linear infinite; }
 
-/* --- РЕДИЗАЙН v26: Vyuka Main Content Area --- */
+/* --- РЕДИЗАЙН v27: Vyuka Main Content Area & Call Interface --- */
 .main-content-wrapper {
-    padding: 0; /* HTML má style="padding-top: 0;" */
+    padding: 1.5rem var(--container-padding-x); /* Add padding to the wrapper */
     flex-grow: 1;
     display: flex;
-    flex-direction: column; /* Aby .call-interface a .bottom-action-bar byly pod sebou */
-    overflow: hidden; 
+    flex-direction: column;
+    overflow: hidden; /* Wrapper itself should not scroll usually */
     min-height: 0;
+    gap: 1.5rem; /* Gap between .call-interface and .bottom-action-bar */
 }
 
 .call-interface {
-    flex-grow: 1; /* Занимает основное доступное пространство */
+    flex-grow: 1; /* Takes most of the vertical space */
     display: flex;
-    flex-direction: row; /* Доска слева, чат справа */
+    flex-direction: row; /* Board left, Chat right */
     overflow: hidden; 
-    padding: 1.5rem; /* Общий отступ для этой области, уменьшен для нового дизайна */
-    gap: 1.5rem; /* Отступ между доской и чатом */
-    min-height: 0;
+    gap: 1.5rem; /* Gap between board and chat */
+    min-height: 0; /* Critical for flex children */
+    padding: 0; /* Remove padding, will be on children */
 }
 
 .ai-presenter-area {
-    flex: 3; /* Доска занимает больше места ~70-75% */
+    flex: 7; /* Board takes more space (e.g., 70%) */
+    /* flex-basis: 70%; */
     display: flex;
     flex-direction: column;
-    background-color: var(--card-solid); /* Темнее, как на макете */
+    background-color: var(--card-solid);
     border-radius: var(--card-radius);
-    overflow: hidden; /* Важно для ::before псевдоэлемента рамки */
+    overflow: hidden;
     min-height: 0;
     position: relative;
-    padding: 2px; /* Пространство для "внешней" рамки */
-    border: none; /* Убираем обычную рамку */
-    box-shadow: 0 0 30px rgba(var(--accent-primary-rgb), 0.3), 0 0 15px rgba(var(--accent-lime-rgb), 0.2); /* Внешнее свечение */
+    padding: 2px; /* Space for the ::before border */
+    border: none; /* Main border removed, handled by ::before */
+    box-shadow: 0 0 25px rgba(var(--presenter-border-glow-color, var(--accent-lime-rgb)), 0.3); /* Outer glow */
 }
-/* Эффект светящейся рамки для доски */
+
 .ai-presenter-area::before {
     content: "";
     position: absolute;
     inset: 0;
-    border-radius: var(--card-radius);
-    padding: 2px; /* Толщина рамки */
+    border-radius: var(--card-radius); /* Match parent's border-radius */
+    padding: 2.5px; /* Thickness of the animated border */
     background: var(--presenter-border-glow);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
+    background-size: 400% 400%; /* For conic gradient animation */
+    -webkit-mask: 
+        linear-gradient(#fff 0 0) content-box, /* Transparent content area */
+        linear-gradient(#fff 0 0); /* Solid shape */
+    -webkit-mask-composite: xor; /* Punch hole */
             mask-composite: exclude;
-    animation: borderGlowRotate 8s linear infinite;
-    z-index: 0;
+    animation: borderGlowRotate 6s linear infinite;
+    z-index: 0; /* Behind content */
 }
+
 @keyframes borderGlowRotate {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
-/* Содержимое доски должно быть над рамкой */
+
 .ai-presenter-header, #whiteboard-container {
-    position: relative;
+    position: relative; /* To sit above the ::before pseudo-element */
     z-index: 1;
-    background-color: var(--card-solid); /* Фон для содержимого, чтобы перекрыть градиент рамки */
+    background-color: var(--card-solid); /* Match parent's visual background */
 }
-.ai-presenter-header { border-radius: calc(var(--card-radius) - 2px) calc(var(--card-radius) - 2px) 0 0; }
-#whiteboard-container { border-radius: 0 0 calc(var(--card-radius) - 2px) calc(var(--card-radius) - 2px); border: none; }
+.ai-presenter-header { border-radius: calc(var(--card-radius) - 2px) calc(var(--card-radius) - 2px) 0 0; /* Adjust for padding */ }
+#whiteboard-container { border-radius: 0 0 calc(var(--card-radius) - 2px) calc(var(--card-radius) - 2px); border-top: none; /* No top border as header provides it */ padding: 1.5rem; }
 
 
 .interaction-panel {
-    flex: 1; /* Чат занимает меньше места ~25-30% */
+    flex: 3; /* Chat takes less space (e.g., 30%) */
+    /* flex-basis: 30%; */
+    min-width: 320px; /* Minimum width for chat readability */
+    max-width: 450px; /* Maximum width to prevent it from becoming too wide */
     display: flex;
     flex-direction: column;
-    background-color: var(--card-bg); /* Может быть чуть светлее доски или свой фон */
+    background-color: var(--chat-bg);
     border-radius: var(--card-radius);
     box-shadow: var(--shadow-hud);
     overflow: hidden;
     border: 1px solid var(--border-color-light);
     min-height: 0;
-    max-width: 420px; /* Ограничение ширины чата */
 }
 
-/* Убираем controls из хедера доски, т.к. кнопка перенесена */
-.ai-presenter-header-controls { display: none; }
-.ai-presenter-header { justify-content: flex-start; } /* Выравнивание по левому краю, если controls нет */
-
-/* --- NEW: Bottom Action Bar --- */
+/* --- NEW: Bottom Action Bar (РЕДИЗАЙН v27) --- */
 .bottom-action-bar {
-    flex-shrink: 0; /* Не сжимается */
-    padding: 1rem 1.5rem;
-    background-color: var(--dark-purple-accent); /* Фон как у .topic-bar */
-    border-top: 1px solid var(--border-color-light);
+    flex-shrink: 0;
+    padding: 0.8rem 1.2rem; /* Reduced padding from 1rem 1.5rem */
+    background-color: var(--bg-secondary); /* Slightly different from topic bar for distinction */
+    border-top: 1px solid var(--border-color-medium); /* More prominent border */
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+    border-radius: var(--card-radius); /* Rounded corners for the bar itself */
+    box-shadow: 0 -3px 15px rgba(0,0,0,0.25), inset 0 1px 0 rgba(var(--white-rgb), 0.05); /* Shadow and inner highlight */
 }
 .bottom-action-bar-left,
 .bottom-action-bar-center,
 .bottom-action-bar-right {
     display: flex;
     align-items: center;
-    gap: 0.8rem;
+    gap: 0.75rem; /* Slightly reduced gap */
 }
 .bottom-action-bar-center {
     flex-grow: 1;
     justify-content: center;
 }
 .bottom-action-bar .btn {
-    font-size: 0.9rem;
-    padding: 0.6rem 1.2rem;
+    font-size: 0.85rem; /* Smaller buttons */
+    padding: 0.5rem 1rem;
+    border-radius: var(--button-radius);
 }
+.bottom-action-bar .btn i { margin-right: 0.4em; }
+
 .bottom-action-bar .btn-icon-only {
-    width: 36px;
-    height: 36px;
-    font-size: 0.9rem;
-    background-color: rgba(var(--accent-primary-rgb), 0.1);
-    border-color: rgba(var(--accent-primary-rgb), 0.3);
-    color: var(--accent-primary);
+    width: 34px; height: 34px;
+    font-size: 0.8rem;
+    background-color: rgba(var(--interface-border), 0.2);
+    border-color: rgba(var(--interface-border), 0.4);
+    color: var(--text-medium);
 }
 .bottom-action-bar .btn-icon-only:hover:not(:disabled) {
-    background-color: rgba(var(--accent-primary-rgb), 0.2);
+    background-color: rgba(var(--accent-primary-rgb), 0.25);
+    color: var(--accent-primary);
+    border-color: var(--accent-primary);
 }
+
 .page-indicator-dot {
-    width: 10px;
-    height: 10px;
-    background-color: rgba(var(--white-rgb), 0.2);
+    width: 9px; height: 9px;
+    background-color: rgba(var(--white-rgb), 0.15);
+    border: 1px solid rgba(var(--white-rgb), 0.1);
     border-radius: 50%;
-    transition: background-color var(--transition-fast);
+    transition: background-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 .page-indicator-dot.active {
     background-color: var(--accent-primary);
-    box-shadow: 0 0 8px var(--accent-glow);
+    box-shadow: 0 0 10px var(--accent-glow);
+    border-color: rgba(var(--accent-primary-rgb), 0.5);
 }
 
+/* --- Остальные стили (Whiteboard content, Chat content, Modals, etc.) --- */
+/* AI Presenter Header (если кнопка очистки убрана, заголовок выравнивается по левому краю) */
+.ai-presenter-header { padding: 0.9rem 1.3rem; border-bottom: 1px solid var(--border-color-light); display: flex; align-items: center; justify-content: flex-start; background-color: transparent; flex-shrink: 0; min-height: 60px; } /* Removed controls, transparent BG */
+.ai-presenter-info { display: flex; align-items: center; gap: 0.9rem; }
+.ai-presenter-header h2 { font-size: 1.2rem; font-weight: 600; color: var(--text-light); margin: 0; }
+.ai-avatar-placeholder { width: 42px; height: 42px; border-radius: 50%; background: var(--gradient-cta); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; border: 2px solid rgba(var(--white-rgb), 0.15); box-shadow: 0 0 10px rgba(var(--accent-pink-rgb), 0.3); }
+#ai-status-text { font-size: 0.9rem; color: var(--text-muted); margin: 0; font-weight: 500; }
+#whiteboard-container { flex-grow: 1; position: relative; overflow-y: auto; background-color: transparent; /* Whiteboard background now transparent */ border-radius: 0 0 calc(var(--card-radius) - 2px) calc(var(--card-radius) - 2px); padding: 1.5rem; color: var(--board-text); scrollbar-width: thin; scrollbar-color: var(--chat-scrollbar-thumb) var(--chat-scrollbar-track); }
+#whiteboard-content { min-height: 100%; line-height: 1.8; font-size: 1rem; }
+/* ... (остальные стили для .whiteboard-chunk, h1-h3, p, ul, code, pre и т.д. остаются как были) ... */
+.whiteboard-chunk { margin-bottom: 1.8rem; padding: 1.2rem; border-bottom: 1px dashed var(--border-color-medium); position: relative; border-radius: 10px; transition: background-color 0.3s ease, box-shadow 0.3s ease; animation: popInMessage 0.5s ease-out forwards; opacity: 0; }
+.whiteboard-chunk:last-child { border-bottom: none; margin-bottom: 0; }
+.whiteboard-chunk.speaking-highlight { background-color: var(--board-highlight); box-shadow: inset 0 0 18px rgba(var(--accent-primary-rgb), 0.15); }
+#whiteboard-content h1, #whiteboard-content h2, #whiteboard-content h3 { margin-top: 1.2em; margin-bottom: 0.7em; color: var(--board-heading); border-bottom: 1px solid var(--border-color-medium); padding-bottom: 0.4em; font-weight: 600; }
+#whiteboard-content h1 { font-size: 1.7em; text-shadow: var(--shadow-text-glow); }
+#whiteboard-content h2 { font-size: 1.5em; }
+#whiteboard-content h3 { font-size: 1.3em; color: var(--accent-secondary); border-bottom-style: dotted; }
+#whiteboard-content p { margin-bottom: 0.9em; letter-spacing: normal; word-spacing: normal; }
+#whiteboard-content ul, #whiteboard-content ol { margin-left: 1.6em; margin-bottom: 0.9em; padding-left: 1.1em; }
+#whiteboard-content li { margin-bottom: 0.5em; letter-spacing: normal; word-spacing: normal; }
+#whiteboard-content code { background-color: var(--board-code-bg); color: var(--board-code-text); padding: 0.25em 0.55em; border-radius: 5px; font-family: var(--font-mono); font-size: 0.98em; border: 1px solid rgba(var(--accent-lime-rgb), 0.25); }
+#whiteboard-content pre { background-color: var(--board-pre-bg); padding: 1.3em; border-radius: 10px; overflow-x: auto; margin-bottom: 1.2em; border: 1px solid var(--border-color-light); box-shadow: inset 0 2px 4px rgba(0,0,0,0.4); }
+#whiteboard-content pre code { background-color: transparent; padding: 0; border: none; color: var(--text-medium); }
+#whiteboard-content blockquote { border-left: 5px solid var(--board-blockquote-border); padding: 1rem 1.4rem; margin: 1.2em 0; color: var(--board-blockquote-text); font-style: italic; background-color: rgba(var(--accent-secondary-rgb), 0.07); border-radius: 0 8px 8px 0; }
+#whiteboard-content hr { border: none; border-top: 1px dashed var(--border-color-medium); margin: 2em 0; }
+#whiteboard-content table { border-collapse: collapse; margin-bottom: 1.2em; width: auto; border: 1px solid var(--board-table-border); }
+#whiteboard-content th, #whiteboard-content td { border: 1px solid var(--board-table-border); padding: 0.7em 1em; }
+#whiteboard-content th { background-color: var(--board-table-header-bg); font-weight: 600; color: var(--text-light); }
+#board-speaking-indicator { position: absolute; bottom: 12px; right: 12px; display: none; align-items: center; gap: 5px; padding: 7px 10px; background-color: rgba(var(--accent-primary-rgb), 0.2); border-radius: 8px; border: 1px solid rgba(var(--accent-primary-rgb), 0.4); backdrop-filter: blur(2px); }
+#board-speaking-indicator.active { display: flex; }
+#board-speaking-indicator .dot { width: 8px; height: 8px; background-color: var(--accent-primary); border-radius: 50%; animation: boardSpeaking 1.3s infinite ease-in-out both; filter: drop-shadow(0 0 4px var(--accent-glow)); }
+#board-speaking-indicator .dot:nth-child(1) { animation-delay: -0.30s; }
+#board-speaking-indicator .dot:nth-child(2) { animation-delay: -0.15s; }
+@keyframes boardSpeaking { 0%, 80%, 100% { transform: scale(0.4); opacity: 0.6; } 40% { transform: scale(1.0); opacity: 1; } }
+.tts-listen-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.3rem 0.5rem; margin-left: 0.7rem; font-size: 0.95em; opacity: 0.65; transition: opacity 0.25s ease, color 0.25s ease, transform 0.2s ease; vertical-align: middle; }
+.tts-listen-btn:hover { opacity: 1; color: var(--accent-primary); transform: scale(1.15); filter: drop-shadow(0 0 3px var(--accent-glow)); }
+.tts-listen-btn i { pointer-events: none; }
+.whiteboard-chunk .tts-listen-btn { position: absolute; top: 1.2rem; right: 1.2rem; z-index: 5; }
 
-/* Whiteboard, Chat messages, inputs etc. - стили остаются в основном прежними, но могут потребовать мелких корректировок из-за изменения родительских контейнеров */
-#whiteboard-container { padding: 1.5rem; } /* Уменьшим отступ, если рамка добавляет визуальный объем */
-#whiteboard-content { font-size: 1rem; }
+/* Chat Panel */
+.interaction-panel { padding: 0; /* Padding now handled by children */ }
+.interaction-tabs { display: flex; border-bottom: 1px solid var(--border-color-medium); background-color: rgba(var(--dark-purple-accent-rgb), 0.5); flex-shrink: 0; border-radius: var(--card-radius) var(--card-radius) 0 0; }
+.interaction-tab { flex: 1; text-align: center; padding: 0.8rem 1rem; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all 0.3s ease; border-bottom: 3px solid transparent; font-size: 0.9rem; position: relative; display: flex; align-items: center; justify-content: center; gap: 0.6rem; }
+.interaction-tab:hover { color: var(--text-light); background-color: rgba(var(--accent-primary-rgb), 0.07); }
+.interaction-tab.active { color: var(--accent-primary); border-bottom-color: var(--accent-primary); font-weight: 700; text-shadow: 0 0 8px var(--accent-glow); }
+.interaction-tab i { font-size: 1.1em; }
+.interaction-content-area { flex-grow: 1; overflow: hidden; position: relative; min-height: 0; background-color: transparent; /* Chat background handled by #chat-tab-content */ border-radius: 0 0 var(--card-radius) var(--card-radius); }
+.tab-content { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; visibility: hidden; opacity: 0; transition: opacity 0.4s ease, visibility 0s 0.4s; }
+.tab-content.active { visibility: visible; opacity: 1; transition-delay: 0s; animation: fadeInContent 0.5s ease-out forwards; }
+@keyframes fadeInContent { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+#chat-tab-content { display: flex; flex-direction: column; height: 100%; background-color: var(--chat-bg); border-radius: 0 0 var(--card-radius) var(--card-radius); } /* Add background and rounding here */
+.chat-header { padding: 0.8rem 1.1rem; border-bottom: 1px solid var(--border-color-light); background-color: var(--chat-header-bg); font-size: 1.05rem; font-weight: 600; color: var(--text-light); display: flex; align-items: center; gap: 0.7rem; flex-shrink: 0; }
+.chat-header i { color: var(--accent-secondary); text-shadow: 0 0 6px var(--accent-secondary-glow); }
+.chat-area { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+.chat-messages { flex-grow: 1; padding: 1rem; overflow-y: auto; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--chat-scrollbar-thumb) var(--chat-scrollbar-track); }
+/* ... (chat message styles, input area styles, controls styles - zůstávají stejné, но возможно потребуют корректировки отступов/размеров) ... */
+.chat-message { display: flex; gap: 0.8rem; max-width: 92%; align-items: flex-end; margin-bottom: 1rem; animation: popInMessage 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; opacity: 0; transform: scale(0.95); }
+.chat-message.user { margin-left: auto; flex-direction: row-reverse; }
+.message-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.3); border: 2px solid rgba(var(--white-rgb), 0.08); background-color: var(--accent-secondary); color: var(--white); }
+.chat-message.user .message-avatar { background: var(--gradient-success); color: var(--text-fixed-dark); }
+.chat-message.model .message-avatar { background: var(--gradient-button); color: var(--text-fixed-dark); }
+.message-bubble { padding: 0.6rem 0.9rem; border-radius: 14px; line-height: 1.5; word-wrap: break-word; box-shadow: 0 1px 4px rgba(0,0,0,0.15); position: relative; font-size: 0.92rem; }
+.message-bubble-content { display: flex; align-items: flex-start; gap: 0.4rem; }
+.chat-message.model .message-bubble { background: var(--chat-bubble-model-bg); color: var(--chat-bubble-model-text); border: 1px solid var(--border-color-light); border-bottom-left-radius: 7px; }
+.chat-message.user .message-bubble { background: var(--chat-bubble-user-bg); color: var(--chat-bubble-user-text); border: none; border-bottom-right-radius: 7px; }
+.message-timestamp { font-size: 0.65rem; color: var(--text-muted); margin-top: 3px; display: block; text-align: left; opacity: 0.65; }
+.chat-input-area { flex-shrink: 0; padding: 0.7rem 1rem; background-color: var(--chat-input-area-bg); border-top: 1px solid var(--border-color-medium); display: flex; flex-direction: column; gap: 0.4rem; }
+.chat-input { padding: 0.6rem 1rem; font-size: 0.9rem; max-height: 90px; }
+.send-button { height: 36px; padding: 0 0.9rem; }
+.chat-controls { padding: 0.3rem 0.4rem 0.6rem 0.4rem; gap: 0.4rem; }
+.chat-controls button { font-size: 0.8rem; padding: 3px 6px; }
+#mic-btn { font-size: 1.1em; padding: 0.4rem;}
 
-.interaction-panel { background-color: var(--interface-bg); /* Фон чата может быть темнее */ }
-.chat-header { background-color: rgba(var(--dark-purple-accent-rgb), 0.7); }
+.initial-chat-interface { padding: 1.5rem 1rem; }
+.ai-greeting-avatar { font-size: 3rem; }
+.initial-chat-title { font-size: 1.2rem; }
+.initial-chat-message { font-size: 0.9rem; }
+.initial-chat-status { font-size: 0.8rem; padding: 0.3rem 0.8rem; }
 
-/* Floating AI Avatar - zůstává прежним */
-#ai-avatar-corner { position: fixed; bottom: 1.8rem; right: 1.8rem; width: 65px; height: 65px; background: var(--gradient-button); border: 3px solid rgba(var(--accent-primary-rgb), 0.6); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--text-fixed-dark); z-index: 1000; box-shadow: 0 6px 25px rgba(var(--accent-primary-rgb), 0.35); transition: all 0.35s ease; }
-#ai-avatar-corner:hover { transform: scale(1.08); box-shadow: 0 8px 30px rgba(var(--accent-primary-rgb), 0.45); }
-#ai-avatar-corner.thinking { animation: pulseAvatarThinking 1.6s infinite ease-in-out; border-color: var(--accent-secondary); box-shadow: 0 0 20px var(--accent-secondary-glow); }
-#ai-avatar-corner.speaking { border-color: var(--accent-lime); box-shadow: 0 8px 25px var(--accent-lime-glow); animation: pulseAvatarSpeaking 1.3s infinite ease-in-out; }
-@keyframes pulseAvatarThinking { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.06); opacity: 1; } }
-@keyframes pulseAvatarSpeaking { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.9; } 100% { transform: scale(1); opacity: 1; } }
+/* --- Floating AI Avatar (РЕДИЗАЙН v27: Скрыт) --- */
+#ai-avatar-corner { display: none; }
 
-/* Footer, Initial Loading, Offline Banner, Toast, Modal - zůstávají прежними */
-.main-footer { margin-top: auto; padding: 1.8rem var(--container-padding-x); text-align: center; color: var(--text-muted); font-size: 0.9rem; border-top: 1px solid var(--border-color-light); opacity: 0.75; flex-shrink: 0; background-color: var(--bg-secondary); }
-.main-footer .container { max-width: 1100px; margin: 0 auto; }
-.main-footer .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; text-align: left; }
-.main-footer .footer-column .logo { font-size: 1.5rem; font-weight: 700; color: var(--text-light); margin-bottom: 1rem; display: inline-flex; align-items: center; gap: 0.6rem; }
-.main-footer .footer-column .logo i { color: var(--accent-primary); }
-.main-footer .footer-column p { font-size: 0.85rem; color: var(--text-medium); margin-bottom: 1rem; }
-.main-footer .footer-column h3 { font-size: 1rem; color: var(--text-light); margin-bottom: 0.8rem; font-weight: 600; }
-.main-footer .footer-links { list-style: none; padding: 0; margin: 0; }
-.main-footer .footer-links li { margin-bottom: 0.5rem; }
-.main-footer .footer-links a { color: var(--text-muted); font-size: 0.85rem; text-decoration: none; transition: color 0.2s; }
-.main-footer .footer-links a:hover { color: var(--accent-primary); }
-.main-footer .footer-links a i { margin-right: 0.5em; width: 16px; text-align: center; }
-.main-footer .social-links { display: flex; gap: 0.8rem; margin-top: 1rem; }
-.main-footer .social-links .social-link { color: var(--text-muted); font-size: 1.2rem; transition: color 0.2s; }
-.main-footer .social-links .social-link:hover { color: var(--accent-primary); }
-
+/* Footer, Modals, Loaders - zůstávají прежними */
+.main-footer { margin-top: 0; /* Footer is now directly after main-content-wrapper */ padding: 1.2rem var(--container-padding-x); text-align: center; color: var(--text-muted); font-size: 0.85rem; border-top: 1px solid var(--border-color-light); opacity: 0.75; flex-shrink: 0; background-color: var(--bg-secondary); }
 .initial-loading-overlay { position: fixed; inset: 0; background-color: var(--bg-color); z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; transition: opacity 0.5s ease-out; }
 .initial-loading-overlay.hidden { opacity: 0; pointer-events: none; }
 .initial-loading-overlay .loading-spinner { width: 40px; height: 40px; border: 5px solid rgba(var(--accent-primary-rgb), 0.2); border-radius: 50%; border-top-color: var(--accent-primary); animation: spin 1s linear infinite; }
@@ -677,8 +700,8 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 
 @media (max-width: 1200px) { /* Adjusted for new layout */
     .call-interface { padding: 1.2rem; gap: 1.2rem; }
-    .ai-presenter-area { flex: 2.5; min-width: 400px; } /* Slightly less dominant */
-    .interaction-panel { flex: 1; min-width: 320px; }
+    .ai-presenter-area { flex-basis: 65%; min-width: 380px; } 
+    .interaction-panel { flex-basis: 35%; min-width: 300px; }
     .bottom-action-bar { padding: 0.8rem 1.2rem; }
 }
 @media (max-width: 992px) {
@@ -694,10 +717,10 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 	.mobile-menu-toggle#main-mobile-menu-toggle { display: block; }
 	#sidebar-close-toggle { display: none !important; }
 
-    /* New layout for tablet: stack board and chat */
+    /* Stack board and chat on tablet */
 	.call-interface { flex-direction: column; height: auto; padding: 0.8rem; gap: 0.8rem; }
-	.ai-presenter-area { flex: 1 1 auto; min-height: 350px; order: 1; width: 100%; min-width: 0; }
-	.interaction-panel { flex: 1 1 auto; min-height: 300px; order: 2; width: 100%; max-width: none; min-width: 0; }
+	.ai-presenter-area { flex-basis: auto; min-height: 350px; order: 1; width: 100%; }
+	.interaction-panel { flex-basis: auto; min-height: 300px; order: 2; width: 100%; max-width: none; }
     .bottom-action-bar { flex-direction: column; gap: 0.8rem; align-items: stretch; }
     .bottom-action-bar-left, .bottom-action-bar-center, .bottom-action-bar-right { justify-content: center; }
     .bottom-action-bar .btn { flex-grow: 1; }
@@ -716,7 +739,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 	.header-content h1 { font-size: 1.4rem; }
 	.header-actions { gap: 0.5rem; }
 	.header-actions .btn { padding: 0.5rem 0.8rem; font-size: 0.8rem; }
-	.header-actions .btn span { display: none; } /* If button text is hidden on mobile */
+	.header-actions .btn span { display: none; }
 	.topic-bar { padding: 0.6rem var(--container-padding-x); min-height: 50px; }
 	#current-topic-display { font-size: 1rem; }
 	.call-interface { padding: 0.5rem; gap: 0.5rem; }
@@ -727,7 +750,6 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     .message-bubble { padding: 0.6rem 0.9rem; font-size: 0.92rem; }
     .message-avatar { width: 32px; height: 32px; font-size: 0.85rem; }
 	.toast-container { max-width: calc(100% - 1.5rem); }
-	#ai-avatar-corner { width: 50px; height: 50px; font-size: 1.8rem; bottom: 1rem; right: 1rem; }
     .modal-content { padding: 1.5rem; max-width: calc(100% - 2rem); }
     .modal-actions { flex-direction: column; }
     .bottom-action-bar .btn { font-size: 0.8rem; padding: 0.5rem 1rem; }
@@ -745,7 +767,6 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
 	body::before, body::after { animation: none !important; }
 	.loading-spinner, .initial-loading-overlay .loading-spinner { animation: none !important; }
 	.btn:hover:not(:disabled), .btn-primary:hover:not(:disabled), .btn-secondary:hover:not(:disabled) { transform: none !important; }
-	#ai-avatar-corner.thinking, #ai-avatar-corner.speaking { animation: none !important; }
 	#board-speaking-indicator .dot { animation: none !important; }
 	.typing-dot { animation: none !important; }
 	#mic-btn.listening { animation: none !important; }
@@ -757,7 +778,7 @@ body.scrolled .dashboard-header { background-color: rgba(var(--bg-secondary-rgb)
     .ai-greeting-avatar { animation: none !important; }
     .initial-chat-status .status-dot { animation: none !important; }
     .unread-dot { animation: none !important; }
-    .ai-presenter-area::before { animation: none !important; } /* Disable border animation */
+    .ai-presenter-area::before { animation: none !important; }
 }
 
 /* MathJax specific styles - zůstávají прежними */
