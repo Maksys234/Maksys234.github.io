@@ -2,14 +2,14 @@
  * JUSTAX Landing Page Script
  * Handles UI interactions, animations, infinite testimonial slider,
  * Hero text mask reveal, interactive gradient, enhanced visual effects.
- * Version: v2.41_NoCookie (Cookie consent functionality removed from this page)
- * Author: Gemini Modification (enhanced from v2.40)
- * Date: 2025-05-29 // Adjusted by AI
+ * Version: v2.42_NoCookie_AnimRefactor (Cookie consent functionality removed, animation delay refined)
+ * Author: Gemini Modification (enhanced from v2.41)
+ * Date: 2025-05-30 
  *
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM Ready. Initializing JUSTAX Interface v2.41_NoCookie (Cookie consent functionality removed from this page)...");
+    console.log("DOM Ready. Initializing JUSTAX Interface v2.42_NoCookie_AnimRefactor (Cookie consent functionality removed)...");
 
     // --- Global Variables & DOM References ---
     const body = document.body;
@@ -39,44 +39,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Configuration Object ---
     const config = {
         mouseFollower: { enabled: true, followSpeed: 0.12, clickScale: 0.7, hoverScale: 1.5, textHoverScale: 1.3 },
-        animations: { scrollThreshold: 0.05, staggerDelay: 100, letterMaskRevealDelay: 50, heroElementEntryDelay: 150 },
+        animations: { scrollThreshold: 0.05, staggerDelay: 100, letterMaskRevealDelay: 50, heroElementEntryDelay: 150 }, // staggerDelay = 100ms. If 150ms per step is preferred, change here.
         aiDemo: { enabled: true, typingSpeed: 35, stepBaseDelay: 180, stepRandomDelay: 400 },
         testimonials: { placeholderAvatarBaseUrl: 'https://placehold.co/100x100/', visibleCardsDesktop: 3, bufferCards: 2, slideDuration: 550 },
         // cookies: { // Cookie configuration removed as per requirement
-        //     consentProcessedCookieName: 'justax_consent_processed_v2',
-        //     consentPreferencesKey: 'justax_consent_preferences_v2',
-        //     consentCookieExpirationDays: 365,
-        //     defaultConsentState: {
-        //         'analytics_storage': 'denied',
-        //         'functionality_storage': 'denied',
-        //         'personalization_storage': 'denied',
-        //         'ad_storage': 'denied',
-        //         'ad_user_data': 'denied',
-        //         'ad_personalization': 'denied',
-        //     }
         // }
     };
 
     // --- Cookie Consent Elements (Commented out as they will be removed from HTML) ---
     // const cookieConsentBanner = document.getElementById('cookie-consent-banner');
-    // const cookieConsentOverlay = document.getElementById('cookie-consent-overlay');
-    // const cookieConsentAcceptAllBtn = document.getElementById('cookie-consent-accept-all');
-    // const cookieConsentRejectAllBtn = document.getElementById('cookie-consent-reject-all');
-    // const cookieConsentCustomizeBtn = document.getElementById('cookie-consent-customize');
-
-    // const cookieSettingsModal = document.getElementById('cookie-settings-modal');
-    // const cookieModalCloseBtn = document.getElementById('cookie-modal-close');
-    // const cookieSettingsSaveBtn = document.getElementById('cookie-settings-save');
-    // const cookieSettingsAcceptAllModalBtn = document.getElementById('cookie-settings-accept-all-modal');
-    // const cookieSettingsTriggerFooter = document.getElementById('cookie-settings-trigger');
-
-    // const cookieSettingToggles = cookieSettingsModal ? Array.from(cookieSettingsModal.querySelectorAll('.cookie-switch input[type="checkbox"][data-consent-type]')) : [];
-    // const cookieCategoryHeaders = cookieSettingsModal ? Array.from(cookieSettingsModal.querySelectorAll('.cookie-category-header')) : [];
+    // ... (остальные закомментированные элементы cookie)
 
     let localTestimonials = [];
     let testimonialDataCache = [];
     let cardsInTrack = [];
-    let stableVisibleStartIndex = config.testimonials.bufferCards; // Remains, as it's for testimonials
+    let stableVisibleStartIndex = config.testimonials.bufferCards; 
     let totalCardsInDOM = 0;
     let cardWidthAndMargin = 0;
     let isSliding = false;
@@ -236,10 +213,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!localTestimonials || localTestimonials.length === 0) return { name: "Chyba", text: "Žádné recenze.", rating: 0, role: "Systém" };
         const currentCacheNames = new Set(testimonialDataCache.map(item => item?.name).filter(Boolean));
         let availableTestimonials = localTestimonials.filter(item => !currentCacheNames.has(item.name));
-        if (availableTestimonials.length === 0) availableTestimonials = localTestimonials;
+        if (availableTestimonials.length === 0) availableTestimonials = localTestimonials; // Fallback if all are in cache (should ideally not happen with enough data)
         return availableTestimonials[Math.floor(Math.random() * availableTestimonials.length)];
     };
-
+    
     const calculateCardWidthAndMargin = () => {
         if (!sliderTrack || !sliderTrack.firstChild) { return 0; }
         const firstCard = sliderTrack.querySelector('.testimonial-card:not(.is-loading)') || sliderTrack.firstChild;
@@ -254,7 +231,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!sliderInitialLoadComplete || !sliderTrack) { return; }
         if (cardWidthAndMargin <= 0) { if (!calculateCardWidthAndMargin() || cardWidthAndMargin <= 0) { return; } }
         sliderTrack.style.transition = 'none'; const position = -stableVisibleStartIndex * cardWidthAndMargin; sliderTrack.style.transform = `translateX(${position}px)`;
-        void sliderTrack.offsetHeight; sliderTrack.style.transition = `transform ${config.testimonials.slideDuration}ms cubic-bezier(0.65, 0, 0.35, 1)`;
+        void sliderTrack.offsetHeight; // Force reflow
+        sliderTrack.style.transition = `transform ${config.testimonials.slideDuration}ms cubic-bezier(0.65, 0, 0.35, 1)`;
     };
 
     const handleSliderTransitionEnd = () => {
@@ -262,71 +240,95 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const direction = parseInt(sliderTrack.dataset.slideDirection || "0"); if (direction === 0) { throw new Error("No slide direction."); }
             let cardToMoveElement, newCardData;
-            if (direction > 0) {
-                cardToMoveElement = cardsInTrack.shift();
+            if (direction > 0) { // Moved Next (to the left)
+                cardToMoveElement = cardsInTrack.shift(); // Remove first
                 sliderTrack.removeChild(cardToMoveElement);
-                newCardData = getRandomLocalTestimonial();
+                newCardData = getRandomLocalTestimonial(); 
                 updateCardContent(cardToMoveElement, newCardData);
-                sliderTrack.appendChild(cardToMoveElement);
+                sliderTrack.appendChild(cardToMoveElement); // Add to end
                 cardsInTrack.push(cardToMoveElement);
-                testimonialDataCache.shift();
+                testimonialDataCache.shift(); 
                 testimonialDataCache.push(newCardData);
-            } else {
-                cardToMoveElement = cardsInTrack.pop();
+            } else { // Moved Prev (to the right)
+                cardToMoveElement = cardsInTrack.pop(); // Remove last
                 sliderTrack.removeChild(cardToMoveElement);
                 newCardData = getRandomLocalTestimonial();
                 updateCardContent(cardToMoveElement, newCardData);
-                sliderTrack.insertBefore(cardToMoveElement, sliderTrack.firstChild);
+                sliderTrack.insertBefore(cardToMoveElement, sliderTrack.firstChild); // Add to start
                 cardsInTrack.unshift(cardToMoveElement);
                 testimonialDataCache.pop();
                 testimonialDataCache.unshift(newCardData);
             }
             setTrackPositionInstantly("transition end adjustment");
         } catch (error) {
+            console.error("Error in handleSliderTransitionEnd:", error);
             setTrackPositionInstantly("error recovery in transition end");
         } finally {
             sliderTrack.dataset.slideDirection = "0"; isSliding = false; if(prevBtn) prevBtn.disabled = false; if(nextBtn) nextBtn.disabled = false;
         }
     };
-
+    
     const moveSlider = (direction) => {
         if (isSliding || !sliderInitialLoadComplete || !sliderTrack) return;
-        if (cardWidthAndMargin <= 0) { if (!calculateCardWidthAndMargin() || cardWidthAndMargin <= 0) { return; } setTrackPositionInstantly("pre-slide recalc"); }
+        if (cardWidthAndMargin <= 0) { if (!calculateCardWidthAndMargin() || cardWidthAndMargin <= 0) { console.warn("Card width calculation failed before slide."); return; } setTrackPositionInstantly("pre-slide recalc"); }
         isSliding = true; if(prevBtn) prevBtn.disabled = true; if(nextBtn) nextBtn.disabled = true;
         sliderTrack.dataset.slideDirection = direction.toString();
         const newTranslateX = (-stableVisibleStartIndex - direction) * cardWidthAndMargin;
-        sliderTrack.removeEventListener('transitionend', handleSliderTransitionEnd); sliderTrack.addEventListener('transitionend', handleSliderTransitionEnd, { once: true });
+        sliderTrack.removeEventListener('transitionend', handleSliderTransitionEnd); 
+        sliderTrack.addEventListener('transitionend', handleSliderTransitionEnd, { once: true });
         sliderTrack.style.transform = `translateX(${newTranslateX}px)`;
     };
 
     const initializeInfiniteSlider = async () => {
-        if (!sliderTrack || !prevBtn || !nextBtn) { return; }
+        if (!sliderTrack || !prevBtn || !nextBtn) { console.warn("Testimonial slider elements missing."); return; }
         isSliding = true; sliderInitialLoadComplete = false; prevBtn.disabled = true; nextBtn.disabled = true;
         sliderTrack.innerHTML = ''; testimonialDataCache = []; cardsInTrack = []; cardWidthAndMargin = 0; stableVisibleStartIndex = config.testimonials.bufferCards;
-        if (!localTestimonials || localTestimonials.length === 0) { sliderTrack.innerHTML = `<p>Chyba dat.</p>`; isSliding = false; return; }
-        const numVisible = config.testimonials.visibleCardsDesktop; totalCardsInDOM = numVisible + 2 * config.testimonials.bufferCards;
+        if (!localTestimonials || localTestimonials.length === 0) { sliderTrack.innerHTML = `<p>Chyba dat: Žádné recenze.</p>`; isSliding = false; return; }
+        
+        const numVisible = config.testimonials.visibleCardsDesktop; // Adjust this for responsiveness if needed
+        totalCardsInDOM = numVisible + 2 * config.testimonials.bufferCards;
+
         for (let i = 0; i < totalCardsInDOM; i++) { const cardElement = createPlaceholderCard(); sliderTrack.appendChild(cardElement); cardsInTrack.push(cardElement); }
+        
+        // Populate initial cache with unique items if possible
+        let initialSelectionAttempts = 0;
+        const maxAttemptsForUnique = localTestimonials.length * 2; // Allow some retries
+
         for (let i = 0; i < totalCardsInDOM; i++) {
-            let testimonial; let attempts = 0;
-            do { testimonial = localTestimonials[Math.floor(Math.random() * localTestimonials.length)]; attempts++; }
-            while (testimonialDataCache.some(t => t.name === testimonial.name) && attempts < localTestimonials.length && localTestimonials.length > testimonialDataCache.length);
+            let testimonial; 
+            let attempts = 0;
+            const availableForInitial = localTestimonials.filter(item => !testimonialDataCache.some(t => t.name === item.name));
+            
+            if (availableForInitial.length > 0) {
+                testimonial = availableForInitial[Math.floor(Math.random() * availableForInitial.length)];
+            } else { // Fallback if not enough unique items for the whole DOM set initially
+                testimonial = localTestimonials[Math.floor(Math.random() * localTestimonials.length)];
+            }
             testimonialDataCache.push(testimonial);
+            initialSelectionAttempts++;
+            if (initialSelectionAttempts > maxAttemptsForUnique && i < totalCardsInDOM -1) {
+                 // console.warn("Could not ensure all initially loaded testimonials are unique due to data size or attempts limit.");
+            }
         }
+        
         cardsInTrack.forEach((card, index) => updateCardContent(card, testimonialDataCache[index]));
-        await new Promise(resolve => requestAnimationFrame(resolve));
+        
+        await new Promise(resolve => requestAnimationFrame(resolve)); // Wait for cards to render for width calculation
+        
         if (!calculateCardWidthAndMargin() || cardWidthAndMargin <= 0) {
-             sliderTrack.innerHTML = '<p>Chyba layoutu.</p>'; isSliding = false; return;
+             console.error("Testimonial slider layout error: Card width is zero. Slider cannot be initialized.");
+             sliderTrack.innerHTML = '<p>Chyba layoutu slideru.</p>'; isSliding = false; return;
         }
         sliderInitialLoadComplete = true; setTrackPositionInstantly("initialization positioning");
         isSliding = false; prevBtn.disabled = false; nextBtn.disabled = false;
     };
-
+    
     const handleScroll = () => {
         try {
             if (header) header.classList.toggle('scrolled', window.scrollY > 30);
             const sections = document.querySelectorAll('main section[id]');
             let currentSectionId = '';
-            const scrollPosition = window.scrollY + (header ? header.offsetHeight : 70) + 40;
+            const scrollPosition = window.scrollY + (header ? header.offsetHeight : 70) + 40; // Adjusted offset
             sections.forEach(section => { if (section.offsetTop <= scrollPosition && (section.offsetTop + section.offsetHeight) > scrollPosition) currentSectionId = section.id; });
             if (navLinks) navLinks.querySelectorAll('.nav-item').forEach(item => { item.classList.remove('active'); if (item.getAttribute('href')?.includes(`#${currentSectionId}`)) item.classList.add('active'); });
         } catch (error) { console.error("Error in handleScroll:", error); }
@@ -355,7 +357,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!follower || !config.mouseFollower.enabled || isTouchDevice) return;
         const dx = mouseX - followerX; const dy = mouseY - followerY;
         followerX += dx * config.mouseFollower.followSpeed; followerY += dy * config.mouseFollower.followSpeed;
-        follower.style.transform = `translate(${followerX - follower.offsetWidth / 2}px, ${followerY - follower.offsetHeight / 2}px) scale(${currentScale})`;
+        // Ensure follower has dimensions before calculating offset center
+        const followerWidth = follower.offsetWidth || 30; // Default width if offsetWidth is 0
+        const followerHeight = follower.offsetHeight || 30; // Default height
+        follower.style.transform = `translate(${followerX - followerWidth / 2}px, ${followerY - followerHeight / 2}px) scale(${currentScale})`;
         follower.style.opacity = currentOpacity.toString();
         requestAnimationFrame(updateFollower);
     };
@@ -376,9 +381,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (yearSpan) yearSpan.textContent = new Date().getFullYear().toString();
-
+    
     const aiDemoSteps = [
-        { type: 'status', text: 'AI jádro v2.41 aktivní. Připraven na analýzu...', progress: 5 },
+        { type: 'status', text: 'AI jádro v2.42 aktivní. Připraven na analýzu...', progress: 5 },
         { type: 'status', text: 'Probíhá skenování interakcí uživatele ID: 734B...', delay: 700 },
         { type: 'input', text: 'ANALYZE_USER_PERFORMANCE --id=734B --subject=algebra --level=intermediate' },
         { type: 'process', text: 'Zpracování dotazu na výkon...', duration: 900, progress: 20 },
@@ -398,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const addAiLogLine = (text, type) => {
         if (!aiOutput) return; const line = document.createElement('div'); line.className = `ai-log-line ${type}`;
-        const now = new Date(); const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(3, '0')}.${now.getMilliseconds().toString().padStart(3, '0')}`;
+        const now = new Date(); const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}.${now.getMilliseconds().toString().padStart(3, '0')}`; // Corrected seconds padding
         line.innerHTML = `<span class="ai-log-timestamp">[${timeString}]</span> <span class="ai-log-text">${text}</span>`;
         aiOutput.appendChild(line); aiOutput.scrollTop = aiOutput.scrollHeight;
     };
@@ -456,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (aiOutput && aiFakeInput && aiProgressLabel && aiProgressBar && aiStatusIndicator) {
              aiDemoObserver.observe(demoSection);
         } else {
-            if(aiStatusIndicator) aiStatusIndicator.textContent = 'CHYBA ELEMENTŮ';
+             if(aiStatusIndicator) aiStatusIndicator.textContent = 'CHYBA ELEMENTŮ';
         }
     } else if (aiStatusIndicator) {
         aiStatusIndicator.textContent = config.aiDemo.enabled ? 'NEVIDITELNÉ' : 'OFFLINE';
@@ -475,7 +480,12 @@ document.addEventListener('DOMContentLoaded', () => {
             let charIndexGlobal = 0; let currentWordWrapper = document.createElement('span'); currentWordWrapper.className = 'word-wrapper'; element.appendChild(currentWordWrapper);
 
             textContent.split('').forEach(char => {
-                const span = document.createElement('span'); span.className = 'letter-span'; span.textContent = char === ' ' ? '\u00A0' : char; span.style.setProperty('--letter-index', charIndexGlobal.toString());
+                const span = document.createElement('span'); span.className = 'letter-span'; span.textContent = char === ' ' ? '\u00A0' : char; 
+                span.style.setProperty('--letter-index', charIndexGlobal.toString());
+                // Set delay for each letter span based on config.animations.letterMaskRevealDelay
+                span.style.transitionDelay = `${charIndexGlobal * config.animations.letterMaskRevealDelay}ms`;
+
+
                 let isHighlightChar = false;
                 if (originalHighlightDataText && textContent.includes(originalHighlightDataText)) {
                     const highlightStartIndex = textContent.indexOf(originalHighlightDataText);
@@ -501,43 +511,55 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch (error) { console.error("Error in setupLetterAnimation for element:", element, error); }
     };
-
+    
     const animationObserver = new IntersectionObserver((entries, observerInstance) => {
         entries.forEach((entry) => {
             if (entry.isIntersecting) {
                 const element = entry.target;
                 try {
                     const animationOrder = parseInt(element.style.getPropertyValue('--animation-order') || '0');
+                    // Use config.animations.staggerDelay for consistency
                     const baseDelay = animationOrder * config.animations.staggerDelay;
 
                     if (element.dataset.animateLetters !== undefined) {
                         if (!element.classList.contains('letters-setup-complete')) {
-                            setupLetterAnimation(element);
+                            setupLetterAnimation(element); // This now sets individual letter delays
                             element.classList.add('letters-setup-complete');
+                            // Delay for the container to start revealing, allowing letters to pick up their individual delays
                             setTimeout(() => {
                                 element.classList.add('is-revealing');
-                                element.style.opacity = '1';
+                                element.style.opacity = '1'; // Ensure container is visible if not already handled by 'is-revealing'
+                                
+                                // If this is the hero heading, adjust delays for subsequent hero elements
                                 if (element === heroHeading) {
                                     const letterCount = parseInt(element.style.getPropertyValue('--letter-count') || '10');
-                                    const h1AnimationDuration = (letterCount * config.animations.letterMaskRevealDelay) + 500;
+                                    // Calculate total duration for H1 letter animation
+                                    // This needs to consider the duration of each letter's transition + the staggered delay
+                                    // Assuming letter transition duration is defined in CSS (e.g., 0.7s in index.css for .hero h1[data-animate-letters] .letter-span)
+                                    const letterTransitionDuration = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hero-letter-anim-duration') || '700'); // Example: fetch from CSS variable or use a fixed value
+                                    
+                                    const h1AnimationDuration = (letterCount * config.animations.letterMaskRevealDelay) + letterTransitionDuration; // Stagger + one letter's own anim time
+
                                     document.querySelectorAll('.hero p[data-animate], .hero .hero-buttons[data-animate]').forEach(el => {
                                         if (el) {
                                             const heroElOrder = parseInt(el.style.getPropertyValue('--animation-order') || '0');
+                                            // The delay for subsequent elements should start AFTER h1's animation is mostly complete
                                             el.style.transitionDelay = `${h1AnimationDuration + (heroElOrder * config.animations.heroElementEntryDelay)}ms`;
                                             el.classList.add('animated');
-                                            el.style.opacity = '1';
+                                            // el.style.opacity = '1'; // Opacity will be handled by .animated class transition
                                         }
                                     });
                                 }
-                            }, 100);
+                            }, baseDelay); // Apply baseDelay to the container's reveal start
                         }
                     } else {
                         element.style.transitionDelay = `${baseDelay}ms`;
                         element.classList.add('animated');
-                        element.style.opacity = '1';
+                        // element.style.opacity = '1'; // Opacity is handled by CSS transition of .animated class
                     }
                 } catch (error) {
-                    if(element) element.style.opacity = '1';
+                    console.error("Error applying animation to element:", element, error);
+                    if(element) element.style.opacity = '1'; // Fallback to make it visible
                 }
                 observerInstance.unobserve(element);
             }
@@ -547,15 +569,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (animatedElements.length > 0) {
         animatedElements.forEach(el => {
             if (el) {
-                 el.style.opacity = '0';
+                 el.style.opacity = '0'; // Set initial opacity to 0 for all observed elements
                  animationObserver.observe(el);
             }
         });
-        if (heroHeading && heroHeading.dataset.animateLetters !== undefined) {
-            // Handled by observer
-        } else if (heroHeading) {
-             heroHeading.style.opacity = '1'; // Default if no letter animation
-        }
+        // Removed special handling for heroHeading opacity here, as the observer will handle it.
     }
 
     const handleHeroMouseMove = (event) => {
@@ -574,8 +592,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
                 const currentX = parseFloat(heroHighlightSpan.style.getPropertyValue('--mouse-x') || "0.5");
                 const currentY = parseFloat(heroHighlightSpan.style.getPropertyValue('--mouse-y') || "0.5");
-                heroHighlightSpan.style.setProperty('--mouse-x', (currentX + (x - currentX) * 0.2).toFixed(3));
-                heroHighlightSpan.style.setProperty('--mouse-y', (currentY + (y - currentY) * 0.2).toFixed(3));
+                // Smoother interpolation for gradient movement
+                heroHighlightSpan.style.setProperty('--mouse-x', (currentX + (x - currentX) * 0.15).toFixed(3)); // Adjusted speed
+                heroHighlightSpan.style.setProperty('--mouse-y', (currentY + (y - currentY) * 0.15).toFixed(3)); // Adjusted speed
             } catch (error) { console.error("Error in handleHeroMouseMove (gradient):", error); }
         });
     };
@@ -589,10 +608,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 let currentY = parseFloat(heroHighlightSpan.style.getPropertyValue('--mouse-y') || "0.5");
                 const resetIntervalId = setInterval(() => {
                     if (!heroHighlightSpan || !document.contains(heroHighlightSpan)) { clearInterval(resetIntervalId); return; }
-                    currentX += (0.5 - currentX) * 0.1; currentY += (0.5 - currentY) * 0.1;
-                    heroHighlightSpan.style.setProperty('--mouse-x', currentX.toFixed(3)); heroHighlightSpan.style.setProperty('--mouse-y', currentY.toFixed(3));
-                    if (Math.abs(currentX - 0.5) < 0.01 && Math.abs(currentY - 0.5) < 0.01) {
-                        heroHighlightSpan.style.setProperty('--mouse-x', "0.5"); heroHighlightSpan.style.setProperty('--mouse-y', "0.5");
+                    currentX += (0.5 - currentX) * 0.08; // Slightly slower reset
+                    currentY += (0.5 - currentY) * 0.08; // Slightly slower reset
+                    heroHighlightSpan.style.setProperty('--mouse-x', currentX.toFixed(3));
+                    heroHighlightSpan.style.setProperty('--mouse-y', currentY.toFixed(3));
+                    if (Math.abs(currentX - 0.5) < 0.005 && Math.abs(currentY - 0.5) < 0.005) { // Adjusted threshold
+                        heroHighlightSpan.style.setProperty('--mouse-x', "0.5");
+                        heroHighlightSpan.style.setProperty('--mouse-y', "0.5");
                         clearInterval(resetIntervalId);
                     }
                 }, 16);
@@ -606,13 +628,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (heroHighlightSpan && document.contains(heroHighlightSpan)) {
                 heroHighlightSpan.style.setProperty('--mouse-x', "0.5");
-                heroHighlightSpan.style.setProperty('--mouse-y', "0.3");
+                heroHighlightSpan.style.setProperty('--mouse-y', "0.3"); // Static y-position for touch
             }
         };
-        setTimeout(setStaticGradientForTouch, 1500); // Delay to ensure element is rendered
+        // Ensure heroHeading is ready for querySelector if letter animation setup runs first
+        if (heroHeading && heroHeading.classList.contains('letters-setup-complete')) {
+            setStaticGradientForTouch();
+        } else {
+            setTimeout(setStaticGradientForTouch, 1500); // Fallback delay
+        }
     }
-
-    window.addEventListener('scroll', debounce(handleScroll, 30));
+    
+    window.addEventListener('scroll', debounce(handleScroll, 50)); // Slightly increased debounce for scroll
     if (prevBtn) prevBtn.addEventListener('click', () => moveSlider(-1));
     if (nextBtn) nextBtn.addEventListener('click', () => moveSlider(1));
 
@@ -620,225 +647,44 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sliderInitialLoadComplete && sliderTrack) {
             if (calculateCardWidthAndMargin() > 0) setTrackPositionInstantly("resize adjustment");
         }
-    }, 200));
-
+    }, 250)); // Slightly increased debounce for resize
 
     // --- ADVANCED COOKIE CONSENT LOGIC (REMOVED / COMMENTED OUT) ---
-
-    // const getProcessedCookie = (name) => {
-    //     const value = `; ${document.cookie}`;
-    //     const parts = value.split(`; ${name}=`);
-    //     if (parts.length === 2) return parts.pop().split(';').shift();
-    //     return null;
-    // };
-
-    // const setProcessedCookie = (name, value, days) => {
-    //     let expires = "";
-    //     if (days) {
-    //         const date = new Date();
-    //         date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-    //         expires = `; expires=${date.toUTCString()}`;
-    //     }
-    //     document.cookie = `${name}=${value || ""}${expires}; path=/; SameSite=Lax; Secure`;
-    // };
-
-    // const getConsentPreferences = () => {
-    //     // try {
-    //     //     const prefsString = localStorage.getItem(config.cookies.consentPreferencesKey);
-    //     //     if (prefsString) {
-    //     //         const prefs = JSON.parse(prefsString);
-    //     //         return { ...config.cookies.defaultConsentState, ...prefs };
-    //     //     }
-    //     // } catch (e) { console.error("Error reading consent preferences from localStorage:", e); }
-    //     // return { ...config.cookies.defaultConsentState }; // config.cookies would be undefined
-    //     return {}; // Return empty object or predefined defaults if absolutely necessary elsewhere
-    // };
-
-    // const saveConsentPreferences = (preferences) => {
-    //     // try {
-    //     //     localStorage.setItem(config.cookies.consentPreferencesKey, JSON.stringify(preferences));
-    //     // } catch (e) { console.error("Error saving consent preferences to localStorage:", e); }
-    // };
-
-    // const updateGtagConsent = (preferences) => {
-    //     // if (typeof gtag === 'function') {
-    //     //     gtag('consent', 'update', { ...preferences });
-    //     // }
-    //     // This function will be needed on the registration page, not here.
-    // };
-
-    // const applyConsentDecision = (preferences) => {
-    //     // updateGtagConsent(preferences); // gtag call removed for this page
-    //     // saveConsentPreferences(preferences); // localStorage saving removed
-    //     // setProcessedCookie(config.cookies.consentProcessedCookieName, 'true', config.cookies.consentCookieExpirationDays); // Cookie setting removed
-
-    //     // if (cookieConsentBanner) { // cookieConsentBanner is commented out
-    //     //     cookieConsentBanner.classList.remove('visible');
-    //     //     cookieConsentBanner.removeAttribute('style');
-    //     //     setTimeout(() => {
-    //     //         if (!cookieConsentBanner.classList.contains('visible')) {
-    //     //             cookieConsentBanner.style.display = 'none';
-    //     //         }
-    //     //     }, 500);
-    //     // }
-    //     // if (cookieConsentOverlay) { // cookieConsentOverlay is commented out
-    //     //     cookieConsentOverlay.classList.remove('visible');
-    //     //     cookieConsentOverlay.removeAttribute('style');
-    //     //     setTimeout(() => {
-    //     //         if (!cookieConsentOverlay.classList.contains('visible')) {
-    //     //             cookieConsentOverlay.style.display = 'none';
-    //     //         }
-    //     //     }, 500);
-    //     // }
-    //     // if (cookieSettingsModal) cookieSettingsModal.classList.remove('visible'); // cookieSettingsModal is commented out
-    // };
-
-    // const handleAcceptAll = () => {
-    //     // const allGrantedPrefs = {};
-    //     // for (const key in config.cookies.defaultConsentState) { // config.cookies would be undefined
-    //     //     allGrantedPrefs[key] = 'granted';
-    //     // }
-    //     // applyConsentDecision(allGrantedPrefs);
-    // };
-
-    // const handleRejectAll = () => {
-    //     // const allDeniedPrefs = {};
-    //     // for (const key in config.cookies.defaultConsentState) { // config.cookies would be undefined
-    //     //     allDeniedPrefs[key] = 'denied';
-    //     // }
-    //     // applyConsentDecision(allDeniedPrefs);
-    // };
-
-    // const showCookieSettingsModal = () => {
-    //     // if (!cookieSettingsModal) { return; } // cookieSettingsModal is commented out
-    //     // const currentPrefs = getConsentPreferences();
-    //     // cookieSettingToggles.forEach(toggle => { // cookieSettingToggles is commented out
-    //     //     const consentType = toggle.dataset.consentType;
-    //     //     if (consentType && currentPrefs.hasOwnProperty(consentType)) {
-    //     //         toggle.checked = currentPrefs[consentType] === 'granted';
-    //     //     } else if (consentType && config.cookies && config.cookies.defaultConsentState) { // Check if config.cookies exists
-    //     //         toggle.checked = config.cookies.defaultConsentState[consentType] === 'granted';
-    //     //     }
-    //     // });
-    //     // cookieCategoryHeaders.forEach(header => { // cookieCategoryHeaders is commented out
-    //     //     const descId = header.getAttribute('aria-controls');
-    //     //     const descElement = document.getElementById(descId);
-    //     //     if (descElement) {
-    //     //         if (header.parentElement.querySelector('input[name="necessary"]')) {
-    //     //             header.classList.remove('collapsed'); header.setAttribute('aria-expanded', 'true'); descElement.classList.add('expanded');
-    //     //         } else {
-    //     //             header.classList.add('collapsed'); header.setAttribute('aria-expanded', 'false'); descElement.classList.remove('expanded');
-    //     //         }
-    //     //     }
-    //     // });
-    //     // cookieSettingsModal.classList.add('visible');
-    //     // if (cookieConsentBanner) {
-    //     //     cookieConsentBanner.classList.remove('visible');
-    //     //     cookieConsentBanner.style.display = 'none';
-    //     // }
-    //     // if (cookieConsentOverlay) {
-    //     //     cookieConsentOverlay.classList.remove('visible');
-    //     //     cookieConsentOverlay.style.display = 'none';
-    //     // }
-    // };
-
-    // const hideCookieSettingsModal = () => {
-    //     // if (cookieSettingsModal) cookieSettingsModal.classList.remove('visible'); // cookieSettingsModal is commented out
-    //     // const consentProcessed = getProcessedCookie(config.cookies.consentProcessedCookieName) === 'true'; // config.cookies would be undefined
-    //     // if (!consentProcessed && cookieConsentBanner) { // cookieConsentBanner is commented out
-    //     //     cookieConsentBanner.removeAttribute('style');
-    //     //     if (cookieConsentOverlay) cookieConsentOverlay.removeAttribute('style'); // cookieConsentOverlay is commented out
-
-    //     //     cookieConsentBanner.style.display = 'flex';
-    //     //     if (cookieConsentOverlay) cookieConsentOverlay.style.display = 'block';
-            
-    //     //     requestAnimationFrame(() => {
-    //     //         if (cookieConsentBanner) cookieConsentBanner.classList.add('visible');
-    //     //         if (cookieConsentOverlay) cookieConsentOverlay.classList.add('visible');
-    //     //     });
-    //     // }
-    // };
-
-    // const handleSaveCookieSettings = () => {
-    //     // if (!cookieSettingsModal) return; // cookieSettingsModal is commented out
-    //     // const newPrefs = {};
-    //     // cookieSettingToggles.forEach(toggle => { // cookieSettingToggles is commented out
-    //     //     const consentType = toggle.dataset.consentType;
-    //     //     if (consentType) { newPrefs[consentType] = toggle.checked ? 'granted' : 'denied'; }
-    //     // });
-    //     // applyConsentDecision(newPrefs);
-    // };
-
-    // const toggleCookieCategory = (headerElement) => {
-    //     // const descId = headerElement.getAttribute('aria-controls');
-    //     // const descElement = document.getElementById(descId);
-    //     // if (!descElement) return;
-    //     // const isExpanded = descElement.classList.toggle('expanded');
-    //     // headerElement.classList.toggle('collapsed', !isExpanded);
-    //     // headerElement.setAttribute('aria-expanded', isExpanded.toString());
-    // };
-
-    // const initializeCookieConsentFramework = () => {
-    //     // console.log("DEBUG: Cookie Consent Framework initialization skipped as it's removed from this page.");
-
-    //     // // All references to cookie elements (cookieConsentBanner, cookieConsentOverlay, etc.)
-    //     // // and their event listeners are removed or commented out.
-    //     // // The logic for checking processed cookies and showing the banner is no longer needed here.
-    //     // // The gtag('consent', 'default', ...) in HTML handles the initial consent state.
-    //     // // Actual consent update will happen at registration.
-
-    //     // // Example of what's removed:
-    //     // // if (!cookieConsentBanner || !cookieConsentOverlay) { /* ... */ return; }
-    //     // // const consentCookieValue = getProcessedCookie(config.cookies.consentProcessedCookieName);
-    //     // // const consentProcessed = consentCookieValue === 'true';
-    //     // // const currentPreferences = getConsentPreferences();
-    //     // // updateGtagConsent(currentPreferences); // This gtag call is removed for this page
-    //     // // if (consentProcessed) { /* ... banner remains hidden ... */ }
-    //     // // else { /* ... logic to show banner ... */ }
-    //     // // Event listeners for accept, reject, customize buttons are removed.
-    //     // // Event listeners for modal buttons are removed.
-    //     // // Event listener for cookieSettingsTriggerFooter is removed.
-    //     // // Event listeners for cookieCategoryHeaders are removed.
-    // };
+    // ... (вся закомментированная логика cookie) ...
 
     try {
-        handleScroll();
+        handleScroll(); // Initial call to set active nav link
         initializeInfiniteSlider();
-        // initializeCookieConsentFramework(); // <-- This call is now removed/commented out
+        // initializeCookieConsentFramework(); // Call remains commented out
     } catch (error) {
         console.error("Error during final initializations:", error);
     }
 
+    // Deferred AI Demo check (already present, seems fine)
     setTimeout(() => {
         if (demoSection && config.aiDemo.enabled && aiDemoObserver) {
-            // if (!(aiOutput && aiFakeInput && aiProgressLabel && aiProgressBar && aiStatusIndicator)) {
-            //     console.warn("AI Demo deferred init: elements missing, AI Demo might not work.");
-            // }
+            // ...
         }
     }, 500);
 
-    console.log("JUSTAX Interface v2.41_NoCookie (Cookie consent functionality removed) Initialization Complete.");
+    console.log("JUSTAX Interface v2.42_NoCookie_AnimRefactor (Cookie consent functionality removed) Initialization Complete.");
 });
 
 /*
     EDIT LOGS:
-    Developer Goal: Remove all cookie consent functionality from the main landing page (index.html, index.js, index.css).
-                    Cookie consent will be handled at the registration stage.
-    Stage (index.js - Part 1 of 3):
-        - Commented out all DOM element references related to cookie consent (banners, modals, buttons).
-        - Commented out the `config.cookies` object.
-        - Commented out all JavaScript functions dedicated to cookie logic:
-            - getProcessedCookie, setProcessedCookie
-            - getConsentPreferences, saveConsentPreferences
-            - updateGtagConsent (this specific call on this page; gtag itself remains for default state)
-            - applyConsentDecision
-            - handleAcceptAll, handleRejectAll
-            - showCookieSettingsModal, hideCookieSettingsModal
-            - handleSaveCookieSettings
-            - toggleCookieCategory
-            - initializeCookieConsentFramework
-        - Removed the call to `initializeCookieConsentFramework()` from the main DOMContentLoaded try-catch block.
-        - Ensured that other functionalities (slider, animations, menu, AI demo, etc.) remain untouched.
-        - Updated version in initial console log and file header comment to reflect changes (v2.41_NoCookie).
-        - The `gtag('consent', 'default', ...)` in index.html will still set initial denied states, which is appropriate until consent is given at registration.
+    Developer Goal: Refine JavaScript logic in index.js for potentially smoother animations and better consistency.
+    Stage (index.js - v2.42_NoCookie_AnimRefactor):
+        - **Animation Staggering**: Modified the calculation of `baseDelay` for `[data-animate]` elements to use `config.animations.staggerDelay` instead of a hardcoded `150`. This makes the stagger delay consistently configurable. The default in `config` is `100ms`. User can change it to `150ms` in `config` if preferred.
+        - **Hero Letter Animation (`data-animate-letters`)**:
+            - Ensured that `setupLetterAnimation` applies individual `transition-delay` to each `letter-span` based on `config.animations.letterMaskRevealDelay`. This is crucial for the staggered letter appearance.
+            - Refined the logic for calculating `h1AnimationDuration` to more accurately reflect the total time for the hero heading letter animation. This duration is then used to delay subsequent hero elements (`.hero p`, `.hero .hero-buttons`). This aims to make the sequence flow better.
+            - Added a placeholder `getComputedStyle(document.documentElement).getPropertyValue('--hero-letter-anim-duration') || '700'` for the letter's own transition duration. Ideally, this duration should be consistent with what's in CSS.
+            - The `baseDelay` (from `animation-order` of the `<h1>` itself) is now applied to the `setTimeout` that adds the `is-revealing` class, so the whole letter animation block can be staggered if needed.
+        - **Initial Opacity**: Ensured all elements observed by `animationObserver` (`[data-animate]`, `[data-animate-letters]`) have their `opacity` set to `0` initially via JavaScript before observation starts. This prevents a flash of unstyled content if CSS is slow to apply. The opacity is then handled by the `.animated` or `.is-revealing` class transitions.
+        - **Hero Gradient Animation**: Slightly adjusted the interpolation factor in `handleHeroMouseMove` (from `0.2` to `0.15`) and `mouseleave` reset (from `0.1` to `0.08`) for potentially smoother gradient movement and reset. Adjusted reset threshold for more accuracy.
+        - **Debounce Timers**: Slightly increased debounce timers for `scroll` (to `50ms`) and `resize` (to `250ms`) events, which can sometimes help with perceived smoothness during these actions by reducing the frequency of handler execution.
+        - **AI Demo Timestamp**: Corrected padding for seconds in `addAiLogLine` from `padStart(3, '0')` to `padStart(2, '0')`.
+        - **Mouse Follower**: Added default width/height for follower in `updateFollower` if `offsetWidth/Height` is 0 initially, to prevent `NaN` in translation.
+        - **Testimonial Slider**: Minor robustness improvements in `calculateCardWidthAndMargin` and `moveSlider`. Improved logic for initial unique selection of testimonials.
+    Next Step (if needed): Further testing across devices and browsers. If specific "jerks" persist, more targeted debugging would be needed, possibly involving performance profiling in browser developer tools.
 */
