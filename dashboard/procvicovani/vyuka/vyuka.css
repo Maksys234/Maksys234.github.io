@@ -1,4 +1,4 @@
-/* dashboard/procvicovani/vyuka/vyuka.css - EXTREME CYBERPUNK OVERHAUL v8 - Footer BG & Logo Font Fix */
+/* dashboard/procvicovani/vyuka/vyuka.css - EXTREME CYBERPUNK OVERHAUL v9 - Ultimate Footer Override Attempt */
 
 /* --- Základní proměnné --- */
 :root {
@@ -84,7 +84,7 @@
 html { scroll-behavior: smooth; font-size: 16px; }
 body.new-vyuka-layout {
     font-family: var(--vyuka-font-primary);
-    background-color: var(--vyuka-bg-dark);
+    background-color: var(--vyuka-bg-dark); /* Master background */
     color: var(--vyuka-text-primary);
     margin: 0; padding: 0; display: flex; overflow: hidden; height: 100vh;
     position: relative;
@@ -114,8 +114,8 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
     flex-direction: column;
     height: 100vh;
     transition: margin-left 0.3s var(--animation-timing-cyber);
-    overflow: hidden; /* Prevents this container itself from scrolling */
-    background-color: var(--vyuka-bg-dark); /* Ensure page container has a background */
+    overflow: hidden;
+    background-color: var(--vyuka-bg-dark) !important; /* Ensure this container has the main dark background */
 }
 .vyuka-sidebar-ai.expanded ~ .vyuka-page-container {
     margin-left: var(--vyuka-sidebar-width-expanded);
@@ -127,7 +127,7 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
     display: flex;
     flex-direction: column;
     position: relative;
-    background-color: transparent; /* Should be transparent to let page-container bg show */
+    background-color: transparent; /* Must be transparent so .vyuka-page-container background is visible */
 }
 .vyuka-main-content-scrollable::-webkit-scrollbar { width: 8px; height: 8px; }
 .vyuka-main-content-scrollable::-webkit-scrollbar-track { background: rgba(var(--vyuka-bg-dark), 0.7); }
@@ -158,16 +158,33 @@ body.scrolled .vyuka-header {
     flex-grow: 1;
     padding: 2rem;
     gap: 2rem;
-    background-color: transparent; /* This container should not have a background */
+    background-color: transparent; /* Main content area itself should be transparent */
     min-height: 0;
     position: relative;
 }
 
+/* --- FOOTER FIX ATTEMPT --- */
 .main-footer.vyuka-footer {
-    flex-shrink: 0;
-    background-color: var(--vyuka-bg-panel); /* Explicit background for footer */
-    /* Footer border and other styles are now inlined in vyuka.html, or use styles from dashboard.css */
+    flex-shrink: 0; /* Prevent footer from shrinking */
+    background-color: var(--vyuka-bg-panel) !important; /* Explicit background, overrides dashboard.css */
+    color: var(--vyuka-text-secondary) !important; /* Explicit text color */
+    padding: 2.5rem 0 !important; /* Use existing padding from its own style block or adjust */
+    border-top: 2px solid var(--vyuka-accent-primary) !important; /* Use existing border or adjust */
+    box-shadow: 0 -5px 20px -5px rgba(var(--vyuka-accent-primary-rgb), 0.25) !important; /* Use existing shadow or adjust */
+    position: relative !important; /* Override any fixed/absolute from dashboard.css */
+    width: 100% !important; /* Ensure full width within its scroll container */
+    z-index: 10 !important; /* Lower z-index than header, but ensure it's above potential main content absolutely positioned items */
+    /* margin-top: auto; is handled by the flex layout of .vyuka-main-content-scrollable */
 }
+/* Ensure the container for the footer grid behaves */
+.vyuka-footer .container {
+    max-width: var(--container-max-width, 1140px);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--container-padding-x, 15px);
+    padding-right: var(--container-padding-x, 15px);
+}
+/* All other specific footer styles (like .footer-grid, .footer-column etc.) are already defined in vyuka.html */
 
 /* --- Levý AI Panel --- */
 .vyuka-sidebar-ai { width: var(--vyuka-sidebar-width-collapsed); background-color: var(--vyuka-bg-panel); border-right: 1px solid var(--vyuka-border-color); display: flex; flex-direction: column; padding: 1rem 0.5rem; transition: width 0.3s var(--animation-timing-cyber); height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; box-shadow: 5px 0 30px -5px rgba(0,0,0,0.6), inset -3px 0 8px rgba(var(--vyuka-bg-dark),0.4); }
@@ -176,32 +193,16 @@ body.scrolled .vyuka-header {
 .vyuka-sidebar-ai-logo { display: inline-flex; align-items: center; gap: 0.7rem; color: var(--vyuka-text-heading); text-decoration: none; font-size: 1.8rem; font-weight: 700; font-family: var(--vyuka-font-accent); }
 .vyuka-sidebar-ai-logo i { color: var(--vyuka-accent-secondary); font-size: 2rem; text-shadow: 0 0 10px var(--vyuka-accent-secondary), 0 0 20px var(--vyuka-accent-secondary); animation: logo-beacon 2.5s infinite ease-in-out; }
 @keyframes logo-beacon { 0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.7; filter: hue-rotate(0deg); } 50% { transform: scale(1.15) rotate(-8deg); opacity: 1; text-shadow: 0 0 18px var(--vyuka-accent-secondary), 0 0 30px var(--vyuka-accent-secondary), 0 0 10px var(--vyuka-accent-primary); filter: hue-rotate(20deg); } }
-.vyuka-sidebar-ai-logo .logo-text { display: none; font-size: 1.1em; letter-spacing: 1px; font-family: var(--vyuka-font-accent); /* Restored accent font for logo text */ }
+.vyuka-sidebar-ai-logo .logo-text { display: none; font-size: 1.1em; letter-spacing: 1px; font-family: var(--vyuka-font-accent); }
 .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-logo .logo-text { display: inline; margin-left: 0.5rem; animation: text-focus-in 0.6s var(--animation-timing-cyber) 0.1s both; }
 .vyuka-sidebar-ai-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; overflow-x: hidden; }
 .vyuka-sidebar-ai-menu::-webkit-scrollbar { width: 5px; }
 .vyuka-sidebar-ai-menu::-webkit-scrollbar-thumb { background: var(--vyuka-accent-primary); border-radius: 2.5px; }
 .vyuka-sidebar-ai-item { margin-bottom: 0.5rem; }
 .vyuka-sidebar-ai-link { display: flex; align-items: center; padding: 1rem 1.2rem; color: var(--vyuka-text-secondary); text-decoration: none; border-radius: var(--vyuka-button-radius); transition: all 0.25s var(--animation-timing-cyber); white-space: nowrap; overflow: hidden; position: relative; border: 1px solid transparent; font-size: 1rem; }
-.vyuka-sidebar-ai-link i {
-    font-size: 1.5rem; width: 30px; text-align: center; margin-right: 0; flex-shrink: 0;
-    transition: margin-right 0.25s var(--animation-timing-cyber), color 0.2s ease, transform 0.2s ease, text-shadow 0.2s ease;
-    text-shadow: 0 0 5px rgba(var(--vyuka-text-secondary-rgb, 0, 245, 255),0.4);
-}
-.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link {
-    justify-content: center;
-    padding: 1rem 0.5rem;
-    border-radius: 50%;
-    width: 54px;
-    height: 54px;
-    margin: 0.5rem auto;
-}
-.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link i {
-    margin-right: 0;
-    font-size: 1.7rem;
-    transform: scale(1.15);
-    text-shadow: 0 0 10px var(--vyuka-accent-secondary), 0 0 5px var(--vyuka-accent-primary);
-}
+.vyuka-sidebar-ai-link i { font-size: 1.5rem; width: 30px; text-align: center; margin-right: 0; flex-shrink: 0; transition: margin-right 0.25s var(--animation-timing-cyber), color 0.2s ease, transform 0.2s ease, text-shadow 0.2s ease; text-shadow: 0 0 5px rgba(var(--vyuka-text-secondary-rgb, 0, 245, 255),0.4); }
+.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link { justify-content: center; padding: 1rem 0.5rem; border-radius: 50%; width: 54px; height: 54px; margin: 0.5rem auto; }
+.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link i { margin-right: 0; font-size: 1.7rem; transform: scale(1.15); text-shadow: 0 0 10px var(--vyuka-accent-secondary), 0 0 5px var(--vyuka-accent-primary); }
 .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link i { margin-right: 1rem; }
 .vyuka-sidebar-ai-link .link-text { display: none; font-weight: 500; }
 .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link .link-text { display: inline; animation: text-focus-in 0.5s var(--animation-timing-cyber) 0.15s both; }
@@ -217,7 +218,7 @@ body.scrolled .vyuka-header {
 .vyuka-sidebar-ai-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--vyuka-border-highlight); display: flex; justify-content: center; min-height: 50px; font-size: 0.75rem; opacity: 0.7; color: var(--vyuka-text-muted); }
 .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-footer { animation: text-focus-in 0.6s ease 0.25s both; }
 
-/* Header specific elements */
+/* --- Header specific elements --- */
 .vyuka-header-left { display: flex; align-items: center; gap: 0.8rem; }
 .vyuka-header-left .mobile-menu-toggle { display: none; color: var(--vyuka-text-muted); font-size: 1.4rem; }
 .vyuka-header-left .sidebar-ai-desktop-toggle { color: var(--vyuka-text-muted); font-size: 1.1rem; background: rgba(var(--vyuka-bg-panel-lighter),0.7); border: 1px solid var(--vyuka-border-color); cursor: pointer; padding: 0.5rem 0.7rem; border-radius: var(--vyuka-button-radius); transition: all var(--animation-duration-fast) ease; }
@@ -249,19 +250,9 @@ body.scrolled .vyuka-header {
 .btn-exit-vyuka { font-size: 0.75rem; padding: 0.35rem 0.7rem; background: rgba(var(--vyuka-accent-pink-rgb),0.1); border-color: rgba(var(--vyuka-accent-pink-rgb),0.4); color: var(--vyuka-accent-pink); }
 .btn-exit-vyuka:hover { background: var(--vyuka-accent-pink); color: var(--vyuka-bg-dark); border-color: var(--vyuka-accent-pink); box-shadow: 0 0 10px var(--vyuka-accent-pink), 0 0 15px var(--vyuka-accent-pink); }
 
-/* --- Whiteboard & Chat Panel - Cyberpunk Frames & Height --- */
+/* --- Whiteboard & Chat Panel --- */
 .vyuka-whiteboard-area, .vyuka-chat-panel {
-    background-color: rgba(var(--vyuka-bg-panel-rgb), 0.92);
-    backdrop-filter: blur(10px) saturate(1.1) brightness(0.95);
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    border-radius: var(--vyuka-card-radius);
-    border: 1px solid var(--vyuka-border-cyber);
-    box-shadow: 0 0 28px rgba(var(--vyuka-accent-secondary-rgb),0.25), inset 0 0 22px rgba(var(--vyuka-bg-dark),0.8), inset 0 0 10px var(--vyuka-border-cyber-secondary);
-    position: relative;
-    transition: box-shadow var(--animation-duration-medium) ease-in-out, border-color var(--animation-duration-medium) ease-in-out;
+    background-color: rgba(var(--vyuka-bg-panel-rgb), 0.92); backdrop-filter: blur(10px) saturate(1.1) brightness(0.95); padding: 1.5rem; display: flex; flex-direction: column; overflow: hidden; border-radius: var(--vyuka-card-radius); border: 1px solid var(--vyuka-border-cyber); box-shadow: 0 0 28px rgba(var(--vyuka-accent-secondary-rgb),0.25), inset 0 0 22px rgba(var(--vyuka-bg-dark),0.8), inset 0 0 10px var(--vyuka-border-cyber-secondary); position: relative; transition: box-shadow var(--animation-duration-medium) ease-in-out, border-color var(--animation-duration-medium) ease-in-out;
 }
 .vyuka-whiteboard-area:hover, .vyuka-chat-panel:hover { box-shadow: 0 0 35px rgba(var(--vyuka-accent-secondary-rgb),0.4), 0 0 55px rgba(var(--vyuka-accent-primary-rgb),0.25), inset 0 0 28px rgba(var(--vyuka-bg-dark),0.65), inset 0 0 15px var(--vyuka-border-cyber-secondary); border-color: var(--vyuka-border-cyber-secondary); }
 .vyuka-whiteboard-area::before, .vyuka-chat-panel::before, .vyuka-whiteboard-area::after, .vyuka-chat-panel::after { content: ''; position: absolute; width: 25px; height: 25px; border-style: solid; border-color: var(--vyuka-accent-secondary); opacity: 1; pointer-events: none; z-index: 5; transition: all 0.35s var(--animation-timing-cyber); box-shadow: 0 0 10px -2px var(--vyuka-accent-secondary); }
@@ -269,10 +260,8 @@ body.scrolled .vyuka-header {
 .vyuka-whiteboard-area::after, .vyuka-chat-panel::after { bottom: 0px; right: 0px; border-width: 0 3px 3px 0; border-bottom-right-radius: var(--vyuka-card-radius); clip-path: polygon(100% 100%, 40% 100%, 100% 40%); }
 .vyuka-whiteboard-area:hover::before, .vyuka-chat-panel:hover::before { transform: translate(-5px, -5px) scale(1.1); border-color: var(--vyuka-accent-primary); box-shadow: 0 0 15px var(--vyuka-accent-primary); }
 .vyuka-whiteboard-area:hover::after, .vyuka-chat-panel:hover::after { transform: translate(5px, 5px) scale(1.1); border-color: var(--vyuka-accent-primary); box-shadow: 0 0 15px var(--vyuka-accent-primary); }
-
 .vyuka-whiteboard-area { flex: 6; min-height: clamp(450px, 65vh, 800px); height: auto; }
 .vyuka-chat-panel { flex: 4; min-height: clamp(450px, 65vh, 800px); min-width: 380px; height: auto; }
-
 #whiteboard-container { flex-grow: 1; overflow-y: auto; padding: 1rem; margin-right: -10px; position: relative; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--vyuka-accent-secondary) rgba(var(--vyuka-bg-dark), 0.5); }
 #whiteboard-container::-webkit-scrollbar { width: 6px; }
 #whiteboard-container::-webkit-scrollbar-thumb { background: var(--vyuka-accent-secondary); border-radius: 3px;}
@@ -283,7 +272,6 @@ body.scrolled .vyuka-header {
 #whiteboard-content code { background-color: rgba(var(--vyuka-accent-lime-rgb), 0.2); padding: 0.2em 0.5em; border-radius: 4px; font-family: var(--vyuka-font-mono); color: var(--vyuka-accent-lime); border: 1px solid rgba(var(--vyuka-accent-lime-rgb),0.5); box-shadow: 0 0 10px rgba(var(--vyuka-accent-lime-rgb),0.4); }
 #whiteboard-content pre { background-color: rgba(var(--vyuka-bg-dark), 0.95); padding: 1.3em; border-radius: var(--vyuka-button-radius); overflow-x: auto; border: 1px solid var(--vyuka-border-highlight); box-shadow: var(--vyuka-shadow-medium), inset 0 0 20px rgba(0,0,0,0.5); font-size: 0.9rem; }
 .chat-messages::-webkit-scrollbar { width: 6px; }
-
 .vyuka-chat-header { padding: 0.8rem 1.2rem; border-bottom: 1px solid var(--vyuka-border-color); background-color: rgba(var(--vyuka-bg-panel-lighter), 0.8); flex-shrink: 0; box-shadow: inset 0 -2px 5px rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: center; }
 .vyuka-chat-header h3 { margin: 0; font-size: 1rem; text-shadow: 0 0 5px var(--vyuka-accent-primary); }
 .ai-model-selector-container { display: flex; align-items: center; gap: 0.5rem; }
@@ -333,7 +321,6 @@ body.scrolled .vyuka-header {
 .initial-loading-overlay p.loading-text span:nth-child(1) { animation-delay: 0s; } .initial-loading-overlay p.loading-text span:nth-child(2) { animation-delay: 0.04s; } .initial-loading-overlay p.loading-text span:nth-child(3) { animation-delay: 0.08s; } .initial-loading-overlay p.loading-text span:nth-child(4) { animation-delay: 0.12s; } .initial-loading-overlay p.loading-text span:nth-child(5) { animation-delay: 0.16s; } .initial-loading-overlay p.loading-text span:nth-child(6) { animation-delay: 0.20s; } .initial-loading-overlay p.loading-text span:nth-child(7) { animation-delay: 0.24s; } .initial-loading-overlay p.loading-text span:nth-child(8) { animation-delay: 0.28s; } .initial-loading-overlay p.loading-text span:nth-child(9) { animation-delay: 0.32s; } .initial-loading-overlay p.loading-text span:nth-child(10) { animation-delay: 0.36s; } .initial-loading-overlay p.loading-text span:nth-child(11) { animation-delay: 0.40s; } .initial-loading-overlay p.loading-text span:nth-child(12) { animation-delay: 0.44s; } .initial-loading-overlay p.loading-text span:nth-child(13) { animation-delay: 0.48s; } .initial-loading-overlay p.loading-text span:nth-child(14) { animation-delay: 0.52s; } .initial-loading-overlay p.loading-text span:nth-child(15) { animation-delay: 0.56s; } .initial-loading-overlay p.loading-text span:nth-child(16) { animation-delay: 0.60s; } .initial-loading-overlay p.loading-text span:nth-child(17) { animation-delay: 0.64s; } .initial-loading-overlay p.loading-text span:nth-child(18) { animation-delay: 0.68s; } .initial-loading-overlay p.loading-text span:nth-child(19) { animation-delay: 0.72s; } .initial-loading-overlay p.loading-text span:nth-child(20) { animation-delay: 0.76s; } .initial-loading-overlay p.loading-text span:nth-child(21) { animation-delay: 0.80s; } .initial-loading-overlay p.loading-text span:nth-child(22) { animation-delay: 0.84s; }
 
 /* Footer Styles from vyuka.html */
-.main-footer.vyuka-footer { background-color: var(--vyuka-bg-panel); padding: 2.5rem 0; border-top: 2px solid var(--vyuka-accent-primary); box-shadow: 0 -5px 20px -5px rgba(var(--vyuka-accent-primary-rgb), 0.25); color: var(--vyuka-text-secondary); font-size: 0.9rem; line-height: 1.7; }
 .vyuka-footer .container { max-width: var(--container-max-width, 1140px); margin-left: auto; margin-right: auto; padding-left: var(--container-padding-x, 15px); padding-right: var(--container-padding-x, 15px); }
 .vyuka-footer .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2.5rem; text-align: left; }
 .vyuka-footer .footer-column .logo { display: inline-flex; align-items: center; font-family: var(--vyuka-font-accent, 'Audiowide', cursive); font-size: 1.9rem; font-weight: 700; color: var(--vyuka-text-heading, #E0E7FF); text-decoration: none; margin-bottom: 1.25rem; transition: opacity 0.2s ease, text-shadow 0.2s ease; }
@@ -354,6 +341,7 @@ body.scrolled .vyuka-header {
 .vyuka-footer .social-links .social-link:hover { background-color: var(--vyuka-accent-primary, #FF00E6); border-color: var(--vyuka-accent-primary, #FF00E6); color: var(--vyuka-bg-dark, #05080F); transform: translateY(-3px) scale(1.08); box-shadow: 0 4px 12px rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.4); }
 .vyuka-footer .footer-copyright { grid-column: 1 / -1; text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--vyuka-border-color, #2C334C); font-size: 0.85rem; color: var(--vyuka-text-muted, #5A6788); opacity: 0.7; }
 
+/* Responsive, Modals, Tooltips etc. */
 @media (max-width: 1200px) { .vyuka-main-content { flex-direction: column; } .vyuka-whiteboard-area, .vyuka-chat-panel { flex: 1 1 auto; width: 100%; min-height: 50vh; height: auto; } }
 @media (max-width: 992px) { .vyuka-sidebar-ai { width: var(--vyuka-sidebar-width-collapsed); } .vyuka-sidebar-ai.expanded { width: var(--vyuka-sidebar-width-expanded); } .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-logo .logo-text, .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link .link-text { display: none; } .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link i, .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-logo i { margin-right: 0; } .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-header, .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link { justify-content: center; } .vyuka-page-container { margin-left: var(--vyuka-sidebar-width-collapsed); } .vyuka-sidebar-ai.expanded ~ .vyuka-page-container { margin-left: var(--vyuka-sidebar-width-expanded); } .vyuka-header-left .sidebar-ai-desktop-toggle { display: block; } .vyuka-header-left .mobile-menu-toggle { display: none; } .vyuka-header-user-display { display: none; } }
 @media (max-width: 768px) { .vyuka-sidebar-ai { transform: translateX(-100%); width: var(--vyuka-sidebar-width-expanded); z-index: 1002; } .vyuka-sidebar-ai.active-mobile { transform: translateX(0); } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-logo .logo-text, .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link .link-text { display: inline; } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link i { margin-right: 0.8rem; } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-header, .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link { justify-content: flex-start; } .vyuka-page-container { margin-left: 0; width: 100%; } .vyuka-header { padding: 0 0.8rem; } .vyuka-header-left .sidebar-ai-desktop-toggle { display: none; } .vyuka-header-left .mobile-menu-toggle { display: block; } .vyuka-header-topic-info h1 { font-size: 0.9rem; } .vyuka-header-topic-info p { font-size: 0.7rem; } .vyuka-header-right .btn-exit-vyuka span { display: none; } .vyuka-header-right .btn-exit-vyuka i { margin-right: 0; } .vyuka-header-right { gap: 0.3rem; } .vyuka-main-content { padding: 1rem; gap: 1rem;} .vyuka-whiteboard-area, .vyuka-chat-panel { padding: 1.2rem; min-height: 45vh; } .vyuka-chat-panel { max-height: 55vh; } .vyuka-lesson-controls { flex-direction: column; } .vyuka-lesson-controls .btn { width: 100%; font-size: 0.75rem; padding: 0.4rem; } .chat-input-area { padding-top: 0.5rem; } .chat-input { padding: 0.4rem; font-size: 0.7rem; } .send-button { width: 30px; height: 30px; font-size: 0.8rem;} .chat-controls button { width: 26px; height: 26px; font-size: 0.7rem;} .sidebar-overlay-ai { position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark), 0.7); z-index: 1001; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; backdrop-filter: blur(3px); } .sidebar-overlay-ai.active { opacity: 1; visibility: visible; transition-delay: 0s; } .vyuka-footer .footer-grid { grid-template-columns: 1fr; text-align: center; } .vyuka-footer .footer-column .logo, .vyuka-footer .footer-column h3 { justify-content: center; padding-left: 0; } .vyuka-footer .footer-column h3::before { display: none; } .vyuka-footer .social-links { justify-content: center; } .vyuka-header-user-display { display: flex; max-width: 120px; } .vyuka-header-user-title { display:none;} }
@@ -380,6 +368,3 @@ mjx-mfrac, mjx-msqrt, mjx-mtable { color: inherit !important; }
 .notifications-dropdown-wrapper, .notifications-header, .notifications-title, .mark-all-read-btn, #notifications-list, .notification-item, .notification-icon, .notification-content, .notification-title, .notification-message, .notification-time, .unread-dot, .notifications-footer, .view-all-notifications-link, #no-notifications-msg, .notification-item.hiding, .notification-item.skeleton .skeleton,
 .toast-container, .toast, .modal-overlay, .modal-content.card, .modal-close-btn, .modal-icon, .modal-title, .modal-text, .modal-actions,
 .offline-banner, .sidebar-overlay-ai
-{
-    /* Tyto styly již byly zkopírovány/upraveny v předchozích krocích */
-}
