@@ -47,7 +47,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> {/* Přidáno pro markdown v plánu */}
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 
     <link rel="stylesheet" href="../dashboard.css"> <link rel="stylesheet" href="main.css"> <style>
@@ -133,16 +133,14 @@
         }
 
         /* Ensuring sections controlled by plan.js logic are initially hidden if not active */
-        .section:not(.visible-section):not(#practice-tab-content):not(#plan-tab-content) { /* Přidáno :not(#plan-tab-content) */
+        .section:not(.visible-section):not(#practice-tab-content):not(#plan-tab-content) { 
             display: none !important;
         }
          /* Ensure initially active tab content is visible */
         .tab-content.active {
-            display: block !important; /* Or flex, depending on its layout needs */
+            display: block !important; 
         }
 
-        /* Styly z plan.css - budou sem přesunuty později, prozatím ponechávám takto, pokud by bylo nutné je upravit*/
-        /* @import url("plan.css"); */ /* Dočasně, pokud main.css neobsahuje vše */
     </style>
 </head>
 <body class="dark">
@@ -233,7 +231,7 @@
             <div class="tabs-wrapper" id="tabs-wrapper" style="display: none;">
                 <div class="content-tabs" id="content-tabs" role="tablist" aria-label="Sekce procvičování">
                     <button class="plan-tab active" data-tab="practice-tab" role="tab" aria-selected="true" aria-controls="practice-tab-content" id="tab-btn-practice"> <i class="fas fa-globe" aria-hidden="true"></i> Obecné </button>
-                    <button class="plan-tab" data-tab="plan-tab" role="tab" aria-selected="false" aria-controls="plan-tab-content" id="tab-btn-plan"> <i class="fas fa-route" aria-hidden="true"></i> Plán </button> {/* Změněno data-tab a aria-controls */}
+                    <button class="plan-tab" data-tab="plan-tab" role="tab" aria-selected="false" aria-controls="plan-tab-content" id="tab-btn-plan"> <i class="fas fa-route" aria-hidden="true"></i> Plán </button>
                     <button class="plan-tab" data-tab="vyuka-tab" role="tab" aria-selected="false" aria-controls="vyuka-tab-content" id="tab-btn-vyuka"> <i class="fas fa-person-chalkboard" aria-hidden="true"></i> Výuka </button>
                 </div>
             </div>
@@ -260,7 +258,7 @@
                                 <h3 class="shortcut-title">Nový Test</h3>
                                 <p class="shortcut-desc">Spusťte diagnostický nebo cvičný test.</p>
                             </a>
-                            <button class="shortcut-card card" data-animate style="--animation-order: 2;" onclick="document.getElementById('tab-btn-plan').click();"> {/* Upraveno pro přepnutí na plan-tab */}
+                            <button class="shortcut-card card" data-animate style="--animation-order: 2;" onclick="document.getElementById('tab-btn-plan').click();">
                                 <div class="shortcut-icon" aria-hidden="true">
                                     <i class="fas fa-route"></i>
                                 </div>
@@ -315,10 +313,8 @@
                     </section>
                 </div>
 
-                {/* ====== INTEGRACE OBSAHU PLÁNU ZDE ====== */}
                 <div class="tab-content" id="plan-tab-content" role="tabpanel" aria-labelledby="tab-btn-plan" style="display:none;">
-                    {/* Sekce z plan.html budou zde (currentPlanSection, historyPlanSection, createPlanSection, planSection) */}
-                    <div class="section visible-section" id="currentPlanSection"> {/* Přidáno visible-section pro počáteční zobrazení */}
+                    <div class="section visible-section" id="currentPlanSection">
                         <div class="loader-container visible-loader" id="currentPlanLoader">
                             <div class="loading-spinner"></div>
                             <p>Načítám aktuální plán...</p>
@@ -393,7 +389,6 @@
                          </div>
                     </div>
                 </div>
-                {/* ====== KONEC INTEGRACE OBSAHU PLÁNU ====== */}
 
                 <div class="tab-content" id="vyuka-tab-content" style="display:none;" role="tabpanel" aria-labelledby="tab-btn-vyuka">
                      <section class="vyuka-section card">
@@ -602,7 +597,6 @@
 
     <div class="toast-container" id="toastContainer"></div> <div id="mouse-follower" class="mouse-follower-glow"></div>
 
-    {/* ====== ŠABLONY Z plan.html ====== */}
     <template id="lockedPlanTemplate">
         <div class="locked-overlay">
             <div class="locked-icon"> <i class="fas fa-lock"></i> </div>
@@ -669,11 +663,8 @@
 
     <template id="dayCardTemplate">
         <div class="day-schedule-card">
-            <div class="day-header"></div>
-            <div class="activity-list-container"></div>
-        </div>
+            <div class="day-header"></div> <div class="activity-list-container"></div> </div>
     </template>
-    {/* ====== KONEC ŠABLON Z plan.html ====== */}
 
 
     <script src="main.js" defer></script> </body>
