@@ -52,8 +52,17 @@
 </head>
 <body class="dark new-vyuka-layout">
     <div class="initial-loading-overlay" id="initial-loader">
-         <div class="loading-spinner"></div>
-         <p class="loading-text"><span>N</span><span>A</span><span>Č</span><span>Í</span><span>T</span><span>Á</span><span>N</span><span>Í</span><span>&nbsp;</span><span>M</span><span>O</span><span>D</span><span>U</span><span>L</span><span>U</span><span>.</span><span>.</span><span>.</span></p>
+         <div class="loading-spinner">
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+         </div>
+         <p class="loading-text" id="loading-text-anim"><span>S</span><span>Y</span><span>N</span><span>C</span><span>H</span><span>R</span><span>O</span><span>N</span><span>I</span><span>Z</span><span>U</span><span>J</span><span>I</span><span>&nbsp;</span><span>M</span><span>O</span><span>D</span><span>U</span><span>L</span><span>.</span><span>.</span><span>.</span></p>
      </div>
 
      <div class="offline-banner" id="offline-banner"> <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO.</div>
@@ -85,25 +94,8 @@
                     <i class="fas fa-medal"></i> <span class="link-text">Ocenění</span>
                 </a>
             </li>
-            <li class="vyuka-sidebar-ai-item btn-tooltip" title="Databanka">
-                <a href="/dashboard/materialy.html" class="vyuka-sidebar-ai-link">
-                    <i class="fas fa-database"></i> <span class="link-text">Databanka</span>
-                </a>
-            </li>
-            <li class="vyuka-sidebar-ai-item btn-tooltip" title="Profil">
-                 <a href="/dashboard/profile.html" class="vyuka-sidebar-ai-link">
-                    <i class="fas fa-user-astronaut"></i> <span class="link-text">Profil</span>
-                </a>
-            </li>
         </ul>
         <div class="vyuka-sidebar-ai-footer">
-            <div class="user-profile-ai" id="vyuka-user-profile-sidebar">
-                <div class="user-avatar" id="sidebar-avatar">?</div>
-                <div class="user-info">
-                    <div class="user-name" id="sidebar-name">Načítání...</div>
-                    <div class="user-role" id="sidebar-user-title" title="Váš titul">Pilot</div>
-                </div>
-            </div>
              <button class="vyuka-sidebar-ai-toggle" id="vyuka-sidebar-ai-toggle" aria-label="Přepnout postranní panel AI">
                 <i class="fas fa-bars"></i>
             </button>
@@ -147,14 +139,13 @@
                          </div>
                     </div>
                  </div>
-                <div class="vyuka-header-user-info">
-                    <span class="vyuka-header-user-name" id="vyuka-header-user-name">Pilot</span>
-                    <span class="vyuka-header-user-title" id="vyuka-header-user-title">Vesmírný kadet</span>
-                </div>
-                <div class="vyuka-user-menu">
-                    <img src="" alt="Avatar" id="vyuka-header-avatar" class="vyuka-header-avatar-img">
-                    <div class="vyuka-user-dropdown" id="vyuka-user-dropdown">
-                        <a href="#" class="vyuka-dropdown-item" id="vyuka-logout-btn"><i class="fas fa-sign-out-alt"></i> Odhlásit se</a>
+                <div class="vyuka-header-user-display">
+                    <div class="vyuka-header-user-avatar-wrapper">
+                        <img src="" alt="Avatar" id="vyuka-header-avatar" class="vyuka-header-avatar-img">
+                    </div>
+                    <div class="vyuka-header-user-details">
+                        <span class="vyuka-header-user-name" id="vyuka-header-user-name">Pilot</span>
+                        <span class="vyuka-header-user-title" id="vyuka-header-user-title">Vesmírný kadet</span>
                     </div>
                 </div>
                  <a href="/dashboard/procvicovani/main.html" class="btn btn-secondary btn-tooltip btn-exit-vyuka" title="Ukončit výuku a vrátit se na přehled">
@@ -263,9 +254,7 @@
     </div>
 
     <div class="toast-container" id="toast-container"></div>
-
     <div id="mouse-follower" class="mouse-follower-glow"></div>
-
     <div class="modal-overlay" id="completionSuggestionOverlay" style="display: none;">
         <div class="modal-content card" id="completionSuggestionModal">
             <button class="modal-close-btn" id="closeCompletionModalBtn" aria-label="Zavřít">&times;</button>
@@ -285,13 +274,9 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const currentYearFooterVyuka = document.querySelector('.vyuka-footer #currentYearFooter');
-            if (currentYearFooterVyuka) {
-                currentYearFooterVyuka.textContent = new Date().getFullYear();
-            }
+            if (currentYearFooterVyuka) { currentYearFooterVyuka.textContent = new Date().getFullYear(); }
             const currentYearSidebarVyuka = document.querySelector('.vyuka-sidebar-ai #currentYearSidebar');
-             if (currentYearSidebarVyuka) {
-                 currentYearSidebarVyuka.textContent = new Date().getFullYear();
-             }
+            if (currentYearSidebarVyuka) { currentYearSidebarVyuka.textContent = new Date().getFullYear(); }
         });
     </script>
 </body>
