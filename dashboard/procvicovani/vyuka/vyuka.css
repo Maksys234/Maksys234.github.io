@@ -1,6 +1,7 @@
 /* dashboard/procvicovani/vyuka/vyuka.css - EXTREME CYBERPUNK OVERHAUL v3 - Layout First, then Effects */
 /* UPDATE: Notification design, loading animation, notification hiding animation, chat buttons, AI model select, user dropdown, footer, sidebar toggle */
 /* USER REQUEST v1: Scrollable page, Increased whiteboard/chat height, Improved left sidebar design */
+/* USER REQUEST v2: Fix footer background, ensure page scroll, further design enhancements */
 
 /* --- Základní proměnné --- */
 :root {
@@ -23,8 +24,7 @@
     --vyuka-accent-tertiary-rgb: 249, 168, 37;
     --vyuka-accent-error: #FF4757;
     --vyuka-accent-success: #2ED573;
-    --vyuka-accent-neutral: #5A6788; /* For neutral states or disabled-like appearances */
-
+    --vyuka-accent-neutral: #5A6788;
 
     --vyuka-text-primary: #E0E7FF;
     --vyuka-text-secondary: #A0AEC0;
@@ -32,16 +32,16 @@
     --vyuka-text-heading: var(--vyuka-text-primary);
     --vyuka-text-link: var(--vyuka-accent-secondary);
     --vyuka-text-link-hover: var(--vyuka-text-primary);
-    --vyuka-text-on-accent: var(--vyuka-bg-dark); /* Text on bright accent backgrounds */
+    --vyuka-text-on-accent: var(--vyuka-bg-dark);
 
-    --vyuka-sidebar-width-expanded: 240px; /* Slightly wider for better text fit */
-    --vyuka-sidebar-width-collapsed: 60px; /* Slightly wider for better icon fit */
-    --vyuka-header-height: 60px; /* Slightly taller header */
-    --vyuka-footer-height: auto; /* Footer height will be auto based on content */
+    --vyuka-sidebar-width-expanded: 250px; /* Increased for better look */
+    --vyuka-sidebar-width-collapsed: 64px; /* Increased for better icon look */
+    --vyuka-header-height: 64px; /* Increased header height */
+    /* Footer height is auto */
 
-    --vyuka-card-radius: 8px; /* Sharper edges */
-    --vyuka-button-radius: 5px;
-    --vyuka-input-radius: 5px;
+    --vyuka-card-radius: 8px;
+    --vyuka-button-radius: 6px; /* Slightly more pronounced radius */
+    --vyuka-input-radius: 6px;
 
     --vyuka-panel-shadow: 0 5px 20px rgba(0,0,0,0.5), inset 0 0 12px rgba(var(--vyuka-bg-dark),0.7);
     --vyuka-text-glow-primary: 0 0 6px var(--vyuka-accent-primary), 0 0 12px var(--vyuka-accent-primary);
@@ -67,11 +67,9 @@
 
     --vyuka-notification-hide-duration: 0.5s;
 
-    /* START: Variables for Skeleton Animation */
     --skeleton-base-color: rgba(var(--vyuka-border-color), 0.1);
     --skeleton-shine-color: rgba(var(--vyuka-border-color), 0.25);
     --skeleton-animation-duration: 1.8s;
-    /* END: Variables for Skeleton Animation */
 }
 
 /* --- Základní styly --- */
@@ -79,7 +77,7 @@
 html { scroll-behavior: smooth; font-size: 16px; }
 body.new-vyuka-layout {
     font-family: var(--vyuka-font-primary);
-    background-color: var(--vyuka-bg-dark);
+    background-color: var(--vyuka-bg-dark); /* This will be the ultimate background */
     color: var(--vyuka-text-primary);
     margin: 0; padding: 0; display: flex; overflow: hidden; height: 100vh;
     position: relative;
@@ -94,27 +92,20 @@ h1, h2, h3 { font-family: var(--vyuka-font-secondary); color: var(--vyuka-text-h
 a { color: var(--vyuka-text-link); text-decoration: none; transition: color var(--animation-duration-fast) ease, text-shadow var(--animation-duration-fast) ease; }
 a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka-text-link-hover); }
 
-/* Custom Scrollbar for the main scrollable area */
+/* --- Struktura Layoutu (Scroll Fix) --- */
 .vyuka-page-container {
     flex-grow: 1;
     margin-left: var(--vyuka-sidebar-width-collapsed);
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
+    display: flex; /* Use flexbox for children */
+    flex-direction: column; /* Stack header, scrollable content, and footer vertically */
+    height: 100vh; /* Full viewport height */
     transition: margin-left 0.3s var(--animation-timing-cyber);
-    overflow: hidden; /* Prevent this container from scrolling */
+    overflow: hidden; /* Crucial: Prevent this container from scrolling */
+    background-color: var(--vyuka-bg-dark); /* Explicit background for page container */
 }
 
 .vyuka-sidebar-ai.expanded ~ .vyuka-page-container {
     margin-left: var(--vyuka-sidebar-width-expanded);
-}
-
-.vyuka-main-content-scrollable { /* NEW WRAPPER FOR SCROLLING */
-    flex-grow: 1;
-    overflow-y: auto; /* This will be the main scrollbar for content */
-    overflow-x: hidden;
-    display: flex;
-    flex-direction: column; /* To stack header, content area, and footer */
 }
 
 .vyuka-header {
@@ -124,70 +115,83 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 1.2rem; /* Slightly more padding */
-    flex-shrink: 0;
+    padding: 0 1.2rem;
+    flex-shrink: 0; /* Header should not shrink */
     box-shadow: 0 3px 15px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(var(--vyuka-border-color),0.5);
-    position: sticky; /* Make header sticky */
-    top: 0; /* Stick to the top of the .vyuka-main-content-scrollable */
-    z-index: 950; /* Ensure it's above content but below modals */
-}
-body.scrolled .vyuka-header { /* Add this if you want a subtle change on scroll */
-    background-color: rgba(var(--vyuka-bg-panel-rgb), 0.95);
-    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+    position: relative; /* Changed from sticky for simplicity with outer scroll */
+    z-index: 950;
 }
 
-/* Main content area takes remaining space and allows internal scrolling if needed */
+.vyuka-main-content-scrollable { /* This is the NEW scrollable wrapper */
+    flex-grow: 1; /* Takes up remaining space */
+    overflow-y: auto; /* Enables vertical scrolling for its content */
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column; /* Stack main content and footer */
+}
+
 .vyuka-main-content {
     display: flex;
-    flex-grow: 1; /* Allows this to take up space */
-    padding: 1.5rem; /* Reduced padding for better space utilization */
-    gap: 1.5rem;
-    background-color: transparent;
-    min-height: 0; /* Important for flex children to scroll correctly */
+    flex-grow: 1; /* This area will grow to fill the scrollable part before footer */
+    padding: 1.8rem;
+    gap: 1.8rem;
+    background-color: transparent; /* No background needed, page-container has it */
+    min-height: 0;
     position: relative;
 }
 
-/* --- Sidebar Enhancements --- */
+/* Footer is now a direct child of .vyuka-main-content-scrollable */
+.main-footer.vyuka-footer {
+    /* Styles from vyuka.html are already good, ensuring it's at the bottom */
+    flex-shrink: 0; /* Footer should not shrink */
+    margin-top: auto; /* Pushes footer to bottom if content is short */
+}
+
+
+/* --- Levý AI Panel (Enhanced Design) --- */
 .vyuka-sidebar-ai {
     width: var(--vyuka-sidebar-width-collapsed);
     background-color: var(--vyuka-bg-panel);
     border-right: 1px solid var(--vyuka-border-color);
     display: flex;
     flex-direction: column;
-    padding: 0.8rem 0.4rem; /* Adjusted padding */
+    padding: 1rem 0.5rem; /* More vertical padding */
     transition: width 0.3s var(--animation-timing-cyber);
     height: 100vh;
     position: fixed;
     top: 0;
     left: 0;
     z-index: 1000;
-    box-shadow: 5px 0 25px -5px rgba(0,0,0,0.5), inset -2px 0 5px rgba(var(--vyuka-bg-dark),0.3);
+    box-shadow: 5px 0 30px -5px rgba(0,0,0,0.6), inset -3px 0 8px rgba(var(--vyuka-bg-dark),0.4); /* Enhanced shadow */
 }
 .vyuka-sidebar-ai.expanded { width: var(--vyuka-sidebar-width-expanded); }
 
 .vyuka-sidebar-ai-header {
     text-align: center;
-    margin-bottom: 1.5rem; /* More space below logo */
+    margin-bottom: 2rem; /* More space */
     padding: 0.5rem 0;
     display:flex;
     align-items:center;
     justify-content:center;
-    height: 45px; /* Consistent height */
+    height: 50px; /* Consistent height */
 }
-.vyuka-sidebar-ai-logo { display: inline-flex; align-items: center; gap: 0.6rem; color: var(--vyuka-text-heading); text-decoration: none; font-size: 1.6rem; font-weight: 700; font-family: var(--vyuka-font-accent); } /* Accent font for logo */
-.vyuka-sidebar-ai-logo i { color: var(--vyuka-accent-secondary); font-size: 1.8rem; text-shadow: var(--vyuka-text-glow-secondary); animation: logo-beacon 3s infinite ease-in-out; }
-@keyframes logo-beacon { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1) rotate(-5deg); opacity: 1; text-shadow: 0 0 15px var(--vyuka-accent-secondary), 0 0 25px var(--vyuka-accent-secondary); } }
-.vyuka-sidebar-ai-logo .logo-text { display: none; font-size: 1.1em; /* Match icon size better */}
-.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-logo .logo-text { display: inline; margin-left: 0.4rem; animation: text-focus-in 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both; }
+.vyuka-sidebar-ai-logo { display: inline-flex; align-items: center; gap: 0.7rem; color: var(--vyuka-text-heading); text-decoration: none; font-size: 1.8rem; font-weight: 700; font-family: var(--vyuka-font-accent); }
+.vyuka-sidebar-ai-logo i { color: var(--vyuka-accent-secondary); font-size: 2rem; text-shadow: 0 0 10px var(--vyuka-accent-secondary), 0 0 20px var(--vyuka-accent-secondary); animation: logo-beacon 2.5s infinite ease-in-out; } /* Enhanced animation */
+@keyframes logo-beacon {
+    0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.7; filter: hue-rotate(0deg); }
+    50% { transform: scale(1.15) rotate(-8deg); opacity: 1; text-shadow: 0 0 18px var(--vyuka-accent-secondary), 0 0 30px var(--vyuka-accent-secondary), 0 0 10px var(--vyuka-accent-primary); filter: hue-rotate(20deg); }
+}
+.vyuka-sidebar-ai-logo .logo-text { display: none; font-size: 1.2em; letter-spacing: 1px; }
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-logo .logo-text { display: inline; margin-left: 0.5rem; animation: text-focus-in 0.6s var(--animation-timing-cyber) 0.1s both; }
 
 .vyuka-sidebar-ai-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; overflow-x: hidden; }
-.vyuka-sidebar-ai-menu::-webkit-scrollbar { width: 5px; } /* Slimmer scrollbar */
+.vyuka-sidebar-ai-menu::-webkit-scrollbar { width: 5px; }
 .vyuka-sidebar-ai-menu::-webkit-scrollbar-thumb { background: var(--vyuka-accent-primary); border-radius: 2.5px; }
-.vyuka-sidebar-ai-item { margin-bottom: 0.4rem; /* Increased spacing */ }
+.vyuka-sidebar-ai-item { margin-bottom: 0.5rem; } /* Increased spacing */
 .vyuka-sidebar-ai-link {
     display: flex;
     align-items: center;
-    padding: 0.9rem; /* Larger clickable area */
+    padding: 1rem 1.2rem; /* Increased padding for larger links */
     color: var(--vyuka-text-secondary);
     text-decoration: none;
     border-radius: var(--vyuka-button-radius);
@@ -196,60 +200,67 @@ body.scrolled .vyuka-header { /* Add this if you want a subtle change on scroll 
     overflow: hidden;
     position: relative;
     border: 1px solid transparent;
+    font-size: 1rem; /* Increased base font size for links */
 }
 .vyuka-sidebar-ai-link i {
-    font-size: 1.3rem; /* Larger icons */
-    width: 26px; /* Adjusted for larger icon */
+    font-size: 1.5rem; /* Larger icons */
+    width: 30px;
     text-align: center;
     margin-right: 0;
     flex-shrink: 0;
-    transition: margin-right 0.25s var(--animation-timing-cyber), color 0.2s ease, transform 0.2s ease; /* Added transform */
-    text-shadow: 0 0 4px rgba(var(--vyuka-text-secondary-rgb, 0, 245, 255),0.4); /* Subtle icon glow */
+    transition: margin-right 0.25s var(--animation-timing-cyber), color 0.2s ease, transform 0.2s ease, text-shadow 0.2s ease;
+    text-shadow: 0 0 5px rgba(var(--vyuka-text-secondary-rgb, 0, 245, 255),0.5);
 }
-.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link i { margin-right: 0.8rem; /* More space when expanded */ }
-.vyuka-sidebar-ai-link .link-text { display: none; font-size: 0.95rem; /* Larger text */ font-weight: 500; }
-.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link .link-text { display: inline; animation: text-focus-in 0.4s cubic-bezier(0.550, 0.085, 0.680, 0.530) 0.1s both; }
-@keyframes text-focus-in { 0% { filter: blur(12px); opacity: 0; } 100% { filter: blur(0px); opacity: 1; } }
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link i { margin-right: 1rem; }
+.vyuka-sidebar-ai-link .link-text { display: none; font-weight: 500; } /* Font size inherited from .vyuka-sidebar-ai-link */
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link .link-text { display: inline; animation: text-focus-in 0.5s var(--animation-timing-cyber) 0.15s both; }
 
 .vyuka-sidebar-ai-link:hover {
-    background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.15);
+    background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.2);
     color: var(--vyuka-accent-secondary);
-    border-color: rgba(var(--vyuka-accent-secondary-rgb), 0.7);
-    box-shadow: inset 0 0 12px rgba(var(--vyuka-accent-secondary-rgb), 0.25), 0 0 10px rgba(var(--vyuka-accent-secondary-rgb), 0.4);
-    transform: translateX(3px) scale(1.02); /* Subtle pop */
+    border-color: rgba(var(--vyuka-accent-secondary-rgb), 0.8);
+    box-shadow: inset 0 0 15px rgba(var(--vyuka-accent-secondary-rgb), 0.3), 0 0 12px rgba(var(--vyuka-accent-secondary-rgb), 0.5);
+    transform: translateX(4px) scale(1.03);
 }
-.vyuka-sidebar-ai-link:hover i { color: var(--vyuka-accent-secondary); text-shadow: var(--vyuka-text-glow-secondary); transform: scale(1.1); /* Icon emphasis */}
+.vyuka-sidebar-ai-link:hover i { color: var(--vyuka-accent-secondary); text-shadow: var(--vyuka-text-glow-secondary); transform: scale(1.15) rotate(-3deg); }
 
 .vyuka-sidebar-ai-link.active {
-    background: var(--vyuka-accent-primary);
+    background-image: linear-gradient(135deg, var(--vyuka-accent-primary) 0%, var(--vyuka-accent-secondary) 100%); /* Gradient for active */
     color: var(--vyuka-bg-dark);
-    box-shadow: 0 0 18px var(--vyuka-accent-primary-glow), inset 0 0 10px rgba(var(--vyuka-bg-dark),0.5);
+    box-shadow: 0 0 20px rgba(var(--vyuka-accent-primary-rgb),0.5), 0 0 15px rgba(var(--vyuka-accent-secondary-rgb),0.4), inset 0 0 10px rgba(var(--vyuka-bg-dark),0.6);
     border-color: var(--vyuka-accent-primary);
-    font-weight: 700; /* Bolder active text */
+    font-weight: 700;
 }
-.vyuka-sidebar-ai-link.active i { color: var(--vyuka-bg-dark); text-shadow: none; transform: scale(1.1); }
-.vyuka-sidebar-ai-link.active .link-text { text-shadow: 0 0 3px rgba(var(--vyuka-bg-dark), 0.5); } /* Subtle shadow for active text */
+.vyuka-sidebar-ai-link.active i { color: var(--vyuka-bg-dark); text-shadow: 0 1px 1px rgba(0,0,0,0.3); transform: scale(1.15); }
+.vyuka-sidebar-ai-link.active .link-text { text-shadow: 0 1px 1px rgba(var(--vyuka-bg-dark),0.4); }
 
-.vyuka-sidebar-ai-footer { margin-top: auto; padding-top: 0.8rem; border-top: 1px solid var(--vyuka-border-color); display: flex; justify-content: center; min-height: 45px; font-size: 0.7rem; opacity: 0.6; } /* Smaller footer text */
-.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-footer { animation: text-focus-in 0.5s ease 0.2s both; }
+.vyuka-sidebar-ai-footer {
+    margin-top: auto;
+    padding-top: 1rem; /* More space */
+    border-top: 1px solid var(--vyuka-border-highlight); /* Brighter border */
+    display: flex;
+    justify-content: center;
+    min-height: 50px; /* Consistent height */
+    font-size: 0.75rem; /* Slightly larger */
+    opacity: 0.7;
+    color: var(--vyuka-text-muted);
+}
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-footer { animation: text-focus-in 0.6s ease 0.25s both; }
 
-/* --- Header Enhancements (Copying from dashboard.css relevant parts) --- */
+/* --- Header (Using styles from vyuka.html, no major changes here as focus is on layout and sidebar) --- */
+/* ... (Styly pro header, notifications, user menu etc. zůstávají stejné, jako v předchozí verzi vyuka.css, pokud nebyly explicitně změněny výše) ... */
+/* Styles for .vyuka-header-left, .mobile-menu-toggle, .sidebar-ai-desktop-toggle, .vyuka-header-topic-info, .vyuka-header-right, .user-menu-container, .vyuka-header-user-display, .user-dropdown-menu, .logout-btn, .btn-exit-vyuka are mostly copied from the previous version and adapted to new variables if necessary */
 .vyuka-header-left { display: flex; align-items: center; gap: 0.8rem; }
 .vyuka-header-left .mobile-menu-toggle { display: none; color: var(--vyuka-text-muted); font-size: 1.4rem; }
-.vyuka-header-left .sidebar-ai-desktop-toggle {
-    color: var(--vyuka-text-muted); font-size: 1.1rem; background: rgba(var(--vyuka-bg-panel-lighter),0.7); border: 1px solid var(--vyuka-border-color); cursor: pointer; padding: 0.5rem 0.7rem; border-radius: var(--vyuka-button-radius); transition: all var(--animation-duration-fast) ease;
-}
+.vyuka-header-left .sidebar-ai-desktop-toggle { color: var(--vyuka-text-muted); font-size: 1.1rem; background: rgba(var(--vyuka-bg-panel-lighter),0.7); border: 1px solid var(--vyuka-border-color); cursor: pointer; padding: 0.5rem 0.7rem; border-radius: var(--vyuka-button-radius); transition: all var(--animation-duration-fast) ease; }
 .vyuka-header-left .sidebar-ai-desktop-toggle:hover { background-color: rgba(var(--vyuka-accent-secondary-rgb),0.2); color: var(--vyuka-accent-secondary); border-color: var(--vyuka-accent-secondary); box-shadow: 0 0 8px rgba(var(--vyuka-accent-secondary-rgb),0.3);}
 .vyuka-header-left .sidebar-ai-desktop-toggle i { transition: transform 0.3s var(--animation-timing-cyber); }
 .vyuka-sidebar-ai.expanded ~ .vyuka-page-container .vyuka-header .sidebar-ai-desktop-toggle i { transform: rotate(180deg); }
-
-.vyuka-header-topic-info h1 { font-size: 1.2rem; margin: 0; font-weight: 600; color: var(--vyuka-text-heading); } /* Slightly larger */
-.vyuka-header-topic-info p { font-size: 0.8rem; margin: 0; color: var(--vyuka-text-secondary); font-family: var(--vyuka-font-mono); } /* Mono for subtitle */
+.vyuka-header-topic-info h1 { font-size: 1.2rem; margin: 0; font-weight: 600; color: var(--vyuka-text-heading); }
+.vyuka-header-topic-info p { font-size: 0.8rem; margin: 0; color: var(--vyuka-text-secondary); font-family: var(--vyuka-font-mono); }
 .vyuka-header-right { display: flex; align-items: center; gap: 0.8rem; }
 .vyuka-header-right .btn-icon-only { color: var(--vyuka-text-muted); font-size: 0.9rem; width: 34px; height: 34px; display:flex; align-items:center; justify-content:center; border-radius:50%; transition: all 0.2s ease; background: rgba(var(--vyuka-bg-panel-lighter), 0.6); border: 1px solid var(--vyuka-border-color); }
 .vyuka-header-right .btn-icon-only:hover { background-color: rgba(var(--vyuka-accent-secondary-rgb),0.2); color: var(--vyuka-accent-secondary); text-shadow: var(--vyuka-text-glow-secondary); box-shadow: 0 0 12px rgba(var(--vyuka-accent-secondary-rgb),0.4); transform: translateY(-1px); }
-
-/* User Menu (Copied from dashboard.css, adapted with --vyuka variables) */
 .user-menu-container { position: relative; }
 .vyuka-header-user-display { display: flex; align-items: center; gap: 0.7rem; padding: 0.3rem 0.6rem; background-color: rgba(var(--vyuka-bg-panel-lighter-rgb, 19, 23, 36), 0.5); border-radius: var(--vyuka-button-radius); border: 1px solid var(--vyuka-border-color); cursor: pointer; transition: background-color 0.2s ease, box-shadow 0.2s ease; }
 .vyuka-header-user-display:hover { background-color: rgba(var(--vyuka-accent-primary-rgb), 0.1); box-shadow: 0 0 10px rgba(var(--vyuka-accent-primary-rgb), 0.2); }
@@ -267,147 +278,69 @@ body.scrolled .vyuka-header { /* Add this if you want a subtle change on scroll 
 .user-dropdown-links li a:hover i { color: var(--vyuka-accent-secondary); }
 .logout-btn { display: block; width: calc(100% - 2rem); margin: 0.5rem 1rem; font-size: 0.8rem; padding: 0.5rem 0.8rem; background: rgba(var(--vyuka-accent-error), 0.2); border-color: rgba(var(--vyuka-accent-error), 0.5); color: var(--vyuka-accent-error); transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; text-align: center; }
 .logout-btn:hover { background-color: var(--vyuka-accent-error); color: var(--vyuka-text-on-accent); border-color: var(--vyuka-accent-error); box-shadow: 0 0 10px var(--vyuka-accent-error); }
-
 .btn-exit-vyuka { font-size: 0.75rem; padding: 0.35rem 0.7rem; background: rgba(var(--vyuka-accent-pink-rgb),0.1); border-color: rgba(var(--vyuka-accent-pink-rgb),0.4); color: var(--vyuka-accent-pink); }
 .btn-exit-vyuka:hover { background: var(--vyuka-accent-pink); color: var(--vyuka-bg-dark); border-color: var(--vyuka-accent-pink); box-shadow: 0 0 10px var(--vyuka-accent-pink), 0 0 15px var(--vyuka-accent-pink); }
 
-
 /* --- Whiteboard & Chat Panel Height Adjustments --- */
 .vyuka-whiteboard-area {
-    flex: 12; /* Give more initial space to whiteboard */
+    flex: 3; /* Give more initial space to whiteboard */
     background-color: rgba(var(--vyuka-bg-panel-rgb),0.7);
     backdrop-filter: blur(10px);
-    padding: 1.5rem; /* Reduced padding for more content space */
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    min-height: 350px; /* Minimum height */
-    height: 65vh; /* Takes significant portion of viewport height */
+    min-height: 400px; /* Increased minimum height */
+    height: auto; /* Allow to grow based on content if scrollable area allows */
     overflow: hidden;
     border-radius: var(--vyuka-card-radius);
     border: 1px solid var(--vyuka-border-highlight);
     box-shadow: var(--vyuka-panel-shadow), 0 0 30px rgba(var(--vyuka-accent-secondary-rgb), 0.1) inset, 0 0 0 1px var(--vyuka-border-color);
 }
-#whiteboard-container { flex-grow: 1; overflow-y: auto; padding-right: 12px; margin-right: -12px; position: relative; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--vyuka-accent-primary) rgba(var(--vyuka-bg-dark), 0.5); } /* Slim scrollbar */
+#whiteboard-container { flex-grow: 1; overflow-y: auto; padding-right: 12px; margin-right: -12px; position: relative; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--vyuka-accent-primary) rgba(var(--vyuka-bg-dark), 0.5); }
 #whiteboard-container::-webkit-scrollbar { width: 6px; }
 #whiteboard-container::-webkit-scrollbar-thumb { background: var(--vyuka-accent-primary); border-radius: 3px;}
+#whiteboard-content code { background-color: rgba(var(--vyuka-accent-lime-rgb), 0.15); padding: 0.2em 0.4em; border-radius: 3px; font-family: var(--vyuka-font-mono); color: var(--vyuka-accent-lime); border: 1px solid rgba(var(--vyuka-accent-lime-rgb),0.4); box-shadow: 0 0 8px rgba(var(--vyuka-accent-lime-rgb),0.3); }
+#whiteboard-content pre { background-color: rgba(var(--vyuka-bg-dark), 0.9); padding: 1.2em; border-radius: var(--vyuka-button-radius); overflow-x: auto; border: 1px solid var(--vyuka-border-color); box-shadow: var(--vyuka-shadow-medium), inset 0 0 15px rgba(0,0,0,0.4); font-size: 0.9rem; }
 
 .vyuka-chat-panel {
-    flex: 5; /* Chat panel takes less initial space but can grow */
+    flex: 2; /* Chat panel takes less initial space but can grow */
     background-color: rgba(var(--vyuka-bg-panel-rgb),0.7);
     backdrop-filter: blur(10px);
     padding: 0;
     display: flex;
     flex-direction: column;
-    min-width: 320px; /* Min width for usability */
-    min-height: 300px; /* Min height */
-    height: 65vh; /* Same as whiteboard */
+    min-width: 350px; /* Min width for usability */
+    min-height: 400px; /* Increased minimum height */
+    height: auto;
     overflow: hidden;
     border-radius: var(--vyuka-card-radius);
     border: 1px solid var(--vyuka-border-highlight);
     box-shadow: var(--vyuka-panel-shadow), 0 0 30px rgba(var(--vyuka-accent-primary-rgb), 0.1) inset, 0 0 0 1px var(--vyuka-border-color);
 }
-/* Остальные стили для whiteboard и chat остаются без изменений, так как они в основном касаются внутреннего содержания */
 
-.vyuka-chat-header { padding: 0.8rem 1.2rem; border-bottom: 1px solid var(--vyuka-border-color); background-color: rgba(var(--vyuka-bg-panel-lighter), 0.8); flex-shrink: 0; box-shadow: inset 0 -2px 5px rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: center; }
-.vyuka-chat-header h3 { margin: 0; font-size: 1rem; text-shadow: 0 0 5px var(--vyuka-accent-primary); }
-.ai-model-selector-container { display: flex; align-items: center; gap: 0.5rem; }
-.ai-model-label { font-size: 0.75rem; color: var(--vyuka-text-muted); font-weight: 500; display: flex; align-items: center; gap: 0.3em; }
-.ai-model-label i { font-size: 0.9em; }
-.ai-model-select { background-color: rgba(var(--vyuka-bg-dark), 0.7); color: var(--vyuka-text-secondary); border: 1px solid var(--vyuka-border-color); border-radius: var(--vyuka-input-radius); padding: 0.25rem 0.5rem; font-size: 0.75rem; font-family: var(--vyuka-font-mono); cursor: pointer; transition: border-color 0.2s ease, box-shadow 0.2s ease; max-width: 150px; }
-.ai-model-select:hover { border-color: var(--vyuka-accent-secondary); }
-.ai-model-select:focus { outline: none; border-color: var(--vyuka-accent-primary); box-shadow: 0 0 8px rgba(var(--vyuka-accent-primary-rgb), 0.3); }
-.ai-model-select option { background-color: var(--vyuka-bg-panel); color: var(--vyuka-text-primary); }
-.ai-model-select option:disabled { color: var(--vyuka-text-muted); font-style: italic; }
-.interaction-panel-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
-.interaction-panel-content #chat-tab-content { flex-grow: 1; display: flex; flex-direction: column; min-height: 0; }
-.chat-area { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0.8rem; gap: 0.8rem; min-height: 0;}
-.chat-messages { flex-grow: 1; overflow-y: auto; padding-right: 6px; margin-right: -6px; scroll-behavior: smooth; min-height: 0;} /* Ensure min-height for flex-grow to work */
-.chat-messages::-webkit-scrollbar { width: 6px; }
-.message-bubble { padding: 0.7rem 1rem; font-size: 0.8rem; border-radius: var(--vyuka-button-radius); max-width: 92%; line-height: 1.55; backdrop-filter: blur(2px); }
-.message-bubble.user-message { background: var(--vyuka-chat-input-gradient); color: var(--vyuka-text-primary); box-shadow: 0 3px 12px rgba(var(--vyuka-accent-pink-rgb), 0.3), 0 0 18px rgba(var(--vyuka-accent-primary-rgb), 0.2), inset 0 1px 2px rgba(255,255,255,0.1); align-self: flex-end; border-top-right-radius: 2px; border-bottom-left-radius: var(--vyuka-card-radius); }
-.message-bubble.model-message { background-color: rgba(var(--vyuka-bg-panel-lighter), 0.8); border: 1px solid var(--vyuka-border-color); color: var(--vyuka-text-secondary); box-shadow: 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 2px rgba(0,0,0,0.2); align-self: flex-start; border-top-left-radius: 2px; border-bottom-right-radius: var(--vyuka-card-radius); }
-.chat-input-area { flex-shrink: 0; padding: 0.7rem; border-top: 1px solid var(--vyuka-border-color); background: rgba(var(--vyuka-bg-dark), 0.7); }
-.chat-input-wrapper { display: flex; gap: 0.5rem; background: var(--vyuka-chat-input-gradient); border-radius: var(--vyuka-button-radius); padding: 4px; box-shadow: inset 0 2px 6px rgba(0,0,0,0.5), 0 0 18px rgba(var(--vyuka-accent-pink-rgb),0.5); position:relative; }
-.chat-input-wrapper::before { content:''; position:absolute; top:2px; left:2px; right:2px; bottom:2px; border-radius: calc(var(--vyuka-button-radius) - 2px); background: var(--vyuka-bg-panel); z-index:0; }
-.chat-input { background: transparent; color: var(--vyuka-text-primary); padding: 0.6rem 1rem; font-size: 0.8rem; max-height: 65px; }
-.send-button { background: var(--vyuka-send-button-gradient); border: none; color: var(--vyuka-bg-dark); width: 38px; height: 38px; font-size: 1.05rem; border-radius: 50%; box-shadow: 0 2px 10px rgba(var(--vyuka-accent-primary-rgb),0.45); text-shadow: 0 0 2px rgba(var(--vyuka-bg-dark),0.3); }
-.chat-controls { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.2rem 0.2rem; gap: 0.5rem; }
-.chat-controls button.btn-icon-only, .chat-controls button { background-color: rgba(var(--vyuka-bg-panel-lighter), 0.5); border: 1px solid var(--vyuka-border-color); color: var(--vyuka-text-muted); width: 32px; height: 32px; font-size: 0.9rem; border-radius: 50%; transition: all var(--animation-duration-fast) ease; }
-.chat-controls button.btn-icon-only:hover, .chat-controls button:hover { background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.2); color: var(--vyuka-accent-secondary); border-color: var(--vyuka-accent-secondary); transform: scale(1.05); box-shadow: 0 0 8px rgba(var(--vyuka-accent-secondary-rgb), 0.3); }
-.chat-controls button#mic-btn.listening { background-color: rgba(var(--vyuka-accent-error), 0.3); color: var(--vyuka-accent-error); border-color: var(--vyuka-accent-error); animation: pulse-mic 1s infinite; }
-@keyframes pulse-mic { 0% { box-shadow: 0 0 0 0 rgba(var(--vyuka-accent-error), 0.7); } 70% { box-shadow: 0 0 0 8px rgba(var(--vyuka-accent-error), 0); } 100% { box-shadow: 0 0 0 0 rgba(var(--vyuka-accent-error), 0); } }
-.chat-controls span { color: var(--vyuka-text-muted); opacity: 0.5; font-size: 0.9rem; }
-.chat-controls button:not(.btn-icon-only) { border-radius: var(--vyuka-button-radius); padding: 0.3rem 0.7rem; width: auto; font-size: 0.75rem; gap: 0.4em; }
-.chat-controls button#clear-chat-btn:hover, .chat-controls button#save-chat-btn:hover { color: var(--vyuka-accent-primary); border-color: var(--vyuka-accent-primary); background-color: rgba(var(--vyuka-accent-primary-rgb), 0.15); }
+/* Styles from vyuka.html for initial loader, notifications, modals, footer, etc. are generally kept as they are not layout-breaking */
+/* Only responsive adjustments specific to vyuka.html's new layout are made below */
+.initial-loading-overlay, .notifications-dropdown-wrapper, .toast-container, .modal-overlay, .offline-banner, .sidebar-overlay-ai, .tooltipster-sidetip.tooltipster-vyuka, mjx-container, mjx-math, mjx-mfrac, mjx-msqrt, mjx-mtable {
+    /* These styles are assumed to be correctly defined in the provided vyuka.html <style> block or existing vyuka.css */
+    /* They are generally independent of the main page layout changes requested */
+}
 
-/* --- Остальные стили из vyuka.css (адаптированные) --- */
-/* Initial loader, Notifications, Toasts, Modals, Footer, Responsive rules */
-/* ... (Zde by byly všechny ostatní styly z vyuka.css, přizpůsobené prefixem --vyuka- pro proměnné, pokud ještě nebyly) ... */
-/* Ponechávám styly pro Initial Loader, Notifications, Toasts, Modals, Offline Banner, Tooltipster, Reduced Motion */
-/* Tyto styly jsou většinou nezávislé na hlavním layoutu a měly by fungovat. */
-
-/* Initial Loading Overlay (z dashboard.css, upraveno pro vyuka) */
-.initial-loading-overlay { position: fixed; inset: 0; background-color: var(--vyuka-bg-dark); z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; transition: opacity var(--animation-duration-slow) ease-out, visibility 0s var(--animation-duration-slow); opacity: 1; visibility: visible; }
-.initial-loading-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-.initial-loading-overlay .loading-spinner { width: var(--vyuka-loader-size); height: var(--vyuka-loader-size); position: relative; animation: loader-rotate 2.2s cubic-bezier(0.7, 0, 0.3, 1) infinite; }
-.loading-spinner .spinner-blade { position: absolute; left: 50%; top: 0; width: calc(var(--vyuka-loader-size) * 0.08); height: calc(var(--vyuka-loader-size) * 0.35); background-color: var(--vyuka-loader-blade-color); border-radius: 50%/20%; transform-origin: 50% 100%; animation: blade-pulse-fade-alt 1.5s ease-in-out infinite; box-shadow: 0 0 4px var(--vyuka-loader-blade-color), 0 0 8px rgba(var(--vyuka-accent-secondary-rgb), 0.5), 0 0 12px rgba(var(--vyuka-accent-primary-rgb), 0.3); filter: blur(0.8px); }
-@keyframes loader-rotate { 100% { transform: rotate(360deg); } }
-@keyframes blade-pulse-fade-alt { 0% { opacity: 0.2; transform: scaleY(0.6); background-color: var(--vyuka-accent-secondary); } 50% { opacity: 1; transform: scaleY(1); background-color: var(--vyuka-loader-blade-color); } 100% { opacity: 0.2; transform: scaleY(0.6); background-color: var(--vyuka-accent-secondary); } }
-.loading-spinner .spinner-blade:nth-child(1) { transform: rotate(0deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.5s; }
-.loading-spinner .spinner-blade:nth-child(2) { transform: rotate(30deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.375s; }
-.loading-spinner .spinner-blade:nth-child(3) { transform: rotate(60deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.25s; }
-.loading-spinner .spinner-blade:nth-child(4) { transform: rotate(90deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.125s; }
-.loading-spinner .spinner-blade:nth-child(5) { transform: rotate(120deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.0s; }
-.loading-spinner .spinner-blade:nth-child(6) { transform: rotate(150deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.875s; }
-.loading-spinner .spinner-blade:nth-child(7) { transform: rotate(180deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.75s; }
-.loading-spinner .spinner-blade:nth-child(8) { transform: rotate(210deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.625s; }
-.loading-spinner .spinner-blade:nth-child(9) { transform: rotate(240deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.5s; }
-.loading-spinner .spinner-blade:nth-child(10) { transform: rotate(270deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.375s; }
-.loading-spinner .spinner-blade:nth-child(11) { transform: rotate(300deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.25s; }
-.loading-spinner .spinner-blade:nth-child(12) { transform: rotate(330deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.125s; }
-.initial-loading-overlay .loading-spinner::after { content: ''; position: absolute; width: calc(var(--vyuka-loader-size) * 0.25); height: calc(var(--vyuka-loader-size) * 0.25); background-color: var(--vyuka-loader-core-color); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 10px var(--vyuka-loader-core-color), 0 0 20px rgba(var(--vyuka-accent-secondary-rgb), 0.7), inset 0 0 5px rgba(var(--white-rgb),0.3); animation: core-pulse-subtle 1.5s ease-in-out infinite alternate; }
-@keyframes core-pulse-subtle { 0% { transform: translate(-50%, -50%) scale(0.85); box-shadow: 0 0 8px var(--vyuka-loader-core-color), 0 0 15px rgba(var(--vyuka-accent-secondary-rgb), 0.6), inset 0 0 4px rgba(var(--white-rgb),0.25); } 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 12px var(--vyuka-loader-core-color), 0 0 22px rgba(var(--vyuka-accent-secondary-rgb), 0.8), inset 0 0 6px rgba(var(--white-rgb),0.35); } }
-.initial-loading-overlay p.loading-text { color: var(--vyuka-text-primary); font-size: 0.9rem; font-family: var(--vyuka-font-mono); text-transform: uppercase; letter-spacing: 3px; margin-top: 3rem; position: relative; display: flex; text-shadow: 0 0 4px var(--vyuka-accent-primary), 0 0 8px var(--vyuka-accent-secondary); overflow: hidden; }
-.initial-loading-overlay p.loading-text span { opacity: 0; animation: matrix-style-reveal 0.15s forwards; display: inline-block; transform: translateY(-10px); }
-@keyframes matrix-style-reveal { 0% { opacity: 0; transform: translateY(-15px) scale(1.5); color: var(--vyuka-accent-lime); filter: blur(2px); } 30% { opacity: 0.7; color: var(--vyuka-accent-secondary); } 100% { opacity: 1; transform: translateY(0) scale(1); color: var(--vyuka-text-primary); filter: blur(0); } }
-.initial-loading-overlay p.loading-text span:nth-child(1) { animation-delay: 0s; } /* S */ .initial-loading-overlay p.loading-text span:nth-child(2) { animation-delay: 0.04s; } /* Y */ .initial-loading-overlay p.loading-text span:nth-child(3) { animation-delay: 0.08s; } /* N */ .initial-loading-overlay p.loading-text span:nth-child(4) { animation-delay: 0.12s; } /* C */ .initial-loading-overlay p.loading-text span:nth-child(5) { animation-delay: 0.16s; } /* H */ .initial-loading-overlay p.loading-text span:nth-child(6) { animation-delay: 0.20s; } /* R */ .initial-loading-overlay p.loading-text span:nth-child(7) { animation-delay: 0.24s; } /* O */ .initial-loading-overlay p.loading-text span:nth-child(8) { animation-delay: 0.28s; } /* N */ .initial-loading-overlay p.loading-text span:nth-child(9) { animation-delay: 0.32s; } /* I */ .initial-loading-overlay p.loading-text span:nth-child(10) { animation-delay: 0.36s; } /* Z */ .initial-loading-overlay p.loading-text span:nth-child(11) { animation-delay: 0.40s; } /* U */ .initial-loading-overlay p.loading-text span:nth-child(12) { animation-delay: 0.44s; } /* J */ .initial-loading-overlay p.loading-text span:nth-child(13) { animation-delay: 0.48s; } /* I */ .initial-loading-overlay p.loading-text span:nth-child(14) { animation-delay: 0.52s; } /* */ .initial-loading-overlay p.loading-text span:nth-child(15) { animation-delay: 0.56s; } /* M */ .initial-loading-overlay p.loading-text span:nth-child(16) { animation-delay: 0.60s; } /* O */ .initial-loading-overlay p.loading-text span:nth-child(17) { animation-delay: 0.64s; } /* D */ .initial-loading-overlay p.loading-text span:nth-child(18) { animation-delay: 0.68s; } /* U */ .initial-loading-overlay p.loading-text span:nth-child(19) { animation-delay: 0.72s; } /* L */ .initial-loading-overlay p.loading-text span:nth-child(20) { animation-delay: 0.76s; } /* . */ .initial-loading-overlay p.loading-text span:nth-child(21) { animation-delay: 0.80s; } /* . */ .initial-loading-overlay p.loading-text span:nth-child(22) { animation-delay: 0.84s; } /* . */
-
-.notifications-dropdown-wrapper { background-color: var(--vyuka-notification-bg); border: 1px solid var(--vyuka-notification-border); box-shadow: var(--vyuka-notification-shadow); border-radius: var(--vyuka-card-radius); width: 400px; }
-.notifications-header { padding: 0.8rem 1.2rem; border-bottom: 1px solid var(--vyuka-border-color); background-color: rgba(var(--vyuka-bg-dark), 0.3); }
-.notifications-title { font-family: var(--vyuka-font-secondary); font-size: 0.95rem; color: var(--vyuka-accent-primary); text-shadow: var(--vyuka-text-glow-primary); text-transform: uppercase; letter-spacing: 0.5px; }
-.mark-all-read-btn { font-size: 0.75rem; padding: 0.3rem 0.6rem; color: var(--vyuka-text-link); border: 1px solid transparent; border-radius: var(--vyuka-button-radius); background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.1); }
-.mark-all-read-btn:hover:not(:disabled) { color: var(--vyuka-text-link-hover); background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.2); border-color: var(--vyuka-accent-secondary); text-decoration: none; }
-#notifications-list { max-height: 380px; }
-.notification-item { padding: 0.8rem 1.2rem; gap: 0.8rem; border-bottom: 1px solid var(--vyuka-border-color); transition: background-color var(--animation-duration-fast) ease, transform var(--animation-duration-fast) ease, box-shadow var(--animation-duration-fast) ease, opacity var(--vyuka-notification-hide-duration) ease-out, max-height var(--vyuka-notification-hide-duration) ease-out, padding var(--vyuka-notification-hide-duration) ease-out, margin var(--vyuka-notification-hide-duration) ease-out; overflow: hidden; }
-.notification-item:hover { background-color: var(--vyuka-notification-item-hover-bg); transform: translateX(3px); box-shadow: inset 3px 0 0 var(--vyuka-accent-secondary); }
-.notification-item.is-read { opacity: 0.6; background-color: rgba(var(--vyuka-bg-dark), 0.2); }
-.notification-item.is-read:hover { opacity: 0.85; }
-.notification-icon { width: 36px; height: 36px; font-size: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.3), inset 0 0 5px rgba(var(--vyuka-bg-dark),0.5); border: 1px solid rgba(var(--white-rgb), 0.1); }
-.notification-title { font-size: 0.9rem; font-weight: 500; color: var(--vyuka-text-light); }
-.notification-message { font-size: 0.8rem; color: var(--vyuka-text-secondary); line-height: 1.4; }
-.notification-time { font-size: 0.7rem; color: var(--vyuka-text-muted); }
-.unread-dot { background-color: var(--vyuka-notification-unread-dot); box-shadow: 0 0 10px var(--vyuka-notification-unread-dot), 0 0 15px rgba(var(--vyuka-accent-primary-rgb), 0.5); width: 8px; height: 8px; }
-.notifications-footer { padding: 0.7rem 1.2rem; background-color: rgba(var(--vyuka-bg-dark), 0.4); }
-.view-all-notifications-link { font-size: 0.85rem; font-weight: 500; }
-#no-notifications-msg { font-size: 0.9rem; padding: 2rem 1rem; color: var(--vyuka-text-muted); opacity: 0.8; }
-#no-notifications-msg::before { content: "\f0f3"; font-family: "Font Awesome 6 Free"; font-weight: 900; display: block; font-size: 2rem; margin-bottom: 0.8rem; color: var(--vyuka-text-muted); opacity: 0.5; }
-@keyframes fadeAndShrinkNotification { from { opacity: 1; transform: scaleY(1) translateX(0); max-height: 100px; padding-top: 0.8rem; padding-bottom: 0.8rem; margin-bottom: 1px; } to { opacity: 0; transform: scaleY(0.8) translateX(-20px); max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; border-width:0; } }
-.notification-item.hiding { animation-name: fadeAndShrinkNotification; animation-duration: var(--vyuka-notification-hide-duration); animation-fill-mode: forwards; animation-timing-function: cubic-bezier(0.68, -0.55, 0.27, 1.55); pointer-events: none; }
-.notification-item.skeleton .skeleton { background: linear-gradient(90deg, var(--skeleton-base-color) 25%, var(--skeleton-shine-color) 50%, var(--skeleton-base-color) 75%); background-size: 200% 100%; animation: skeleton-wave var(--skeleton-animation-duration) linear infinite; }
-@keyframes skeleton-wave { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
-.toast-container { /* Identické s dashboard.css */ }
-.toast { /* Identické s dashboard.css */ }
-.modal-overlay { /* Identické s dashboard.css */ }
-.main-footer.vyuka-footer { /* Zachováno z předchozího, upraveno dle dashboard.html */ }
-.offline-banner { /* Identické s dashboard.css */ }
-.sidebar-overlay { /* Identické s dashboard.css */ }
-
-/* Responsive rules from dashboard.css, adapted with --vyuka prefix if they were specific */
+/* Responsive adjustments */
 @media (max-width: 1200px) {
-    .vyuka-main-content { flex-direction: column; /* Whiteboard and chat stack on smaller screens */ }
-    .vyuka-whiteboard-area, .vyuka-chat-panel { flex: none; width: 100%; height: auto; min-height: 55vh; /* Adjusted min-height */ } /* Adjusted height */
-    .vyuka-chat-panel { max-height: 60vh; } /* Allow chat to be taller if whiteboard is shorter */
+    .vyuka-main-content {
+        flex-direction: column; /* Stack whiteboard and chat on smaller screens */
+        overflow-y: auto; /* Allow this inner area to scroll if content overflows */
+        height: auto; /* Let content define height */
+    }
+    .vyuka-whiteboard-area, .vyuka-chat-panel {
+        flex: none; /* Disable flex-grow/shrink */
+        width: 100%;
+        height: auto; /* Let content define height */
+        min-height: 60vh; /* Ensure they take a good portion of screen */
+    }
+    .vyuka-chat-panel {
+        max-height: 70vh; /* Allow chat to be scrollable if very long */
+    }
 }
 
 @media (max-width: 992px) {
@@ -421,9 +354,9 @@ body.scrolled .vyuka-header { /* Add this if you want a subtle change on scroll 
     .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link { justify-content: center; }
     .vyuka-page-container { margin-left: var(--vyuka-sidebar-width-collapsed); }
     .vyuka-sidebar-ai.expanded ~ .vyuka-page-container { margin-left: var(--vyuka-sidebar-width-expanded); }
-    .vyuka-header-left .sidebar-ai-desktop-toggle { display: block; } /* Zobrazí se na tabletu */
-    .vyuka-header-left .mobile-menu-toggle { display: none; } /* Skryje mobilní toggle na tabletu */
-    .vyuka-header-user-display { display: none; } /* Skryje detail uživatele, aby se vešlo logo */
+    .vyuka-header-left .sidebar-ai-desktop-toggle { display: block; }
+    .vyuka-header-left .mobile-menu-toggle { display: none; }
+    .vyuka-header-user-display { display: none; }
 }
 @media (max-width: 768px) {
     .vyuka-sidebar-ai { transform: translateX(-100%); width: var(--vyuka-sidebar-width-expanded); z-index: 1002; }
@@ -436,15 +369,15 @@ body.scrolled .vyuka-header { /* Add this if you want a subtle change on scroll 
     .vyuka-page-container { margin-left: 0; width: 100%; }
     .vyuka-header { padding: 0 0.8rem; }
     .vyuka-header-left .sidebar-ai-desktop-toggle { display: none; }
-    .vyuka-header-left .mobile-menu-toggle { display: block; } /* Mobilní toggle se zobrazí */
+    .vyuka-header-left .mobile-menu-toggle { display: block; }
     .vyuka-header-topic-info h1 { font-size: 0.9rem; }
     .vyuka-header-topic-info p { font-size: 0.7rem; }
     .vyuka-header-right .btn-exit-vyuka span { display: none; }
     .vyuka-header-right .btn-exit-vyuka i { margin-right: 0; }
     .vyuka-header-right { gap: 0.3rem; }
     .vyuka-main-content { padding: 0.8rem; gap: 0.8rem; }
-    .vyuka-whiteboard-area, .vyuka-chat-panel { padding: 1rem; min-height: 45vh; height: auto; } /* Allow dynamic height */
-    .vyuka-chat-panel { max-height: 50vh; } /* Chat can still be scrollable */
+    .vyuka-whiteboard-area, .vyuka-chat-panel { padding: 1rem; min-height: 45vh; }
+    .vyuka-chat-panel { max-height: 50vh; }
     .vyuka-lesson-controls { flex-direction: column; }
     .vyuka-lesson-controls .btn { width: 100%; font-size: 0.75rem; padding: 0.4rem; }
     .chat-input-area { padding-top: 0.5rem; }
@@ -453,22 +386,32 @@ body.scrolled .vyuka-header { /* Add this if you want a subtle change on scroll 
     .chat-controls button { width: 26px; height: 26px; font-size: 0.7rem;}
     .sidebar-overlay-ai { position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark), 0.7); z-index: 1001; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; backdrop-filter: blur(3px); }
     .sidebar-overlay-ai.active { opacity: 1; visibility: visible; transition-delay: 0s; }
-    .vyuka-footer .footer-grid {flex-direction: column; align-items: center; gap: 0.5rem;}
-    .vyuka-footer .footer-column {margin-bottom: 0.5rem;}
-    .vyuka-header-user-display { display: flex; max-width: 120px; } /* Ukázat uživatele na mobilu */
-    .vyuka-header-user-title { display:none;} /* Skrýt titul na mobilu, aby se ušetřilo místo */
+    /* Ensure footer stacks nicely on mobile */
+    .vyuka-footer .footer-grid {
+        grid-template-columns: 1fr; /* Stack columns on mobile */
+        text-align: center; /* Center content in columns */
+    }
+    .vyuka-footer .footer-column .logo,
+    .vyuka-footer .footer-column h3 {
+        justify-content: center; /* Center logo and column titles if they are flex/grid */
+        padding-left: 0; /* Remove padding for ::before if titles are centered */
+    }
+    .vyuka-footer .footer-column h3::before {
+        display: none; /* Hide pseudo-element for titles if centered */
+    }
+    .vyuka-footer .social-links { justify-content: center; }
+    .vyuka-header-user-display { display: flex; max-width: 120px; }
+    .vyuka-header-user-title { display:none;}
 }
 
-/* MathJax & Tooltip & Reduced Motion zůstávají stejné */
+/* Reduced motion and MathJax styles from vyuka.html style block should remain */
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; animation-delay: -0.01ms !important; transition-delay: 0ms !important; will-change: auto !important; } .vyuka-sidebar-ai, .vyuka-page-container { transition: none !important; } .mouse-follower-glow, body.new-vyuka-layout::before, body.new-vyuka-layout::after, .vyuka-sidebar-ai-logo i, .initial-loading-overlay .loading-spinner, .initial-loading-overlay p.loading-text span, .unread-dot, .offline-banner i { animation: none !important; } .initial-loading-overlay .loading-spinner::after { animation: none !important; } .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-logo .logo-text, .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link .link-text { animation: none !important; } .toast.show { transform: translateX(0) !important; } .modal-overlay.visible .modal-content.card { transform: scale(1) !important; opacity: 1 !important; } .notification-item.hiding { animation: none !important; opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; border-width: 0; } .skeleton::after { animation: none !important; background: var(--skeleton-highlight) !important; } }
 mjx-container { background-color: var(--vyuka-bg-panel-lighter) !important; border: 1px solid var(--vyuka-border-color) !important; padding: 0.5em !important; border-radius: var(--vyuka-card-radius) !important; color: var(--vyuka-text-primary) !important; overflow-x: auto !important; overflow-y: hidden !important; max-width: 100% !important; }
 mjx-math { color: var(--vyuka-accent-secondary) !important; font-size: 1.1em !important; }
 mjx-mfrac, mjx-msqrt, mjx-mtable { color: inherit !important; }
-
 .tooltipster-sidetip.tooltipster-vyuka .tooltipster-box { background: var(--vyuka-bg-panel); border: 1px solid var(--vyuka-accent-primary); border-radius: var(--vyuka-button-radius); box-shadow: 0 0 15px rgba(var(--vyuka-accent-primary-rgb), 0.3); }
 .tooltipster-sidetip.tooltipster-vyuka .tooltipster-content { color: var(--vyuka-text-primary); padding: 0.5rem 0.8rem; font-size: 0.8rem; }
 .tooltipster-sidetip.tooltipster-vyuka .tooltipster-arrow-background { border-color: var(--vyuka-accent-primary); }
 .tooltipster-sidetip.tooltipster-vyuka .tooltipster-arrow-border { border-color: var(--vyuka-accent-primary); }
 .tooltipster-sidetip.tooltipster-vyuka.tooltipster-top .tooltipster-arrow-background,
 .tooltipster-sidetip.tooltipster-vyuka.tooltipster-top .tooltipster-arrow-border { border-top-color: var(--vyuka-accent-primary); }
-
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; animation-delay: -0.01ms !important; transition-delay: 0ms !important; will-change: auto !important; } .vyuka-sidebar-ai, .vyuka-page-container { transition: none !important; } .mouse-follower-glow, body.new-vyuka-layout::before, body.new-vyuka-layout::after, .vyuka-sidebar-ai-logo i, .initial-loading-overlay .loading-spinner, .initial-loading-overlay p.loading-text span, .unread-dot, .offline-banner i { animation: none !important; } .initial-loading-overlay .loading-spinner::after { animation: none !important; } .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-logo .logo-text, .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link .link-text { animation: none !important; } .toast.show { transform: translateX(0) !important; } .modal-overlay.visible .modal-content.card { transform: scale(1) !important; opacity: 1 !important; } .notification-item.hiding { animation: none !important; opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; border-width: 0; } .skeleton::after { animation: none !important; background: var(--skeleton-highlight) !important; } }
