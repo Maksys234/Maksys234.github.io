@@ -1,10 +1,10 @@
-/* dashboard/procvicovani/vyuka/vyuka.css - EXTREME CYBERPUNK OVERHAUL v17 - Further Reduced Whiteboard/Chat Height */
+/* dashboard/procvicovani/vyuka/vyuka.css - EXTREME CYBERPUNK OVERHAUL v17 - Final Height Tweak & Footer Logo Font */
 
 /* --- Základní proměnné --- */
 :root {
     --vyuka-font-primary: 'Rajdhani', sans-serif;
-    --vyuka-font-secondary: 'Orbitron', sans-serif;
-    --vyuka-font-accent: 'Audiowide', cursive;
+    --vyuka-font-secondary: 'Orbitron', sans-serif; /* Candidate for footer logo */
+    --vyuka-font-accent: 'Audiowide', cursive;    /* For sidebar logo */
     --vyuka-font-mono: 'Roboto Mono', monospace;
 
     --vyuka-bg-dark: #05080F;
@@ -163,7 +163,6 @@ body.scrolled .vyuka-header {
     background-color: transparent;
     position: relative;
     z-index: 10;
-    /* min-height is removed so flex-grow can better manage child heights with footer */
 }
 
 /* --- Footer --- */
@@ -181,7 +180,12 @@ body.scrolled .vyuka-header {
 }
 .vyuka-footer .container { max-width: var(--container-max-width, 1140px); margin-left: auto; margin-right: auto; padding-left: var(--container-padding-x, 15px); padding-right: var(--container-padding-x, 15px); }
 .vyuka-footer .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2.5rem; text-align: left; }
-.vyuka-footer .footer-column .logo { display: inline-flex; align-items: center; font-family: var(--vyuka-font-accent, 'Audiowide', cursive); font-size: 1.9rem; font-weight: 700; color: var(--vyuka-text-heading, #E0E7FF); text-decoration: none; margin-bottom: 1.25rem; transition: opacity 0.2s ease, text-shadow 0.2s ease; }
+.vyuka-footer .footer-column .logo {
+    display: inline-flex; align-items: center;
+    font-family: var(--vyuka-font-secondary); /* Changed font for footer logo */
+    font-size: 1.9rem; font-weight: 700; color: var(--vyuka-text-heading, #E0E7FF);
+    text-decoration: none; margin-bottom: 1.25rem; transition: opacity 0.2s ease, text-shadow 0.2s ease;
+}
 .vyuka-footer .footer-column .logo:hover { opacity: 0.9; text-shadow: var(--vyuka-text-glow-secondary); }
 .vyuka-footer .footer-column .logo i { margin-right: 0.6rem; color: var(--vyuka-accent-secondary, #00F5FF); font-size: 1.1em; }
 .vyuka-footer .footer-column p { margin-bottom: 1.25rem; color: var(--vyuka-text-secondary, #A0AEC0); font-size: 0.875rem; opacity: 0.9; }
@@ -204,10 +208,10 @@ body.scrolled .vyuka-header {
 .vyuka-sidebar-ai { width: var(--vyuka-sidebar-width-collapsed); background-color: var(--vyuka-bg-panel); border-right: 1px solid var(--vyuka-border-color); display: flex; flex-direction: column; padding: 1rem 0.5rem; transition: width 0.3s var(--animation-timing-cyber); height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; box-shadow: 5px 0 30px -5px rgba(0,0,0,0.6), inset -3px 0 8px rgba(var(--vyuka-bg-dark),0.4); }
 .vyuka-sidebar-ai.expanded { width: var(--vyuka-sidebar-width-expanded); }
 .vyuka-sidebar-ai-header { text-align: center; margin-bottom: 2rem; padding: 0.5rem 0; display:flex; align-items:center; justify-content:center; height: 50px; }
-.vyuka-sidebar-ai-logo { display: inline-flex; align-items: center; gap: 0.7rem; color: var(--vyuka-text-heading); text-decoration: none; font-size: 1.8rem; font-weight: 700; font-family: var(--vyuka-font-accent); }
+.vyuka-sidebar-ai-logo { display: inline-flex; align-items: center; gap: 0.7rem; color: var(--vyuka-text-heading); text-decoration: none; font-size: 1.8rem; font-weight: 700; font-family: var(--vyuka-font-accent); } /* Font for entire logo including icon and text */
 .vyuka-sidebar-ai-logo i { color: var(--vyuka-accent-secondary); font-size: 2rem; text-shadow: 0 0 10px var(--vyuka-accent-secondary), 0 0 20px var(--vyuka-accent-secondary); animation: logo-beacon 2.5s infinite ease-in-out; }
 @keyframes logo-beacon { 0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.7; filter: hue-rotate(0deg); } 50% { transform: scale(1.15) rotate(-8deg); opacity: 1; text-shadow: 0 0 18px var(--vyuka-accent-secondary), 0 0 30px var(--vyuka-accent-secondary), 0 0 10px var(--vyuka-accent-primary); filter: hue-rotate(20deg); } }
-.vyuka-sidebar-ai-logo .logo-text { display: none; font-size: 1.1em; letter-spacing: 1px; font-family: var(--vyuka-font-accent); }
+.vyuka-sidebar-ai-logo .logo-text { display: none; font-size: 1.1em; letter-spacing: 1px; font-family: inherit; /* Inherits from .vyuka-sidebar-ai-logo */ }
 .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-logo .logo-text { display: inline; margin-left: 0.5rem; animation: text-focus-in 0.6s var(--animation-timing-cyber) 0.1s both; }
 .vyuka-sidebar-ai-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; overflow-x: hidden; }
 .vyuka-sidebar-ai-menu::-webkit-scrollbar { width: 5px; }
@@ -270,21 +274,22 @@ body.scrolled .vyuka-header {
 .vyuka-whiteboard-area:hover::before, .vyuka-chat-panel:hover::before { transform: translate(-5px, -5px) scale(1.1); border-color: var(--vyuka-accent-primary); box-shadow: 0 0 15px var(--vyuka-accent-primary); }
 .vyuka-whiteboard-area:hover::after, .vyuka-chat-panel:hover::after { transform: translate(5px, 5px) scale(1.1); border-color: var(--vyuka-accent-primary); box-shadow: 0 0 15px var(--vyuka-accent-primary); }
 
+/* Adjusted height for whiteboard and chat */
 .vyuka-whiteboard-area {
-    flex-basis: 60%; /* Initial size before growing/shrinking */
-    flex-grow: 1;    /* Allow to grow */
-    flex-shrink: 1;  /* Allow to shrink if necessary */
-    min-height: 250px; /* Significantly reduced min-height */
-    max-height: 65vh;  /* Max height relative to viewport, allows scrolling if content exceeds */
-    height: auto;    /* Content can define height up to max-height */
+    flex-basis: 60%;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-height: 300px; /* Slightly more than previous to make it a bit bigger */
+    max-height: 68vh;  /* Allow it to take a bit more space if available */
+    height: auto;
 }
 .vyuka-chat-panel {
     flex-basis: 40%;
     flex-grow: 1;
     flex-shrink: 1;
-    min-height: 250px; /* Significantly reduced min-height */
+    min-height: 300px; /* Slightly more than previous */
     min-width: 380px;
-    max-height: 65vh;
+    max-height: 68vh;
     height: auto;
 }
 
@@ -344,9 +349,9 @@ body.scrolled .vyuka-header {
 @keyframes glitch-appear { 0% { opacity: 0; transform: translateY(-25px) skewX(-25deg) scale(2); color: var(--vyuka-accent-secondary); filter: blur(4px) brightness(2.5); } 20% { opacity: 0.6; transform: translateY(5px) skewX(15deg) scale(0.8); color: var(--vyuka-accent-pink); filter: blur(2px) brightness(1.8); } 60% { opacity: 0.9; transform: translateY(-3px) skewX(-8deg) scale(1.1); color: var(--vyuka-accent-primary); filter: blur(0.5px) brightness(1.2); } 100% { opacity: 1; transform: translateY(0) skewX(0) scale(1); color: var(--vyuka-text-primary); filter: blur(0) brightness(1); } }
 .initial-loading-overlay p.loading-text span:nth-child(1) { animation-delay: 0s; } .initial-loading-overlay p.loading-text span:nth-child(2) { animation-delay: 0.04s; } .initial-loading-overlay p.loading-text span:nth-child(3) { animation-delay: 0.08s; } .initial-loading-overlay p.loading-text span:nth-child(4) { animation-delay: 0.12s; } .initial-loading-overlay p.loading-text span:nth-child(5) { animation-delay: 0.16s; } .initial-loading-overlay p.loading-text span:nth-child(6) { animation-delay: 0.20s; } .initial-loading-overlay p.loading-text span:nth-child(7) { animation-delay: 0.24s; } .initial-loading-overlay p.loading-text span:nth-child(8) { animation-delay: 0.28s; } .initial-loading-overlay p.loading-text span:nth-child(9) { animation-delay: 0.32s; } .initial-loading-overlay p.loading-text span:nth-child(10) { animation-delay: 0.36s; } .initial-loading-overlay p.loading-text span:nth-child(11) { animation-delay: 0.40s; } .initial-loading-overlay p.loading-text span:nth-child(12) { animation-delay: 0.44s; } .initial-loading-overlay p.loading-text span:nth-child(13) { animation-delay: 0.48s; } .initial-loading-overlay p.loading-text span:nth-child(14) { animation-delay: 0.52s; } .initial-loading-overlay p.loading-text span:nth-child(15) { animation-delay: 0.56s; } .initial-loading-overlay p.loading-text span:nth-child(16) { animation-delay: 0.60s; } .initial-loading-overlay p.loading-text span:nth-child(17) { animation-delay: 0.64s; } .initial-loading-overlay p.loading-text span:nth-child(18) { animation-delay: 0.68s; } .initial-loading-overlay p.loading-text span:nth-child(19) { animation-delay: 0.72s; } .initial-loading-overlay p.loading-text span:nth-child(20) { animation-delay: 0.76s; } .initial-loading-overlay p.loading-text span:nth-child(21) { animation-delay: 0.80s; } .initial-loading-overlay p.loading-text span:nth-child(22) { animation-delay: 0.84s; }
 
-@media (max-width: 1200px) { .vyuka-main-content { flex-direction: column; } .vyuka-whiteboard-area, .vyuka-chat-panel { flex-basis: auto; /* Allow flex-grow to manage on smaller screens */ min-height: 40vh; /* Ensure some decent height */ } }
+@media (max-width: 1200px) { .vyuka-main-content { flex-direction: column; } .vyuka-whiteboard-area, .vyuka-chat-panel { flex-basis: auto; min-height: 45vh; /* Adjusted for medium screens */ } }
 @media (max-width: 992px) { .vyuka-sidebar-ai { width: var(--vyuka-sidebar-width-collapsed); } .vyuka-sidebar-ai.expanded { width: var(--vyuka-sidebar-width-expanded); } .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-logo .logo-text, .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link .link-text { display: none; } .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link i, .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-logo i { margin-right: 0; } .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-header, .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link { justify-content: center; } .vyuka-page-container { margin-left: var(--vyuka-sidebar-width-collapsed); } .vyuka-sidebar-ai.expanded ~ .vyuka-page-container { margin-left: var(--vyuka-sidebar-width-expanded); } .vyuka-header-left .sidebar-ai-desktop-toggle { display: block; } .vyuka-header-left .mobile-menu-toggle { display: none; } .vyuka-header-user-display { display: none; } }
-@media (max-width: 768px) { .vyuka-sidebar-ai { transform: translateX(-100%); width: var(--vyuka-sidebar-width-expanded); z-index: 1002; } .vyuka-sidebar-ai.active-mobile { transform: translateX(0); } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-logo .logo-text, .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link .link-text { display: inline; } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link i { margin-right: 0.8rem; } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-header, .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link { justify-content: flex-start; } .vyuka-page-container { margin-left: 0; width: 100%; } .vyuka-header { padding: 0 0.8rem; } .vyuka-header-left .sidebar-ai-desktop-toggle { display: none; } .vyuka-header-left .mobile-menu-toggle { display: block; } .vyuka-header-topic-info h1 { font-size: 0.9rem; } .vyuka-header-topic-info p { font-size: 0.7rem; } .vyuka-header-right .btn-exit-vyuka span { display: none; } .vyuka-header-right .btn-exit-vyuka i { margin-right: 0; } .vyuka-header-right { gap: 0.3rem; } .vyuka-main-content { padding: 1rem; gap: 1rem;} .vyuka-whiteboard-area, .vyuka-chat-panel { padding: 1.2rem; min-height: 250px; /* Further reduced for very small screens */ max-height: 50vh; /* Allow independent scroll if needed */ } .vyuka-chat-panel { max-height: 45vh; } .vyuka-lesson-controls { flex-direction: column; } .vyuka-lesson-controls .btn { width: 100%; font-size: 0.75rem; padding: 0.4rem; } .chat-input-area { padding-top: 0.5rem; } .chat-input { padding: 0.4rem; font-size: 0.7rem; } .send-button { width: 30px; height: 30px; font-size: 0.8rem;} .chat-controls button { width: 26px; height: 26px; font-size: 0.7rem;} .sidebar-overlay-ai { position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark), 0.7); z-index: 1001; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; backdrop-filter: blur(3px); } .sidebar-overlay-ai.active { opacity: 1; visibility: visible; transition-delay: 0s; } .vyuka-footer .footer-grid { grid-template-columns: 1fr; text-align: center; } .vyuka-footer .footer-column .logo, .vyuka-footer .footer-column h3 { justify-content: center; padding-left: 0; } .vyuka-footer .footer-column h3::before { display: none; } .vyuka-footer .social-links { justify-content: center; } .vyuka-header-user-display { display: flex; max-width: 120px; } .vyuka-header-user-title { display:none;} }
+@media (max-width: 768px) { .vyuka-sidebar-ai { transform: translateX(-100%); width: var(--vyuka-sidebar-width-expanded); z-index: 1002; } .vyuka-sidebar-ai.active-mobile { transform: translateX(0); } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-logo .logo-text, .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link .link-text { display: inline; } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link i { margin-right: 0.8rem; } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-header, .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link { justify-content: flex-start; } .vyuka-page-container { margin-left: 0; width: 100%; } .vyuka-header { padding: 0 0.8rem; } .vyuka-header-left .sidebar-ai-desktop-toggle { display: none; } .vyuka-header-left .mobile-menu-toggle { display: block; } .vyuka-header-topic-info h1 { font-size: 0.9rem; } .vyuka-header-topic-info p { font-size: 0.7rem; } .vyuka-header-right .btn-exit-vyuka span { display: none; } .vyuka-header-right .btn-exit-vyuka i { margin-right: 0; } .vyuka-header-right { gap: 0.3rem; } .vyuka-main-content { padding: 1rem; gap: 1rem;} .vyuka-whiteboard-area, .vyuka-chat-panel { padding: 1.2rem; min-height: 300px; /* Even smaller for mobile */ max-height: 45vh; } .vyuka-chat-panel { max-height: 40vh; } .vyuka-lesson-controls { flex-direction: column; } .vyuka-lesson-controls .btn { width: 100%; font-size: 0.75rem; padding: 0.4rem; } .chat-input-area { padding-top: 0.5rem; } .chat-input { padding: 0.4rem; font-size: 0.7rem; } .send-button { width: 30px; height: 30px; font-size: 0.8rem;} .chat-controls button { width: 26px; height: 26px; font-size: 0.7rem;} .sidebar-overlay-ai { position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark), 0.7); z-index: 1001; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; backdrop-filter: blur(3px); } .sidebar-overlay-ai.active { opacity: 1; visibility: visible; transition-delay: 0s; } .vyuka-footer .footer-grid { grid-template-columns: 1fr; text-align: center; } .vyuka-footer .footer-column .logo, .vyuka-footer .footer-column h3 { justify-content: center; padding-left: 0; } .vyuka-footer .footer-column h3::before { display: none; } .vyuka-footer .social-links { justify-content: center; } .vyuka-header-user-display { display: flex; max-width: 120px; } .vyuka-header-user-title { display:none;} }
 
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; animation-delay: -0.01ms !important; transition-delay: 0ms !important; will-change: auto !important; } .vyuka-sidebar-ai, .vyuka-page-container { transition: none !important; } .mouse-follower-glow, body.new-vyuka-layout::before, body.new-vyuka-layout::after, .vyuka-sidebar-ai-logo i, .initial-loading-overlay .loading-spinner, .initial-loading-overlay p.loading-text span, .unread-dot, .offline-banner i { animation: none !important; } .initial-loading-overlay .loading-spinner::after { animation: none !important; } .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-logo .logo-text, .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link .link-text { animation: none !important; } .toast.show { transform: translateX(0) !important; } .modal-overlay.visible .modal-content.card { transform: scale(1) !important; opacity: 1 !important; } .notification-item.hiding { animation: none !important; opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; border-width: 0; } .skeleton::after { animation: none !important; background: var(--skeleton-highlight) !important; } }
 mjx-container { background-color: var(--vyuka-bg-panel-lighter) !important; border: 1px solid var(--vyuka-border-color) !important; padding: 0.5em !important; border-radius: var(--vyuka-card-radius) !important; color: var(--vyuka-text-primary) !important; overflow-x: auto !important; overflow-y: hidden !important; max-width: 100% !important; }
