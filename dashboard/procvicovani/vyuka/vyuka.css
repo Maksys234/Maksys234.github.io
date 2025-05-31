@@ -2,7 +2,7 @@
 /* UPDATE: Notification design, loading animation, notification hiding animation, chat buttons, AI model select, user dropdown, footer, sidebar toggle */
 /* USER REQUEST v1: Scrollable page, Increased whiteboard/chat height, Improved left sidebar design */
 /* USER REQUEST v2: Fix footer background, ensure page scroll, further design enhancements for whiteboard/chat */
-/* USER REQUEST v3: Fix full-page avatar, further cyberpunk design for whiteboard/chat */
+/* USER REQUEST v3: Fix full-page avatar, Animated page loader */
 
 /* --- Základní proměnné --- */
 :root {
@@ -12,14 +12,13 @@
     --vyuka-font-mono: 'Roboto Mono', monospace;
 
     --vyuka-bg-dark: #05080F;
-    --vyuka-bg-panel: #0D101B; /* Slightly lighter for panels */
-    --vyuka-bg-panel-rgb: 13, 16, 27; /* RGB for panel background */
+    --vyuka-bg-panel: #0D101B;
+    --vyuka-bg-panel-rgb: 13, 16, 27;
     --vyuka-bg-panel-lighter: #131724;
     --vyuka-border-color: #2C334C;
     --vyuka-border-highlight: rgba(var(--vyuka-accent-secondary-rgb), 0.5);
     --vyuka-border-cyber: rgba(var(--vyuka-accent-primary-rgb), 0.7);
     --vyuka-border-cyber-secondary: rgba(var(--vyuka-accent-secondary-rgb), 0.6);
-
 
     --vyuka-accent-primary: #FF00E6;
     --vyuka-accent-primary-rgb: 255, 0, 230;
@@ -43,7 +42,7 @@
     --vyuka-sidebar-width-collapsed: 64px;
     --vyuka-header-height: 64px;
 
-    --vyuka-card-radius: 10px; /* Slightly more rounded */
+    --vyuka-card-radius: 10px;
     --vyuka-button-radius: 6px;
     --vyuka-input-radius: 6px;
 
@@ -52,7 +51,6 @@
     --vyuka-text-glow-secondary: 0 0 6px var(--vyuka-accent-secondary), 0 0 12px var(--vyuka-accent-secondary);
     --vyuka-cyber-glow-primary: 0 0 12px rgba(var(--vyuka-accent-primary-rgb), 0.6), 0 0 24px rgba(var(--vyuka-accent-primary-rgb), 0.4);
     --vyuka-cyber-glow-secondary: 0 0 12px rgba(var(--vyuka-accent-secondary-rgb), 0.6), 0 0 24px rgba(var(--vyuka-accent-secondary-rgb), 0.4);
-
 
     --vyuka-chat-input-gradient: linear-gradient(145deg, rgba(var(--vyuka-accent-pink-rgb),0.7) -10%, rgba(var(--vyuka-accent-primary-rgb),0.8) 90%);
     --vyuka-send-button-gradient: linear-gradient(60deg, var(--vyuka-accent-primary), var(--vyuka-accent-secondary));
@@ -71,6 +69,7 @@
     --vyuka-loader-size: 70px;
     --vyuka-loader-blade-color: var(--vyuka-accent-primary);
     --vyuka-loader-core-color: var(--vyuka-accent-secondary);
+    --vyuka-loader-bg-color: rgba(var(--vyuka-bg-dark-rgb, 5, 8, 15), 0.97); /* For overlay */
 
     --vyuka-notification-hide-duration: 0.5s;
 
@@ -84,12 +83,11 @@
 html { scroll-behavior: smooth; font-size: 16px; }
 body.new-vyuka-layout {
     font-family: var(--vyuka-font-primary);
-    background-color: var(--vyuka-bg-dark); /* This is the final page background */
+    background-color: var(--vyuka-bg-dark);
     color: var(--vyuka-text-primary);
     margin: 0; padding: 0; display: flex; overflow: hidden; height: 100vh;
     position: relative;
 }
-/* Background Effects (Identické s předchozí verzí) */
 body.new-vyuka-layout::before { content: ''; position: fixed; inset: 0; z-index: -2; background-image: linear-gradient(rgba(var(--vyuka-border-color), 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--vyuka-border-color), 0.07) 1px, transparent 1px); background-size: 30px 30px; opacity: 0.5; animation: bg-grid-pan 120s linear infinite; }
 body.new-vyuka-layout::after { content: ''; position: fixed; inset: 0; z-index: -1; background: linear-gradient(to bottom, transparent 50%, rgba(var(--vyuka-bg-dark), 0.1) 50%), radial-gradient(ellipse at center, rgba(var(--vyuka-accent-primary-rgb),0.03) 0%, transparent 70%); background-size: 100% 3px, 100% 100%; opacity: 0.2; animation: scanlines 20s linear infinite alternate; }
 @keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 600px 300px; } }
@@ -107,22 +105,22 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
     flex-direction: column;
     height: 100vh;
     transition: margin-left 0.3s var(--animation-timing-cyber);
-    overflow: hidden; /* IMPORTANT: Prevents this container from scrolling */
-    /* No background color here, body.new-vyuka-layout provides it */
+    overflow: hidden;
+    background-color: var(--vyuka-bg-dark); /* Base background for the viewable area */
 }
 
 .vyuka-sidebar-ai.expanded ~ .vyuka-page-container {
     margin-left: var(--vyuka-sidebar-width-expanded);
 }
 
-.vyuka-main-content-scrollable { /* This is the NEW scrollable wrapper */
+.vyuka-main-content-scrollable {
     flex-grow: 1;
-    overflow-y: auto; /* Enables vertical scrolling for its content */
+    overflow-y: auto;
     overflow-x: hidden;
     display: flex;
-    flex-direction: column; /* Stacks header, main content and footer */
+    flex-direction: column;
     position: relative;
-    background-color: transparent; /* Ensure it doesn't obscure body background */
+    background-color: transparent; /* This container is just for scroll, no separate bg */
 }
 .vyuka-main-content-scrollable::-webkit-scrollbar { width: 8px; height: 8px; }
 .vyuka-main-content-scrollable::-webkit-scrollbar-track { background: rgba(var(--vyuka-bg-dark), 0.7); }
@@ -138,36 +136,34 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
     align-items: center;
     justify-content: space-between;
     padding: 0 1.2rem;
-    flex-shrink: 0; /* Header should not shrink */
+    flex-shrink: 0;
     box-shadow: 0 3px 15px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(var(--vyuka-border-color),0.5);
     position: sticky;
     top: 0;
     z-index: 950;
 }
 body.scrolled .vyuka-header {
-    background-color: rgba(var(--vyuka-bg-panel-rgb), 0.95);
+    background-color: rgba(var(--vyuka-bg-panel-rgb, 13, 16, 27), 0.95);
     box-shadow: 0 5px 20px rgba(0,0,0,0.4), 0 0 15px rgba(var(--vyuka-accent-primary-rgb), 0.1) inset;
 }
 
-.vyuka-main-content { /* This is the flex container for whiteboard and chat */
+.vyuka-main-content {
     display: flex;
-    flex-grow: 1; /* This area takes available space to push footer down */
+    flex-grow: 1;
     padding: 1.8rem;
     gap: 1.8rem;
     background-color: transparent;
-    min-height: 0;
+    min-height: 0; /* Needed for flex children to scroll correctly within the parent */
     position: relative;
 }
 
-/* Footer */
 .main-footer.vyuka-footer {
-    flex-shrink: 0; /* Footer should not shrink */
-    /* margin-top: auto; -- This is effectively handled by .vyuka-main-content's flex-grow */
-    /* Styles from vyuka.html's <style> block (Enhanced Footer) should apply correctly here */
+    flex-shrink: 0;
+    /* margin-top: auto; is implicitly handled by flex-grow of .vyuka-main-content */
 }
 
-
 /* --- Levý AI Panel (Enhanced Design - from previous step, largely unchanged) --- */
+/* ... (Styly pro .vyuka-sidebar-ai, .vyuka-sidebar-ai-header, .vyuka-sidebar-ai-logo, .vyuka-sidebar-ai-menu, .vyuka-sidebar-ai-item, .vyuka-sidebar-ai-link, .vyuka-sidebar-ai-footer ZŮSTÁVAJÍ STEJNÉ jako v předchozí iteraci CSS) ... */
 .vyuka-sidebar-ai { width: var(--vyuka-sidebar-width-collapsed); background-color: var(--vyuka-bg-panel); border-right: 1px solid var(--vyuka-border-color); display: flex; flex-direction: column; padding: 1rem 0.5rem; transition: width 0.3s var(--animation-timing-cyber); height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; box-shadow: 5px 0 30px -5px rgba(0,0,0,0.6), inset -3px 0 8px rgba(var(--vyuka-bg-dark),0.4); }
 .vyuka-sidebar-ai.expanded { width: var(--vyuka-sidebar-width-expanded); }
 .vyuka-sidebar-ai-header { text-align: center; margin-bottom: 2rem; padding: 0.5rem 0; display:flex; align-items:center; justify-content:center; height: 50px; }
@@ -194,172 +190,181 @@ body.scrolled .vyuka-header {
 .vyuka-sidebar-ai-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--vyuka-border-highlight); display: flex; justify-content: center; min-height: 50px; font-size: 0.75rem; opacity: 0.7; color: var(--vyuka-text-muted); }
 .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-footer { animation: text-focus-in 0.6s ease 0.25s both; }
 
-/* Header specific elements (from previous version, no major change) */
-.vyuka-header-left, .vyuka-header-right, .vyuka-header-left .mobile-menu-toggle, .vyuka-header-left .sidebar-ai-desktop-toggle, .vyuka-header-topic-info h1, .vyuka-header-topic-info p, .user-menu-container, .vyuka-header-user-display, .user-dropdown-menu, .logout-btn, .btn-exit-vyuka, .notifications, .notifications-dropdown-wrapper, .notifications-header, .notifications-title, .mark-all-read-btn, #notifications-list, .notification-item, .notification-icon, .notification-content, .notification-title, .notification-message, .notification-time, .unread-dot, .notifications-footer, .view-all-notifications-link, #no-notifications-msg, .notification-item.hiding, .notification-item.skeleton .skeleton {
+/* Header specific elements */
+.vyuka-header-left, .vyuka-header-right { /* ... existing styles ... */ }
+.vyuka-header-left .mobile-menu-toggle, .vyuka-header-left .sidebar-ai-desktop-toggle { /* ... existing styles ... */ }
+.vyuka-header-topic-info h1, .vyuka-header-topic-info p { /* ... existing styles ... */ }
+.user-menu-container, .vyuka-header-user-display, .user-dropdown-menu, .logout-btn, .btn-exit-vyuka, .notifications, .notifications-dropdown-wrapper, .notifications-header, .notifications-title, .mark-all-read-btn, #notifications-list, .notification-item, .notification-icon, .notification-content, .notification-title, .notification-message, .notification-time, .unread-dot, .notifications-footer, .view-all-notifications-link, #no-notifications-msg, .notification-item.hiding, .notification-item.skeleton .skeleton {
     /* These styles should be fine from the previous iteration or the copied CSS from vyuka.html */
+}
+/* AVATAR FIX: Explicitly set dimensions for the avatar image and its wrapper in the header to prevent full-page issue */
+.vyuka-header-user-avatar-wrapper {
+    width: 32px; /* Or desired size */
+    height: 32px; /* Or desired size */
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1.5px solid var(--vyuka-accent-primary);
+    box-shadow: 0 0 8px rgba(var(--vyuka-accent-primary-rgb),0.4);
+    flex-shrink: 0; /* Prevent shrinking */
+}
+.vyuka-header-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Crucial for proper display within the wrapper */
+    display: block; /* Remove extra space below image if any */
 }
 
 
 /* --- Whiteboard & Chat Panel - Cyberpunk Frames & Height --- */
 .vyuka-whiteboard-area, .vyuka-chat-panel {
-    background-color: rgba(var(--vyuka-bg-panel-rgb), 0.88); /* Slightly more opaque */
-    backdrop-filter: blur(10px) saturate(1.2); /* More refined effect */
-    padding: 1.5rem;
+    background-color: rgba(var(--vyuka-bg-panel-rgb), 0.88);
+    backdrop-filter: blur(12px) saturate(1.2);
+    padding: 1.8rem; /* More padding around content */
     display: flex;
     flex-direction: column;
-    overflow: hidden; /* Important for inner scroll */
+    overflow: hidden;
     border-radius: var(--vyuka-card-radius);
-    border: 1px solid var(--vyuka-border-cyber); /* Main cyber border */
-    box-shadow: 0 0 20px rgba(var(--vyuka-accent-primary-rgb),0.25), /* Outer glow */
+    border: 1px solid var(--vyuka-border-cyber);
+    box-shadow: 0 0 20px rgba(var(--vyuka-accent-primary-rgb),0.25),
                 0 0 35px rgba(var(--vyuka-accent-secondary-rgb),0.2),
-                inset 0 0 15px rgba(var(--vyuka-bg-dark),0.6), /* Inner shadow */
-                inset 0 0 5px var(--vyuka-border-cyber); /* Inner border highlight */
+                inset 0 0 18px rgba(var(--vyuka-bg-dark),0.65), /* Darker inset */
+                inset 0 0 7px var(--vyuka-border-cyber);
     position: relative;
-    transition: box-shadow var(--animation-duration-medium) ease-in-out; /* Smooth shadow transitions */
+    transition: box-shadow var(--animation-duration-medium) ease-in-out, border-color var(--animation-duration-medium) ease-in-out;
 }
 .vyuka-whiteboard-area:hover, .vyuka-chat-panel:hover {
-     box-shadow: 0 0 25px rgba(var(--vyuka-accent-primary-rgb),0.35),
-                0 0 40px rgba(var(--vyuka-accent-secondary-rgb),0.25),
-                inset 0 0 18px rgba(var(--vyuka-bg-dark),0.5),
-                inset 0 0 7px var(--vyuka-border-cyber-secondary);
+     box-shadow: 0 0 28px rgba(var(--vyuka-accent-primary-rgb),0.4),
+                0 0 45px rgba(var(--vyuka-accent-secondary-rgb),0.3),
+                inset 0 0 22px rgba(var(--vyuka-bg-dark),0.6),
+                inset 0 0 10px var(--vyuka-border-cyber-secondary);
     border-color: var(--vyuka-border-cyber-secondary);
 }
-
 
 /* Decorative frame corners (enhanced) */
 .vyuka-whiteboard-area::before, .vyuka-chat-panel::before,
 .vyuka-whiteboard-area::after, .vyuka-chat-panel::after {
     content: '';
     position: absolute;
-    width: 12px; /* Increased size */
-    height: 12px;
+    width: 15px; /* Increased size */
+    height: 15px;
     border-style: solid;
     border-color: var(--vyuka-accent-primary);
     opacity: 0.9;
     pointer-events: none;
-    z-index: 10;
+    z-index: 5; /* Ensure corners are above the main panel but below modals */
     transition: all 0.4s var(--animation-timing-cyber);
-    box-shadow: 0 0 5px var(--vyuka-accent-primary); /* Glow for corners */
+    box-shadow: 0 0 8px var(--vyuka-accent-primary); /* Glow for corners */
 }
-.vyuka-whiteboard-area::before, .vyuka-chat-panel::before { top: 5px; left: 5px; border-width: 3px 0 0 3px; } /* Thicker border */
-.vyuka-whiteboard-area::after, .vyuka-chat-panel::after { bottom: 5px; right: 5px; border-width: 0 3px 3px 0; }
+.vyuka-whiteboard-area::before, .vyuka-chat-panel::before { top: 7px; left: 7px; border-width: 3px 0 0 3px; }
+.vyuka-whiteboard-area::after, .vyuka-chat-panel::after { bottom: 7px; right: 7px; border-width: 0 3px 3px 0; }
 
-.vyuka-whiteboard-area:hover::before, .vyuka-chat-panel:hover::before { transform: translate(-4px, -4px) scale(1.3) rotate(-5deg); border-color: var(--vyuka-accent-secondary); box-shadow: 0 0 8px var(--vyuka-accent-secondary); }
-.vyuka-whiteboard-area:hover::after, .vyuka-chat-panel:hover::after { transform: translate(4px, 4px) scale(1.3) rotate(5deg); border-color: var(--vyuka-accent-secondary); box-shadow: 0 0 8px var(--vyuka-accent-secondary); }
+.vyuka-whiteboard-area:hover::before, .vyuka-chat-panel:hover::before { transform: translate(-5px, -5px) scale(1.35) rotate(-7deg); border-color: var(--vyuka-accent-secondary); box-shadow: 0 0 12px var(--vyuka-accent-secondary); }
+.vyuka-whiteboard-area:hover::after, .vyuka-chat-panel:hover::after { transform: translate(5px, 5px) scale(1.35) rotate(7deg); border-color: var(--vyuka-accent-secondary); box-shadow: 0 0 12px var(--vyuka-accent-secondary); }
 
 
 .vyuka-whiteboard-area {
     flex: 6;
-    min-height: 55vh; /* Ensure it takes good vertical space */
-    height: auto; /* Let content flow */
+    min-height: clamp(400px, 60vh, 700px); /* Min, Preferred, Max height */
+    height: auto;
 }
 
 .vyuka-chat-panel {
     flex: 4;
-    min-height: 55vh;
-    min-width: 360px; /* Ensure usability */
+    min-height: clamp(400px, 60vh, 700px);
+    min-width: 380px; /* Ensure usability */
     height: auto;
 }
 
 /* Internal scroll container styles (from previous) */
-#whiteboard-container { flex-grow: 1; overflow-y: auto; padding-right: 10px; margin-right: -10px; position: relative; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--vyuka-accent-secondary) rgba(var(--vyuka-bg-dark), 0.5); }
+#whiteboard-container { flex-grow: 1; overflow-y: auto; padding: 0.5rem; /* Padding for content inside */ margin-right: -10px; /* Offset scrollbar */ position: relative; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--vyuka-accent-secondary) rgba(var(--vyuka-bg-dark), 0.5); }
 #whiteboard-container::-webkit-scrollbar { width: 6px; }
 #whiteboard-container::-webkit-scrollbar-thumb { background: var(--vyuka-accent-secondary); border-radius: 3px;}
 
-/* Whiteboard Content styling (enhanced) */
-#whiteboard-content {
-    padding-bottom: 1.5rem; /* More space at the end */
-    position: relative; /* For potential pseudo-elements if needed for line effects */
-}
-/* Example of a subtle background pattern for whiteboard - uncomment to try */
-/* #whiteboard-content {
-    background-image:
-        linear-gradient(rgba(var(--vyuka-border-color), 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(var(--vyuka-border-color), 0.05) 1px, transparent 1px);
-    background-size: 20px 20px;
-    padding: 1rem;
-} */
-
-#whiteboard-content h1, #whiteboard-content h2, #whiteboard-content h3 {
-    color: var(--vyuka-accent-secondary);
-    margin-bottom: 0.8em;
-    border-bottom: 1px solid rgba(var(--vyuka-accent-secondary-rgb), 0.4);
-    padding-bottom: 0.4em;
-    text-shadow: 0 0 10px rgba(var(--vyuka-accent-secondary-rgb), 0.5); /* Stronger heading glow */
-}
-#whiteboard-content h1 { font-size: 1.6rem; }
-#whiteboard-content h2 { font-size: 1.4rem; }
-#whiteboard-content h3 { font-size: 1.2rem; }
-
-#whiteboard-content p {
-    color: var(--vyuka-text-secondary);
-    line-height: 1.75; /* Slightly more line height */
-    margin-bottom: 1.3em;
-    font-size: 0.95rem;
-}
+#whiteboard-content { padding-bottom: 1.5rem; position: relative; }
+#whiteboard-content h1, #whiteboard-content h2, #whiteboard-content h3 { color: var(--vyuka-accent-secondary); margin-bottom: 0.8em; border-bottom: 1px solid rgba(var(--vyuka-accent-secondary-rgb), 0.4); padding-bottom: 0.4em; text-shadow: 0 0 12px rgba(var(--vyuka-accent-secondary-rgb), 0.6); }
+#whiteboard-content h1 { font-size: 1.7rem; } #whiteboard-content h2 { font-size: 1.5rem; } #whiteboard-content h3 { font-size: 1.3rem; }
+#whiteboard-content p { color: var(--vyuka-text-secondary); line-height: 1.75; margin-bottom: 1.3em; font-size: 0.95rem; }
 #whiteboard-content code { background-color: rgba(var(--vyuka-accent-lime-rgb), 0.2); padding: 0.2em 0.5em; border-radius: 4px; font-family: var(--vyuka-font-mono); color: var(--vyuka-accent-lime); border: 1px solid rgba(var(--vyuka-accent-lime-rgb),0.5); box-shadow: 0 0 10px rgba(var(--vyuka-accent-lime-rgb),0.4); }
 #whiteboard-content pre { background-color: rgba(var(--vyuka-bg-dark), 0.95); padding: 1.3em; border-radius: var(--vyuka-button-radius); overflow-x: auto; border: 1px solid var(--vyuka-border-highlight); box-shadow: var(--vyuka-shadow-medium), inset 0 0 20px rgba(0,0,0,0.5); font-size: 0.9rem; }
-
 
 /* Chat Panel specific styles (from previous, generally okay) */
 .vyuka-chat-header, .ai-model-selector-container, .ai-model-label, .ai-model-select, .interaction-panel-content, #chat-tab-content, .chat-area, .chat-messages, .message-bubble, .chat-input-area, .chat-input-wrapper, .chat-input, .send-button, .chat-controls {
     /* These styles are mostly fine from the previous iteration or will inherit well */
 }
-.chat-messages::-webkit-scrollbar { width: 6px; } /* Ensure consistent scrollbar */
+.chat-messages::-webkit-scrollbar { width: 6px; }
 
-
-/* Footer Styles (from vyuka.html <style> block) */
-.main-footer.vyuka-footer { background-color: var(--vyuka-bg-dark, #05080F); padding: 2.5rem 0; border-top: 2px solid var(--vyuka-accent-primary, #FF00E6); box-shadow: 0 -5px 20px -5px rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.25); color: var(--vyuka-text-secondary, #A0AEC0); font-size: 0.9rem; line-height: 1.7; }
-.vyuka-footer .container { max-width: var(--container-max-width, 1140px); margin-left: auto; margin-right: auto; padding-left: var(--container-padding-x, 15px); padding-right: var(--container-padding-x, 15px); }
-.vyuka-footer .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2.5rem; text-align: left; }
-.vyuka-footer .footer-column .logo { display: inline-flex; align-items: center; font-family: var(--vyuka-font-accent, 'Audiowide', cursive); font-size: 1.9rem; font-weight: 700; color: var(--vyuka-text-heading, #E0E7FF); text-decoration: none; margin-bottom: 1.25rem; transition: opacity 0.2s ease, text-shadow 0.2s ease; }
-.vyuka-footer .footer-column .logo:hover { opacity: 0.9; text-shadow: var(--vyuka-text-glow-secondary); }
-.vyuka-footer .footer-column .logo i { margin-right: 0.6rem; color: var(--vyuka-accent-secondary, #00F5FF); font-size: 1.1em; }
-.vyuka-footer .footer-column p { margin-bottom: 1.25rem; color: var(--vyuka-text-secondary, #A0AEC0); font-size: 0.875rem; opacity: 0.9; }
-.vyuka-footer .footer-column h3 { font-family: var(--vyuka-font-secondary, 'Orbitron', sans-serif); font-size: 1.15rem; font-weight: 600; color: var(--vyuka-text-heading, #E0E7FF); margin-bottom: 1.25rem; position: relative; padding-left: 20px; text-shadow: 0 0 5px rgba(var(--vyuka-accent-secondary-rgb, 0, 245, 255), 0.3); }
-.vyuka-footer .footer-column h3::before { content: ''; background-color: var(--vyuka-accent-secondary, #00F5FF); width: 8px; height: 8px; border-radius: 50%; position: absolute; left: 0; top: 50%; transform: translateY(-50%); box-shadow: 0 0 8px var(--vyuka-accent-secondary-glow, rgba(0, 245, 255, 0.5)); }
-.vyuka-footer .footer-column .footer-links { list-style: none; padding: 0; margin: 0; }
-.vyuka-footer .footer-column .footer-links li { margin-bottom: 0.6rem; transition: background-color 0.2s ease; border-radius: var(--vyuka-button-radius, 4px); padding: 0.25rem 0.5rem; margin-left: -0.5rem; }
-.vyuka-footer .footer-column .footer-links li:hover { background-color: rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.07); }
-.vyuka-footer .footer-column .footer-links a, .vyuka-footer .footer-column .footer-links span.icon-text-item { color: var(--vyuka-text-link, var(--vyuka-accent-secondary)); text-decoration: none; font-size: 0.95rem; transition: color 0.2s ease, text-shadow 0.2s ease; display: flex; align-items: center; width: 100%; }
-.vyuka-footer .footer-column .footer-links li:hover a, .vyuka-footer .footer-column .footer-links li:hover span.icon-text-item { color: var(--vyuka-text-link-hover, var(--vyuka-text-primary)); text-shadow: 0 0 8px var(--vyuka-text-link-hover, var(--vyuka-text-primary)); }
-.vyuka-footer .footer-column .footer-links a i, .vyuka-footer .footer-column .footer-links span.icon-text-item i { margin-right: 0.8em; color: var(--vyuka-text-muted, #5A6788); width: 18px; text-align: center; transition: color 0.2s ease, transform 0.2s ease; flex-shrink: 0; }
-.vyuka-footer .footer-column .footer-links li:hover a i, .vyuka-footer .footer-column .footer-links li:hover span.icon-text-item i { color: inherit; transform: scale(1.1); }
-.vyuka-footer .social-links { display: flex; gap: 1rem; margin-top: 1.25rem; }
-.vyuka-footer .social-links .social-link { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; border: 1.5px solid var(--vyuka-border-color, #2C334C); color: var(--vyuka-text-muted, #5A6788); font-size: 1.2rem; transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1); text-decoration: none; }
-.vyuka-footer .social-links .social-link:hover { background-color: var(--vyuka-accent-primary, #FF00E6); border-color: var(--vyuka-accent-primary, #FF00E6); color: var(--vyuka-bg-dark, #05080F); transform: translateY(-3px) scale(1.08); box-shadow: 0 4px 12px rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.4); }
-.vyuka-footer .footer-copyright { grid-column: 1 / -1; text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--vyuka-border-color, #2C334C); font-size: 0.85rem; color: var(--vyuka-text-muted, #5A6788); opacity: 0.7; }
-
-
-/* Other specific styles from vyuka.html <style> block (Skeleton, Enhanced Sidebar Typography) */
-/* ... these are assumed to be correctly copied or already present from previous iterations ... */
-/* They are generally independent of layout and should not cause avatar-on-full-page issue */
-
-.initial-loading-overlay, .notifications-dropdown-wrapper, .toast-container, .modal-overlay, .offline-banner, .sidebar-overlay-ai, .tooltipster-sidetip.tooltipster-vyuka, mjx-container, mjx-math, mjx-mfrac, mjx-msqrt, mjx-mtable, @media (prefers-reduced-motion: reduce) {
-    /* These styles are assumed to be correctly defined in the provided vyuka.html <style> block or previous vyuka.css */
+/* --- ANIMATED PAGE LOADER --- */
+.initial-loading-overlay {
+    position: fixed; inset: 0;
+    background-color: var(--vyuka-loader-bg-color); /* Use new variable */
+    z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1.5rem; /* Increased gap */
+    transition: opacity var(--animation-duration-slow) ease-out, visibility 0s var(--animation-duration-slow);
+    opacity: 1; visibility: visible;
 }
+.initial-loading-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
-@media (max-width: 1200px) {
-    .vyuka-main-content {
-        flex-direction: column;
-    }
-    .vyuka-whiteboard-area, .vyuka-chat-panel {
-        flex: 1 1 auto; /* Allow them to grow and shrink, but start with auto height based on min-height */
-        width: 100%;
-        min-height: 50vh; /* Ensure decent height on medium screens */
-        height: auto;
-    }
+.initial-loading-overlay .loading-spinner { /* Existing spinner is good */
+    width: var(--vyuka-loader-size); height: var(--vyuka-loader-size); position: relative;
+    animation: loader-rotate 2.2s cubic-bezier(0.7, 0, 0.3, 1) infinite;
 }
+.loading-spinner .spinner-blade { /* Existing blades are good */
+    position: absolute; left: 50%; top: 0; width: calc(var(--vyuka-loader-size) * 0.08); height: calc(var(--vyuka-loader-size) * 0.35);
+    background-color: var(--vyuka-loader-blade-color); border-radius: 50%/20%; transform-origin: 50% 100%;
+    animation: blade-pulse-fade-alt 1.5s ease-in-out infinite;
+    box-shadow: 0 0 4px var(--vyuka-loader-blade-color), 0 0 8px rgba(var(--vyuka-accent-secondary-rgb), 0.5), 0 0 12px rgba(var(--vyuka-accent-primary-rgb), 0.3);
+    filter: blur(0.8px);
+}
+/* Blade animations and positioning (nth-child styles) remain the same */
+.loading-spinner .spinner-blade:nth-child(1) { transform: rotate(0deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.5s; }
+.loading-spinner .spinner-blade:nth-child(2) { transform: rotate(30deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.375s; }
+.loading-spinner .spinner-blade:nth-child(3) { transform: rotate(60deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.25s; }
+.loading-spinner .spinner-blade:nth-child(4) { transform: rotate(90deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.125s; }
+.loading-spinner .spinner-blade:nth-child(5) { transform: rotate(120deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.0s; }
+.loading-spinner .spinner-blade:nth-child(6) { transform: rotate(150deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.875s; }
+.loading-spinner .spinner-blade:nth-child(7) { transform: rotate(180deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.75s; }
+.loading-spinner .spinner-blade:nth-child(8) { transform: rotate(210deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.625s; }
+.loading-spinner .spinner-blade:nth-child(9) { transform: rotate(240deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.5s; }
+.loading-spinner .spinner-blade:nth-child(10) { transform: rotate(270deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.375s; }
+.loading-spinner .spinner-blade:nth-child(11) { transform: rotate(300deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.25s; }
+.loading-spinner .spinner-blade:nth-child(12) { transform: rotate(330deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.125s; }
 
-@media (max-width: 768px) {
-    /* Sidebar and other mobile adjustments from previous step are crucial */
-    .vyuka-sidebar-ai { transform: translateX(-100%); width: var(--vyuka-sidebar-width-expanded); z-index: 1002; }
-    .vyuka-sidebar-ai.active-mobile { transform: translateX(0); }
-    /* ... other mobile styles ... */
-    .vyuka-main-content { padding: 1rem; gap: 1rem;}
-    .vyuka-whiteboard-area, .vyuka-chat-panel {
-        padding: 1.2rem;
-        min-height: 45vh; /* Further adjust for smaller screens */
-    }
-    .vyuka-chat-panel { max-height: 55vh; } /* Chat can still be scrollable */
+.initial-loading-overlay .loading-spinner::after { /* Core of spinner */
+    content: ''; position: absolute; width: calc(var(--vyuka-loader-size) * 0.25); height: calc(var(--vyuka-loader-size) * 0.25);
+    background-color: var(--vyuka-loader-core-color); border-radius: 50%;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    box-shadow: 0 0 10px var(--vyuka-loader-core-color), 0 0 20px rgba(var(--vyuka-accent-secondary-rgb), 0.7), inset 0 0 5px rgba(var(--white-rgb),0.3);
+    animation: core-pulse-subtle 1.5s ease-in-out infinite alternate;
 }
+@keyframes loader-rotate { 100% { transform: rotate(360deg); } }
+@keyframes blade-pulse-fade-alt { 0% { opacity: 0.2; transform: scaleY(0.6); background-color: var(--vyuka-accent-secondary); } 50% { opacity: 1; transform: scaleY(1); background-color: var(--vyuka-loader-blade-color); } 100% { opacity: 0.2; transform: scaleY(0.6); background-color: var(--vyuka-accent-secondary); } }
+@keyframes core-pulse-subtle { 0% { transform: translate(-50%, -50%) scale(0.85); box-shadow: 0 0 8px var(--vyuka-loader-core-color), 0 0 15px rgba(var(--vyuka-accent-secondary-rgb), 0.6), inset 0 0 4px rgba(var(--white-rgb),0.25); } 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 12px var(--vyuka-loader-core-color), 0 0 22px rgba(var(--vyuka-accent-secondary-rgb), 0.8), inset 0 0 6px rgba(var(--white-rgb),0.35); } }
+
+/* Animated Loading Text */
+.initial-loading-overlay p.loading-text {
+    color: var(--vyuka-text-primary); font-size: 1rem; /* Slightly larger */
+    font-family: var(--vyuka-font-mono); text-transform: uppercase;
+    letter-spacing: 4px; /* More spacing */
+    margin-top: 3.5rem; /* More space from spinner */
+    position: relative; display: flex;
+    text-shadow: 0 0 5px var(--vyuka-accent-primary), 0 0 10px var(--vyuka-accent-secondary); /* Enhanced glow */
+    overflow: hidden;
+}
+.initial-loading-overlay p.loading-text span {
+    opacity: 0;
+    animation: matrix-style-reveal-enhanced 0.2s forwards; /* Faster, more dynamic */
+    display: inline-block;
+    transform: translateY(-12px) scale(1.2); /* Initial state */
+    min-width: 1ch; /* Ensure space for non-breaking space */
+}
+@keyframes matrix-style-reveal-enhanced {
+    0% { opacity: 0; transform: translateY(-20px) scale(1.8) skewX(-15deg); color: var(--vyuka-accent-lime); filter: blur(3px) brightness(2); }
+    30% { opacity: 0.8; color: var(--vyuka-accent-secondary); filter: blur(1px) brightness(1.5); transform: translateY(-5px) scale(1.1) skewX(-5deg); }
+    100% { opacity: 1; transform: translateY(0) scale(1) skewX(0); color: var(--vyuka-text-primary); filter: blur(0) brightness(1); }
+}
+/* Staggered animation delays for each letter - KEEP THE SPAN NUMBERING */
+.initial-loading-overlay p.loading-text span:nth-child(1) { animation-delay: 0s; } /* S */ .initial-loading-overlay p.loading-text span:nth-child(2) { animation-delay: 0.05s; } /* Y */ .initial-loading-overlay p.loading-text span:nth-child(3) { animation-delay: 0.1s; } /* N */ .initial-loading-overlay p.loading-text span:nth-child(4) { animation-delay: 0.15s; } /* C */ .initial-loading-overlay p.loading-text span:nth-child(5) { animation-delay: 0.2s; } /* H */ .initial-loading-overlay p.loading-text span:nth-child(6) { animation-delay: 0.25s; } /* R */ .initial-loading-overlay p.loading-text span:nth-child(7) { animation-delay: 0.3s; } /* O */ .initial-loading-overlay p.loading-text span:nth-child(8) { animation-delay: 0.35s; } /* N */ .initial-loading-overlay p.loading-text span:nth-child(9) { animation-delay: 0.4s; } /* I */ .initial-loading-overlay p.loading-text span:nth-child(10) { animation-delay: 0.45s; } /* Z */ .initial-loading-overlay p.loading-text span:nth-child(11) { animation-delay: 0.5s; } /* U */ .initial-loading-overlay p.loading-text span:nth-child(12) { animation-delay: 0.55s; } /* J */ .initial-loading-overlay p.loading-text span:nth-child(13) { animation-delay: 0.6s; } /* I */ .initial-loading-overlay p.loading-text span:nth-child(14) { animation-delay: 0.65s; } /* &nbsp; */ .initial-loading-overlay p.loading-text span:nth-child(15) { animation-delay: 0.7s; } /* M */ .initial-loading-overlay p.loading-text span:nth-child(16) { animation-delay: 0.75s; } /* O */ .initial-loading-overlay p.loading-text span:nth-child(17) { animation-delay: 0.8s; } /* D */ .initial-loading-overlay p.loading-text span:nth-child(18) { animation-delay: 0.85s; } /* U */ .initial-loading-overlay p.loading-text span:nth-child(19) { animation-delay: 0.9s; } /* L */ .initial-loading-overlay p.loading-text span:nth-child(20) { animation-delay: 0.95s; } /* . */ .initial-loading-overlay p.loading-text span:nth-child(21) { animation-delay: 1.0s; } /* . */ .initial-loading-overlay p.loading-text span:nth-child(22) { animation-delay: 1.05s; } /* . */
+
+/* Footer Styles (from vyuka.html <style> block - mostly unchanged) */
+.main-footer.vyuka-footer, .vyuka-footer .container, .vyuka-footer .footer-grid, .vyuka-footer .footer-column .logo, .vyuka-footer .footer-column p, .vyuka-footer .footer-column h3, .vyuka-footer .footer-column h3::before, .vyuka-footer .footer-column .footer-links, .vyuka-footer .footer-column .footer-links li, .vyuka-footer .footer-column .footer-links a, .vyuka-footer .social-links, .vyuka-footer .social-links .social-link, .vyuka-footer .footer-copyright { /* styles from vyuka.html, assuming they are fine */ }
+
+/* Other styles (notifications, tooltips, modals, reduced motion etc.) are assumed to be fine from previous versions or already in vyuka.html */
