@@ -47,6 +47,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script> {/* Přidáno pro markdown v plánu */}
+
 
     <link rel="stylesheet" href="../dashboard.css"> <link rel="stylesheet" href="main.css"> <style>
         /* Inline styles specific to this page can go here */
@@ -131,13 +133,16 @@
         }
 
         /* Ensuring sections controlled by plan.js logic are initially hidden if not active */
-        .section:not(.visible-section):not(#practice-tab-content) { /* Exclude practice-tab-content from this rule if it's managed by tab-content.active */
+        .section:not(.visible-section):not(#practice-tab-content):not(#plan-tab-content) { /* Přidáno :not(#plan-tab-content) */
             display: none !important;
         }
          /* Ensure initially active tab content is visible */
         .tab-content.active {
             display: block !important; /* Or flex, depending on its layout needs */
         }
+
+        /* Styly z plan.css - budou sem přesunuty později, prozatím ponechávám takto, pokud by bylo nutné je upravit*/
+        /* @import url("plan.css"); */ /* Dočasně, pokud main.css neobsahuje vše */
     </style>
 </head>
 <body class="dark">
@@ -228,7 +233,7 @@
             <div class="tabs-wrapper" id="tabs-wrapper" style="display: none;">
                 <div class="content-tabs" id="content-tabs" role="tablist" aria-label="Sekce procvičování">
                     <button class="plan-tab active" data-tab="practice-tab" role="tab" aria-selected="true" aria-controls="practice-tab-content" id="tab-btn-practice"> <i class="fas fa-globe" aria-hidden="true"></i> Obecné </button>
-                    <button class="plan-tab" data-tab="current" role="tab" aria-selected="false" aria-controls="currentPlanSection" id="tab-btn-current"> <i class="fas fa-route" aria-hidden="true"></i> Plán </button>
+                    <button class="plan-tab" data-tab="plan-tab" role="tab" aria-selected="false" aria-controls="plan-tab-content" id="tab-btn-plan"> <i class="fas fa-route" aria-hidden="true"></i> Plán </button> {/* Změněno data-tab a aria-controls */}
                     <button class="plan-tab" data-tab="vyuka-tab" role="tab" aria-selected="false" aria-controls="vyuka-tab-content" id="tab-btn-vyuka"> <i class="fas fa-person-chalkboard" aria-hidden="true"></i> Výuka </button>
                 </div>
             </div>
@@ -255,13 +260,13 @@
                                 <h3 class="shortcut-title">Nový Test</h3>
                                 <p class="shortcut-desc">Spusťte diagnostický nebo cvičný test.</p>
                             </a>
-                            <a href="plan.html" class="shortcut-card card" data-animate style="--animation-order: 2;">
+                            <button class="shortcut-card card" data-animate style="--animation-order: 2;" onclick="document.getElementById('tab-btn-plan').click();"> {/* Upraveno pro přepnutí na plan-tab */}
                                 <div class="shortcut-icon" aria-hidden="true">
                                     <i class="fas fa-route"></i>
                                 </div>
                                 <h3 class="shortcut-title">Studijní Plán</h3>
                                 <p class="shortcut-desc">Pokračujte ve svém aktuálním plánu.</p>
-                            </a>
+                            </button>
                             <a href="vyuka/vyuka.html" class="shortcut-card card" data-animate style="--animation-order: 3;">
                                 <div class="shortcut-icon" aria-hidden="true">
                                     <i class="fas fa-robot"></i>
@@ -310,34 +315,85 @@
                     </section>
                 </div>
 
-                <div class="section" id="currentPlanSection" style="display:none;" role="tabpanel" aria-labelledby="tab-btn-current">
-                    <div class="loader-container visible-loader" id="currentPlanLoader" style="display: none;">
-                        <div class="loading-spinner"></div>
-                        <p>Načítám aktuální plán...</p>
-                    </div>
-
-                    <div id="dailyPlanCarouselContainer" class="daily-plan-carousel-container section-content" style="display: none;">
-                        <button id="prevDayBtn" class="btn btn-secondary daily-plan-nav-btn prev-day-btn btn-tooltip" title="Předchozí den" style="display: none;" aria-label="Předchozí den plánu">
-                            <i class="fas fa-chevron-left" aria-hidden="true"></i>
-                        </button>
-                        <div class="daily-plan-viewport">
-                            <div id="singleDayPlanView" class="single-day-plan-view">
-                                 <div class="day-schedule-card skeleton-day-card" id="dayCardSkeleton" style="display:none;">
-                                    <div class="day-header skeleton-day-header">Načítání dne...</div>
-                                    <div class="activity-list-container">
-                                        <div class="activity-list-item skeleton-activity-item"></div>
-                                        <div class="activity-list-item skeleton-activity-item"></div>
+                {/* ====== INTEGRACE OBSAHU PLÁNU ZDE ====== */}
+                <div class="tab-content" id="plan-tab-content" role="tabpanel" aria-labelledby="tab-btn-plan" style="display:none;">
+                    {/* Sekce z plan.html budou zde (currentPlanSection, historyPlanSection, createPlanSection, planSection) */}
+                    <div class="section visible-section" id="currentPlanSection"> {/* Přidáno visible-section pro počáteční zobrazení */}
+                        <div class="loader-container visible-loader" id="currentPlanLoader">
+                            <div class="loading-spinner"></div>
+                            <p>Načítám aktuální plán...</p>
+                        </div>
+                        <div id="dailyPlanCarouselContainer" class="daily-plan-carousel-container section-content">
+                            <button id="prevDayBtn" class="btn btn-secondary daily-plan-nav-btn prev-day-btn btn-tooltip" title="Předchozí den" style="display: none;">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="daily-plan-viewport">
+                                <div id="singleDayPlanView" class="single-day-plan-view">
+                                    <div class="day-schedule-card skeleton-day-card" id="dayCardSkeleton" style="display:none;">
+                                        <div class="day-header skeleton-day-header">Načítání dne...</div>
+                                        <div class="activity-list-container">
+                                            <div class="activity-list-item skeleton-activity-item"></div>
+                                            <div class="activity-list-item skeleton-activity-item"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                            <button id="nextDayBtn" class="btn btn-secondary daily-plan-nav-btn next-day-btn btn-tooltip" title="Následující den" style="display: none;">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
                         </div>
-                        <button id="nextDayBtn" class="btn btn-secondary daily-plan-nav-btn next-day-btn btn-tooltip" title="Následující den" style="display: none;" aria-label="Následující den plánu">
-                            <i class="fas fa-chevron-right" aria-hidden="true"></i>
-                        </button>
+                        <div id="currentPlanEmptyState" class="section-content" style="display:none;">
+                        </div>
                     </div>
-                    <div id="currentPlanEmptyState" class="section-content" style="display:none;">
+
+                    <div class="section" id="historyPlanSection" style="display:none;">
+                        <div class="loader-container visible-loader" id="historyLoader">
+                            <div class="loading-spinner"></div>
+                            <p>Načítám historii...</p>
                         </div>
+                        <div id="historyPlanContent" class="plan-history section-content">
+                             <div class="skeleton history-item-skeleton" style="display:none;">
+                                 <div class="skeleton text-sm" style="width: 40%;"></div>
+                                 <div class="skeleton title-sm" style="width: 80%; height: 16px;"></div>
+                                 <div class="skeleton text-sm" style="width: 50%;"></div>
+                             </div>
+                        </div>
+                    </div>
+
+                    <div class="section" id="createPlanSection" style="display:none;">
+                         <div class="loader-container visible-loader" id="createPlanLoader">
+                            <div class="loading-spinner"></div>
+                            <p>Ověřuji dostupnost...</p>
+                        </div>
+                        <div id="createPlanContent" class="section-content">
+                        </div>
+                    </div>
+
+                    <div class="section" id="planSection" style="display:none;">
+                         <div class="plan-header-dynamic">
+                             <div class="plan-meta">
+                                 <h2 id="plan-section-title">Detail / Návrh plánu</h2>
+                                 <div class="plan-date" id="plan-meta-date">Vytvořeno: -</div>
+                             </div>
+                             <div class="plan-actions" id="planActions" style="display: none;">
+                             </div>
+                         </div>
+                         <div class="section-content" style="padding-top:0;">
+                             <div class="step-navigation nav-visible" style="margin: 0 0 1.5rem 0; padding: 0; border-top: none; background: transparent; justify-content: flex-start;">
+                                  <button class="btn btn-secondary btn-sm" id="genericBackBtn">
+                                      <i class="fas fa-arrow-left"></i> Zpět
+                                  </button>
+                             </div>
+                             <div class="loader-container" id="planLoading" style="display:none;">
+                                 <div class="loading-spinner"></div>
+                                 <p>Načítám / Generuji...</p>
+                             </div>
+                             <div class="plan-content" id="planContent">
+                             </div>
+                         </div>
+                    </div>
                 </div>
+                {/* ====== KONEC INTEGRACE OBSAHU PLÁNU ====== */}
 
                 <div class="tab-content" id="vyuka-tab-content" style="display:none;" role="tabpanel" aria-labelledby="tab-btn-vyuka">
                      <section class="vyuka-section card">
@@ -546,16 +602,78 @@
 
     <div class="toast-container" id="toastContainer"></div> <div id="mouse-follower" class="mouse-follower-glow"></div>
 
+    {/* ====== ŠABLONY Z plan.html ====== */}
+    <template id="lockedPlanTemplate">
+        <div class="locked-overlay">
+            <div class="locked-icon"> <i class="fas fa-lock"></i> </div>
+            <h3 class="locked-title">Vytvoření nového plánu není dostupné</h3>
+            <p class="locked-message">Nový studijní plán můžete vytvořit jednou týdně, abyste měli dostatek času pracovat na aktuálním. Váš poslední plán byl vytvořen nedávno.</p>
+            <div class="timer-container" id="timerContainer"> Další plán můžete vytvořit za: <strong id="nextPlanTimer">počítám...</strong> </div>
+            <div class="action-buttons"> <button class="btn btn-primary" id="viewCurrentPlanBtnLocked"> <i class="fas fa-eye"></i> Zobrazit aktuální plán </button> </div>
+        </div>
+    </template>
+
+    <template id="createPlanFormTemplate">
+        <h2 class="section-title" style="margin: 0 0 1.5rem 0; padding:0; border:none; background:transparent;"><i class="fas fa-magic"></i> Vytvořit nový studijní plán</h2>
+        <div id="diagnosticInfo" class="notest-message info" style="text-align: left;"></div>
+        <p class="section-text" style="max-width: 700px; margin: 1.5rem auto;">Personalizovaný studijní plán bude vytvořen na základě výsledků vašeho posledního diagnostického testu. Zaměří se na vaše slabší oblasti a pomůže vám efektivně se připravit.</p>
+        <div class="action-buttons">
+            <button class="btn btn-primary btn-lg" id="generatePlanBtn">
+                <i class="fas fa-cogs"></i> Vygenerovat nový plán
+            </button>
+        </div>
+    </template>
+
+    <template id="noDiagnosticTemplate">
+        <div class="notest-message warning">
+            <h3><i class="fas fa-exclamation-circle"></i> Nejprve absolvujte diagnostický test</h3>
+            <p>Pro vytvoření personalizovaného studijního plánu je nejprve potřeba dokončit diagnostický test v sekci Procvičování, který nám pomůže identifikovat vaše silné a slabé stránky.</p>
+            <div class="action-buttons"> <a href="/dashboard/procvicovani/test1.html" class="btn btn-primary" id="goToTestBtn"> <i class="fas fa-play-circle"></i> Přejít k testu </a> </div>
+        </div>
+    </template>
+
+    <template id="historyItemTemplate">
+        <div class="history-item" data-plan-id="">
+            <div class="history-item-header">
+                <div class="history-info">
+                    <div class="history-title">Studijní plán</div>
+                    <div class="history-date">Vytvořeno: -</div>
+                </div>
+                <div class="history-meta">
+                    <span class="history-status active">Stav</span>
+                </div>
+            </div>
+            <div class="history-item-footer">
+                <div class="history-progress">Pokrok: <strong>- %</strong></div>
+                <i class="fas fa-chevron-right history-action-icon"></i>
+            </div>
+        </div>
+    </template>
+
+    <template id="promptCreatePlanTemplate">
+        <div class="notest-message info">
+            <h3><i class="fas fa-clipboard-check"></i> Připraveno k vytvoření plánu</h3>
+            <p>Váš poslední diagnostický test je připraven k analýze. Můžete nyní vygenerovat nový personalizovaný studijní plán.</p>
+            <div class="action-buttons"> <button class="btn btn-primary" id="createNewPlanFromPromptBtn"><i class="fas fa-plus-circle"></i> Vytvořit studijní plán</button> </div>
+        </div>
+    </template>
+
+    <template id="noActivePlanTemplate">
+        <div class="empty-state" style="display:flex; flex-direction: column; align-items: center; border: none; padding: 2rem 1rem;">
+            <i class="far fa-calendar-times" style="font-size: 3.5rem; color: var(--accent-secondary); margin-bottom: 1.5rem;"></i>
+            <h3 style="font-size: 1.3rem;">Žádný aktivní plán</h3>
+            <p style="max-width: 500px;">Momentálně nemáte žádný aktivní studijní plán. Pokud jste již absolvoval/a diagnostický test, můžete si <a href="#" class="link-to-create-tab" style="color: var(--accent-primary); font-weight: 500;">vytvořit nový</a>.</p>
+            <p style="margin-top: 0.5rem;">Pokud jste test ještě nedělal/a, přejděte prosím na <a href="/dashboard/procvicovani/test1.html" style="color: var(--accent-primary); font-weight: 500;">stránku testování</a>.</p>
+        </div>
+    </template>
+
     <template id="dayCardTemplate">
         <div class="day-schedule-card">
-            <div class="day-header"></div> <div class="activity-list-container"></div> </div>
+            <div class="day-header"></div>
+            <div class="activity-list-container"></div>
+        </div>
     </template>
-    <template id="lockedPlanTemplate"><div class="locked-overlay"><div class="locked-icon"> <i class="fas fa-lock"></i> </div><h3 class="locked-title">Vytvoření nového plánu není dostupné</h3><p class="locked-message">Nový studijní plán můžete vytvořit jednou týdně, abyste měli dostatek času pracovat na aktuálním. Váš poslední plán byl vytvořen nedávno.</p><div class="timer-container" id="timerContainer"> Další plán můžete vytvořit za: <strong id="nextPlanTimer">počítám...</strong> </div><div class="action-buttons"> <button class="btn btn-primary" id="viewCurrentPlanBtnLocked"> <i class="fas fa-eye"></i> Zobrazit aktuální plán </button> </div></div></template>
-    <template id="createPlanFormTemplate"><h2 class="section-title" style="margin: 0 0 1.5rem 0; padding:0; border:none; background:transparent;"><i class="fas fa-magic"></i> Vytvořit nový studijní plán</h2><div id="diagnosticInfo" class="notest-message info" style="text-align: left;"></div><p class="section-text" style="max-width: 700px; margin: 1.5rem auto;">Personalizovaný studijní plán bude vytvořen na základě výsledků vašeho posledního diagnostického testu. Zaměří se na vaše slabší oblasti a pomůže vám efektivně se připravit.</p><div class="action-buttons"><button class="btn btn-primary btn-lg" id="generatePlanBtn"><i class="fas fa-cogs"></i> Vygenerovat nový plán</button></div></template>
-    <template id="noDiagnosticTemplate"><div class="notest-message warning"><h3><i class="fas fa-exclamation-circle"></i> Nejprve absolvujte diagnostický test</h3><p>Pro vytvoření personalizovaného studijního plánu je nejprve potřeba dokončit diagnostický test v sekci Procvičování, který nám pomůže identifikovat vaše silné a slabé stránky.</p><div class="action-buttons"> <a href="/dashboard/procvicovani/test1.html" class="btn btn-primary" id="goToTestBtn"> <i class="fas fa-play-circle"></i> Přejít k testu </a> </div></div></template>
-    <template id="historyItemTemplate"><div class="history-item" data-plan-id=""><div class="history-item-header"><div class="history-info"><div class="history-title">Studijní plán</div><div class="history-date">Vytvořeno: -</div></div><div class="history-meta"><span class="history-status active">Stav</span></div></div><div class="history-item-footer"><div class="history-progress">Pokrok: <strong>- %</strong></div><i class="fas fa-chevron-right history-action-icon"></i></div></div></template>
-    <template id="promptCreatePlanTemplate"><div class="notest-message info"><h3><i class="fas fa-clipboard-check"></i> Připraveno k vytvoření plánu</h3><p>Váš poslední diagnostický test je připraven k analýze. Můžete nyní vygenerovat nový personalizovaný studijní plán.</p><div class="action-buttons"> <button class="btn btn-primary" id="createNewPlanFromPromptBtn"><i class="fas fa-plus-circle"></i> Vytvořit studijní plán</button> </div></div></template>
-    <template id="noActivePlanTemplate"><div class="empty-state" style="display:flex; flex-direction: column; align-items: center; border: none; padding: 2rem 1rem;"><i class="far fa-calendar-times" style="font-size: 3.5rem; color: var(--accent-secondary); margin-bottom: 1.5rem;"></i><h3 style="font-size: 1.3rem;">Žádný aktivní plán</h3><p style="max-width: 500px;">Momentálně nemáte žádný aktivní studijní plán. Pokud jste již absolvoval/a diagnostický test, můžete si <a href="#" class="link-to-create-tab" style="color: var(--accent-primary); font-weight: 500;">vytvořit nový</a>.</p><p style="margin-top: 0.5rem;">Pokud jste test ještě nedělal/a, přejděte prosím na <a href="/dashboard/procvicovani/test1.html" style="color: var(--accent-primary); font-weight: 500;">stránku testování</a>.</p></div></template>
+    {/* ====== KONEC ŠABLON Z plan.html ====== */}
 
 
     <script src="main.js" defer></script> </body>
