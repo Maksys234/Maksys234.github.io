@@ -1,4 +1,4 @@
-/* dashboard/procvicovani/vyuka/vyuka.css - EXTREME CYBERPUNK OVERHAUL v12 - Final Footer & Scroll Domination */
+/* dashboard/procvicovani/vyuka/vyuka.css - EXTREME CYBERPUNK OVERHAUL v13 - Absolute Footer & Scroll Domination */
 
 /* --- Základní proměnné --- */
 :root {
@@ -42,6 +42,8 @@
     --vyuka-sidebar-width-expanded: 250px;
     --vyuka-sidebar-width-collapsed: 68px;
     --vyuka-header-height: 64px;
+    --vyuka-footer-base-height: 200px; /* Approximate footer height, adjust as needed */
+
 
     --vyuka-card-radius: 10px;
     --vyuka-button-radius: 6px;
@@ -86,7 +88,7 @@ body.new-vyuka-layout {
     font-family: var(--vyuka-font-primary);
     background-color: var(--vyuka-bg-dark);
     color: var(--vyuka-text-primary);
-    margin: 0; padding: 0; display: flex; overflow: hidden; height: 100vh;
+    margin: 0; padding: 0; display: flex; overflow: hidden; height: 100vh; /* This is key for fixed sidebar and scrollable content */
     position: relative;
 }
 body.new-vyuka-layout::before, body.new-vyuka-layout::after {
@@ -110,25 +112,25 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
 .vyuka-page-container {
     flex-grow: 1;
     margin-left: var(--vyuka-sidebar-width-collapsed);
-    display: flex; /* Enables flexbox for its direct children */
-    flex-direction: column; /* Stacks .vyuka-main-content-scrollable vertically */
-    height: 100vh; /* Full viewport height */
+    display: flex;
+    flex-direction: column; /* Ensures header, scrollable, and (if any fixed bottom bar) stack */
+    height: 100vh;
     transition: margin-left 0.3s var(--animation-timing-cyber);
-    overflow: hidden; /* Prevents this container itself from scrolling */
-    background-color: var(--vyuka-bg-dark) !important; /* Explicit background */
+    overflow: hidden; /* This container does not scroll */
+    background-color: var(--vyuka-bg-dark) !important; /* Base background for the content area */
 }
 .vyuka-sidebar-ai.expanded ~ .vyuka-page-container {
     margin-left: var(--vyuka-sidebar-width-expanded);
 }
 
-.vyuka-main-content-scrollable { /* This is the scrollable viewport for content */
-    flex-grow: 1; /* Takes up available space within .vyuka-page-container */
-    overflow-y: auto; /* Allows vertical scrolling FOR ALL ITS CHILDREN (header, main, footer) */
+.vyuka-main-content-scrollable {
+    flex-grow: 1; /* Allows this to take up space so its children can scroll */
+    overflow-y: auto; /* This is the scrollbar for the content (header, main, footer) */
     overflow-x: hidden;
     display: flex;
-    flex-direction: column; /* Stacks header, .vyuka-main-content, and footer vertically */
+    flex-direction: column; /* Stacks header, .vyuka-main-content, and .main-footer */
     position: relative;
-    background-color: transparent; /* Background is set on .vyuka-page-container */
+    background-color: transparent; /* So vyuka-page-container background shows */
 }
 .vyuka-main-content-scrollable::-webkit-scrollbar { width: 8px; height: 8px; }
 .vyuka-main-content-scrollable::-webkit-scrollbar-track { background: rgba(var(--vyuka-bg-dark), 0.7); }
@@ -145,7 +147,7 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
     padding: 0 1.2rem;
     flex-shrink: 0; /* Header does not shrink */
     box-shadow: 0 3px 15px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(var(--vyuka-border-color),0.5);
-    position: sticky; /* Header sticks to the top of .vyuka-main-content-scrollable */
+    position: sticky; /* Header will stick to the top of .vyuka-main-content-scrollable */
     top: 0;
     z-index: 950;
 }
@@ -154,29 +156,33 @@ body.scrolled .vyuka-header {
     box-shadow: 0 5px 20px rgba(0,0,0,0.4), 0 0 15px rgba(var(--vyuka-accent-primary-rgb), 0.1) inset;
 }
 
-.vyuka-main-content { /* This contains the whiteboard and chat */
+.vyuka-main-content { /* Container for whiteboard and chat */
     display: flex;
-    flex-grow: 1; /* This is CRITICAL: it will take up available space, pushing the footer down */
+    flex-grow: 1; /* CRITICAL: This makes .vyuka-main-content take all available vertical space */
+                /* This pushes the footer down if content is shorter than viewport minus header. */
     padding: 2rem;
     gap: 2rem;
-    background-color: transparent; /* No background needed, it's on .vyuka-page-container */
-    min-height: 0; /* Allows content within to scroll if they have overflow:auto */
+    background-color: transparent;
+    min-height: calc(100vh - var(--vyuka-header-height) - var(--vyuka-footer-base-height) - 4rem); /* Ensure it tries to fill space, 4rem for paddings */
     position: relative;
-    z-index: 10; /* Above page background, below header */
+    z-index: 10;
 }
 
 /* --- Footer --- */
 .main-footer.vyuka-footer {
     flex-shrink: 0; /* Footer does not shrink */
-    margin-top: auto; /* THIS IS THE KEY: Pushes footer to the bottom of .vyuka-main-content-scrollable */
+    /* margin-top: auto; -- This is important for when content IS short */
+    /* If .vyuka-main-content doesn't fill the space due to lack of its own content, */
+    /* margin-top: auto on the footer pushes it to the bottom of the flex parent (.vyuka-main-content-scrollable) */
+    margin-top: auto;
     background-color: var(--vyuka-bg-panel) !important;
     color: var(--vyuka-text-secondary) !important;
     padding: 2.5rem 0 !important;
     border-top: 2px solid var(--vyuka-accent-primary) !important;
     box-shadow: 0 -5px 20px -5px rgba(var(--vyuka-accent-primary-rgb), 0.25) !important;
-    position: relative !important; /* Ensure it's not fixed or absolute from other styles */
+    position: relative !important;
     width: 100% !important;
-    z-index: 5 !important; /* Lower than .vyuka-main-content and .vyuka-header */
+    z-index: 5 !important;
 }
 .vyuka-footer .container { max-width: var(--container-max-width, 1140px); margin-left: auto; margin-right: auto; padding-left: var(--container-padding-x, 15px); padding-right: var(--container-padding-x, 15px); }
 .vyuka-footer .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2.5rem; text-align: left; }
@@ -197,7 +203,6 @@ body.scrolled .vyuka-header {
 .vyuka-footer .social-links .social-link { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; border: 1.5px solid var(--vyuka-border-color, #2C334C); color: var(--vyuka-text-muted, #5A6788); font-size: 1.2rem; transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1); text-decoration: none; }
 .vyuka-footer .social-links .social-link:hover { background-color: var(--vyuka-accent-primary, #FF00E6); border-color: var(--vyuka-accent-primary, #FF00E6); color: var(--vyuka-bg-dark, #05080F); transform: translateY(-3px) scale(1.08); box-shadow: 0 4px 12px rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.4); }
 .vyuka-footer .footer-copyright { grid-column: 1 / -1; text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--vyuka-border-color, #2C334C); font-size: 0.85rem; color: var(--vyuka-text-muted, #5A6788); opacity: 0.7; }
-
 
 /* --- Levý AI Panel --- */
 .vyuka-sidebar-ai { width: var(--vyuka-sidebar-width-collapsed); background-color: var(--vyuka-bg-panel); border-right: 1px solid var(--vyuka-border-color); display: flex; flex-direction: column; padding: 1rem 0.5rem; transition: width 0.3s var(--animation-timing-cyber); height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; box-shadow: 5px 0 30px -5px rgba(0,0,0,0.6), inset -3px 0 8px rgba(var(--vyuka-bg-dark),0.4); }
@@ -352,3 +357,4 @@ mjx-mfrac, mjx-msqrt, mjx-mtable { color: inherit !important; }
 .notifications-dropdown-wrapper, .notifications-header, .notifications-title, .mark-all-read-btn, #notifications-list, .notification-item, .notification-icon, .notification-content, .notification-title, .notification-message, .notification-time, .unread-dot, .notifications-footer, .view-all-notifications-link, #no-notifications-msg, .notification-item.hiding, .notification-item.skeleton .skeleton,
 .toast-container, .toast, .modal-overlay, .modal-content.card, .modal-close-btn, .modal-icon, .modal-title, .modal-text, .modal-actions,
 .offline-banner, .sidebar-overlay-ai
+{ /* Styles from previous version or vyuka.html */ }
