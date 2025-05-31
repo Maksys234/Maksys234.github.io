@@ -10,6 +10,7 @@
 // VERZE (DB Column Fix full_name & others): Updated fetchUserProfile select based on LATEST provided schema.
 // VERZE (FIX BUGS from CONSOLE): Corrected user_stats column, added missing UI elements to cache, fixed ReferenceError for fetchUserStats, adapted renderStatsCards.
 // VERZE (Fix Infinite Loading): Modified toggleSkeletonUI to correctly manage 'loading' class on main stats container.
+// VERZE (Fix Infinite Loading - Refined): Further refinement of toggleSkeletonUI for stats section.
 
 (function() {
     'use strict';
@@ -152,15 +153,15 @@
             goalRadioLabels: document.querySelectorAll('.goal-radio-label'),
             goalModalBackBtns: document.querySelectorAll('.modal-back-btn'),
             goalModalConfirmBtns: document.querySelectorAll('.modal-confirm-btn'),
-            accelerateGradeSelect: document.getElementById('accelerate_grade_profile'), // Note: HTML uses accelerate-grade
-            accelerateIntensitySelect: document.getElementById('accelerate_intensity_profile'), // HTML uses accelerate-intensity
+            accelerateGradeSelect: document.getElementById('accelerate_grade_profile'),
+            accelerateIntensitySelect: document.getElementById('accelerate_intensity_profile'),
             accelerateAreasCheckboxes: document.querySelectorAll('input[name="accelerate_area"]'),
             accelerateReasonRadios: document.querySelectorAll('input[name="accelerate_reason"]'),
             accelerateProfessionGroup: document.getElementById('accelerate-profession-group'),
             accelerateProfessionTextarea: document.getElementById('accelerate-profession'),
-            reviewGradeSelect: document.getElementById('review_grade_profile'), // HTML uses review-grade
+            reviewGradeSelect: document.getElementById('review_grade_profile'),
             topicRatingsContainer: document.getElementById('topic-ratings-container'),
-            exploreGradeSelect: document.getElementById('explore_grade'), // HTML uses explore-grade
+            exploreGradeSelect: document.getElementById('explore_grade'),
             currentPlanSection: document.getElementById('currentPlanSection'),
             currentPlanLoader: document.getElementById('currentPlanLoader'),
             dailyPlanCarouselContainer: document.getElementById('dailyPlanCarouselContainer'),
@@ -304,23 +305,21 @@
         let skeletonContainerId, realContainerId, displayTypeIfReal = 'block';
 
         switch (sectionKey) {
-            case 'welcomeBanner': // Assuming these IDs exist in main.html
+            case 'welcomeBanner':
                 skeletonContainerId = 'welcome-banner-skeleton';
                 realContainerId = 'welcome-banner-real';
-                displayTypeIfReal = 'flex'; // Welcome banner might use flex
+                displayTypeIfReal = 'flex';
                 break;
             case 'stats':
-                // In main.html, 'stats-cards' is the real container and has skeletons inside when 'loading'.
-                // There isn't a separate 'stats-cards-skeleton-container'.
-                skeletonContainerId = null; // No separate skeleton container
-                realContainerId = 'stats-cards';
+                skeletonContainerId = null; // No separate skeleton container for stats in main.html
+                realContainerId = 'stats-cards'; // This is the main container for stats
                 displayTypeIfReal = 'grid';
                 break;
-            case 'shortcuts': // Assuming these IDs exist in main.html
-                skeletonContainerId = 'shortcut-grid-skeleton-container';
-                realContainerId = 'shortcuts-grid'; // HTML has 'shortcuts-grid', not 'shortcut-grid-real'
-                displayTypeIfReal = 'grid';
-                break;
+            case 'shortcuts':
+                 skeletonContainerId = 'shortcut-grid-skeleton-container'; // This ID does not exist in main.html
+                 realContainerId = 'shortcuts-grid'; // Real container for shortcuts
+                 displayTypeIfReal = 'grid';
+                 break;
             case 'activities':
                 if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.setActivitiesLoading === 'function') {
                     DashboardLists.setActivitiesLoading(showSkeleton);
@@ -328,7 +327,7 @@
                 if (ui.activityListContainerWrapper) {
                     ui.activityListContainerWrapper.classList.toggle('loading-section', showSkeleton);
                 }
-                return; // Handled by DashboardLists
+                return;
             case 'creditHistory':
                  if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.setCreditHistoryLoading === 'function') {
                     DashboardLists.setCreditHistoryLoading(showSkeleton);
@@ -336,7 +335,7 @@
                 if (ui.creditHistoryContainerWrapper) {
                     ui.creditHistoryContainerWrapper.classList.toggle('loading-section', showSkeleton);
                 }
-                return; // Handled by DashboardLists
+                return;
             default:
                 console.warn(`[Skeleton Toggle - Main.js] Unknown sectionKey: ${sectionKey}`);
                 return;
@@ -346,21 +345,23 @@
         const realContainer = realContainerId ? document.getElementById(realContainerId) : null;
 
         if (skeletonContainer) {
-            skeletonContainer.style.display = showSkeleton ? (skeletonContainer.classList.contains('stat-cards') || skeletonContainer.classList.contains('shortcut-grid') || skeletonContainer.classList.contains('dashboard-grid') ? 'grid' : 'block') : 'none';
+            skeletonContainer.style.display = showSkeleton ? (skeletonContainer.classList.contains('stat-cards') || skeletonContainer.classList.contains('shortcut-grid') ? 'grid' : 'block') : 'none';
         }
 
         if (realContainer) {
-            realContainer.style.display = showSkeleton ? 'none' : displayTypeIfReal;
-            if (!showSkeleton) {
-                realContainer.classList.remove('loading'); // Explicitly remove loading from the main container
-                // Also remove 'loading' from individual cards if this is the stats section
+            if (showSkeleton) {
+                // If a separate skeleton container exists and is shown, the real one can be 'none'.
+                // If no separate skeleton (like for 'stats'), 'realContainer' itself should show skeletons.
+                realContainer.style.display = skeletonContainer ? 'none' : displayTypeIfReal;
+                realContainer.classList.add('loading');
                 if (sectionKey === 'stats') {
-                    realContainer.querySelectorAll('.dashboard-card.card').forEach(card => card.classList.remove('loading'));
+                    realContainer.querySelectorAll('.dashboard-card.card').forEach(card => card.classList.add('loading'));
                 }
             } else {
-                realContainer.classList.add('loading'); // Add loading back if showing skeleton
+                realContainer.style.display = displayTypeIfReal;
+                realContainer.classList.remove('loading');
                 if (sectionKey === 'stats') {
-                     realContainer.querySelectorAll('.dashboard-card.card').forEach(card => card.classList.add('loading'));
+                    realContainer.querySelectorAll('.dashboard-card.card').forEach(card => card.classList.remove('loading'));
                 }
             }
         }
@@ -745,38 +746,38 @@
         try {
             const { data, error } = await supabaseClient
                 .from('user_stats')
-                .select('progress, progress_weekly, points_weekly, streak_longest, completed_tests') // Corrected: overall_progress_percentage to progress
+                .select('progress, progress_weekly, points_weekly, streak_longest, completed_tests')
                 .eq('user_id', userId)
                 .maybeSingle();
 
             if (error) {
                 console.warn("[Stats] Supabase chyba při načítání user_stats:", error.message);
-                return { // Fallback to profile data
-                    progress: profileData.progress ?? 0, // Assuming profile might have 'progress'
+                return { 
+                    progress: profileData.progress ?? 0,
                     progress_weekly: 0,
                     points: profileData.points ?? 0,
                     points_weekly: 0,
                     streak_current: profileData.streak_days ?? 0,
                     longest_streak_days: profileData.longest_streak_days ?? 0,
                     completed_exercises: profileData.completed_exercises ?? 0,
-                    completed_tests: profileData.completed_tests_count ?? 0, // Use if exists, else 0
+                    completed_tests: profileData.completed_tests_count ?? 0, 
                 };
             }
             const finalStats = {
                 progress: data?.progress ?? profileData.progress ?? 0,
                 progress_weekly: data?.progress_weekly ?? 0,
-                points: profileData.points ?? 0, // Master source of points is profiles table
+                points: profileData.points ?? 0,
                 points_weekly: data?.points_weekly ?? 0,
-                streak_current: profileData.streak_days ?? 0, // Master source
-                longest_streak_days: profileData.longest_streak_days ?? data?.streak_longest ?? 0, // Master source
-                completed_exercises: profileData.completed_exercises ?? 0, // Master source
-                completed_tests: data?.completed_tests ?? profileData.completed_tests_count ?? 0, // Prefer user_stats, fallback
+                streak_current: profileData.streak_days ?? 0,
+                longest_streak_days: profileData.longest_streak_days ?? data?.streak_longest ?? 0, 
+                completed_exercises: profileData.completed_exercises ?? 0,
+                completed_tests: data?.completed_tests ?? profileData.completed_tests_count ?? 0, 
             };
             console.log("[Stats] Statistiky úspěšně načteny/sestaveny:", finalStats);
             return finalStats;
         } catch (error) {
             console.error("[Stats] Neočekávaná chyba při načítání user_stats:", error);
-            return { // Fallback on unexpected error
+            return { 
                 progress: profileData.progress ?? 0, progress_weekly: 0,
                 points: profileData.points ?? 0, points_weekly: 0,
                 streak_current: profileData.streak_days ?? 0,
@@ -790,54 +791,44 @@
     async function loadDashboardStats() {
         if (!state.currentUser || !supabaseClient || !state.currentProfile) {
             console.warn("[LoadStats] Chybí uživatel, Supabase klient nebo profil pro načtení statistik.");
-            renderStatsCards(null); // Pass null to show placeholders/error state
+            renderStatsCards(null);
             return;
         }
         setLoadingState('stats', true);
         try {
-            // userStatsData is now populated in initializeApp or refreshDataBtn
-            // It's already based on the latest profile and user_stats data
-            renderStatsCards(userStatsData); // Directly use the globally available userStatsData
+            renderStatsCards(userStatsData); 
         } catch (error) {
             console.error("Error in loadDashboardStats:", error);
-            renderStatsCards(null); // Pass null to show placeholders/error state
+            renderStatsCards(null);
         } finally {
             setLoadingState('stats', false);
         }
     }
-
-    // Modified renderStatsCards for procvicovani/main.html
-    function renderStatsCards(statsData) { // statsData here is the combined object from fetchUserStats
+    
+    function renderStatsCards(statsData) {
         console.log("[UI Update] Aktualizace karet statistik pro procvicovani/main.html:", statsData);
-
-        const profile = state.currentProfile; // Use the globally available currentProfile
+        const profile = state.currentProfile;
 
         if (!profile) {
             console.warn("[UI Update Stats] Chybí data profilu, nelze aktualizovat karty.");
-            // Show placeholders or error messages if needed
             if(ui.dashboardLevelWidget) ui.dashboardLevelWidget.textContent = '-';
             if(ui.totalPointsValue) ui.totalPointsValue.innerHTML = `- <span id="latest-credit-change" style="font-size: 0.5em; color: var(--text-medium); vertical-align: middle; margin-left: 0.5em; display: none;"></span>`;
             if(ui.streakValue) ui.streakValue.textContent = '-';
             if(ui.totalPointsFooter) ui.totalPointsFooter.innerHTML = `<i class="fas fa-minus"></i> Data nedostupná`;
             if(ui.streakFooter) ui.streakFooter.innerHTML = `MAX: - dní`;
 
-            // Remove loading from main container if it's still there
             if (ui.statsCardsContainer) ui.statsCardsContainer.classList.remove('loading');
-            // Remove loading from individual cards
             [ui.progressCard, ui.pointsCard, ui.streakCard].forEach(card => card?.classList.remove('loading'));
-
             return;
         }
 
-        // 1. Karta Úroveň & Zkušenosti (používá data z currentProfile)
-        updateWelcomeBannerAndLevel(profile); // This function handles the Level/XP card
+        updateWelcomeBannerAndLevel(profile);
 
-        // 2. Karta Kredity
         if (ui.totalPointsValue) {
-            ui.totalPointsValue.textContent = `${profile.points ?? 0} `; // Main points from profile
+            ui.totalPointsValue.textContent = `${profile.points ?? 0} `;
             const latestCreditSpan = ui.latestCreditChange || document.getElementById('latest-credit-change');
             if (latestCreditSpan) {
-                const latestTx = fetchAndDisplayLatestCreditChange.latestTxData; // Use globally updated data
+                const latestTx = fetchAndDisplayLatestCreditChange.latestTxData;
                 if (latestTx && latestTx.amount !== undefined) {
                     const amount = latestTx.amount;
                     const description = latestTx.description || 'N/A';
@@ -856,7 +847,7 @@
             }
         }
         if (ui.totalPointsFooter) {
-            const weeklyPoints = statsData?.points_weekly ?? 0; // Weekly change from user_stats
+            const weeklyPoints = statsData?.points_weekly ?? 0;
             ui.totalPointsFooter.classList.remove('positive', 'negative');
             if (weeklyPoints !== 0 && weeklyPoints != null) {
                 ui.totalPointsFooter.innerHTML = weeklyPoints > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyPoints} týdně` : `<i class="fas fa-arrow-down"></i> ${weeklyPoints} týdně`;
@@ -867,31 +858,29 @@
             }
         }
 
-        // 3. Karta Série
         if (ui.streakValue) {
-            ui.streakValue.textContent = profile.streak_days ?? 0; // Current streak from profile
+            ui.streakValue.textContent = profile.streak_days ?? 0;
         }
         if (ui.streakFooter) {
-            ui.streakFooter.innerHTML = `MAX: ${profile.longest_streak_days ?? 0} dní`; // Longest streak from profile
+            ui.streakFooter.innerHTML = `MAX: ${profile.longest_streak_days ?? 0} dní`;
         }
 
-        // Remove loading class from parent cards and individual cards
         if (ui.statsCardsContainer) ui.statsCardsContainer.classList.remove('loading');
         [ui.progressCard, ui.pointsCard, ui.streakCard].forEach(card => card?.classList.remove('loading'));
 
         console.log("[UI Update] Karty statistik aktualizovány pro procvicovani/main.html.");
     }
 
+
     function updateWelcomeBannerAndLevel(profile) {
         console.log("[UI Update] Aktualizace uvítacího banneru a úrovně XP...");
         if (!profile) { console.warn("[UI Update Welcome] Chybí data profilu."); return; }
 
-        if (ui.welcomeTitle) { // This ID is from dashboard.html, not procvicovani/main.html. Check if needed.
+        if (ui.welcomeTitle) { 
             const displayName = `${profile.first_name || ''}`.trim() || profile.username || currentUser?.email?.split('@')[0] || 'Pilote';
             ui.welcomeTitle.textContent = `Vítej zpět, ${sanitizeHTML(displayName)}!`;
         }
 
-        // Level/XP logic for the card in procvicovani/main.html
         const currentLevel = profile.level ?? 1;
         const currentExperience = profile.experience ?? 0;
 
@@ -1012,7 +1001,7 @@
         let targetElement = null;
         if (tabId === 'practice-tab') {
             targetElement = ui.practiceTabContent;
-        } else if (tabId === 'current') { // 'current' is for currentPlanSection
+        } else if (tabId === 'current') { 
             targetElement = ui.currentPlanSection;
         } else if (tabId === 'vyuka-tab') {
             targetElement = ui.vyukaTabContent;
@@ -1025,13 +1014,13 @@
             const displayStyle = (targetElement.classList.contains('section') || tabId === 'current') ? 'block' : 'block';
             targetElement.style.display = displayStyle;
 
-            if (targetElement.classList.contains('tab-content')) { // Practice / Vyuka
+            if (targetElement.classList.contains('tab-content')) { 
                 targetElement.classList.add('active');
-            } else if (targetElement.classList.contains('section')) { // Current Plan
+            } else if (targetElement.classList.contains('section')) { 
                 targetElement.classList.add('visible-section');
             }
-            if (ui.mainTabContentArea) { // Parent container
-                ui.mainTabContentArea.style.display = 'flex'; // Keep as flex
+            if (ui.mainTabContentArea) { 
+                ui.mainTabContentArea.style.display = 'flex'; 
                 ui.mainTabContentArea.classList.add('visible');
             }
             console.log(`[Main Tab Switch] Activated element: #${targetElement.id} with display: ${displayStyle}`);
@@ -1057,16 +1046,16 @@
 
     async function getLatestDiagnosticTest(userId, showLoaderFlag = true) {
         if (!userId || !supabaseClient) return null;
-        if (showLoaderFlag) setLoadingState('page', true); // This might affect the global page loader
+        if (showLoaderFlag) setLoadingState('page', true); 
         try {
             const { data, error } = await supabaseClient.from('user_diagnostics').select('id, completed_at, total_score, total_questions, topic_results, analysis').eq('user_id', userId).order('completed_at', { ascending: false }).limit(1);
             if (error) throw error;
-            state.latestDiagnosticTest = (data && data.length > 0) ? data[0] : false; // false if no test
+            state.latestDiagnosticTest = (data && data.length > 0) ? data[0] : false; 
             console.log("[getLatestDiagnosticTest] Fetched:", state.latestDiagnosticTest);
             return state.latestDiagnosticTest;
         } catch (error) {
             console.error("Error fetching latest diagnostic test:", error);
-            state.latestDiagnosticTest = null; // null on error
+            state.latestDiagnosticTest = null; 
             return null;
         } finally {
             if (showLoaderFlag) setLoadingState('page', false);
@@ -1378,7 +1367,7 @@
     async function initializeApp() {
         console.log("🚀🚀🚀 [Init Main - DEBUG] procvicovani/main.js initializeApp CALLED! 🚀🚀🚀");
         console.log("🚀 [Init Main] Starting application...");
-        cacheDOMElements(); // Cache DOM elements first
+        cacheDOMElements(); 
         setLoadingState('page', true);
         if (!initializeSupabase()) {
             setLoadingState('page', false);
@@ -1481,14 +1470,13 @@
 // Goal: Fix infinite loading for "Celkový Přehled" on dashboard/procvicovani/main.html.
 // Stage:
 // 1. Modified `toggleSkeletonUI` in `dashboard/procvicovani/main.js`:
-//    - When `showSkeleton` is `false`:
-//        - Added `realContainer.classList.remove('loading');` to remove the 'loading' class from the main stats container (`id="stats-cards"`).
-//        - Added a loop `realContainer.querySelectorAll('.dashboard-card.card').forEach(card => card.classList.remove('loading'));` to ensure individual cards also have their 'loading' class removed. This complements the removal in `renderStatsCards`.
-//    - When `showSkeleton` is `true`:
-//        - Added `realContainer.classList.add('loading');` to ensure the main container has the 'loading' class if skeletons need to be re-shown.
-//        - Added a loop `realContainer.querySelectorAll('.dashboard-card.card').forEach(card => card.classList.add('loading'));` for individual cards.
-// 2. Verified `cacheDOMElements` correctly identifies `ui.statsCardsContainer` and that `ui.statsCardsSkeletonContainer` is correctly `null` as per `main.html` structure.
-// 3. Confirmed that `renderStatsCards` in `main.js` already handles removing `.loading` from individual cards, so the addition in `toggleSkeletonUI` for individual cards is a safeguard/reinforcement.
+//    - When `showSkeleton` is `false` for section 'stats':
+//        - `realContainer.classList.remove('loading');` is called to remove the 'loading' class from the main stats container (`id="stats-cards"`).
+//        - `realContainer.querySelectorAll('.dashboard-card.card').forEach(card => card.classList.remove('loading'));` ensures individual cards also have their 'loading' class removed.
+//    - When `showSkeleton` is `true` for section 'stats':
+//        - `realContainer.classList.add('loading');` ensures the main container has the 'loading' class.
+//        - `realContainer.querySelectorAll('.dashboard-card.card').forEach(card => card.classList.add('loading'));` ensures individual cards also have 'loading' for skeleton display.
+// 2. Confirmed that `ui.statsCardsSkeletonContainer` is `null` for `procvicovani/main.html` and the logic handles this correctly by primarily manipulating `realContainer` (`div#stats-cards`).
 // ---
 // Список функций в dashboard/procvicovani/main.js:
 // cacheDOMElements, formatDateForDisplay, getTodayDateString, dateToYYYYMMDD, addDaysToDate, formatDate, showToast,
