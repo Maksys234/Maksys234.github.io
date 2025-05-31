@@ -22,21 +22,21 @@
                     fontCache: 'global'
                 },
                 options: {
-                    ignoreHtmlClass: 'tex2jax_ignore',
-                    processHtmlClass: 'tex2jax_process'
+                    ignoreHtmlClass: 'tex2jax_ignore', // Třída pro ignorování MathJaxem
+                    processHtmlClass: 'tex2jax_process' // Třída pro explicitní zpracování
                 },
                 startup: {
                     ready: () => {
-                        console.log('[MathJax Config] MathJax Startup: Ready.');
+                        console.log('[MathJax Config] MathJax Startup: Ready (test1.html).');
                         MathJax.startup.defaultReady();
                         MathJax.startup.promise.then(() => {
-                            console.log('[MathJax Config] MathJax Startup: Core Ready.');
+                            console.log('[MathJax Config] MathJax Startup: Core Ready (test1.html).');
                         });
                     }
                 }
             };
         } else {
-            console.warn("[MathJax Config] window.MathJax already defined. Skipping default config.");
+            console.warn("[MathJax Config] window.MathJax already defined (test1.html). Skipping default config.");
         }
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -94,11 +94,19 @@
                     <i class="fas fa-medal"></i> <span class="link-text">Ocenění</span>
                 </a>
             </li>
+            {/* */}
+            <li class="vyuka-sidebar-ai-item btn-tooltip" title="Profil">
+                <a href="/dashboard/profile.html" class="vyuka-sidebar-ai-link">
+                    <i class="fas fa-user-astronaut"></i> <span class="link-text">Profil</span>
+                </a>
+            </li>
+            {/* */}
         </ul>
         <div class="vyuka-sidebar-ai-footer">
-             <button class="vyuka-sidebar-ai-toggle" id="vyuka-sidebar-ai-toggle" aria-label="Přepnout postranní panel AI">
+            {/* <button class="vyuka-sidebar-ai-toggle" id="vyuka-sidebar-ai-toggle" aria-label="Přepnout postranní panel AI">
                 <i class="fas fa-bars"></i>
             </button>
+            --> */}
         </div>
     </aside>
 
@@ -109,7 +117,7 @@
                     <i class="fas fa-bars"></i>
                 </button>
                 <button class="btn btn-icon-only sidebar-ai-desktop-toggle" id="sidebar-ai-desktop-toggle" aria-label="Přepnout postranní panel AI" title="Přepnout postranní panel AI">
-                    <i class="fas fa-chevron-left"></i>
+                    <i class="fas fa-chevron-left"></i> {/* Icon changes in JS based on state */}
                 </button>
                 <div class="vyuka-header-topic-info">
                     <h1 id="vyuka-subject-title">Mathematics</h1>
@@ -131,7 +139,8 @@
                              <button class="mark-all-read-btn btn btn-secondary btn-sm" id="mark-all-read" disabled>Vymazat vše</button>
                          </div>
                          <div id="notifications-list">
-                              <div class="notification-item skeleton"> <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 90%;"></div> <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div> </div> </div>
+                              {/* */}
+                              {/* */}
                              <div id="no-notifications-msg" style="display: none; padding: 1rem; text-align: center; color: var(--text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div>
                          </div>
                          <div class="notifications-footer">
@@ -160,6 +169,7 @@
             <div class="vyuka-whiteboard-area" id="ai-presenter-area">
                 <div id="whiteboard-container">
                     <div id="whiteboard-content">
+                        {/* */}
                     </div>
                      <div id="board-speaking-indicator">
                         <span class="dot"></span><span class="dot"></span><span class="dot"></span>
@@ -196,6 +206,7 @@
                                          <span class="status-dot online"></span> Online
                                      </div>
                                  </div>
+                                 {/* */}
                             </div>
                              <div class="chat-input-area">
                                  <div class="chat-input-wrapper">
@@ -275,7 +286,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             const currentYearFooterVyuka = document.querySelector('.vyuka-footer #currentYearFooter');
             if (currentYearFooterVyuka) { currentYearFooterVyuka.textContent = new Date().getFullYear(); }
-            const currentYearSidebarVyuka = document.querySelector('.vyuka-sidebar-ai #currentYearSidebar');
+            // The sidebar footer currentYear is already handled by dashboard.css and dashboard.js logic
+            // if it's the same sidebar. If it's a different one, this would be needed:
+            const currentYearSidebarVyuka = document.querySelector('.vyuka-sidebar-ai #currentYearSidebar'); // Ensure this ID exists if specific to this sidebar
             if (currentYearSidebarVyuka) { currentYearSidebarVyuka.textContent = new Date().getFullYear(); }
         });
     </script>
