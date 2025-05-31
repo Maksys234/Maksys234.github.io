@@ -61,12 +61,10 @@
             <div class="spinner-blade"></div>
             <div class="spinner-blade"></div>
             <div class="spinner-blade"></div>
-            {/* */}
             <div class="spinner-blade"></div>
             <div class="spinner-blade"></div>
             <div class="spinner-blade"></div>
             <div class="spinner-blade"></div>
-            {/* */}
          </div>
          <p class="loading-text" id="loading-text-anim"><span>S</span><span>Y</span><span>N</span><span>C</span><span>H</span><span>R</span><span>O</span><span>N</span><span>I</span><span>Z</span><span>U</span><span>J</span><span>I</span><span>&nbsp;</span><span>M</span><span>O</span><span>D</span><span>U</span><span>L</span><span>.</span><span>.</span><span>.</span></p>
      </div>
@@ -107,7 +105,6 @@
             </li>
         </ul>
         <div class="vyuka-sidebar-ai-footer">
-            {/* */}
         </div>
     </aside>
 
@@ -140,7 +137,7 @@
                              <button class="mark-all-read-btn btn btn-secondary btn-sm" id="mark-all-read" disabled>Vymazat vše</button>
                          </div>
                          <div id="notifications-list">
-                              {/* */}
+                             <div class="notification-item skeleton"> <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 90%;"></div> <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div> </div> </div>
                              <div id="no-notifications-msg" style="display: none; padding: 1rem; text-align: center; color: var(--text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div>
                          </div>
                          <div class="notifications-footer">
@@ -148,7 +145,6 @@
                          </div>
                     </div>
                  </div>
-                {/* */}
                 <div class="user-menu-container">
                     <div class="vyuka-header-user-display">
                         <div class="vyuka-header-user-avatar-wrapper">
@@ -169,7 +165,6 @@
                         </button>
                     </div>
                 </div>
-                {/* */}
                  <a href="/dashboard/procvicovani/main.html" class="btn btn-secondary btn-tooltip btn-exit-vyuka" title="Ukončit výuku a vrátit se na přehled">
                     <i class="fas fa-times"></i> Ukončit
                 </a>
@@ -203,7 +198,6 @@
             <aside class="vyuka-chat-panel" id="vyuka-chat-panel">
                 <div class="vyuka-chat-header">
                     <h3 id="current-topic-display"><span class="placeholder">Načítám téma...</span></h3>
-                     {/* */}
                     <div class="ai-model-selector-container">
                         <label for="ai-model-select" class="ai-model-label btn-tooltip" title="Vyberte jazykový model AI">
                             <i class="fas fa-cogs"></i> Model:
@@ -214,7 +208,6 @@
                             <option value="gemini-1.5-pro" disabled>Gemini 1.5 Pro (Brzy)</option>
                         </select>
                     </div>
-                    {/* */}
                 </div>
                 <div class="interaction-panel-content">
                     <div id="chat-tab-content" class="tab-content active">
@@ -311,24 +304,26 @@
     <script src="vyuka-ai-interaction.js" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const currentYearFooterVyuka = document.querySelector('.vyuka-footer #currentYearFooter'); // Assuming footer has this ID in its span
+            const currentYearFooterVyuka = document.querySelector('.vyuka-footer #currentYearFooter'); 
             if (currentYearFooterVyuka) { currentYearFooterVyuka.textContent = new Date().getFullYear(); }
 
-            const currentYearSidebarVyuka = document.querySelector('.vyuka-sidebar-ai-footer #currentYearSidebar'); // Assuming sidebar footer has this ID
+            const currentYearSidebarVyuka = document.querySelector('.vyuka-sidebar-ai-footer #currentYearSidebar'); 
             if (currentYearSidebarVyuka) { currentYearSidebarVyuka.textContent = new Date().getFullYear(); }
 
-            // Logout functionality (example, might be handled globally in vyuka-core.js)
             const logoutButton = document.getElementById('vyuka-logout-btn');
             if (logoutButton) {
                 logoutButton.addEventListener('click', async () => {
-                    if (VyukaApp && VyukaApp.state && VyukaApp.state.supabase) {
+                    if (window.VyukaApp && VyukaApp.state && VyukaApp.state.supabase) {
                         const { error } = await VyukaApp.state.supabase.auth.signOut();
                         if (error) {
                             console.error("Chyba při odhlášení:", error);
-                            VyukaApp.showToast('Chyba odhlášení', error.message, 'error');
+                            if (VyukaApp.showToast) VyukaApp.showToast('Chyba odhlášení', error.message, 'error');
                         } else {
-                            window.location.href = '/auth/index.html'; // Nebo na hlavní stránku
+                            window.location.href = '/auth/index.html';
                         }
+                    } else {
+                        console.warn("Supabase instance not found in VyukaApp for logout.");
+                         if (window.VyukaApp && VyukaApp.showToast) VyukaApp.showToast('Chyba', 'Systém odhlášení není připraven.', 'error');
                     }
                 });
             }
