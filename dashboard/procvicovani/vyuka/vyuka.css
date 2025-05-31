@@ -1,4 +1,4 @@
-/* dashboard/procvicovani/vyuka/vyuka.css - EXTREME CYBERPUNK OVERHAUL v13 - Absolute Footer & Scroll Domination */
+/* dashboard/procvicovani/vyuka/vyuka.css - EXTREME CYBERPUNK OVERHAUL v14 - Footer Further Down */
 
 /* --- Základní proměnné --- */
 :root {
@@ -42,7 +42,7 @@
     --vyuka-sidebar-width-expanded: 250px;
     --vyuka-sidebar-width-collapsed: 68px;
     --vyuka-header-height: 64px;
-    --vyuka-footer-base-height: 200px; /* Approximate footer height, adjust as needed */
+    --vyuka-footer-base-height: 180px; /* Approximate footer height, can be adjusted */
 
 
     --vyuka-card-radius: 10px;
@@ -88,7 +88,7 @@ body.new-vyuka-layout {
     font-family: var(--vyuka-font-primary);
     background-color: var(--vyuka-bg-dark);
     color: var(--vyuka-text-primary);
-    margin: 0; padding: 0; display: flex; overflow: hidden; height: 100vh; /* This is key for fixed sidebar and scrollable content */
+    margin: 0; padding: 0; display: flex; overflow: hidden; height: 100vh;
     position: relative;
 }
 body.new-vyuka-layout::before, body.new-vyuka-layout::after {
@@ -113,24 +113,24 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
     flex-grow: 1;
     margin-left: var(--vyuka-sidebar-width-collapsed);
     display: flex;
-    flex-direction: column; /* Ensures header, scrollable, and (if any fixed bottom bar) stack */
+    flex-direction: column;
     height: 100vh;
     transition: margin-left 0.3s var(--animation-timing-cyber);
-    overflow: hidden; /* This container does not scroll */
-    background-color: var(--vyuka-bg-dark) !important; /* Base background for the content area */
+    overflow: hidden;
+    background-color: var(--vyuka-bg-dark) !important;
 }
 .vyuka-sidebar-ai.expanded ~ .vyuka-page-container {
     margin-left: var(--vyuka-sidebar-width-expanded);
 }
 
 .vyuka-main-content-scrollable {
-    flex-grow: 1; /* Allows this to take up space so its children can scroll */
-    overflow-y: auto; /* This is the scrollbar for the content (header, main, footer) */
+    flex-grow: 1;
+    overflow-y: auto;
     overflow-x: hidden;
     display: flex;
-    flex-direction: column; /* Stacks header, .vyuka-main-content, and .main-footer */
+    flex-direction: column;
     position: relative;
-    background-color: transparent; /* So vyuka-page-container background shows */
+    background-color: transparent;
 }
 .vyuka-main-content-scrollable::-webkit-scrollbar { width: 8px; height: 8px; }
 .vyuka-main-content-scrollable::-webkit-scrollbar-track { background: rgba(var(--vyuka-bg-dark), 0.7); }
@@ -145,9 +145,9 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
     align-items: center;
     justify-content: space-between;
     padding: 0 1.2rem;
-    flex-shrink: 0; /* Header does not shrink */
+    flex-shrink: 0;
     box-shadow: 0 3px 15px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(var(--vyuka-border-color),0.5);
-    position: sticky; /* Header will stick to the top of .vyuka-main-content-scrollable */
+    position: sticky;
     top: 0;
     z-index: 950;
 }
@@ -156,14 +156,13 @@ body.scrolled .vyuka-header {
     box-shadow: 0 5px 20px rgba(0,0,0,0.4), 0 0 15px rgba(var(--vyuka-accent-primary-rgb), 0.1) inset;
 }
 
-.vyuka-main-content { /* Container for whiteboard and chat */
+.vyuka-main-content {
     display: flex;
-    flex-grow: 1; /* CRITICAL: This makes .vyuka-main-content take all available vertical space */
-                /* This pushes the footer down if content is shorter than viewport minus header. */
+    flex-grow: 1; /* Allows this to take up space */
     padding: 2rem;
     gap: 2rem;
     background-color: transparent;
-    min-height: calc(100vh - var(--vyuka-header-height) - var(--vyuka-footer-base-height) - 4rem); /* Ensure it tries to fill space, 4rem for paddings */
+    /* min-height removed to allow flex-grow to fully manage space with footer */
     position: relative;
     z-index: 10;
 }
@@ -171,10 +170,7 @@ body.scrolled .vyuka-header {
 /* --- Footer --- */
 .main-footer.vyuka-footer {
     flex-shrink: 0; /* Footer does not shrink */
-    /* margin-top: auto; -- This is important for when content IS short */
-    /* If .vyuka-main-content doesn't fill the space due to lack of its own content, */
-    /* margin-top: auto on the footer pushes it to the bottom of the flex parent (.vyuka-main-content-scrollable) */
-    margin-top: auto;
+    margin-top: auto; /* This is key for pushing it to the bottom of the flex container */
     background-color: var(--vyuka-bg-panel) !important;
     color: var(--vyuka-text-secondary) !important;
     padding: 2.5rem 0 !important;
@@ -357,4 +353,4 @@ mjx-mfrac, mjx-msqrt, mjx-mtable { color: inherit !important; }
 .notifications-dropdown-wrapper, .notifications-header, .notifications-title, .mark-all-read-btn, #notifications-list, .notification-item, .notification-icon, .notification-content, .notification-title, .notification-message, .notification-time, .unread-dot, .notifications-footer, .view-all-notifications-link, #no-notifications-msg, .notification-item.hiding, .notification-item.skeleton .skeleton,
 .toast-container, .toast, .modal-overlay, .modal-content.card, .modal-close-btn, .modal-icon, .modal-title, .modal-text, .modal-actions,
 .offline-banner, .sidebar-overlay-ai
-{ /* Styles from previous version or vyuka.html */ }
+{ /* These styles are from previous version or vyuka.html style block */ }
