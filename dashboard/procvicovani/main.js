@@ -11,9 +11,6 @@
 // VERZE (FIX BUGS from CONSOLE): Corrected user_stats column, added missing UI elements to cache, fixed ReferenceError for fetchUserStats, adapted renderStatsCards.
 // VERZE (Fix Infinite Loading): Modified toggleSkeletonUI to correctly manage 'loading' class on main stats container.
 // VERZE (Fix Infinite Loading - Refined v2): Ensured robust handling of 'loading' class and display style for stats cards.
-// VERZE (Fix Infinite Loading Celkový Přehled v4 - Syntax Error Fix + Robust Skeleton Handling)
-// VERZE (Integrace Plánu - Krok 3): Přidána logika z plan.js
-// VERZE (Oprava chyby deklarace getLatestDiagnosticTest): Přejmenována duplicitní funkce.
 
 (function() {
     'use strict';
@@ -42,26 +39,18 @@
     let state = {
         currentUser: null,
         currentProfile: null,
-        latestDiagnosticTest: null, // Pro logiku main.js (obecná nástěnka)
-        currentStudyPlan: null,     // Pro logiku plánu
+        latestDiagnosticTest: null,
+        currentStudyPlan: null,
         allTitles: [],
-        currentMainTab: 'practice-tab', // Výchozí záložka
+        currentMainTab: 'practice-tab',
         isLoading: {
-            page: true, stats: false, topicProgress: false,
+            page: true, stats: false, topicProgress: false, currentPlan: false,
             goalModal: false, notifications: false, titles: false,
-            // Stavy pro Plán
-            currentPlan: false, 
-            historyPlan: false, 
-            createPlan: false,  
-            planDetail: false,  
-            planGeneration: false, 
+            history: false, create: false, detail: false, schedule: false, generation: false,
         },
         hasCompletedGoalSetting: false,
         hasCompletedDiagnostic: false,
         allExamTopicsAndSubtopics: [],
-        // Stavy specifické pro Plán (přesunuto z plan.js)
-        latestDiagnosticDataForPlan: null, // Specificky pro kontext tvorby plánu
-        previousPlans: [],
         planCreateAllowed: false,
         nextPlanCreateTime: null,
         planTimerInterval: null,
@@ -75,7 +64,7 @@
         planEndDate: null,
     };
 
-    const activityVisuals = { // Společné pro main.js a plan.js
+    const activityVisuals = {
         test: { name: 'Test', icon: 'fa-vial', class: 'test' },
         exercise: { name: 'Cvičení', icon: 'fa-pencil-alt', class: 'exercise' },
         practice: { name: 'Procvičování', icon: 'fa-dumbbell', class: 'practice' },
@@ -83,9 +72,14 @@
         review: { name: 'Opakování', icon: 'fa-history', class: 'review' },
         theory: { name: 'Teorie', icon: 'fa-book-open', class: 'theory' },
         analysis: { name: 'Analýza', icon: 'fa-chart-pie', class: 'analysis' },
+        other: { name: 'Jiná', icon: 'fa-info-circle', class: 'other' },
+        default: { name: 'Aktivita', icon: 'fa-check-circle', class: 'default' },
+        test_diagnostic_completed: { name: 'Diagnostický Test Dokončen', icon: 'fa-microscope', class: 'diagnostic' },
+        vyuka_topic_started: { name: 'Výuka Zahájena', icon: 'fa-chalkboard-teacher', class: 'lesson' },
+        vyuka_topic_finished: { name: 'Výuka Dokončena', icon: 'fa-graduation-cap', class: 'lesson' },
         badge: { name: 'Odznak Získán', icon: 'fa-medal', class: 'badge' },
         diagnostic: { name: 'Diagnostika', icon: 'fa-microscope', class: 'diagnostic' },
-        lesson: { name: 'Nová Data/Lekce', icon: 'fa-book-open', class: 'lesson' },
+        lesson: { name: 'Lekce', icon: 'fa-book-open', class: 'lesson' },
         plan_generated: { name: 'Plán Aktualizován', icon: 'fa-route', class: 'plan_generated' },
         level_up: { name: 'Level UP!', icon: 'fa-angle-double-up', class: 'level_up' },
         streak_milestone_claimed: { name: 'Milník Série', icon: 'fa-meteor', class: 'streak' },
@@ -95,10 +89,6 @@
         custom_task_completed: { name: 'Úkol Dokončen', icon: 'fa-check-square', class: 'exercise' },
         points_earned: { name: 'Kredity Získány', icon: 'fa-arrow-up', class: 'points_earned' },
         points_spent: { name: 'Kredity Utraceny', icon: 'fa-arrow-down', class: 'points_spent' },
-        vyuka_topic_started: { name: 'Výuka Zahájena', icon: 'fa-chalkboard-teacher', class: 'lesson' },
-        vyuka_topic_finished: { name: 'Výuka Dokončena', icon: 'fa-graduation-cap', class: 'lesson' },
-        other: { name: 'Systémová Zpráva', icon: 'fa-info-circle', class: 'other' },
-        default: { name: 'Aktivita', icon: 'fa-check-circle', class: 'default' }
     };
     // ==============================================
     //          Помощники (Utility Functions) - Declarations first
@@ -125,12 +115,12 @@
             diagnosticPrompt: document.getElementById('diagnostic-prompt'),
             startTestBtnPrompt: document.getElementById('start-test-btn-prompt'),
             tabsWrapper: document.getElementById('tabs-wrapper'),
-            contentTabs: document.querySelectorAll('#tabs-wrapper .plan-tab'), 
+            contentTabs: document.querySelectorAll('#tabs-wrapper .plan-tab'),
             mainTabContentArea: document.getElementById('main-tab-content-area'),
             practiceTabContent: document.getElementById('practice-tab-content'),
             vyukaTabContent: document.getElementById('vyuka-tab-content'),
-            statsCardsContainer: document.getElementById('stats-cards'),
-            progressCard: document.getElementById('progress-card'),
+            statsCardsContainer: document.getElementById('stats-cards'), 
+            progressCard: document.getElementById('progress-card'), 
             dashboardLevelWidget: document.getElementById('dashboard-level-widget'),
             dashboardExpProgressBar: document.getElementById('dashboard-exp-progress-bar'),
             dashboardExpCurrent: document.getElementById('dashboard-exp-current'),
@@ -143,10 +133,10 @@
             streakCard: document.getElementById('streak-card'),
             streakValue: document.getElementById('streak-value'),
             streakFooter: document.getElementById('streak-footer'),
-            statsCardsSkeletonContainer: document.getElementById('stats-cards-skeleton-container'),
+            statsCardsSkeletonContainer: document.getElementById('stats-cards-skeleton-container'), 
             shortcutsGrid: document.getElementById('shortcuts-grid'),
-            shortcutGridReal: document.getElementById('shortcut-grid-real'),
-            shortcutGridSkeletonContainer: document.getElementById('shortcut-grid-skeleton-container'),
+            shortcutGridReal: document.getElementById('shortcut-grid-real'), 
+            shortcutGridSkeletonContainer: document.getElementById('shortcut-grid-skeleton-container'), 
             topicProgressSection: document.getElementById('topic-progress-section'),
             topicProgressTableBody: document.getElementById('topic-progress-body'),
             topicProgressTableLoadingOverlay: document.getElementById('topic-progress-table-loading-overlay'),
@@ -157,17 +147,15 @@
             goalRadioLabels: document.querySelectorAll('.goal-radio-label'),
             goalModalBackBtns: document.querySelectorAll('.modal-back-btn'),
             goalModalConfirmBtns: document.querySelectorAll('.modal-confirm-btn'),
-            accelerateGradeSelect: document.getElementById('accelerate-grade'), 
-            accelerateIntensitySelect: document.getElementById('accelerate-intensity'), 
+            accelerateGradeSelect: document.getElementById('accelerate_grade_profile'),
+            accelerateIntensitySelect: document.getElementById('accelerate_intensity_profile'),
             accelerateAreasCheckboxes: document.querySelectorAll('input[name="accelerate_area"]'),
             accelerateReasonRadios: document.querySelectorAll('input[name="accelerate_reason"]'),
             accelerateProfessionGroup: document.getElementById('accelerate-profession-group'),
             accelerateProfessionTextarea: document.getElementById('accelerate-profession'),
-            reviewGradeSelect: document.getElementById('review-grade'), 
+            reviewGradeSelect: document.getElementById('review_grade_profile'),
             topicRatingsContainer: document.getElementById('topic-ratings-container'),
-            exploreGradeSelect: document.getElementById('explore-grade'), 
-
-            planTabContent: document.getElementById('plan-tab-content'), 
+            exploreGradeSelect: document.getElementById('explore_grade'),
             currentPlanSection: document.getElementById('currentPlanSection'),
             currentPlanLoader: document.getElementById('currentPlanLoader'),
             dailyPlanCarouselContainer: document.getElementById('dailyPlanCarouselContainer'),
@@ -175,19 +163,6 @@
             prevDayBtn: document.getElementById('prevDayBtn'),
             nextDayBtn: document.getElementById('nextDayBtn'),
             currentPlanEmptyState: document.getElementById('currentPlanEmptyState'),
-            historyPlanSection: document.getElementById('historyPlanSection'),
-            historyLoader: document.getElementById('historyLoader'),
-            historyPlanContent: document.getElementById('historyPlanContent'),
-            createPlanSection: document.getElementById('createPlanSection'),
-            createPlanLoader: document.getElementById('createPlanLoader'),
-            createPlanContent: document.getElementById('createPlanContent'),
-            planSection: document.getElementById('planSection'), 
-            planLoading: document.getElementById('planLoading'), 
-            planSectionTitle: document.getElementById('plan-section-title'),
-            planContent: document.getElementById('planContent'), 
-            planActions: document.getElementById('planActions'), 
-            genericBackBtn: document.getElementById('genericBackBtn'), 
-
             notificationBell: document.getElementById('notification-bell'),
             notificationCount: document.getElementById('notification-count'),
             notificationsDropdown: document.getElementById('notifications-dropdown'),
@@ -197,14 +172,8 @@
             currentYearSidebar: document.getElementById('currentYearSidebar'),
             currentYearFooter: document.getElementById('currentYearFooter'),
             mouseFollower: document.getElementById('mouse-follower'),
-            dayCardTemplate: document.getElementById('dayCardTemplate'), 
-            dayCardSkeleton: document.getElementById('dayCardSkeleton'), 
-            lockedPlanTemplate: document.getElementById('lockedPlanTemplate'), 
-            createPlanFormTemplate: document.getElementById('createPlanFormTemplate'), 
-            noDiagnosticTemplate: document.getElementById('noDiagnosticTemplate'), 
-            historyItemTemplate: document.getElementById('historyItemTemplate'), 
-            promptCreatePlanTemplate: document.getElementById('promptCreatePlanTemplate'), 
-            noActivePlanTemplate: document.getElementById('noActivePlanTemplate'), 
+            dayCardTemplate: document.getElementById('dayCardTemplate'),
+            dayCardSkeleton: document.getElementById('dayCardSkeleton'),
             welcomeBannerReal: document.getElementById('welcome-banner-real'),
             welcomeBannerSkeleton: document.getElementById('welcome-banner-skeleton'),
             activityListContainerWrapper: document.getElementById('recent-activities-container-wrapper'),
@@ -214,17 +183,17 @@
             creditHistoryListContainer: document.getElementById('credit-history-list-container'),
             creditHistorySkeletonContainer: document.getElementById('credit-history-skeleton-container'),
         };
-        if (!ui.accelerateGradeSelect) ui.accelerateGradeSelect = document.getElementById('accelerate_grade_profile');
-        if (!ui.accelerateIntensitySelect) ui.accelerateIntensitySelect = document.getElementById('accelerate_intensity_profile');
-        if (!ui.reviewGradeSelect) ui.reviewGradeSelect = document.getElementById('review_grade_profile');
-        if (!ui.exploreGradeSelect) ui.exploreGradeSelect = document.getElementById('explore_grade');
+        if (!ui.accelerateGradeSelect) ui.accelerateGradeSelect = document.getElementById('accelerate-grade');
+        if (!ui.accelerateIntensitySelect) ui.accelerateIntensitySelect = document.getElementById('accelerate-intensity');
+        if (!ui.reviewGradeSelect) ui.reviewGradeSelect = document.getElementById('review-grade');
+        if (!ui.exploreGradeSelect) ui.exploreGradeSelect = document.getElementById('explore-grade');
         console.log("[CACHE DOM] Caching complete.");
     }
 
     const formatDateForDisplay = (dateStringOrDate) => {
         if (!dateStringOrDate) return 'Neznámé datum';
         try {
-            const date = (typeof dateStringOrDate === 'string') ? new Date(dateStringOrDate + 'T00:00:00') : dateStringOrDate; 
+            const date = (typeof dateStringOrDate === 'string') ? new Date(dateStringOrDate + 'T00:00:00') : dateStringOrDate;
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             let formatted = date.toLocaleDateString('cs-CZ', options);
             formatted = formatted.charAt(0).toUpperCase() + formatted.slice(1);
@@ -245,7 +214,7 @@
         const day = date.getDate().toString().padStart(2, '0');
         return `${year}-${month}-${day}`;
     };
-    const addDaysToDate = (dateString, days) => { 
+    const addDaysToDate = (dateString, days) => {
         const date = new Date(dateString + 'T00:00:00');
         date.setDate(date.getDate() + days);
         return dateToYYYYMMDD(date);
@@ -276,7 +245,7 @@
             ui.sidebarOverlay.classList.remove('active');
         }
     };
-    const initTooltips = () => { try { if (window.jQuery?.fn.tooltipster) { window.jQuery('.btn-tooltip.tooltipstered').each(function() { try {window.jQuery(this).tooltipster('destroy');} catch(e){/*ignore*/} }); window.jQuery('.btn-tooltip').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 100, side: 'top' }); } } catch (e) { console.error("Tooltipster init error:", e); } };
+    const initTooltips = () => { try { if (window.jQuery?.fn.tooltipster) { window.jQuery('.btn-tooltip:not(.tooltipstered)').tooltipster({ theme: 'tooltipster-shadow', animation: 'fade', delay: 100, side: 'top' }); } } catch (e) { console.error("Tooltipster init error:", e); } };
     const showGlobalError = (message) => { if(ui.globalError) { ui.globalError.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i><div>${sanitizeHTML(message)}</div></div>`; ui.globalError.style.display = 'block';} };
     const hideGlobalError = () => { if(ui.globalError) ui.globalError.style.display = 'none'; };
     const formatRelativeTime = (timestamp) => { if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); if (isNaN(date.getTime())) return '-'; const diffMs = now - date; const diffSec = Math.round(diffMs / 1000); const diffMin = Math.round(diffSec / 60); const diffHour = Math.round(diffMin / 60); const diffDay = Math.round(diffHour / 24); const diffWeek = Math.round(diffDay / 7); if (diffSec < 60) return 'Nyní'; if (diffMin < 60) return `Před ${diffMin} min`; if (diffHour < 24) return `Před ${diffHour} hod`; if (diffDay === 1) return `Včera`; if (diffDay < 7) return `Před ${diffDay} dny`; if (diffWeek <= 4) return `Před ${diffWeek} týdny`; return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' }); } catch (e) { console.error("Chyba formátování času:", e, "Timestamp:", timestamp); return '-'; } }
@@ -284,7 +253,7 @@
     const initMouseFollower = () => { const follower = ui.mouseFollower; if (!follower || window.innerWidth <= 576) return; let hasMoved = false; const updatePosition = (event) => { if (!hasMoved) { document.body.classList.add('mouse-has-moved'); hasMoved = true; } requestAnimationFrame(() => { follower.style.left = `${event.clientX}px`; follower.style.top = `${event.clientY}px`; }); }; window.addEventListener('mousemove', updatePosition, { passive: true }); document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; }); document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; }); window.addEventListener('touchstart', () => { if(follower) follower.style.display = 'none'; }, { passive: true, once: true }); };
     const initScrollAnimations = () => { const animatedElements = document.querySelectorAll('.main-content-wrapper [data-animate]'); if (!animatedElements.length || !('IntersectionObserver' in window)) return; const observer = new IntersectionObserver((entries, observerInstance) => { entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('animated'); observerInstance.unobserve(entry.target); } }); }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" }); animatedElements.forEach(element => observer.observe(element)); console.log(`Scroll animations initialized for ${animatedElements.length} elements.`); };
     const initHeaderScrollDetection = () => {
-        let lastScrollY = ui.mainContentWrapper?.scrollTop || 0;
+        let lastScrollY = ui.mainContentWrapper?.scrollTop || 0; 
         const mainWrapperEl = ui.mainContentWrapper;
         if (!mainWrapperEl) return;
         mainWrapperEl.addEventListener('scroll', () => {
@@ -324,27 +293,10 @@
         } catch (error) { console.error("[ToggleSidebar] Chyba:", error); }
     }
 
-    function setCardContentVisibility(cardElement, showRealContent) {
-        if (!cardElement) return;
-        const skeletonEl = cardElement.querySelector('.loading-skeleton');
-        const realContentElements = Array.from(cardElement.children).filter(child => !child.classList.contains('loading-skeleton'));
-        if (skeletonEl) {
-            skeletonEl.style.display = showRealContent ? 'none' : 'flex';
-        }
-        realContentElements.forEach(contentEl => {
-            if (showRealContent) {
-                contentEl.style.visibility = 'visible';
-                contentEl.style.display = '';
-            } else {
-                contentEl.style.visibility = 'hidden';
-            }
-        });
-    }
-
+    // --- START: NEW/MODIFIED toggleSkeletonUI ---
     function toggleSkeletonUI(sectionKey, showSkeleton) {
-        console.log(`[Skeleton Toggle - Main.js Refined v4] Section: ${sectionKey}, Show Skeleton: ${showSkeleton}`);
+        console.log(`[Skeleton Toggle - Main.js Refined v2] Section: ${sectionKey}, Show Skeleton: ${showSkeleton}`);
         let skeletonContainer, realContainer, displayTypeIfReal = 'block';
-        let individualCards = [];
 
         switch (sectionKey) {
             case 'welcomeBanner':
@@ -355,12 +307,11 @@
             case 'stats':
                 skeletonContainer = null; 
                 realContainer = ui.statsCardsContainer; 
-                individualCards = [ui.progressCard, ui.pointsCard, ui.streakCard].filter(Boolean);
                 displayTypeIfReal = 'grid';
                 break;
             case 'shortcuts':
-                skeletonContainer = ui.shortcutGridSkeletonContainer;
-                realContainer = ui.shortcutGridReal;
+                skeletonContainer = ui.shortcutGridSkeletonContainer; 
+                realContainer = ui.shortcutsGrid; 
                 displayTypeIfReal = 'grid';
                 break;
             case 'activities':
@@ -370,7 +321,7 @@
                 if (ui.activityListContainerWrapper) {
                     ui.activityListContainerWrapper.classList.toggle('loading-section', showSkeleton);
                 }
-                return;
+                return; 
             case 'creditHistory':
                  if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.setCreditHistoryLoading === 'function') {
                     DashboardLists.setCreditHistoryLoading(showSkeleton);
@@ -378,79 +329,46 @@
                 if (ui.creditHistoryContainerWrapper) {
                     ui.creditHistoryContainerWrapper.classList.toggle('loading-section', showSkeleton);
                 }
-                return;
-            case 'currentPlan':
-            case 'historyPlan':
-            case 'createPlan':
-            case 'planDetail':
-            case 'planGeneration':
-                const planLoaderMap = { currentPlan: ui.currentPlanLoader, historyPlan: ui.historyLoader, createPlan: ui.createPlanLoader, planDetail: ui.planLoading, planGeneration: ui.planLoading };
-                const planContentMap = { currentPlan: ui.dailyPlanCarouselContainer, historyPlan: ui.historyPlanContent, createPlan: ui.createPlanContent, planDetail: ui.planContent };
-                const planEmptyMap = { currentPlan: ui.currentPlanEmptyState };
-                const planSectionMap = { currentPlan: ui.currentPlanSection, historyPlan: ui.historyPlanSection, createPlan: ui.createPlanSection, planDetail: ui.planSection };
-
-                const loader = planLoaderMap[sectionKey];
-                const content = planContentMap[sectionKey];
-                const emptyState = planEmptyMap[sectionKey];
-                const section = planSectionMap[sectionKey];
-
-                if (loader) loader.classList.toggle('visible-loader', showSkeleton);
-                if (section) section.classList.toggle('loading', showSkeleton);
-
-                if (showSkeleton) {
-                    if (content) content.classList.remove('content-visible', 'schedule-visible', 'generated-reveal');
-                    if (emptyState) emptyState.style.display = 'none';
-                    if (sectionKey === 'historyPlan' && ui.historyPlanContent && typeof renderHistorySkeletons === 'function') renderHistorySkeletons(3);
-                    if (sectionKey === 'currentPlan' && ui.singleDayPlanView) {
-                        if (ui.dayCardSkeleton) {
-                            ui.singleDayPlanView.innerHTML = '';
-                            const skeletonClone = ui.dayCardSkeleton.cloneNode(true);
-                            skeletonClone.style.display = 'flex';
-                            ui.singleDayPlanView.appendChild(skeletonClone);
-                        }
-                        if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'flex';
-                    }
-                    if (sectionKey === 'planGeneration' && ui.planActions) ui.planActions.style.display = 'none';
-                } else {
-                    if (sectionKey === 'planDetail' && ui.planActions) ui.planActions.style.display = 'flex';
-                }
                 return; 
-
             default:
                 console.warn(`[Skeleton Toggle - Main.js] Unknown sectionKey: ${sectionKey}`);
                 return;
         }
 
-        if (showSkeleton) {
-            if (skeletonContainer) {
-                if (skeletonContainer) skeletonContainer.style.display = displayTypeIfReal;
-                if (realContainer) realContainer.style.display = 'none';
-            } else if (realContainer && individualCards.length > 0) { 
+        if (realContainer) {
+            if (showSkeleton) {
+                // If skeletonContainer is null (like for 'stats'), the realContainer manages its own skeleton state
+                // by having the 'loading' class, which CSS uses to show internal skeletons.
                 realContainer.classList.add('loading');
+                if (sectionKey === 'stats' || sectionKey === 'shortcuts') {
+                    realContainer.querySelectorAll('.dashboard-card.card, .shortcut-card.card').forEach(card => card.classList.add('loading'));
+                }
+                // Set display *after* adding loading class so CSS for .loading can take effect
                 realContainer.style.display = displayTypeIfReal;
-                individualCards.forEach(card => {
-                    if (card) {
-                        card.classList.add('loading');
-                        setCardContentVisibility(card, false);
-                    }
-                });
-            }
-        } else {
-            if (skeletonContainer) {
-                if (skeletonContainer) skeletonContainer.style.display = 'none';
-                if (realContainer) realContainer.style.display = displayTypeIfReal;
-            } else if (realContainer && individualCards.length > 0) { 
+
+                if (skeletonContainer) { // If a dedicated skeleton for the whole section exists
+                    skeletonContainer.style.display = displayTypeIfReal;
+                    realContainer.style.display = 'none'; // Hide the real one completely
+                }
+            } else {
+                // Not showing skeleton: show real content, remove loading classes.
                 realContainer.classList.remove('loading');
+                if (sectionKey === 'stats' || sectionKey === 'shortcuts') {
+                    realContainer.querySelectorAll('.dashboard-card.card, .shortcut-card.card').forEach(card => card.classList.remove('loading'));
+                }
                 realContainer.style.display = displayTypeIfReal;
-                 individualCards.forEach(card => { 
-                    if (card) {
-                        card.classList.remove('loading');
-                        setCardContentVisibility(card, true);
-                    }
-                });
+                if (skeletonContainer) {
+                    skeletonContainer.style.display = 'none';
+                }
             }
+        } else if (skeletonContainer && showSkeleton) {
+            skeletonContainer.style.display = displayTypeIfReal;
+        } else if (skeletonContainer && !showSkeleton) {
+            skeletonContainer.style.display = 'none';
         }
     }
+    // --- END: NEW/MODIFIED toggleSkeletonUI ---
+
 
     const setLoadingState = (sectionKey, isLoadingFlag) => {
         if (!ui || Object.keys(ui).length === 0) { console.error("[SetLoadingState] UI cache not ready."); return; }
@@ -468,8 +386,7 @@
         state.isLoading[sectionKey] = isLoadingFlag;
         console.log(`[SetLoadingState - Main.js] Section: ${sectionKey}, isLoading: ${isLoadingFlag}`);
 
-        const skeletonManagedSections = ['welcomeBanner', 'stats', 'shortcuts', 'activities', 'creditHistory',
-                                         'currentPlan', 'historyPlan', 'createPlan', 'planDetail', 'planGeneration'];
+        const skeletonManagedSections = ['welcomeBanner', 'stats', 'shortcuts', 'activities', 'creditHistory'];
         if (skeletonManagedSections.includes(sectionKey)) {
             toggleSkeletonUI(sectionKey, isLoadingFlag);
         }
@@ -477,6 +394,18 @@
         if (sectionKey === 'topicProgress' && ui.topicProgressSection) {
             ui.topicProgressTableLoadingOverlay?.classList.toggle('visible-loader', isLoadingFlag);
             ui.topicProgressTable?.classList.toggle('hidden-while-loading', isLoadingFlag);
+        } else if (sectionKey === 'currentPlan' && ui.currentPlanSection) {
+            ui.currentPlanLoader?.classList.toggle('visible-loader', isLoadingFlag);
+             if (isLoadingFlag) {
+                if (ui.dayCardSkeleton && ui.singleDayPlanView) {
+                    ui.singleDayPlanView.innerHTML = '';
+                    const skeletonClone = ui.dayCardSkeleton.cloneNode(true);
+                    skeletonClone.style.display = 'flex';
+                    ui.singleDayPlanView.appendChild(skeletonClone);
+                }
+                if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'flex';
+                if (ui.currentPlanEmptyState) ui.currentPlanEmptyState.style.display = 'none';
+            }
         } else if (sectionKey === 'notifications' && ui.notificationBell) {
             ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1;
             if (ui.markAllReadBtn) {
@@ -511,14 +440,12 @@
             buttonsHTML += `<button class="btn ${btn.class || 'btn-primary'}" id="${btn.id}" ${btn.disabled ? 'disabled' : ''}>${btn.icon ? `<i class="fas ${btn.icon}"></i> ` : ''}${sanitizeHTML(btn.text)}</button>`;
         });
         container.innerHTML = `<div class="notest-message ${type}"><h3><i class="fas ${iconMap[type]}"></i> ${sanitizeHTML(title)}</h3><p>${sanitizeHTML(message)}</p><div class="action-buttons">${buttonsHTML}</div></div>`;
-        container.classList.add('content-visible'); 
-
+        container.classList.add('content-visible');
         if (container === ui.currentPlanEmptyState) {
             if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
             container.style.display = 'flex';
-        } else if (container === ui.historyPlanContent || container === ui.createPlanContent || container === ui.planContent) {
-            container.style.display = 'block'; 
         }
+
 
         addButtons.forEach(btn => {
             const btnElement = container.querySelector(`#${btn.id}`);
@@ -531,16 +458,255 @@
     // ==============================================
     //          Core Application Logic (for main.html)
     // ==============================================
+    const initializeSupabase = () => { try { if (!window.supabase) throw new Error("Supabase library not loaded."); supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey); console.log("Supabase client initialized."); return true; } catch (error) { console.error("Supabase init failed:", error); showGlobalError("Kritická chyba: Nelze inicializovat databázi."); return false; } };
+
+    async function fetchUserProfile(userId) {
+        if (!userId || !supabaseClient) return null;
+        setLoadingState('titles', true);
+        try {
+            const { data, error } = await supabaseClient
+                .from('profiles')
+                .select('id, updated_at, username, first_name, last_name, email, avatar_url, bio, school, grade, level, completed_exercises, streak_days, last_login, badges_count, points, preferences, notifications, created_at, experience, purchased_titles, selected_title, last_reward_claimed_at, monthly_claims, last_milestone_claimed, purchased_decorations, selected_decoration, learning_goal, longest_streak_days, role')
+                .eq('id', userId)
+                .single();
+
+            if (error && error.code !== 'PGRST116') {
+                console.error("Profile fetch error (details):", error);
+                throw error;
+            }
+            setLoadingState('titles', false);
+            return data;
+        } catch (e) {
+            console.error("Profile fetch error:", e);
+            setLoadingState('titles', false);
+            return null;
+        }
+    }
+
+
+    async function fetchTitles() {
+        if (!supabaseClient) return [];
+        console.log("[Titles] Fetching available titles...");
+        setLoadingState('titles', true);
+        try {
+            const { data, error } = await supabaseClient
+                .from('title_shop')
+                .select('title_key, name');
+            if (error) throw error;
+            console.log("[Titles] Fetched titles:", data);
+            return data || [];
+        } catch (error) {
+            console.error("[Titles] Error fetching titles:", error);
+            showToast("Chyba načítání dostupných titulů.", "error");
+            return [];
+        } finally {
+            setLoadingState('titles', false);
+        }
+    }
+
+    function updateSidebarProfile() {
+        if (!ui.sidebarName || !ui.sidebarAvatar || !ui.sidebarUserTitle) {
+            console.warn("[SidebarUI] Chybí elementy postranního panelu pro profil.");
+            return;
+        }
+        if (state.currentProfile && state.currentUser) {
+            const profile = state.currentProfile;
+            const user = state.currentUser;
+            let displayName = (profile.first_name || profile.last_name)
+                ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+                : profile.username || user.email?.split('@')[0] || 'Pilot';
+
+            ui.sidebarName.textContent = sanitizeHTML(displayName);
+
+            const initials = getInitials(profile, user.email);
+            const avatarUrl = profile.avatar_url;
+            let finalAvatarUrlToUse = null;
+
+            if (avatarUrl) {
+                if (!avatarUrl.startsWith('http') && avatarUrl.includes('/')) {
+                    finalAvatarUrlToUse = sanitizeHTML(avatarUrl);
+                } else {
+                    finalAvatarUrlToUse = `${sanitizeHTML(avatarUrl)}?t=${new Date().getTime()}`;
+                }
+            }
+            ui.sidebarAvatar.innerHTML = finalAvatarUrlToUse ? `<img src="${finalAvatarUrlToUse}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
+
+
+            const img = ui.sidebarAvatar.querySelector('img');
+            if (img) {
+                img.onerror = function() {
+                    console.warn(`[SidebarUI] Nepodařilo se načíst avatar: ${this.src}. Zobrazuji iniciály.`);
+                    ui.sidebarAvatar.innerHTML = sanitizeHTML(initials);
+                };
+            }
+
+            const selectedTitleKey = profile.selected_title;
+            let displayTitle = 'Pilot';
+
+            if (selectedTitleKey && state.allTitles && state.allTitles.length > 0) {
+                const foundTitle = state.allTitles.find(t => t.title_key === selectedTitleKey);
+                if (foundTitle && foundTitle.name) {
+                    displayTitle = foundTitle.name;
+                } else {
+                    console.warn(`[SidebarUI] Titul s klíčem "${selectedTitleKey}" nebyl nalezen v načtených titulech.`);
+                }
+            } else if (selectedTitleKey) {
+                 console.warn(`[SidebarUI] Klíč titulu "${selectedTitleKey}" je přítomen, ale seznam všech titulů (state.allTitles) je prázdný nebo nebyl načten.`);
+            }
+            ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle);
+            ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle));
+
+        } else {
+            ui.sidebarName.textContent = "Nepřihlášen";
+            ui.sidebarAvatar.textContent = '?';
+            ui.sidebarUserTitle.textContent = 'Pilot';
+            ui.sidebarUserTitle.removeAttribute('title');
+        }
+    }
+
+    async function fetchNotifications(userId, limit = NOTIFICATION_FETCH_LIMIT) { if (!supabaseClient || !userId) { console.error("[Notifications] Missing Supabase client or User ID."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications] Fetching unread notifications for user ${userId}`); setLoadingState('notifications', true); try { const { data, error, count } = await supabaseClient.from('user_notifications').select('*', { count: 'exact' }).eq('user_id', userId).eq('is_read', false).order('created_at', { ascending: false }).limit(limit); if (error) throw error; console.log(`[Notifications] Fetched ${data?.length || 0} notifications. Total unread: ${count}`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications] Exception fetching notifications:", error); showToast('Chyba', 'Nepodařilo se načíst oznámení.', 'error'); return { unreadCount: 0, notifications: [] }; } finally { setLoadingState('notifications', false); } }
+    function renderNotifications(count, notifications) { console.log("[Render Notifications] Start, Count:", count, "Notifications:", notifications); if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications] Missing UI elements."); return; } ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0); if (notifications && notifications.length > 0) { ui.notificationsList.innerHTML = notifications.map(n => { const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default; const isReadClass = n.is_read ? 'is-read' : ''; const linkAttr = n.link ? `data-link="${sanitizeHTML(n.link)}"` : ''; return `<div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>${!n.is_read ? '<span class="unread-dot"></span>' : ''}<div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div><div class="notification-content"><div class="notification-title">${sanitizeHTML(n.title)}</div><div class="notification-message">${sanitizeHTML(n.message)}</div><div class="notification-time">${formatRelativeTime(n.created_at)}</div></div></div>`; }).join(''); ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0; } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; } ui.notificationsList.closest('.notifications-dropdown-wrapper')?.classList.toggle('has-content', notifications && notifications.length > 0); console.log("[Render Notifications] Finished"); }
+    function renderNotificationSkeletons(count = 2) { if (!ui.notificationsList || !ui.noNotificationsMsg) return; let skeletonHTML = ''; for (let i = 0; i < count; i++) { skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`; } ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; }
+    async function markNotificationRead(notificationId) { console.log("[Notifications] Marking notification as read:", notificationId); if (!state.currentUser || !notificationId) return false; try { const { error } = await supabaseClient.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('id', notificationId); if (error) throw error; console.log("[Notifications] Mark as read successful for ID:", notificationId); return true; } catch (error) { console.error("[Notifications] Mark as read error:", error); showToast('Chyba', 'Nepodařilo se označit oznámení jako přečtené.', 'error'); return false; } }
+    async function markAllNotificationsRead() { console.log("[Notifications] Marking all as read for user:", state.currentUser?.id); if (!state.currentUser || !ui.markAllReadBtn) return; setLoadingState('notifications', true); try { const { error } = await supabaseClient.from('user_notifications').update({ is_read: true }).eq('user_id', state.currentUser.id).eq('is_read', false); if (error) throw error; console.log("[Notifications] Mark all as read successful"); const { unreadCount, notifications } = await fetchNotifications(state.currentUser.id, NOTIFICATION_FETCH_LIMIT); renderNotifications(unreadCount, notifications); showToast('SIGNÁLY VYMAZÁNY', 'Všechna oznámení byla označena jako přečtená.', 'success'); } catch (error) { console.error("[Notifications] Mark all as read error:", error); showToast('CHYBA PŘENOSU', 'Nepodařilo se označit všechna oznámení.', 'error'); const currentCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0'); if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = currentCount === 0; } finally { setLoadingState('notifications', false); } }
+
+    const groupActivitiesByDayAndDateArray = (activities) => {
+        state.allActivePlanActivitiesByDay = {};
+        state.sortedActivityDates = [];
+        if (!activities || activities.length === 0) {
+            state.planStartDate = null;
+            state.planEndDate = null;
+            return;
+        }
+        const dayToDateMap = {};
+        const sortedActivities = [...activities].sort((a, b) => {
+            if (a.day_of_week !== b.day_of_week) { return a.day_of_week - b.day_of_week; }
+            return (a.time_slot || '99:99').localeCompare(b.time_slot || '99:99');
+        });
+        let planStartDayOfWeek = sortedActivities[0].day_of_week;
+        let referenceDate = new Date();
+        let currentDayOfWeekJs = referenceDate.getDay();
+        if (currentDayOfWeekJs === 0) currentDayOfWeekJs = 7;
+
+        let diffToStartDay = planStartDayOfWeek - currentDayOfWeekJs;
+        referenceDate.setDate(referenceDate.getDate() + diffToStartDay);
+        state.planStartDate = new Date(referenceDate);
+        state.planEndDate = new Date(state.planStartDate);
+        state.planEndDate.setDate(state.planStartDate.getDate() + 6);
+        for (let i = 0; i < 7; i++) { const currentDate = new Date(state.planStartDate); currentDate.setDate(state.planStartDate.getDate() + i); const dayOfWeekForMap = currentDate.getDay(); dayToDateMap[dayOfWeekForMap === 0 ? 7 : dayOfWeekForMap] = dateToYYYYMMDD(currentDate); } // Map DB days (1-7)
+        activities.forEach(act => { const dateString = dayToDateMap[act.day_of_week]; if (dateString) { if (!state.allActivePlanActivitiesByDay[dateString]) { state.allActivePlanActivitiesByDay[dateString] = []; } state.allActivePlanActivitiesByDay[dateString].push(act); } else { console.warn(`Activity ID ${act.id} has invalid day_of_week: ${act.day_of_week}`); }});
+        state.sortedActivityDates = Object.keys(state.allActivePlanActivitiesByDay).sort();
+        if (state.sortedActivityDates.length > 0) { state.planStartDate = new Date(state.sortedActivityDates[0] + 'T00:00:00'); state.planEndDate = new Date(state.sortedActivityDates[state.sortedActivityDates.length - 1] + 'T00:00:00'); }
+        else { state.planStartDate = null; state.planEndDate = null; }
+        console.log("[groupActivities] Grouped activities:", state.allActivePlanActivitiesByDay, "Sorted dates:", state.sortedActivityDates, "Plan effective start/end:", state.planStartDate, state.planEndDate);
+    };
+
+    async function loadCurrentPlan() {
+        if (!supabaseClient || !state.currentUser) return;
+        console.log("[CurrentPlan in Main.js] Loading current plan...");
+        setLoadingState('currentPlan', true);
+        if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
+        if (ui.currentPlanEmptyState) ui.currentPlanEmptyState.style.display = 'none';
+        try {
+            const { data: plans, error } = await supabaseClient.from('study_plans').select('*').eq('user_id', state.currentUser.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1);
+            if (error) throw error;
+            if (plans && plans.length > 0) {
+                state.currentStudyPlan = plans[0]; console.log("[CurrentPlan in Main.js] Active plan found:", state.currentStudyPlan.id);
+                const { data: activities, error: actError } = await supabaseClient.from('plan_activities').select('*').eq('plan_id', state.currentStudyPlan.id).order('day_of_week').order('time_slot');
+                if (actError) throw actError;
+                groupActivitiesByDayAndDateArray(activities || []);
+                const todayStr = getTodayDateString();
+                if (state.sortedActivityDates.includes(todayStr)) { state.currentDisplayDate = todayStr; }
+                else if (state.sortedActivityDates.length > 0) { let futureDate = state.sortedActivityDates.find(d => d >= todayStr); state.currentDisplayDate = futureDate || state.sortedActivityDates[state.sortedActivityDates.length -1]; if (!state.currentDisplayDate && state.planStartDate) { state.currentDisplayDate = dateToYYYYMMDD(state.planStartDate); } else if (!state.currentDisplayDate) { state.currentDisplayDate = state.sortedActivityDates[0] || todayStr; } }
+                else { state.currentDisplayDate = todayStr; }
+                renderSingleDayPlan(state.currentDisplayDate);
+                if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'flex';
+            } else {
+                state.currentStudyPlan = null; state.allActivePlanActivitiesByDay = {}; state.sortedActivityDates = []; state.currentDisplayDate = null;
+                console.log("[CurrentPlan in Main.js] No active plan found. Checking diagnostic...");
+                if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
+                const diagnostic = await getLatestDiagnosticTest(state.currentUser.id, false);
+                if (diagnostic === null) { renderMessage(ui.currentPlanEmptyState, 'error', 'Chyba načítání diagnostiky', 'Nepodařilo se ověřit stav vašeho diagnostického testu.'); }
+                else if (diagnostic) { renderPromptCreatePlan(ui.currentPlanEmptyState); }
+                else { renderNoActivePlan(ui.currentPlanEmptyState); }
+            }
+        } catch (error) {
+            console.error("[CurrentPlan in Main.js] Error loading current plan:", error);
+            renderMessage(ui.currentPlanEmptyState, 'error', 'Chyba', 'Nepodařilo se načíst aktuální studijní plán.');
+            if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
+        } finally { setLoadingState('currentPlan', false); console.log("[CurrentPlan in Main.js] Loading finished."); }
+    }
+
+    const renderSingleDayPlan = (targetDateString) => {
+        console.log(`[RenderSingleDay in Main.js] Rendering for date: ${targetDateString}`);
+        if (!ui.singleDayPlanView || !ui.dayCardTemplate) { console.error("[RenderSingleDay in Main.js] Missing UI elements."); if(ui.currentPlanEmptyState) renderMessage(ui.currentPlanEmptyState, 'error', 'Chyba zobrazení', 'Nelze zobrazit denní plán.'); if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none'; setLoadingState('currentPlan', false); return; }
+        setLoadingState('currentPlan', true);
+        if (ui.dayCardSkeleton && getComputedStyle(ui.dayCardSkeleton).display !== 'none') { ui.dayCardSkeleton.style.display = 'none'; }
+        let dayCard = ui.singleDayPlanView.querySelector('.day-schedule-card:not(.skeleton-day-card)');
+        if (!dayCard) { const templateNode = ui.dayCardTemplate.content.cloneNode(true); dayCard = templateNode.querySelector('.day-schedule-card'); if (!dayCard) { console.error("[RenderSingleDay in Main.js] Failed to clone .day-schedule-card!"); setLoadingState('currentPlan', false); return; } ui.singleDayPlanView.innerHTML = ''; ui.singleDayPlanView.appendChild(dayCard); }
+        const dayHeader = dayCard.querySelector('.day-header'); const activitiesContainer = dayCard.querySelector('.activity-list-container');
+        if (!dayHeader || !activitiesContainer) { console.error("[RenderSingleDay in Main.js] Day header or activity container missing!"); setLoadingState('currentPlan', false); return; }
+        dayCard.style.opacity = '0';
+        const activitiesForDay = state.allActivePlanActivitiesByDay[targetDateString] || [];
+        activitiesForDay.sort((a, b) => (a.time_slot || '99:99').localeCompare(b.time_slot || '99:99'));
+        dayCard.classList.toggle('today', targetDateString === getTodayDateString());
+        dayHeader.innerHTML = `${formatDateForDisplay(targetDateString)} ${targetDateString === getTodayDateString() ? '<span>(Dnes)</span>' : ''}`;
+        activitiesContainer.innerHTML = '';
+        if (activitiesForDay.length > 0) {
+            activitiesForDay.forEach(activity => {
+                 if (!activity.id) return; const activityElement = document.createElement('div'); activityElement.className = `activity-list-item ${activity.completed ? 'completed' : ''}`; activityElement.dataset.activityId = activity.id; const timeDisplay = activity.time_slot ? `<span class="activity-time-display">${activity.time_slot}</span>` : ''; const iconClass = getActivityIcon(activity.title, activity.type); const hasDescription = activity.description && activity.description.trim().length > 0; const expandIcon = hasDescription ? `<button class="expand-icon-button btn-tooltip" aria-label="Rozbalit popis" title="Zobrazit/skrýt popis"><i class="fas fa-chevron-down expand-icon"></i></button>` : '';
+                 let activityLinkStart = ''; let activityLinkEnd = '';
+                 if (activity.type === 'theory' && state.currentStudyPlan?.status === 'active') { activityLinkStart = `<a href="/dashboard/procvicovani/vyuka/vyuka.html?planActivityId=${activity.id}" class="activity-link">`; activityLinkEnd = `</a>`; }
+                 activityElement.innerHTML = `${activityLinkStart}<label class="activity-checkbox"><input type="checkbox" id="carousel-activity-${activity.id}" ${activity.completed ? 'checked' : ''} data-activity-id="${activity.id}" data-plan-id="${state.currentStudyPlan?.id}"></label><i class="fas ${iconClass} activity-icon"></i><div class="activity-details"><div class="activity-header"><div class="activity-title-time"><span class="activity-title">${sanitizeHTML(activity.title||'Aktivita')}</span>${timeDisplay}</div>${expandIcon}</div>${hasDescription ? `<div class="activity-desc">${sanitizeHTML(activity.description)}</div>` : ''}</div>${activityLinkEnd}`;
+                 const expandButtonElem = activityElement.querySelector('.expand-icon-button'); if (expandButtonElem) { expandButtonElem.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); const descElement = activityElement.querySelector('.activity-desc'); if (descElement) {activityElement.classList.toggle('expanded');}}); }
+                 const checkbox = activityElement.querySelector('input[type="checkbox"]'); if (checkbox) { checkbox.addEventListener('click', (e)=>e.stopPropagation()); checkbox.addEventListener('change', async (e) => { e.stopPropagation(); const isCompleted = e.target.checked; activityElement.classList.toggle('completed', isCompleted); await handleActivityCompletionToggle(activity.id, isCompleted, state.currentStudyPlan?.id); }); }
+                 activitiesContainer.appendChild(activityElement);
+            });
+        } else { activitiesContainer.innerHTML = `<div class="no-activities-day"><i class="fas fa-coffee"></i> Žádné aktivity pro tento den. Užijte si volno!</div>`; }
+        if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'flex';
+        if (ui.currentPlanEmptyState) ui.currentPlanEmptyState.style.display = 'none';
+        updateNavigationButtonsState(targetDateString); initTooltips(); setLoadingState('currentPlan', false);
+        requestAnimationFrame(() => { dayCard.style.transition = 'opacity 0.3s ease-in-out'; dayCard.style.opacity = '1'; });
+    };
+
+    const updateNavigationButtonsState = (currentDateString) => {
+        if (!ui.prevDayBtn || !ui.nextDayBtn || !state.sortedActivityDates || state.sortedActivityDates.length === 0) { if(ui.prevDayBtn) ui.prevDayBtn.style.display = 'none'; if(ui.nextDayBtn) ui.nextDayBtn.style.display = 'none'; return; }
+        const currentIndex = state.sortedActivityDates.indexOf(currentDateString);
+        ui.prevDayBtn.style.display = 'inline-flex'; ui.nextDayBtn.style.display = 'inline-flex';
+        ui.prevDayBtn.disabled = currentIndex <= 0; ui.nextDayBtn.disabled = currentIndex >= state.sortedActivityDates.length - 1;
+    };
+
+    const renderPromptCreatePlan = (container) => {
+        const promptTemplate = document.getElementById('promptCreatePlanTemplate');
+        if (!container || !promptTemplate) { console.error("Missing container or promptCreatePlanTemplate for renderPromptCreatePlan in main.js."); return; }
+        console.log("[Render] Rendering Prompt Create Plan...");
+        if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
+        const node = promptTemplate.content.cloneNode(true);
+        const btn = node.getElementById('createNewPlanFromPromptBtn');
+        if (btn) { btn.addEventListener('click', () => { window.location.href = 'plan.html?tab=create'; }); }
+        container.innerHTML = ''; container.appendChild(node); container.style.display = 'flex';
+        console.log("[Render] Prompt Create Plan Rendered.");
+    };
+    const renderNoActivePlan = (container) => {
+        const noActivePlanTemplate = document.getElementById('noActivePlanTemplate');
+        if (!container || !noActivePlanTemplate) { console.error("Missing container or noActivePlanTemplate for renderNoActivePlan in main.js."); return; }
+        console.log("[Render] Rendering No Active Plan...");
+        if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
+        const node = noActivePlanTemplate.content.cloneNode(true);
+        const linkToCreate = node.querySelector('.link-to-create-tab');
+        if(linkToCreate) { linkToCreate.addEventListener('click', (e) => { e.preventDefault(); window.location.href = 'plan.html?tab=create'; }); }
+        container.innerHTML = ''; container.appendChild(node); container.style.display = 'flex';
+        console.log("[Render] No Active Plan Rendered.");
+    };
+    const handleActivityCompletionToggle = async (activityId, isCompleted, planId) => { if (!supabaseClient || !planId) return; try { const { error } = await supabaseClient.from('plan_activities').update({ completed: isCompleted, updated_at: new Date().toISOString() }).eq('id', activityId); if (error) throw error; console.log(`[ActivityToggle] Aktivita ${activityId} stav: ${isCompleted}`); await updatePlanProgress(planId); } catch (error) { console.error(`[ActivityToggle] Chyba aktualizace aktivity ${activityId}:`, error); showToast('Nepodařilo se aktualizovat stav aktivity.', 'error'); const checkbox = document.getElementById(`carousel-activity-${activityId}`) || document.getElementById(`vertical-activity-${activityId}`); const activityElement = checkbox?.closest('.activity-list-item'); if(checkbox) checkbox.checked = !isCompleted; if(activityElement) activityElement.classList.toggle('completed', !isCompleted); } };
+    const updatePlanProgress = async (planId) => { if (!planId || !supabaseClient) return; console.log(`[PlanProgress] Updating progress for plan ${planId}`); try { const { count: totalCount, error: countError } = await supabaseClient.from('plan_activities').select('id', { count: 'exact', head: true }).eq('plan_id', planId); const { count: completedCount, error: completedError } = await supabaseClient.from('plan_activities').select('id', { count: 'exact', head: true }).eq('plan_id', planId).eq('completed', true); if (countError || completedError) throw countError || completedError; const numTotal = totalCount ?? 0; const numCompleted = completedCount ?? 0; const progress = numTotal > 0 ? Math.round((numCompleted / numTotal) * 100) : 0; console.log(`[PlanProgress] Plan ${planId}: ${numCompleted}/${numTotal} completed (${progress}%)`); const { error: updateError } = await supabaseClient.from('study_plans').update({ progress: progress, updated_at: new Date().toISOString() }).eq('id', planId); if (updateError) throw updateError; console.log(`[PlanProgress] Plan ${planId} progress DB updated to ${progress}%`); if (state.currentStudyPlan?.id === planId) state.currentStudyPlan.progress = progress; } catch (error) { console.error(`[PlanProgress] Error updating plan progress ${planId}:`, error); } };
+    const getActivityIcon = (title = "", type = "") => { const lowerTitle = title.toLowerCase(); const lowerType = type?.toLowerCase() || ''; if (activityVisuals[lowerType]) return activityVisuals[lowerType].icon; if (lowerTitle.includes('test')) return activityVisuals.test.icon; if (lowerTitle.includes('cvičení') || lowerTitle.includes('příklad') || lowerTitle.includes('úloh')) return activityVisuals.exercise.icon; if (lowerTitle.includes('procvič')) return activityVisuals.practice.icon; if (lowerTitle.includes('opakování') || lowerTitle.includes('shrnutí')) return activityVisuals.review.icon; if (lowerTitle.includes('geometrie')) return 'fa-draw-polygon'; if (lowerTitle.includes('algebra')) return 'fa-square-root-alt'; if (lowerTitle.includes('procent')) return 'fa-percentage'; if (lowerTitle.includes('analýza') || lowerTitle.includes('kontrola')) return activityVisuals.analysis.icon; if (lowerTitle.includes('lekce') || lowerTitle.includes('teorie') || lowerTitle.includes('vysvětlení')) return activityVisuals.theory.icon; return activityVisuals.default.icon; };
 
     async function fetchAndDisplayLatestCreditChange(userId) {
         console.log(`[CreditChange] Fetching latest credit change for user ${userId}...`);
-        if (ui.latestCreditChange) { // Zajistíme, že element existuje před manipulací
-            ui.latestCreditChange.innerHTML = ''; // Vyčistíme předchozí obsah
-            ui.latestCreditChange.style.display = 'none'; // Skryjeme, dokud nemáme data
-        }
-        if (!supabaseClient || !userId ) {
+        if (!supabaseClient || !userId) {
             console.warn("[CreditChange] Missing Supabase or userId.");
-            fetchAndDisplayLatestCreditChange.latestTxData = null; // Uložíme null, pokud chybí data
+            fetchAndDisplayLatestCreditChange.latestTxData = null;
             return null;
         }
         try {
@@ -552,123 +718,274 @@
                 .limit(1)
                 .single();
 
-            if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found, which is fine
+            if (error && error.code !== 'PGRST116') {
                 throw error;
             }
-
-            // Uložíme data (nebo null) do statické vlastnosti funkce pro pozdější použití v renderStatsCards
-            fetchAndDisplayLatestCreditChange.latestTxData = data;
-
-            return data; // Může být null, pokud nebyly nalezeny žádné transakce
+            fetchAndDisplayLatestCreditChange.latestTxData = data; 
+            return data; 
         } catch (error) {
             console.error('[CreditChange] Error fetching latest credit change:', error);
-            fetchAndDisplayLatestCreditChange.latestTxData = null; // Uložíme null v případě chyby
+            fetchAndDisplayLatestCreditChange.latestTxData = null;
             return null;
         }
     }
-    fetchAndDisplayLatestCreditChange.latestTxData = null; // Inicializace statické vlastnosti
+    fetchAndDisplayLatestCreditChange.latestTxData = null; 
 
-    async function loadDashboardStats() { 
-        if (!state.currentUser || !supabaseClient || !state.currentProfile) { console.warn("[LoadStats] Chybí uživatel, Supabase klient nebo profil pro načtení statistik."); renderStatsCards(null); return; }
-        setLoadingState('stats', true);
-        try { userStatsData = await fetchUserStats(state.currentUser.id, state.currentProfile); renderStatsCards(userStatsData); }
-        catch (error) { console.error("Error in loadDashboardStats:", error); renderStatsCards(null); }
+    async function fetchUserStats(userId, profileData) {
+        if (!supabaseClient || !userId || !profileData) {
+            console.error("[Stats] Chybí Supabase klient, ID uživatele nebo data profilu pro fetchUserStats.");
+            return {
+                progress: 0, progress_weekly: 0,
+                points: profileData?.points ?? 0, points_weekly: 0,
+                streak_current: profileData?.streak_days ?? 0,
+                longest_streak_days: profileData?.longest_streak_days ?? 0,
+                completed_exercises: profileData?.completed_exercises ?? 0,
+                completed_tests: 0, 
+            };
+        }
+        console.log(`[Stats] Načítání user_stats pro uživatele ${userId}...`);
+        try {
+            const { data, error } = await supabaseClient
+                .from('user_stats')
+                .select('progress, progress_weekly, points_weekly, streak_longest, completed_tests') 
+                .eq('user_id', userId)
+                .maybeSingle();
+
+            if (error) {
+                console.warn("[Stats] Supabase chyba při načítání user_stats:", error.message);
+                return { 
+                    progress: profileData.progress ?? 0, 
+                    progress_weekly: 0,
+                    points: profileData.points ?? 0,
+                    points_weekly: 0,
+                    streak_current: profileData.streak_days ?? 0,
+                    longest_streak_days: profileData.longest_streak_days ?? 0,
+                    completed_exercises: profileData.completed_exercises ?? 0,
+                    completed_tests: profileData.completed_tests_count ?? 0, 
+                };
+            }
+            const finalStats = {
+                progress: data?.progress ?? profileData.progress ?? 0,
+                progress_weekly: data?.progress_weekly ?? 0,
+                points: profileData.points ?? 0, 
+                points_weekly: data?.points_weekly ?? 0,
+                streak_current: profileData.streak_days ?? 0, 
+                longest_streak_days: profileData.longest_streak_days ?? data?.streak_longest ?? 0, 
+                completed_exercises: profileData.completed_exercises ?? 0, 
+                completed_tests: data?.completed_tests ?? profileData.completed_tests_count ?? 0, 
+            };
+            console.log("[Stats] Statistiky úspěšně načteny/sestaveny:", finalStats);
+            return finalStats;
+        } catch (error) {
+            console.error("[Stats] Neočekávaná chyba při načítání user_stats:", error);
+            return { 
+                progress: profileData.progress ?? 0, progress_weekly: 0,
+                points: profileData.points ?? 0, points_weekly: 0,
+                streak_current: profileData.streak_days ?? 0,
+                longest_streak_days: profileData.longest_streak_days ?? 0,
+                completed_exercises: profileData.completed_exercises ?? 0,
+                completed_tests: profileData.completed_tests_count ?? 0,
+            };
+        }
     }
 
-    function updateWelcomeBannerAndLevel(profile) { 
+    async function loadDashboardStats() {
+        if (!state.currentUser || !supabaseClient || !state.currentProfile) {
+            console.warn("[LoadStats] Chybí uživatel, Supabase klient nebo profil pro načtení statistik.");
+            renderStatsCards(null); 
+            return;
+        }
+        setLoadingState('stats', true);
+        try {
+            renderStatsCards(userStatsData); 
+        } catch (error) {
+            console.error("Error in loadDashboardStats:", error);
+            renderStatsCards(null); 
+        } finally {
+            setLoadingState('stats', false);
+        }
+    }
+    
+    function renderStatsCards(statsData) {
+        console.log("[UI Update] Aktualizace karet statistik pro procvicovani/main.html:", statsData);
+        const profile = state.currentProfile;
+
+        if (!profile) {
+            console.warn("[UI Update Stats] Chybí data profilu, nelze aktualizovat karty.");
+            if(ui.dashboardLevelWidget) ui.dashboardLevelWidget.textContent = '-';
+            if(ui.totalPointsValue) ui.totalPointsValue.innerHTML = `- <span id="latest-credit-change" style="font-size: 0.5em; color: var(--text-medium); vertical-align: middle; margin-left: 0.5em; display: none;"></span>`;
+            if(ui.streakValue) ui.streakValue.textContent = '-';
+            if(ui.totalPointsFooter) ui.totalPointsFooter.innerHTML = `<i class="fas fa-minus"></i> Data nedostupná`;
+            if(ui.streakFooter) ui.streakFooter.innerHTML = `MAX: - dní`;
+
+            if (ui.statsCardsContainer) ui.statsCardsContainer.classList.remove('loading');
+            [ui.progressCard, ui.pointsCard, ui.streakCard].forEach(card => card?.classList.remove('loading'));
+            return;
+        }
+
+        updateWelcomeBannerAndLevel(profile);
+
+        if (ui.totalPointsValue) {
+            ui.totalPointsValue.textContent = `${profile.points ?? 0} `;
+            const latestCreditSpan = ui.latestCreditChange || document.getElementById('latest-credit-change');
+            if (latestCreditSpan) {
+                const latestTx = fetchAndDisplayLatestCreditChange.latestTxData;
+                if (latestTx && latestTx.amount !== undefined) {
+                    const amount = latestTx.amount;
+                    const description = latestTx.description || 'N/A';
+                    const sign = amount > 0 ? '+' : (amount < 0 ? '' : '');
+                    const colorClass = amount > 0 ? 'positive' : (amount < 0 ? 'negative' : 'neutral');
+                    let displayDescription = description;
+                    const maxDescLengthFooter = 20;
+                     if (displayDescription.length > maxDescLengthFooter) {
+                        displayDescription = displayDescription.substring(0, maxDescLengthFooter - 3) + "...";
+                    }
+                    latestCreditSpan.innerHTML = `(<span class="${colorClass}" title="${sanitizeHTML(description)}">${sign}${amount}</span>)`;
+                    latestCreditSpan.style.display = 'inline';
+                } else {
+                    latestCreditSpan.style.display = 'none';
+                }
+            }
+        }
+        if (ui.totalPointsFooter) {
+            const weeklyPoints = statsData?.points_weekly ?? 0;
+            ui.totalPointsFooter.classList.remove('positive', 'negative');
+            if (weeklyPoints !== 0 && weeklyPoints != null) {
+                ui.totalPointsFooter.innerHTML = weeklyPoints > 0 ? `<i class="fas fa-arrow-up"></i> +${weeklyPoints} týdně` : `<i class="fas fa-arrow-down"></i> ${weeklyPoints} týdně`;
+                if (weeklyPoints > 0) ui.totalPointsFooter.classList.add('positive');
+                else ui.totalPointsFooter.classList.add('negative');
+            } else {
+                ui.totalPointsFooter.innerHTML = `<i class="fas fa-minus"></i> Žádná změna bodů`;
+            }
+        }
+
+        if (ui.streakValue) {
+            ui.streakValue.textContent = profile.streak_days ?? 0;
+        }
+        if (ui.streakFooter) {
+            ui.streakFooter.innerHTML = `MAX: ${profile.longest_streak_days ?? 0} dní`;
+        }
+
+        if (ui.statsCardsContainer) ui.statsCardsContainer.classList.remove('loading');
+        [ui.progressCard, ui.pointsCard, ui.streakCard].forEach(card => card?.classList.remove('loading'));
+
+        console.log("[UI Update] Karty statistik aktualizovány pro procvicovani/main.html.");
+    }
+
+
+    function updateWelcomeBannerAndLevel(profile) {
         console.log("[UI Update] Aktualizace uvítacího banneru a úrovně XP...");
         if (!profile) { console.warn("[UI Update Welcome] Chybí data profilu."); return; }
-        if (ui.welcomeTitle) { const displayName = `${profile.first_name || ''}`.trim() || profile.username || state.currentUser?.email?.split('@')[0] || 'Pilote'; ui.welcomeTitle.textContent = `Vítej zpět, ${sanitizeHTML(displayName)}!`; }
-        const currentLevel = profile.level ?? 1; const currentExperience = profile.experience ?? 0;
-        function getExpForLevel(level) { if (level <= 0) return 0; const BASE_XP = 100; const INCREMENT_XP = 25; return BASE_XP + (INCREMENT_XP * (level - 1)); }
-        function getTotalExpThreshold(targetLevel) { if (targetLevel <= 1) return 0; let totalExp = 0; for (let level = 1; level < targetLevel; level++) { totalExp += getExpForLevel(level); } return totalExp; }
-        const expForCurrentLevel = getTotalExpThreshold(currentLevel); const expForNextLevel = getTotalExpThreshold(currentLevel + 1); const expNeededForSpan = expForNextLevel - expForCurrentLevel; const currentExpInLevelSpan = Math.max(0, currentExperience - expForCurrentLevel); let percentage = 0;
-        if (expNeededForSpan > 0) { percentage = Math.min(100, Math.max(0, Math.round((currentExpInLevelSpan / expNeededForSpan) * 100))); } else if (currentLevel > 0 && expNeededForSpan <=0 ) { percentage = 100; }
-        if (ui.dashboardLevelWidget) ui.dashboardLevelWidget.textContent = currentLevel; if (ui.dashboardExpProgressBar) ui.dashboardExpProgressBar.style.width = `${percentage}%`; if (ui.dashboardExpCurrent) ui.dashboardExpCurrent.textContent = currentExpInLevelSpan; if (ui.dashboardExpRequired) ui.dashboardExpRequired.textContent = expNeededForSpan > 0 ? expNeededForSpan : 'MAX'; if (ui.dashboardExpPercentage) ui.dashboardExpPercentage.textContent = percentage;
+
+        if (ui.welcomeTitle) { 
+            const displayName = `${profile.first_name || ''}`.trim() || profile.username || currentUser?.email?.split('@')[0] || 'Pilote';
+            ui.welcomeTitle.textContent = `Vítej zpět, ${sanitizeHTML(displayName)}!`;
+        }
+
+        const currentLevel = profile.level ?? 1;
+        const currentExperience = profile.experience ?? 0;
+
+        function getExpForLevel(level) {
+            if (level <= 0) return 0;
+            const BASE_XP = 100; const INCREMENT_XP = 25;
+            return BASE_XP + (INCREMENT_XP * (level - 1));
+        }
+        function getTotalExpThreshold(targetLevel) {
+            if (targetLevel <= 1) return 0; let totalExp = 0;
+            for (let level = 1; level < targetLevel; level++) { totalExp += getExpForLevel(level); }
+            return totalExp;
+        }
+
+        const expForCurrentLevel = getTotalExpThreshold(currentLevel);
+        const expForNextLevel = getTotalExpThreshold(currentLevel + 1);
+        const expNeededForSpan = expForNextLevel - expForCurrentLevel;
+        const currentExpInLevelSpan = Math.max(0, currentExperience - expForCurrentLevel);
+        let percentage = 0;
+        if (expNeededForSpan > 0) {
+            percentage = Math.min(100, Math.max(0, Math.round((currentExpInLevelSpan / expNeededForSpan) * 100)));
+        } else if (currentLevel > 0 && expNeededForSpan <=0 ) {
+            percentage = 100;
+        }
+
+        if (ui.dashboardLevelWidget) ui.dashboardLevelWidget.textContent = currentLevel;
+        if (ui.dashboardExpProgressBar) ui.dashboardExpProgressBar.style.width = `${percentage}%`;
+        if (ui.dashboardExpCurrent) ui.dashboardExpCurrent.textContent = currentExpInLevelSpan;
+        if (ui.dashboardExpRequired) ui.dashboardExpRequired.textContent = expNeededForSpan > 0 ? expNeededForSpan : 'MAX';
+        if (ui.dashboardExpPercentage) ui.dashboardExpPercentage.textContent = percentage;
+
         console.log("[UI Update] Uvítací banner a úroveň XP aktualizovány.");
     }
 
-    async function loadTopicProgress() { 
+    async function loadTopicProgress() {
         if (!state.currentUser || !supabaseClient) return;
         setLoadingState('topicProgress', true);
         try {
-            const { data, error } = await supabaseClient.rpc('get_user_topic_progress_summary', { p_user_id: state.currentUser.id });
-            if (error) { let errorMessage = error.message; const errString = JSON.stringify(error); if (errString.includes('structure of query does not match function result type') || (error.code && ['PGRST200', '42883', '42703'].includes(error.code))) { errorMessage = 'Chyba: Funkce pro načtení pokroku v tématech (get_user_topic_progress_summary) má nesprávnou definici, neexistuje na serveru, nebo vrací nesprávné sloupce. Zkontrolujte SQL definici funkce, její návratové typy a SELECT část.'; } else if (error.status === 404 || (error.message && error.message.includes('404')) || errString.includes('"status":404')){ errorMessage = 'Chyba: Požadovaná funkce (get_user_topic_progress_summary) pro načtení pokroku v tématech nebyla nalezena na serveru (404). Ověřte prosím, že je SQL funkce správně vytvořena a nasazena.';} throw new Error(errorMessage); }
+            const { data, error } = await supabaseClient.rpc('get_user_topic_progress_summary', {
+                p_user_id: state.currentUser.id
+            });
+            if (error) {
+                let errorMessage = error.message;
+                const errString = JSON.stringify(error);
+                 if (errString.includes('structure of query does not match function result type') || (error.code && ['PGRST200', '42883', '42703'].includes(error.code))) {
+                    errorMessage = 'Chyba: Funkce pro načtení pokroku v tématech (get_user_topic_progress_summary) má nesprávnou definici, neexistuje na serveru, nebo vrací nesprávné sloupce. Zkontrolujte SQL definici funkce, její návratové typy a SELECT část.';
+                } else if (error.status === 404 || (error.message && error.message.includes('404')) || errString.includes('"status":404')){
+                    errorMessage = 'Chyba: Požadovaná funkce (get_user_topic_progress_summary) pro načtení pokroku v tématech nebyla nalezena na serveru (404). Ověřte prosím, že je SQL funkce správně vytvořena a nasazena.';
+                }
+                throw new Error(errorMessage);
+            }
             renderTopicProgressTable(data || []);
-        } catch (error) { console.error("Error loading topic progress via RPC:", error); if(ui.topicProgressTable) ui.topicProgressTable.style.display = 'none'; if(ui.topicProgressEmptyState) { ui.topicProgressEmptyState.innerHTML = `<i class="fas fa-exclamation-triangle"></i><h3>Chyba načítání</h3><p>${sanitizeHTML(error.message)}</p>`; ui.topicProgressEmptyState.style.display = 'flex'; }}
-        finally { setLoadingState('topicProgress', false); }
+        } catch (error) {
+            console.error("Error loading topic progress via RPC:", error);
+            if(ui.topicProgressTable) ui.topicProgressTable.style.display = 'none';
+            if(ui.topicProgressEmptyState) {
+                ui.topicProgressEmptyState.innerHTML = `<i class="fas fa-exclamation-triangle"></i><h3>Chyba načítání</h3><p>${sanitizeHTML(error.message)}</p>`;
+                ui.topicProgressEmptyState.style.display = 'flex';
+            }
+        } finally {
+            setLoadingState('topicProgress', false);
+        }
     }
-    function renderTopicProgressTable(topics) { 
+    function renderTopicProgressTable(topics) {
         if (!ui.topicProgressTableBody || !ui.topicProgressTable || !ui.topicProgressEmptyState) return;
         ui.topicProgressTableBody.innerHTML = '';
-        if (!topics || topics.length === 0) { ui.topicProgressTable.style.display = 'none'; ui.topicProgressEmptyState.innerHTML = '<i class="fas fa-book-reader"></i><h3>Žádná data o pokroku</h3><p>Zatím nemáte zaznamenaný žádný pokrok v tématech. Začněte procvičovat!</p>'; ui.topicProgressEmptyState.style.display = 'flex'; return; }
-        ui.topicProgressTable.style.display = 'table'; ui.topicProgressEmptyState.style.display = 'none';
+        if (!topics || topics.length === 0) {
+            ui.topicProgressTable.style.display = 'none';
+            ui.topicProgressEmptyState.innerHTML = '<i class="fas fa-book-reader"></i><h3>Žádná data o pokroku</h3><p>Zatím nemáte zaznamenaný žádný pokrok v tématech. Začněte procvičovat!</p>';
+            ui.topicProgressEmptyState.style.display = 'flex';
+            return;
+        }
+        ui.topicProgressTable.style.display = 'table';
+        ui.topicProgressEmptyState.style.display = 'none';
         topics.sort((a,b) => (new Date(b.last_studied_at || 0)) - (new Date(a.last_studied_at || 0)));
-        topics.forEach(topic => { const row = ui.topicProgressTableBody.insertRow(); const progress = Math.round(topic.progress_percentage || 0); let progressColor = 'var(--accent-primary)'; if (progress >= 75) progressColor = 'var(--accent-lime)'; else if (progress < 40) progressColor = 'var(--accent-pink)'; row.innerHTML = `<td><i class="fas ${topic.topic_icon || 'fa-question-circle'}" style="margin-right: 0.7em; color: ${progressColor};"></i>${sanitizeHTML(topic.topic_name)}</td><td><div class="progress-bar-cell"><div class="progress-bar-track"><div class="progress-bar-fill" style="width: ${progress}%; background: ${progressColor};"></div></div><span class="progress-bar-text" style="color: ${progressColor};">${progress}%</span></div></td><td>${topic.last_studied_at ? formatDate(topic.last_studied_at) : '-'}</td>`; });
-    }
-    function handleSort(event) { const th = event.currentTarget; const column = th.dataset.sort; console.log("Sorting by:", column); showToast("Řazení tabulky", "Funkce řazení bude brzy implementována.", "info");}
-
-    async function handlePlanTabManagement(planSubTabId) { 
-        if (!supabaseClient) { showGlobalError("Aplikace není správně inicializována."); return; }
-        console.log(`[Plan SubTab] Switching to plan sub-tab: ${planSubTabId}`);
-
-        [ui.currentPlanSection, ui.historyPlanSection, ui.createPlanSection, ui.planSection].forEach(section => {
-            if (section) section.classList.remove('visible-section');
+        topics.forEach(topic => {
+            const row = ui.topicProgressTableBody.insertRow();
+            const progress = Math.round(topic.progress_percentage || 0);
+            let progressColor = 'var(--accent-primary)';
+            if (progress >= 75) progressColor = 'var(--accent-lime)';
+            else if (progress < 40) progressColor = 'var(--accent-pink)';
+            row.innerHTML = `
+                <td><i class="fas ${topic.topic_icon || 'fa-question-circle'}" style="margin-right: 0.7em; color: ${progressColor};"></i>${sanitizeHTML(topic.topic_name)}</td>
+                <td>
+                    <div class="progress-bar-cell">
+                        <div class="progress-bar-track">
+                            <div class="progress-bar-fill" style="width: ${progress}%; background: ${progressColor};"></div>
+                        </div>
+                        <span class="progress-bar-text" style="color: ${progressColor};">${progress}%</span>
+                    </div>
+                </td>
+                <td>${topic.last_studied_at ? formatDate(topic.last_studied_at) : '-'}</td>
+            `;
         });
-
-        if (ui.currentPlanEmptyState) ui.currentPlanEmptyState.innerHTML = '';
-        if (ui.historyPlanContent) ui.historyPlanContent.innerHTML = '';
-        if (ui.createPlanContent) ui.createPlanContent.innerHTML = '';
-        if (ui.planContent) ui.planContent.innerHTML = '';
-
-        if (state.lastGeneratedMarkdown !== null && planSubTabId !== 'planDetail' && planSubTabId !== 'planGeneration') {
-            console.log("[Plan SubTab] Clearing generated plan state as we are leaving the preview/generation section.");
-            state.lastGeneratedMarkdown = null; state.lastGeneratedActivitiesJson = null; state.lastGeneratedTopicsData = null;
-        }
-        hideGlobalError();
-
-        try {
-            let targetSectionElement = null;
-            let loaderKey = null;
-
-            switch(planSubTabId) {
-                case 'currentPlan': targetSectionElement = ui.currentPlanSection; loaderKey = 'currentPlan'; break;
-                case 'historyPlan': targetSectionElement = ui.historyPlanSection; loaderKey = 'historyPlan'; break;
-                case 'createPlan': targetSectionElement = ui.createPlanSection; loaderKey = 'createPlan'; break;
-                case 'planDetail': targetSectionElement = ui.planSection; loaderKey = 'planDetail'; break;
-                case 'planGeneration': targetSectionElement = ui.planSection; loaderKey = 'planGeneration'; break;
-                default: console.warn(`[Plan SubTab] Unknown plan sub-tab ID: ${planSubTabId}`); return;
-            }
-
-            if (targetSectionElement) {
-                targetSectionElement.classList.add('visible-section');
-                if (planSubTabId === 'currentPlan') await loadCurrentPlan();
-                else if (planSubTabId === 'historyPlan') await loadPlanHistory();
-                else if (planSubTabId === 'createPlan') await checkPlanCreationAvailability();
-            } else {
-                console.warn(`[Plan SubTab] Target section element not found for plan sub-tab: ${planSubTabId}`);
-            }
-        } catch (error) {
-            console.error(`[Plan SubTab] Error loading plan sub-tab ${planSubTabId}:`, error);
-            const errorTargetSection = (planSubTabId === 'currentPlan') ? ui.currentPlanSection :
-                                     (planSubTabId === 'historyPlan') ? ui.historyPlanSection :
-                                     (planSubTabId === 'createPlan') ? ui.createPlanSection : ui.planSection;
-            const errorContentContainer = (planSubTabId === 'currentPlan') ? ui.currentPlanEmptyState :
-                                          (planSubTabId === 'historyPlan') ? ui.historyPlanContent :
-                                          (planSubTabId === 'createPlan') ? ui.createPlanContent : ui.planContent;
-
-            if(errorTargetSection) errorTargetSection.classList.add('visible-section');
-            if (errorContentContainer) {
-                renderMessage(errorContentContainer, 'error', 'Chyba načítání', `Obsah sekce plánu "${planSubTabId}" nelze načíst: ${error.message}`);
-            } else {
-                showGlobalError(`Nepodařilo se načíst sekci plánu "${planSubTabId}": ${error.message}`);
-            }
-            setLoadingState(planSubTabId, false);
-        }
+    }
+    function handleSort(event) {
+        const th = event.currentTarget;
+        const column = th.dataset.sort;
+        console.log("Sorting by:", column);
+        showToast("Řazení tabulky", "Funkce řazení bude brzy implementována.", "info");
     }
 
     async function switchTabContent(tabId) {
-        console.log(`[Main Tab Switch] Pokus o přepnutí na záložku: ${tabId}`);
+        console.log(`[Main Tab Switch] Attempting to switch to tab: ${tabId}`);
         state.currentMainTab = tabId;
 
         ui.contentTabs.forEach(tab => {
@@ -677,194 +994,503 @@
             tab.setAttribute('aria-selected', isCurrentTab ? 'true' : 'false');
         });
 
-        if(ui.practiceTabContent) ui.practiceTabContent.style.display = 'none';
-        if(ui.planTabContent) ui.planTabContent.style.display = 'none';
-        if(ui.vyukaTabContent) ui.vyukaTabContent.style.display = 'none';
-
-        [ui.currentPlanSection, ui.historyPlanSection, ui.createPlanSection, ui.planSection].forEach(section => {
-            if (section) section.classList.remove('visible-section');
+        document.querySelectorAll('#main-tab-content-area > .tab-content, #main-tab-content-area > .section').forEach(paneOrSection => {
+            paneOrSection.classList.remove('active', 'visible-section');
+            paneOrSection.style.display = 'none';
         });
-
 
         let targetElement = null;
         if (tabId === 'practice-tab') {
             targetElement = ui.practiceTabContent;
-            if(targetElement) targetElement.style.display = 'block';
-            await loadDashboardStats();
-            await loadTopicProgress();
-            if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderAll === 'function' && state.currentUser) {
-                 await DashboardLists.loadAndRenderAll(state.currentUser.id, 5);
-            }
-        } else if (tabId === 'plan-tab') {
-            targetElement = ui.planTabContent;
-            if(targetElement) targetElement.style.display = 'block';
-            await handlePlanTabManagement('currentPlan'); 
+        } else if (tabId === 'current') { 
+            targetElement = ui.currentPlanSection;
         } else if (tabId === 'vyuka-tab') {
             targetElement = ui.vyukaTabContent;
-            if(targetElement) targetElement.style.display = 'block';
-            console.log("[Main Tab Switch] Výuka tab activated. Placeholder for future content loading.");
         } else {
             console.warn(`[Main Tab Switch] Unknown tabId: ${tabId}`);
             return;
         }
 
         if (targetElement) {
-            if (targetElement.classList.contains('tab-content')) {
+            const displayStyle = (targetElement.classList.contains('section') || tabId === 'current') ? 'block' : 'block';
+            targetElement.style.display = displayStyle;
+
+            if (targetElement.classList.contains('tab-content')) { 
                 targetElement.classList.add('active');
+            } else if (targetElement.classList.contains('section')) { 
+                targetElement.classList.add('visible-section');
             }
-            console.log(`[Main Tab Switch] Activated element: #${targetElement.id}`);
+            if (ui.mainTabContentArea) { 
+                ui.mainTabContentArea.style.display = 'flex'; 
+                ui.mainTabContentArea.classList.add('visible');
+            }
+            console.log(`[Main Tab Switch] Activated element: #${targetElement.id} with display: ${displayStyle}`);
         }
-        if (ui.mainTabContentArea) {
-            ui.mainTabContentArea.style.display = 'flex'; 
-            ui.mainTabContentArea.classList.add('visible');
+
+        if (tabId === 'practice-tab') {
+            await loadDashboardStats();
+            await loadTopicProgress();
+            if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderAll === 'function' && state.currentUser) {
+                 await DashboardLists.loadAndRenderAll(state.currentUser.id, 5);
+            }
+        } else if (tabId === 'current') {
+            await loadCurrentStudyPlanData();
+        } else if (tabId === 'vyuka-tab') {
+            console.log("[Main Tab Switch] Výuka tab activated. Placeholder for future content loading.");
         }
     }
 
+    async function loadCurrentStudyPlanData() {
+        console.log("[Main.html CurrentPlan] Delegating to plan.js-like logic's loadCurrentPlan...");
+        await loadCurrentPlan();
+    }
 
-    async function getLatestDiagnosticTest(userId, showLoaderFlag = true) { 
+    async function getLatestDiagnosticTest(userId, showLoaderFlag = true) {
         if (!userId || !supabaseClient) return null;
-        if (showLoaderFlag && state.currentMainTab === 'practice-tab') setLoadingState('page', true); 
+        if (showLoaderFlag) setLoadingState('page', true); 
         try {
             const { data, error } = await supabaseClient.from('user_diagnostics').select('id, completed_at, total_score, total_questions, topic_results, analysis').eq('user_id', userId).order('completed_at', { ascending: false }).limit(1);
             if (error) throw error;
-            state.latestDiagnosticTest = (data && data.length > 0) ? data[0] : false;
+            state.latestDiagnosticTest = (data && data.length > 0) ? data[0] : false; 
             console.log("[getLatestDiagnosticTest] Fetched:", state.latestDiagnosticTest);
             return state.latestDiagnosticTest;
         } catch (error) {
             console.error("Error fetching latest diagnostic test:", error);
-            state.latestDiagnosticTest = null;
+            state.latestDiagnosticTest = null; 
             return null;
         } finally {
-            if (showLoaderFlag && state.currentMainTab === 'practice-tab') setLoadingState('page', false);
+            if (showLoaderFlag) setLoadingState('page', false);
         }
     }
 
-    async function checkUserInitialSetup(userId) { 
+    async function checkUserInitialSetup(userId) {
         console.log("[InitialSetupCheck] Checking setup for user:", userId);
-        if (!state.currentProfile) { console.warn("[InitialSetupCheck] Profile not loaded, cannot check setup."); return { completedGoalSetting: false, completedDiagnostic: false }; }
+        if (!state.currentProfile) {
+            console.warn("[InitialSetupCheck] Profile not loaded, cannot check setup.");
+            return { completedGoalSetting: false, completedDiagnostic: false };
+        }
         const completedGoalSetting = !!state.currentProfile.learning_goal;
         let completedDiagnostic = false;
         if (completedGoalSetting && state.currentProfile.learning_goal !== 'math_explore') {
-            const diagnostic = await getLatestDiagnosticTest(userId, false); 
+            const diagnostic = await getLatestDiagnosticTest(userId, false);
             completedDiagnostic = !!(diagnostic && diagnostic.completed_at);
         } else if (completedGoalSetting && state.currentProfile.learning_goal === 'math_explore') {
-            completedDiagnostic = true; 
+            completedDiagnostic = true;
         }
         console.log(`[InitialSetupCheck] Goal set: ${completedGoalSetting}, Diagnostic done (for current goal type): ${completedDiagnostic}`);
         return { completedGoalSetting, completedDiagnostic };
     }
 
-    function showGoalSelectionModal() { 
+    function showGoalSelectionModal() {
         console.log("[GoalModal] Showing goal selection modal.");
         if (ui.goalSelectionModal) {
             ui.goalSelectionModal.style.display = 'flex';
             ui.goalModalSteps.forEach(step => step.classList.remove('active'));
             document.getElementById('goal-step-1')?.classList.add('active');
-            ui.goalRadioLabels.forEach(label => { label.classList.remove('selected-goal'); const radio = label.querySelector('input[type="radio"]'); if (radio) radio.checked = false; });
-            if (state.currentProfile && state.currentProfile.learning_goal) { const currentGoalRadio = document.querySelector(`input[name="learningGoal"][value="${state.currentProfile.learning_goal}"]`); if (currentGoalRadio) { currentGoalRadio.checked = true; currentGoalRadio.closest('.goal-radio-label')?.classList.add('selected-goal');}}
+            ui.goalRadioLabels.forEach(label => {
+                label.classList.remove('selected-goal');
+                const radio = label.querySelector('input[type="radio"]');
+                if (radio) radio.checked = false;
+            });
+            if (state.currentProfile && state.currentProfile.learning_goal) {
+                const currentGoalRadio = document.querySelector(`input[name="learningGoal"][value="${state.currentProfile.learning_goal}"]`);
+                if (currentGoalRadio) {
+                    currentGoalRadio.checked = true;
+                    currentGoalRadio.closest('.goal-radio-label')?.classList.add('selected-goal');
+                }
+            }
         }
         if (ui.tabsWrapper) ui.tabsWrapper.style.display = 'none';
         if (ui.mainTabContentArea) ui.mainTabContentArea.style.display = 'none';
         if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'none';
     }
 
-    function hideGoalSelectionModal() { if (ui.goalSelectionModal) ui.goalSelectionModal.style.display = 'none'; } 
+    function hideGoalSelectionModal() {
+        if (ui.goalSelectionModal) ui.goalSelectionModal.style.display = 'none';
+    }
 
-    function handleGoalSelection(event) { 
-        const target = event.target.closest('.goal-radio-label'); if (!target) return;
-        const radio = target.querySelector('input[type="radio"]'); if (!radio) return;
-        ui.goalRadioLabels.forEach(label => label.classList.remove('selected-goal')); target.classList.add('selected-goal');
-        const selectedGoal = radio.value; state.selectedLearningGoal = selectedGoal;
+    function handleGoalSelection(event) {
+        const target = event.target.closest('.goal-radio-label');
+        if (!target) return;
+        const radio = target.querySelector('input[type="radio"]');
+        if (!radio) return;
+
+        ui.goalRadioLabels.forEach(label => label.classList.remove('selected-goal'));
+        target.classList.add('selected-goal');
+
+        const selectedGoal = radio.value;
+        state.selectedLearningGoal = selectedGoal; 
+
         let nextStepId = null;
         if (selectedGoal === 'math_accelerate') nextStepId = 'goal-step-accelerate';
         else if (selectedGoal === 'math_review') nextStepId = 'goal-step-review';
         else if (selectedGoal === 'math_explore') nextStepId = 'goal-step-explore';
-        if (nextStepId) { ui.goalModalSteps.forEach(step => step.classList.remove('active')); document.getElementById(nextStepId)?.classList.add('active'); if (selectedGoal === 'math_review') loadTopicsForGradeReview(); }
-        else if (selectedGoal === 'exam_prep') { saveLearningGoal(selectedGoal, {}); }
-        else { console.warn("No next step defined for goal:", selectedGoal); }
+
+        if (nextStepId) {
+            ui.goalModalSteps.forEach(step => step.classList.remove('active'));
+            document.getElementById(nextStepId)?.classList.add('active');
+            if (selectedGoal === 'math_review') loadTopicsForGradeReview(); 
+        } else if (selectedGoal === 'exam_prep') {
+            saveLearningGoal(selectedGoal, {}); 
+        } else {
+            console.warn("No next step defined for goal:", selectedGoal);
+        }
     }
 
-    async function loadTopicsForGradeReview() { 
+    async function loadTopicsForGradeReview() {
         if (!state.allExamTopicsAndSubtopics || state.allExamTopicsAndSubtopics.length === 0) {
-            try { const { data, error } = await supabaseClient.from('exam_topics').select(`id, name, subtopics:exam_subtopics (id, name, topic_id)`).order('id'); if (error) throw error; state.allExamTopicsAndSubtopics = data || []; }
-            catch (e) { console.error("Failed to load topics for review:", e); if (ui.topicRatingsContainer) ui.topicRatingsContainer.innerHTML = '<p class="error-message">Nepodařilo se načíst témata.</p>'; return; }
+            try {
+                const { data, error } = await supabaseClient.from('exam_topics').select(`id, name, subtopics:exam_subtopics (id, name, topic_id)`).order('id');
+                if (error) throw error;
+                state.allExamTopicsAndSubtopics = data || [];
+            } catch (e) {
+                console.error("Failed to load topics for review:", e);
+                if (ui.topicRatingsContainer) ui.topicRatingsContainer.innerHTML = '<p class="error-message">Nepodařilo se načíst témata.</p>';
+                return;
+            }
         }
         populateTopicRatings();
     }
 
-    function populateTopicRatings() { 
-        if (!ui.topicRatingsContainer) return; ui.topicRatingsContainer.innerHTML = '';
-        if (!state.allExamTopicsAndSubtopics || state.allExamTopicsAndSubtopics.length === 0) { ui.topicRatingsContainer.innerHTML = '<p>Žádná témata k hodnocení.</p>'; return; }
-        state.allExamTopicsAndSubtopics.filter(topic => topic.name !== "Smíšené úlohy").forEach(topic => { const item = document.createElement('div'); item.className = 'topic-rating-item'; item.innerHTML = `<span class="topic-name">${sanitizeHTML(topic.name)}</span><div class="rating-stars" data-topic-id="${topic.id}">${[1,2,3,4,5].map(val => `<i class="fas fa-star star" data-value="${val}" aria-label="${val} hvězdiček"></i>`).join('')}</div>`; item.querySelectorAll('.star').forEach(star => { star.addEventListener('click', function() { const value = parseInt(this.dataset.value); const parentStars = this.parentElement; parentStars.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('rated', i < value)); parentStars.dataset.currentRating = value; }); }); ui.topicRatingsContainer.appendChild(item); });
+    function populateTopicRatings() {
+        if (!ui.topicRatingsContainer) return;
+        ui.topicRatingsContainer.innerHTML = '';
+        if (!state.allExamTopicsAndSubtopics || state.allExamTopicsAndSubtopics.length === 0) {
+            ui.topicRatingsContainer.innerHTML = '<p>Žádná témata k hodnocení.</p>'; return;
+        }
+        state.allExamTopicsAndSubtopics.filter(topic => topic.name !== "Smíšené úlohy").forEach(topic => { 
+            const item = document.createElement('div');
+            item.className = 'topic-rating-item';
+            item.innerHTML = `<span class="topic-name">${sanitizeHTML(topic.name)}</span><div class="rating-stars" data-topic-id="${topic.id}">${[1,2,3,4,5].map(val => `<i class="fas fa-star star" data-value="${val}" aria-label="${val} hvězdiček"></i>`).join('')}</div>`;
+            item.querySelectorAll('.star').forEach(star => {
+                star.addEventListener('click', function() {
+                    const value = parseInt(this.dataset.value); const parentStars = this.parentElement;
+                    parentStars.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('rated', i < value));
+                    parentStars.dataset.currentRating = value;
+                });
+            });
+            ui.topicRatingsContainer.appendChild(item);
+        });
     }
 
-    async function saveLearningGoal(goal, details = {}) { 
+    async function saveLearningGoal(goal, details = {}) {
         if (!state.currentUser || !supabaseClient) { showToast("Chyba: Uživatel není přihlášen.", "error"); return; }
-        setLoadingState('goalModal', true); console.log(`[SaveGoal] Saving goal: ${goal}, Details:`, details);
+        setLoadingState('goalModal', true);
+        console.log(`[SaveGoal] Saving goal: ${goal}, Details:`, details);
         const currentGoalDetails = state.currentProfile?.preferences?.goal_details || {};
-        const preferencesUpdate = { ...state.currentProfile.preferences, goal_details: { ...currentGoalDetails, ...details } };
+        const preferencesUpdate = {
+            ...state.currentProfile.preferences,
+            goal_details: { ...currentGoalDetails, ...details } 
+        };
+
         try {
             const { error } = await supabaseClient.from('profiles').update({ learning_goal: goal, preferences: preferencesUpdate, updated_at: new Date().toISOString() }).eq('id', state.currentUser.id);
             if (error) throw error;
             if(state.currentProfile) { state.currentProfile.learning_goal = goal; state.currentProfile.preferences = preferencesUpdate; }
-            state.hasCompletedGoalSetting = true; showToast("Cíl uložen!", `Váš studijní cíl byl nastaven na: ${getGoalDisplayName(goal)}.`, "success");
+            state.hasCompletedGoalSetting = true;
+            showToast("Cíl uložen!", `Váš studijní cíl byl nastaven na: ${getGoalDisplayName(goal)}.`, "success");
             hideGoalSelectionModal(); updateUserGoalDisplay();
-            const { completedDiagnostic } = await checkUserInitialSetup(state.currentUser.id); state.hasCompletedDiagnostic = completedDiagnostic;
-            if (!completedDiagnostic && goal !== 'math_explore') { showDiagnosticPrompt(); } else { if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'none'; }
+            const { completedDiagnostic } = await checkUserInitialSetup(state.currentUser.id);
+            state.hasCompletedDiagnostic = completedDiagnostic;
+            if (!completedDiagnostic && goal !== 'math_explore') {
+                showDiagnosticPrompt();
+            } else {
+                 if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'none';
+            }
             if (ui.tabsWrapper) { ui.tabsWrapper.style.display = 'block'; ui.tabsWrapper.classList.add('visible');}
-            if (ui.mainTabContentArea) { ui.mainTabContentArea.style.display = 'flex'; ui.mainTabContentArea.classList.add('visible');} 
+            if (ui.mainTabContentArea) { ui.mainTabContentArea.style.display = 'flex'; ui.mainTabContentArea.classList.add('visible');}
             await switchTabContent('practice-tab'); 
+
         } catch (error) { console.error("Error saving learning goal:", error); showToast("Chyba ukládání", `Nepodařilo se uložit cíl: ${error.message}`, "error");
         } finally { setLoadingState('goalModal', false); }
     }
 
-    function showDiagnosticPrompt() { if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'flex'; if (ui.tabsWrapper) { ui.tabsWrapper.style.display = 'block'; ui.tabsWrapper.classList.add('visible');} if (ui.mainTabContentArea) { ui.mainTabContentArea.style.display = 'flex'; ui.mainTabContentArea.classList.add('visible');} } 
+    function showDiagnosticPrompt() {
+        if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'flex';
+        if (ui.tabsWrapper) { ui.tabsWrapper.style.display = 'block'; ui.tabsWrapper.classList.add('visible');}
+        if (ui.mainTabContentArea) { ui.mainTabContentArea.style.display = 'flex'; ui.mainTabContentArea.classList.add('visible');}
+    }
 
-    function getGoalDisplayName(goalKey) { const goalMap = { 'exam_prep': 'Příprava na přijímačky', 'math_accelerate': 'Učení napřed', 'math_review': 'Doplnění mezer', 'math_explore': 'Volné prozkoumávání', }; return goalMap[goalKey] || goalKey || 'Neznámý cíl'; } 
+    function getGoalDisplayName(goalKey) {
+        const goalMap = { 'exam_prep': 'Příprava na přijímačky', 'math_accelerate': 'Učení napřed', 'math_review': 'Doplnění mezer', 'math_explore': 'Volné prozkoumávání', };
+        return goalMap[goalKey] || goalKey || 'Neznámý cíl';
+    }
 
-    function updateUserGoalDisplay() { if (ui.userGoalDisplay && state.currentProfile && state.currentProfile.learning_goal) { ui.userGoalDisplay.innerHTML = `<i class="fas fa-bullseye"></i> Cíl: <strong>${getGoalDisplayName(state.currentProfile.learning_goal)}</strong>`; ui.userGoalDisplay.style.display = 'inline-flex'; } else if (ui.userGoalDisplay) { ui.userGoalDisplay.style.display = 'none'; } } 
-
-    // ==============================================
-    //          Event Listeners Setup
-    // ==============================================
+    function updateUserGoalDisplay() {
+        if (ui.userGoalDisplay && state.currentProfile && state.currentProfile.learning_goal) {
+            ui.userGoalDisplay.innerHTML = `<i class="fas fa-bullseye"></i> Cíl: <strong>${getGoalDisplayName(state.currentProfile.learning_goal)}</strong>`;
+            ui.userGoalDisplay.style.display = 'inline-flex'; 
+        } else if (ui.userGoalDisplay) {
+            ui.userGoalDisplay.style.display = 'none';
+        }
+    }
     
-    // ==============================================
-    //          Initialization
-    // ==============================================
+    function setupEventListeners() {
+        console.log("[SETUP Main] Setting up event listeners for main.html...");
+        if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
+        else console.warn("Main mobile menu toggle button (#main-mobile-menu-toggle) not found.");
+
+        if (ui.sidebarToggleBtn) ui.sidebarToggleBtn.addEventListener('click', toggleSidebar);
+        else console.warn("Sidebar toggle button (#sidebar-toggle-btn) not found.");
+
+        if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
+        if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
+
+        const mainHtmlPageTabs = document.querySelectorAll('#tabs-wrapper .plan-tab');
+        if (mainHtmlPageTabs.length > 0) {
+            mainHtmlPageTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    switchTabContent(tab.dataset.tab);
+                });
+            });
+        } else { console.warn("Main HTML page tabs (#tabs-wrapper .plan-tab) not found."); }
+
+        if (ui.prevDayBtn) ui.prevDayBtn.addEventListener('click', () => { if (state.currentDisplayDate && state.sortedActivityDates.length > 0) { const currentIndex = state.sortedActivityDates.indexOf(state.currentDisplayDate); if (currentIndex > 0) { state.currentDisplayDate = state.sortedActivityDates[currentIndex - 1]; renderSingleDayPlan(state.currentDisplayDate); } } });
+        if (ui.nextDayBtn) ui.nextDayBtn.addEventListener('click', () => { if (state.currentDisplayDate && state.sortedActivityDates.length > 0) { const currentIndex = state.sortedActivityDates.indexOf(state.currentDisplayDate); if (currentIndex < state.sortedActivityDates.length - 1) { state.currentDisplayDate = state.sortedActivityDates[currentIndex + 1]; renderSingleDayPlan(state.currentDisplayDate); } } });
+        if (ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); }
+        if (ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead); }
+        if (ui.notificationsList) {
+            ui.notificationsList.addEventListener('click', async (event) => {
+                const item = event.target.closest('.notification-item');
+                if (item) {
+                    const notificationId = item.dataset.id;
+                    const link = item.dataset.link;
+                    const isRead = item.classList.contains('is-read');
+                    if (!isRead && notificationId) {
+                        const success = await markNotificationRead(notificationId);
+                        if (success) {
+                            item.classList.add('is-read');
+                            item.querySelector('.unread-dot')?.remove();
+                            const currentCountText = ui.notificationCount.textContent.replace('+', '');
+                            const currentCount = parseInt(currentCountText) || 0;
+                            const newCount = Math.max(0, currentCount - 1);
+                            ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : '');
+                            ui.notificationCount.classList.toggle('visible', newCount > 0);
+                            if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0;
+                        }
+                    }
+                    if (link) window.location.href = link;
+                }
+            });
+        }
+        document.addEventListener('click', (event) => {
+            if (ui.notificationsDropdown?.classList.contains('active') &&
+                !ui.notificationsDropdown.contains(event.target) &&
+                !ui.notificationBell?.contains(event.target)) {
+                ui.notificationsDropdown.classList.remove('active');
+            }
+        });
+
+        if(ui.refreshDataBtn) {
+            ui.refreshDataBtn.addEventListener('click', async () => {
+                showToast("Obnovuji data...", "info", 2000);
+                setLoadingState('all', true);
+
+                if(state.currentUser) {
+                    const profileData = await fetchUserProfile(state.currentUser.id);
+                    if (profileData) {
+                        state.currentProfile = profileData;
+                        userStatsData = await fetchUserStats(state.currentUser.id, state.currentProfile);
+                        await fetchAndDisplayLatestCreditChange(state.currentUser.id);
+                        updateSidebarProfile();
+                        updateUserGoalDisplay();
+                    }
+                }
+
+                if (state.currentMainTab === 'practice-tab') {
+                    await loadDashboardStats();
+                    await loadTopicProgress();
+                    if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderAll === 'function' && state.currentUser) {
+                         await DashboardLists.loadAndRenderAll(state.currentUser.id, 5);
+                    }
+                } else if (state.currentMainTab === 'current') {
+                    await loadCurrentStudyPlanData();
+                }
+                setLoadingState('all', false);
+                showToast("Data obnovena!", "success");
+            });
+        }
+
+        ui.goalRadioLabels.forEach(label => label.addEventListener('click', handleGoalSelection));
+        ui.goalModalBackBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetStepId = btn.dataset.targetStep;
+                ui.goalModalSteps.forEach(step => step.classList.remove('active'));
+                document.getElementById(targetStepId)?.classList.add('active');
+            });
+        });
+        ui.goalModalConfirmBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const goal = btn.dataset.goal;
+                let details = { goal_set_timestamp: new Date().toISOString() };
+
+                if (goal === 'math_accelerate') {
+                    details.grade = ui.accelerateGradeSelect.value;
+                    details.intensity = ui.accelerateIntensitySelect.value;
+                    details.accelerate_areas = Array.from(ui.accelerateAreasCheckboxes).filter(cb => cb.checked).map(cb => cb.value);
+                    details.accelerate_reason = document.querySelector('input[name="accelerate_reason"]:checked')?.value;
+                    if(details.accelerate_reason === 'professional_needs' && ui.accelerateProfessionTextarea) {
+                        details.profession = ui.accelerateProfessionTextarea.value;
+                    }
+                } else if (goal === 'math_review') {
+                    details.grade = ui.reviewGradeSelect.value;
+                    details.topic_ratings = {};
+                    if (ui.topicRatingsContainer) {
+                        ui.topicRatingsContainer.querySelectorAll('.rating-stars').forEach(rs => {
+                            const topicId = rs.dataset.topicId;
+                            const rating = rs.dataset.currentRating;
+                            if (topicId && rating) {
+                                details.topic_ratings[topicId] = { overall: parseInt(rating) };
+                            }
+                        });
+                    }
+                } else if (goal === 'math_explore') {
+                    details.grade = ui.exploreGradeSelect.value;
+                }
+                saveLearningGoal(goal, details);
+            });
+        });
+        const profNeedsRadio = document.querySelector('input[name="accelerate_reason"][value="professional_needs"]');
+        if(profNeedsRadio) {
+             profNeedsRadio.addEventListener('change', (e) => {
+                 if (ui.accelerateProfessionGroup) ui.accelerateProfessionGroup.style.display = e.target.checked ? 'block' : 'none';
+             });
+        }
+
+        if (ui.startTestBtnPrompt) {
+            ui.startTestBtnPrompt.addEventListener('click', () => {
+                window.location.href = 'test1.html';
+            });
+        }
+        console.log("✅ [SETUP Main] Event listeners set up for main.html.");
+    }
+
     async function initializeApp() {
         console.log("🚀🚀🚀 [Init Main - DEBUG] procvicovani/main.js initializeApp CALLED! 🚀🚀🚀");
         console.log("🚀 [Init Main] Starting application...");
-        cacheDOMElements();
+        cacheDOMElements(); 
         setLoadingState('page', true);
-        if (!initializeSupabase()) { setLoadingState('page', false); showGlobalError("Kritická chyba: Nelze inicializovat databázi."); if(ui.mainContent) ui.mainContent.style.display = 'flex'; return; }
-        applyInitialSidebarState(); hideGlobalError();
+        if (!initializeSupabase()) {
+            setLoadingState('page', false);
+            showGlobalError("Kritická chyba: Nelze inicializovat databázi.");
+            if(ui.mainContent) ui.mainContent.style.display = 'flex';
+            return;
+        }
+
+        applyInitialSidebarState();
+        hideGlobalError();
+
         try {
             const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
             if (sessionError) throw new Error(`Nepodařilo se ověřit přihlášení: ${sessionError.message}`);
-            if (!session || !session.user) { console.log('[Init Main] Not logged in. Redirecting...'); window.location.href = '/auth/index.html'; return; }
+
+            if (!session || !session.user) {
+                console.log('[Init Main] Not logged in. Redirecting...');
+                window.location.href = '/auth/index.html';
+                return;
+            }
             state.currentUser = session.user;
-            const [profileData, titlesData] = await Promise.all([ fetchUserProfile(state.currentUser.id), fetchTitles() ]);
-            state.currentProfile = profileData; state.allTitles = titlesData || [];
-            if (!state.currentProfile) { console.error("[Init Main] Profile could not be loaded for user:", state.currentUser.id); showGlobalError("Nepodařilo se načíst váš profil. Zkuste obnovit stránku."); setLoadingState('page', false); if(ui.mainContent) ui.mainContent.style.display = 'flex'; return; }
-            userStatsData = await fetchUserStats(state.currentUser.id, state.currentProfile);
+
+            const [profileData, titlesData] = await Promise.all([
+                fetchUserProfile(state.currentUser.id),
+                fetchTitles()
+            ]);
+            state.currentProfile = profileData;
+            state.allTitles = titlesData || [];
+
+            if (!state.currentProfile) {
+                console.error("[Init Main] Profile could not be loaded for user:", state.currentUser.id);
+                showGlobalError("Nepodařilo se načíst váš profil. Zkuste obnovit stránku.");
+                setLoadingState('page', false);
+                if(ui.mainContent) ui.mainContent.style.display = 'flex';
+                return;
+            }
+
+            userStatsData = await fetchUserStats(state.currentUser.id, state.currentProfile); 
             await fetchAndDisplayLatestCreditChange(state.currentUser.id);
-            updateSidebarProfile(); updateUserGoalDisplay(); setupEventListeners(); initTooltips(); initMouseFollower(); initHeaderScrollDetection(); updateCopyrightYear(); updateOnlineStatus();
-            if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.initialize === 'function') { DashboardLists.initialize({ supabaseClient: supabaseClient, currentUser: state.currentUser, activityVisuals: activityVisuals, formatRelativeTime: formatRelativeTime, sanitizeHTML: sanitizeHTML, }); console.log("[Init Main] DashboardLists initialized."); }
-            else { console.warn("[Init Main] DashboardLists module not found or initialize function missing. Activity/Credit lists might not load.");}
-            fetchNotifications(state.currentUser.id, NOTIFICATION_FETCH_LIMIT).then(({ unreadCount, notifications }) => renderNotifications(unreadCount, notifications)).catch(err => { console.error("Failed to load notifications initially:", err); renderNotifications(0, []); });
-            const { completedGoalSetting, completedDiagnostic } = await checkUserInitialSetup(state.currentUser.id); state.hasCompletedGoalSetting = completedGoalSetting; state.hasCompletedDiagnostic = completedDiagnostic;
-            if (!completedGoalSetting) { showGoalSelectionModal(); }
-            else if (!completedDiagnostic && state.currentProfile?.learning_goal !== 'math_explore') { showDiagnosticPrompt(); if (ui.tabsWrapper) { ui.tabsWrapper.style.display = 'block'; ui.tabsWrapper.classList.add('visible');} if (ui.mainTabContentArea) { ui.mainTabContentArea.style.display = 'flex'; ui.mainTabContentArea.classList.add('visible');} await switchTabContent("practice-tab"); }
-            else { if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'none'; if (ui.tabsWrapper) { ui.tabsWrapper.style.display = 'block'; ui.tabsWrapper.classList.add('visible');} if (ui.mainTabContentArea) { ui.mainTabContentArea.style.display = 'flex'; ui.mainTabContentArea.classList.add('visible');} const urlParams = new URLSearchParams(window.location.search); const initialTab = urlParams.get('tab') || 'practice-tab'; await switchTabContent(initialTab); }
-            if (ui.mainContent) { ui.mainContent.style.display = 'flex'; requestAnimationFrame(() => { if(ui.mainContent) ui.mainContent.classList.add('loaded'); initScrollAnimations(); }); }
+
+            updateSidebarProfile(); 
+            updateUserGoalDisplay();
+            setupEventListeners();
+            initTooltips();
+            initMouseFollower();
+            initHeaderScrollDetection();
+            updateCopyrightYear();
+            updateOnlineStatus();
+
+            fetchNotifications(state.currentUser.id, NOTIFICATION_FETCH_LIMIT)
+                .then(({ unreadCount, notifications }) => renderNotifications(unreadCount, notifications))
+                .catch(err => {
+                    console.error("Failed to load notifications initially:", err);
+                    renderNotifications(0, []);
+                });
+
+            const { completedGoalSetting, completedDiagnostic } = await checkUserInitialSetup(state.currentUser.id);
+            state.hasCompletedGoalSetting = completedGoalSetting;
+            state.hasCompletedDiagnostic = completedDiagnostic;
+
+            if (!completedGoalSetting) {
+                showGoalSelectionModal();
+            } else if (!completedDiagnostic && state.currentProfile?.learning_goal !== 'math_explore') {
+                showDiagnosticPrompt();
+                if (ui.tabsWrapper) { ui.tabsWrapper.style.display = 'block'; ui.tabsWrapper.classList.add('visible');}
+                if (ui.mainTabContentArea) { ui.mainTabContentArea.style.display = 'flex'; ui.mainTabContentArea.classList.add('visible');}
+                await switchTabContent("practice-tab");
+            } else {
+                if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'none';
+                if (ui.tabsWrapper) { ui.tabsWrapper.style.display = 'block'; ui.tabsWrapper.classList.add('visible');}
+                if (ui.mainTabContentArea) { ui.mainTabContentArea.style.display = 'flex'; ui.mainTabContentArea.classList.add('visible');}
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const initialTab = urlParams.get('tab') || 'practice-tab';
+                await switchTabContent(initialTab);
+            }
+
+            if (ui.mainContent) {
+                ui.mainContent.style.display = 'flex';
+                requestAnimationFrame(() => {
+                    if(ui.mainContent) ui.mainContent.classList.add('loaded');
+                    initScrollAnimations();
+                });
+            }
             console.log("✅ [Init Main] Page Initialized.");
-        } catch (error) { console.error("❌ [Init Main] Critical initialization error:", error); if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA (${error.message}). Obnovte.</p>`; } else { showGlobalError(`Chyba inicializace: ${error.message}`, true); } if(ui.mainContent) ui.mainContent.style.display = 'flex'; 
-        } finally { setLoadingState('page', false); }
+
+        } catch (error) {
+            console.error("❌ [Init Main] Critical initialization error:", error);
+            showGlobalError(`Chyba inicializace: ${error.message}`);
+            if(ui.mainContent) ui.mainContent.style.display = 'flex';
+        } finally {
+            setLoadingState('page', false);
+        }
     }
 
     document.addEventListener('DOMContentLoaded', initializeApp);
 
 })();
-
-// Seznam funkcí v dashboard/procvicovani/main.js:
-// cacheDOMElements, formatDateForDisplay, getTodayDateString, dateToYYYYMMDD, addDaysToDate, formatDate, showToast, sanitizeHTML, getInitials, openMenu, closeMenu, initTooltips, showGlobalError, hideGlobalError, formatRelativeTime, updateCopyrightYear, initMouseFollower, initScrollAnimations, initHeaderScrollDetection, updateOnlineStatus, applyInitialSidebarState, toggleSidebar, setCardContentVisibility, toggleSkeletonUI, setLoadingState, renderMessage, initializeSupabase, fetchUserProfile, fetchTitles, updateSidebarProfile, fetchNotifications, renderNotifications, renderNotificationSkeletons, markNotificationRead, markAllNotificationsRead, groupActivitiesByDayAndDateArray, loadCurrentPlan, renderSingleDayPlan, updateNavigationButtonsState, renderPromptCreatePlan, renderNoActivePlan, handleActivityCompletionToggle, updatePlanProgress, getActivityIcon, loadPlanHistory, renderPlanHistory, renderHistorySkeletons, showPlanDetail, getLatestDiagnosticTest, getLatestDiagnosticDataForPlanContext, checkPlanCreationAvailability, renderNoDiagnosticAvailable, renderLockedPlanSection, startPlanTimer, updateNextPlanTimer, renderPlanCreationForm, handleGenerateClick, generateStudyPlan, renderPreviewActions, handleSaveGeneratedPlanClick, generatePlanContentWithGemini, displayPlanContent, getActivityTypeFromTitle, exportPlanToPDFWithStyle, fetchUserStats, loadDashboardStats, renderStatsCards, updateWelcomeBannerAndLevel, loadTopicProgress, renderTopicProgressTable, handleSort, switchTabContent, handlePlanTabManagement, checkUserInitialSetup, showGoalSelectionModal, hideGoalSelectionModal, handleGoalSelection, loadTopicsForGradeReview, populateTopicRatings, saveLearningGoal, showDiagnosticPrompt, getGoalDisplayName, updateUserGoalDisplay, setupEventListeners, initializeApp
+// --- Developer Edit Log ---
+// Goal: Fix infinite loading for "Celkový Přehled" on dashboard/procvicovani/main.html.
+// Stage:
+// 1. Modified `toggleSkeletonUI` in `dashboard/procvicovani/main.js`:
+//    - When `showSkeleton` is `true` for section 'stats':
+//        - Ensured `realContainer.classList.add('loading');` is called.
+//        - Ensured `realContainer.style.display = displayTypeIfReal;` is called to make the container (which holds skeletons) visible.
+//        - Removed the part that hides `realContainer` if `skeletonContainer` exists, as `skeletonContainer` is null for 'stats'.
+//    - When `showSkeleton` is `false` for section 'stats':
+//        - `realContainer.classList.remove('loading');` is called to remove the 'loading' class from the main stats container (`id="stats-cards"`).
+//        - `realContainer.querySelectorAll('.dashboard-card.card').forEach(card => card.classList.remove('loading'));` ensures individual cards also have their 'loading' class removed. This complements `renderStatsCards`.
+// 2. Verified `cacheDOMElements` correctly identifies `ui.statsCardsContainer` as `div#stats-cards` and `ui.statsCardsSkeletonContainer` is `null` for `procvicovani/main.html`.
+// ---
+// Список функций в dashboard/procvicovani/main.js:
+// cacheDOMElements, formatDateForDisplay, getTodayDateString, dateToYYYYMMDD, addDaysToDate, formatDate, showToast,
+// sanitizeHTML, getInitials, openMenu, closeMenu, initTooltips, showGlobalError, hideGlobalError,
+// formatRelativeTime, updateCopyrightYear, initMouseFollower, initScrollAnimations, initHeaderScrollDetection,
+// updateOnlineStatus, applyInitialSidebarState, toggleSidebar, toggleSkeletonUI, setLoadingState, renderMessage,
+// initializeSupabase, fetchUserProfile, fetchTitles, updateSidebarProfile, fetchNotifications,
+// renderNotifications, renderNotificationSkeletons, markNotificationRead, markAllNotificationsRead,
+// groupActivitiesByDayAndDateArray, loadCurrentPlan, renderSingleDayPlan, updateNavigationButtonsState,
+// renderPromptCreatePlan, renderNoActivePlan, handleActivityCompletionToggle, updatePlanProgress,
+// getActivityIcon, fetchAndDisplayLatestCreditChange, fetchUserStats, loadDashboardStats, renderStatsCards,
+// updateWelcomeBannerAndLevel, loadTopicProgress, renderTopicProgressTable, handleSort, switchTabContent,
+// loadCurrentStudyPlanData, setupEventListeners, initializeApp, getLatestDiagnosticTest, checkUserInitialSetup,
+// showGoalSelectionModal, hideGoalSelectionModal, handleGoalSelection, loadTopicsForGradeReview,
+// populateTopicRatings, saveLearningGoal, showDiagnosticPrompt, getGoalDisplayName, updateUserGoalDisplay.
