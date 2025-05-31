@@ -114,7 +114,8 @@ window.VyukaApp = window.VyukaApp || {};
             state.isVyukaSidebarAiExpanded = shouldBeExpanded;
             if (ui.sidebarAiDesktopToggle) {
                 const icon = ui.sidebarAiDesktopToggle.querySelector('i');
-                if (icon) icon.className = `fas fa-chevron-${shouldBeExpanded ? 'right' : 'left'}`; // Logic for this button seems inverted in HTML, or my understanding
+                // Updated logic for chevron direction based on panel state
+                if (icon) icon.className = `fas fa-chevron-${shouldBeExpanded ? 'left' : 'right'}`;
                 ui.sidebarAiDesktopToggle.title = shouldBeExpanded ? "Sbalit AI panel" : "Rozbalit AI panel";
             }
             localStorage.setItem('vyukaSidebarAiState', shouldBeExpanded ? 'expanded' : 'collapsed');
@@ -123,11 +124,10 @@ window.VyukaApp = window.VyukaApp || {};
             const ui = VyukaApp.ui; const state = VyukaApp.state; if (!ui.vyukaSidebarAi || !ui.mainMobileMenuToggle) return;
             const shouldBeActive = typeof forceState === 'boolean' ? forceState : !ui.vyukaSidebarAi.classList.contains('active-mobile');
             ui.vyukaSidebarAi.classList.toggle('active-mobile', shouldBeActive);
-            ui.vyukaSidebarAi.classList.toggle('expanded', shouldBeActive); // Also expand when mobile active
+            ui.vyukaSidebarAi.classList.toggle('expanded', shouldBeActive);
             if (!ui.sidebarOverlayAi) {
                 ui.sidebarOverlayAi = document.createElement('div');
                 ui.sidebarOverlayAi.className = 'sidebar-overlay-ai';
-                // Ensure it's appended to a suitable container, e.g., body or vyuka-page-container
                 const pageContainer = document.querySelector('.vyuka-page-container') || document.body;
                 pageContainer.appendChild(ui.sidebarOverlayAi);
                 ui.sidebarOverlayAi.addEventListener('click', () => VyukaApp.toggleVyukaSidebarAiMobile(false));
@@ -155,20 +155,27 @@ window.VyukaApp = window.VyukaApp || {};
             const state = VyukaApp.state;
             const ui = VyukaApp.ui;
             const canInteractBase = !!state.currentTopic && !state.geminiIsThinking && !state.topicLoadInProgress;
-            const canChat = canInteractBase || (!!state.currentTopic && state.aiIsWaitingForAnswer); // Allow chat if AI is waiting for answer
+            // Check if chat input and send button should be enabled
+            // Enable if:
+            // 1. Topic is loaded AND (AI is not thinking AND not loading topic)
+            // OR
+            // 2. Topic is loaded AND AI is waiting for an answer
+            const canChat = (!!state.currentTopic && !state.geminiIsThinking && !state.topicLoadInProgress) ||
+                            (!!state.currentTopic && state.aiIsWaitingForAnswer);
 
             // Send Button and Chat Input
             if (ui.sendButton) {
-                ui.sendButton.disabled = !canChat || state.isListening || state.geminiIsThinking;
+                ui.sendButton.disabled = !canChat || state.isListening; // Removed geminiIsThinking from here as canChat covers it
                 ui.sendButton.innerHTML = state.geminiIsThinking ? '<i class="fas fa-spinner fa-spin"></i>' : '<i class="fas fa-paper-plane"></i>';
             }
             if (ui.chatInput) {
-                ui.chatInput.disabled = !canChat || state.isListening || state.geminiIsThinking;
+                ui.chatInput.disabled = !canChat || state.isListening; // Removed geminiIsThinking
                 ui.chatInput.placeholder = state.isListening ? "Poslouchám..." : (canChat ? "Zeptejte se nebo odpovězte..." : "Počkejte prosím...");
             }
 
             // Continue Button
             if (ui.continueBtn) {
+                // Continue is disabled if AI is busy, if AI is waiting for user, or if AI suggested completion
                 ui.continueBtn.disabled = !canInteractBase || state.aiIsWaitingForAnswer || state.aiSuggestedCompletion;
                 ui.continueBtn.style.display = (state.currentTopic && !state.aiSuggestedCompletion) ? 'inline-flex' : 'none';
             }
@@ -185,6 +192,7 @@ window.VyukaApp = window.VyukaApp || {};
 
             // Mic Button
             if (ui.micBtn) {
+                // Mic can be used if chat is possible and STT is supported and AI is not thinking
                 const canUseMic = canChat && state.speechRecognitionSupported && !state.geminiIsThinking;
                 ui.micBtn.disabled = !canUseMic;
                 ui.micBtn.classList.toggle('listening', state.isListening);
@@ -217,25 +225,25 @@ window.VyukaApp = window.VyukaApp || {};
 
 		VyukaApp.setupBaseEventListeners = () => {
             const ui = VyukaApp.ui;
-            const state = VyukaApp.state; // Added state for AI model select
+            const state = VyukaApp.state;
             console.log("[SETUP Core] Setting up base event listeners...");
 
             if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', () => VyukaApp.toggleVyukaSidebarAiMobile());
             if (ui.sidebarAiDesktopToggle) ui.sidebarAiDesktopToggle.addEventListener('click', () => VyukaApp.toggleVyukaSidebarAi());
-            // START: Removed listener for vyukaSidebarAiToggle
-            // if (ui.vyukaSidebarAiToggle) ui.vyukaSidebarAiToggle.addEventListener('click', () => VyukaApp.toggleVyukaSidebarAi());
-            // END: Removed listener
+            // Listener for vyukaSidebarAiToggle was removed as the button is no longer in HTML.
 
-            // AI Model Selector Listener
             if (ui.aiModelSelect) {
                 ui.aiModelSelect.addEventListener('change', (event) => {
                     state.currentAiModel = event.target.value;
                     console.log(`[AI Model] Selected model: ${state.currentAiModel}`);
                     VyukaApp.showToast('Model AI Změněn', `Nyní používáte model: ${event.target.options[event.target.selectedIndex].text}`, 'info');
-                    // Future: May need to re-initialize AI session or clear context
+                    // TODO: Consider if AI session needs reset or context needs clearing.
+                    // This might involve calling a function from vyuka-ai-interaction.js
+                    if (typeof VyukaApp.handleModelChange === 'function') {
+                        VyukaApp.handleModelChange(state.currentAiModel);
+                    }
                 });
             }
-
 
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => { VyukaApp.state.isDarkMode = event.matches; VyukaApp.updateTheme(); });
             window.addEventListener('resize', () => { if (window.innerWidth > 768 && VyukaApp.state.isVyukaSidebarAiMobileActive) { VyukaApp.toggleVyukaSidebarAiMobile(false); } });
@@ -244,24 +252,7 @@ window.VyukaApp = window.VyukaApp || {};
                 if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) {
                     ui.notificationsDropdown.classList.remove('active');
                 }
-                // User dropdown menu handled by CSS :hover for now. If JS control is needed:
-                // if(ui.userDropdownMenu?.style.display === 'block' && !ui.userMenuContainer?.contains(event.target)) {
-                //     ui.userDropdownMenu.style.display = 'none';
-                // }
             });
-
-            // Logout button in dropdown - specific to vyuka.html, handled by inline script.
-            // If we were to move it here, it would look like this:
-            // if(ui.vyukaLogoutBtn) {
-            //     ui.vyukaLogoutBtn.addEventListener('click', async () => {
-            //         if(VyukaApp.state.supabase) {
-            //             const { error } = await VyukaApp.state.supabase.auth.signOut();
-            //             if (error) { VyukaApp.showToast('Chyba odhlášení', error.message, 'error'); }
-            //             else { window.location.href = '/auth/index.html'; }
-            //         }
-            //     });
-            // }
-
             console.log("[SETUP Core] Base event listeners setup complete.");
         };
 
