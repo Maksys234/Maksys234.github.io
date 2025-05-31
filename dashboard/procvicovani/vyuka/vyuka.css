@@ -1,4 +1,4 @@
-/* dashboard/procvicovani/vyuka/vyuka.css - EXTREME CYBERPUNK OVERHAUL v14 - Footer Further Down */
+/* dashboard/procvicovani/vyuka/vyuka.css - EXTREME CYBERPUNK OVERHAUL v15 - Whiteboard Height Adjustment */
 
 /* --- Základní proměnné --- */
 :root {
@@ -42,7 +42,7 @@
     --vyuka-sidebar-width-expanded: 250px;
     --vyuka-sidebar-width-collapsed: 68px;
     --vyuka-header-height: 64px;
-    --vyuka-footer-base-height: 180px; /* Approximate footer height, can be adjusted */
+    /* --vyuka-footer-base-height: 180px; Removed as we rely on auto height now */
 
 
     --vyuka-card-radius: 10px;
@@ -158,19 +158,18 @@ body.scrolled .vyuka-header {
 
 .vyuka-main-content {
     display: flex;
-    flex-grow: 1; /* Allows this to take up space */
+    flex-grow: 1; /* Allows this container to fill space */
     padding: 2rem;
     gap: 2rem;
     background-color: transparent;
-    /* min-height removed to allow flex-grow to fully manage space with footer */
+    /* min-height removed, let flex-grow handle height based on children */
     position: relative;
     z-index: 10;
 }
 
-/* --- Footer --- */
 .main-footer.vyuka-footer {
-    flex-shrink: 0; /* Footer does not shrink */
-    margin-top: auto; /* This is key for pushing it to the bottom of the flex container */
+    flex-shrink: 0;
+    margin-top: auto; /* Pushes footer to the bottom of .vyuka-main-content-scrollable */
     background-color: var(--vyuka-bg-panel) !important;
     color: var(--vyuka-text-secondary) !important;
     padding: 2.5rem 0 !important;
@@ -269,8 +268,21 @@ body.scrolled .vyuka-header {
 .vyuka-whiteboard-area::after, .vyuka-chat-panel::after { bottom: 0px; right: 0px; border-width: 0 3px 3px 0; border-bottom-right-radius: var(--vyuka-card-radius); clip-path: polygon(100% 100%, 40% 100%, 100% 40%); }
 .vyuka-whiteboard-area:hover::before, .vyuka-chat-panel:hover::before { transform: translate(-5px, -5px) scale(1.1); border-color: var(--vyuka-accent-primary); box-shadow: 0 0 15px var(--vyuka-accent-primary); }
 .vyuka-whiteboard-area:hover::after, .vyuka-chat-panel:hover::after { transform: translate(5px, 5px) scale(1.1); border-color: var(--vyuka-accent-primary); box-shadow: 0 0 15px var(--vyuka-accent-primary); }
-.vyuka-whiteboard-area { flex: 6; min-height: clamp(450px, 65vh, 800px); height: auto; }
-.vyuka-chat-panel { flex: 4; min-height: clamp(450px, 65vh, 800px); min-width: 380px; height: auto; }
+
+.vyuka-whiteboard-area {
+    flex: 6; /* Proportion of space if both can grow */
+    min-height: 350px; /* Reduced min-height to test if it allows footer to be lower */
+    /* clamp(450px, 65vh, 800px); */ /* Previous clamp value */
+    height: auto; /* Allows content to dictate height, up to flex limits */
+}
+.vyuka-chat-panel {
+    flex: 4;
+    min-height: 350px; /* Reduced min-height */
+    /* clamp(450px, 65vh, 800px); */ /* Previous clamp value */
+    min-width: 380px;
+    height: auto;
+}
+
 #whiteboard-container { flex-grow: 1; overflow-y: auto; padding: 1rem; margin-right: -10px; position: relative; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--vyuka-accent-secondary) rgba(var(--vyuka-bg-dark), 0.5); }
 #whiteboard-container::-webkit-scrollbar { width: 6px; }
 #whiteboard-container::-webkit-scrollbar-thumb { background: var(--vyuka-accent-secondary); border-radius: 3px;}
@@ -353,4 +365,4 @@ mjx-mfrac, mjx-msqrt, mjx-mtable { color: inherit !important; }
 .notifications-dropdown-wrapper, .notifications-header, .notifications-title, .mark-all-read-btn, #notifications-list, .notification-item, .notification-icon, .notification-content, .notification-title, .notification-message, .notification-time, .unread-dot, .notifications-footer, .view-all-notifications-link, #no-notifications-msg, .notification-item.hiding, .notification-item.skeleton .skeleton,
 .toast-container, .toast, .modal-overlay, .modal-content.card, .modal-close-btn, .modal-icon, .modal-title, .modal-text, .modal-actions,
 .offline-banner, .sidebar-overlay-ai
-{ /* These styles are from previous version or vyuka.html style block */ }
+{ /* Эти стили из предыдущих версий или из vyuka.html */ }
