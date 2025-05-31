@@ -1,568 +1,365 @@
-<!DOCTYPE html>
-<html lang="cs" class="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Výuka s AI // Kyber-Verze</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+/* dashboard/procvicovani/vyuka/vyuka.css - EXTREME CYBERPUNK OVERHAUL v3 - Layout First, then Effects */
+/* UPDATE: Notification design, loading animation, notification hiding animation, chat buttons, AI model select, user dropdown, footer, sidebar toggle */
+/* USER REQUEST v1: Scrollable page, Increased whiteboard/chat height, Improved left sidebar design */
+/* USER REQUEST v2: Fix footer background, ensure page scroll, further design enhancements for whiteboard/chat */
+/* USER REQUEST v3: Fix full-page avatar, further cyberpunk design for whiteboard/chat */
 
-    <script>
-        if (typeof window.MathJax === 'undefined') {
-            window.MathJax = {
-                tex: {
-                    inlineMath: [['$', '$'], ['\\(', '\\)']],
-                    displayMath: [['$$', '$$']],
-                    processEscapes: true
-                },
-                svg: {
-                    fontCache: 'global'
-                },
-                options: {
-                    ignoreHtmlClass: 'tex2jax_ignore',
-                    processHtmlClass: 'tex2jax_process'
-                },
-                startup: {
-                    ready: () => {
-                        console.log('[MathJax Config] MathJax Startup: Ready.');
-                        MathJax.startup.defaultReady();
-                        MathJax.startup.promise.then(() => {
-                            console.log('[MathJax Config] MathJax Startup: Core Ready.');
-                        });
-                    }
-                }
-            };
-        } else {
-            console.warn("[MathJax Config] window.MathJax already defined. Skipping default config.");
-        }
-    </script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+/* --- Základní proměnné --- */
+:root {
+    --vyuka-font-primary: 'Rajdhani', sans-serif;
+    --vyuka-font-secondary: 'Orbitron', sans-serif;
+    --vyuka-font-accent: 'Audiowide', cursive;
+    --vyuka-font-mono: 'Roboto Mono', monospace;
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    --vyuka-bg-dark: #05080F;
+    --vyuka-bg-panel: #0D101B; /* Slightly lighter for panels */
+    --vyuka-bg-panel-rgb: 13, 16, 27; /* RGB for panel background */
+    --vyuka-bg-panel-lighter: #131724;
+    --vyuka-border-color: #2C334C;
+    --vyuka-border-highlight: rgba(var(--vyuka-accent-secondary-rgb), 0.5);
+    --vyuka-border-cyber: rgba(var(--vyuka-accent-primary-rgb), 0.7);
+    --vyuka-border-cyber-secondary: rgba(var(--vyuka-accent-secondary-rgb), 0.6);
 
-    <link rel="stylesheet" href="vyuka.css">
-    <link rel="stylesheet" href="../../dashboard.css">
-    <style>
-        /* --- START: Skeleton Loader Animation --- */
-        .skeleton {
-            background-color: var(--skeleton-bg, rgba(var(--vyuka-accent-secondary-rgb), 0.1));
-            border-radius: var(--vyuka-card-radius, 6px);
-            position: relative;
-            overflow: hidden;
-        }
 
-        .skeleton::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -150%; /* Start off-screen to the left */
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                var(--skeleton-shine-color, rgba(var(--vyuka-accent-secondary-rgb), 0.25)),
-                transparent
-            );
-            animation: skeleton-wave var(--skeleton-animation-duration, 1.8s) linear infinite;
-        }
+    --vyuka-accent-primary: #FF00E6;
+    --vyuka-accent-primary-rgb: 255, 0, 230;
+    --vyuka-accent-secondary: #00F5FF;
+    --vyuka-accent-secondary-rgb: 0, 245, 255;
+    --vyuka-accent-tertiary: #F9A825;
+    --vyuka-accent-tertiary-rgb: 249, 168, 37;
+    --vyuka-accent-error: #FF4757;
+    --vyuka-accent-success: #2ED573;
+    --vyuka-accent-neutral: #5A6788;
 
-        @keyframes skeleton-wave {
-            0% {
-                background-position: -200% 0;
-            }
-            100% {
-                background-position: 200% 0;
-            }
-        }
-        /* Specific skeleton placeholders if needed */
-        .skeleton-text-line { height: 1em; margin-bottom: 0.5em; width: 80%; }
-        .skeleton-text-line.short { width: 50%; }
-        .skeleton-text-line.long { width: 100%; }
-        .skeleton-avatar { width: 50px; height: 50px; border-radius: 50%; }
-        .skeleton-block { height: 100px; width: 100%; }
-        /* --- END: Skeleton Loader Animation --- */
+    --vyuka-text-primary: #E0E7FF;
+    --vyuka-text-secondary: #A0AEC0;
+    --vyuka-text-muted: #5A6788;
+    --vyuka-text-heading: var(--vyuka-text-primary);
+    --vyuka-text-link: var(--vyuka-accent-secondary);
+    --vyuka-text-link-hover: var(--vyuka-text-primary);
+    --vyuka-text-on-accent: var(--vyuka-bg-dark);
 
-        /* --- START: Enhanced Sidebar Typography --- */
-        .vyuka-sidebar-ai-logo .logo-text {
-            font-size: 1.2em; /* Slightly larger */
-            font-weight: 700; /* Bolder */
-            text-shadow: 0 0 5px var(--vyuka-accent-secondary-glow, rgba(0, 245, 255, 0.5)); /* More pronounced glow */
-            letter-spacing: 0.5px;
-        }
+    --vyuka-sidebar-width-expanded: 250px;
+    --vyuka-sidebar-width-collapsed: 64px;
+    --vyuka-header-height: 64px;
 
-        .vyuka-sidebar-ai-link .link-text {
-            font-size: 0.9rem; /* Increased size */
-            font-weight: 500; /* Standard weight for readability */
-            letter-spacing: 0.3px; /* Subtle spacing for clarity */
-        }
+    --vyuka-card-radius: 10px; /* Slightly more rounded */
+    --vyuka-button-radius: 6px;
+    --vyuka-input-radius: 6px;
 
-        .vyuka-sidebar-ai-link.active .link-text {
-            font-weight: 600; /* Bolder active link */
-            text-shadow: 0 0 3px var(--vyuka-accent-primary-glow, rgba(255, 0, 230, 0.4));
-        }
-        /* --- END: Enhanced Sidebar Typography --- */
+    --vyuka-panel-shadow: 0 5px 20px rgba(0,0,0,0.5), inset 0 0 12px rgba(var(--vyuka-bg-dark),0.7);
+    --vyuka-text-glow-primary: 0 0 6px var(--vyuka-accent-primary), 0 0 12px var(--vyuka-accent-primary);
+    --vyuka-text-glow-secondary: 0 0 6px var(--vyuka-accent-secondary), 0 0 12px var(--vyuka-accent-secondary);
+    --vyuka-cyber-glow-primary: 0 0 12px rgba(var(--vyuka-accent-primary-rgb), 0.6), 0 0 24px rgba(var(--vyuka-accent-primary-rgb), 0.4);
+    --vyuka-cyber-glow-secondary: 0 0 12px rgba(var(--vyuka-accent-secondary-rgb), 0.6), 0 0 24px rgba(var(--vyuka-accent-secondary-rgb), 0.4);
 
-        /* --- START: Enhanced Footer Styles (inspired by dashboard.html) --- */
-        .main-footer.vyuka-footer {
-            background-color: var(--vyuka-bg-dark, #05080F); /* Darker footer background */
-            padding: 2.5rem 0; /* Increased padding */
-            margin-top: auto;
-            border-top: 2px solid var(--vyuka-accent-primary, #FF00E6);
-            box-shadow: 0 -5px 20px -5px rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.25); /* Top glow */
-            color: var(--vyuka-text-secondary, #A0AEC0);
-            font-size: 0.9rem;
-            line-height: 1.7;
-        }
 
-        .vyuka-footer .container { /* Assuming you'll wrap footer content in a .container */
-            max-width: var(--container-max-width, 1140px);
-            margin-left: auto;
-            margin-right: auto;
-            padding-left: var(--container-padding-x, 15px);
-            padding-right: var(--container-padding-x, 15px);
-        }
+    --vyuka-chat-input-gradient: linear-gradient(145deg, rgba(var(--vyuka-accent-pink-rgb),0.7) -10%, rgba(var(--vyuka-accent-primary-rgb),0.8) 90%);
+    --vyuka-send-button-gradient: linear-gradient(60deg, var(--vyuka-accent-primary), var(--vyuka-accent-secondary));
 
-        .vyuka-footer .footer-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive columns */
-            gap: 2.5rem;
-            text-align: left; /* Align text to left for columns */
-        }
+    --animation-duration-fast: 0.2s;
+    --animation-duration-medium: 0.35s;
+    --animation-duration-slow: 0.6s;
+    --animation-timing-cyber: cubic-bezier(0.19, 1, 0.22, 1);
 
-        .vyuka-footer .footer-column .logo {
-            display: inline-flex;
-            align-items: center;
-            font-family: var(--vyuka-font-accent, 'Audiowide', cursive); /* Accent font for logo */
-            font-size: 1.9rem;
-            font-weight: 700;
-            color: var(--vyuka-text-heading, #E0E7FF);
-            text-decoration: none;
-            margin-bottom: 1.25rem;
-            transition: opacity 0.2s ease, text-shadow 0.2s ease;
-        }
-        .vyuka-footer .footer-column .logo:hover {
-            opacity: 0.9;
-            text-shadow: var(--vyuka-text-glow-secondary);
-        }
-        .vyuka-footer .footer-column .logo i {
-            margin-right: 0.6rem;
-            color: var(--vyuka-accent-secondary, #00F5FF);
-            font-size: 1.1em; /* Slightly larger icon */
-        }
+    --vyuka-notification-bg: var(--vyuka-bg-panel-lighter);
+    --vyuka-notification-border: var(--vyuka-border-color);
+    --vyuka-notification-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    --vyuka-notification-item-hover-bg: rgba(var(--vyuka-accent-secondary-rgb), 0.1);
+    --vyuka-notification-unread-dot: var(--vyuka-accent-primary);
 
-        .vyuka-footer .footer-column p {
-            margin-bottom: 1.25rem;
-            color: var(--vyuka-text-secondary, #A0AEC0);
-            font-size: 0.875rem;
-            opacity: 0.9;
-        }
+    --vyuka-loader-size: 70px;
+    --vyuka-loader-blade-color: var(--vyuka-accent-primary);
+    --vyuka-loader-core-color: var(--vyuka-accent-secondary);
 
-        .vyuka-footer .footer-column h3 { /* Column titles */
-            font-family: var(--vyuka-font-secondary, 'Orbitron', sans-serif);
-            font-size: 1.15rem;
-            font-weight: 600;
-            color: var(--vyuka-text-heading, #E0E7FF);
-            margin-bottom: 1.25rem;
-            position: relative;
-            padding-left: 20px; /* Space for pseudo-element */
-            text-shadow: 0 0 5px rgba(var(--vyuka-accent-secondary-rgb, 0, 245, 255), 0.3);
-        }
-        .vyuka-footer .footer-column h3::before { /* Decorative element for titles */
-            content: '';
-            background-color: var(--vyuka-accent-secondary, #00F5FF);
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            box-shadow: 0 0 8px var(--vyuka-accent-secondary-glow, rgba(0, 245, 255, 0.5));
-        }
+    --vyuka-notification-hide-duration: 0.5s;
 
-        .vyuka-footer .footer-column .footer-links {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .vyuka-footer .footer-column .footer-links li {
-            margin-bottom: 0.6rem; /* Increased spacing */
-            transition: background-color 0.2s ease;
-            border-radius: var(--vyuka-button-radius, 4px);
-            padding: 0.25rem 0.5rem;
-            margin-left: -0.5rem; /* Counteract padding for alignment */
-        }
-        .vyuka-footer .footer-column .footer-links li:hover {
-            background-color: rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.07);
-        }
+    --skeleton-base-color: rgba(var(--vyuka-border-color), 0.1);
+    --skeleton-shine-color: rgba(var(--vyuka-border-color), 0.25);
+    --skeleton-animation-duration: 1.8s;
+}
 
-        .vyuka-footer .footer-column .footer-links a,
-        .vyuka-footer .footer-column .footer-links span.icon-text-item { /* For non-link items with icons */
-            color: var(--vyuka-text-link, var(--vyuka-accent-secondary));
-            text-decoration: none;
-            font-size: 0.95rem;
-            transition: color 0.2s ease, text-shadow 0.2s ease;
-            display: flex;
-            align-items: center;
-            width: 100%;
-        }
-        .vyuka-footer .footer-column .footer-links li:hover a,
-        .vyuka-footer .footer-column .footer-links li:hover span.icon-text-item {
-            color: var(--vyuka-text-link-hover, var(--vyuka-text-primary));
-            text-shadow: 0 0 8px var(--vyuka-text-link-hover, var(--vyuka-text-primary));
-        }
+/* --- Základní styly --- */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body.new-vyuka-layout {
+    font-family: var(--vyuka-font-primary);
+    background-color: var(--vyuka-bg-dark); /* This is the final page background */
+    color: var(--vyuka-text-primary);
+    margin: 0; padding: 0; display: flex; overflow: hidden; height: 100vh;
+    position: relative;
+}
+/* Background Effects (Identické s předchozí verzí) */
+body.new-vyuka-layout::before { content: ''; position: fixed; inset: 0; z-index: -2; background-image: linear-gradient(rgba(var(--vyuka-border-color), 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--vyuka-border-color), 0.07) 1px, transparent 1px); background-size: 30px 30px; opacity: 0.5; animation: bg-grid-pan 120s linear infinite; }
+body.new-vyuka-layout::after { content: ''; position: fixed; inset: 0; z-index: -1; background: linear-gradient(to bottom, transparent 50%, rgba(var(--vyuka-bg-dark), 0.1) 50%), radial-gradient(ellipse at center, rgba(var(--vyuka-accent-primary-rgb),0.03) 0%, transparent 70%); background-size: 100% 3px, 100% 100%; opacity: 0.2; animation: scanlines 20s linear infinite alternate; }
+@keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 600px 300px; } }
+@keyframes scanlines { from { background-position: 0 0, 0 0; } to { background-position: 0 60px, 0 0; } }
 
-        .vyuka-footer .footer-column .footer-links a i,
-        .vyuka-footer .footer-column .footer-links span.icon-text-item i {
-            margin-right: 0.8em; /* More space for icon */
-            color: var(--vyuka-text-muted, #5A6788);
-            width: 18px; /* Slightly wider for icons */
-            text-align: center;
-            transition: color 0.2s ease, transform 0.2s ease;
-            flex-shrink: 0; /* Prevent icon from shrinking */
-        }
-        .vyuka-footer .footer-column .footer-links li:hover a i,
-        .vyuka-footer .footer-column .footer-links li:hover span.icon-text-item i {
-            color: inherit; /* Inherit color from parent <a> or <span> */
-            transform: scale(1.1);
-        }
+h1, h2, h3 { font-family: var(--vyuka-font-secondary); color: var(--vyuka-text-heading); text-shadow: 0 0 8px rgba(var(--vyuka-accent-secondary-rgb),0.3); margin:0; }
+a { color: var(--vyuka-text-link); text-decoration: none; transition: color var(--animation-duration-fast) ease, text-shadow var(--animation-duration-fast) ease; }
+a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka-text-link-hover); }
 
-        .vyuka-footer .social-links {
-            display: flex;
-            gap: 1rem; /* Increased gap */
-            margin-top: 1.25rem;
-        }
-        .vyuka-footer .social-links .social-link {
-            width: 40px; /* Larger social icons */
-            height: 40px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: 1.5px solid var(--vyuka-border-color, #2C334C);
-            color: var(--vyuka-text-muted, #5A6788);
-            font-size: 1.2rem; /* Larger icon font size */
-            transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-            text-decoration: none;
-        }
-        .vyuka-footer .social-links .social-link:hover {
-            background-color: var(--vyuka-accent-primary, #FF00E6);
-            border-color: var(--vyuka-accent-primary, #FF00E6);
-            color: var(--vyuka-bg-dark, #05080F); /* Text color for contrast */
-            transform: translateY(-3px) scale(1.08);
-            box-shadow: 0 4px 12px rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.4);
-        }
+/* --- Struktura Layoutu (Scroll Fix & Footer Placement) --- */
+.vyuka-page-container {
+    flex-grow: 1;
+    margin-left: var(--vyuka-sidebar-width-collapsed);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    transition: margin-left 0.3s var(--animation-timing-cyber);
+    overflow: hidden; /* IMPORTANT: Prevents this container from scrolling */
+    /* No background color here, body.new-vyuka-layout provides it */
+}
 
-        .vyuka-footer .footer-copyright { /* Optional copyright text styling */
-            grid-column: 1 / -1; /* Span all columns */
-            text-align: center;
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--vyuka-border-color, #2C334C);
-            font-size: 0.85rem;
-            color: var(--vyuka-text-muted, #5A6788);
-            opacity: 0.7;
-        }
-        /* --- END: Enhanced Footer Styles --- */
+.vyuka-sidebar-ai.expanded ~ .vyuka-page-container {
+    margin-left: var(--vyuka-sidebar-width-expanded);
+}
 
-    </style>
-</head>
-<body class="dark new-vyuka-layout">
-    <div class="initial-loading-overlay" id="initial-loader">
-         <div class="loading-spinner">
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-         </div>
-         <p class="loading-text" id="loading-text-anim"><span>S</span><span>Y</span><span>N</span><span>C</span><span>H</span><span>R</span><span>O</span><span>N</span><span>I</span><span>Z</span><span>U</span><span>J</span><span>I</span><span>&nbsp;</span><span>M</span><span>O</span><span>D</span><span>U</span><span>L</span><span>.</span><span>.</span><span>.</span></p>
-     </div>
+.vyuka-main-content-scrollable { /* This is the NEW scrollable wrapper */
+    flex-grow: 1;
+    overflow-y: auto; /* Enables vertical scrolling for its content */
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column; /* Stacks header, main content and footer */
+    position: relative;
+    background-color: transparent; /* Ensure it doesn't obscure body background */
+}
+.vyuka-main-content-scrollable::-webkit-scrollbar { width: 8px; height: 8px; }
+.vyuka-main-content-scrollable::-webkit-scrollbar-track { background: rgba(var(--vyuka-bg-dark), 0.7); }
+.vyuka-main-content-scrollable::-webkit-scrollbar-thumb { background-color: var(--vyuka-accent-primary); border-radius: 4px; border: 2px solid rgba(var(--vyuka-bg-dark), 0.7); }
+.vyuka-main-content-scrollable::-webkit-scrollbar-thumb:hover { background-color: var(--vyuka-accent-secondary); }
 
-     <div class="offline-banner" id="offline-banner"> <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO.</div>
 
-    <aside class="vyuka-sidebar-ai" id="vyuka-sidebar-ai">
-        <div class="vyuka-sidebar-ai-header">
-            <a href="/dashboard/dashboard.html" class="vyuka-sidebar-ai-logo">
-                <i class="fas fa-atom"></i> <span class="logo-text">Justax</span>
-            </a>
-        </div>
-        <ul class="vyuka-sidebar-ai-menu">
-            <li class="vyuka-sidebar-ai-item btn-tooltip" title="Nástěnka">
-                <a href="/dashboard/dashboard.html" class="vyuka-sidebar-ai-link">
-                    <i class="fas fa-tachometer-alt"></i> <span class="link-text">Nástěnka</span>
-                </a>
-            </li>
-            <li class="vyuka-sidebar-ai-item btn-tooltip active" title="Procvičování">
-                <a href="/dashboard/procvicovani/main.html" class="vyuka-sidebar-ai-link active">
-                    <i class="fas fa-laptop-code"></i> <span class="link-text">Procvičování</span>
-                </a>
-            </li>
-            <li class="vyuka-sidebar-ai-item btn-tooltip" title="Pokrok">
-                 <a href="/dashboard/pokrok.html" class="vyuka-sidebar-ai-link">
-                    <i class="fas fa-chart-line"></i> <span class="link-text">Pokrok</span>
-                </a>
-            </li>
-            <li class="vyuka-sidebar-ai-item btn-tooltip" title="Ocenění">
-                <a href="/dashboard/oceneni.html" class="vyuka-sidebar-ai-link">
-                    <i class="fas fa-medal"></i> <span class="link-text">Ocenění</span>
-                </a>
-            </li>
-            <li class="vyuka-sidebar-ai-item btn-tooltip" title="Profil">
-                <a href="/dashboard/profile.html" class="vyuka-sidebar-ai-link">
-                    <i class="fas fa-user-astronaut"></i> <span class="link-text">Profil</span>
-                </a>
-            </li>
-        </ul>
-        <div class="vyuka-sidebar-ai-footer">
-             <span id="currentYearSidebarVyuka" style="display: none;"></span> </div>
-    </aside>
+.vyuka-header {
+    height: var(--vyuka-header-height);
+    background-color: var(--vyuka-bg-panel);
+    border-bottom: 1px solid var(--vyuka-border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.2rem;
+    flex-shrink: 0; /* Header should not shrink */
+    box-shadow: 0 3px 15px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(var(--vyuka-border-color),0.5);
+    position: sticky;
+    top: 0;
+    z-index: 950;
+}
+body.scrolled .vyuka-header {
+    background-color: rgba(var(--vyuka-bg-panel-rgb), 0.95);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4), 0 0 15px rgba(var(--vyuka-accent-primary-rgb), 0.1) inset;
+}
 
-    <div class="vyuka-page-container" id="vyuka-page-container">
-        <header class="vyuka-header" id="vyuka-header">
-            <div class="vyuka-header-left">
-                <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <button class="btn btn-icon-only sidebar-ai-desktop-toggle" id="sidebar-ai-desktop-toggle" aria-label="Přepnout postranní panel AI" title="Přepnout postranní panel AI">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <div class="vyuka-header-topic-info">
-                    <h1 id="vyuka-subject-title">Mathematics</h1>
-                    <p id="vyuka-topic-subtitle">Advanced Calculus</p>
-                </div>
-            </div>
-            <div class="vyuka-header-right">
-                <a href="/dashboard/profile.html" class="btn btn-icon-only btn-tooltip" title="Nastavení profilu">
-                    <i class="fas fa-cog"></i>
-                </a>
-                <div class="notifications">
-                    <div class="notification-bell" id="notification-bell" title="Oznámení">
-                         <i class="far fa-bell"></i>
-                         <span class="notification-badge" id="notification-count">0</span>
-                    </div>
-                    <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
-                         <div class="notifications-header">
-                             <span class="notifications-title">PŘÍCHOZÍ SIGNÁLY</span>
-                             <button class="mark-all-read-btn btn btn-secondary btn-sm" id="mark-all-read" disabled>Vymazat vše</button>
-                         </div>
-                         <div id="notifications-list">
-                             <div class="notification-item skeleton"> <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 90%;"></div> <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div> </div> </div>
-                             <div id="no-notifications-msg" style="display: none; padding: 1rem; text-align: center; color: var(--text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div>
-                         </div>
-                         <div class="notifications-footer">
-                             <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a>
-                         </div>
-                    </div>
-                 </div>
-                <div class="user-menu-container">
-                    <div class="vyuka-header-user-display">
-                        <div class="vyuka-header-user-avatar-wrapper">
-                            <img src="" alt="Avatar" id="vyuka-header-avatar" class="vyuka-header-avatar-img">
-                        </div>
-                        <div class="vyuka-header-user-details">
-                            <span class="vyuka-header-user-name" id="vyuka-header-user-name">Pilot</span>
-                            <span class="vyuka-header-user-title" id="vyuka-header-user-title">Vesmírný kadet</span>
-                        </div>
-                    </div>
-                    <div class="user-dropdown-menu" id="user-dropdown-menu">
-                        <ul class="user-dropdown-links">
-                            <li><a href="/privacy-policy.html"><i class="fas fa-shield-alt"></i> Ochrana Údajů</a></li>
-                            <li><a href="/terms.html"><i class="fas fa-file-contract"></i> Podmínky Použití</a></li>
-                        </ul>
-                        <button class="btn btn-danger btn-sm logout-btn" id="vyuka-logout-btn">
-                            <i class="fas fa-power-off"></i> Odhlásit se
-                        </button>
-                    </div>
-                </div>
-                 <a href="/dashboard/procvicovani/main.html" class="btn btn-secondary btn-tooltip btn-exit-vyuka" title="Ukončit výuku a vrátit se na přehled">
-                    <i class="fas fa-times"></i> Ukončit
-                </a>
-            </div>
-        </header>
+.vyuka-main-content { /* This is the flex container for whiteboard and chat */
+    display: flex;
+    flex-grow: 1; /* This area takes available space to push footer down */
+    padding: 1.8rem;
+    gap: 1.8rem;
+    background-color: transparent;
+    min-height: 0;
+    position: relative;
+}
 
-        <main class="vyuka-main-content" id="vyuka-main-content">
-            <div class="error-container" id="global-error" style="display: none;"></div>
+/* Footer */
+.main-footer.vyuka-footer {
+    flex-shrink: 0; /* Footer should not shrink */
+    /* margin-top: auto; -- This is effectively handled by .vyuka-main-content's flex-grow */
+    /* Styles from vyuka.html's <style> block (Enhanced Footer) should apply correctly here */
+}
 
-            <div class="vyuka-whiteboard-area" id="ai-presenter-area">
-                <div id="whiteboard-container">
-                    <div id="whiteboard-content">
-                        <div class="skeleton-block" style="height: 150px; margin-bottom: 1rem;"></div>
-                        <div class="skeleton-text-line long"></div>
-                        <div class="skeleton-text-line"></div>
-                        <div class="skeleton-text-line short"></div>
-                    </div>
-                     <div id="board-speaking-indicator">
-                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-                    </div>
-                </div>
-                <div class="vyuka-lesson-controls">
-                     <button class="btn btn-primary btn-tooltip" id="continue-btn" style="display: none;" title="Požádat AI o další část vysvětlení">
-                         <i class="fas fa-forward"></i> Pokračovat s Lekcí
-                     </button>
-                     <button id="clear-board-btn" class="btn btn-secondary btn-tooltip" title="Vymazat obsah tabule">
-                         <i class="fas fa-eraser"></i> Vyčistit Tabuli
-                     </button>
-                      <button id="stop-speech-btn" class="btn btn-warning btn-tooltip" title="Zastavit aktuální čtení textu" disabled>
-                         <i class="fas fa-stop-circle"></i> Zastavit Řeč
-                     </button>
-                </div>
-            </div>
 
-            <aside class="vyuka-chat-panel" id="vyuka-chat-panel">
-                <div class="vyuka-chat-header">
-                    <h3 id="current-topic-display"><span class="placeholder">Načítám téma...</span></h3>
-                    <div class="ai-model-selector-container">
-                        <label for="ai-model-select" class="ai-model-label btn-tooltip" title="Vyberte jazykový model AI">
-                            <i class="fas fa-cogs"></i> Model:
-                        </label>
-                        <select id="ai-model-select" class="ai-model-select">
-                            <option value="gemini-2.0-flash" selected>Gemini 2.0 Flash</option>
-                            <option value="gemini-2.5-flash" disabled>Gemini 2.5 Flash (Brzy)</option>
-                            <option value="gemini-2.5-pro" disabled>Gemini 2.5 Pro (Brzy)</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="interaction-panel-content">
-                    <div id="chat-tab-content" class="tab-content active">
-                        <section class="chat-area">
-                             <div class="chat-messages" id="chat-messages">
-                                 <div class="initial-chat-interface">
-                                     <div class="ai-greeting-avatar">
-                                         <i class="fas fa-robot"></i>
-                                     </div>
-                                     <h3 class="initial-chat-title">AI Tutor Justax je připraven</h3>
-                                     <p class="initial-chat-message">Čekám na načtení tématu nebo vaši zprávu.</p>
-                                     <div class="initial-chat-status">
-                                         <span class="status-dot online"></span> Online
-                                     </div>
-                                 </div>
-                            </div>
-                             <div class="chat-input-area">
-                                 <div class="chat-input-wrapper">
-                                     <textarea class="chat-input" id="chat-input" placeholder="Zeptejte se nebo odpovězte..." rows="1"></textarea>
-                                     <button class="send-button" id="send-button" title="Odeslat zprávu">
-                                         <i class="fas fa-paper-plane"></i>
-                                     </button>
-                                 </div>
-                             </div>
-                             <div class="chat-controls">
-                                 <button id="mic-btn" class="btn btn-icon-only btn-tooltip" title="Zahájit hlasový vstup">
-                                     <i class="fas fa-microphone"></i>
-                                 </button>
-                                 <button id="clear-chat-btn" class="btn btn-icon-only btn-tooltip" title="Vymazat historii tohoto chatu">
-                                     <i class="fas fa-trash-alt"></i>
-                                 </button>
-                                  <button id="save-chat-btn" class="btn btn-icon-only btn-tooltip" title="Uložit chat jako PDF">
-                                      <i class="fas fa-save"></i>
-                                  </button>
-                             </div>
-                        </section>
-                     </div>
-                </div>
-            </aside>
-        </main>
+/* --- Levý AI Panel (Enhanced Design - from previous step, largely unchanged) --- */
+.vyuka-sidebar-ai { width: var(--vyuka-sidebar-width-collapsed); background-color: var(--vyuka-bg-panel); border-right: 1px solid var(--vyuka-border-color); display: flex; flex-direction: column; padding: 1rem 0.5rem; transition: width 0.3s var(--animation-timing-cyber); height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; box-shadow: 5px 0 30px -5px rgba(0,0,0,0.6), inset -3px 0 8px rgba(var(--vyuka-bg-dark),0.4); }
+.vyuka-sidebar-ai.expanded { width: var(--vyuka-sidebar-width-expanded); }
+.vyuka-sidebar-ai-header { text-align: center; margin-bottom: 2rem; padding: 0.5rem 0; display:flex; align-items:center; justify-content:center; height: 50px; }
+.vyuka-sidebar-ai-logo { display: inline-flex; align-items: center; gap: 0.7rem; color: var(--vyuka-text-heading); text-decoration: none; font-size: 1.8rem; font-weight: 700; font-family: var(--vyuka-font-accent); }
+.vyuka-sidebar-ai-logo i { color: var(--vyuka-accent-secondary); font-size: 2rem; text-shadow: 0 0 10px var(--vyuka-accent-secondary), 0 0 20px var(--vyuka-accent-secondary); animation: logo-beacon 2.5s infinite ease-in-out; }
+@keyframes logo-beacon { 0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.7; filter: hue-rotate(0deg); } 50% { transform: scale(1.15) rotate(-8deg); opacity: 1; text-shadow: 0 0 18px var(--vyuka-accent-secondary), 0 0 30px var(--vyuka-accent-secondary), 0 0 10px var(--vyuka-accent-primary); filter: hue-rotate(20deg); } }
+.vyuka-sidebar-ai-logo .logo-text { display: none; font-size: 1.1em; letter-spacing: 1px; }
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-logo .logo-text { display: inline; margin-left: 0.5rem; animation: text-focus-in 0.6s var(--animation-timing-cyber) 0.1s both; }
+.vyuka-sidebar-ai-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; overflow-y: auto; overflow-x: hidden; }
+.vyuka-sidebar-ai-menu::-webkit-scrollbar { width: 5px; }
+.vyuka-sidebar-ai-menu::-webkit-scrollbar-thumb { background: var(--vyuka-accent-primary); border-radius: 2.5px; }
+.vyuka-sidebar-ai-item { margin-bottom: 0.5rem; }
+.vyuka-sidebar-ai-link { display: flex; align-items: center; padding: 1rem 1.2rem; color: var(--vyuka-text-secondary); text-decoration: none; border-radius: var(--vyuka-button-radius); transition: all 0.25s var(--animation-timing-cyber); white-space: nowrap; overflow: hidden; position: relative; border: 1px solid transparent; font-size: 1rem; }
+.vyuka-sidebar-ai-link i { font-size: 1.5rem; width: 30px; text-align: center; margin-right: 0; flex-shrink: 0; transition: margin-right 0.25s var(--animation-timing-cyber), color 0.2s ease, transform 0.2s ease, text-shadow 0.2s ease; text-shadow: 0 0 5px rgba(var(--vyuka-text-secondary-rgb, 0, 245, 255),0.4); }
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link i { margin-right: 1rem; }
+.vyuka-sidebar-ai-link .link-text { display: none; font-weight: 500; }
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link .link-text { display: inline; animation: text-focus-in 0.5s var(--animation-timing-cyber) 0.15s both; }
+@keyframes text-focus-in { 0% { filter: blur(12px); opacity: 0; } 100% { filter: blur(0px); opacity: 1; } }
+.vyuka-sidebar-ai-link:hover { background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.2); color: var(--vyuka-accent-secondary); border-color: rgba(var(--vyuka-accent-secondary-rgb), 0.8); box-shadow: inset 0 0 15px rgba(var(--vyuka-accent-secondary-rgb), 0.3), 0 0 12px rgba(var(--vyuka-accent-secondary-rgb), 0.5); transform: translateX(4px) scale(1.03); }
+.vyuka-sidebar-ai-link:hover i { color: var(--vyuka-accent-secondary); text-shadow: var(--vyuka-text-glow-secondary); transform: scale(1.15) rotate(-3deg); }
+.vyuka-sidebar-ai-link.active { background-image: linear-gradient(135deg, var(--vyuka-accent-primary) 0%, var(--vyuka-accent-secondary) 100%); color: var(--vyuka-bg-dark); box-shadow: 0 0 20px rgba(var(--vyuka-accent-primary-rgb),0.5), 0 0 15px rgba(var(--vyuka-accent-secondary-rgb),0.4), inset 0 0 10px rgba(var(--vyuka-bg-dark),0.6); border-color: var(--vyuka-accent-primary); font-weight: 700; }
+.vyuka-sidebar-ai-link.active i { color: var(--vyuka-bg-dark); text-shadow: 0 1px 1px rgba(0,0,0,0.3); transform: scale(1.15); }
+.vyuka-sidebar-ai-link.active .link-text { text-shadow: 0 1px 1px rgba(var(--vyuka-bg-dark),0.4); }
+.vyuka-sidebar-ai-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--vyuka-border-highlight); display: flex; justify-content: center; min-height: 50px; font-size: 0.75rem; opacity: 0.7; color: var(--vyuka-text-muted); }
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-footer { animation: text-focus-in 0.6s ease 0.25s both; }
 
-        <footer class="main-footer vyuka-footer">
-            <div class="container">
-                <div class="footer-grid">
-                    <div class="footer-column">
-                        <a href="/dashboard/dashboard.html" class="logo" aria-label="Justax Domů">
-                            <i class="fas fa-atom" aria-hidden="true"></i> <span>JUSTAX</span>
-                        </a>
-                        <p>AI Augmentace Vzdělávání a Osobního Rozvoje.</p>
-                        <div class="social-links" aria-label="Sociální sítě">
-                             <a href="https://t.me/justaxspace" class="social-link" aria-label="Telegram" target="_blank" rel="noopener noreferrer"><i class="fab fa-telegram-plane" aria-hidden="true"></i></a>
-                             <a href="https://www.instagram.com/learnwithjustax/" class="social-link" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram" aria-hidden="true"></i></a>
-                             <a href="mailto:admin@justax.space" class="social-link" aria-label="Email"><i class="fas fa-envelope" aria-hidden="true"></i></a>
-                        </div>
-                    </div>
-                    <div class="footer-column">
-                        <h3>Účet &amp; Dashboard</h3>
-                        <ul class="footer-links">
-                            <li><a href="/auth/"><i class="fas fa-sign-in-alt" aria-hidden="true"></i> Přihlášení / Registrace</a></li>
-                            <li><a href="/dashboard/dashboard.html"><i class="fas fa-tachometer-alt" aria-hidden="true"></i> Hlavní Panel</a></li>
-                            <li><a href="/dashboard/profile.html"><i class="fas fa-user-astronaut" aria-hidden="true"></i> Můj Profil</a></li>
-                            <li><a href="/dashboard/pokrok.html"><i class="fas fa-chart-line" aria-hidden="true"></i> Sledování Pokroku</a></li>
-                            <li><a href="/dashboard/oceneni.html"><i class="fas fa-medal" aria-hidden="true"></i> Moje Ocenění</a></li>
-                        </ul>
-                    </div>
-                    <div class="footer-column">
-                        <h3>Právní &amp; Podpora</h3>
-                        <ul class="footer-links">
-                            <li><a href="/privacy-policy.html"><i class="fas fa-shield-alt" aria-hidden="true"></i> Ochrana Údajů</a></li>
-                            <li><a href="/terms.html"><i class="fas fa-file-contract" aria-hidden="true"></i> Podmínky Použití</a></li>
-                            <li><a href="mailto:admin@justax.space"><i class="fas fa-headset" aria-hidden="true"></i> Zákaznická Podpora</a></li>
-                            <li><span class="icon-text-item"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> Centrála: Cheb, CZ</span></li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="footer-copyright">
-                    &copy; <span id="currentYearFooter">2025</span> Justax Systems. Všechna práva vyhrazena. Kyber-verze v28.1.
-                </div>
-            </div>
-        </footer>
-    </div>
+/* Header specific elements (from previous version, no major change) */
+.vyuka-header-left, .vyuka-header-right, .vyuka-header-left .mobile-menu-toggle, .vyuka-header-left .sidebar-ai-desktop-toggle, .vyuka-header-topic-info h1, .vyuka-header-topic-info p, .user-menu-container, .vyuka-header-user-display, .user-dropdown-menu, .logout-btn, .btn-exit-vyuka, .notifications, .notifications-dropdown-wrapper, .notifications-header, .notifications-title, .mark-all-read-btn, #notifications-list, .notification-item, .notification-icon, .notification-content, .notification-title, .notification-message, .notification-time, .unread-dot, .notifications-footer, .view-all-notifications-link, #no-notifications-msg, .notification-item.hiding, .notification-item.skeleton .skeleton {
+    /* These styles should be fine from the previous iteration or the copied CSS from vyuka.html */
+}
 
-    <div class="toast-container" id="toast-container"></div>
-    <div id="mouse-follower" class="mouse-follower-glow"></div>
-    <div class="modal-overlay" id="completionSuggestionOverlay" style="display: none;">
-        <div class="modal-content card" id="completionSuggestionModal">
-            <button class="modal-close-btn" id="closeCompletionModalBtn" aria-label="Zavřít">&times;</button>
-            <div class="modal-icon"><i class="fas fa-lightbulb"></i></div>
-            <h3 class="modal-title">Návrh na dokončení tématu</h3>
-            <p class="modal-text">AI Tutor se domnívá, že jste toto téma již dostatečně probrali. Chcete jej nyní označit jako dokončené?</p>
-            <div class="modal-actions">
-                <button class="btn btn-success" id="confirmCompleteBtn"><i class="fas fa-check"></i> Ano, dokončit</button>
-                <button class="btn btn-secondary" id="declineCompleteBtn"><i class="fas fa-times"></i> Ne, pokračovat</button>
-            </div>
-        </div>
-    </div>
 
-    <script src="vyuka-core.js" defer></script>
-    <script src="vyuka-ui-features.js" defer></script>
-    <script src="vyuka-ai-interaction.js" defer></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const currentYearFooterVyuka = document.querySelector('.vyuka-footer #currentYearFooter');
-            if (currentYearFooterVyuka) { currentYearFooterVyuka.textContent = new Date().getFullYear(); }
+/* --- Whiteboard & Chat Panel - Cyberpunk Frames & Height --- */
+.vyuka-whiteboard-area, .vyuka-chat-panel {
+    background-color: rgba(var(--vyuka-bg-panel-rgb), 0.88); /* Slightly more opaque */
+    backdrop-filter: blur(10px) saturate(1.2); /* More refined effect */
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Important for inner scroll */
+    border-radius: var(--vyuka-card-radius);
+    border: 1px solid var(--vyuka-border-cyber); /* Main cyber border */
+    box-shadow: 0 0 20px rgba(var(--vyuka-accent-primary-rgb),0.25), /* Outer glow */
+                0 0 35px rgba(var(--vyuka-accent-secondary-rgb),0.2),
+                inset 0 0 15px rgba(var(--vyuka-bg-dark),0.6), /* Inner shadow */
+                inset 0 0 5px var(--vyuka-border-cyber); /* Inner border highlight */
+    position: relative;
+    transition: box-shadow var(--animation-duration-medium) ease-in-out; /* Smooth shadow transitions */
+}
+.vyuka-whiteboard-area:hover, .vyuka-chat-panel:hover {
+     box-shadow: 0 0 25px rgba(var(--vyuka-accent-primary-rgb),0.35),
+                0 0 40px rgba(var(--vyuka-accent-secondary-rgb),0.25),
+                inset 0 0 18px rgba(var(--vyuka-bg-dark),0.5),
+                inset 0 0 7px var(--vyuka-border-cyber-secondary);
+    border-color: var(--vyuka-border-cyber-secondary);
+}
 
-            const currentYearSidebarVyuka = document.querySelector('.vyuka-sidebar-ai-footer #currentYearSidebar');
-            if (currentYearSidebarVyuka) { currentYearSidebarVyuka.textContent = new Date().getFullYear(); }
 
-            const logoutButton = document.getElementById('vyuka-logout-btn');
-            if (logoutButton) {
-                logoutButton.addEventListener('click', async () => {
-                    if (window.VyukaApp && VyukaApp.state && VyukaApp.state.supabase) {
-                        const { error } = await VyukaApp.state.supabase.auth.signOut();
-                        if (error) {
-                            console.error("Chyba při odhlášení:", error);
-                            if (VyukaApp.showToast) VyukaApp.showToast('Chyba odhlášení', error.message, 'error');
-                        } else {
-                            window.location.href = '/auth/index.html';
-                        }
-                    } else {
-                        console.warn("Supabase instance not found in VyukaApp for logout.");
-                         if (window.VyukaApp && VyukaApp.showToast) VyukaApp.showToast('Chyba', 'Systém odhlášení není připraven.', 'error');
-                    }
-                });
-            }
-        });
-    </script>
-</body>
-</html>
+/* Decorative frame corners (enhanced) */
+.vyuka-whiteboard-area::before, .vyuka-chat-panel::before,
+.vyuka-whiteboard-area::after, .vyuka-chat-panel::after {
+    content: '';
+    position: absolute;
+    width: 12px; /* Increased size */
+    height: 12px;
+    border-style: solid;
+    border-color: var(--vyuka-accent-primary);
+    opacity: 0.9;
+    pointer-events: none;
+    z-index: 10;
+    transition: all 0.4s var(--animation-timing-cyber);
+    box-shadow: 0 0 5px var(--vyuka-accent-primary); /* Glow for corners */
+}
+.vyuka-whiteboard-area::before, .vyuka-chat-panel::before { top: 5px; left: 5px; border-width: 3px 0 0 3px; } /* Thicker border */
+.vyuka-whiteboard-area::after, .vyuka-chat-panel::after { bottom: 5px; right: 5px; border-width: 0 3px 3px 0; }
+
+.vyuka-whiteboard-area:hover::before, .vyuka-chat-panel:hover::before { transform: translate(-4px, -4px) scale(1.3) rotate(-5deg); border-color: var(--vyuka-accent-secondary); box-shadow: 0 0 8px var(--vyuka-accent-secondary); }
+.vyuka-whiteboard-area:hover::after, .vyuka-chat-panel:hover::after { transform: translate(4px, 4px) scale(1.3) rotate(5deg); border-color: var(--vyuka-accent-secondary); box-shadow: 0 0 8px var(--vyuka-accent-secondary); }
+
+
+.vyuka-whiteboard-area {
+    flex: 6;
+    min-height: 55vh; /* Ensure it takes good vertical space */
+    height: auto; /* Let content flow */
+}
+
+.vyuka-chat-panel {
+    flex: 4;
+    min-height: 55vh;
+    min-width: 360px; /* Ensure usability */
+    height: auto;
+}
+
+/* Internal scroll container styles (from previous) */
+#whiteboard-container { flex-grow: 1; overflow-y: auto; padding-right: 10px; margin-right: -10px; position: relative; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--vyuka-accent-secondary) rgba(var(--vyuka-bg-dark), 0.5); }
+#whiteboard-container::-webkit-scrollbar { width: 6px; }
+#whiteboard-container::-webkit-scrollbar-thumb { background: var(--vyuka-accent-secondary); border-radius: 3px;}
+
+/* Whiteboard Content styling (enhanced) */
+#whiteboard-content {
+    padding-bottom: 1.5rem; /* More space at the end */
+    position: relative; /* For potential pseudo-elements if needed for line effects */
+}
+/* Example of a subtle background pattern for whiteboard - uncomment to try */
+/* #whiteboard-content {
+    background-image:
+        linear-gradient(rgba(var(--vyuka-border-color), 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(var(--vyuka-border-color), 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+    padding: 1rem;
+} */
+
+#whiteboard-content h1, #whiteboard-content h2, #whiteboard-content h3 {
+    color: var(--vyuka-accent-secondary);
+    margin-bottom: 0.8em;
+    border-bottom: 1px solid rgba(var(--vyuka-accent-secondary-rgb), 0.4);
+    padding-bottom: 0.4em;
+    text-shadow: 0 0 10px rgba(var(--vyuka-accent-secondary-rgb), 0.5); /* Stronger heading glow */
+}
+#whiteboard-content h1 { font-size: 1.6rem; }
+#whiteboard-content h2 { font-size: 1.4rem; }
+#whiteboard-content h3 { font-size: 1.2rem; }
+
+#whiteboard-content p {
+    color: var(--vyuka-text-secondary);
+    line-height: 1.75; /* Slightly more line height */
+    margin-bottom: 1.3em;
+    font-size: 0.95rem;
+}
+#whiteboard-content code { background-color: rgba(var(--vyuka-accent-lime-rgb), 0.2); padding: 0.2em 0.5em; border-radius: 4px; font-family: var(--vyuka-font-mono); color: var(--vyuka-accent-lime); border: 1px solid rgba(var(--vyuka-accent-lime-rgb),0.5); box-shadow: 0 0 10px rgba(var(--vyuka-accent-lime-rgb),0.4); }
+#whiteboard-content pre { background-color: rgba(var(--vyuka-bg-dark), 0.95); padding: 1.3em; border-radius: var(--vyuka-button-radius); overflow-x: auto; border: 1px solid var(--vyuka-border-highlight); box-shadow: var(--vyuka-shadow-medium), inset 0 0 20px rgba(0,0,0,0.5); font-size: 0.9rem; }
+
+
+/* Chat Panel specific styles (from previous, generally okay) */
+.vyuka-chat-header, .ai-model-selector-container, .ai-model-label, .ai-model-select, .interaction-panel-content, #chat-tab-content, .chat-area, .chat-messages, .message-bubble, .chat-input-area, .chat-input-wrapper, .chat-input, .send-button, .chat-controls {
+    /* These styles are mostly fine from the previous iteration or will inherit well */
+}
+.chat-messages::-webkit-scrollbar { width: 6px; } /* Ensure consistent scrollbar */
+
+
+/* Footer Styles (from vyuka.html <style> block) */
+.main-footer.vyuka-footer { background-color: var(--vyuka-bg-dark, #05080F); padding: 2.5rem 0; border-top: 2px solid var(--vyuka-accent-primary, #FF00E6); box-shadow: 0 -5px 20px -5px rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.25); color: var(--vyuka-text-secondary, #A0AEC0); font-size: 0.9rem; line-height: 1.7; }
+.vyuka-footer .container { max-width: var(--container-max-width, 1140px); margin-left: auto; margin-right: auto; padding-left: var(--container-padding-x, 15px); padding-right: var(--container-padding-x, 15px); }
+.vyuka-footer .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2.5rem; text-align: left; }
+.vyuka-footer .footer-column .logo { display: inline-flex; align-items: center; font-family: var(--vyuka-font-accent, 'Audiowide', cursive); font-size: 1.9rem; font-weight: 700; color: var(--vyuka-text-heading, #E0E7FF); text-decoration: none; margin-bottom: 1.25rem; transition: opacity 0.2s ease, text-shadow 0.2s ease; }
+.vyuka-footer .footer-column .logo:hover { opacity: 0.9; text-shadow: var(--vyuka-text-glow-secondary); }
+.vyuka-footer .footer-column .logo i { margin-right: 0.6rem; color: var(--vyuka-accent-secondary, #00F5FF); font-size: 1.1em; }
+.vyuka-footer .footer-column p { margin-bottom: 1.25rem; color: var(--vyuka-text-secondary, #A0AEC0); font-size: 0.875rem; opacity: 0.9; }
+.vyuka-footer .footer-column h3 { font-family: var(--vyuka-font-secondary, 'Orbitron', sans-serif); font-size: 1.15rem; font-weight: 600; color: var(--vyuka-text-heading, #E0E7FF); margin-bottom: 1.25rem; position: relative; padding-left: 20px; text-shadow: 0 0 5px rgba(var(--vyuka-accent-secondary-rgb, 0, 245, 255), 0.3); }
+.vyuka-footer .footer-column h3::before { content: ''; background-color: var(--vyuka-accent-secondary, #00F5FF); width: 8px; height: 8px; border-radius: 50%; position: absolute; left: 0; top: 50%; transform: translateY(-50%); box-shadow: 0 0 8px var(--vyuka-accent-secondary-glow, rgba(0, 245, 255, 0.5)); }
+.vyuka-footer .footer-column .footer-links { list-style: none; padding: 0; margin: 0; }
+.vyuka-footer .footer-column .footer-links li { margin-bottom: 0.6rem; transition: background-color 0.2s ease; border-radius: var(--vyuka-button-radius, 4px); padding: 0.25rem 0.5rem; margin-left: -0.5rem; }
+.vyuka-footer .footer-column .footer-links li:hover { background-color: rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.07); }
+.vyuka-footer .footer-column .footer-links a, .vyuka-footer .footer-column .footer-links span.icon-text-item { color: var(--vyuka-text-link, var(--vyuka-accent-secondary)); text-decoration: none; font-size: 0.95rem; transition: color 0.2s ease, text-shadow 0.2s ease; display: flex; align-items: center; width: 100%; }
+.vyuka-footer .footer-column .footer-links li:hover a, .vyuka-footer .footer-column .footer-links li:hover span.icon-text-item { color: var(--vyuka-text-link-hover, var(--vyuka-text-primary)); text-shadow: 0 0 8px var(--vyuka-text-link-hover, var(--vyuka-text-primary)); }
+.vyuka-footer .footer-column .footer-links a i, .vyuka-footer .footer-column .footer-links span.icon-text-item i { margin-right: 0.8em; color: var(--vyuka-text-muted, #5A6788); width: 18px; text-align: center; transition: color 0.2s ease, transform 0.2s ease; flex-shrink: 0; }
+.vyuka-footer .footer-column .footer-links li:hover a i, .vyuka-footer .footer-column .footer-links li:hover span.icon-text-item i { color: inherit; transform: scale(1.1); }
+.vyuka-footer .social-links { display: flex; gap: 1rem; margin-top: 1.25rem; }
+.vyuka-footer .social-links .social-link { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; border: 1.5px solid var(--vyuka-border-color, #2C334C); color: var(--vyuka-text-muted, #5A6788); font-size: 1.2rem; transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1); text-decoration: none; }
+.vyuka-footer .social-links .social-link:hover { background-color: var(--vyuka-accent-primary, #FF00E6); border-color: var(--vyuka-accent-primary, #FF00E6); color: var(--vyuka-bg-dark, #05080F); transform: translateY(-3px) scale(1.08); box-shadow: 0 4px 12px rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.4); }
+.vyuka-footer .footer-copyright { grid-column: 1 / -1; text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--vyuka-border-color, #2C334C); font-size: 0.85rem; color: var(--vyuka-text-muted, #5A6788); opacity: 0.7; }
+
+
+/* Other specific styles from vyuka.html <style> block (Skeleton, Enhanced Sidebar Typography) */
+/* ... these are assumed to be correctly copied or already present from previous iterations ... */
+/* They are generally independent of layout and should not cause avatar-on-full-page issue */
+
+.initial-loading-overlay, .notifications-dropdown-wrapper, .toast-container, .modal-overlay, .offline-banner, .sidebar-overlay-ai, .tooltipster-sidetip.tooltipster-vyuka, mjx-container, mjx-math, mjx-mfrac, mjx-msqrt, mjx-mtable, @media (prefers-reduced-motion: reduce) {
+    /* These styles are assumed to be correctly defined in the provided vyuka.html <style> block or previous vyuka.css */
+}
+
+@media (max-width: 1200px) {
+    .vyuka-main-content {
+        flex-direction: column;
+    }
+    .vyuka-whiteboard-area, .vyuka-chat-panel {
+        flex: 1 1 auto; /* Allow them to grow and shrink, but start with auto height based on min-height */
+        width: 100%;
+        min-height: 50vh; /* Ensure decent height on medium screens */
+        height: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Sidebar and other mobile adjustments from previous step are crucial */
+    .vyuka-sidebar-ai { transform: translateX(-100%); width: var(--vyuka-sidebar-width-expanded); z-index: 1002; }
+    .vyuka-sidebar-ai.active-mobile { transform: translateX(0); }
+    /* ... other mobile styles ... */
+    .vyuka-main-content { padding: 1rem; gap: 1rem;}
+    .vyuka-whiteboard-area, .vyuka-chat-panel {
+        padding: 1.2rem;
+        min-height: 45vh; /* Further adjust for smaller screens */
+    }
+    .vyuka-chat-panel { max-height: 55vh; } /* Chat can still be scrollable */
+}
