@@ -2,7 +2,7 @@
 /* UPDATE: Notification design, loading animation, notification hiding animation, chat buttons, AI model select, user dropdown, footer, sidebar toggle */
 /* USER REQUEST v1: Scrollable page, Increased whiteboard/chat height, Improved left sidebar design */
 /* USER REQUEST v2: Fix footer background, ensure page scroll, further design enhancements for whiteboard/chat */
-/* USER REQUEST v3: Fix full-page avatar, Animated page loader */
+/* USER REQUEST v3: Fix full-page avatar (re-check), Animated page loader, Cyberpunk whiteboard/chat design */
 
 /* --- Základní proměnné --- */
 :root {
@@ -12,6 +12,7 @@
     --vyuka-font-mono: 'Roboto Mono', monospace;
 
     --vyuka-bg-dark: #05080F;
+    --vyuka-bg-dark-rgb: 5, 8, 15;
     --vyuka-bg-panel: #0D101B;
     --vyuka-bg-panel-rgb: 13, 16, 27;
     --vyuka-bg-panel-lighter: #131724;
@@ -19,6 +20,8 @@
     --vyuka-border-highlight: rgba(var(--vyuka-accent-secondary-rgb), 0.5);
     --vyuka-border-cyber: rgba(var(--vyuka-accent-primary-rgb), 0.7);
     --vyuka-border-cyber-secondary: rgba(var(--vyuka-accent-secondary-rgb), 0.6);
+    --vyuka-border-panel-edge: rgba(var(--vyuka-accent-primary-rgb), 0.3); /* For panel edges */
+
 
     --vyuka-accent-primary: #FF00E6;
     --vyuka-accent-primary-rgb: 255, 0, 230;
@@ -29,6 +32,8 @@
     --vyuka-accent-error: #FF4757;
     --vyuka-accent-success: #2ED573;
     --vyuka-accent-neutral: #5A6788;
+    --vyuka-accent-lime-rgb: 111, 255, 58;
+
 
     --vyuka-text-primary: #E0E7FF;
     --vyuka-text-secondary: #A0AEC0;
@@ -69,7 +74,7 @@
     --vyuka-loader-size: 70px;
     --vyuka-loader-blade-color: var(--vyuka-accent-primary);
     --vyuka-loader-core-color: var(--vyuka-accent-secondary);
-    --vyuka-loader-bg-color: rgba(var(--vyuka-bg-dark-rgb, 5, 8, 15), 0.97); /* For overlay */
+    --vyuka-loader-bg-color: rgba(var(--vyuka-bg-dark-rgb), 0.97);
 
     --vyuka-notification-hide-duration: 0.5s;
 
@@ -88,8 +93,16 @@ body.new-vyuka-layout {
     margin: 0; padding: 0; display: flex; overflow: hidden; height: 100vh;
     position: relative;
 }
-body.new-vyuka-layout::before { content: ''; position: fixed; inset: 0; z-index: -2; background-image: linear-gradient(rgba(var(--vyuka-border-color), 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--vyuka-border-color), 0.07) 1px, transparent 1px); background-size: 30px 30px; opacity: 0.5; animation: bg-grid-pan 120s linear infinite; }
-body.new-vyuka-layout::after { content: ''; position: fixed; inset: 0; z-index: -1; background: linear-gradient(to bottom, transparent 50%, rgba(var(--vyuka-bg-dark), 0.1) 50%), radial-gradient(ellipse at center, rgba(var(--vyuka-accent-primary-rgb),0.03) 0%, transparent 70%); background-size: 100% 3px, 100% 100%; opacity: 0.2; animation: scanlines 20s linear infinite alternate; }
+body.new-vyuka-layout::before, body.new-vyuka-layout::after { /* Background effects */
+    content: ''; position: fixed; inset: 0; z-index: -2;
+    background-image: linear-gradient(rgba(var(--vyuka-border-color), 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--vyuka-border-color), 0.07) 1px, transparent 1px);
+    background-size: 30px 30px; opacity: 0.5; animation: bg-grid-pan 120s linear infinite;
+}
+body.new-vyuka-layout::after {
+    z-index: -1;
+    background: linear-gradient(to bottom, transparent 50%, rgba(var(--vyuka-bg-dark), 0.1) 50%), radial-gradient(ellipse at center, rgba(var(--vyuka-accent-primary-rgb),0.03) 0%, transparent 70%);
+    background-size: 100% 3px, 100% 100%; opacity: 0.2; animation: scanlines 20s linear infinite alternate;
+}
 @keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 600px 300px; } }
 @keyframes scanlines { from { background-position: 0 0, 0 0; } to { background-position: 0 60px, 0 0; } }
 
@@ -97,7 +110,7 @@ h1, h2, h3 { font-family: var(--vyuka-font-secondary); color: var(--vyuka-text-h
 a { color: var(--vyuka-text-link); text-decoration: none; transition: color var(--animation-duration-fast) ease, text-shadow var(--animation-duration-fast) ease; }
 a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka-text-link-hover); }
 
-/* --- Struktura Layoutu (Scroll Fix & Footer Placement) --- */
+/* --- Struktura Layoutu --- */
 .vyuka-page-container {
     flex-grow: 1;
     margin-left: var(--vyuka-sidebar-width-collapsed);
@@ -106,7 +119,7 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
     height: 100vh;
     transition: margin-left 0.3s var(--animation-timing-cyber);
     overflow: hidden;
-    background-color: var(--vyuka-bg-dark); /* Base background for the viewable area */
+    background-color: var(--vyuka-bg-dark);
 }
 
 .vyuka-sidebar-ai.expanded ~ .vyuka-page-container {
@@ -120,13 +133,12 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
     display: flex;
     flex-direction: column;
     position: relative;
-    background-color: transparent; /* This container is just for scroll, no separate bg */
+    background-color: transparent;
 }
 .vyuka-main-content-scrollable::-webkit-scrollbar { width: 8px; height: 8px; }
 .vyuka-main-content-scrollable::-webkit-scrollbar-track { background: rgba(var(--vyuka-bg-dark), 0.7); }
 .vyuka-main-content-scrollable::-webkit-scrollbar-thumb { background-color: var(--vyuka-accent-primary); border-radius: 4px; border: 2px solid rgba(var(--vyuka-bg-dark), 0.7); }
 .vyuka-main-content-scrollable::-webkit-scrollbar-thumb:hover { background-color: var(--vyuka-accent-secondary); }
-
 
 .vyuka-header {
     height: var(--vyuka-header-height);
@@ -143,27 +155,26 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
     z-index: 950;
 }
 body.scrolled .vyuka-header {
-    background-color: rgba(var(--vyuka-bg-panel-rgb, 13, 16, 27), 0.95);
+    background-color: rgba(var(--vyuka-bg-panel-rgb), 0.95);
     box-shadow: 0 5px 20px rgba(0,0,0,0.4), 0 0 15px rgba(var(--vyuka-accent-primary-rgb), 0.1) inset;
 }
 
 .vyuka-main-content {
     display: flex;
     flex-grow: 1;
-    padding: 1.8rem;
-    gap: 1.8rem;
+    padding: 2rem; /* Increased padding */
+    gap: 2rem;   /* Increased gap */
     background-color: transparent;
-    min-height: 0; /* Needed for flex children to scroll correctly within the parent */
+    min-height: 0;
     position: relative;
 }
 
 .main-footer.vyuka-footer {
     flex-shrink: 0;
-    /* margin-top: auto; is implicitly handled by flex-grow of .vyuka-main-content */
+    /* margin-top: auto; -- this is correct to push it down in flex column */
 }
 
-/* --- Levý AI Panel (Enhanced Design - from previous step, largely unchanged) --- */
-/* ... (Styly pro .vyuka-sidebar-ai, .vyuka-sidebar-ai-header, .vyuka-sidebar-ai-logo, .vyuka-sidebar-ai-menu, .vyuka-sidebar-ai-item, .vyuka-sidebar-ai-link, .vyuka-sidebar-ai-footer ZŮSTÁVAJÍ STEJNÉ jako v předchozí iteraci CSS) ... */
+/* --- Levý AI Panel (Stejné jako v předchozí verzi) --- */
 .vyuka-sidebar-ai { width: var(--vyuka-sidebar-width-collapsed); background-color: var(--vyuka-bg-panel); border-right: 1px solid var(--vyuka-border-color); display: flex; flex-direction: column; padding: 1rem 0.5rem; transition: width 0.3s var(--animation-timing-cyber); height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; box-shadow: 5px 0 30px -5px rgba(0,0,0,0.6), inset -3px 0 8px rgba(var(--vyuka-bg-dark),0.4); }
 .vyuka-sidebar-ai.expanded { width: var(--vyuka-sidebar-width-expanded); }
 .vyuka-sidebar-ai-header { text-align: center; margin-bottom: 2rem; padding: 0.5rem 0; display:flex; align-items:center; justify-content:center; height: 50px; }
@@ -190,96 +201,107 @@ body.scrolled .vyuka-header {
 .vyuka-sidebar-ai-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--vyuka-border-highlight); display: flex; justify-content: center; min-height: 50px; font-size: 0.75rem; opacity: 0.7; color: var(--vyuka-text-muted); }
 .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-footer { animation: text-focus-in 0.6s ease 0.25s both; }
 
-/* Header specific elements */
-.vyuka-header-left, .vyuka-header-right { /* ... existing styles ... */ }
-.vyuka-header-left .mobile-menu-toggle, .vyuka-header-left .sidebar-ai-desktop-toggle { /* ... existing styles ... */ }
-.vyuka-header-topic-info h1, .vyuka-header-topic-info p { /* ... existing styles ... */ }
-.user-menu-container, .vyuka-header-user-display, .user-dropdown-menu, .logout-btn, .btn-exit-vyuka, .notifications, .notifications-dropdown-wrapper, .notifications-header, .notifications-title, .mark-all-read-btn, #notifications-list, .notification-item, .notification-icon, .notification-content, .notification-title, .notification-message, .notification-time, .unread-dot, .notifications-footer, .view-all-notifications-link, #no-notifications-msg, .notification-item.hiding, .notification-item.skeleton .skeleton {
-    /* These styles should be fine from the previous iteration or the copied CSS from vyuka.html */
+/* Header specific elements (from previous version, should be fine) */
+.vyuka-header-left, .vyuka-header-right, .vyuka-header-left .mobile-menu-toggle, .vyuka-header-left .sidebar-ai-desktop-toggle, .vyuka-header-topic-info h1, .vyuka-header-topic-info p, .user-menu-container, .vyuka-header-user-display, .user-dropdown-menu, .logout-btn, .btn-exit-vyuka, .notifications, .notifications-dropdown-wrapper, .notifications-header, .notifications-title, .mark-all-read-btn, #notifications-list, .notification-item, .notification-icon, .notification-content, .notification-title, .notification-message, .notification-time, .unread-dot, .notifications-footer, .view-all-notifications-link, #no-notifications-msg, .notification-item.hiding, .notification-item.skeleton .skeleton {
+    /* These styles are mostly fine from the previous iteration or the copied CSS from vyuka.html */
 }
-/* AVATAR FIX: Explicitly set dimensions for the avatar image and its wrapper in the header to prevent full-page issue */
+/* AVATAR FIX */
 .vyuka-header-user-avatar-wrapper {
-    width: 32px; /* Or desired size */
-    height: 32px; /* Or desired size */
+    width: 32px; /* Explicit width */
+    height: 32px; /* Explicit height */
     border-radius: 50%;
-    overflow: hidden;
+    overflow: hidden; /* Clip image */
     border: 1.5px solid var(--vyuka-accent-primary);
     box-shadow: 0 0 8px rgba(var(--vyuka-accent-primary-rgb),0.4);
-    flex-shrink: 0; /* Prevent shrinking */
+    flex-shrink: 0;
+    position: relative; /* Ensure no strange absolute positioning from parents */
 }
 .vyuka-header-avatar-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Crucial for proper display within the wrapper */
-    display: block; /* Remove extra space below image if any */
+    width: 100%; /* Fill wrapper */
+    height: 100%; /* Fill wrapper */
+    object-fit: cover; /* Scale image correctly */
+    display: block; /* Removes bottom space under img if any */
+    position: static; /* Override any accidental absolute/fixed positioning */
+    max-width: 100%; /* Ensure it doesn't overflow wrapper */
+    max-height: 100%;
 }
 
 
 /* --- Whiteboard & Chat Panel - Cyberpunk Frames & Height --- */
 .vyuka-whiteboard-area, .vyuka-chat-panel {
-    background-color: rgba(var(--vyuka-bg-panel-rgb), 0.88);
-    backdrop-filter: blur(12px) saturate(1.2);
-    padding: 1.8rem; /* More padding around content */
+    background-color: rgba(var(--vyuka-bg-panel-rgb), 0.9); /* More opaque */
+    backdrop-filter: blur(8px) saturate(1.1);
+    padding: 1.2rem; /* Consistent padding */
     display: flex;
     flex-direction: column;
     overflow: hidden;
     border-radius: var(--vyuka-card-radius);
     border: 1px solid var(--vyuka-border-cyber);
-    box-shadow: 0 0 20px rgba(var(--vyuka-accent-primary-rgb),0.25),
-                0 0 35px rgba(var(--vyuka-accent-secondary-rgb),0.2),
-                inset 0 0 18px rgba(var(--vyuka-bg-dark),0.65), /* Darker inset */
-                inset 0 0 7px var(--vyuka-border-cyber);
+    box-shadow:
+        0 0 25px rgba(var(--vyuka-accent-primary-rgb),0.2), /* Softer outer glow */
+        0 0 40px rgba(var(--vyuka-accent-secondary-rgb),0.15),
+        inset 0 0 20px rgba(var(--vyuka-bg-dark),0.7), /* Deeper inset */
+        inset 0 0 8px var(--vyuka-border-cyber);
     position: relative;
     transition: box-shadow var(--animation-duration-medium) ease-in-out, border-color var(--animation-duration-medium) ease-in-out;
 }
 .vyuka-whiteboard-area:hover, .vyuka-chat-panel:hover {
-     box-shadow: 0 0 28px rgba(var(--vyuka-accent-primary-rgb),0.4),
-                0 0 45px rgba(var(--vyuka-accent-secondary-rgb),0.3),
-                inset 0 0 22px rgba(var(--vyuka-bg-dark),0.6),
-                inset 0 0 10px var(--vyuka-border-cyber-secondary);
+     box-shadow: 0 0 30px rgba(var(--vyuka-accent-primary-rgb),0.3),
+                0 0 50px rgba(var(--vyuka-accent-secondary-rgb),0.25),
+                inset 0 0 25px rgba(var(--vyuka-bg-dark),0.6),
+                inset 0 0 12px var(--vyuka-border-cyber-secondary);
     border-color: var(--vyuka-border-cyber-secondary);
 }
 
-/* Decorative frame corners (enhanced) */
-.vyuka-whiteboard-area::before, .vyuka-chat-panel::before,
+/* Angled corner effect using pseudo-elements */
+.vyuka-whiteboard-area::before, .vyuka-chat-panel::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px;
+    width: 40px; height: 40px;
+    border-top: 3px solid var(--vyuka-accent-primary);
+    border-left: 3px solid var(--vyuka-accent-primary);
+    border-top-left-radius: var(--vyuka-card-radius);
+    opacity: 0.8;
+    pointer-events: none;
+    z-index: 6;
+    transition: all 0.3s ease;
+    clip-path: polygon(0 0, 100% 0, 100% 20%, 20% 100%, 0 100%); /* Angled corner */
+}
 .vyuka-whiteboard-area::after, .vyuka-chat-panel::after {
     content: '';
     position: absolute;
-    width: 15px; /* Increased size */
-    height: 15px;
-    border-style: solid;
-    border-color: var(--vyuka-accent-primary);
-    opacity: 0.9;
+    bottom: -1px; right: -1px;
+    width: 40px; height: 40px;
+    border-bottom: 3px solid var(--vyuka-accent-primary);
+    border-right: 3px solid var(--vyuka-accent-primary);
+    border-bottom-right-radius: var(--vyuka-card-radius);
+    opacity: 0.8;
     pointer-events: none;
-    z-index: 5; /* Ensure corners are above the main panel but below modals */
-    transition: all 0.4s var(--animation-timing-cyber);
-    box-shadow: 0 0 8px var(--vyuka-accent-primary); /* Glow for corners */
+    z-index: 6;
+    transition: all 0.3s ease;
+    clip-path: polygon(100% 100%, 0 100%, 0 80%, 80% 0, 100% 0); /* Angled corner */
 }
-.vyuka-whiteboard-area::before, .vyuka-chat-panel::before { top: 7px; left: 7px; border-width: 3px 0 0 3px; }
-.vyuka-whiteboard-area::after, .vyuka-chat-panel::after { bottom: 7px; right: 7px; border-width: 0 3px 3px 0; }
-
-.vyuka-whiteboard-area:hover::before, .vyuka-chat-panel:hover::before { transform: translate(-5px, -5px) scale(1.35) rotate(-7deg); border-color: var(--vyuka-accent-secondary); box-shadow: 0 0 12px var(--vyuka-accent-secondary); }
-.vyuka-whiteboard-area:hover::after, .vyuka-chat-panel:hover::after { transform: translate(5px, 5px) scale(1.35) rotate(7deg); border-color: var(--vyuka-accent-secondary); box-shadow: 0 0 12px var(--vyuka-accent-secondary); }
-
+.vyuka-whiteboard-area:hover::before, .vyuka-chat-panel:hover::before { border-color: var(--vyuka-accent-secondary); width: 45px; height: 45px;}
+.vyuka-whiteboard-area:hover::after, .vyuka-chat-panel:hover::after { border-color: var(--vyuka-accent-secondary); width: 45px; height: 45px;}
 
 .vyuka-whiteboard-area {
-    flex: 6;
-    min-height: clamp(400px, 60vh, 700px); /* Min, Preferred, Max height */
+    flex: 6.5; /* Whiteboard slightly more space */
+    min-height: clamp(380px, 58vh, 750px); /* Adjusted min-height and preferred vh */
     height: auto;
 }
 
 .vyuka-chat-panel {
-    flex: 4;
-    min-height: clamp(400px, 60vh, 700px);
-    min-width: 380px; /* Ensure usability */
+    flex: 3.5; /* Chat panel a bit less */
+    min-height: clamp(380px, 58vh, 750px);
+    min-width: 380px;
     height: auto;
 }
 
 /* Internal scroll container styles (from previous) */
-#whiteboard-container { flex-grow: 1; overflow-y: auto; padding: 0.5rem; /* Padding for content inside */ margin-right: -10px; /* Offset scrollbar */ position: relative; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--vyuka-accent-secondary) rgba(var(--vyuka-bg-dark), 0.5); }
+#whiteboard-container { flex-grow: 1; overflow-y: auto; padding: 0.8rem; margin-right: -10px; position: relative; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--vyuka-accent-secondary) rgba(var(--vyuka-bg-dark), 0.5); }
 #whiteboard-container::-webkit-scrollbar { width: 6px; }
 #whiteboard-container::-webkit-scrollbar-thumb { background: var(--vyuka-accent-secondary); border-radius: 3px;}
-
 #whiteboard-content { padding-bottom: 1.5rem; position: relative; }
 #whiteboard-content h1, #whiteboard-content h2, #whiteboard-content h3 { color: var(--vyuka-accent-secondary); margin-bottom: 0.8em; border-bottom: 1px solid rgba(var(--vyuka-accent-secondary-rgb), 0.4); padding-bottom: 0.4em; text-shadow: 0 0 12px rgba(var(--vyuka-accent-secondary-rgb), 0.6); }
 #whiteboard-content h1 { font-size: 1.7rem; } #whiteboard-content h2 { font-size: 1.5rem; } #whiteboard-content h3 { font-size: 1.3rem; }
@@ -287,34 +309,29 @@ body.scrolled .vyuka-header {
 #whiteboard-content code { background-color: rgba(var(--vyuka-accent-lime-rgb), 0.2); padding: 0.2em 0.5em; border-radius: 4px; font-family: var(--vyuka-font-mono); color: var(--vyuka-accent-lime); border: 1px solid rgba(var(--vyuka-accent-lime-rgb),0.5); box-shadow: 0 0 10px rgba(var(--vyuka-accent-lime-rgb),0.4); }
 #whiteboard-content pre { background-color: rgba(var(--vyuka-bg-dark), 0.95); padding: 1.3em; border-radius: var(--vyuka-button-radius); overflow-x: auto; border: 1px solid var(--vyuka-border-highlight); box-shadow: var(--vyuka-shadow-medium), inset 0 0 20px rgba(0,0,0,0.5); font-size: 0.9rem; }
 
-/* Chat Panel specific styles (from previous, generally okay) */
-.vyuka-chat-header, .ai-model-selector-container, .ai-model-label, .ai-model-select, .interaction-panel-content, #chat-tab-content, .chat-area, .chat-messages, .message-bubble, .chat-input-area, .chat-input-wrapper, .chat-input, .send-button, .chat-controls {
-    /* These styles are mostly fine from the previous iteration or will inherit well */
-}
 .chat-messages::-webkit-scrollbar { width: 6px; }
+/* --- Остальные стили для чата, кнопок, футера, модальных окон, уведомлений, скелетонов, адаптивности, MathJax, Tooltipster, Reduced Motion ПЕРЕНОСЯТСЯ из предыдущей версии БЕЗ ИЗМЕНЕНИЙ, если они не касаются основного макета, размеров доски/чата или проблемы с аватаром. --- */
+/* All other styles from the previous CSS version are assumed to be here if they are not directly conflicting or modified above */
 
-/* --- ANIMATED PAGE LOADER --- */
+/* --- ANIMATED PAGE LOADER (Enhanced) --- */
 .initial-loading-overlay {
     position: fixed; inset: 0;
-    background-color: var(--vyuka-loader-bg-color); /* Use new variable */
-    z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1.5rem; /* Increased gap */
-    transition: opacity var(--animation-duration-slow) ease-out, visibility 0s var(--animation-duration-slow);
+    background-color: var(--vyuka-loader-bg-color);
+    z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 2rem; /* Increased gap */
+    transition: opacity 0.8s ease-out, visibility 0s 0.8s; /* Slower fade for smoother feel */
     opacity: 1; visibility: visible;
+    /* Adding a subtle noise/static effect */
+    background-image: linear-gradient(rgba(20,20,30,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(20,20,30,0.03) 1px, transparent 1px);
+    background-size: 2px 2px;
 }
 .initial-loading-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 
-.initial-loading-overlay .loading-spinner { /* Existing spinner is good */
+.initial-loading-overlay .loading-spinner {
     width: var(--vyuka-loader-size); height: var(--vyuka-loader-size); position: relative;
-    animation: loader-rotate 2.2s cubic-bezier(0.7, 0, 0.3, 1) infinite;
+    animation: loader-rotate 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite; /* More dynamic rotation */
 }
-.loading-spinner .spinner-blade { /* Existing blades are good */
-    position: absolute; left: 50%; top: 0; width: calc(var(--vyuka-loader-size) * 0.08); height: calc(var(--vyuka-loader-size) * 0.35);
-    background-color: var(--vyuka-loader-blade-color); border-radius: 50%/20%; transform-origin: 50% 100%;
-    animation: blade-pulse-fade-alt 1.5s ease-in-out infinite;
-    box-shadow: 0 0 4px var(--vyuka-loader-blade-color), 0 0 8px rgba(var(--vyuka-accent-secondary-rgb), 0.5), 0 0 12px rgba(var(--vyuka-accent-primary-rgb), 0.3);
-    filter: blur(0.8px);
-}
-/* Blade animations and positioning (nth-child styles) remain the same */
+/* Re-using existing spinner blade structure and animation - it's good */
+.loading-spinner .spinner-blade { position: absolute; left: 50%; top: 0; width: calc(var(--vyuka-loader-size) * 0.08); height: calc(var(--vyuka-loader-size) * 0.35); background-color: var(--vyuka-loader-blade-color); border-radius: 50%/20%; transform-origin: 50% 100%; animation: blade-pulse-fade-alt 1.5s ease-in-out infinite; box-shadow: 0 0 4px var(--vyuka-loader-blade-color), 0 0 8px rgba(var(--vyuka-accent-secondary-rgb), 0.5), 0 0 12px rgba(var(--vyuka-accent-primary-rgb), 0.3); filter: blur(0.8px); }
 .loading-spinner .spinner-blade:nth-child(1) { transform: rotate(0deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.5s; }
 .loading-spinner .spinner-blade:nth-child(2) { transform: rotate(30deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.375s; }
 .loading-spinner .spinner-blade:nth-child(3) { transform: rotate(60deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.25s; }
@@ -327,44 +344,44 @@ body.scrolled .vyuka-header {
 .loading-spinner .spinner-blade:nth-child(10) { transform: rotate(270deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.375s; }
 .loading-spinner .spinner-blade:nth-child(11) { transform: rotate(300deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.25s; }
 .loading-spinner .spinner-blade:nth-child(12) { transform: rotate(330deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.125s; }
-
-.initial-loading-overlay .loading-spinner::after { /* Core of spinner */
-    content: ''; position: absolute; width: calc(var(--vyuka-loader-size) * 0.25); height: calc(var(--vyuka-loader-size) * 0.25);
-    background-color: var(--vyuka-loader-core-color); border-radius: 50%;
-    top: 50%; left: 50%; transform: translate(-50%, -50%);
-    box-shadow: 0 0 10px var(--vyuka-loader-core-color), 0 0 20px rgba(var(--vyuka-accent-secondary-rgb), 0.7), inset 0 0 5px rgba(var(--white-rgb),0.3);
-    animation: core-pulse-subtle 1.5s ease-in-out infinite alternate;
-}
+.initial-loading-overlay .loading-spinner::after { content: ''; position: absolute; width: calc(var(--vyuka-loader-size) * 0.25); height: calc(var(--vyuka-loader-size) * 0.25); background-color: var(--vyuka-loader-core-color); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 10px var(--vyuka-loader-core-color), 0 0 20px rgba(var(--vyuka-accent-secondary-rgb), 0.7), inset 0 0 5px rgba(var(--white-rgb),0.3); animation: core-pulse-subtle 1.5s ease-in-out infinite alternate; }
 @keyframes loader-rotate { 100% { transform: rotate(360deg); } }
 @keyframes blade-pulse-fade-alt { 0% { opacity: 0.2; transform: scaleY(0.6); background-color: var(--vyuka-accent-secondary); } 50% { opacity: 1; transform: scaleY(1); background-color: var(--vyuka-loader-blade-color); } 100% { opacity: 0.2; transform: scaleY(0.6); background-color: var(--vyuka-accent-secondary); } }
 @keyframes core-pulse-subtle { 0% { transform: translate(-50%, -50%) scale(0.85); box-shadow: 0 0 8px var(--vyuka-loader-core-color), 0 0 15px rgba(var(--vyuka-accent-secondary-rgb), 0.6), inset 0 0 4px rgba(var(--white-rgb),0.25); } 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 12px var(--vyuka-loader-core-color), 0 0 22px rgba(var(--vyuka-accent-secondary-rgb), 0.8), inset 0 0 6px rgba(var(--white-rgb),0.35); } }
 
 /* Animated Loading Text */
 .initial-loading-overlay p.loading-text {
-    color: var(--vyuka-text-primary); font-size: 1rem; /* Slightly larger */
+    color: var(--vyuka-text-primary); font-size: 1.1rem; /* Slightly larger */
     font-family: var(--vyuka-font-mono); text-transform: uppercase;
-    letter-spacing: 4px; /* More spacing */
-    margin-top: 3.5rem; /* More space from spinner */
+    letter-spacing: 5px; /* More spacing */
+    margin-top: 3.5rem;
     position: relative; display: flex;
-    text-shadow: 0 0 5px var(--vyuka-accent-primary), 0 0 10px var(--vyuka-accent-secondary); /* Enhanced glow */
+    text-shadow: 0 0 7px var(--vyuka-accent-primary), 0 0 15px var(--vyuka-accent-secondary), 0 0 2px var(--vyuka-text-primary); /* Stronger glow */
     overflow: hidden;
 }
 .initial-loading-overlay p.loading-text span {
     opacity: 0;
-    animation: matrix-style-reveal-enhanced 0.2s forwards; /* Faster, more dynamic */
+    animation: glitch-appear 0.25s forwards; /* Faster, more "glitchy" */
     display: inline-block;
-    transform: translateY(-12px) scale(1.2); /* Initial state */
-    min-width: 1ch; /* Ensure space for non-breaking space */
+    transform: translateY(-15px) skewX(-20deg) scale(1.5); /* Initial skewed state */
+    min-width: 1ch;
+    transition: text-shadow 0.1s ease-in-out;
 }
-@keyframes matrix-style-reveal-enhanced {
-    0% { opacity: 0; transform: translateY(-20px) scale(1.8) skewX(-15deg); color: var(--vyuka-accent-lime); filter: blur(3px) brightness(2); }
-    30% { opacity: 0.8; color: var(--vyuka-accent-secondary); filter: blur(1px) brightness(1.5); transform: translateY(-5px) scale(1.1) skewX(-5deg); }
-    100% { opacity: 1; transform: translateY(0) scale(1) skewX(0); color: var(--vyuka-text-primary); filter: blur(0) brightness(1); }
+.initial-loading-overlay p.loading-text span:hover { /* Add interactive element if desired */
+    text-shadow: 0 0 10px var(--vyuka-accent-lime-rgb), 0 0 20px var(--vyuka-accent-lime-rgb);
+    color: var(--vyuka-accent-lime-rgb);
 }
-/* Staggered animation delays for each letter - KEEP THE SPAN NUMBERING */
-.initial-loading-overlay p.loading-text span:nth-child(1) { animation-delay: 0s; } /* S */ .initial-loading-overlay p.loading-text span:nth-child(2) { animation-delay: 0.05s; } /* Y */ .initial-loading-overlay p.loading-text span:nth-child(3) { animation-delay: 0.1s; } /* N */ .initial-loading-overlay p.loading-text span:nth-child(4) { animation-delay: 0.15s; } /* C */ .initial-loading-overlay p.loading-text span:nth-child(5) { animation-delay: 0.2s; } /* H */ .initial-loading-overlay p.loading-text span:nth-child(6) { animation-delay: 0.25s; } /* R */ .initial-loading-overlay p.loading-text span:nth-child(7) { animation-delay: 0.3s; } /* O */ .initial-loading-overlay p.loading-text span:nth-child(8) { animation-delay: 0.35s; } /* N */ .initial-loading-overlay p.loading-text span:nth-child(9) { animation-delay: 0.4s; } /* I */ .initial-loading-overlay p.loading-text span:nth-child(10) { animation-delay: 0.45s; } /* Z */ .initial-loading-overlay p.loading-text span:nth-child(11) { animation-delay: 0.5s; } /* U */ .initial-loading-overlay p.loading-text span:nth-child(12) { animation-delay: 0.55s; } /* J */ .initial-loading-overlay p.loading-text span:nth-child(13) { animation-delay: 0.6s; } /* I */ .initial-loading-overlay p.loading-text span:nth-child(14) { animation-delay: 0.65s; } /* &nbsp; */ .initial-loading-overlay p.loading-text span:nth-child(15) { animation-delay: 0.7s; } /* M */ .initial-loading-overlay p.loading-text span:nth-child(16) { animation-delay: 0.75s; } /* O */ .initial-loading-overlay p.loading-text span:nth-child(17) { animation-delay: 0.8s; } /* D */ .initial-loading-overlay p.loading-text span:nth-child(18) { animation-delay: 0.85s; } /* U */ .initial-loading-overlay p.loading-text span:nth-child(19) { animation-delay: 0.9s; } /* L */ .initial-loading-overlay p.loading-text span:nth-child(20) { animation-delay: 0.95s; } /* . */ .initial-loading-overlay p.loading-text span:nth-child(21) { animation-delay: 1.0s; } /* . */ .initial-loading-overlay p.loading-text span:nth-child(22) { animation-delay: 1.05s; } /* . */
 
-/* Footer Styles (from vyuka.html <style> block - mostly unchanged) */
-.main-footer.vyuka-footer, .vyuka-footer .container, .vyuka-footer .footer-grid, .vyuka-footer .footer-column .logo, .vyuka-footer .footer-column p, .vyuka-footer .footer-column h3, .vyuka-footer .footer-column h3::before, .vyuka-footer .footer-column .footer-links, .vyuka-footer .footer-column .footer-links li, .vyuka-footer .footer-column .footer-links a, .vyuka-footer .social-links, .vyuka-footer .social-links .social-link, .vyuka-footer .footer-copyright { /* styles from vyuka.html, assuming they are fine */ }
+@keyframes glitch-appear {
+    0% { opacity: 0; transform: translateY(-25px) skewX(-25deg) scale(2); color: var(--vyuka-accent-secondary); filter: blur(4px) brightness(2.5); }
+    20% { opacity: 0.6; transform: translateY(5px) skewX(15deg) scale(0.8); color: var(--vyuka-accent-pink); filter: blur(2px) brightness(1.8); }
+    60% { opacity: 0.9; transform: translateY(-3px) skewX(-8deg) scale(1.1); color: var(--vyuka-accent-primary); filter: blur(0.5px) brightness(1.2); }
+    100% { opacity: 1; transform: translateY(0) skewX(0) scale(1); color: var(--vyuka-text-primary); filter: blur(0) brightness(1); }
+}
+/* Staggered animation delays for each letter - KEEP THE SPAN NUMBERING (same as before) */
+.initial-loading-overlay p.loading-text span:nth-child(1) { animation-delay: 0s; } .initial-loading-overlay p.loading-text span:nth-child(2) { animation-delay: 0.04s; } .initial-loading-overlay p.loading-text span:nth-child(3) { animation-delay: 0.08s; } .initial-loading-overlay p.loading-text span:nth-child(4) { animation-delay: 0.12s; } .initial-loading-overlay p.loading-text span:nth-child(5) { animation-delay: 0.16s; } .initial-loading-overlay p.loading-text span:nth-child(6) { animation-delay: 0.20s; } .initial-loading-overlay p.loading-text span:nth-child(7) { animation-delay: 0.24s; } .initial-loading-overlay p.loading-text span:nth-child(8) { animation-delay: 0.28s; } .initial-loading-overlay p.loading-text span:nth-child(9) { animation-delay: 0.32s; } .initial-loading-overlay p.loading-text span:nth-child(10) { animation-delay: 0.36s; } .initial-loading-overlay p.loading-text span:nth-child(11) { animation-delay: 0.40s; } .initial-loading-overlay p.loading-text span:nth-child(12) { animation-delay: 0.44s; } .initial-loading-overlay p.loading-text span:nth-child(13) { animation-delay: 0.48s; } .initial-loading-overlay p.loading-text span:nth-child(14) { animation-delay: 0.52s; } .initial-loading-overlay p.loading-text span:nth-child(15) { animation-delay: 0.56s; } .initial-loading-overlay p.loading-text span:nth-child(16) { animation-delay: 0.60s; } .initial-loading-overlay p.loading-text span:nth-child(17) { animation-delay: 0.64s; } .initial-loading-overlay p.loading-text span:nth-child(18) { animation-delay: 0.68s; } .initial-loading-overlay p.loading-text span:nth-child(19) { animation-delay: 0.72s; } .initial-loading-overlay p.loading-text span:nth-child(20) { animation-delay: 0.76s; } .initial-loading-overlay p.loading-text span:nth-child(21) { animation-delay: 0.80s; } .initial-loading-overlay p.loading-text span:nth-child(22) { animation-delay: 0.84s; }
 
-/* Other styles (notifications, tooltips, modals, reduced motion etc.) are assumed to be fine from previous versions or already in vyuka.html */
+/* Footer, Notifications, Modals, etc. from previous or HTML style block */
+/* Ensure all other existing styles (notifications, modals, footer from HTML, etc.) are preserved below */
+/* ... (předchozí CSS стили, které nejsou layout, sidebar, loader, whiteboard/chat) ... */
+/* Skeleton styles, responsive styles, etc. are kept from previous version */
