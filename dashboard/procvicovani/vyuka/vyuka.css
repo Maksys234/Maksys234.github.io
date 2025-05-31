@@ -1,8 +1,4 @@
-/* dashboard/procvicovani/vyuka/vyuka.css - EXTREME CYBERPUNK OVERHAUL v3 - Layout First, then Effects */
-/* UPDATE: Notification design, loading animation, notification hiding animation, chat buttons, AI model select, user dropdown, footer, sidebar toggle */
-/* USER REQUEST v1: Scrollable page, Increased whiteboard/chat height, Improved left sidebar design */
-/* USER REQUEST v2: Fix footer background, ensure page scroll, further design enhancements for whiteboard/chat */
-/* USER REQUEST v3: Fix full-page avatar (re-check), Animated page loader, Cyberpunk whiteboard/chat design */
+/* dashboard/procvicovani/vyuka/vyuka.css - EXTREME CYBERPUNK OVERHAUL v5 - FINAL ATTEMPT */
 
 /* --- Základní proměnné --- */
 :root {
@@ -20,8 +16,7 @@
     --vyuka-border-highlight: rgba(var(--vyuka-accent-secondary-rgb), 0.5);
     --vyuka-border-cyber: rgba(var(--vyuka-accent-primary-rgb), 0.7);
     --vyuka-border-cyber-secondary: rgba(var(--vyuka-accent-secondary-rgb), 0.6);
-    --vyuka-border-panel-edge: rgba(var(--vyuka-accent-primary-rgb), 0.3); /* For panel edges */
-
+    --vyuka-border-panel-edge: rgba(var(--vyuka-accent-primary-rgb), 0.3);
 
     --vyuka-accent-primary: #FF00E6;
     --vyuka-accent-primary-rgb: 255, 0, 230;
@@ -33,6 +28,7 @@
     --vyuka-accent-success: #2ED573;
     --vyuka-accent-neutral: #5A6788;
     --vyuka-accent-lime-rgb: 111, 255, 58;
+    --white-rgb: 255,255,255;
 
 
     --vyuka-text-primary: #E0E7FF;
@@ -71,10 +67,10 @@
     --vyuka-notification-item-hover-bg: rgba(var(--vyuka-accent-secondary-rgb), 0.1);
     --vyuka-notification-unread-dot: var(--vyuka-accent-primary);
 
-    --vyuka-loader-size: 70px;
+    --vyuka-loader-size: 80px;
     --vyuka-loader-blade-color: var(--vyuka-accent-primary);
     --vyuka-loader-core-color: var(--vyuka-accent-secondary);
-    --vyuka-loader-bg-color: rgba(var(--vyuka-bg-dark-rgb), 0.97);
+    --vyuka-loader-bg-color: rgba(var(--vyuka-bg-dark-rgb), 0.98);
 
     --vyuka-notification-hide-duration: 0.5s;
 
@@ -93,7 +89,7 @@ body.new-vyuka-layout {
     margin: 0; padding: 0; display: flex; overflow: hidden; height: 100vh;
     position: relative;
 }
-body.new-vyuka-layout::before, body.new-vyuka-layout::after { /* Background effects */
+body.new-vyuka-layout::before, body.new-vyuka-layout::after {
     content: ''; position: fixed; inset: 0; z-index: -2;
     background-image: linear-gradient(rgba(var(--vyuka-border-color), 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--vyuka-border-color), 0.07) 1px, transparent 1px);
     background-size: 30px 30px; opacity: 0.5; animation: bg-grid-pan 120s linear infinite;
@@ -121,11 +117,9 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
     overflow: hidden;
     background-color: var(--vyuka-bg-dark);
 }
-
 .vyuka-sidebar-ai.expanded ~ .vyuka-page-container {
     margin-left: var(--vyuka-sidebar-width-expanded);
 }
-
 .vyuka-main-content-scrollable {
     flex-grow: 1;
     overflow-y: auto;
@@ -162,8 +156,8 @@ body.scrolled .vyuka-header {
 .vyuka-main-content {
     display: flex;
     flex-grow: 1;
-    padding: 2rem; /* Increased padding */
-    gap: 2rem;   /* Increased gap */
+    padding: 2rem;
+    gap: 2rem;
     background-color: transparent;
     min-height: 0;
     position: relative;
@@ -171,10 +165,9 @@ body.scrolled .vyuka-header {
 
 .main-footer.vyuka-footer {
     flex-shrink: 0;
-    /* margin-top: auto; -- this is correct to push it down in flex column */
 }
 
-/* --- Levý AI Panel (Stejné jako v předchozí verzi) --- */
+/* --- Levý AI Panel --- */
 .vyuka-sidebar-ai { width: var(--vyuka-sidebar-width-collapsed); background-color: var(--vyuka-bg-panel); border-right: 1px solid var(--vyuka-border-color); display: flex; flex-direction: column; padding: 1rem 0.5rem; transition: width 0.3s var(--animation-timing-cyber); height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; box-shadow: 5px 0 30px -5px rgba(0,0,0,0.6), inset -3px 0 8px rgba(var(--vyuka-bg-dark),0.4); }
 .vyuka-sidebar-ai.expanded { width: var(--vyuka-sidebar-width-expanded); }
 .vyuka-sidebar-ai-header { text-align: center; margin-bottom: 2rem; padding: 0.5rem 0; display:flex; align-items:center; justify-content:center; height: 50px; }
@@ -201,105 +194,100 @@ body.scrolled .vyuka-header {
 .vyuka-sidebar-ai-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--vyuka-border-highlight); display: flex; justify-content: center; min-height: 50px; font-size: 0.75rem; opacity: 0.7; color: var(--vyuka-text-muted); }
 .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-footer { animation: text-focus-in 0.6s ease 0.25s both; }
 
-/* Header specific elements (from previous version, should be fine) */
-.vyuka-header-left, .vyuka-header-right, .vyuka-header-left .mobile-menu-toggle, .vyuka-header-left .sidebar-ai-desktop-toggle, .vyuka-header-topic-info h1, .vyuka-header-topic-info p, .user-menu-container, .vyuka-header-user-display, .user-dropdown-menu, .logout-btn, .btn-exit-vyuka, .notifications, .notifications-dropdown-wrapper, .notifications-header, .notifications-title, .mark-all-read-btn, #notifications-list, .notification-item, .notification-icon, .notification-content, .notification-title, .notification-message, .notification-time, .unread-dot, .notifications-footer, .view-all-notifications-link, #no-notifications-msg, .notification-item.hiding, .notification-item.skeleton .skeleton {
-    /* These styles are mostly fine from the previous iteration or the copied CSS from vyuka.html */
-}
-/* AVATAR FIX */
+/* Header specific elements */
+.vyuka-header-left { display: flex; align-items: center; gap: 0.8rem; }
+.vyuka-header-left .mobile-menu-toggle { display: none; color: var(--vyuka-text-muted); font-size: 1.4rem; }
+.vyuka-header-left .sidebar-ai-desktop-toggle { color: var(--vyuka-text-muted); font-size: 1.1rem; background: rgba(var(--vyuka-bg-panel-lighter),0.7); border: 1px solid var(--vyuka-border-color); cursor: pointer; padding: 0.5rem 0.7rem; border-radius: var(--vyuka-button-radius); transition: all var(--animation-duration-fast) ease; }
+.vyuka-header-left .sidebar-ai-desktop-toggle:hover { background-color: rgba(var(--vyuka-accent-secondary-rgb),0.2); color: var(--vyuka-accent-secondary); border-color: var(--vyuka-accent-secondary); box-shadow: 0 0 8px rgba(var(--vyuka-accent-secondary-rgb),0.3);}
+.vyuka-header-left .sidebar-ai-desktop-toggle i { transition: transform 0.3s var(--animation-timing-cyber); }
+.vyuka-sidebar-ai.expanded ~ .vyuka-page-container .vyuka-header .sidebar-ai-desktop-toggle i { transform: rotate(180deg); }
+.vyuka-header-topic-info h1 { font-size: 1.2rem; margin: 0; font-weight: 600; color: var(--vyuka-text-heading); }
+.vyuka-header-topic-info p { font-size: 0.8rem; margin: 0; color: var(--vyuka-text-secondary); font-family: var(--vyuka-font-mono); }
+.vyuka-header-right { display: flex; align-items: center; gap: 0.8rem; }
+.vyuka-header-right .btn-icon-only { color: var(--vyuka-text-muted); font-size: 0.9rem; width: 34px; height: 34px; display:flex; align-items:center; justify-content:center; border-radius:50%; transition: all 0.2s ease; background: rgba(var(--vyuka-bg-panel-lighter), 0.6); border: 1px solid var(--vyuka-border-color); }
+.vyuka-header-right .btn-icon-only:hover { background-color: rgba(var(--vyuka-accent-secondary-rgb),0.2); color: var(--vyuka-accent-secondary); text-shadow: var(--vyuka-text-glow-secondary); box-shadow: 0 0 12px rgba(var(--vyuka-accent-secondary-rgb),0.4); transform: translateY(-1px); }
+.user-menu-container { position: relative; }
+.vyuka-header-user-display { display: flex; align-items: center; gap: 0.7rem; padding: 0.3rem 0.6rem; background-color: rgba(var(--vyuka-bg-panel-lighter-rgb, 19, 23, 36), 0.5); border-radius: var(--vyuka-button-radius); border: 1px solid var(--vyuka-border-color); cursor: pointer; transition: background-color 0.2s ease, box-shadow 0.2s ease; }
+.vyuka-header-user-display:hover { background-color: rgba(var(--vyuka-accent-primary-rgb), 0.1); box-shadow: 0 0 10px rgba(var(--vyuka-accent-primary-rgb), 0.2); }
+/* AVATAR FIX in Header - ENSURE THESE ARE APPLIED AND SPECIFIC */
 .vyuka-header-user-avatar-wrapper {
-    width: 32px; /* Explicit width */
-    height: 32px; /* Explicit height */
+    width: 32px; height: 32px;
+    min-width: 32px; max-width: 32px; /* Strict sizing */
+    min-height: 32px; max-height: 32px;
     border-radius: 50%;
-    overflow: hidden; /* Clip image */
+    overflow: hidden; /* Crucial to clip image */
     border: 1.5px solid var(--vyuka-accent-primary);
     box-shadow: 0 0 8px rgba(var(--vyuka-accent-primary-rgb),0.4);
-    flex-shrink: 0;
-    position: relative; /* Ensure no strange absolute positioning from parents */
+    flex-shrink: 0; /* Prevent shrinking in flex layout */
+    position: relative; /* Ensure it respects flow */
 }
 .vyuka-header-avatar-img {
-    width: 100%; /* Fill wrapper */
-    height: 100%; /* Fill wrapper */
-    object-fit: cover; /* Scale image correctly */
-    display: block; /* Removes bottom space under img if any */
-    position: static; /* Override any accidental absolute/fixed positioning */
-    max-width: 100%; /* Ensure it doesn't overflow wrapper */
-    max-height: 100%;
+    width: 100% !important; /* Force fill wrapper */
+    height: 100% !important; /* Force fill wrapper */
+    object-fit: cover !important; /* Scale image to cover, crop if needed */
+    display: block !important; /* Removes potential bottom space */
+    position: static !important; /* Ensure no absolute/fixed positioning */
+    max-width: 100% !important; /* Redundant but safe */
+    max-height: 100% !important; /* Redundant but safe */
+    border-radius: 0 !important; /* Image itself doesn't need radius if wrapper has it */
 }
-
+.vyuka-header-user-details { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1; }
+.vyuka-header-user-name { font-size: 0.8rem; font-weight: 600; color: var(--vyuka-text-primary); }
+.vyuka-header-user-title { font-size: 0.7rem; color: var(--vyuka-accent-secondary); font-family: var(--vyuka-font-mono); text-shadow: 0 0 3px var(--vyuka-accent-secondary); }
+.user-dropdown-menu { position: absolute; top: calc(100% + 10px); right: 0; background-color: var(--vyuka-bg-panel); border: 1px solid var(--vyuka-border-color); border-radius: var(--vyuka-card-radius); box-shadow: 0 8px 20px rgba(0,0,0,0.5), 0 0 0 1px var(--vyuka-border-highlight); z-index: 1100; width: 220px; opacity: 0; visibility: hidden; transform: translateY(10px) scale(0.95); transform-origin: top right; transition: opacity var(--animation-duration-medium) ease, transform var(--animation-duration-medium) var(--animation-timing-cyber), visibility 0s var(--animation-duration-medium); padding: 0.5rem 0; }
+.user-menu-container:hover .user-dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0) scale(1); transition-delay: 0s; }
+.user-dropdown-links { list-style: none; padding: 0; margin: 0 0 0.5rem 0; }
+.user-dropdown-links li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; font-size: 0.85rem; color: var(--vyuka-text-secondary); text-decoration: none; transition: background-color 0.2s ease, color 0.2s ease; }
+.user-dropdown-links li a:hover { background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.1); color: var(--vyuka-accent-secondary); }
+.user-dropdown-links li a i { width: 16px; text-align: center; color: var(--vyuka-text-muted); }
+.user-dropdown-links li a:hover i { color: var(--vyuka-accent-secondary); }
+.logout-btn { display: block; width: calc(100% - 2rem); margin: 0.5rem 1rem; font-size: 0.8rem; padding: 0.5rem 0.8rem; background: rgba(var(--vyuka-accent-error), 0.2); border-color: rgba(var(--vyuka-accent-error), 0.5); color: var(--vyuka-accent-error); transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; text-align: center; }
+.logout-btn:hover { background-color: var(--vyuka-accent-error); color: var(--vyuka-text-on-accent); border-color: var(--vyuka-accent-error); box-shadow: 0 0 10px var(--vyuka-accent-error); }
+.btn-exit-vyuka { font-size: 0.75rem; padding: 0.35rem 0.7rem; background: rgba(var(--vyuka-accent-pink-rgb),0.1); border-color: rgba(var(--vyuka-accent-pink-rgb),0.4); color: var(--vyuka-accent-pink); }
+.btn-exit-vyuka:hover { background: var(--vyuka-accent-pink); color: var(--vyuka-bg-dark); border-color: var(--vyuka-accent-pink); box-shadow: 0 0 10px var(--vyuka-accent-pink), 0 0 15px var(--vyuka-accent-pink); }
 
 /* --- Whiteboard & Chat Panel - Cyberpunk Frames & Height --- */
 .vyuka-whiteboard-area, .vyuka-chat-panel {
-    background-color: rgba(var(--vyuka-bg-panel-rgb), 0.9); /* More opaque */
-    backdrop-filter: blur(8px) saturate(1.1);
-    padding: 1.2rem; /* Consistent padding */
+    background-color: rgba(var(--vyuka-bg-panel-rgb), 0.92); /* Even more opaque */
+    backdrop-filter: blur(10px) saturate(1.1) brightness(0.95);
+    padding: 1.5rem;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     border-radius: var(--vyuka-card-radius);
     border: 1px solid var(--vyuka-border-cyber);
     box-shadow:
-        0 0 25px rgba(var(--vyuka-accent-primary-rgb),0.2), /* Softer outer glow */
-        0 0 40px rgba(var(--vyuka-accent-secondary-rgb),0.15),
-        inset 0 0 20px rgba(var(--vyuka-bg-dark),0.7), /* Deeper inset */
-        inset 0 0 8px var(--vyuka-border-cyber);
+        0 0 28px rgba(var(--vyuka-accent-secondary-rgb),0.25), /* Primary glow for panels */
+        inset 0 0 22px rgba(var(--vyuka-bg-dark),0.8),
+        inset 0 0 10px var(--vyuka-border-cyber);
     position: relative;
     transition: box-shadow var(--animation-duration-medium) ease-in-out, border-color var(--animation-duration-medium) ease-in-out;
 }
 .vyuka-whiteboard-area:hover, .vyuka-chat-panel:hover {
-     box-shadow: 0 0 30px rgba(var(--vyuka-accent-primary-rgb),0.3),
-                0 0 50px rgba(var(--vyuka-accent-secondary-rgb),0.25),
-                inset 0 0 25px rgba(var(--vyuka-bg-dark),0.6),
-                inset 0 0 12px var(--vyuka-border-cyber-secondary);
+     box-shadow: 0 0 35px rgba(var(--vyuka-accent-secondary-rgb),0.4),
+                0 0 55px rgba(var(--vyuka-accent-primary-rgb),0.25),
+                inset 0 0 28px rgba(var(--vyuka-bg-dark),0.7),
+                inset 0 0 15px var(--vyuka-border-cyber-secondary);
     border-color: var(--vyuka-border-cyber-secondary);
 }
 
-/* Angled corner effect using pseudo-elements */
-.vyuka-whiteboard-area::before, .vyuka-chat-panel::before {
-    content: '';
-    position: absolute;
-    top: -1px; left: -1px;
-    width: 40px; height: 40px;
-    border-top: 3px solid var(--vyuka-accent-primary);
-    border-left: 3px solid var(--vyuka-accent-primary);
-    border-top-left-radius: var(--vyuka-card-radius);
-    opacity: 0.8;
-    pointer-events: none;
-    z-index: 6;
-    transition: all 0.3s ease;
-    clip-path: polygon(0 0, 100% 0, 100% 20%, 20% 100%, 0 100%); /* Angled corner */
-}
+.vyuka-whiteboard-area::before, .vyuka-chat-panel::before,
 .vyuka-whiteboard-area::after, .vyuka-chat-panel::after {
-    content: '';
-    position: absolute;
-    bottom: -1px; right: -1px;
-    width: 40px; height: 40px;
-    border-bottom: 3px solid var(--vyuka-accent-primary);
-    border-right: 3px solid var(--vyuka-accent-primary);
-    border-bottom-right-radius: var(--vyuka-card-radius);
-    opacity: 0.8;
-    pointer-events: none;
-    z-index: 6;
-    transition: all 0.3s ease;
-    clip-path: polygon(100% 100%, 0 100%, 0 80%, 80% 0, 100% 0); /* Angled corner */
+    content: ''; position: absolute; width: 25px; height: 25px; border-style: solid;
+    border-color: var(--vyuka-accent-secondary); opacity: 1; pointer-events: none; z-index: 5;
+    transition: all 0.35s var(--animation-timing-cyber);
+    box-shadow: 0 0 10px -2px var(--vyuka-accent-secondary); /* Glow for corners */
 }
-.vyuka-whiteboard-area:hover::before, .vyuka-chat-panel:hover::before { border-color: var(--vyuka-accent-secondary); width: 45px; height: 45px;}
-.vyuka-whiteboard-area:hover::after, .vyuka-chat-panel:hover::after { border-color: var(--vyuka-accent-secondary); width: 45px; height: 45px;}
+.vyuka-whiteboard-area::before, .vyuka-chat-panel::before { top: 0px; left: 0px; border-width: 3px 0 0 3px; border-top-left-radius: var(--vyuka-card-radius); clip-path: polygon(0 0, 100% 0, 100% 30%, 30% 100%, 0 100%); }
+.vyuka-whiteboard-area::after, .vyuka-chat-panel::after { bottom: 0px; right: 0px; border-width: 0 3px 3px 0; border-bottom-right-radius: var(--vyuka-card-radius); clip-path: polygon(100% 100%, 0 100%, 0 70%, 70% 0, 100% 0); }
 
-.vyuka-whiteboard-area {
-    flex: 6.5; /* Whiteboard slightly more space */
-    min-height: clamp(380px, 58vh, 750px); /* Adjusted min-height and preferred vh */
-    height: auto;
-}
+.vyuka-whiteboard-area:hover::before, .vyuka-chat-panel:hover::before { transform: translate(-5px, -5px) scale(1.15); border-color: var(--vyuka-accent-primary); box-shadow: 0 0 15px var(--vyuka-accent-primary); }
+.vyuka-whiteboard-area:hover::after, .vyuka-chat-panel:hover::after { transform: translate(5px, 5px) scale(1.15); border-color: var(--vyuka-accent-primary); box-shadow: 0 0 15px var(--vyuka-accent-primary); }
 
-.vyuka-chat-panel {
-    flex: 3.5; /* Chat panel a bit less */
-    min-height: clamp(380px, 58vh, 750px);
-    min-width: 380px;
-    height: auto;
-}
+.vyuka-whiteboard-area { flex: 6; min-height: clamp(400px, 60vh, 800px); height: auto; }
+.vyuka-chat-panel { flex: 4; min-height: clamp(400px, 60vh, 800px); min-width: 380px; height: auto; }
 
-/* Internal scroll container styles (from previous) */
-#whiteboard-container { flex-grow: 1; overflow-y: auto; padding: 0.8rem; margin-right: -10px; position: relative; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--vyuka-accent-secondary) rgba(var(--vyuka-bg-dark), 0.5); }
+#whiteboard-container { flex-grow: 1; overflow-y: auto; padding: 1rem; /* More padding */ margin-right: -10px; position: relative; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--vyuka-accent-secondary) rgba(var(--vyuka-bg-dark), 0.5); }
 #whiteboard-container::-webkit-scrollbar { width: 6px; }
 #whiteboard-container::-webkit-scrollbar-thumb { background: var(--vyuka-accent-secondary); border-radius: 3px;}
 #whiteboard-content { padding-bottom: 1.5rem; position: relative; }
@@ -308,80 +296,108 @@ body.scrolled .vyuka-header {
 #whiteboard-content p { color: var(--vyuka-text-secondary); line-height: 1.75; margin-bottom: 1.3em; font-size: 0.95rem; }
 #whiteboard-content code { background-color: rgba(var(--vyuka-accent-lime-rgb), 0.2); padding: 0.2em 0.5em; border-radius: 4px; font-family: var(--vyuka-font-mono); color: var(--vyuka-accent-lime); border: 1px solid rgba(var(--vyuka-accent-lime-rgb),0.5); box-shadow: 0 0 10px rgba(var(--vyuka-accent-lime-rgb),0.4); }
 #whiteboard-content pre { background-color: rgba(var(--vyuka-bg-dark), 0.95); padding: 1.3em; border-radius: var(--vyuka-button-radius); overflow-x: auto; border: 1px solid var(--vyuka-border-highlight); box-shadow: var(--vyuka-shadow-medium), inset 0 0 20px rgba(0,0,0,0.5); font-size: 0.9rem; }
-
 .chat-messages::-webkit-scrollbar { width: 6px; }
-/* --- Остальные стили для чата, кнопок, футера, модальных окон, уведомлений, скелетонов, адаптивности, MathJax, Tooltipster, Reduced Motion ПЕРЕНОСЯТСЯ из предыдущей версии БЕЗ ИЗМЕНЕНИЙ, если они не касаются основного макета, размеров доски/чата или проблемы с аватаром. --- */
-/* All other styles from the previous CSS version are assumed to be here if they are not directly conflicting or modified above */
 
 /* --- ANIMATED PAGE LOADER (Enhanced) --- */
 .initial-loading-overlay {
     position: fixed; inset: 0;
     background-color: var(--vyuka-loader-bg-color);
-    z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 2rem; /* Increased gap */
-    transition: opacity 0.8s ease-out, visibility 0s 0.8s; /* Slower fade for smoother feel */
+    z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 2.5rem; /* Even more gap */
+    transition: opacity 0.9s cubic-bezier(0.25, 1, 0.5, 1), visibility 0s 0.9s; /* Slower, smoother fade */
     opacity: 1; visibility: visible;
-    /* Adding a subtle noise/static effect */
-    background-image: linear-gradient(rgba(20,20,30,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(20,20,30,0.03) 1px, transparent 1px);
-    background-size: 2px 2px;
+    background-image:
+        repeating-linear-gradient(45deg, transparent, transparent 12px, rgba(var(--vyuka-border-color), 0.04) 12px, rgba(var(--vyuka-border-color), 0.04) 14px), /* Thinner, more frequent lines */
+        radial-gradient(circle at center, rgba(var(--vyuka-accent-secondary-rgb), 0.06) 0%, transparent 50%); /* Secondary accent for radial */
+    background-size: auto, 100% 100%;
+    animation: overlay-pulse 4s infinite alternate ease-in-out; /* Subtle pulse for overlay */
+}
+@keyframes overlay-pulse {
+    0% { background-color: rgba(var(--vyuka-bg-dark-rgb), 0.97); }
+    100% { background-color: rgba(var(--vyuka-bg-dark-rgb), 0.99); }
 }
 .initial-loading-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-
-.initial-loading-overlay .loading-spinner {
-    width: var(--vyuka-loader-size); height: var(--vyuka-loader-size); position: relative;
-    animation: loader-rotate 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite; /* More dynamic rotation */
-}
-/* Re-using existing spinner blade structure and animation - it's good */
+/* Spinner styles (from previous version) */
+.initial-loading-overlay .loading-spinner { width: var(--vyuka-loader-size); height: var(--vyuka-loader-size); position: relative; animation: loader-rotate 2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite; }
 .loading-spinner .spinner-blade { position: absolute; left: 50%; top: 0; width: calc(var(--vyuka-loader-size) * 0.08); height: calc(var(--vyuka-loader-size) * 0.35); background-color: var(--vyuka-loader-blade-color); border-radius: 50%/20%; transform-origin: 50% 100%; animation: blade-pulse-fade-alt 1.5s ease-in-out infinite; box-shadow: 0 0 4px var(--vyuka-loader-blade-color), 0 0 8px rgba(var(--vyuka-accent-secondary-rgb), 0.5), 0 0 12px rgba(var(--vyuka-accent-primary-rgb), 0.3); filter: blur(0.8px); }
-.loading-spinner .spinner-blade:nth-child(1) { transform: rotate(0deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.5s; }
-.loading-spinner .spinner-blade:nth-child(2) { transform: rotate(30deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.375s; }
-.loading-spinner .spinner-blade:nth-child(3) { transform: rotate(60deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.25s; }
-.loading-spinner .spinner-blade:nth-child(4) { transform: rotate(90deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.125s; }
-.loading-spinner .spinner-blade:nth-child(5) { transform: rotate(120deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.0s; }
-.loading-spinner .spinner-blade:nth-child(6) { transform: rotate(150deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.875s; }
-.loading-spinner .spinner-blade:nth-child(7) { transform: rotate(180deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.75s; }
-.loading-spinner .spinner-blade:nth-child(8) { transform: rotate(210deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.625s; }
-.loading-spinner .spinner-blade:nth-child(9) { transform: rotate(240deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.5s; }
-.loading-spinner .spinner-blade:nth-child(10) { transform: rotate(270deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.375s; }
-.loading-spinner .spinner-blade:nth-child(11) { transform: rotate(300deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.25s; }
-.loading-spinner .spinner-blade:nth-child(12) { transform: rotate(330deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.125s; }
+.loading-spinner .spinner-blade:nth-child(1) { transform: rotate(0deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.5s; } .loading-spinner .spinner-blade:nth-child(2) { transform: rotate(30deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.375s; } .loading-spinner .spinner-blade:nth-child(3) { transform: rotate(60deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.25s; } .loading-spinner .spinner-blade:nth-child(4) { transform: rotate(90deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.125s; } .loading-spinner .spinner-blade:nth-child(5) { transform: rotate(120deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -1.0s; } .loading-spinner .spinner-blade:nth-child(6) { transform: rotate(150deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.875s; } .loading-spinner .spinner-blade:nth-child(7) { transform: rotate(180deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.75s; } .loading-spinner .spinner-blade:nth-child(8) { transform: rotate(210deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.625s; } .loading-spinner .spinner-blade:nth-child(9) { transform: rotate(240deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.5s; } .loading-spinner .spinner-blade:nth-child(10) { transform: rotate(270deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.375s; } .loading-spinner .spinner-blade:nth-child(11) { transform: rotate(300deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.25s; } .loading-spinner .spinner-blade:nth-child(12) { transform: rotate(330deg) translateY(calc(var(--vyuka-loader-size) * -0.15)); animation-delay: -0.125s; }
 .initial-loading-overlay .loading-spinner::after { content: ''; position: absolute; width: calc(var(--vyuka-loader-size) * 0.25); height: calc(var(--vyuka-loader-size) * 0.25); background-color: var(--vyuka-loader-core-color); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 10px var(--vyuka-loader-core-color), 0 0 20px rgba(var(--vyuka-accent-secondary-rgb), 0.7), inset 0 0 5px rgba(var(--white-rgb),0.3); animation: core-pulse-subtle 1.5s ease-in-out infinite alternate; }
 @keyframes loader-rotate { 100% { transform: rotate(360deg); } }
 @keyframes blade-pulse-fade-alt { 0% { opacity: 0.2; transform: scaleY(0.6); background-color: var(--vyuka-accent-secondary); } 50% { opacity: 1; transform: scaleY(1); background-color: var(--vyuka-loader-blade-color); } 100% { opacity: 0.2; transform: scaleY(0.6); background-color: var(--vyuka-accent-secondary); } }
 @keyframes core-pulse-subtle { 0% { transform: translate(-50%, -50%) scale(0.85); box-shadow: 0 0 8px var(--vyuka-loader-core-color), 0 0 15px rgba(var(--vyuka-accent-secondary-rgb), 0.6), inset 0 0 4px rgba(var(--white-rgb),0.25); } 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 12px var(--vyuka-loader-core-color), 0 0 22px rgba(var(--vyuka-accent-secondary-rgb), 0.8), inset 0 0 6px rgba(var(--white-rgb),0.35); } }
-
 /* Animated Loading Text */
 .initial-loading-overlay p.loading-text {
-    color: var(--vyuka-text-primary); font-size: 1.1rem; /* Slightly larger */
+    color: var(--vyuka-text-primary); font-size: 1.1rem;
     font-family: var(--vyuka-font-mono); text-transform: uppercase;
-    letter-spacing: 5px; /* More spacing */
+    letter-spacing: 5px;
     margin-top: 3.5rem;
     position: relative; display: flex;
-    text-shadow: 0 0 7px var(--vyuka-accent-primary), 0 0 15px var(--vyuka-accent-secondary), 0 0 2px var(--vyuka-text-primary); /* Stronger glow */
+    text-shadow: 0 0 7px var(--vyuka-accent-primary), 0 0 15px var(--vyuka-accent-secondary), 0 0 2px var(--vyuka-text-primary);
     overflow: hidden;
 }
 .initial-loading-overlay p.loading-text span {
     opacity: 0;
-    animation: glitch-appear 0.25s forwards; /* Faster, more "glitchy" */
+    animation: matrix-style-reveal-enhanced 0.2s forwards;
     display: inline-block;
-    transform: translateY(-15px) skewX(-20deg) scale(1.5); /* Initial skewed state */
+    transform: translateY(-12px) scale(1.2);
     min-width: 1ch;
     transition: text-shadow 0.1s ease-in-out;
 }
-.initial-loading-overlay p.loading-text span:hover { /* Add interactive element if desired */
-    text-shadow: 0 0 10px var(--vyuka-accent-lime-rgb), 0 0 20px var(--vyuka-accent-lime-rgb);
-    color: var(--vyuka-accent-lime-rgb);
+@keyframes matrix-style-reveal-enhanced { /* From previous, already good */
+    0% { opacity: 0; transform: translateY(-20px) scale(1.8) skewX(-15deg); color: var(--vyuka-accent-lime); filter: blur(3px) brightness(2); }
+    30% { opacity: 0.8; color: var(--vyuka-accent-secondary); filter: blur(1px) brightness(1.5); transform: translateY(-5px) scale(1.1) skewX(-5deg); }
+    100% { opacity: 1; transform: translateY(0) scale(1) skewX(0); color: var(--vyuka-text-primary); filter: blur(0) brightness(1); }
 }
-
-@keyframes glitch-appear {
-    0% { opacity: 0; transform: translateY(-25px) skewX(-25deg) scale(2); color: var(--vyuka-accent-secondary); filter: blur(4px) brightness(2.5); }
-    20% { opacity: 0.6; transform: translateY(5px) skewX(15deg) scale(0.8); color: var(--vyuka-accent-pink); filter: blur(2px) brightness(1.8); }
-    60% { opacity: 0.9; transform: translateY(-3px) skewX(-8deg) scale(1.1); color: var(--vyuka-accent-primary); filter: blur(0.5px) brightness(1.2); }
-    100% { opacity: 1; transform: translateY(0) skewX(0) scale(1); color: var(--vyuka-text-primary); filter: blur(0) brightness(1); }
-}
-/* Staggered animation delays for each letter - KEEP THE SPAN NUMBERING (same as before) */
+/* Staggered animation delays for each letter - (same as before) */
 .initial-loading-overlay p.loading-text span:nth-child(1) { animation-delay: 0s; } .initial-loading-overlay p.loading-text span:nth-child(2) { animation-delay: 0.04s; } .initial-loading-overlay p.loading-text span:nth-child(3) { animation-delay: 0.08s; } .initial-loading-overlay p.loading-text span:nth-child(4) { animation-delay: 0.12s; } .initial-loading-overlay p.loading-text span:nth-child(5) { animation-delay: 0.16s; } .initial-loading-overlay p.loading-text span:nth-child(6) { animation-delay: 0.20s; } .initial-loading-overlay p.loading-text span:nth-child(7) { animation-delay: 0.24s; } .initial-loading-overlay p.loading-text span:nth-child(8) { animation-delay: 0.28s; } .initial-loading-overlay p.loading-text span:nth-child(9) { animation-delay: 0.32s; } .initial-loading-overlay p.loading-text span:nth-child(10) { animation-delay: 0.36s; } .initial-loading-overlay p.loading-text span:nth-child(11) { animation-delay: 0.40s; } .initial-loading-overlay p.loading-text span:nth-child(12) { animation-delay: 0.44s; } .initial-loading-overlay p.loading-text span:nth-child(13) { animation-delay: 0.48s; } .initial-loading-overlay p.loading-text span:nth-child(14) { animation-delay: 0.52s; } .initial-loading-overlay p.loading-text span:nth-child(15) { animation-delay: 0.56s; } .initial-loading-overlay p.loading-text span:nth-child(16) { animation-delay: 0.60s; } .initial-loading-overlay p.loading-text span:nth-child(17) { animation-delay: 0.64s; } .initial-loading-overlay p.loading-text span:nth-child(18) { animation-delay: 0.68s; } .initial-loading-overlay p.loading-text span:nth-child(19) { animation-delay: 0.72s; } .initial-loading-overlay p.loading-text span:nth-child(20) { animation-delay: 0.76s; } .initial-loading-overlay p.loading-text span:nth-child(21) { animation-delay: 0.80s; } .initial-loading-overlay p.loading-text span:nth-child(22) { animation-delay: 0.84s; }
 
-/* Footer, Notifications, Modals, etc. from previous or HTML style block */
-/* Ensure all other existing styles (notifications, modals, footer from HTML, etc.) are preserved below */
-/* ... (předchozí CSS стили, které nejsou layout, sidebar, loader, whiteboard/chat) ... */
-/* Skeleton styles, responsive styles, etc. are kept from previous version */
+/* Footer Styles from vyuka.html */
+.main-footer.vyuka-footer { background-color: var(--vyuka-bg-dark, #05080F); padding: 2.5rem 0; border-top: 2px solid var(--vyuka-accent-primary, #FF00E6); box-shadow: 0 -5px 20px -5px rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.25); color: var(--vyuka-text-secondary, #A0AEC0); font-size: 0.9rem; line-height: 1.7; }
+.vyuka-footer .container { max-width: var(--container-max-width, 1140px); margin-left: auto; margin-right: auto; padding-left: var(--container-padding-x, 15px); padding-right: var(--container-padding-x, 15px); }
+.vyuka-footer .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2.5rem; text-align: left; }
+.vyuka-footer .footer-column .logo { display: inline-flex; align-items: center; font-family: var(--vyuka-font-accent, 'Audiowide', cursive); font-size: 1.9rem; font-weight: 700; color: var(--vyuka-text-heading, #E0E7FF); text-decoration: none; margin-bottom: 1.25rem; transition: opacity 0.2s ease, text-shadow 0.2s ease; }
+.vyuka-footer .footer-column .logo:hover { opacity: 0.9; text-shadow: var(--vyuka-text-glow-secondary); }
+.vyuka-footer .footer-column .logo i { margin-right: 0.6rem; color: var(--vyuka-accent-secondary, #00F5FF); font-size: 1.1em; }
+.vyuka-footer .footer-column p { margin-bottom: 1.25rem; color: var(--vyuka-text-secondary, #A0AEC0); font-size: 0.875rem; opacity: 0.9; }
+.vyuka-footer .footer-column h3 { font-family: var(--vyuka-font-secondary, 'Orbitron', sans-serif); font-size: 1.15rem; font-weight: 600; color: var(--vyuka-text-heading, #E0E7FF); margin-bottom: 1.25rem; position: relative; padding-left: 20px; text-shadow: 0 0 5px rgba(var(--vyuka-accent-secondary-rgb, 0, 245, 255), 0.3); }
+.vyuka-footer .footer-column h3::before { content: ''; background-color: var(--vyuka-accent-secondary, #00F5FF); width: 8px; height: 8px; border-radius: 50%; position: absolute; left: 0; top: 50%; transform: translateY(-50%); box-shadow: 0 0 8px var(--vyuka-accent-secondary-glow, rgba(0, 245, 255, 0.5)); }
+.vyuka-footer .footer-column .footer-links { list-style: none; padding: 0; margin: 0; }
+.vyuka-footer .footer-column .footer-links li { margin-bottom: 0.6rem; transition: background-color 0.2s ease; border-radius: var(--vyuka-button-radius, 4px); padding: 0.25rem 0.5rem; margin-left: -0.5rem; }
+.vyuka-footer .footer-column .footer-links li:hover { background-color: rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.07); }
+.vyuka-footer .footer-column .footer-links a, .vyuka-footer .footer-column .footer-links span.icon-text-item { color: var(--vyuka-text-link, var(--vyuka-accent-secondary)); text-decoration: none; font-size: 0.95rem; transition: color 0.2s ease, text-shadow 0.2s ease; display: flex; align-items: center; width: 100%; }
+.vyuka-footer .footer-column .footer-links li:hover a, .vyuka-footer .footer-column .footer-links li:hover span.icon-text-item { color: var(--vyuka-text-link-hover, var(--vyuka-text-primary)); text-shadow: 0 0 8px var(--vyuka-text-link-hover, var(--vyuka-text-primary)); }
+.vyuka-footer .footer-column .footer-links a i, .vyuka-footer .footer-column .footer-links span.icon-text-item i { margin-right: 0.8em; color: var(--vyuka-text-muted, #5A6788); width: 18px; text-align: center; transition: color 0.2s ease, transform 0.2s ease; flex-shrink: 0; }
+.vyuka-footer .footer-column .footer-links li:hover a i, .vyuka-footer .footer-column .footer-links li:hover span.icon-text-item i { color: inherit; transform: scale(1.1); }
+.vyuka-footer .social-links { display: flex; gap: 1rem; margin-top: 1.25rem; }
+.vyuka-footer .social-links .social-link { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; border: 1.5px solid var(--vyuka-border-color, #2C334C); color: var(--vyuka-text-muted, #5A6788); font-size: 1.2rem; transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1); text-decoration: none; }
+.vyuka-footer .social-links .social-link:hover { background-color: var(--vyuka-accent-primary, #FF00E6); border-color: var(--vyuka-accent-primary, #FF00E6); color: var(--vyuka-bg-dark, #05080F); transform: translateY(-3px) scale(1.08); box-shadow: 0 4px 12px rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.4); }
+.vyuka-footer .footer-copyright { grid-column: 1 / -1; text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--vyuka-border-color, #2C334C); font-size: 0.85rem; color: var(--vyuka-text-muted, #5A6788); opacity: 0.7; }
+
+/* Responsive, Modals, Tooltips etc. - Assumed to be mostly correct from previous versions */
+@media (max-width: 1200px) { .vyuka-main-content { flex-direction: column; } .vyuka-whiteboard-area, .vyuka-chat-panel { flex: 1 1 auto; width: 100%; min-height: 50vh; height: auto; } }
+@media (max-width: 992px) { /* Sidebar collapse styles */ .vyuka-sidebar-ai { width: var(--vyuka-sidebar-width-collapsed); } .vyuka-sidebar-ai.expanded { width: var(--vyuka-sidebar-width-expanded); } .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-logo .logo-text, .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link .link-text { display: none; } .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link i, .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-logo i { margin-right: 0; } .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-header, .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link { justify-content: center; } .vyuka-page-container { margin-left: var(--vyuka-sidebar-width-collapsed); } .vyuka-sidebar-ai.expanded ~ .vyuka-page-container { margin-left: var(--vyuka-sidebar-width-expanded); } .vyuka-header-left .sidebar-ai-desktop-toggle { display: block; } .vyuka-header-left .mobile-menu-toggle { display: none; } .vyuka-header-user-display { display: none; } }
+@media (max-width: 768px) { /* Mobile specific adjustments */ .vyuka-sidebar-ai { transform: translateX(-100%); width: var(--vyuka-sidebar-width-expanded); z-index: 1002; } .vyuka-sidebar-ai.active-mobile { transform: translateX(0); } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-logo .logo-text, .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link .link-text { display: inline; } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link i { margin-right: 0.8rem; } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-header, .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link { justify-content: flex-start; } .vyuka-page-container { margin-left: 0; width: 100%; } .vyuka-header { padding: 0 0.8rem; } .vyuka-header-left .sidebar-ai-desktop-toggle { display: none; } .vyuka-header-left .mobile-menu-toggle { display: block; } .vyuka-header-topic-info h1 { font-size: 0.9rem; } .vyuka-header-topic-info p { font-size: 0.7rem; } .vyuka-header-right .btn-exit-vyuka span { display: none; } .vyuka-header-right .btn-exit-vyuka i { margin-right: 0; } .vyuka-header-right { gap: 0.3rem; } .vyuka-main-content { padding: 1rem; gap: 1rem;} .vyuka-whiteboard-area, .vyuka-chat-panel { padding: 1.2rem; min-height: 45vh; } .vyuka-chat-panel { max-height: 55vh; } .vyuka-lesson-controls { flex-direction: column; } .vyuka-lesson-controls .btn { width: 100%; font-size: 0.75rem; padding: 0.4rem; } .chat-input-area { padding-top: 0.5rem; } .chat-input { padding: 0.4rem; font-size: 0.7rem; } .send-button { width: 30px; height: 30px; font-size: 0.8rem;} .chat-controls button { width: 26px; height: 26px; font-size: 0.7rem;} .sidebar-overlay-ai { position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark), 0.7); z-index: 1001; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; backdrop-filter: blur(3px); } .sidebar-overlay-ai.active { opacity: 1; visibility: visible; transition-delay: 0s; } .vyuka-footer .footer-grid { grid-template-columns: 1fr; text-align: center; } .vyuka-footer .footer-column .logo, .vyuka-footer .footer-column h3 { justify-content: center; padding-left: 0; } .vyuka-footer .footer-column h3::before { display: none; } .vyuka-footer .social-links { justify-content: center; } .vyuka-header-user-display { display: flex; max-width: 120px; } .vyuka-header-user-title { display:none;} }
+
+/* Reduced Motion, MathJax, Tooltipster styles should be fine from previous version */
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; animation-delay: -0.01ms !important; transition-delay: 0ms !important; will-change: auto !important; } .vyuka-sidebar-ai, .vyuka-page-container { transition: none !important; } .mouse-follower-glow, body.new-vyuka-layout::before, body.new-vyuka-layout::after, .vyuka-sidebar-ai-logo i, .initial-loading-overlay .loading-spinner, .initial-loading-overlay p.loading-text span, .unread-dot, .offline-banner i { animation: none !important; } .initial-loading-overlay .loading-spinner::after { animation: none !important; } .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-logo .logo-text, .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link .link-text { animation: none !important; } .toast.show { transform: translateX(0) !important; } .modal-overlay.visible .modal-content.card { transform: scale(1) !important; opacity: 1 !important; } .notification-item.hiding { animation: none !important; opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; border-width: 0; } .skeleton::after { animation: none !important; background: var(--skeleton-highlight) !important; } }
+mjx-container { background-color: var(--vyuka-bg-panel-lighter) !important; border: 1px solid var(--vyuka-border-color) !important; padding: 0.5em !important; border-radius: var(--vyuka-card-radius) !important; color: var(--vyuka-text-primary) !important; overflow-x: auto !important; overflow-y: hidden !important; max-width: 100% !important; }
+mjx-math { color: var(--vyuka-accent-secondary) !important; font-size: 1.1em !important; }
+mjx-mfrac, mjx-msqrt, mjx-mtable { color: inherit !important; }
+.tooltipster-sidetip.tooltipster-vyuka .tooltipster-box { background: var(--vyuka-bg-panel); border: 1px solid var(--vyuka-accent-primary); border-radius: var(--vyuka-button-radius); box-shadow: 0 0 15px rgba(var(--vyuka-accent-primary-rgb), 0.3); }
+.tooltipster-sidetip.tooltipster-vyuka .tooltipster-content { color: var(--vyuka-text-primary); padding: 0.5rem 0.8rem; font-size: 0.8rem; }
+.tooltipster-sidetip.tooltipster-vyuka .tooltipster-arrow-background { border-color: var(--vyuka-accent-primary); }
+.tooltipster-sidetip.tooltipster-vyuka .tooltipster-arrow-border { border-color: var(--vyuka-accent-primary); }
+.tooltipster-sidetip.tooltipster-vyuka.tooltipster-top .tooltipster-arrow-background,
+.tooltipster-sidetip.tooltipster-vyuka.tooltipster-top .tooltipster-arrow-border { border-top-color: var(--vyuka-accent-primary); }
+
+/* Skeleton Loader specific from vyuka.html <style> block - already present and good */
+.skeleton { background-color: var(--skeleton-bg, rgba(var(--vyuka-accent-secondary-rgb), 0.1)); border-radius: var(--vyuka-card-radius, 6px); position: relative; overflow: hidden; }
+.skeleton::after { content: ''; position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient( 90deg, transparent, var(--skeleton-shine-color, rgba(var(--vyuka-accent-secondary-rgb), 0.25)), transparent ); animation: skeleton-wave var(--skeleton-animation-duration, 1.8s) linear infinite; }
+@keyframes skeleton-wave { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+.skeleton-text-line { height: 1em; margin-bottom: 0.5em; width: 80%; }
+.skeleton-text-line.short { width: 50%; } .skeleton-text-line.long { width: 100%; }
+.skeleton-avatar { width: 50px; height: 50px; border-radius: 50%; }
+.skeleton-block { height: 100px; width: 100%; }
+/* Enhanced Sidebar Typography (from vyuka.html <style> block - already present and good) */
+.vyuka-sidebar-ai-logo .logo-text { font-size: 1.2em; font-weight: 700; text-shadow: 0 0 5px var(--vyuka-accent-secondary-glow, rgba(0, 245, 255, 0.5)); letter-spacing: 0.5px; }
+.vyuka-sidebar-ai-link .link-text { font-size: 0.9rem; font-weight: 500; letter-spacing: 0.3px; }
+.vyuka-sidebar-ai-link.active .link-text { font-weight: 600; text-shadow: 0 0 3px var(--vyuka-accent-primary-glow, rgba(255, 0, 230, 0.4)); }
