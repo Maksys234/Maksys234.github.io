@@ -9,7 +9,6 @@
 // VERZE (DB Column Fix fetchUserProfile): Removed overall_progress_percentage from profiles fetch.
 // VERZE (DB Column Fix full_name & others): Updated fetchUserProfile select based on LATEST provided schema.
 // VERZE (FIX BUGS from CONSOLE): Corrected user_stats column, added missing UI elements to cache, fixed ReferenceError for fetchUserStats, adapted renderStatsCards.
-// VERZE (Fix Infinite Loading): Modified toggleSkeletonUI to correctly manage 'loading' class on main stats container.
 
 (function() {
     'use strict';
@@ -138,10 +137,10 @@
             streakValue: document.getElementById('streak-value'),
             streakFooter: document.getElementById('streak-footer'),
 
-            statsCardsSkeletonContainer: document.getElementById('stats-cards-skeleton-container'), // This will be null as ID does not exist in main.html
+            statsCardsSkeletonContainer: document.getElementById('stats-cards-skeleton-container'),
             shortcutsGrid: document.getElementById('shortcuts-grid'),
-            shortcutGridReal: document.getElementById('shortcut-grid-real'), // This ID does not exist in main.html
-            shortcutGridSkeletonContainer: document.getElementById('shortcut-grid-skeleton-container'), // This ID does not exist in main.html
+            shortcutGridReal: document.getElementById('shortcut-grid-real'),
+            shortcutGridSkeletonContainer: document.getElementById('shortcut-grid-skeleton-container'),
             topicProgressSection: document.getElementById('topic-progress-section'),
             topicProgressTableBody: document.getElementById('topic-progress-body'),
             topicProgressTableLoadingOverlay: document.getElementById('topic-progress-table-loading-overlay'),
@@ -187,11 +186,18 @@
             creditHistoryContainerWrapper: document.getElementById('credit-history-container-wrapper'),
             creditHistoryListContainer: document.getElementById('credit-history-list-container'),
             creditHistorySkeletonContainer: document.getElementById('credit-history-skeleton-container'),
+            // Removing overallProgressValue & footer as they are not in procvicovani/main.html for direct stats card
+            // overallProgressValue: document.getElementById('overall-progress-value'),
+            // overallProgressFooter: document.getElementById('overall-progress-footer'),
         };
+        // Correcting IDs for goal form elements if needed based on HTML
         if (!ui.accelerateGradeSelect) ui.accelerateGradeSelect = document.getElementById('accelerate-grade');
         if (!ui.accelerateIntensitySelect) ui.accelerateIntensitySelect = document.getElementById('accelerate-intensity');
         if (!ui.reviewGradeSelect) ui.reviewGradeSelect = document.getElementById('review-grade');
         if (!ui.exploreGradeSelect) ui.exploreGradeSelect = document.getElementById('explore-grade');
+
+        // Add specific elements for stats cards if they have unique IDs not covered by the general ones above
+        // For 'Dokončené aktivity' card, which is NOT present in procvicovani/main.html, so we don't cache for it here.
         console.log("[CACHE DOM] Caching complete.");
     }
 
@@ -298,27 +304,24 @@
         } catch (error) { console.error("[ToggleSidebar] Chyba:", error); }
     }
 
-    // --- START: NEW/MODIFIED toggleSkeletonUI ---
     function toggleSkeletonUI(sectionKey, showSkeleton) {
         console.log(`[Skeleton Toggle - Main.js] Section: ${sectionKey}, Show Skeleton: ${showSkeleton}`);
-        let skeletonContainerId, realContainerId, displayTypeIfReal = 'block';
+        let skeletonContainer, realContainer, displayTypeIfReal = 'block';
 
         switch (sectionKey) {
-            case 'welcomeBanner': // Assuming these IDs exist in main.html
-                skeletonContainerId = 'welcome-banner-skeleton';
-                realContainerId = 'welcome-banner-real';
-                displayTypeIfReal = 'flex'; // Welcome banner might use flex
+            case 'welcomeBanner':
+                skeletonContainer = ui.welcomeBannerSkeleton;
+                realContainer = ui.welcomeBannerReal;
+                displayTypeIfReal = 'flex';
                 break;
             case 'stats':
-                // In main.html, 'stats-cards' is the real container and has skeletons inside when 'loading'.
-                // There isn't a separate 'stats-cards-skeleton-container'.
-                skeletonContainerId = null; // No separate skeleton container
-                realContainerId = 'stats-cards';
+                skeletonContainer = ui.statsCardsSkeletonContainer;
+                realContainer = ui.statsCardsContainer;
                 displayTypeIfReal = 'grid';
                 break;
-            case 'shortcuts': // Assuming these IDs exist in main.html
-                skeletonContainerId = 'shortcut-grid-skeleton-container';
-                realContainerId = 'shortcuts-grid'; // HTML has 'shortcuts-grid', not 'shortcut-grid-real'
+            case 'shortcuts':
+                skeletonContainer = ui.shortcutGridSkeletonContainer;
+                realContainer = ui.shortcutGridReal;
                 displayTypeIfReal = 'grid';
                 break;
             case 'activities':
@@ -328,7 +331,7 @@
                 if (ui.activityListContainerWrapper) {
                     ui.activityListContainerWrapper.classList.toggle('loading-section', showSkeleton);
                 }
-                return; // Handled by DashboardLists
+                return;
             case 'creditHistory':
                  if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.setCreditHistoryLoading === 'function') {
                     DashboardLists.setCreditHistoryLoading(showSkeleton);
@@ -336,37 +339,19 @@
                 if (ui.creditHistoryContainerWrapper) {
                     ui.creditHistoryContainerWrapper.classList.toggle('loading-section', showSkeleton);
                 }
-                return; // Handled by DashboardLists
+                return;
             default:
                 console.warn(`[Skeleton Toggle - Main.js] Unknown sectionKey: ${sectionKey}`);
                 return;
         }
 
-        const skeletonContainer = skeletonContainerId ? document.getElementById(skeletonContainerId) : null;
-        const realContainer = realContainerId ? document.getElementById(realContainerId) : null;
-
         if (skeletonContainer) {
             skeletonContainer.style.display = showSkeleton ? (skeletonContainer.classList.contains('stat-cards') || skeletonContainer.classList.contains('shortcut-grid') || skeletonContainer.classList.contains('dashboard-grid') ? 'grid' : 'block') : 'none';
         }
-
         if (realContainer) {
             realContainer.style.display = showSkeleton ? 'none' : displayTypeIfReal;
-            if (!showSkeleton) {
-                realContainer.classList.remove('loading'); // Explicitly remove loading from the main container
-                // Also remove 'loading' from individual cards if this is the stats section
-                if (sectionKey === 'stats') {
-                    realContainer.querySelectorAll('.dashboard-card.card').forEach(card => card.classList.remove('loading'));
-                }
-            } else {
-                realContainer.classList.add('loading'); // Add loading back if showing skeleton
-                if (sectionKey === 'stats') {
-                     realContainer.querySelectorAll('.dashboard-card.card').forEach(card => card.classList.add('loading'));
-                }
-            }
         }
     }
-    // --- END: NEW/MODIFIED toggleSkeletonUI ---
-
 
     const setLoadingState = (sectionKey, isLoadingFlag) => {
         if (!ui || Object.keys(ui).length === 0) { console.error("[SetLoadingState] UI cache not ready."); return; }
@@ -439,9 +424,10 @@
         });
         container.innerHTML = `<div class="notest-message ${type}"><h3><i class="fas ${iconMap[type]}"></i> ${sanitizeHTML(title)}</h3><p>${sanitizeHTML(message)}</p><div class="action-buttons">${buttonsHTML}</div></div>`;
         container.classList.add('content-visible');
+        container.style.display = 'flex'; // Changed to flex to work with CSS
+
         if (container === ui.currentPlanEmptyState) {
             if (ui.dailyPlanCarouselContainer) ui.dailyPlanCarouselContainer.style.display = 'none';
-            container.style.display = 'flex';
         }
 
 
@@ -820,12 +806,6 @@
             if(ui.streakValue) ui.streakValue.textContent = '-';
             if(ui.totalPointsFooter) ui.totalPointsFooter.innerHTML = `<i class="fas fa-minus"></i> Data nedostupná`;
             if(ui.streakFooter) ui.streakFooter.innerHTML = `MAX: - dní`;
-
-            // Remove loading from main container if it's still there
-            if (ui.statsCardsContainer) ui.statsCardsContainer.classList.remove('loading');
-            // Remove loading from individual cards
-            [ui.progressCard, ui.pointsCard, ui.streakCard].forEach(card => card?.classList.remove('loading'));
-
             return;
         }
 
@@ -875,13 +855,333 @@
             ui.streakFooter.innerHTML = `MAX: ${profile.longest_streak_days ?? 0} dní`; // Longest streak from profile
         }
 
-        // Remove loading class from parent cards and individual cards
-        if (ui.statsCardsContainer) ui.statsCardsContainer.classList.remove('loading');
+        // Remove loading class from parent cards
         [ui.progressCard, ui.pointsCard, ui.streakCard].forEach(card => card?.classList.remove('loading'));
 
         console.log("[UI Update] Karty statistik aktualizovány pro procvicovani/main.html.");
     }
 
+    async function loadTopicProgress() {
+        if (!state.currentUser || !supabaseClient) return;
+        setLoadingState('topicProgress', true);
+        try {
+            const { data, error } = await supabaseClient.rpc('get_user_topic_progress_summary', {
+                p_user_id: state.currentUser.id
+            });
+            if (error) {
+                let errorMessage = error.message;
+                const errString = JSON.stringify(error);
+                 if (errString.includes('structure of query does not match function result type') || (error.code && ['PGRST200', '42883', '42703'].includes(error.code))) {
+                    errorMessage = 'Chyba: Funkce pro načtení pokroku v tématech (get_user_topic_progress_summary) má nesprávnou definici, neexistuje na serveru, nebo vrací nesprávné sloupce. Zkontrolujte SQL definici funkce, její návratové typy a SELECT část.';
+                } else if (error.status === 404 || (error.message && error.message.includes('404')) || errString.includes('"status":404')){
+                    errorMessage = 'Chyba: Požadovaná funkce (get_user_topic_progress_summary) pro načtení pokroku v tématech nebyla nalezena na serveru (404). Ověřte prosím, že je SQL funkce správně vytvořena a nasazena.';
+                }
+                throw new Error(errorMessage);
+            }
+            renderTopicProgressTable(data || []);
+        } catch (error) {
+            console.error("Error loading topic progress via RPC:", error);
+            if(ui.topicProgressTable) ui.topicProgressTable.style.display = 'none';
+            if(ui.topicProgressEmptyState) {
+                ui.topicProgressEmptyState.innerHTML = `<i class="fas fa-exclamation-triangle"></i><h3>Chyba načítání</h3><p>${sanitizeHTML(error.message)}</p>`;
+                ui.topicProgressEmptyState.style.display = 'flex';
+            }
+        } finally {
+            setLoadingState('topicProgress', false);
+        }
+    }
+    function renderTopicProgressTable(topics) {
+        if (!ui.topicProgressTableBody || !ui.topicProgressTable || !ui.topicProgressEmptyState) return;
+        ui.topicProgressTableBody.innerHTML = '';
+        if (!topics || topics.length === 0) {
+            ui.topicProgressTable.style.display = 'none';
+            ui.topicProgressEmptyState.innerHTML = '<i class="fas fa-book-reader"></i><h3>Žádná data o pokroku</h3><p>Zatím nemáte zaznamenaný žádný pokrok v tématech. Začněte procvičovat!</p>';
+            ui.topicProgressEmptyState.style.display = 'flex';
+            return;
+        }
+        ui.topicProgressTable.style.display = 'table';
+        ui.topicProgressEmptyState.style.display = 'none';
+        topics.sort((a,b) => (new Date(b.last_studied_at || 0)) - (new Date(a.last_studied_at || 0)));
+        topics.forEach(topic => {
+            const row = ui.topicProgressTableBody.insertRow();
+            const progress = Math.round(topic.progress_percentage || 0);
+            let progressColor = 'var(--accent-primary)';
+            if (progress >= 75) progressColor = 'var(--accent-lime)';
+            else if (progress < 40) progressColor = 'var(--accent-pink)';
+            row.innerHTML = `
+                <td><i class="fas ${topic.topic_icon || 'fa-question-circle'}" style="margin-right: 0.7em; color: ${progressColor};"></i>${sanitizeHTML(topic.topic_name)}</td>
+                <td>
+                    <div class="progress-bar-cell">
+                        <div class="progress-bar-track">
+                            <div class="progress-bar-fill" style="width: ${progress}%; background: ${progressColor};"></div>
+                        </div>
+                        <span class="progress-bar-text" style="color: ${progressColor};">${progress}%</span>
+                    </div>
+                </td>
+                <td>${topic.last_studied_at ? formatDate(topic.last_studied_at) : '-'}</td>
+            `;
+        });
+    }
+    function handleSort(event) {
+        const th = event.currentTarget;
+        const column = th.dataset.sort;
+        console.log("Sorting by:", column);
+        showToast("Řazení tabulky", "Funkce řazení bude brzy implementována.", "info");
+    }
+
+    async function switchTabContent(tabId) {
+        console.log(`[Main Tab Switch] Attempting to switch to tab: ${tabId}`);
+        state.currentMainTab = tabId;
+
+        ui.contentTabs.forEach(tab => {
+            const isCurrentTab = tab.dataset.tab === tabId;
+            tab.classList.toggle('active', isCurrentTab);
+            tab.setAttribute('aria-selected', isCurrentTab ? 'true' : 'false');
+        });
+
+        document.querySelectorAll('#main-tab-content-area > .tab-content, #main-tab-content-area > .section').forEach(paneOrSection => {
+            paneOrSection.classList.remove('active', 'visible-section');
+            paneOrSection.style.display = 'none';
+        });
+
+        let targetElement = null;
+        if (tabId === 'practice-tab') {
+            targetElement = ui.practiceTabContent;
+        } else if (tabId === 'current') { // 'current' is for currentPlanSection
+            targetElement = ui.currentPlanSection;
+        } else if (tabId === 'vyuka-tab') {
+            targetElement = ui.vyukaTabContent;
+        } else {
+            console.warn(`[Main Tab Switch] Unknown tabId: ${tabId}`);
+            return;
+        }
+
+        if (targetElement) {
+            // Sections like currentPlanSection are direct children for visibility control
+            const displayStyle = (targetElement.classList.contains('section') || tabId === 'current') ? 'block' : 'block'; // Use block for sections, or ensure content takes space
+            targetElement.style.display = displayStyle;
+
+            if (targetElement.classList.contains('tab-content')) { // Practice / Vyuka
+                targetElement.classList.add('active');
+            } else if (targetElement.classList.contains('section')) { // Current Plan
+                targetElement.classList.add('visible-section');
+            }
+            if (ui.mainTabContentArea) { // Parent container
+                ui.mainTabContentArea.style.display = 'flex'; // Keep as flex
+                ui.mainTabContentArea.classList.add('visible');
+            }
+            console.log(`[Main Tab Switch] Activated element: #${targetElement.id} with display: ${displayStyle}`);
+        }
+
+        if (tabId === 'practice-tab') {
+            await loadDashboardStats();
+            await loadTopicProgress();
+            if (typeof DashboardLists !== 'undefined' && typeof DashboardLists.loadAndRenderAll === 'function' && state.currentUser) {
+                 await DashboardLists.loadAndRenderAll(state.currentUser.id, 5);
+            }
+        } else if (tabId === 'current') {
+            await loadCurrentStudyPlanData();
+        } else if (tabId === 'vyuka-tab') {
+            console.log("[Main Tab Switch] Výuka tab activated. Placeholder for future content loading.");
+        }
+    }
+
+    async function loadCurrentStudyPlanData() {
+        console.log("[Main.html CurrentPlan] Delegating to plan.js-like logic's loadCurrentPlan...");
+        await loadCurrentPlan();
+    }
+
+    async function getLatestDiagnosticTest(userId, showLoaderFlag = true) {
+        if (!userId || !supabaseClient) return null;
+        if (showLoaderFlag) setLoadingState('page', true); // This might affect the global page loader
+        try {
+            const { data, error } = await supabaseClient.from('user_diagnostics').select('id, completed_at, total_score, total_questions, topic_results, analysis').eq('user_id', userId).order('completed_at', { ascending: false }).limit(1);
+            if (error) throw error;
+            state.latestDiagnosticTest = (data && data.length > 0) ? data[0] : false; // false if no test
+            console.log("[getLatestDiagnosticTest] Fetched:", state.latestDiagnosticTest);
+            return state.latestDiagnosticTest;
+        } catch (error) {
+            console.error("Error fetching latest diagnostic test:", error);
+            state.latestDiagnosticTest = null; // null on error
+            return null;
+        } finally {
+            if (showLoaderFlag) setLoadingState('page', false);
+        }
+    }
+
+    async function checkUserInitialSetup(userId) {
+        console.log("[InitialSetupCheck] Checking setup for user:", userId);
+        if (!state.currentProfile) {
+            console.warn("[InitialSetupCheck] Profile not loaded, cannot check setup.");
+            return { completedGoalSetting: false, completedDiagnostic: false };
+        }
+        const completedGoalSetting = !!state.currentProfile.learning_goal;
+        let completedDiagnostic = false;
+        // Only require diagnostic if goal is not 'math_explore'
+        if (completedGoalSetting && state.currentProfile.learning_goal !== 'math_explore') {
+            const diagnostic = await getLatestDiagnosticTest(userId, false); // Fetch without global loader
+            completedDiagnostic = !!(diagnostic && diagnostic.completed_at);
+        } else if (completedGoalSetting && state.currentProfile.learning_goal === 'math_explore') {
+            completedDiagnostic = true; // Explore goal doesn't strictly need a diagnostic to proceed
+        }
+        console.log(`[InitialSetupCheck] Goal set: ${completedGoalSetting}, Diagnostic done (for current goal type): ${completedDiagnostic}`);
+        return { completedGoalSetting, completedDiagnostic };
+    }
+
+    function showGoalSelectionModal() {
+        console.log("[GoalModal] Showing goal selection modal.");
+        if (ui.goalSelectionModal) {
+            ui.goalSelectionModal.style.display = 'flex';
+            ui.goalModalSteps.forEach(step => step.classList.remove('active'));
+            document.getElementById('goal-step-1')?.classList.add('active');
+            // Reset selections
+            ui.goalRadioLabels.forEach(label => {
+                label.classList.remove('selected-goal');
+                const radio = label.querySelector('input[type="radio"]');
+                if (radio) radio.checked = false;
+            });
+            // Pre-select if goal exists
+            if (state.currentProfile && state.currentProfile.learning_goal) {
+                const currentGoalRadio = document.querySelector(`input[name="learningGoal"][value="${state.currentProfile.learning_goal}"]`);
+                if (currentGoalRadio) {
+                    currentGoalRadio.checked = true;
+                    currentGoalRadio.closest('.goal-radio-label')?.classList.add('selected-goal');
+                }
+            }
+        }
+        // Hide main content sections when modal is up
+        if (ui.tabsWrapper) ui.tabsWrapper.style.display = 'none';
+        if (ui.mainTabContentArea) ui.mainTabContentArea.style.display = 'none';
+        if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'none';
+    }
+
+    function hideGoalSelectionModal() {
+        if (ui.goalSelectionModal) ui.goalSelectionModal.style.display = 'none';
+    }
+
+    function handleGoalSelection(event) {
+        const target = event.target.closest('.goal-radio-label');
+        if (!target) return;
+        const radio = target.querySelector('input[type="radio"]');
+        if (!radio) return;
+
+        ui.goalRadioLabels.forEach(label => label.classList.remove('selected-goal'));
+        target.classList.add('selected-goal');
+
+        const selectedGoal = radio.value;
+        state.selectedLearningGoal = selectedGoal; // Store temporarily
+
+        let nextStepId = null;
+        if (selectedGoal === 'math_accelerate') nextStepId = 'goal-step-accelerate';
+        else if (selectedGoal === 'math_review') nextStepId = 'goal-step-review';
+        else if (selectedGoal === 'math_explore') nextStepId = 'goal-step-explore';
+        // 'exam_prep' has no further step, handled by confirm button
+
+        if (nextStepId) {
+            ui.goalModalSteps.forEach(step => step.classList.remove('active'));
+            document.getElementById(nextStepId)?.classList.add('active');
+            if (selectedGoal === 'math_review') loadTopicsForGradeReview(); // Load topics for review step
+        } else if (selectedGoal === 'exam_prep') {
+            // exam_prep is a direct save, handled by confirm button on step 1
+            saveLearningGoal(selectedGoal, {}); // Save immediately if it's the only step
+        } else {
+            console.warn("No next step defined for goal:", selectedGoal);
+        }
+    }
+
+    async function loadTopicsForGradeReview() {
+        if (!state.allExamTopicsAndSubtopics || state.allExamTopicsAndSubtopics.length === 0) {
+            try {
+                const { data, error } = await supabaseClient.from('exam_topics').select(`id, name, subtopics:exam_subtopics (id, name, topic_id)`).order('id');
+                if (error) throw error;
+                state.allExamTopicsAndSubtopics = data || [];
+            } catch (e) {
+                console.error("Failed to load topics for review:", e);
+                if (ui.topicRatingsContainer) ui.topicRatingsContainer.innerHTML = '<p class="error-message">Nepodařilo se načíst témata.</p>';
+                return;
+            }
+        }
+        populateTopicRatings();
+    }
+
+    function populateTopicRatings() {
+        if (!ui.topicRatingsContainer) return;
+        ui.topicRatingsContainer.innerHTML = '';
+        if (!state.allExamTopicsAndSubtopics || state.allExamTopicsAndSubtopics.length === 0) {
+            ui.topicRatingsContainer.innerHTML = '<p>Žádná témata k hodnocení.</p>'; return;
+        }
+        state.allExamTopicsAndSubtopics.filter(topic => topic.name !== "Smíšené úlohy").forEach(topic => { // Filter out "Smíšené úlohy"
+            const item = document.createElement('div');
+            item.className = 'topic-rating-item';
+            item.innerHTML = `<span class="topic-name">${sanitizeHTML(topic.name)}</span><div class="rating-stars" data-topic-id="${topic.id}">${[1,2,3,4,5].map(val => `<i class="fas fa-star star" data-value="${val}" aria-label="${val} hvězdiček"></i>`).join('')}</div>`;
+            item.querySelectorAll('.star').forEach(star => {
+                star.addEventListener('click', function() {
+                    const value = parseInt(this.dataset.value); const parentStars = this.parentElement;
+                    parentStars.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('rated', i < value));
+                    parentStars.dataset.currentRating = value;
+                });
+            });
+            ui.topicRatingsContainer.appendChild(item);
+        });
+    }
+
+    async function saveLearningGoal(goal, details = {}) {
+        if (!state.currentUser || !supabaseClient) { showToast("Chyba: Uživatel není přihlášen.", "error"); return; }
+        setLoadingState('goalModal', true);
+        console.log(`[SaveGoal] Saving goal: ${goal}, Details:`, details);
+        const currentGoalDetails = state.currentProfile?.preferences?.goal_details || {};
+        const preferencesUpdate = {
+            ...state.currentProfile.preferences,
+            goal_details: { ...currentGoalDetails, ...details } // Merge new details
+        };
+
+        try {
+            const { error } = await supabaseClient.from('profiles').update({ learning_goal: goal, preferences: preferencesUpdate, updated_at: new Date().toISOString() }).eq('id', state.currentUser.id);
+            if (error) throw error;
+            // Update local state
+            if(state.currentProfile) { state.currentProfile.learning_goal = goal; state.currentProfile.preferences = preferencesUpdate; }
+            state.hasCompletedGoalSetting = true;
+            showToast("Cíl uložen!", `Váš studijní cíl byl nastaven na: ${getGoalDisplayName(goal)}.`, "success");
+            hideGoalSelectionModal(); updateUserGoalDisplay();
+            // Re-check diagnostic status and update UI accordingly
+            const { completedDiagnostic } = await checkUserInitialSetup(state.currentUser.id);
+            state.hasCompletedDiagnostic = completedDiagnostic;
+            if (!completedDiagnostic && goal !== 'math_explore') {
+                showDiagnosticPrompt();
+            } else {
+                 if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'none';
+            }
+            // Make sure main content area is visible
+            if (ui.tabsWrapper) { ui.tabsWrapper.style.display = 'block'; ui.tabsWrapper.classList.add('visible');}
+            if (ui.mainTabContentArea) { ui.mainTabContentArea.style.display = 'flex'; ui.mainTabContentArea.classList.add('visible');}
+            await switchTabContent('practice-tab'); // Default to practice tab after goal set
+
+        } catch (error) { console.error("Error saving learning goal:", error); showToast("Chyba ukládání", `Nepodařilo se uložit cíl: ${error.message}`, "error");
+        } finally { setLoadingState('goalModal', false); }
+    }
+
+    function showDiagnosticPrompt() {
+        if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'flex';
+        // Ensure main tabs are visible so user can navigate if they close the prompt
+        if (ui.tabsWrapper) { ui.tabsWrapper.style.display = 'block'; ui.tabsWrapper.classList.add('visible');}
+        if (ui.mainTabContentArea) { ui.mainTabContentArea.style.display = 'flex'; ui.mainTabContentArea.classList.add('visible');}
+    }
+
+    function getGoalDisplayName(goalKey) {
+        const goalMap = { 'exam_prep': 'Příprava na přijímačky', 'math_accelerate': 'Učení napřed', 'math_review': 'Doplnění mezer', 'math_explore': 'Volné prozkoumávání', };
+        return goalMap[goalKey] || goalKey || 'Neznámý cíl';
+    }
+
+    function updateUserGoalDisplay() {
+        if (ui.userGoalDisplay && state.currentProfile && state.currentProfile.learning_goal) {
+            ui.userGoalDisplay.innerHTML = `<i class="fas fa-bullseye"></i> Cíl: <strong>${getGoalDisplayName(state.currentProfile.learning_goal)}</strong>`;
+            ui.userGoalDisplay.style.display = 'inline-flex'; // Or 'flex' if that's the desired layout
+        } else if (ui.userGoalDisplay) {
+            ui.userGoalDisplay.style.display = 'none';
+        }
+    }
+
+    // Function for Level/XP card, specific to procvicovani/main.html
     function updateWelcomeBannerAndLevel(profile) {
         console.log("[UI Update] Aktualizace uvítacího banneru a úrovně XP...");
         if (!profile) { console.warn("[UI Update Welcome] Chybí data profilu."); return; }
@@ -895,6 +1195,8 @@
         const currentLevel = profile.level ?? 1;
         const currentExperience = profile.experience ?? 0;
 
+        // These functions should be available globally or defined within this scope
+        // Assuming they are defined (e.g., from dashboard.js context or duplicated here)
         function getExpForLevel(level) {
             if (level <= 0) return 0;
             const BASE_XP = 100; const INCREMENT_XP = 25;
@@ -913,7 +1215,7 @@
         let percentage = 0;
         if (expNeededForSpan > 0) {
             percentage = Math.min(100, Math.max(0, Math.round((currentExpInLevelSpan / expNeededForSpan) * 100)));
-        } else if (currentLevel > 0 && expNeededForSpan <=0 ) {
+        } else if (currentLevel > 0 && expNeededForSpan <=0 ) { // Max level or error in calculation
             percentage = 100;
         }
 
@@ -1055,194 +1357,10 @@
         await loadCurrentPlan();
     }
 
-    async function getLatestDiagnosticTest(userId, showLoaderFlag = true) {
-        if (!userId || !supabaseClient) return null;
-        if (showLoaderFlag) setLoadingState('page', true); // This might affect the global page loader
-        try {
-            const { data, error } = await supabaseClient.from('user_diagnostics').select('id, completed_at, total_score, total_questions, topic_results, analysis').eq('user_id', userId).order('completed_at', { ascending: false }).limit(1);
-            if (error) throw error;
-            state.latestDiagnosticTest = (data && data.length > 0) ? data[0] : false; // false if no test
-            console.log("[getLatestDiagnosticTest] Fetched:", state.latestDiagnosticTest);
-            return state.latestDiagnosticTest;
-        } catch (error) {
-            console.error("Error fetching latest diagnostic test:", error);
-            state.latestDiagnosticTest = null; // null on error
-            return null;
-        } finally {
-            if (showLoaderFlag) setLoadingState('page', false);
-        }
-    }
-
-    async function checkUserInitialSetup(userId) {
-        console.log("[InitialSetupCheck] Checking setup for user:", userId);
-        if (!state.currentProfile) {
-            console.warn("[InitialSetupCheck] Profile not loaded, cannot check setup.");
-            return { completedGoalSetting: false, completedDiagnostic: false };
-        }
-        const completedGoalSetting = !!state.currentProfile.learning_goal;
-        let completedDiagnostic = false;
-        if (completedGoalSetting && state.currentProfile.learning_goal !== 'math_explore') {
-            const diagnostic = await getLatestDiagnosticTest(userId, false);
-            completedDiagnostic = !!(diagnostic && diagnostic.completed_at);
-        } else if (completedGoalSetting && state.currentProfile.learning_goal === 'math_explore') {
-            completedDiagnostic = true;
-        }
-        console.log(`[InitialSetupCheck] Goal set: ${completedGoalSetting}, Diagnostic done (for current goal type): ${completedDiagnostic}`);
-        return { completedGoalSetting, completedDiagnostic };
-    }
-
-    function showGoalSelectionModal() {
-        console.log("[GoalModal] Showing goal selection modal.");
-        if (ui.goalSelectionModal) {
-            ui.goalSelectionModal.style.display = 'flex';
-            ui.goalModalSteps.forEach(step => step.classList.remove('active'));
-            document.getElementById('goal-step-1')?.classList.add('active');
-            ui.goalRadioLabels.forEach(label => {
-                label.classList.remove('selected-goal');
-                const radio = label.querySelector('input[type="radio"]');
-                if (radio) radio.checked = false;
-            });
-            if (state.currentProfile && state.currentProfile.learning_goal) {
-                const currentGoalRadio = document.querySelector(`input[name="learningGoal"][value="${state.currentProfile.learning_goal}"]`);
-                if (currentGoalRadio) {
-                    currentGoalRadio.checked = true;
-                    currentGoalRadio.closest('.goal-radio-label')?.classList.add('selected-goal');
-                }
-            }
-        }
-        if (ui.tabsWrapper) ui.tabsWrapper.style.display = 'none';
-        if (ui.mainTabContentArea) ui.mainTabContentArea.style.display = 'none';
-        if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'none';
-    }
-
-    function hideGoalSelectionModal() {
-        if (ui.goalSelectionModal) ui.goalSelectionModal.style.display = 'none';
-    }
-
-    function handleGoalSelection(event) {
-        const target = event.target.closest('.goal-radio-label');
-        if (!target) return;
-        const radio = target.querySelector('input[type="radio"]');
-        if (!radio) return;
-
-        ui.goalRadioLabels.forEach(label => label.classList.remove('selected-goal'));
-        target.classList.add('selected-goal');
-
-        const selectedGoal = radio.value;
-        state.selectedLearningGoal = selectedGoal; 
-
-        let nextStepId = null;
-        if (selectedGoal === 'math_accelerate') nextStepId = 'goal-step-accelerate';
-        else if (selectedGoal === 'math_review') nextStepId = 'goal-step-review';
-        else if (selectedGoal === 'math_explore') nextStepId = 'goal-step-explore';
-
-        if (nextStepId) {
-            ui.goalModalSteps.forEach(step => step.classList.remove('active'));
-            document.getElementById(nextStepId)?.classList.add('active');
-            if (selectedGoal === 'math_review') loadTopicsForGradeReview(); 
-        } else if (selectedGoal === 'exam_prep') {
-            saveLearningGoal(selectedGoal, {}); 
-        } else {
-            console.warn("No next step defined for goal:", selectedGoal);
-        }
-    }
-
-    async function loadTopicsForGradeReview() {
-        if (!state.allExamTopicsAndSubtopics || state.allExamTopicsAndSubtopics.length === 0) {
-            try {
-                const { data, error } = await supabaseClient.from('exam_topics').select(`id, name, subtopics:exam_subtopics (id, name, topic_id)`).order('id');
-                if (error) throw error;
-                state.allExamTopicsAndSubtopics = data || [];
-            } catch (e) {
-                console.error("Failed to load topics for review:", e);
-                if (ui.topicRatingsContainer) ui.topicRatingsContainer.innerHTML = '<p class="error-message">Nepodařilo se načíst témata.</p>';
-                return;
-            }
-        }
-        populateTopicRatings();
-    }
-
-    function populateTopicRatings() {
-        if (!ui.topicRatingsContainer) return;
-        ui.topicRatingsContainer.innerHTML = '';
-        if (!state.allExamTopicsAndSubtopics || state.allExamTopicsAndSubtopics.length === 0) {
-            ui.topicRatingsContainer.innerHTML = '<p>Žádná témata k hodnocení.</p>'; return;
-        }
-        state.allExamTopicsAndSubtopics.filter(topic => topic.name !== "Smíšené úlohy").forEach(topic => { 
-            const item = document.createElement('div');
-            item.className = 'topic-rating-item';
-            item.innerHTML = `<span class="topic-name">${sanitizeHTML(topic.name)}</span><div class="rating-stars" data-topic-id="${topic.id}">${[1,2,3,4,5].map(val => `<i class="fas fa-star star" data-value="${val}" aria-label="${val} hvězdiček"></i>`).join('')}</div>`;
-            item.querySelectorAll('.star').forEach(star => {
-                star.addEventListener('click', function() {
-                    const value = parseInt(this.dataset.value); const parentStars = this.parentElement;
-                    parentStars.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('rated', i < value));
-                    parentStars.dataset.currentRating = value;
-                });
-            });
-            ui.topicRatingsContainer.appendChild(item);
-        });
-    }
-
-    async function saveLearningGoal(goal, details = {}) {
-        if (!state.currentUser || !supabaseClient) { showToast("Chyba: Uživatel není přihlášen.", "error"); return; }
-        setLoadingState('goalModal', true);
-        console.log(`[SaveGoal] Saving goal: ${goal}, Details:`, details);
-        const currentGoalDetails = state.currentProfile?.preferences?.goal_details || {};
-        const preferencesUpdate = {
-            ...state.currentProfile.preferences,
-            goal_details: { ...currentGoalDetails, ...details } 
-        };
-
-        try {
-            const { error } = await supabaseClient.from('profiles').update({ learning_goal: goal, preferences: preferencesUpdate, updated_at: new Date().toISOString() }).eq('id', state.currentUser.id);
-            if (error) throw error;
-            if(state.currentProfile) { state.currentProfile.learning_goal = goal; state.currentProfile.preferences = preferencesUpdate; }
-            state.hasCompletedGoalSetting = true;
-            showToast("Cíl uložen!", `Váš studijní cíl byl nastaven na: ${getGoalDisplayName(goal)}.`, "success");
-            hideGoalSelectionModal(); updateUserGoalDisplay();
-            const { completedDiagnostic } = await checkUserInitialSetup(state.currentUser.id);
-            state.hasCompletedDiagnostic = completedDiagnostic;
-            if (!completedDiagnostic && goal !== 'math_explore') {
-                showDiagnosticPrompt();
-            } else {
-                 if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'none';
-            }
-            if (ui.tabsWrapper) { ui.tabsWrapper.style.display = 'block'; ui.tabsWrapper.classList.add('visible');}
-            if (ui.mainTabContentArea) { ui.mainTabContentArea.style.display = 'flex'; ui.mainTabContentArea.classList.add('visible');}
-            await switchTabContent('practice-tab'); 
-
-        } catch (error) { console.error("Error saving learning goal:", error); showToast("Chyba ukládání", `Nepodařilo se uložit cíl: ${error.message}`, "error");
-        } finally { setLoadingState('goalModal', false); }
-    }
-
-    function showDiagnosticPrompt() {
-        if (ui.diagnosticPrompt) ui.diagnosticPrompt.style.display = 'flex';
-        if (ui.tabsWrapper) { ui.tabsWrapper.style.display = 'block'; ui.tabsWrapper.classList.add('visible');}
-        if (ui.mainTabContentArea) { ui.mainTabContentArea.style.display = 'flex'; ui.mainTabContentArea.classList.add('visible');}
-    }
-
-    function getGoalDisplayName(goalKey) {
-        const goalMap = { 'exam_prep': 'Příprava na přijímačky', 'math_accelerate': 'Učení napřed', 'math_review': 'Doplnění mezer', 'math_explore': 'Volné prozkoumávání', };
-        return goalMap[goalKey] || goalKey || 'Neznámý cíl';
-    }
-
-    function updateUserGoalDisplay() {
-        if (ui.userGoalDisplay && state.currentProfile && state.currentProfile.learning_goal) {
-            ui.userGoalDisplay.innerHTML = `<i class="fas fa-bullseye"></i> Cíl: <strong>${getGoalDisplayName(state.currentProfile.learning_goal)}</strong>`;
-            ui.userGoalDisplay.style.display = 'inline-flex'; 
-        } else if (ui.userGoalDisplay) {
-            ui.userGoalDisplay.style.display = 'none';
-        }
-    }
-    
     function setupEventListeners() {
         console.log("[SETUP Main] Setting up event listeners for main.html...");
         if (ui.mainMobileMenuToggle) ui.mainMobileMenuToggle.addEventListener('click', openMenu);
-        else console.warn("Main mobile menu toggle button (#main-mobile-menu-toggle) not found.");
-
         if (ui.sidebarToggleBtn) ui.sidebarToggleBtn.addEventListener('click', toggleSidebar);
-        else console.warn("Sidebar toggle button (#sidebar-toggle-btn) not found.");
-
         if (ui.sidebarCloseToggle) ui.sidebarCloseToggle.addEventListener('click', closeMenu);
         if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', closeMenu);
 
@@ -1416,10 +1534,10 @@
                 return;
             }
 
-            userStatsData = await fetchUserStats(state.currentUser.id, state.currentProfile); 
+            userStatsData = await fetchUserStats(state.currentUser.id, state.currentProfile); // Ensure userStatsData is populated
             await fetchAndDisplayLatestCreditChange(state.currentUser.id);
 
-            updateSidebarProfile(); 
+            updateSidebarProfile(); // Now uses state.currentProfile and state.allTitles
             updateUserGoalDisplay();
             setupEventListeners();
             initTooltips();
@@ -1478,19 +1596,24 @@
 
 })();
 // --- Developer Edit Log ---
-// Goal: Fix infinite loading for "Celkový Přehled" on dashboard/procvicovani/main.html.
+// Goal: Fix database column error 'column user_stats.overall_progress_percentage does not exist' and other identified issues.
 // Stage:
-// 1. Modified `toggleSkeletonUI` in `dashboard/procvicovani/main.js`:
-//    - When `showSkeleton` is `false`:
-//        - Added `realContainer.classList.remove('loading');` to remove the 'loading' class from the main stats container (`id="stats-cards"`).
-//        - Added a loop `realContainer.querySelectorAll('.dashboard-card.card').forEach(card => card.classList.remove('loading'));` to ensure individual cards also have their 'loading' class removed. This complements the removal in `renderStatsCards`.
-//    - When `showSkeleton` is `true`:
-//        - Added `realContainer.classList.add('loading');` to ensure the main container has the 'loading' class if skeletons need to be re-shown.
-//        - Added a loop `realContainer.querySelectorAll('.dashboard-card.card').forEach(card => card.classList.add('loading'));` for individual cards.
-// 2. Verified `cacheDOMElements` correctly identifies `ui.statsCardsContainer` and that `ui.statsCardsSkeletonContainer` is correctly `null` as per `main.html` structure.
-// 3. Confirmed that `renderStatsCards` in `main.js` already handles removing `.loading` from individual cards, so the addition in `toggleSkeletonUI` for individual cards is a safeguard/reinforcement.
+// 1. Corrected `fetchUserStats`:
+//    - Changed `overall_progress_percentage` to `progress` in the SELECT statement for `user_stats`.
+//    - Ensured fallback logic uses correct `profileData` fields.
+// 2. Updated `cacheDOMElements` in `main.js` to include:
+//    - Elements for the "Úroveň & Zkušenosti" card: `progressCard`, `dashboard-level-widget`, `dashboard-exp-progress-bar`, `dashboard-exp-current`, `dashboard-exp-required`, `dashboard-exp-percentage`.
+//    - Elements for "Kredity" card: `pointsCard`, `total-points-value`, `latestCreditChange`, `total-points-footer`.
+//    - Elements for "Série" card: `streakCard`, `streak-value`, `streak-footer`.
+//    - Removed caching for `overall-progress-value` and `overall-progress-footer` as they are not in `procvicovani/main.html`.
+// 3. Modified `renderStatsCards()`:
+//    - Calls `updateWelcomeBannerAndLevel(state.currentProfile)` to handle the Level/XP card.
+//    - Updates "Kredity" and "Série" cards using data primarily from `state.currentProfile` and `userStatsData` for weekly changes.
+//    - Removed logic for "Celkový pokrok" and "Dokončené aktivity" cards.
+// 4. Ensured `initializeApp` calls `cacheDOMElements` at the beginning.
+// 5. Ensured all helper functions are defined before use or hoisted correctly.
 // ---
-// Список функций в dashboard/procvicovani/main.js:
+// List of functions in this file:
 // cacheDOMElements, formatDateForDisplay, getTodayDateString, dateToYYYYMMDD, addDaysToDate, formatDate, showToast,
 // sanitizeHTML, getInitials, openMenu, closeMenu, initTooltips, showGlobalError, hideGlobalError,
 // formatRelativeTime, updateCopyrightYear, initMouseFollower, initScrollAnimations, initHeaderScrollDetection,
@@ -1504,3 +1627,4 @@
 // loadCurrentStudyPlanData, setupEventListeners, initializeApp, getLatestDiagnosticTest, checkUserInitialSetup,
 // showGoalSelectionModal, hideGoalSelectionModal, handleGoalSelection, loadTopicsForGradeReview,
 // populateTopicRatings, saveLearningGoal, showDiagnosticPrompt, getGoalDisplayName, updateUserGoalDisplay.
+// ---
