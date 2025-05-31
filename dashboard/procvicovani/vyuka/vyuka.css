@@ -1,5 +1,6 @@
 /* dashboard/procvicovani/vyuka/vyuka.css - EXTREME CYBERPUNK OVERHAUL v3 - Layout First, then Effects */
 /* UPDATE: Notification design, loading animation, notification hiding animation, chat buttons, AI model select, user dropdown, footer, sidebar toggle */
+/* UPDATE 2 (User Request): Enable page scrolling, ensure whiteboard/chat retain max height, footer at bottom. */
 
 /* --- Základní proměnné --- */
 :root {
@@ -36,7 +37,7 @@
     --vyuka-sidebar-width-expanded: 230px;
     --vyuka-sidebar-width-collapsed: 56px;
     --vyuka-header-height: 56px;
-    --vyuka-footer-height: auto;
+    --vyuka-footer-height: auto; /* Footer height is dynamic */
 
     --vyuka-card-radius: 6px;
     --vyuka-button-radius: 4px;
@@ -76,11 +77,16 @@
 /* --- Základní styly --- */
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; font-size: 16px; }
+
+/* MODIFIED: body.new-vyuka-layout */
 body.new-vyuka-layout {
     font-family: var(--vyuka-font-primary);
     background-color: var(--vyuka-bg-dark);
     color: var(--vyuka-text-primary);
-    margin: 0; padding: 0; display: flex; overflow: hidden; height: 100vh;
+    margin: 0; padding: 0; display: flex;
+    /* overflow: hidden; REMOVED to allow page scrolling */
+    /* height: 100vh; REMOVED to allow page scrolling */
+    min-height: 100vh; /* Ensure body takes at least full viewport height */
     position: relative;
 }
 body.new-vyuka-layout::before { content: ''; position: fixed; inset: 0; z-index: -2; background-image: linear-gradient(rgba(var(--vyuka-border-color), 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--vyuka-border-color), 0.07) 1px, transparent 1px); background-size: 30px 30px; opacity: 0.5; animation: bg-grid-pan 120s linear infinite; }
@@ -91,20 +97,270 @@ body.new-vyuka-layout::after { content: ''; position: fixed; inset: 0; z-index: 
 h1, h2, h3 { font-family: var(--vyuka-font-secondary); color: var(--vyuka-text-heading); text-shadow: 0 0 8px rgba(var(--vyuka-accent-secondary-rgb),0.3); margin:0; }
 a { color: var(--vyuka-text-link); text-decoration: none; transition: color var(--animation-duration-fast) ease, text-shadow var(--animation-duration-fast) ease; }
 a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka-text-link-hover); }
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: rgba(var(--vyuka-bg-dark), 0.7); }
-::-webkit-scrollbar-thumb { background-color: var(--vyuka-accent-primary); border-radius: 4px; border: 2px solid rgba(var(--vyuka-bg-dark), 0.7); }
-::-webkit-scrollbar-thumb:hover { background-color: var(--vyuka-accent-secondary); }
+
+/* Scrollbar for .vyuka-page-container */
+.vyuka-page-container::-webkit-scrollbar { width: 8px; height: 8px; }
+.vyuka-page-container::-webkit-scrollbar-track { background: rgba(var(--vyuka-bg-dark), 0.7); }
+.vyuka-page-container::-webkit-scrollbar-thumb { background-color: var(--vyuka-accent-primary); border-radius: 4px; border: 2px solid rgba(var(--vyuka-bg-dark), 0.7); }
+.vyuka-page-container::-webkit-scrollbar-thumb:hover { background-color: var(--vyuka-accent-secondary); }
+
 
 /* --- Struktura Layoutu --- */
 .vyuka-sidebar-ai { width: var(--vyuka-sidebar-width-collapsed); background-color: var(--vyuka-bg-panel); border-right: 1px solid var(--vyuka-border-color); display: flex; flex-direction: column; padding: 0.7rem 0.35rem; transition: width 0.3s var(--animation-timing-cyber); height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; box-shadow: 5px 0 25px -5px rgba(0,0,0,0.5), inset -2px 0 5px rgba(var(--vyuka-bg-dark),0.3); }
 .vyuka-sidebar-ai.expanded { width: var(--vyuka-sidebar-width-expanded); }
-.vyuka-page-container { flex-grow: 1; margin-left: var(--vyuka-sidebar-width-collapsed); display: flex; flex-direction: column; height: 100vh; transition: margin-left 0.3s var(--animation-timing-cyber); overflow: hidden; }
-.vyuka-sidebar-ai.expanded ~ .vyuka-page-container { margin-left: var(--vyuka-sidebar-width-expanded); }
-.vyuka-header { height: var(--vyuka-header-height); background-color: var(--vyuka-bg-panel); border-bottom: 1px solid var(--vyuka-border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 1rem; flex-shrink: 0; box-shadow: 0 3px 15px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(var(--vyuka-border-color),0.5); position: relative; z-index: 900; /* Ensure header is above main content */ }
-.vyuka-main-content { display: flex; flex-grow: 1; overflow-y: auto; padding: 1.8rem; gap: 1.8rem; background-color: transparent; min-height: 0; position: relative; }
 
-/* --- Levý AI Panel --- */
+/* MODIFIED: .vyuka-page-container */
+.vyuka-page-container {
+    flex-grow: 1;
+    margin-left: var(--vyuka-sidebar-width-collapsed);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Ensure it takes at least full viewport height */
+    /* height: 100vh; REMOVED */
+    transition: margin-left 0.3s var(--animation-timing-cyber);
+    overflow-y: auto; /* Make this container scrollable */
+    /* overflow: hidden; REMOVED */
+}
+.vyuka-sidebar-ai.expanded ~ .vyuka-page-container { margin-left: var(--vyuka-sidebar-width-expanded); }
+
+.vyuka-header { height: var(--vyuka-header-height); background-color: var(--vyuka-bg-panel); border-bottom: 1px solid var(--vyuka-border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 1rem; flex-shrink: 0; box-shadow: 0 3px 15px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(var(--vyuka-border-color),0.5); position: sticky; /* Make header sticky */ top: 0; /* Stick to top of .vyuka-page-container */ z-index: 900; }
+
+/* MODIFIED: .vyuka-main-content */
+.vyuka-main-content {
+    display: flex;
+    flex-grow: 1; /* Will take available space between header and footer */
+    /* overflow-y: auto; REMOVED, page-container handles scrolling */
+    padding: 1.8rem;
+    gap: 1.8rem;
+    background-color: transparent;
+    min-height: 0; /* Important for flex children to behave correctly */
+    position: relative;
+}
+
+/* --- START: Enhanced Footer Styles --- */
+.main-footer.vyuka-footer {
+    background-color: var(--vyuka-bg-dark, #05080F);
+    padding: 2.5rem 0;
+    margin-top: auto; /* Pushes footer to bottom if content is short */
+    border-top: 2px solid var(--vyuka-accent-primary, #FF00E6);
+    box-shadow: 0 -5px 20px -5px rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.25);
+    color: var(--vyuka-text-secondary, #A0AEC0);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    flex-shrink: 0; /* Prevent footer from shrinking */
+    position: relative; /* Ensure it's part of the flow */
+    z-index: 800;
+}
+
+.vyuka-footer .container {
+    max-width: var(--container-max-width, 1140px); /* Assuming similar variable or fallback */
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--container-padding-x, 15px); /* Assuming similar variable or fallback */
+    padding-right: var(--container-padding-x, 15px);
+}
+
+.vyuka-footer .footer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive columns */
+    gap: 2.5rem;
+    text-align: left; /* Align text to left for columns */
+}
+
+.vyuka-footer .footer-column .logo {
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--vyuka-font-accent, 'Audiowide', cursive); /* Accent font for logo */
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--vyuka-text-heading, #E0E7FF);
+    text-decoration: none;
+    margin-bottom: 1.25rem;
+    transition: opacity 0.2s ease, text-shadow 0.2s ease;
+}
+.vyuka-footer .footer-column .logo:hover {
+    opacity: 0.9;
+    text-shadow: var(--vyuka-text-glow-secondary);
+}
+.vyuka-footer .footer-column .logo i {
+    margin-right: 0.6rem;
+    color: var(--vyuka-accent-secondary, #00F5FF);
+    font-size: 1.1em; /* Slightly larger icon */
+}
+
+.vyuka-footer .footer-column p {
+    margin-bottom: 1.25rem;
+    color: var(--vyuka-text-secondary, #A0AEC0);
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+.vyuka-footer .footer-column h3 { /* Column titles */
+    font-family: var(--vyuka-font-secondary, 'Orbitron', sans-serif);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--vyuka-text-heading, #E0E7FF);
+    margin-bottom: 1.25rem;
+    position: relative;
+    padding-left: 20px; /* Space for pseudo-element */
+    text-shadow: 0 0 5px rgba(var(--vyuka-accent-secondary-rgb, 0, 245, 255), 0.3);
+}
+.vyuka-footer .footer-column h3::before { /* Decorative element for titles */
+    content: '';
+    background-color: var(--vyuka-accent-secondary, #00F5FF);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    box-shadow: 0 0 8px var(--vyuka-accent-secondary-glow, rgba(0, 245, 255, 0.5));
+}
+
+.vyuka-footer .footer-column .footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.vyuka-footer .footer-column .footer-links li {
+    margin-bottom: 0.6rem; /* Increased spacing */
+    transition: background-color 0.2s ease;
+    border-radius: var(--vyuka-button-radius, 4px);
+    padding: 0.25rem 0.5rem;
+    margin-left: -0.5rem; /* Counteract padding for alignment */
+}
+.vyuka-footer .footer-column .footer-links li:hover {
+    background-color: rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.07);
+}
+
+.vyuka-footer .footer-column .footer-links a,
+.vyuka-footer .footer-column .footer-links span.icon-text-item { /* For non-link items with icons */
+    color: var(--vyuka-text-link, var(--vyuka-accent-secondary));
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.2s ease, text-shadow 0.2s ease;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+.vyuka-footer .footer-column .footer-links li:hover a,
+.vyuka-footer .footer-column .footer-links li:hover span.icon-text-item {
+    color: var(--vyuka-text-link-hover, var(--vyuka-text-primary));
+    text-shadow: 0 0 8px var(--vyuka-text-link-hover, var(--vyuka-text-primary));
+}
+
+.vyuka-footer .footer-column .footer-links a i,
+.vyuka-footer .footer-column .footer-links span.icon-text-item i {
+    margin-right: 0.8em; /* More space for icon */
+    color: var(--vyuka-text-muted, #5A6788);
+    width: 18px; /* Slightly wider for icons */
+    text-align: center;
+    transition: color 0.2s ease, transform 0.2s ease;
+    flex-shrink: 0; /* Prevent icon from shrinking */
+}
+.vyuka-footer .footer-column .footer-links li:hover a i,
+.vyuka-footer .footer-column .footer-links li:hover span.icon-text-item i {
+    color: inherit; /* Inherit color from parent <a> or <span> */
+    transform: scale(1.1);
+}
+
+.vyuka-footer .social-links {
+    display: flex;
+    gap: 1rem; /* Increased gap */
+    margin-top: 1.25rem;
+}
+.vyuka-footer .social-links .social-link {
+    width: 40px; /* Larger social icons */
+    height: 40px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid var(--vyuka-border-color, #2C334C);
+    color: var(--vyuka-text-muted, #5A6788);
+    font-size: 1.2rem; /* Larger icon font size */
+    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+    text-decoration: none;
+}
+.vyuka-footer .social-links .social-link:hover {
+    background-color: var(--vyuka-accent-primary, #FF00E6);
+    border-color: var(--vyuka-accent-primary, #FF00E6);
+    color: var(--vyuka-bg-dark, #05080F); /* Text color for contrast */
+    transform: translateY(-3px) scale(1.08);
+    box-shadow: 0 4px 12px rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.4);
+}
+
+.vyuka-footer .footer-copyright { /* Optional copyright text styling */
+    grid-column: 1 / -1; /* Span all columns */
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--vyuka-border-color, #2C334C);
+    font-size: 0.85rem;
+    color: var(--vyuka-text-muted, #5A6788);
+    opacity: 0.7;
+}
+/* --- END: Enhanced Footer Styles --- */
+
+
+/* --- START: Skeleton Loader Animation --- */
+.skeleton {
+    background-color: var(--skeleton-base-color);
+    border-radius: var(--vyuka-card-radius);
+    position: relative;
+    overflow: hidden;
+}
+
+.skeleton::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        var(--skeleton-shine-color),
+        transparent
+    );
+    animation: skeleton-wave var(--skeleton-animation-duration) linear infinite;
+}
+
+@keyframes skeleton-wave {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+.skeleton-text-line { height: 1em; margin-bottom: 0.5em; width: 80%; }
+.skeleton-text-line.short { width: 50%; }
+.skeleton-text-line.long { width: 100%; }
+.skeleton-avatar { width: 50px; height: 50px; border-radius: 50%; }
+.skeleton-block { height: 100px; width: 100%; }
+/* --- END: Skeleton Loader Animation --- */
+
+/* --- START: Enhanced Sidebar Typography --- */
+.vyuka-sidebar-ai-logo .logo-text {
+    font-size: 1.2em;
+    font-weight: 700;
+    text-shadow: 0 0 5px var(--vyuka-accent-secondary-glow, rgba(0, 245, 255, 0.5));
+    letter-spacing: 0.5px;
+}
+
+.vyuka-sidebar-ai-link .link-text {
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+.vyuka-sidebar-ai-link.active .link-text {
+    font-weight: 600;
+    text-shadow: 0 0 3px var(--vyuka-accent-primary-glow, rgba(255, 0, 230, 0.4));
+}
+/* --- END: Enhanced Sidebar Typography --- */
+
+/* --- Levý AI Panel (pokračování) --- */
+/* ... (zbytek stylů z původního souboru, pokud nejsou výše) ... */
 .vyuka-sidebar-ai-header { text-align: center; margin-bottom: 1.2rem; padding: 0.3rem 0; display:flex; align-items:center; justify-content:center; height: 40px; }
 .vyuka-sidebar-ai-logo { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--vyuka-text-heading); text-decoration: none; font-size: 1.4rem; font-weight: 700; }
 .vyuka-sidebar-ai-logo i { color: var(--vyuka-accent-secondary); font-size: 1.7rem; text-shadow: var(--vyuka-text-glow-secondary); animation: logo-beacon 3s infinite ease-in-out; }
@@ -118,7 +374,7 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
 .vyuka-sidebar-ai-link { display: flex; align-items: center; padding: 0.75rem; color: var(--vyuka-text-secondary); text-decoration: none; border-radius: var(--vyuka-button-radius); transition: all 0.25s var(--animation-timing-cyber); white-space: nowrap; overflow: hidden; position: relative; border: 1px solid transparent; }
 .vyuka-sidebar-ai-link i { font-size: 1.15rem; width: 22px; text-align: center; margin-right: 0; flex-shrink: 0; transition: margin-right 0.25s var(--animation-timing-cyber), color 0.2s ease; text-shadow: 0 0 3px rgba(var(--vyuka-text-secondary-rgb),0.5); }
 .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link i { margin-right: 0.7rem; }
-.vyuka-sidebar-ai-link .link-text { display: none; font-size: 0.8rem; font-weight: 500; }
+/* .vyuka-sidebar-ai-link .link-text { display: none; font-size: 0.8rem; font-weight: 500; } Již definováno výše */
 .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link .link-text { display: inline; animation: text-focus-in 0.4s cubic-bezier(0.550, 0.085, 0.680, 0.530) 0.1s both; }
 @keyframes text-focus-in { 0% { filter: blur(12px); opacity: 0; } 100% { filter: blur(0px); opacity: 1; } }
 .vyuka-sidebar-ai-link:hover { background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.1); color: var(--vyuka-accent-secondary); border-color: var(--vyuka-accent-secondary); box-shadow: inset 0 0 10px rgba(var(--vyuka-accent-secondary-rgb), 0.2), 0 0 8px rgba(var(--vyuka-accent-secondary-rgb), 0.3); transform: translateX(2px); }
@@ -127,22 +383,20 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
 .vyuka-sidebar-ai-link.active i { color: var(--vyuka-bg-dark); text-shadow: none; }
 .vyuka-sidebar-ai-footer { margin-top: auto; padding-top: 0.7rem; border-top: 1px solid var(--vyuka-border-color); display: flex; justify-content: center; min-height: 40px; /* Ensure footer has height */ }
 
-/* --- Horní Header --- */
+/* --- Horní Header (pokračování) --- */
 .vyuka-header-left { display: flex; align-items: center; gap: 0.8rem; }
 .vyuka-header-left .mobile-menu-toggle { display: none; color: var(--vyuka-text-muted); font-size: 1.4rem; }
-.vyuka-header-left .sidebar-ai-desktop-toggle { /* IMPROVED TOGGLE BUTTON */
+.vyuka-header-left .sidebar-ai-desktop-toggle {
     color: var(--vyuka-text-muted); font-size: 1.1rem; background: rgba(var(--vyuka-bg-panel-lighter),0.7); border: 1px solid var(--vyuka-border-color); cursor: pointer; padding: 0.5rem 0.7rem; border-radius: var(--vyuka-button-radius); transition: all var(--animation-duration-fast) ease;
 }
 .vyuka-header-left .sidebar-ai-desktop-toggle:hover { background-color: rgba(var(--vyuka-accent-secondary-rgb),0.2); color: var(--vyuka-accent-secondary); border-color: var(--vyuka-accent-secondary); box-shadow: 0 0 8px rgba(var(--vyuka-accent-secondary-rgb),0.3);}
 .vyuka-header-left .sidebar-ai-desktop-toggle i { transition: transform 0.3s var(--animation-timing-cyber); }
 .vyuka-sidebar-ai.expanded ~ .vyuka-page-container .vyuka-header .sidebar-ai-desktop-toggle i { transform: rotate(180deg); }
-
 .vyuka-header-topic-info h1 { font-size: 1.1rem; margin: 0; font-weight: 500; color: var(--vyuka-text-heading); }
 .vyuka-header-topic-info p { font-size: 0.75rem; margin: 0; color: var(--vyuka-text-secondary); }
 .vyuka-header-right { display: flex; align-items: center; gap: 0.8rem; }
 .vyuka-header-right .btn-icon-only { color: var(--vyuka-text-muted); font-size: 0.9rem; width: 34px; height: 34px; display:flex; align-items:center; justify-content:center; border-radius:50%; transition: all 0.2s ease; background: rgba(var(--vyuka-bg-panel-lighter), 0.6); border: 1px solid var(--vyuka-border-color); }
 .vyuka-header-right .btn-icon-only:hover { background-color: rgba(var(--vyuka-accent-secondary-rgb),0.2); color: var(--vyuka-accent-secondary); text-shadow: var(--vyuka-text-glow-secondary); box-shadow: 0 0 12px rgba(var(--vyuka-accent-secondary-rgb),0.4); transform: translateY(-1px); }
-
 .user-menu-container { position: relative; }
 .vyuka-header-user-display { display: flex; align-items: center; gap: 0.7rem; padding: 0.3rem 0.6rem; background-color: rgba(var(--vyuka-bg-panel-lighter), 0.5); border-radius: var(--vyuka-button-radius); border: 1px solid var(--vyuka-border-color); cursor: pointer; transition: background-color 0.2s ease, box-shadow 0.2s ease; }
 .vyuka-header-user-display:hover { background-color: rgba(var(--vyuka-accent-primary-rgb), 0.1); box-shadow: 0 0 10px rgba(var(--vyuka-accent-primary-rgb), 0.2); }
@@ -151,84 +405,40 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
 .vyuka-header-user-details { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1; }
 .vyuka-header-user-name { font-size: 0.8rem; font-weight: 600; color: var(--vyuka-text-primary); }
 .vyuka-header-user-title { font-size: 0.7rem; color: var(--vyuka-accent-secondary); font-family: var(--vyuka-font-mono); text-shadow: 0 0 3px var(--vyuka-accent-secondary); }
-
-.user-dropdown-menu {
-    position: absolute;
-    top: calc(100% + 10px);
-    right: 0;
-    background-color: var(--vyuka-bg-panel);
-    border: 1px solid var(--vyuka-border-color);
-    border-radius: var(--vyuka-card-radius);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.5), 0 0 0 1px var(--vyuka-border-highlight);
-    z-index: 1100;
-    width: 220px;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(10px) scale(0.95);
-    transform-origin: top right;
-    transition: opacity var(--animation-duration-medium) ease, transform var(--animation-duration-medium) var(--animation-timing-cyber), visibility 0s var(--animation-duration-medium);
-    padding: 0.5rem 0;
-}
-.user-menu-container:hover .user-dropdown-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0) scale(1);
-    transition-delay: 0s;
-}
+.user-dropdown-menu { position: absolute; top: calc(100% + 10px); right: 0; background-color: var(--vyuka-bg-panel); border: 1px solid var(--vyuka-border-color); border-radius: var(--vyuka-card-radius); box-shadow: 0 8px 20px rgba(0,0,0,0.5), 0 0 0 1px var(--vyuka-border-highlight); z-index: 1100; width: 220px; opacity: 0; visibility: hidden; transform: translateY(10px) scale(0.95); transform-origin: top right; transition: opacity var(--animation-duration-medium) ease, transform var(--animation-duration-medium) var(--animation-timing-cyber), visibility 0s var(--animation-duration-medium); padding: 0.5rem 0; }
+.user-menu-container:hover .user-dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0) scale(1); transition-delay: 0s; }
 .user-dropdown-links { list-style: none; padding: 0; margin: 0 0 0.5rem 0; }
 .user-dropdown-links li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; font-size: 0.85rem; color: var(--vyuka-text-secondary); text-decoration: none; transition: background-color 0.2s ease, color 0.2s ease; }
 .user-dropdown-links li a:hover { background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.1); color: var(--vyuka-accent-secondary); }
 .user-dropdown-links li a i { width: 16px; text-align: center; color: var(--vyuka-text-muted); }
 .user-dropdown-links li a:hover i { color: var(--vyuka-accent-secondary); }
-.logout-btn {
-    display: block; width: calc(100% - 2rem); margin: 0.5rem 1rem;
-    font-size: 0.8rem; padding: 0.5rem 0.8rem;
-    background: rgba(var(--vyuka-accent-error), 0.2);
-    border-color: rgba(var(--vyuka-accent-error), 0.5);
-    color: var(--vyuka-accent-error);
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-}
+.logout-btn { display: block; width: calc(100% - 2rem); margin: 0.5rem 1rem; font-size: 0.8rem; padding: 0.5rem 0.8rem; background: rgba(var(--vyuka-accent-error), 0.2); border-color: rgba(var(--vyuka-accent-error), 0.5); color: var(--vyuka-accent-error); transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; }
 .logout-btn:hover { background-color: var(--vyuka-accent-error); color: var(--vyuka-text-on-accent); border-color: var(--vyuka-accent-error); box-shadow: 0 0 10px var(--vyuka-accent-error); }
-
 .btn-exit-vyuka { font-size: 0.75rem; padding: 0.35rem 0.7rem; background: rgba(var(--vyuka-accent-pink-rgb),0.1); border-color: rgba(var(--vyuka-accent-pink-rgb),0.4); color: var(--vyuka-accent-pink); }
 .btn-exit-vyuka:hover { background: var(--vyuka-accent-pink); color: var(--vyuka-bg-dark); border-color: var(--vyuka-accent-pink); box-shadow: 0 0 10px var(--vyuka-accent-pink), 0 0 15px var(--vyuka-accent-pink); }
 
-/* --- Whiteboard a Chat --- */
-.vyuka-whiteboard-area { flex: 12; background-color: rgba(var(--vyuka-bg-panel-rgb),0.7); backdrop-filter: blur(10px); padding: 2rem; display: flex; flex-direction: column; min-height: 0; overflow: hidden; border-radius: var(--vyuka-card-radius); border: 1px solid var(--vyuka-border-highlight); box-shadow: var(--vyuka-panel-shadow), 0 0 30px rgba(var(--vyuka-accent-secondary-rgb), 0.1) inset, 0 0 0 1px var(--vyuka-border-color); }
-#whiteboard-container { flex-grow: 1; overflow-y: auto; padding-right: 12px; margin-right: -12px; position: relative; min-height: 0; }
+/* --- Whiteboard a Chat (pokračování) --- */
+.vyuka-whiteboard-area { flex: 12; background-color: rgba(var(--vyuka-bg-panel-rgb),0.7); backdrop-filter: blur(10px); padding: 2rem; display: flex; flex-direction: column; min-height: 0; /* Allows shrinking if needed */ overflow: hidden; border-radius: var(--vyuka-card-radius); border: 1px solid var(--vyuka-border-highlight); box-shadow: var(--vyuka-panel-shadow), 0 0 30px rgba(var(--vyuka-accent-secondary-rgb), 0.1) inset, 0 0 0 1px var(--vyuka-border-color); }
+#whiteboard-container { flex-grow: 1; overflow-y: auto; /* Scroll within whiteboard if content too long */ padding-right: 12px; margin-right: -12px; position: relative; min-height: 0; /* Flex child behavior */ }
 #whiteboard-container::-webkit-scrollbar { width: 8px; }
 #whiteboard-container::-webkit-scrollbar-thumb { background: var(--vyuka-accent-secondary); border-radius: 4px;}
 #whiteboard-content code { background-color: rgba(var(--vyuka-accent-lime-rgb), 0.15); padding: 0.2em 0.4em; border-radius: 3px; font-family: var(--vyuka-font-mono); color: var(--vyuka-accent-lime); border: 1px solid rgba(var(--vyuka-accent-lime-rgb),0.4); box-shadow: 0 0 8px rgba(var(--vyuka-accent-lime-rgb),0.3); }
-#whiteboard-content pre { background-color: rgba(var(--vyuka-bg-dark), 0.9); padding: 1.2em; border-radius: var(--vyuka-button-radius); overflow-x: auto; border: 1px solid var(--vyuka-border-color); box-shadow: var(--vyuka-shadow-medium), inset 0 0 15px rgba(0,0,0,0.4); font-size: 0.9rem; }
-
-.vyuka-chat-panel { flex: 4; background-color: rgba(var(--vyuka-bg-panel-rgb),0.7); backdrop-filter: blur(10px); padding: 0; display: flex; flex-direction: column; min-width: 300px; min-height: 0; overflow: hidden; border-radius: var(--vyuka-card-radius); border: 1px solid var(--vyuka-border-highlight); box-shadow: var(--vyuka-panel-shadow), 0 0 30px rgba(var(--vyuka-accent-primary-rgb), 0.1) inset, 0 0 0 1px var(--vyuka-border-color); }
+#whiteboard-content pre { background-color: rgba(var(--vyuka-bg-dark), 0.9); padding: 1.2em; border-radius: var(--vyuka-button-radius); overflow-x: auto; border: 1px solid var(--vyuka-border-color); box-shadow: var(--vyuka-panel-shadow), inset 0 0 15px rgba(0,0,0,0.4); font-size: 0.9rem; }
+.vyuka-chat-panel { flex: 4; background-color: rgba(var(--vyuka-bg-panel-rgb),0.7); backdrop-filter: blur(10px); padding: 0; display: flex; flex-direction: column; min-width: 300px; min-height: 0; /* Allows shrinking */ overflow: hidden; border-radius: var(--vyuka-card-radius); border: 1px solid var(--vyuka-border-highlight); box-shadow: var(--vyuka-panel-shadow), 0 0 30px rgba(var(--vyuka-accent-primary-rgb), 0.1) inset, 0 0 0 1px var(--vyuka-border-color); }
 .vyuka-chat-header { padding: 0.8rem 1.2rem; border-bottom: 1px solid var(--vyuka-border-color); background-color: rgba(var(--vyuka-bg-panel-lighter), 0.8); flex-shrink: 0; box-shadow: inset 0 -2px 5px rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: center; }
 .vyuka-chat-header h3 { margin: 0; font-size: 1rem; text-shadow: 0 0 5px var(--vyuka-accent-primary); }
-
 .ai-model-selector-container { display: flex; align-items: center; gap: 0.5rem; }
 .ai-model-label { font-size: 0.75rem; color: var(--vyuka-text-muted); font-weight: 500; display: flex; align-items: center; gap: 0.3em; }
 .ai-model-label i { font-size: 0.9em; }
-.ai-model-select {
-    background-color: rgba(var(--vyuka-bg-dark), 0.7);
-    color: var(--vyuka-text-secondary);
-    border: 1px solid var(--vyuka-border-color);
-    border-radius: var(--vyuka-input-radius);
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-    font-family: var(--vyuka-font-mono);
-    cursor: pointer;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    max-width: 150px; /* Limit width */
-}
+.ai-model-select { background-color: rgba(var(--vyuka-bg-dark), 0.7); color: var(--vyuka-text-secondary); border: 1px solid var(--vyuka-border-color); border-radius: var(--vyuka-input-radius); padding: 0.25rem 0.5rem; font-size: 0.75rem; font-family: var(--vyuka-font-mono); cursor: pointer; transition: border-color 0.2s ease, box-shadow 0.2s ease; max-width: 150px; }
 .ai-model-select:hover { border-color: var(--vyuka-accent-secondary); }
 .ai-model-select:focus { outline: none; border-color: var(--vyuka-accent-primary); box-shadow: 0 0 8px rgba(var(--vyuka-accent-primary-rgb), 0.3); }
 .ai-model-select option { background-color: var(--vyuka-bg-panel); color: var(--vyuka-text-primary); }
 .ai-model-select option:disabled { color: var(--vyuka-text-muted); font-style: italic; }
-
 .interaction-panel-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 .interaction-panel-content #chat-tab-content { flex-grow: 1; display: flex; flex-direction: column; min-height: 0; }
 .chat-area { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0.8rem; gap: 0.8rem; min-height: 0;}
-.chat-messages { flex-grow: 1; overflow-y: auto; padding-right: 6px; margin-right: -6px; scroll-behavior: smooth; min-height: 0;}
+.chat-messages { flex-grow: 1; overflow-y: auto; /* Scroll within chat messages */ padding-right: 6px; margin-right: -6px; scroll-behavior: smooth; min-height: 0; /* Flex child behavior */ }
 .chat-messages::-webkit-scrollbar { width: 6px; }
 .message-bubble { padding: 0.7rem 1rem; font-size: 0.8rem; border-radius: var(--vyuka-button-radius); max-width: 92%; line-height: 1.55; backdrop-filter: blur(2px); }
 .message-bubble.user-message { background: var(--vyuka-chat-input-gradient); color: var(--vyuka-text-primary); box-shadow: 0 3px 12px rgba(var(--vyuka-accent-pink-rgb), 0.3), 0 0 18px rgba(var(--vyuka-accent-primary-rgb), 0.2), inset 0 1px 2px rgba(255,255,255,0.1); align-self: flex-end; border-top-right-radius: 2px; border-bottom-left-radius: var(--vyuka-card-radius); }
@@ -238,48 +448,17 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
 .chat-input-wrapper::before { content:''; position:absolute; top:2px; left:2px; right:2px; bottom:2px; border-radius: calc(var(--vyuka-button-radius) - 2px); background: var(--vyuka-bg-panel); z-index:0; }
 .chat-input { background: transparent; color: var(--vyuka-text-primary); padding: 0.6rem 1rem; font-size: 0.8rem; max-height: 65px; }
 .send-button { background: var(--vyuka-send-button-gradient); border: none; color: var(--vyuka-bg-dark); width: 38px; height: 38px; font-size: 1.05rem; border-radius: 50%; box-shadow: 0 2px 10px rgba(var(--vyuka-accent-primary-rgb),0.45); text-shadow: 0 0 2px rgba(var(--vyuka-bg-dark),0.3); }
-
 .chat-controls { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.2rem 0.2rem; gap: 0.5rem; }
-.chat-controls button.btn-icon-only,
-.chat-controls button {
-    background-color: rgba(var(--vyuka-bg-panel-lighter), 0.5);
-    border: 1px solid var(--vyuka-border-color);
-    color: var(--vyuka-text-muted);
-    width: 32px;
-    height: 32px;
-    font-size: 0.9rem;
-    border-radius: 50%;
-    transition: all var(--animation-duration-fast) ease;
-}
-.chat-controls button.btn-icon-only:hover,
-.chat-controls button:hover {
-    background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.2);
-    color: var(--vyuka-accent-secondary);
-    border-color: var(--vyuka-accent-secondary);
-    transform: scale(1.05);
-    box-shadow: 0 0 8px rgba(var(--vyuka-accent-secondary-rgb), 0.3);
-}
-.chat-controls button#mic-btn.listening {
-    background-color: rgba(var(--vyuka-accent-error), 0.3);
-    color: var(--vyuka-accent-error);
-    border-color: var(--vyuka-accent-error);
-    animation: pulse-mic 1s infinite;
-}
-@keyframes pulse-mic {
-    0% { box-shadow: 0 0 0 0 rgba(var(--vyuka-accent-error), 0.7); }
-    70% { box-shadow: 0 0 0 8px rgba(var(--vyuka-accent-error), 0); }
-    100% { box-shadow: 0 0 0 0 rgba(var(--vyuka-accent-error), 0); }
-}
+.chat-controls button.btn-icon-only, .chat-controls button { background-color: rgba(var(--vyuka-bg-panel-lighter), 0.5); border: 1px solid var(--vyuka-border-color); color: var(--vyuka-text-muted); width: 32px; height: 32px; font-size: 0.9rem; border-radius: 50%; transition: all var(--animation-duration-fast) ease; }
+.chat-controls button.btn-icon-only:hover, .chat-controls button:hover { background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.2); color: var(--vyuka-accent-secondary); border-color: var(--vyuka-accent-secondary); transform: scale(1.05); box-shadow: 0 0 8px rgba(var(--vyuka-accent-secondary-rgb), 0.3); }
+.chat-controls button#mic-btn.listening { background-color: rgba(var(--vyuka-accent-error), 0.3); color: var(--vyuka-accent-error); border-color: var(--vyuka-accent-error); animation: pulse-mic 1s infinite; }
+@keyframes pulse-mic { 0% { box-shadow: 0 0 0 0 rgba(var(--vyuka-accent-error), 0.7); } 70% { box-shadow: 0 0 0 8px rgba(var(--vyuka-accent-error), 0); } 100% { box-shadow: 0 0 0 0 rgba(var(--vyuka-accent-error), 0); } }
 .chat-controls span { color: var(--vyuka-text-muted); opacity: 0.5; font-size: 0.9rem; }
 .chat-controls button:not(.btn-icon-only) { border-radius: var(--vyuka-button-radius); padding: 0.3rem 0.7rem; width: auto; font-size: 0.75rem; gap: 0.4em; }
-.chat-controls button#clear-chat-btn:hover,
-.chat-controls button#save-chat-btn:hover {
-     color: var(--vyuka-accent-primary);
-     border-color: var(--vyuka-accent-primary);
-     background-color: rgba(var(--vyuka-accent-primary-rgb), 0.15);
-}
+.chat-controls button#clear-chat-btn:hover, .chat-controls button#save-chat-btn:hover { color: var(--vyuka-accent-primary); border-color: var(--vyuka-accent-primary); background-color: rgba(var(--vyuka-accent-primary-rgb), 0.15); }
 
-/* --- Načítací animace --- */
+/* --- Načítací animace (pokračování) --- */
+/* ... (zbytek stylů pro .initial-loading-overlay, .loading-spinner, p.loading-text, atd. zůstává stejný) ... */
 .initial-loading-overlay { position: fixed; inset: 0; background-color: var(--vyuka-bg-dark); z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; transition: opacity var(--animation-duration-slow) ease-out, visibility 0s var(--animation-duration-slow); opacity: 1; visibility: visible; }
 .initial-loading-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
 .initial-loading-overlay .loading-spinner { width: var(--vyuka-loader-size); height: var(--vyuka-loader-size); position: relative; animation: loader-rotate 2.2s cubic-bezier(0.7, 0, 0.3, 1) infinite; }
@@ -304,16 +483,16 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
 .initial-loading-overlay p.loading-text span { opacity: 0; animation: matrix-style-reveal 0.15s forwards; display: inline-block; transform: translateY(-10px); }
 @keyframes matrix-style-reveal { 0% { opacity: 0; transform: translateY(-15px) scale(1.5); color: var(--vyuka-accent-lime); filter: blur(2px); } 30% { opacity: 0.7; color: var(--vyuka-accent-secondary); } 100% { opacity: 1; transform: translateY(0) scale(1); color: var(--vyuka-text-primary); filter: blur(0); } }
 .initial-loading-overlay p.loading-text span:nth-child(1) { animation-delay: 0s; }
-/* ... (až po span:nth-child(22) pro celý text) ... */
 .initial-loading-overlay p.loading-text span:nth-child(22) { animation-delay: 0.94s; }
 
-/* --- Notifikace --- */
+/* --- Notifikace (pokračování) --- */
+/* ... (zbytek stylů pro .notifications-dropdown-wrapper, .notification-item, atd. zůstává stejný) ... */
 .notifications-dropdown-wrapper { background-color: var(--vyuka-notification-bg); border: 1px solid var(--vyuka-notification-border); box-shadow: var(--vyuka-notification-shadow); border-radius: var(--vyuka-card-radius); width: 400px; }
 .notifications-header { padding: 0.8rem 1.2rem; border-bottom: 1px solid var(--vyuka-border-color); background-color: rgba(var(--vyuka-bg-dark), 0.3); }
 .notifications-title { font-family: var(--vyuka-font-secondary); font-size: 0.95rem; color: var(--vyuka-accent-primary); text-shadow: var(--vyuka-text-glow-primary); text-transform: uppercase; letter-spacing: 0.5px; }
 .mark-all-read-btn { font-size: 0.75rem; padding: 0.3rem 0.6rem; color: var(--vyuka-text-link); border: 1px solid transparent; border-radius: var(--vyuka-button-radius); background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.1); }
 .mark-all-read-btn:hover:not(:disabled) { color: var(--vyuka-text-link-hover); background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.2); border-color: var(--vyuka-accent-secondary); text-decoration: none; }
-#notifications-list { max-height: 380px; }
+#notifications-list { max-height: 380px; overflow-y: auto; }
 .notification-item { padding: 0.8rem 1.2rem; gap: 0.8rem; border-bottom: 1px solid var(--vyuka-border-color); transition: background-color var(--animation-duration-fast) ease, transform var(--animation-duration-fast) ease, box-shadow var(--animation-duration-fast) ease, opacity var(--vyuka-notification-hide-duration) ease-out, max-height var(--vyuka-notification-hide-duration) ease-out, padding var(--vyuka-notification-hide-duration) ease-out, margin var(--vyuka-notification-hide-duration) ease-out; overflow: hidden; }
 .notification-item:hover { background-color: var(--vyuka-notification-item-hover-bg); transform: translateX(3px); box-shadow: inset 3px 0 0 var(--vyuka-accent-secondary); }
 .notification-item.is-read { opacity: 0.6; background-color: rgba(var(--vyuka-bg-dark), 0.2); }
@@ -332,9 +511,11 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
 .notification-item.skeleton .skeleton { background: linear-gradient(90deg, var(--skeleton-base-color) 25%, var(--skeleton-shine-color) 50%, var(--skeleton-base-color) 75%); background-size: 200% 100%; animation: skeleton-wave var(--skeleton-animation-duration) linear infinite; }
 @keyframes skeleton-wave { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-/* --- Toast, Modal, Footer, Responzivita --- */
+
+/* --- Toast, Modal, Responzivita (pokračování) --- */
+/* ... (zbytek stylů pro .toast-container, .modal-overlay, @media queries, atd. zůstává stejný) ... */
 .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1050; display: flex; flex-direction: column; gap: 0.8rem; max-width: 380px; pointer-events: none; }
-.toast { padding: 1rem 1.2rem; border-radius: var(--vyuka-card-radius); background: var(--vyuka-bg-panel-translucent); backdrop-filter: blur(5px); box-shadow: var(--vyuka-shadow-medium); display: flex; align-items: flex-start; color: var(--vyuka-text-primary); animation: toast-in-anim 0.4s cubic-bezier(0.215, 0.610, 0.355, 1) forwards; pointer-events: auto; border: 1px solid var(--vyuka-border-color); border-left-width: 4px; opacity: 0; transform: translateX(110%); }
+.toast { padding: 1rem 1.2rem; border-radius: var(--vyuka-card-radius); background: rgba(var(--vyuka-bg-panel-rgb), 0.8); backdrop-filter: blur(5px); box-shadow: var(--vyuka-panel-shadow); display: flex; align-items: flex-start; color: var(--vyuka-text-primary); animation: toast-in-anim 0.4s cubic-bezier(0.215, 0.610, 0.355, 1) forwards; pointer-events: auto; border: 1px solid var(--vyuka-border-color); border-left-width: 4px; opacity: 0; transform: translateX(110%); }
 .toast.show { opacity: 1; transform: translateX(0); }
 .toast.success { border-left-color: var(--vyuka-accent-success); } .toast.error { border-left-color: var(--vyuka-accent-error); } .toast.info { border-left-color: var(--vyuka-accent-secondary); } .toast.warning { border-left-color: var(--vyuka-accent-tertiary); }
 .toast-icon { margin-right: 0.8rem; font-size: 1.2rem; flex-shrink: 0; margin-top: 3px; filter: drop-shadow(0 0 3px currentColor); }
@@ -360,12 +541,13 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
 .offline-banner i { margin-right: 0.6rem; animation: blinkWarning 1.3s infinite ease-in-out; }
 @keyframes blinkWarning { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
-.sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(3, 2, 12, 0.7); z-index: 999; opacity: 0; transition: opacity var(--transition-medium) ease; backdrop-filter: blur(5px); }
-.sidebar-overlay.active { display: block; opacity: 1; }
+.sidebar-overlay-ai { position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark-rgb), 0.7); z-index: 1001; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; backdrop-filter: blur(3px); }
+.sidebar-overlay-ai.active { opacity: 1; visibility: visible; transition-delay: 0s; }
+
 
 @media (max-width: 1200px) {
-    .vyuka-main-content { flex-direction: column; overflow-y: auto; }
-    .vyuka-whiteboard-area, .vyuka-chat-panel { flex: none; width: 100%; height: auto; min-height: 60vh; }
+    .vyuka-main-content { flex-direction: column; /* overflow-y: auto; -- Removed as page-container scrolls */ }
+    .vyuka-whiteboard-area, .vyuka-chat-panel { flex: none; width: 100%; /* height: auto; -- Let content define height or use min-height */ min-height: 60vh; /* Ensure they take significant space */ }
     .vyuka-chat-panel { max-height: none; }
 }
 @media (max-width: 992px) {
@@ -381,7 +563,7 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
     .vyuka-sidebar-ai.expanded ~ .vyuka-page-container { margin-left: var(--vyuka-sidebar-width-expanded); }
     .vyuka-header-left .sidebar-ai-desktop-toggle { display: block; }
     .vyuka-header-left .mobile-menu-toggle { display: none; }
-    .vyuka-header-user-display { display: none; } /* Hide user display on medium screens, show only on mobile if needed */
+    .vyuka-header-user-display { display: none; }
 }
 @media (max-width: 768px) {
     .vyuka-sidebar-ai { transform: translateX(-100%); width: var(--vyuka-sidebar-width-expanded); z-index: 1002; }
@@ -400,7 +582,7 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
     .vyuka-header-right .btn-exit-vyuka span { display: none; }
     .vyuka-header-right .btn-exit-vyuka i { margin-right: 0; }
     .vyuka-header-right { gap: 0.3rem; }
-    .vyuka-main-content { padding: 0.8rem; gap: 0.8rem; }
+    .vyuka-main-content { padding: 0.8rem; gap: 0.8rem; /* flex-direction: column; -- This should already be default from 1200px media query */ }
     .vyuka-whiteboard-area, .vyuka-chat-panel { padding: 1rem; min-height: 45vh; }
     .vyuka-chat-panel { max-height: 50vh; }
     .vyuka-lesson-controls { flex-direction: column; }
@@ -413,17 +595,28 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
     .sidebar-overlay-ai.active { opacity: 1; visibility: visible; transition-delay: 0s; }
     .vyuka-footer .footer-grid {flex-direction: column; align-items: center; gap: 0.5rem;}
     .vyuka-footer .footer-column {margin-bottom: 0.5rem;}
-    .vyuka-header-user-display { max-width: 80px; } /* Ensure user display is small enough on mobile */
-    .vyuka-header-user-title { display:none;} /* Hide title on smallest screens to save space */
+    .vyuka-header-user-display { max-width: 80px; }
+    .vyuka-header-user-title { display:none;}
 }
 
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; animation-delay: -0.01ms !important; transition-delay: 0ms !important; will-change: auto !important; }
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        animation-delay: -0.01ms !important;
+        transition-delay: 0ms !important;
+        will-change: auto !important;
+    }
     .vyuka-sidebar-ai, .vyuka-page-container { transition: none !important; }
-    .mouse-follower-glow, body.new-vyuka-layout::before, body.new-vyuka-layout::after, .vyuka-sidebar-ai-logo i, .initial-loading-overlay .loading-spinner, .initial-loading-overlay p.loading-text span, .unread-dot, .offline-banner i { animation: none !important; }
+    .mouse-follower-glow, body.new-vyuka-layout::before, body.new-vyuka-layout::after,
+    .vyuka-sidebar-ai-logo i, .initial-loading-overlay .loading-spinner,
+    .initial-loading-overlay p.loading-text span, .unread-dot,
+    .offline-banner i { animation: none !important; }
     .initial-loading-overlay .loading-spinner::after { animation: none !important; }
-    .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-logo .logo-text, .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link .link-text { animation: none !important; }
+    .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-logo .logo-text,
+    .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link .link-text { animation: none !important; }
     .toast.show { transform: translateX(0) !important; }
     .modal-overlay.visible .modal-content.card { transform: scale(1) !important; opacity: 1 !important; }
     .notification-item.hiding { animation: none !important; opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; border-width: 0; }
@@ -436,23 +629,3 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
 .tooltipster-sidetip.tooltipster-vyuka .tooltipster-arrow-border { border-color: var(--vyuka-accent-primary); }
 .tooltipster-sidetip.tooltipster-vyuka.tooltipster-top .tooltipster-arrow-background,
 .tooltipster-sidetip.tooltipster-vyuka.tooltipster-top .tooltipster-arrow-border { border-top-color: var(--vyuka-accent-primary); }
-
-/* Fix for MathJax display in Cyberpunk theme */
-mjx-container {
-    background-color: var(--vyuka-bg-panel-lighter) !important;
-    border: 1px solid var(--vyuka-border-color) !important;
-    padding: 0.5em !important;
-    border-radius: var(--vyuka-card-radius) !important;
-    color: var(--vyuka-text-primary) !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    max-width: 100% !important;
-}
-mjx-math {
-    color: var(--vyuka-accent-secondary) !important; /* Make math stand out */
-    font-size: 1.1em !important; /* Slightly larger math font */
-}
-/* Ensure proper rendering of fractions, roots etc. */
-mjx-mfrac, mjx-msqrt, mjx-mtable {
-    color: inherit !important;
-}
