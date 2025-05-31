@@ -1,4 +1,4 @@
-/* dashboard/procvicovani/vyuka/vyuka.css - EXTREME CYBERPUNK OVERHAUL v10 - Footer Final Placement */
+/* dashboard/procvicovani/vyuka/vyuka.css - EXTREME CYBERPUNK OVERHAUL v11 - Ultimate Footer Placement & Scroll Fix */
 
 /* --- Základní proměnné --- */
 :root {
@@ -112,23 +112,23 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
     margin-left: var(--vyuka-sidebar-width-collapsed);
     display: flex;
     flex-direction: column;
-    height: 100vh; /* Full viewport height */
+    height: 100vh;
     transition: margin-left 0.3s var(--animation-timing-cyber);
-    overflow: hidden; /* IMPORTANT: Prevent this container itself from scrolling */
-    background-color: var(--vyuka-bg-dark) !important; /* Ensures page has a base background */
+    overflow: hidden;
+    background-color: var(--vyuka-bg-dark) !important;
 }
 .vyuka-sidebar-ai.expanded ~ .vyuka-page-container {
     margin-left: var(--vyuka-sidebar-width-expanded);
 }
 
-.vyuka-main-content-scrollable { /* This is the actual scrollable area */
-    flex-grow: 1; /* Takes up all available vertical space */
-    overflow-y: auto; /* Enables vertical scrolling FOR ITS CONTENT (header, main, footer) */
+.vyuka-main-content-scrollable {
+    flex-grow: 1;
+    overflow-y: auto; /* THIS IS THE MAIN SCROLLBAR */
     overflow-x: hidden;
     display: flex;
-    flex-direction: column; /* Stacks header, main-content, and footer vertically */
+    flex-direction: column;
     position: relative;
-    background-color: transparent; /* This container does not need its own background */
+    background-color: transparent;
 }
 .vyuka-main-content-scrollable::-webkit-scrollbar { width: 8px; height: 8px; }
 .vyuka-main-content-scrollable::-webkit-scrollbar-track { background: rgba(var(--vyuka-bg-dark), 0.7); }
@@ -145,43 +145,41 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
     padding: 0 1.2rem;
     flex-shrink: 0; /* Header should not shrink */
     box-shadow: 0 3px 15px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(var(--vyuka-border-color),0.5);
-    position: sticky; /* Header will stick to the top OF THE SCROLLABLE CONTAINER */
+    position: sticky; /* Header sticks to the top of .vyuka-main-content-scrollable */
     top: 0;
-    z-index: 950; /* Ensure header is above main content but below modals */
+    z-index: 950;
 }
 body.scrolled .vyuka-header {
     background-color: rgba(var(--vyuka-bg-panel-rgb), 0.95);
     box-shadow: 0 5px 20px rgba(0,0,0,0.4), 0 0 15px rgba(var(--vyuka-accent-primary-rgb), 0.1) inset;
 }
 
-.vyuka-main-content { /* This is the container for whiteboard and chat */
+.vyuka-main-content { /* Container for whiteboard and chat */
     display: flex;
-    flex-grow: 1; /* This area grows to push the footer down */
+    flex-grow: 1; /* THIS IS CRITICAL - it will push the footer down */
     padding: 2rem;
     gap: 2rem;
-    background-color: transparent; /* No background needed for this intermediate container */
-    min-height: 0; /* Important for flex children in some cases */
+    background-color: transparent;
+    min-height: 0; /* Fix for flex children sometimes not shrinking properly */
     position: relative;
-    z-index: 10; /* Ensure it's above any potential background elements but below header/modals */
+    z-index: 10; /* Above potential page background elements, below header */
 }
 
-/* --- Footer --- */
+/* Footer Styles (these are already in vyuka.html <style>, but adding them here for completeness and potential override) */
 .main-footer.vyuka-footer {
-    flex-shrink: 0; /* Prevent footer from shrinking */
-    /* margin-top: auto; is crucial for flex layout inside .vyuka-main-content-scrollable */
-    /* This pushes the footer to the bottom if .vyuka-main-content doesn't fill all space */
-    margin-top: auto;
-
+    flex-shrink: 0; /* Footer does not shrink */
+    margin-top: auto; /* KEY: Pushes footer to the bottom of the flex container (.vyuka-main-content-scrollable) */
     background-color: var(--vyuka-bg-panel) !important;
-    color: var(--vyuka-text-secondary) !important;
     padding: 2.5rem 0 !important;
     border-top: 2px solid var(--vyuka-accent-primary) !important;
     box-shadow: 0 -5px 20px -5px rgba(var(--vyuka-accent-primary-rgb), 0.25) !important;
-    position: relative !important; /* Override potential fixed/absolute positioning */
+    color: var(--vyuka-text-secondary) !important;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    position: relative !important; /* Override any fixed/absolute from other CSS files */
     width: 100% !important;
-    z-index: 5 !important; /* Lower than main content and header */
+    z-index: 5 !important; /* Ensure it's below main content if absolutely necessary, but relative should suffice */
 }
-/* Styles for content within the footer are taken from vyuka.html's <style> block */
 .vyuka-footer .container { max-width: var(--container-max-width, 1140px); margin-left: auto; margin-right: auto; padding-left: var(--container-padding-x, 15px); padding-right: var(--container-padding-x, 15px); }
 .vyuka-footer .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2.5rem; text-align: left; }
 .vyuka-footer .footer-column .logo { display: inline-flex; align-items: center; font-family: var(--vyuka-font-accent, 'Audiowide', cursive); font-size: 1.9rem; font-weight: 700; color: var(--vyuka-text-heading, #E0E7FF); text-decoration: none; margin-bottom: 1.25rem; transition: opacity 0.2s ease, text-shadow 0.2s ease; }
@@ -235,10 +233,7 @@ body.scrolled .vyuka-header {
 .vyuka-sidebar-ai-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--vyuka-border-highlight); display: flex; justify-content: center; min-height: 50px; font-size: 0.75rem; opacity: 0.7; color: var(--vyuka-text-muted); }
 .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-footer { animation: text-focus-in 0.6s ease 0.25s both; }
 
-/* Header specific elements and Avatar Fix - Unchanged from previous version */
-.vyuka-header-left, .vyuka-header-right, .vyuka-header-user-avatar-wrapper, .vyuka-header-avatar-img {
-    /* All these styles remain the same as in v8 */
-}
+/* --- All other CSS from previous versions (Header, Avatar Fix, Whiteboard, Chat, Loader, Responsive, Modals, etc.) remains below this line --- */
 .vyuka-header-left { display: flex; align-items: center; gap: 0.8rem; }
 .vyuka-header-left .mobile-menu-toggle { display: none; color: var(--vyuka-text-muted); font-size: 1.4rem; }
 .vyuka-header-left .sidebar-ai-desktop-toggle { color: var(--vyuka-text-muted); font-size: 1.1rem; background: rgba(var(--vyuka-bg-panel-lighter),0.7); border: 1px solid var(--vyuka-border-color); cursor: pointer; padding: 0.5rem 0.7rem; border-radius: var(--vyuka-button-radius); transition: all var(--animation-duration-fast) ease; }
@@ -269,8 +264,6 @@ body.scrolled .vyuka-header {
 .logout-btn:hover { background-color: var(--vyuka-accent-error); color: var(--vyuka-text-on-accent); border-color: var(--vyuka-accent-error); box-shadow: 0 0 10px var(--vyuka-accent-error); }
 .btn-exit-vyuka { font-size: 0.75rem; padding: 0.35rem 0.7rem; background: rgba(var(--vyuka-accent-pink-rgb),0.1); border-color: rgba(var(--vyuka-accent-pink-rgb),0.4); color: var(--vyuka-accent-pink); }
 .btn-exit-vyuka:hover { background: var(--vyuka-accent-pink); color: var(--vyuka-bg-dark); border-color: var(--vyuka-accent-pink); box-shadow: 0 0 10px var(--vyuka-accent-pink), 0 0 15px var(--vyuka-accent-pink); }
-
-/* Whiteboard, Chat, Loader, Responsive, etc. - Unchanged from v8 (already includes those fixes) */
 .vyuka-whiteboard-area, .vyuka-chat-panel { background-color: rgba(var(--vyuka-bg-panel-rgb), 0.92); backdrop-filter: blur(10px) saturate(1.1) brightness(0.95); padding: 1.5rem; display: flex; flex-direction: column; overflow: hidden; border-radius: var(--vyuka-card-radius); border: 1px solid var(--vyuka-border-cyber); box-shadow: 0 0 28px rgba(var(--vyuka-accent-secondary-rgb),0.25), inset 0 0 22px rgba(var(--vyuka-bg-dark),0.8), inset 0 0 10px var(--vyuka-border-cyber-secondary); position: relative; transition: box-shadow var(--animation-duration-medium) ease-in-out, border-color var(--animation-duration-medium) ease-in-out; }
 .vyuka-whiteboard-area:hover, .vyuka-chat-panel:hover { box-shadow: 0 0 35px rgba(var(--vyuka-accent-secondary-rgb),0.4), 0 0 55px rgba(var(--vyuka-accent-primary-rgb),0.25), inset 0 0 28px rgba(var(--vyuka-bg-dark),0.65), inset 0 0 15px var(--vyuka-border-cyber-secondary); border-color: var(--vyuka-border-cyber-secondary); }
 .vyuka-whiteboard-area::before, .vyuka-chat-panel::before, .vyuka-whiteboard-area::after, .vyuka-chat-panel::after { content: ''; position: absolute; width: 25px; height: 25px; border-style: solid; border-color: var(--vyuka-accent-secondary); opacity: 1; pointer-events: none; z-index: 5; transition: all 0.35s var(--animation-timing-cyber); box-shadow: 0 0 10px -2px var(--vyuka-accent-secondary); }
@@ -320,6 +313,7 @@ body.scrolled .vyuka-header {
 .chat-controls span { color: var(--vyuka-text-muted); opacity: 0.5; font-size: 0.9rem; }
 .chat-controls button:not(.btn-icon-only) { border-radius: var(--vyuka-button-radius); padding: 0.3rem 0.7rem; width: auto; font-size: 0.75rem; gap: 0.4em; }
 .chat-controls button#clear-chat-btn:hover, .chat-controls button#save-chat-btn:hover { color: var(--vyuka-accent-primary); border-color: var(--vyuka-accent-primary); background-color: rgba(var(--vyuka-accent-primary-rgb), 0.15); }
+
 .initial-loading-overlay { position: fixed; inset: 0; background-color: var(--vyuka-loader-bg-color); z-index: 1100; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 2.5rem; transition: opacity 0.9s cubic-bezier(0.25, 1, 0.5, 1), visibility 0s 0.9s; opacity: 1; visibility: visible; background-image: repeating-linear-gradient(45deg, transparent, transparent 12px, rgba(var(--vyuka-border-color), 0.04) 12px, rgba(var(--vyuka-border-color), 0.04) 14px), radial-gradient(circle at center, rgba(var(--vyuka-accent-secondary-rgb), 0.06) 0%, transparent 50%); background-size: auto, 100% 100%; animation: overlay-pulse 4s infinite alternate ease-in-out; }
 @keyframes overlay-pulse { 0% { background-color: rgba(var(--vyuka-bg-dark-rgb), 0.97); } 100% { background-color: rgba(var(--vyuka-bg-dark-rgb), 0.99); } }
 .initial-loading-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
@@ -362,3 +356,6 @@ mjx-mfrac, mjx-msqrt, mjx-mtable { color: inherit !important; }
 .notifications-dropdown-wrapper, .notifications-header, .notifications-title, .mark-all-read-btn, #notifications-list, .notification-item, .notification-icon, .notification-content, .notification-title, .notification-message, .notification-time, .unread-dot, .notifications-footer, .view-all-notifications-link, #no-notifications-msg, .notification-item.hiding, .notification-item.skeleton .skeleton,
 .toast-container, .toast, .modal-overlay, .modal-content.card, .modal-close-btn, .modal-icon, .modal-title, .modal-text, .modal-actions,
 .offline-banner, .sidebar-overlay-ai
+{
+    /* Styles as defined previously or in vyuka.html */
+}
