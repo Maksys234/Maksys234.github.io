@@ -22,21 +22,21 @@
                     fontCache: 'global'
                 },
                 options: {
-                    ignoreHtmlClass: 'tex2jax_ignore', // Třída pro ignorování MathJaxem
-                    processHtmlClass: 'tex2jax_process' // Třída pro explicitní zpracování
+                    ignoreHtmlClass: 'tex2jax_ignore',
+                    processHtmlClass: 'tex2jax_process'
                 },
                 startup: {
                     ready: () => {
-                        console.log('[MathJax Config] MathJax Startup: Ready (test1.html).');
+                        console.log('[MathJax Config] MathJax Startup: Ready.');
                         MathJax.startup.defaultReady();
                         MathJax.startup.promise.then(() => {
-                            console.log('[MathJax Config] MathJax Startup: Core Ready (test1.html).');
+                            console.log('[MathJax Config] MathJax Startup: Core Ready.');
                         });
                     }
                 }
             };
         } else {
-            console.warn("[MathJax Config] window.MathJax already defined (test1.html). Skipping default config.");
+            console.warn("[MathJax Config] window.MathJax already defined. Skipping default config.");
         }
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -61,6 +61,12 @@
             <div class="spinner-blade"></div>
             <div class="spinner-blade"></div>
             <div class="spinner-blade"></div>
+            {/* */}
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div>
+            {/* */}
          </div>
          <p class="loading-text" id="loading-text-anim"><span>S</span><span>Y</span><span>N</span><span>C</span><span>H</span><span>R</span><span>O</span><span>N</span><span>I</span><span>Z</span><span>U</span><span>J</span><span>I</span><span>&nbsp;</span><span>M</span><span>O</span><span>D</span><span>U</span><span>L</span><span>.</span><span>.</span><span>.</span></p>
      </div>
@@ -101,10 +107,7 @@
             </li>
         </ul>
         <div class="vyuka-sidebar-ai-footer">
-            {/* <button class="vyuka-sidebar-ai-toggle" id="vyuka-sidebar-ai-toggle" aria-label="Přepnout postranní panel AI">
-                <i class="fas fa-bars"></i>
-            </button>
-            --> */}
+            {/* */}
         </div>
     </aside>
 
@@ -115,7 +118,7 @@
                     <i class="fas fa-bars"></i>
                 </button>
                 <button class="btn btn-icon-only sidebar-ai-desktop-toggle" id="sidebar-ai-desktop-toggle" aria-label="Přepnout postranní panel AI" title="Přepnout postranní panel AI">
-                    <i class="fas fa-chevron-left"></i> {/* Icon changes in JS based on state */}
+                    <i class="fas fa-chevron-left"></i>
                 </button>
                 <div class="vyuka-header-topic-info">
                     <h1 id="vyuka-subject-title">Mathematics</h1>
@@ -137,6 +140,7 @@
                              <button class="mark-all-read-btn btn btn-secondary btn-sm" id="mark-all-read" disabled>Vymazat vše</button>
                          </div>
                          <div id="notifications-list">
+                              {/* */}
                              <div id="no-notifications-msg" style="display: none; padding: 1rem; text-align: center; color: var(--text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div>
                          </div>
                          <div class="notifications-footer">
@@ -144,15 +148,28 @@
                          </div>
                     </div>
                  </div>
-                <div class="vyuka-header-user-display">
-                    <div class="vyuka-header-user-avatar-wrapper">
-                        <img src="" alt="Avatar" id="vyuka-header-avatar" class="vyuka-header-avatar-img">
+                {/* */}
+                <div class="user-menu-container">
+                    <div class="vyuka-header-user-display">
+                        <div class="vyuka-header-user-avatar-wrapper">
+                            <img src="" alt="Avatar" id="vyuka-header-avatar" class="vyuka-header-avatar-img">
+                        </div>
+                        <div class="vyuka-header-user-details">
+                            <span class="vyuka-header-user-name" id="vyuka-header-user-name">Pilot</span>
+                            <span class="vyuka-header-user-title" id="vyuka-header-user-title">Vesmírný kadet</span>
+                        </div>
                     </div>
-                    <div class="vyuka-header-user-details">
-                        <span class="vyuka-header-user-name" id="vyuka-header-user-name">Pilot</span>
-                        <span class="vyuka-header-user-title" id="vyuka-header-user-title">Vesmírný kadet</span>
+                    <div class="user-dropdown-menu" id="user-dropdown-menu">
+                        <ul class="user-dropdown-links">
+                            <li><a href="/privacy-policy.html"><i class="fas fa-shield-alt"></i> Ochrana Údajů</a></li>
+                            <li><a href="/terms.html"><i class="fas fa-file-contract"></i> Podmínky Použití</a></li>
+                        </ul>
+                        <button class="btn btn-danger btn-sm logout-btn" id="vyuka-logout-btn">
+                            <i class="fas fa-power-off"></i> Odhlásit se
+                        </button>
                     </div>
                 </div>
+                {/* */}
                  <a href="/dashboard/procvicovani/main.html" class="btn btn-secondary btn-tooltip btn-exit-vyuka" title="Ukončit výuku a vrátit se na přehled">
                     <i class="fas fa-times"></i> Ukončit
                 </a>
@@ -186,6 +203,18 @@
             <aside class="vyuka-chat-panel" id="vyuka-chat-panel">
                 <div class="vyuka-chat-header">
                     <h3 id="current-topic-display"><span class="placeholder">Načítám téma...</span></h3>
+                     {/* */}
+                    <div class="ai-model-selector-container">
+                        <label for="ai-model-select" class="ai-model-label btn-tooltip" title="Vyberte jazykový model AI">
+                            <i class="fas fa-cogs"></i> Model:
+                        </label>
+                        <select id="ai-model-select" class="ai-model-select">
+                            <option value="gemini-2.0-flash" selected>Gemini 2.0 Flash</option>
+                            <option value="gemini-1.5-flash" disabled>Gemini 1.5 Flash (Brzy)</option>
+                            <option value="gemini-1.5-pro" disabled>Gemini 1.5 Pro (Brzy)</option>
+                        </select>
+                    </div>
+                    {/* */}
                 </div>
                 <div class="interaction-panel-content">
                     <div id="chat-tab-content" class="tab-content active">
@@ -211,11 +240,15 @@
                                  </div>
                              </div>
                              <div class="chat-controls">
-                                 <button id="mic-btn" class="btn-tooltip" title="Zahájit hlasový vstup">
+                                 <button id="mic-btn" class="btn btn-icon-only btn-tooltip" title="Zahájit hlasový vstup">
                                      <i class="fas fa-microphone"></i>
                                  </button>
-                                 <button id="clear-chat-btn" class="btn-tooltip" title="Vymazat historii tohoto chatu"> <i class="fas fa-trash-alt"></i> Vymazat chat </button>
-                                 <span>|</span> <button id="save-chat-btn" class="btn-tooltip" title="Uložit chat jako PDF"> <i class="fas fa-save"></i> Uložit chat </button>
+                                 <button id="clear-chat-btn" class="btn btn-icon-only btn-tooltip" title="Vymazat historii tohoto chatu">
+                                     <i class="fas fa-trash-alt"></i>
+                                 </button>
+                                  <button id="save-chat-btn" class="btn btn-icon-only btn-tooltip" title="Uložit chat jako PDF">
+                                      <i class="fas fa-save"></i>
+                                  </button>
                              </div>
                         </section>
                      </div>
@@ -278,12 +311,27 @@
     <script src="vyuka-ai-interaction.js" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const currentYearFooterVyuka = document.querySelector('.vyuka-footer #currentYearFooter');
+            const currentYearFooterVyuka = document.querySelector('.vyuka-footer #currentYearFooter'); // Assuming footer has this ID in its span
             if (currentYearFooterVyuka) { currentYearFooterVyuka.textContent = new Date().getFullYear(); }
-            // The sidebar footer currentYear is already handled by dashboard.css and dashboard.js logic
-            // if it's the same sidebar. If it's a different one, this would be needed:
-            const currentYearSidebarVyuka = document.querySelector('.vyuka-sidebar-ai #currentYearSidebar'); // Ensure this ID exists if specific to this sidebar
+
+            const currentYearSidebarVyuka = document.querySelector('.vyuka-sidebar-ai-footer #currentYearSidebar'); // Assuming sidebar footer has this ID
             if (currentYearSidebarVyuka) { currentYearSidebarVyuka.textContent = new Date().getFullYear(); }
+
+            // Logout functionality (example, might be handled globally in vyuka-core.js)
+            const logoutButton = document.getElementById('vyuka-logout-btn');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', async () => {
+                    if (VyukaApp && VyukaApp.state && VyukaApp.state.supabase) {
+                        const { error } = await VyukaApp.state.supabase.auth.signOut();
+                        if (error) {
+                            console.error("Chyba při odhlášení:", error);
+                            VyukaApp.showToast('Chyba odhlášení', error.message, 'error');
+                        } else {
+                            window.location.href = '/auth/index.html'; // Nebo na hlavní stránku
+                        }
+                    }
+                });
+            }
         });
     </script>
 </body>
