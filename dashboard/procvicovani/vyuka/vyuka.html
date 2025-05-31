@@ -6,7 +6,7 @@
     <title>Justax - Výuka s AI // Kyber-Verze</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Audiowide&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <script>
@@ -49,252 +49,21 @@
 
     <link rel="stylesheet" href="vyuka.css">
     <link rel="stylesheet" href="../../dashboard.css">
-    <style>
-        /* --- START: Skeleton Loader Animation --- */
-        .skeleton {
-            background-color: var(--skeleton-bg, rgba(var(--vyuka-accent-secondary-rgb), 0.1));
-            border-radius: var(--vyuka-card-radius, 6px);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .skeleton::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -150%; /* Start off-screen to the left */
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                var(--skeleton-shine-color, rgba(var(--vyuka-accent-secondary-rgb), 0.25)),
-                transparent
-            );
-            animation: skeleton-wave var(--skeleton-animation-duration, 1.8s) linear infinite;
-        }
-
-        @keyframes skeleton-wave {
-            0% {
-                background-position: -200% 0;
-            }
-            100% {
-                background-position: 200% 0;
-            }
-        }
-        /* Specific skeleton placeholders if needed */
-        .skeleton-text-line { height: 1em; margin-bottom: 0.5em; width: 80%; }
-        .skeleton-text-line.short { width: 50%; }
-        .skeleton-text-line.long { width: 100%; }
-        .skeleton-avatar { width: 50px; height: 50px; border-radius: 50%; }
-        .skeleton-block { height: 100px; width: 100%; }
-        /* --- END: Skeleton Loader Animation --- */
-
-        /* --- START: Enhanced Sidebar Typography --- */
-        .vyuka-sidebar-ai-logo .logo-text {
-            font-size: 1.2em; /* Slightly larger */
-            font-weight: 700; /* Bolder */
-            text-shadow: 0 0 5px var(--vyuka-accent-secondary-glow, rgba(0, 245, 255, 0.5)); /* More pronounced glow */
-            letter-spacing: 0.5px;
-        }
-
-        .vyuka-sidebar-ai-link .link-text {
-            font-size: 0.9rem; /* Increased size */
-            font-weight: 500; /* Standard weight for readability */
-            letter-spacing: 0.3px; /* Subtle spacing for clarity */
-        }
-
-        .vyuka-sidebar-ai-link.active .link-text {
-            font-weight: 600; /* Bolder active link */
-            text-shadow: 0 0 3px var(--vyuka-accent-primary-glow, rgba(255, 0, 230, 0.4));
-        }
-        /* --- END: Enhanced Sidebar Typography --- */
-
-        /* --- START: Enhanced Footer Styles (inspired by dashboard.html) --- */
-        .main-footer.vyuka-footer {
-            background-color: var(--vyuka-bg-dark, #05080F); /* Darker footer background */
-            padding: 2.5rem 0; /* Increased padding */
-            margin-top: auto;
-            border-top: 2px solid var(--vyuka-accent-primary, #FF00E6);
-            box-shadow: 0 -5px 20px -5px rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.25); /* Top glow */
-            color: var(--vyuka-text-secondary, #A0AEC0);
-            font-size: 0.9rem;
-            line-height: 1.7;
-        }
-
-        .vyuka-footer .container { /* Assuming you'll wrap footer content in a .container */
-            max-width: var(--container-max-width, 1140px);
-            margin-left: auto;
-            margin-right: auto;
-            padding-left: var(--container-padding-x, 15px);
-            padding-right: var(--container-padding-x, 15px);
-        }
-
-        .vyuka-footer .footer-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive columns */
-            gap: 2.5rem;
-            text-align: left; /* Align text to left for columns */
-        }
-
-        .vyuka-footer .footer-column .logo {
-            display: inline-flex;
-            align-items: center;
-            font-family: var(--vyuka-font-accent, 'Audiowide', cursive); /* Accent font for logo */
-            font-size: 1.9rem;
-            font-weight: 700;
-            color: var(--vyuka-text-heading, #E0E7FF);
-            text-decoration: none;
-            margin-bottom: 1.25rem;
-            transition: opacity 0.2s ease, text-shadow 0.2s ease;
-        }
-        .vyuka-footer .footer-column .logo:hover {
-            opacity: 0.9;
-            text-shadow: var(--vyuka-text-glow-secondary);
-        }
-        .vyuka-footer .footer-column .logo i {
-            margin-right: 0.6rem;
-            color: var(--vyuka-accent-secondary, #00F5FF);
-            font-size: 1.1em; /* Slightly larger icon */
-        }
-
-        .vyuka-footer .footer-column p {
-            margin-bottom: 1.25rem;
-            color: var(--vyuka-text-secondary, #A0AEC0);
-            font-size: 0.875rem;
-            opacity: 0.9;
-        }
-
-        .vyuka-footer .footer-column h3 { /* Column titles */
-            font-family: var(--vyuka-font-secondary, 'Orbitron', sans-serif);
-            font-size: 1.15rem;
-            font-weight: 600;
-            color: var(--vyuka-text-heading, #E0E7FF);
-            margin-bottom: 1.25rem;
-            position: relative;
-            padding-left: 20px; /* Space for pseudo-element */
-            text-shadow: 0 0 5px rgba(var(--vyuka-accent-secondary-rgb, 0, 245, 255), 0.3);
-        }
-        .vyuka-footer .footer-column h3::before { /* Decorative element for titles */
-            content: '';
-            background-color: var(--vyuka-accent-secondary, #00F5FF);
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            position: absolute;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            box-shadow: 0 0 8px var(--vyuka-accent-secondary-glow, rgba(0, 245, 255, 0.5));
-        }
-
-        .vyuka-footer .footer-column .footer-links {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .vyuka-footer .footer-column .footer-links li {
-            margin-bottom: 0.6rem; /* Increased spacing */
-            transition: background-color 0.2s ease;
-            border-radius: var(--vyuka-button-radius, 4px);
-            padding: 0.25rem 0.5rem;
-            margin-left: -0.5rem; /* Counteract padding for alignment */
-        }
-        .vyuka-footer .footer-column .footer-links li:hover {
-            background-color: rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.07);
-        }
-
-        .vyuka-footer .footer-column .footer-links a,
-        .vyuka-footer .footer-column .footer-links span.icon-text-item { /* For non-link items with icons */
-            color: var(--vyuka-text-link, var(--vyuka-accent-secondary));
-            text-decoration: none;
-            font-size: 0.95rem;
-            transition: color 0.2s ease, text-shadow 0.2s ease;
-            display: flex;
-            align-items: center;
-            width: 100%;
-        }
-        .vyuka-footer .footer-column .footer-links li:hover a,
-        .vyuka-footer .footer-column .footer-links li:hover span.icon-text-item {
-            color: var(--vyuka-text-link-hover, var(--vyuka-text-primary));
-            text-shadow: 0 0 8px var(--vyuka-text-link-hover, var(--vyuka-text-primary));
-        }
-
-        .vyuka-footer .footer-column .footer-links a i,
-        .vyuka-footer .footer-column .footer-links span.icon-text-item i {
-            margin-right: 0.8em; /* More space for icon */
-            color: var(--vyuka-text-muted, #5A6788);
-            width: 18px; /* Slightly wider for icons */
-            text-align: center;
-            transition: color 0.2s ease, transform 0.2s ease;
-            flex-shrink: 0; /* Prevent icon from shrinking */
-        }
-        .vyuka-footer .footer-column .footer-links li:hover a i,
-        .vyuka-footer .footer-column .footer-links li:hover span.icon-text-item i {
-            color: inherit; /* Inherit color from parent <a> or <span> */
-            transform: scale(1.1);
-        }
-
-        .vyuka-footer .social-links {
-            display: flex;
-            gap: 1rem; /* Increased gap */
-            margin-top: 1.25rem;
-        }
-        .vyuka-footer .social-links .social-link {
-            width: 40px; /* Larger social icons */
-            height: 40px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: 1.5px solid var(--vyuka-border-color, #2C334C);
-            color: var(--vyuka-text-muted, #5A6788);
-            font-size: 1.2rem; /* Larger icon font size */
-            transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-            text-decoration: none;
-        }
-        .vyuka-footer .social-links .social-link:hover {
-            background-color: var(--vyuka-accent-primary, #FF00E6);
-            border-color: var(--vyuka-accent-primary, #FF00E6);
-            color: var(--vyuka-bg-dark, #05080F); /* Text color for contrast */
-            transform: translateY(-3px) scale(1.08);
-            box-shadow: 0 4px 12px rgba(var(--vyuka-accent-primary-rgb, 255, 0, 230), 0.4);
-        }
-
-        .vyuka-footer .footer-copyright { /* Optional copyright text styling */
-            grid-column: 1 / -1; /* Span all columns */
-            text-align: center;
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--vyuka-border-color, #2C334C);
-            font-size: 0.85rem;
-            color: var(--vyuka-text-muted, #5A6788);
-            opacity: 0.7;
-        }
-        /* --- END: Enhanced Footer Styles --- */
-
-    </style>
 </head>
 <body class="dark new-vyuka-layout">
     <div class="initial-loading-overlay" id="initial-loader">
          <div class="loading-spinner">
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div> <div class="spinner-blade"></div> <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div> <div class="spinner-blade"></div> <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div> <div class="spinner-blade"></div> <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div> <div class="spinner-blade"></div> <div class="spinner-blade"></div>
          </div>
          <p class="loading-text" id="loading-text-anim"><span>S</span><span>Y</span><span>N</span><span>C</span><span>H</span><span>R</span><span>O</span><span>N</span><span>I</span><span>Z</span><span>U</span><span>J</span><span>I</span><span>&nbsp;</span><span>M</span><span>O</span><span>D</span><span>U</span><span>L</span><span>.</span><span>.</span><span>.</span></p>
      </div>
 
      <div class="offline-banner" id="offline-banner"> <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO.</div>
+     <div class="sidebar-overlay-ai" id="sidebar-overlay-ai"></div>
+
 
     <aside class="vyuka-sidebar-ai" id="vyuka-sidebar-ai">
         <div class="vyuka-sidebar-ai-header">
@@ -330,193 +99,196 @@
             </li>
         </ul>
         <div class="vyuka-sidebar-ai-footer">
-             <span id="currentYearSidebarVyuka" style="display: none;"></span> </div>
+             <span id="currentYearSidebarVyuka" style="display: none;"></span>
+        </div>
     </aside>
 
     <div class="vyuka-page-container" id="vyuka-page-container">
-        <header class="vyuka-header" id="vyuka-header">
-            <div class="vyuka-header-left">
-                <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <button class="btn btn-icon-only sidebar-ai-desktop-toggle" id="sidebar-ai-desktop-toggle" aria-label="Přepnout postranní panel AI" title="Přepnout postranní panel AI">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <div class="vyuka-header-topic-info">
-                    <h1 id="vyuka-subject-title">Mathematics</h1>
-                    <p id="vyuka-topic-subtitle">Advanced Calculus</p>
+        <div class="vyuka-main-content-scrollable">
+            <header class="vyuka-header" id="vyuka-header">
+                <div class="vyuka-header-left">
+                    <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <button class="btn btn-icon-only sidebar-ai-desktop-toggle" id="sidebar-ai-desktop-toggle" aria-label="Přepnout postranní panel AI" title="Přepnout postranní panel AI">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="vyuka-header-topic-info">
+                        <h1 id="vyuka-subject-title">Justax - Vyuka</h1> {/* <<< ZMĚNA ZDE */}
+                        <p id="vyuka-topic-subtitle">Advanced Calculus</p>
+                    </div>
                 </div>
-            </div>
-            <div class="vyuka-header-right">
-                <a href="/dashboard/profile.html" class="btn btn-icon-only btn-tooltip" title="Nastavení profilu">
-                    <i class="fas fa-cog"></i>
-                </a>
-                <div class="notifications">
-                    <div class="notification-bell" id="notification-bell" title="Oznámení">
-                         <i class="far fa-bell"></i>
-                         <span class="notification-badge" id="notification-count">0</span>
-                    </div>
-                    <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
-                         <div class="notifications-header">
-                             <span class="notifications-title">PŘÍCHOZÍ SIGNÁLY</span>
-                             <button class="mark-all-read-btn btn btn-secondary btn-sm" id="mark-all-read" disabled>Vymazat vše</button>
-                         </div>
-                         <div id="notifications-list">
-                             <div class="notification-item skeleton"> <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 90%;"></div> <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div> </div> </div>
-                             <div id="no-notifications-msg" style="display: none; padding: 1rem; text-align: center; color: var(--text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div>
-                         </div>
-                         <div class="notifications-footer">
-                             <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a>
-                         </div>
-                    </div>
-                 </div>
-                <div class="user-menu-container">
-                    <div class="vyuka-header-user-display">
-                        <div class="vyuka-header-user-avatar-wrapper">
-                            <img src="" alt="Avatar" id="vyuka-header-avatar" class="vyuka-header-avatar-img">
+                <div class="vyuka-header-right">
+                    <a href="/dashboard/profile.html" class="btn btn-icon-only btn-tooltip" title="Nastavení profilu">
+                        <i class="fas fa-cog"></i>
+                    </a>
+                    <div class="notifications">
+                        <div class="notification-bell" id="notification-bell" title="Oznámení">
+                             <i class="far fa-bell"></i>
+                             <span class="notification-badge" id="notification-count">0</span>
                         </div>
-                        <div class="vyuka-header-user-details">
-                            <span class="vyuka-header-user-name" id="vyuka-header-user-name">Pilot</span>
-                            <span class="vyuka-header-user-title" id="vyuka-header-user-title">Vesmírný kadet</span>
+                        <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
+                             <div class="notifications-header">
+                                 <span class="notifications-title">PŘÍCHOZÍ SIGNÁLY</span>
+                                 <button class="mark-all-read-btn btn btn-secondary btn-sm" id="mark-all-read" disabled>Vymazat vše</button>
+                             </div>
+                             <div id="notifications-list">
+                                 <div class="notification-item skeleton"> <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 90%;"></div> <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div> </div> </div>
+                                 <div id="no-notifications-msg" style="display: none; padding: 1rem; text-align: center; color: var(--text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div>
+                             </div>
+                             <div class="notifications-footer">
+                                 <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a>
+                             </div>
                         </div>
-                    </div>
-                    <div class="user-dropdown-menu" id="user-dropdown-menu">
-                        <ul class="user-dropdown-links">
-                            <li><a href="/privacy-policy.html"><i class="fas fa-shield-alt"></i> Ochrana Údajů</a></li>
-                            <li><a href="/terms.html"><i class="fas fa-file-contract"></i> Podmínky Použití</a></li>
-                        </ul>
-                        <button class="btn btn-danger btn-sm logout-btn" id="vyuka-logout-btn">
-                            <i class="fas fa-power-off"></i> Odhlásit se
-                        </button>
-                    </div>
-                </div>
-                 <a href="/dashboard/procvicovani/main.html" class="btn btn-secondary btn-tooltip btn-exit-vyuka" title="Ukončit výuku a vrátit se na přehled">
-                    <i class="fas fa-times"></i> Ukončit
-                </a>
-            </div>
-        </header>
-
-        <main class="vyuka-main-content" id="vyuka-main-content">
-            <div class="error-container" id="global-error" style="display: none;"></div>
-
-            <div class="vyuka-whiteboard-area" id="ai-presenter-area">
-                <div id="whiteboard-container">
-                    <div id="whiteboard-content">
-                        <div class="skeleton-block" style="height: 150px; margin-bottom: 1rem;"></div>
-                        <div class="skeleton-text-line long"></div>
-                        <div class="skeleton-text-line"></div>
-                        <div class="skeleton-text-line short"></div>
-                    </div>
-                     <div id="board-speaking-indicator">
-                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-                    </div>
-                </div>
-                <div class="vyuka-lesson-controls">
-                     <button class="btn btn-primary btn-tooltip" id="continue-btn" style="display: none;" title="Požádat AI o další část vysvětlení">
-                         <i class="fas fa-forward"></i> Pokračovat s Lekcí
-                     </button>
-                     <button id="clear-board-btn" class="btn btn-secondary btn-tooltip" title="Vymazat obsah tabule">
-                         <i class="fas fa-eraser"></i> Vyčistit Tabuli
-                     </button>
-                      <button id="stop-speech-btn" class="btn btn-warning btn-tooltip" title="Zastavit aktuální čtení textu" disabled>
-                         <i class="fas fa-stop-circle"></i> Zastavit Řeč
-                     </button>
-                </div>
-            </div>
-
-            <aside class="vyuka-chat-panel" id="vyuka-chat-panel">
-                <div class="vyuka-chat-header">
-                    <h3 id="current-topic-display"><span class="placeholder">Načítám téma...</span></h3>
-                    <div class="ai-model-selector-container">
-                        <label for="ai-model-select" class="ai-model-label btn-tooltip" title="Vyberte jazykový model AI">
-                            <i class="fas fa-cogs"></i> Model:
-                        </label>
-                        <select id="ai-model-select" class="ai-model-select">
-                            <option value="gemini-2.0-flash" selected>Gemini 2.0 Flash</option>
-                            <option value="gemini-2.5-flash" disabled>Gemini 2.5 Flash (Brzy)</option>
-                            <option value="gemini-2.5-pro" disabled>Gemini 2.5 Pro (Brzy)</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="interaction-panel-content">
-                    <div id="chat-tab-content" class="tab-content active">
-                        <section class="chat-area">
-                             <div class="chat-messages" id="chat-messages">
-                                 <div class="initial-chat-interface">
-                                     <div class="ai-greeting-avatar">
-                                         <i class="fas fa-robot"></i>
-                                     </div>
-                                     <h3 class="initial-chat-title">AI Tutor Justax je připraven</h3>
-                                     <p class="initial-chat-message">Čekám na načtení tématu nebo vaši zprávu.</p>
-                                     <div class="initial-chat-status">
-                                         <span class="status-dot online"></span> Online
-                                     </div>
-                                 </div>
-                            </div>
-                             <div class="chat-input-area">
-                                 <div class="chat-input-wrapper">
-                                     <textarea class="chat-input" id="chat-input" placeholder="Zeptejte se nebo odpovězte..." rows="1"></textarea>
-                                     <button class="send-button" id="send-button" title="Odeslat zprávu">
-                                         <i class="fas fa-paper-plane"></i>
-                                     </button>
-                                 </div>
-                             </div>
-                             <div class="chat-controls">
-                                 <button id="mic-btn" class="btn btn-icon-only btn-tooltip" title="Zahájit hlasový vstup">
-                                     <i class="fas fa-microphone"></i>
-                                 </button>
-                                 <button id="clear-chat-btn" class="btn btn-icon-only btn-tooltip" title="Vymazat historii tohoto chatu">
-                                     <i class="fas fa-trash-alt"></i>
-                                 </button>
-                                  <button id="save-chat-btn" class="btn btn-icon-only btn-tooltip" title="Uložit chat jako PDF">
-                                      <i class="fas fa-save"></i>
-                                  </button>
-                             </div>
-                        </section>
                      </div>
-                </div>
-            </aside>
-        </main>
-
-        <footer class="main-footer vyuka-footer">
-            <div class="container">
-                <div class="footer-grid">
-                    <div class="footer-column">
-                        <a href="/dashboard/dashboard.html" class="logo" aria-label="Justax Domů">
-                            <i class="fas fa-atom" aria-hidden="true"></i> <span>JUSTAX</span>
-                        </a>
-                        <p>AI Augmentace Vzdělávání a Osobního Rozvoje.</p>
-                        <div class="social-links" aria-label="Sociální sítě">
-                             <a href="https://t.me/justaxspace" class="social-link" aria-label="Telegram" target="_blank" rel="noopener noreferrer"><i class="fab fa-telegram-plane" aria-hidden="true"></i></a>
-                             <a href="https://www.instagram.com/learnwithjustax/" class="social-link" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram" aria-hidden="true"></i></a>
-                             <a href="mailto:admin@justax.space" class="social-link" aria-label="Email"><i class="fas fa-envelope" aria-hidden="true"></i></a>
+                    <div class="user-menu-container">
+                        <div class="vyuka-header-user-display">
+                            <div class="vyuka-header-user-avatar-wrapper">
+                                <img src="" alt="Avatar" id="vyuka-header-avatar" class="vyuka-header-avatar-img">
+                            </div>
+                            <div class="vyuka-header-user-details">
+                                <span class="vyuka-header-user-name" id="vyuka-header-user-name">Pilot</span>
+                                <span class="vyuka-header-user-title" id="vyuka-header-user-title">Vesmírný kadet</span>
+                            </div>
+                        </div>
+                        <div class="user-dropdown-menu" id="user-dropdown-menu">
+                            <ul class="user-dropdown-links">
+                                <li><a href="/privacy-policy.html"><i class="fas fa-shield-alt"></i> Ochrana Údajů</a></li>
+                                <li><a href="/terms.html"><i class="fas fa-file-contract"></i> Podmínky Použití</a></li>
+                            </ul>
+                            <button class="btn btn-danger btn-sm logout-btn" id="vyuka-logout-btn">
+                                <i class="fas fa-power-off"></i> Odhlásit se
+                            </button>
                         </div>
                     </div>
-                    <div class="footer-column">
-                        <h3>Účet &amp; Dashboard</h3>
-                        <ul class="footer-links">
-                            <li><a href="/auth/"><i class="fas fa-sign-in-alt" aria-hidden="true"></i> Přihlášení / Registrace</a></li>
-                            <li><a href="/dashboard/dashboard.html"><i class="fas fa-tachometer-alt" aria-hidden="true"></i> Hlavní Panel</a></li>
-                            <li><a href="/dashboard/profile.html"><i class="fas fa-user-astronaut" aria-hidden="true"></i> Můj Profil</a></li>
-                            <li><a href="/dashboard/pokrok.html"><i class="fas fa-chart-line" aria-hidden="true"></i> Sledování Pokroku</a></li>
-                            <li><a href="/dashboard/oceneni.html"><i class="fas fa-medal" aria-hidden="true"></i> Moje Ocenění</a></li>
-                        </ul>
+                     <a href="/dashboard/procvicovani/main.html" class="btn btn-secondary btn-tooltip btn-exit-vyuka" title="Ukončit výuku a vrátit se na přehled">
+                        <i class="fas fa-times"></i> Ukončit
+                    </a>
+                </div>
+            </header>
+
+            <main class="vyuka-main-content" id="vyuka-main-content">
+                <div class="error-container" id="global-error" style="display: none;"></div>
+
+                <div class="vyuka-whiteboard-area" id="ai-presenter-area">
+                    <div id="whiteboard-container">
+                        <div id="whiteboard-content">
+                            <div class="skeleton-block" style="height: 150px; margin-bottom: 1rem;"></div>
+                            <div class="skeleton-text-line long"></div>
+                            <div class="skeleton-text-line"></div>
+                            <div class="skeleton-text-line short"></div>
+                        </div>
+                         <div id="board-speaking-indicator">
+                            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                        </div>
                     </div>
-                    <div class="footer-column">
-                        <h3>Právní &amp; Podpora</h3>
-                        <ul class="footer-links">
-                            <li><a href="/privacy-policy.html"><i class="fas fa-shield-alt" aria-hidden="true"></i> Ochrana Údajů</a></li>
-                            <li><a href="/terms.html"><i class="fas fa-file-contract" aria-hidden="true"></i> Podmínky Použití</a></li>
-                            <li><a href="mailto:admin@justax.space"><i class="fas fa-headset" aria-hidden="true"></i> Zákaznická Podpora</a></li>
-                            <li><span class="icon-text-item"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> Centrála: Cheb, CZ</span></li>
-                        </ul>
+                    <div class="vyuka-lesson-controls">
+                         <button class="btn btn-primary btn-tooltip" id="continue-btn" style="display: none;" title="Požádat AI o další část vysvětlení">
+                             <i class="fas fa-forward"></i> Pokračovat s Lekcí
+                         </button>
+                         <button id="clear-board-btn" class="btn btn-secondary btn-tooltip" title="Vymazat obsah tabule">
+                             <i class="fas fa-eraser"></i> Vyčistit Tabuli
+                         </button>
+                          <button id="stop-speech-btn" class="btn btn-warning btn-tooltip" title="Zastavit aktuální čtení textu" disabled>
+                             <i class="fas fa-stop-circle"></i> Zastavit Řeč
+                         </button>
                     </div>
                 </div>
-                <div class="footer-copyright">
-                    &copy; <span id="currentYearFooter">2025</span> Justax Systems. Všechna práva vyhrazena. Kyber-verze v28.1.
+
+                <aside class="vyuka-chat-panel" id="vyuka-chat-panel">
+                    <div class="vyuka-chat-header">
+                        <h3 id="current-topic-display"><span class="placeholder">Načítám téma...</span></h3>
+                        <div class="ai-model-selector-container">
+                            <label for="ai-model-select" class="ai-model-label btn-tooltip" title="Vyberte jazykový model AI">
+                                <i class="fas fa-cogs"></i> Model:
+                            </label>
+                            <select id="ai-model-select" class="ai-model-select">
+                                <option value="gemini-1.5-flash" selected>Gemini 1.5 Flash</option>
+                                <option value="gemini-1.5-pro" disabled>Gemini 1.5 Pro (Brzy)</option>
+                                <option value="gemini-2.0-flash" disabled>Gemini 2.0 Flash (Brzy)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="interaction-panel-content">
+                        <div id="chat-tab-content" class="tab-content active">
+                            <section class="chat-area">
+                                 <div class="chat-messages" id="chat-messages">
+                                     <div class="initial-chat-interface">
+                                         <div class="ai-greeting-avatar">
+                                             <i class="fas fa-robot"></i>
+                                         </div>
+                                         <h3 class="initial-chat-title">AI Tutor Justax je připraven</h3>
+                                         <p class="initial-chat-message">Čekám na načtení tématu nebo vaši zprávu.</p>
+                                         <div class="initial-chat-status">
+                                             <span class="status-dot online"></span> Online
+                                         </div>
+                                     </div>
+                                </div>
+                                 <div class="chat-input-area">
+                                     <div class="chat-input-wrapper">
+                                         <textarea class="chat-input" id="chat-input" placeholder="Zeptejte se nebo odpovězte..." rows="1"></textarea>
+                                         <button class="send-button" id="send-button" title="Odeslat zprávu">
+                                             <i class="fas fa-paper-plane"></i>
+                                         </button>
+                                     </div>
+                                 </div>
+                                 <div class="chat-controls">
+                                     <button id="mic-btn" class="btn btn-icon-only btn-tooltip" title="Zahájit hlasový vstup">
+                                         <i class="fas fa-microphone"></i>
+                                     </button>
+                                     <button id="clear-chat-btn" class="btn btn-icon-only btn-tooltip" title="Vymazat historii tohoto chatu">
+                                         <i class="fas fa-trash-alt"></i>
+                                     </button>
+                                      <button id="save-chat-btn" class="btn btn-icon-only btn-tooltip" title="Uložit chat jako PDF">
+                                          <i class="fas fa-save"></i>
+                                      </button>
+                                 </div>
+                            </section>
+                         </div>
+                    </div>
+                </aside>
+            </main>
+
+            <footer class="main-footer vyuka-footer">
+                <div class="container">
+                    <div class="footer-grid">
+                        <div class="footer-column">
+                            <a href="/dashboard/dashboard.html" class="logo" aria-label="Justax Domů">
+                                <i class="fas fa-atom" aria-hidden="true"></i> <span>JUSTAX</span>
+                            </a>
+                            <p>AI Augmentace Vzdělávání a Osobního Rozvoje.</p>
+                            <div class="social-links" aria-label="Sociální sítě">
+                                 <a href="https://t.me/justaxspace" class="social-link" aria-label="Telegram" target="_blank" rel="noopener noreferrer"><i class="fab fa-telegram-plane" aria-hidden="true"></i></a>
+                                 <a href="https://www.instagram.com/learnwithjustax/" class="social-link" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram" aria-hidden="true"></i></a>
+                                 <a href="mailto:admin@justax.space" class="social-link" aria-label="Email"><i class="fas fa-envelope" aria-hidden="true"></i></a>
+                            </div>
+                        </div>
+                        <div class="footer-column">
+                            <h3>Účet &amp; Dashboard</h3>
+                            <ul class="footer-links">
+                                <li><a href="/auth/"><i class="fas fa-sign-in-alt" aria-hidden="true"></i> Přihlášení / Registrace</a></li>
+                                <li><a href="/dashboard/dashboard.html"><i class="fas fa-tachometer-alt" aria-hidden="true"></i> Hlavní Panel</a></li>
+                                <li><a href="/dashboard/profile.html"><i class="fas fa-user-astronaut" aria-hidden="true"></i> Můj Profil</a></li>
+                                <li><a href="/dashboard/pokrok.html"><i class="fas fa-chart-line" aria-hidden="true"></i> Sledování Pokroku</a></li>
+                                <li><a href="/dashboard/oceneni.html"><i class="fas fa-medal" aria-hidden="true"></i> Moje Ocenění</a></li>
+                            </ul>
+                        </div>
+                        <div class="footer-column">
+                            <h3>Právní &amp; Podpora</h3>
+                            <ul class="footer-links">
+                                <li><a href="/privacy-policy.html"><i class="fas fa-shield-alt" aria-hidden="true"></i> Ochrana Údajů</a></li>
+                                <li><a href="/terms.html"><i class="fas fa-file-contract" aria-hidden="true"></i> Podmínky Použití</a></li>
+                                <li><a href="mailto:admin@justax.space"><i class="fas fa-headset" aria-hidden="true"></i> Zákaznická Podpora</a></li>
+                                <li><span class="icon-text-item"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> Centrála: Cheb, CZ</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="footer-copyright">
+                        &copy; <span id="currentYearFooter">2025</span> Justax Systems. Všechna práva vyhrazena. Kyber-verze v28.1.
+                    </div>
                 </div>
-            </div>
-        </footer>
+            </footer>
+        </div>
     </div>
 
     <div class="toast-container" id="toast-container"></div>
@@ -542,8 +314,20 @@
             const currentYearFooterVyuka = document.querySelector('.vyuka-footer #currentYearFooter');
             if (currentYearFooterVyuka) { currentYearFooterVyuka.textContent = new Date().getFullYear(); }
 
-            const currentYearSidebarVyuka = document.querySelector('.vyuka-sidebar-ai-footer #currentYearSidebar');
-            if (currentYearSidebarVyuka) { currentYearSidebarVyuka.textContent = new Date().getFullYear(); }
+            const currentYearSidebarVyukaElem = document.getElementById('currentYearSidebarVyuka');
+            if (currentYearSidebarVyukaElem) {
+                currentYearSidebarVyukaElem.textContent = new Date().getFullYear();
+                currentYearSidebarVyukaElem.style.display = 'inline'; // Make it visible
+            } else {
+                const fallbackSidebarYear = document.querySelector('.vyuka-sidebar-ai-footer span');
+                if(fallbackSidebarYear && fallbackSidebarYear.id !== 'currentYearSidebarVyuka') {
+                    console.warn("Fallback: Setting year in generic span in sidebar footer as #currentYearSidebarVyuka not found.");
+                    fallbackSidebarYear.textContent = new Date().getFullYear();
+                     fallbackSidebarYear.style.display = 'inline';
+                } else if (!currentYearSidebarVyukaElem) {
+                     console.warn("Element #currentYearSidebarVyuka for sidebar year not found.");
+                }
+            }
 
             const logoutButton = document.getElementById('vyuka-logout-btn');
             if (logoutButton) {
@@ -562,6 +346,15 @@
                     }
                 });
             }
+
+             const scrollableContent = document.querySelector('.vyuka-main-content-scrollable');
+             const header = document.getElementById('vyuka-header');
+             if (scrollableContent && header) {
+                 scrollableContent.addEventListener('scroll', () => {
+                     document.body.classList.toggle('scrolled', scrollableContent.scrollTop > 20);
+                 });
+                 document.body.classList.toggle('scrolled', scrollableContent.scrollTop > 20);
+             }
         });
     </script>
 </body>
