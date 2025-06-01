@@ -9,6 +9,7 @@
 // VERZE K ÚPRAVĚ: Odstranění sloupce source_year
 // VERZE PRO UŽIVATELE (Implementace 'math_explore' a základ 'math_accelerate') - Aktualizace 28.5.2025
 // VERZE S ADAPTIVNÍM VÝBĚREM OTÁZEK (dle profilu) - Tato verze
+// VERZE (FIX ADAPTIVE RETURN): Opraveno vracení dat z loadTestQuestionsLogic pro adaptivní test.
 
 // Используем IIFE для изоляции области видимости
 (function(global) {
@@ -24,20 +25,20 @@
     const NUMERIC_TOLERANCE = 0.001;
     const BASE_POINTS_FOR_100_PERCENT = 30;
     const NOTIFICATION_FETCH_LIMIT = 5;
-    const DEFAULT_QUESTIONS_PER_TOPIC = 3; 
-    const TOTAL_QUESTIONS_IN_TEST = 30; 
-    const MINIMUM_QUESTIONS_THRESHOLD = 1; 
+    const DEFAULT_QUESTIONS_PER_TOPIC = 3;
+    const TOTAL_QUESTIONS_IN_TEST = 30;
+    const MINIMUM_QUESTIONS_THRESHOLD = 1;
 
     const MATH_EXPLORE_DIFFICULTY_DISTRIBUTION = {
         1: 0.15, 2: 0.20, 3: 0.40, 4: 0.15, 5: 0.10
     };
 
     const MATH_ACCELERATE_PHASE1_CONFIG = {
-        currentGradeDifficultQuestions: 7, 
-        nextGradeQuestions: 5,          
-        minDifficultyCurrent: 4,        
-        minDifficultyNext: 2,           
-        maxDifficultyNext: 4            
+        currentGradeDifficultQuestions: 7,
+        nextGradeQuestions: 5,
+        minDifficultyCurrent: 4,
+        minDifficultyNext: 2,
+        maxDifficultyNext: 4
     };
 
     const gradeToNumber = {
@@ -208,7 +209,7 @@
             } else {
                 baseQuery = baseQuery.in('source_exam_type', ['prijimacky', 'math_review']);
             }
-        } else { // exam_prep, math_review
+        } else { 
             baseQuery = baseQuery.eq('source_exam_type', selectedTestTypeIdentifier);
             if (userGradeString) {
                  baseQuery = baseQuery.eq('target_grade', userGradeString);
@@ -219,14 +220,25 @@
 
         if (fetchError) {
             console.error(`[Logic LoadQ ADAPTIVE] Chyba při načítání otázek z DB pro ${selectedTestTypeIdentifier}:`, fetchError);
-            return [];
+            // Возвращаем структуру для адаптивного теста, даже если есть ошибка
+            return {
+                firstQuestion: null,
+                questionPool: [],
+                initialDifficultyEstimate: 3,
+                questionsToAnswerInTest: questionsToLoadCount
+            };
         }
 
         if (!fetchedQuestions || fetchedQuestions.length === 0) {
             const specificGradeMessage = userGradeString ? `a ročník/y relevantní pro '${userGradeString}'` : "";
             const warningMessage = `V databázi nejsou žádné otázky pro test '${selectedTestTypeIdentifier}' ${specificGradeMessage} (kromě konstrukčních).`;
             console.warn(`[Logic LoadQ ADAPTIVE] ${warningMessage}`);
-            return [];
+             return {
+                firstQuestion: null,
+                questionPool: [],
+                initialDifficultyEstimate: 3,
+                questionsToAnswerInTest: questionsToLoadCount
+            };
         }
         let allQuestionsForProcessing = fetchedQuestions;
         console.log(`[Logic LoadQ ADAPTIVE] Načteno ${allQuestionsForProcessing.length} otázek odpovídajících základnímu filtru pro ${selectedTestTypeIdentifier}.`);
@@ -243,44 +255,38 @@
                 return acc;
             }, {});
 
-            // Seřadit témata podle hodnocení uživatele (od nejslabších) nebo podle výchozího pořadí, pokud hodnocení chybí
             const sortedTopicIds = Object.keys(questionsByTopic).sort((a, b) => {
-                const ratingA = topicRatings[a]?.overall || 3; // Default to medium if not rated
+                const ratingA = topicRatings[a]?.overall || 3; 
                 const ratingB = topicRatings[b]?.overall || 3;
-                return ratingA - ratingB; // Ascending by rating (weakest first)
+                return ratingA - ratingB; 
             });
 
             let questionsPerTopicTarget = Math.max(1, Math.floor(questionsToLoadCount / Math.max(1, sortedTopicIds.length)));
-             // Pokud je málo témat s otázkami, navýšíme počet otázek na téma
             if (sortedTopicIds.length > 0 && sortedTopicIds.length < 4) {
                 questionsPerTopicTarget = Math.ceil(questionsToLoadCount / Math.max(1, sortedTopicIds.length));
             }
-
             console.log(`[Logic LoadQ ADAPTIVE] Celkem témat s otázkami: ${sortedTopicIds.length}. Cílový počet otázek na téma: ${questionsPerTopicTarget}`);
-
 
             for (const topicId of sortedTopicIds) {
                 if (selectedQuestions.length >= questionsToLoadCount) break;
-
                 let availableQuestionsInTopic = questionsByTopic[topicId] || [];
                 shuffleArray(availableQuestionsInTopic);
-                const selfRating = topicRatings[topicId]?.overall || 3; // Default to medium
+                const selfRating = topicRatings[topicId]?.overall || 3; 
 
-                // Definice cílů obtížnosti na základě sebehodnocení
                 let difficultyTargets = [];
-                if (selfRating <= 2) { // Uživatel se cítí slabý
+                if (selfRating <= 2) { 
                     difficultyTargets = [
-                        { difficulty: 1, count: Math.ceil(questionsPerTopicTarget * 0.5) }, // 50% nejlehčí
-                        { difficulty: 2, count: Math.ceil(questionsPerTopicTarget * 0.3) }, // 30% lehké
-                        { difficulty: 3, count: Math.ceil(questionsPerTopicTarget * 0.2) }  // 20% střední
+                        { difficulty: 1, count: Math.ceil(questionsPerTopicTarget * 0.5) }, 
+                        { difficulty: 2, count: Math.ceil(questionsPerTopicTarget * 0.3) }, 
+                        { difficulty: 3, count: Math.ceil(questionsPerTopicTarget * 0.2) }  
                     ];
-                } else if (selfRating === 3) { // Střední
+                } else if (selfRating === 3) { 
                     difficultyTargets = [
                         { difficulty: 2, count: Math.ceil(questionsPerTopicTarget * 0.3) },
                         { difficulty: 3, count: Math.ceil(questionsPerTopicTarget * 0.4) },
                         { difficulty: 4, count: Math.ceil(questionsPerTopicTarget * 0.3) }
                     ];
-                } else { // Uživatel se cítí silný (4-5)
+                } else { 
                     difficultyTargets = [
                         { difficulty: 3, count: Math.ceil(questionsPerTopicTarget * 0.2) },
                         { difficulty: 4, count: Math.ceil(questionsPerTopicTarget * 0.5) },
@@ -301,8 +307,7 @@
                         selectedQuestionIds.add(question.id);
                     }
                 }
-                // Pokud po cíleném výběru stále chybí otázky pro dané téma (do questionsPerTopicTarget), doplníme z jakékoliv obtížnosti v daném tématu
-                let currentQuestionsFromTopic = selectedQuestions.filter(q => q.topic_id == topicId).length; // Musí být '==' kvůli typům
+                let currentQuestionsFromTopic = selectedQuestions.filter(q => q.topic_id == topicId).length; 
                 const neededToFillTopic = Math.max(0, questionsPerTopicTarget - currentQuestionsFromTopic);
 
                 if (neededToFillTopic > 0 && selectedQuestions.length < questionsToLoadCount) {
@@ -373,14 +378,13 @@
             }
         }
 
-        // Doplnění otázek, pokud jich stále není dost (obecná logika)
         if (selectedQuestions.length < questionsToLoadCount) {
             console.log(`[Logic LoadQ ADAPTIVE] Doplňování. Aktuálně ${selectedQuestions.length}/${questionsToLoadCount}. Dostupné celkem: ${allQuestionsForProcessing.length}`);
             let remainingPool = allQuestionsForProcessing.filter(q => !selectedQuestionIds.has(q.id));
             shuffleArray(remainingPool);
             while (selectedQuestions.length < questionsToLoadCount && remainingPool.length > 0) {
                 const question = remainingPool.shift();
-                if (question && question.id != null) { // ID null check for safety
+                if (question && question.id != null) { 
                     selectedQuestions.push(question);
                     selectedQuestionIds.add(question.id);
                 }
@@ -391,22 +395,16 @@
             shuffleArray(selectedQuestions);
             selectedQuestions = selectedQuestions.slice(0, questionsToLoadCount);
         }
-
+        
         if (selectedQuestions.length === 0 && allQuestionsForProcessing.length > 0) {
              console.warn(`[Logic LoadQ ADAPTIVE] Po všech krocích nebyly vybrány žádné otázky pro ${selectedTestTypeIdentifier}, ale ${allQuestionsForProcessing.length} otázek bylo k dispozici. Beru náhodný vzorek.`);
              shuffleArray(allQuestionsForProcessing);
              selectedQuestions = allQuestionsForProcessing.slice(0, Math.min(questionsToLoadCount, allQuestionsForProcessing.length));
         }
 
-        if (selectedQuestions.length === 0) {
-            console.warn(`[Logic LoadQ ADAPTIVE] Po všech krocích nebyly vybrány žádné otázky pro ${selectedTestTypeIdentifier}. Vracím prázdné pole.`);
-            return [];
-        }
-        console.log(`[Logic LoadQ ADAPTIVE] Finálně vybráno ${selectedQuestions.length} otázek pro ${selectedTestTypeIdentifier}.`);
-
-        const formattedQuestions = selectedQuestions.map((question, index) => ({
+        const formattedQuestionsPool = selectedQuestions.map((question, index) => ({
             id: question.id,
-            question_number: index + 1,
+            question_number: index + 1, // Toto bude "pořadí v poolu", UI pak bude řešit aktuální číslo otázky
             question_text: question.question_text,
             question_type: question.question_type,
             options: question.options,
@@ -425,19 +423,107 @@
             maxScore: (question.question_type === 'multiple_choice' || question.question_type === 'numeric' || question.question_type === 'text') ? 1 : (question.maxScore || 1)
         }));
 
-        const difficultyDistribution = formattedQuestions.reduce((acc, q) => {
+        if (formattedQuestionsPool.length === 0) {
+            console.warn(`[Logic LoadQ ADAPTIVE] Po všech krocích nebyly vybrány žádné otázky pro ${selectedTestTypeIdentifier}. Vracím prázdná data.`);
+            return {
+                firstQuestion: null,
+                questionPool: [],
+                initialDifficultyEstimate: 3, // Default
+                questionsToAnswerInTest: questionsToLoadCount
+            };
+        }
+        console.log(`[Logic LoadQ ADAPTIVE] Finálně vybráno a zformátováno ${formattedQuestionsPool.length} otázek do poolu pro ${selectedTestTypeIdentifier}.`);
+
+        const difficultyDistribution = formattedQuestionsPool.reduce((acc, q) => {
             acc[q.difficulty] = (acc[q.difficulty] || 0) + 1;
             return acc;
         }, {});
-        console.log(`[Logic LoadQ ADAPTIVE] Distribuce obtížností ve finálním testu (${selectedTestTypeIdentifier}):`, difficultyDistribution);
-        const topicDistribution = formattedQuestions.reduce((acc, q) => {
-            acc[q.topic_name] = (acc[q.topic_name] || 0) + 1;
-            return acc;
-        }, {});
-        console.log(`[Logic LoadQ ADAPTIVE] Distribuce témat ve finálním testu (${selectedTestTypeIdentifier}):`, topicDistribution);
+        console.log(`[Logic LoadQ ADAPTIVE] Distribuce obtížností ve finálním poolu (${selectedTestTypeIdentifier}):`, difficultyDistribution);
+        
+        // Nyní vrátíme strukturu pro adaptivní test
+        const firstQuestionFromPool = formattedQuestionsPool.length > 0 ? formattedQuestionsPool[0] : null;
+        // Odhadneme počáteční obtížnost. Pokud máme první otázku, použijeme její obtížnost, jinak default.
+        const initialDifficulty = firstQuestionFromPool ? firstQuestionFromPool.difficulty : 3;
 
-        return formattedQuestions;
+        return {
+            firstQuestion: firstQuestionFromPool,
+            questionPool: formattedQuestionsPool, // Celý vybraný a promíchaný pool
+            initialDifficultyEstimate: initialDifficulty,
+            questionsToAnswerInTest: Math.min(questionsToLoadCount, formattedQuestionsPool.length) // Skutečný počet otázek v testu
+        };
     }
+
+    // NOVÁ FUNKCE PRO VÝBĚR DALŠÍ ADAPTIVNÍ OTÁZKY
+    async function getNextAdaptiveQuestionLogic(questionPool, presentedQuestionIdsSet, lastAnswerCorrect, currentDifficulty, questionsAnsweredSoFar, totalQuestionsInTest) {
+        console.log(`[getNextAdaptiveQuestion ADAPTIVE] Hledám další otázku. Pool: ${questionPool.length}, Zodpovězeno: ${questionsAnsweredSoFar}/${totalQuestionsInTest}, Minulá odpověď: ${lastAnswerCorrect}, Aktuální obtížnost: ${currentDifficulty}`);
+
+        if (questionsAnsweredSoFar >= totalQuestionsInTest) {
+            console.log("[getNextAdaptiveQuestion ADAPTIVE] Dosažen limit otázek pro tuto session.");
+            return { nextQuestion: null, nextDifficulty: currentDifficulty };
+        }
+
+        let nextDifficultyTarget = currentDifficulty;
+        if (lastAnswerCorrect === true) { // Explicitně true
+            nextDifficultyTarget = Math.min(currentDifficulty + 1, 5);
+        } else if (lastAnswerCorrect === false) { // Explicitně false
+            nextDifficultyTarget = Math.max(currentDifficulty - 1, 1);
+        }
+        // Pokud lastAnswerCorrect je null (první otázka), nextDifficultyTarget zůstane currentDifficulty
+
+        console.log(`[getNextAdaptiveQuestion ADAPTIVE] Cílová obtížnost pro další otázku: ${nextDifficultyTarget}`);
+
+        const availableQuestions = questionPool.filter(q => !presentedQuestionIdsSet.has(q.id));
+
+        if (availableQuestions.length === 0) {
+            console.log("[getNextAdaptiveQuestion ADAPTIVE] Žádné další dostupné otázky v poolu.");
+            return { nextQuestion: null, nextDifficulty: nextDifficultyTarget };
+        }
+
+        let chosenQuestion = null;
+
+        // Strategie výběru:
+        // 1. Pokusit se najít otázku s přesnou cílovou obtížností
+        let candidates = availableQuestions.filter(q => q.difficulty === nextDifficultyTarget);
+        if (candidates.length > 0) {
+            chosenQuestion = candidates[Math.floor(Math.random() * candidates.length)]; // Náhodný výběr z vhodných
+            console.log(`[getNextAdaptiveQuestion ADAPTIVE] Nalezena otázka s přesnou obtížností ${nextDifficultyTarget}.`);
+        } else {
+            // 2. Pokud ne, zkusit obtížnost +/- 1 (priorita podle trendu)
+            const difficultyOffsets = lastAnswerCorrect === true ? [1, -1, 2, -2] : [-1, 1, -2, 2]; // Pokud odpovídá správně, zkusme těžší, jinak lehčí
+            
+            for (const offset of difficultyOffsets) {
+                const tryDifficulty = nextDifficultyTarget + offset;
+                if (tryDifficulty >= 1 && tryDifficulty <= 5) {
+                    candidates = availableQuestions.filter(q => q.difficulty === tryDifficulty);
+                    if (candidates.length > 0) {
+                        chosenQuestion = candidates[Math.floor(Math.random() * candidates.length)];
+                        console.log(`[getNextAdaptiveQuestion ADAPTIVE] Nalezena otázka s obtížností ${tryDifficulty} (offset ${offset}).`);
+                        // Aktualizujeme nextDifficultyTarget na obtížnost skutečně vybrané otázky, pokud se liší
+                        nextDifficultyTarget = tryDifficulty; 
+                        break;
+                    }
+                }
+            }
+        }
+
+        // 3. Pokud stále nic, vezmeme jakoukoliv zbývající otázku (nejbližší obtížnosti)
+        if (!chosenQuestion && availableQuestions.length > 0) {
+            console.log("[getNextAdaptiveQuestion ADAPTIVE] Žádná otázka s cílovou nebo blízkou obtížností. Výběr nejbližší dostupné.");
+            availableQuestions.sort((a, b) => Math.abs(a.difficulty - nextDifficultyTarget) - Math.abs(b.difficulty - nextDifficultyTarget));
+            chosenQuestion = availableQuestions[0];
+            nextDifficultyTarget = chosenQuestion.difficulty; // Aktualizujeme na obtížnost vybrané otázky
+        }
+        
+        if (chosenQuestion) {
+             console.log(`[getNextAdaptiveQuestion ADAPTIVE] Vybrána otázka ID: ${chosenQuestion.id}, Obtížnost: ${chosenQuestion.difficulty}. Nová cílová obtížnost pro UI: ${nextDifficultyTarget}`);
+        } else {
+            console.log("[getNextAdaptiveQuestion ADAPTIVE] Nepodařilo se vybrat žádnou další otázku.");
+        }
+
+        return { nextQuestion: chosenQuestion, nextDifficulty: nextDifficultyTarget };
+    }
+
+
     // --- END: Логика загрузки вопросов ---
 
     // --- START: Логика оценки ответов (Gemini) ---
@@ -447,7 +533,7 @@
         correctAnswerOrExplanation,
         userAnswer,
         maxScore = 1,
-        currentQuestionIndex,
+        currentQuestionIndex, // Toto je nyní spíše pro logování, ne pro index v poli
         solutionExplanationForConstruction = null,
         optionsForMC = null
     ) {
@@ -463,7 +549,7 @@
             };
         }
 
-        console.log(`--- [Logic Check v10.2] Vyhodnocování Q#${currentQuestionIndex + 1} (Typ: ${questionType}, Max bodů: ${maxScore}) ---`);
+        console.log(`--- [Logic Check ADAPTIVE] Vyhodnocování Q (pořadí v testu ${currentQuestionIndex + 1}) (Typ: ${questionType}, Max bodů: ${maxScore}) ---`);
         console.log(`   Otázka: ${questionText ? questionText.substring(0, 100) + '...' : 'N/A'}`);
         console.log(`   Správně (raw z DB): `, correctAnswerOrExplanation);
         console.log(`   Uživatel (raw z UI): `, userAnswer);
@@ -490,7 +576,7 @@
         }
 
         if (questionType === 'multiple_choice' && optionsForMC && typeof correctAnswerOrExplanation === 'string') {
-            console.log(`[Logic v10.2 Q#${currentQuestionIndex + 1}] Lokální MC srovnání.`);
+            console.log(`[Logic ADAPTIVE Q (pořadí ${currentQuestionIndex + 1})] Lokální MC srovnání.`);
             const correctLetter = String(correctAnswerOrExplanation).trim().toUpperCase().charAt(0);
             const userLetter = String(userAnswer).trim().toUpperCase().charAt(0);
             const localComparisonResult = correctLetter === userLetter;
@@ -516,7 +602,7 @@
             }
 
             if (localComparisonResult !== null) { 
-                console.log(`[Logic v10.2 Q#${currentQuestionIndex + 1}] Lokální srovnání bylo JEDNOZNAČNÉ (${localComparisonResult}). Gemini se nevolá.`);
+                console.log(`[Logic ADAPTIVE Q (pořadí ${currentQuestionIndex + 1})] Lokální srovnání bylo JEDNOZNAČNÉ (${localComparisonResult}). Gemini se nevolá.`);
                 const finalCorrectness = localComparisonResult ? 'correct' : 'incorrect';
                 const finalScore = localComparisonResult ? maxScore : 0;
                 return {
@@ -529,11 +615,11 @@
                     is_equivalent: localComparisonResult
                 };
             }
-            console.log(`[Logic v10.2 Q#${currentQuestionIndex + 1}] Lokální srovnání NENÍ JEDNOZNAČNÉ nebo selhalo. Volám Gemini.`);
+            console.log(`[Logic ADAPTIVE Q (pořadí ${currentQuestionIndex + 1})] Lokální srovnání NENÍ JEDNOZNAČNÉ nebo selhalo. Volám Gemini.`);
         }
 
         const runFallbackCheck = (fallbackReason = "Automatické hodnocení selhalo. Použita záložní kontrola.") => {
-            console.warn(`!!! [Logic Fallback v10.2] Používá se FALLBACK logika pro vyhodnocení Q#${currentQuestionIndex + 1} !!! Důvod:`, fallbackReason);
+            console.warn(`!!! [Logic Fallback ADAPTIVE] Používá se FALLBACK logika pro vyhodnocení Q (pořadí ${currentQuestionIndex + 1}) !!! Důvod:`, fallbackReason);
             let fallbackScore = 0; let fallbackCorrectness = "error"; let fallbackErrorAnalysis = "Chyba systému hodnocení."; let feedback = "Kontaktujte podporu, pokud problém přetrvává."; let isEquivalent = null;
             if (questionType === 'multiple_choice' && typeof correctAnswerOrExplanation === 'string') {
                 const correctLetter = String(correctAnswerOrExplanation).trim().toUpperCase().charAt(0);
@@ -544,7 +630,7 @@
             } else {
                 fallbackCorrectness = "error";
             }
-            console.log(`[Logic Fallback v10.2 Výsledek] Skóre: ${fallbackScore}/${maxScore}, Správnost: ${fallbackCorrectness}, Ekvivalent: ${isEquivalent}`);
+            console.log(`[Logic Fallback ADAPTIVE Výsledek] Skóre: ${fallbackScore}/${maxScore}, Správnost: ${fallbackCorrectness}, Ekvivalent: ${isEquivalent}`);
             return { score: fallbackScore, max_score: maxScore, correctness: fallbackCorrectness, reasoning: fallbackReason, error_analysis: fallbackErrorAnalysis, feedback: feedback, is_equivalent: isEquivalent };
         };
 
@@ -589,11 +675,11 @@ Pro textové odpovědi (včetně ano/ne) buď tolerantní k velkým/malým písm
         }
 
         try {
-            console.log(`[Logic Gemini Call v10.2 Q#${currentQuestionIndex + 1}] Posílám požadavek do Gemini API... Prompt (start): ${prompt.substring(0,200)}...`);
+            console.log(`[Logic Gemini Call ADAPTIVE Q (pořadí ${currentQuestionIndex + 1})] Posílám požadavek... Prompt (start): ${prompt.substring(0,200)}...`);
             const response = await fetch(GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { temperature: 0.1 }, safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" } ] }) });
-            if (!response.ok) { const errorBody = await response.text(); console.error(`[Logic Gemini Call v10.2 Q#${currentQuestionIndex + 1}] Chyba API (${response.status}):`, errorBody); throw new Error(`Chyba Gemini API (${response.status})`); }
+            if (!response.ok) { const errorBody = await response.text(); console.error(`[Logic Gemini Call ADAPTIVE Q (pořadí ${currentQuestionIndex + 1})] Chyba API (${response.status}):`, errorBody); throw new Error(`Chyba Gemini API (${response.status})`); }
             const data = await response.json();
-            console.log(`[Logic Gemini Call v10.2 Q#${currentQuestionIndex + 1}] Surová odpověď:`, JSON.stringify(data));
+            console.log(`[Logic Gemini Call ADAPTIVE Q (pořadí ${currentQuestionIndex + 1})] Surová odpověď:`, JSON.stringify(data));
             if (data.promptFeedback?.blockReason) { throw new Error(`Požadavek blokován AI filtrem: ${data.promptFeedback.blockReason}.`); }
             const candidate = data.candidates?.[0];
             if (!candidate) { const finishReason = data.candidates?.[0]?.finishReason; throw new Error(`AI neposkytlo kandidáta odpovědi. Důvod: ${finishReason || 'Neznámý'}.`); }
@@ -601,15 +687,15 @@ Pro textové odpovědi (včetně ano/ne) buď tolerantní k velkým/malým písm
             let resultJsonText = candidate.content?.parts?.[0]?.text;
             if (!resultJsonText) { throw new Error('AI vrátilo prázdnou odpověď.'); }
             const jsonMatch = resultJsonText.match(/```json\s*([\s\S]*?)\s*```/); if (jsonMatch && jsonMatch[1]) { resultJsonText = jsonMatch[1]; }
-            console.log(`[Logic Gemini Call v10.2 Q#${currentQuestionIndex + 1}] Získaný text JSON (po očištění):`, resultJsonText);
+            console.log(`[Logic Gemini Call ADAPTIVE Q (pořadí ${currentQuestionIndex + 1})] Získaný JSON (po očištění):`, resultJsonText);
             try {
                 const geminiResult = JSON.parse(resultJsonText);
-                console.log(`[Logic Gemini Call v10.2 Q#${currentQuestionIndex + 1}] Parsovaný výsledek JSON:`, geminiResult);
+                console.log(`[Logic Gemini Call ADAPTIVE Q (pořadí ${currentQuestionIndex + 1})] Parsovaný JSON:`, geminiResult);
                 if (typeof geminiResult.score !== 'number' || typeof geminiResult.correctness !== 'string' || typeof geminiResult.reasoning !== 'string') { return runFallbackCheck("Neúplná odpověď od AI (chybí klíčové pole)."); }
                 const finalScore = Math.max(0, Math.min(maxScore, Math.round(geminiResult.score)));
                 const finalCorrectness = ["correct", "incorrect", "partial"].includes(geminiResult.correctness) ? geminiResult.correctness : "incorrect";
                 const finalResult = { score: finalScore, max_score: maxScore, correctness: finalCorrectness, reasoning: geminiResult.reasoning || "Nebylo poskytnuto žádné zdůvodnění.", error_analysis: geminiResult.error_analysis || null, feedback: geminiResult.feedback || null, is_equivalent: typeof geminiResult.is_equivalent === 'boolean' ? geminiResult.is_equivalent : null };
-                console.log(`[Logic Gemini Call v10.2 Q#${currentQuestionIndex + 1}] Finální výsledek z Gemini:`, finalResult);
+                console.log(`[Logic Gemini Call ADAPTIVE Q (pořadí ${currentQuestionIndex + 1})] Finální výsledek:`, finalResult);
                 return finalResult;
             } catch (parseError) { return runFallbackCheck(`Chyba při zpracování JSON odpovědi AI: ${parseError.message}`); }
         } catch (apiError) { return runFallbackCheck(`Chyba komunikace s AI: ${apiError.message}`); }
@@ -618,37 +704,38 @@ Pro textové odpovědi (včetně ano/ne) buď tolerantní k velkým/malým písm
 
     // --- START: Логика расчета и сохранения результатов ---
     function calculateFinalResultsLogic(userAnswers, questions) {
-         let totalRawPointsAchieved = 0; let totalRawMaxPossiblePoints = 0; let correctCount = 0; let incorrectCount = 0; let partialCount = 0; let skippedCount = 0; let topicStats = {}; userAnswers.forEach((answer, index) => { if (!answer) { console.warn(`[Logic Calc v10.2] Chybí data odpovědi pro index ${index}.`); skippedCount++; return; } const topicKey = answer.topic_id || answer.topic_name || 'unknown'; const topicName = answer.topic_name || 'Neznámé téma'; if (!topicStats[topicKey]) { topicStats[topicKey] = { name: topicName, id: answer.topic_id, total_questions: 0, fully_correct: 0, points_achieved: 0, max_points: 0, score_percent: 0, strength: 'neutral' }; } topicStats[topicKey].total_questions++; topicStats[topicKey].max_points += answer.maxScore; totalRawMaxPossiblePoints += answer.maxScore; if (answer.correctness === "skipped") { skippedCount++; } else if (answer.correctness === "error") { incorrectCount++; } else { const awardedScore = answer.scoreAwarded ?? 0; totalRawPointsAchieved += awardedScore; topicStats[topicKey].points_achieved += awardedScore; if (answer.correctness === "correct") { correctCount++; topicStats[topicKey].fully_correct++; } else if (answer.correctness === "partial") { partialCount++; } else { incorrectCount++; } } }); Object.values(topicStats).forEach(stats => { stats.score_percent = stats.max_points > 0 ? Math.round((stats.points_achieved / stats.max_points) * 100) : 0; stats.strength = stats.score_percent >= 75 ? 'strength' : (stats.score_percent < 50 ? 'weakness' : 'neutral'); }); const totalApplicableQuestions = questions.length - skippedCount; const finalPercentage = totalRawMaxPossiblePoints > 0 ? Math.round((totalRawPointsAchieved / totalRawMaxPossiblePoints) * 100) : 0; const finalScoreOutOf50 = totalRawMaxPossiblePoints > 0 ? Math.round((totalRawPointsAchieved / totalRawMaxPossiblePoints) * 50) : 0; const resultsData = { totalQuestions: questions.length, correctAnswers: correctCount, incorrectAnswers: incorrectCount, partiallyCorrectAnswers: partialCount, skippedAnswers: skippedCount, evaluationErrors: userAnswers.filter(a => a?.correctness === 'error').length, score: finalScoreOutOf50, totalPointsAchieved: totalRawPointsAchieved, totalMaxPossiblePoints: totalRawMaxPossiblePoints, percentage: finalPercentage, topicResults: topicStats, timeSpent: null }; console.log("[Logic Calc v10.2] Finální výsledky vypočítány:", resultsData); return resultsData;
+         let totalRawPointsAchieved = 0; let totalRawMaxPossiblePoints = 0; let correctCount = 0; let incorrectCount = 0; let partialCount = 0; let skippedCount = 0; let topicStats = {}; userAnswers.forEach((answer, index) => { if (!answer) { console.warn(`[Logic Calc v10.2] Chybí data odpovědi pro index ${index}.`); skippedCount++; return; } const topicKey = answer.topic_id || answer.topic_name || 'unknown'; const topicName = answer.topic_name || 'Neznámé téma'; if (!topicStats[topicKey]) { topicStats[topicKey] = { name: topicName, id: answer.topic_id, total_questions: 0, fully_correct: 0, points_achieved: 0, max_points: 0, score_percent: 0, strength: 'neutral' }; } topicStats[topicKey].total_questions++; topicStats[topicKey].max_points += answer.maxScore; totalRawMaxPossiblePoints += answer.maxScore; if (answer.correctness === "skipped") { skippedCount++; } else if (answer.correctness === "error") { incorrectCount++; } else { const awardedScore = answer.scoreAwarded ?? 0; totalRawPointsAchieved += awardedScore; topicStats[topicKey].points_achieved += awardedScore; if (answer.correctness === "correct") { correctCount++; topicStats[topicKey].fully_correct++; } else if (answer.correctness === "partial") { partialCount++; } else { incorrectCount++; } } }); Object.values(topicStats).forEach(stats => { stats.score_percent = stats.max_points > 0 ? Math.round((stats.points_achieved / stats.max_points) * 100) : 0; stats.strength = stats.score_percent >= 75 ? 'strength' : (stats.score_percent < 50 ? 'weakness' : 'neutral'); }); const totalApplicableQuestions = userAnswers.length - skippedCount; const finalPercentage = totalRawMaxPossiblePoints > 0 ? Math.round((totalRawPointsAchieved / totalRawMaxPossiblePoints) * 100) : 0; const finalScoreOutOf50 = totalRawMaxPossiblePoints > 0 ? Math.round((totalRawPointsAchieved / totalRawMaxPossiblePoints) * 50) : 0; const resultsData = { totalQuestions: userAnswers.length, correctAnswers: correctCount, incorrectAnswers: incorrectCount, partiallyCorrectAnswers: partialCount, skippedAnswers: skippedCount, evaluationErrors: userAnswers.filter(a => a?.correctness === 'error').length, score: finalScoreOutOf50, totalPointsAchieved: totalRawPointsAchieved, totalMaxPossiblePoints: totalRawMaxPossiblePoints, percentage: finalPercentage, topicResults: topicStats, timeSpent: null }; console.log("[Logic Calc ADAPTIVE] Finální výsledky vypočítány:", resultsData); return resultsData;
     }
 
     function generateDetailedAnalysisLogic(results, answers, questionsData) {
-        const analysis = { summary: { score: results.score, total_points_achieved: results.totalPointsAchieved, total_max_possible_points: results.totalMaxPossiblePoints, percentage: results.percentage, time_spent_seconds: results.timeSpent, total_questions: results.totalQuestions, correct: results.correctAnswers, incorrect: results.incorrectAnswers, partial: results.partiallyCorrectAnswers, skipped: results.skippedAnswers, evaluation_errors: results.evaluationErrors, }, strengths: [], weaknesses: [], performance_by_topic: {}, performance_by_type: {}, performance_by_difficulty: {}, incorrectly_answered_details: [] }; for (const [topicKey, stats] of Object.entries(results.topicResults || {})) { analysis.performance_by_topic[stats.name] = { points_achieved: stats.points_achieved, max_points: stats.max_points, score_percent: stats.score_percent, total_questions: stats.total_questions, fully_correct: stats.fully_correct }; if (stats.strength === 'strength') analysis.strengths.push({ topic: stats.name, score: stats.score_percent }); else if (stats.strength === 'weakness') analysis.weaknesses.push({ topic: stats.name, score: stats.score_percent }); } analysis.strengths.sort((a, b) => b.score - a.score); analysis.weaknesses.sort((a, b) => a.score - b.score); answers.forEach((answer) => { if (!answer || answer.correctness === 'error') return; const qType = answer.question_type; const difficulty = answer.difficulty; const maxQScore = answer.maxScore; const awardedScore = answer.scoreAwarded ?? 0; if (!analysis.performance_by_type[qType]) analysis.performance_by_type[qType] = { points_achieved: 0, max_points: 0, count: 0 }; analysis.performance_by_type[qType].points_achieved += awardedScore; analysis.performance_by_type[qType].max_points += maxQScore; analysis.performance_by_type[qType].count++; if (difficulty !== null && difficulty !== undefined) { if (!analysis.performance_by_difficulty[difficulty]) analysis.performance_by_difficulty[difficulty] = { points_achieved: 0, max_points: 0, count: 0 }; analysis.performance_by_difficulty[difficulty].points_achieved += awardedScore; analysis.performance_by_difficulty[difficulty].max_points += maxQScore; analysis.performance_by_difficulty[difficulty].count++; } if (answer.correctness === 'incorrect' || answer.correctness === 'partial') { analysis.incorrectly_answered_details.push({ question_number: answer.question_number_in_test, question_text: answer.question_text, topic: answer.topic_name, type: answer.question_type, user_answer: answer.userAnswerValue, correct_answer: answer.correct_answer, score_awarded: awardedScore, max_score: maxQScore, explanation: answer.reasoning, error_identified: answer.error_analysis }); } }); if (results.score >= 43) analysis.overall_assessment = "Vynikající výkon!"; else if (results.score >= 33) analysis.overall_assessment = "Dobrý výkon, solidní základ."; else if (results.score >= 20) analysis.overall_assessment = "Průměrný výkon, zaměřte se na slabiny."; else analysis.overall_assessment = `Výkon ${results.score < 10 ? 'výrazně ' : ''}pod průměrem. Nutné opakování.`; if (results.score < SCORE_THRESHOLD_FOR_SAVING) analysis.overall_assessment += " Skóre je příliš nízké pro uložení a generování plánu."; analysis.recommendations = analysis.weaknesses.length > 0 ? [`Intenzivně se zaměřte na nejslabší témata: ${analysis.weaknesses.map(w => w.topic).slice(0, 2).join(', ')}.`] : ["Pokračujte v upevňování znalostí."]; if (analysis.incorrectly_answered_details.length > 3) analysis.recommendations.push(`Projděte si ${analysis.incorrectly_answered_details.length} otázek s nízkým nebo částečným skóre.`); console.log("[Logic Analysis v10.2] Vygenerována detailní analýza:", analysis); return analysis;
+        const analysis = { summary: { score: results.score, total_points_achieved: results.totalPointsAchieved, total_max_possible_points: results.totalMaxPossiblePoints, percentage: results.percentage, time_spent_seconds: results.timeSpent, total_questions: results.totalQuestions, correct: results.correctAnswers, incorrect: results.incorrectAnswers, partial: results.partiallyCorrectAnswers, skipped: results.skippedAnswers, evaluation_errors: results.evaluationErrors, }, strengths: [], weaknesses: [], performance_by_topic: {}, performance_by_type: {}, performance_by_difficulty: {}, incorrectly_answered_details: [] }; for (const [topicKey, stats] of Object.entries(results.topicResults || {})) { analysis.performance_by_topic[stats.name] = { points_achieved: stats.points_achieved, max_points: stats.max_points, score_percent: stats.score_percent, total_questions: stats.total_questions, fully_correct: stats.fully_correct }; if (stats.strength === 'strength') analysis.strengths.push({ topic: stats.name, score: stats.score_percent }); else if (stats.strength === 'weakness') analysis.weaknesses.push({ topic: stats.name, score: stats.score_percent }); } analysis.strengths.sort((a, b) => b.score - a.score); analysis.weaknesses.sort((a, b) => a.score - b.score); answers.forEach((answer) => { if (!answer || answer.correctness === 'error') return; const qType = answer.question_type; const difficulty = answer.difficulty; const maxQScore = answer.maxScore; const awardedScore = answer.scoreAwarded ?? 0; if (!analysis.performance_by_type[qType]) analysis.performance_by_type[qType] = { points_achieved: 0, max_points: 0, count: 0 }; analysis.performance_by_type[qType].points_achieved += awardedScore; analysis.performance_by_type[qType].max_points += maxQScore; analysis.performance_by_type[qType].count++; if (difficulty !== null && difficulty !== undefined) { if (!analysis.performance_by_difficulty[difficulty]) analysis.performance_by_difficulty[difficulty] = { points_achieved: 0, max_points: 0, count: 0 }; analysis.performance_by_difficulty[difficulty].points_achieved += awardedScore; analysis.performance_by_difficulty[difficulty].max_points += maxQScore; analysis.performance_by_difficulty[difficulty].count++; } if (answer.correctness === 'incorrect' || answer.correctness === 'partial') { analysis.incorrectly_answered_details.push({ question_number: answer.question_number_in_test, question_text: answer.question_text, topic: answer.topic_name, type: answer.question_type, user_answer: answer.userAnswerValue, correct_answer: answer.correct_answer, score_awarded: awardedScore, max_score: maxQScore, explanation: answer.reasoning, error_identified: answer.error_analysis }); } }); if (results.score >= 43) analysis.overall_assessment = "Vynikající výkon!"; else if (results.score >= 33) analysis.overall_assessment = "Dobrý výkon, solidní základ."; else if (results.score >= 20) analysis.overall_assessment = "Průměrný výkon, zaměřte se na slabiny."; else analysis.overall_assessment = `Výkon ${results.score < 10 ? 'výrazně ' : ''}pod průměrem. Nutné opakování.`; if (results.score < SCORE_THRESHOLD_FOR_SAVING) analysis.overall_assessment += " Skóre je příliš nízké pro uložení a generování plánu."; analysis.recommendations = analysis.weaknesses.length > 0 ? [`Intenzivně se zaměřte na nejslabší témata: ${analysis.weaknesses.map(w => w.topic).slice(0, 2).join(', ')}.`] : ["Pokračujte v upevňování znalostí."]; if (analysis.incorrectly_answered_details.length > 3) analysis.recommendations.push(`Projděte si ${analysis.incorrectly_answered_details.length} otázek s nízkým nebo částečným skóre.`); console.log("[Logic Analysis ADAPTIVE] Vygenerována detailní analýza:", analysis); return analysis;
     }
 
     async function saveTestResultsLogic(supabase, currentUser, testResultsData, userAnswers, questions, testEndTime) {
-         if (!currentUser || currentUser.id === 'PLACEHOLDER_USER_ID' || !supabase) { console.warn("[Logic Save v10.2] Neukládám: Chybí uživatel nebo Supabase."); return { success: false, error: "Uživatel není přihlášen." }; } if (testResultsData.score < SCORE_THRESHOLD_FOR_SAVING) { console.log(`[Logic Save v10.2] Skóre (${testResultsData.score}/50) < ${SCORE_THRESHOLD_FOR_SAVING}. Přeskakuji ukládání.`); return { success: false, error: `Skóre je příliš nízké (<${SCORE_THRESHOLD_FOR_SAVING}) pro uložení.` }; } console.log(`[Logic Save v10.2] Pokouším se uložit výsledky...`); let savedDiagnosticId = null; try { const detailedAnalysis = generateDetailedAnalysisLogic(testResultsData, userAnswers, questions); const answersToSave = userAnswers.map(a => ({ question_db_id: a.question_db_id, question_number_in_test: a.question_number_in_test, question_type: a.question_type, topic_id: a.topic_id, difficulty: a.difficulty, userAnswerValue: a.userAnswerValue, scoreAwarded: a.scoreAwarded, maxScore: a.maxScore, correctness: a.correctness, reasoning: a.reasoning, error_analysis: a.error_analysis, feedback: a.feedback, checked_by: a.checked_by })); const dataToSave = { user_id: currentUser.id, completed_at: testEndTime ? testEndTime.toISOString() : new Date().toISOString(), total_score: testResultsData.score, total_questions: testResultsData.totalQuestions, answers: answersToSave, topic_results: testResultsData.topicResults, analysis: detailedAnalysis, time_spent: testResultsData.timeSpent }; console.log("[Logic Save v10.2] Data k uložení:", dataToSave); const { data, error } = await supabase.from('user_diagnostics').insert(dataToSave).select('id').single(); if (error) throw error; savedDiagnosticId = data.id; console.log("[Logic Save v10.2] Diagnostika uložena, ID:", savedDiagnosticId); if (typeof window.VyukaApp?.checkAndAwardAchievements === 'function') { console.log('[Achievements v10.2] Triggering check after saving test results...'); window.VyukaApp.checkAndAwardAchievements(currentUser.id); } else { console.warn("[Achievements v10.2] Check function (window.VyukaApp.checkAndAwardAchievements) not found after saving test results."); } return { success: true, diagnosticId: savedDiagnosticId }; } catch (error) { console.error('[Logic Save v10.2] Chyba při ukládání:', error); return { success: false, error: `Nepodařilo se uložit výsledky: ${error.message}`, diagnosticId: savedDiagnosticId }; }
+         if (!currentUser || currentUser.id === 'PLACEHOLDER_USER_ID' || !supabase) { console.warn("[Logic Save ADAPTIVE] Neukládám: Chybí uživatel nebo Supabase."); return { success: false, error: "Uživatel není přihlášen." }; } if (testResultsData.score < SCORE_THRESHOLD_FOR_SAVING) { console.log(`[Logic Save ADAPTIVE] Skóre (${testResultsData.score}/50) < ${SCORE_THRESHOLD_FOR_SAVING}. Přeskakuji ukládání.`); return { success: false, error: `Skóre je příliš nízké (<${SCORE_THRESHOLD_FOR_SAVING}) pro uložení.` }; } console.log(`[Logic Save ADAPTIVE] Pokouším se uložit výsledky...`); let savedDiagnosticId = null; try { const detailedAnalysis = generateDetailedAnalysisLogic(testResultsData, userAnswers, questions); const answersToSave = userAnswers.map(a => ({ question_db_id: a.question_db_id, question_number_in_test: a.question_number_in_test, question_type: a.question_type, topic_id: a.topic_id, difficulty: a.difficulty, userAnswerValue: a.userAnswerValue, scoreAwarded: a.scoreAwarded, maxScore: a.maxScore, correctness: a.correctness, reasoning: a.reasoning, error_analysis: a.error_analysis, feedback: a.feedback, checked_by: a.checked_by })); const dataToSave = { user_id: currentUser.id, completed_at: testEndTime ? testEndTime.toISOString() : new Date().toISOString(), total_score: testResultsData.score, total_questions: testResultsData.totalQuestions, answers: answersToSave, topic_results: testResultsData.topicResults, analysis: detailedAnalysis, time_spent: testResultsData.timeSpent }; console.log("[Logic Save ADAPTIVE] Data k uložení:", dataToSave); const { data, error } = await supabase.from('user_diagnostics').insert(dataToSave).select('id').single(); if (error) throw error; savedDiagnosticId = data.id; console.log("[Logic Save ADAPTIVE] Diagnostika uložena, ID:", savedDiagnosticId); if (typeof window.VyukaApp?.checkAndAwardAchievements === 'function') { console.log('[Achievements ADAPTIVE] Triggering check after saving test results...'); window.VyukaApp.checkAndAwardAchievements(currentUser.id); } else { console.warn("[Achievements ADAPTIVE] Check function (window.VyukaApp.checkAndAwardAchievements) not found after saving test results."); } return { success: true, diagnosticId: savedDiagnosticId }; } catch (error) { console.error('[Logic Save ADAPTIVE] Chyba při ukládání:', error); return { success: false, error: `Nepodařilo se uložit výsledky: ${error.message}`, diagnosticId: savedDiagnosticId }; }
     }
 
     async function awardPointsLogic(supabase, currentUser, currentProfile, selectedTestType, testResultsData, testTypeConfig) {
-        if (!selectedTestType || !testResultsData || !currentUser || !currentProfile || !supabase || !testTypeConfig) { console.warn("[Logic Points v10.2] Nelze vypočítat/uložit body: Chybí data.", {selectedTestType, testResultsData, currentUser, currentProfile, testTypeConfig}); return { success: false, awardedPoints: 0, newTotal: currentProfile?.points ?? 0, error: "Chybějící data pro výpočet bodů." }; } const config = testTypeConfig[selectedTestType]; if (!config) { console.warn(`[Logic Points v10.2] Neznámá konfigurace testu: ${selectedTestType}`); return { success: false, awardedPoints: 0, newTotal: currentProfile.points, error: `Neznámá konfigurace testu: ${selectedTestType}` }; } const multiplier = config.multiplier || 1.0; const totalPointsAchieved = testResultsData.totalPointsAchieved ?? 0; const totalMaxPossiblePoints = testResultsData.totalMaxPossiblePoints ?? 0; if (totalMaxPossiblePoints <= 0) { console.warn("[Logic Points v10.2] Maximální možný počet bodů je 0, nelze vypočítat procento."); return { success: true, awardedPoints: 0, newTotal: currentProfile.points }; } const percentageScore = totalPointsAchieved / totalMaxPossiblePoints; const calculatedPoints = Math.round(BASE_POINTS_FOR_100_PERCENT * percentageScore * multiplier); if (calculatedPoints <= 0) { console.log("[Logic Points v10.2] Nebyly získány žádné body (výpočet <= 0)."); return { success: true, awardedPoints: 0, newTotal: currentProfile.points }; } console.log(`[Logic Points v10.2] Výpočet: Base=${BASE_POINTS_FOR_100_PERCENT}, %Score=${percentageScore.toFixed(2)}, Multiplier=${multiplier} => Vypočítané body: ${calculatedPoints}`); const currentPoints = currentProfile.points || 0; const newPoints = currentPoints + calculatedPoints; try { const { error } = await supabase.from('profiles').update({ points: newPoints, updated_at: new Date().toISOString() }).eq('id', currentUser.id); if (error) { throw error; } console.log(`[Logic Points v10.2] Body uživatele ${currentUser.id} aktualizovány na ${newPoints} (+${calculatedPoints})`); if (typeof window.VyukaApp?.checkAndAwardAchievements === 'function') { console.log('[Achievements v10.2] Triggering check after awarding points...'); window.VyukaApp.checkAndAwardAchievements(currentUser.id); } else { console.warn("[Achievements v10.2] Check function (window.VyukaApp.checkAndAwardAchievements) not found after awarding points."); } return { success: true, awardedPoints: calculatedPoints, newTotal: newPoints }; } catch (error) { console.error("[Logic Points v10.2] Chyba při aktualizaci bodů:", error); return { success: false, error: error.message, awardedPoints: 0, newTotal: currentPoints }; }
+        if (!selectedTestType || !testResultsData || !currentUser || !currentProfile || !supabase || !testTypeConfig) { console.warn("[Logic Points ADAPTIVE] Nelze vypočítat/uložit body: Chybí data.", {selectedTestType, testResultsData, currentUser, currentProfile, testTypeConfig}); return { success: false, awardedPoints: 0, newTotal: currentProfile?.points ?? 0, error: "Chybějící data pro výpočet bodů." }; } const config = testTypeConfig[selectedTestType]; if (!config) { console.warn(`[Logic Points ADAPTIVE] Neznámá konfigurace testu: ${selectedTestType}`); return { success: false, awardedPoints: 0, newTotal: currentProfile.points, error: `Neznámá konfigurace testu: ${selectedTestType}` }; } const multiplier = config.multiplier || 1.0; const totalPointsAchieved = testResultsData.totalPointsAchieved ?? 0; const totalMaxPossiblePoints = testResultsData.totalMaxPossiblePoints ?? 0; if (totalMaxPossiblePoints <= 0) { console.warn("[Logic Points ADAPTIVE] Maximální možný počet bodů je 0, nelze vypočítat procento."); return { success: true, awardedPoints: 0, newTotal: currentProfile.points }; } const percentageScore = totalPointsAchieved / totalMaxPossiblePoints; const calculatedPoints = Math.round(BASE_POINTS_FOR_100_PERCENT * percentageScore * multiplier); if (calculatedPoints <= 0) { console.log("[Logic Points ADAPTIVE] Nebyly získány žádné body (výpočet <= 0)."); return { success: true, awardedPoints: 0, newTotal: currentProfile.points }; } console.log(`[Logic Points ADAPTIVE] Výpočet: Base=${BASE_POINTS_FOR_100_PERCENT}, %Score=${percentageScore.toFixed(2)}, Multiplier=${multiplier} => Vypočítané body: ${calculatedPoints}`); const currentPoints = currentProfile.points || 0; const newPoints = currentPoints + calculatedPoints; try { const { error } = await supabase.from('profiles').update({ points: newPoints, updated_at: new Date().toISOString() }).eq('id', currentUser.id); if (error) { throw error; } console.log(`[Logic Points ADAPTIVE] Body uživatele ${currentUser.id} aktualizovány na ${newPoints} (+${calculatedPoints})`); if (typeof window.VyukaApp?.checkAndAwardAchievements === 'function') { console.log('[Achievements ADAPTIVE] Triggering check after awarding points...'); window.VyukaApp.checkAndAwardAchievements(currentUser.id); } else { console.warn("[Achievements ADAPTIVE] Check function (window.VyukaApp.checkAndAwardAchievements) not found after awarding points."); } return { success: true, awardedPoints: calculatedPoints, newTotal: newPoints }; } catch (error) { console.error("[Logic Points ADAPTIVE] Chyba při aktualizaci bodů:", error); return { success: false, error: error.message, awardedPoints: 0, newTotal: currentPoints }; }
     }
     // --- END: Логика расчета и сохранения результатов ---
 
     // --- START: Проверка существующего теста ---
     async function checkExistingDiagnosticLogic(supabase, userId) {
-         if (!userId || userId === 'PLACEHOLDER_USER_ID' || !supabase) { console.warn("[Logic Check v10.2] Kontrola testu přeskočena (není user/supabase)."); return false; } try { const { data: existingDiagnostic, error } = await supabase.from('user_diagnostics').select('id, completed_at').eq('user_id', userId).limit(1); if (error) { console.error("[Logic Check v10.2] Chyba při kontrole existujícího testu:", error); return false; } return existingDiagnostic && existingDiagnostic.length > 0; } catch (err) { console.error("[Logic Check v10.2] Neočekávaná chyba při kontrole testu:", err); return false; }
+         if (!userId || userId === 'PLACEHOLDER_USER_ID' || !supabase) { console.warn("[Logic Check ADAPTIVE] Kontrola testu přeskočena (není user/supabase)."); return false; } try { const { data: existingDiagnostic, error } = await supabase.from('user_diagnostics').select('id, completed_at').eq('user_id', userId).limit(1); if (error) { console.error("[Logic Check ADAPTIVE] Chyba při kontrole existujícího testu:", error); return false; } return existingDiagnostic && existingDiagnostic.length > 0; } catch (err) { console.error("[Logic Check ADAPTIVE] Neočekávaná chyba při kontrole testu:", err); return false; }
     }
     // --- END: Проверка существующего теста ---
 
     // --- START: Логика Уведомлений ---
     async function fetchNotificationsLogic(supabase, userId, limit = NOTIFICATION_FETCH_LIMIT) {
-        if (!supabase || !userId) { console.error("[Notifications Logic v10.2] Chybí Supabase nebo ID uživatele."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications Logic v10.2] Načítání nepřečtených oznámení pro uživatele ${userId}`); try { const { data, error, count } = await supabase.from('user_notifications').select('*', { count: 'exact' }).eq('user_id', userId).eq('is_read', false).order('created_at', { ascending: false }).limit(limit); if (error) { throw error; } console.log(`[Notifications Logic v10.2] Načteno ${data?.length || 0} oznámení. Celkem nepřečtených: ${count}`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications Logic v10.2] Výjimka při načítání oznámení:", error); return { unreadCount: 0, notifications: [] }; }
+        if (!supabase || !userId) { console.error("[Notifications Logic ADAPTIVE] Chybí Supabase nebo ID uživatele."); return { unreadCount: 0, notifications: [] }; } console.log(`[Notifications Logic ADAPTIVE] Načítání nepřečtených oznámení pro uživatele ${userId}`); try { const { data, error, count } = await supabase.from('user_notifications').select('*', { count: 'exact' }).eq('user_id', userId).eq('is_read', false).order('created_at', { ascending: false }).limit(limit); if (error) { throw error; } console.log(`[Notifications Logic ADAPTIVE] Načteno ${data?.length || 0} oznámení. Celkem nepřečtených: ${count}`); return { unreadCount: count ?? 0, notifications: data || [] }; } catch (error) { console.error("[Notifications Logic ADAPTIVE] Výjimka při načítání oznámení:", error); return { unreadCount: 0, notifications: [] }; }
     }
     // --- END: Логика Уведомлений ---
 
     // --- START: Глобальный Экспорт ---
     global.TestLogic = {
-        loadTestQuestions: loadTestQuestionsLogic,
+        loadTestQuestions: loadTestQuestionsLogic, // Tato funkce nyní vrací { firstQuestion, questionPool, initialDifficultyEstimate, questionsToAnswerInTest }
+        getNextAdaptiveQuestion: getNextAdaptiveQuestionLogic, // NOVÁ funkce
         checkAnswerWithGemini: checkAnswerWithGeminiLogic,
         calculateFinalResults: calculateFinalResultsLogic,
         generateDetailedAnalysis: generateDetailedAnalysisLogic,
@@ -660,7 +747,7 @@ Pro textové odpovědi (včetně ano/ne) buď tolerantní k velkým/malým písm
         compareNumericAdvanced: compareNumericAdvanced,
         compareTextAdvanced: compareTextAdvanced,
     };
-    console.log("test1-logic.js loaded and TestLogic exposed (v_ADAPTIVE - 'math_explore' and 'math_accelerate' logic added - v28.5).");
+    console.log("test1-logic.js ADAPTIVE loaded and TestLogic exposed (v_ADAPTIVE_FIX_RETURN).");
     // --- END: Глобальный Экспорт ---
 
 })(window);
