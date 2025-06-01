@@ -132,6 +132,9 @@
         .notification-icon.exercise { background: var(--vyuka-accent-success); }
         .notification-icon.badge { background: linear-gradient(135deg, var(--vyuka-accent-primary), var(--vyuka-accent-secondary)); }
         .notification-icon.lesson { background: var(--vyuka-accent-neutral); }
+        /* Add other type-specific icons as needed */
+        .notification-icon.plan_generated { background: linear-gradient(45deg, var(--vyuka-accent-secondary), var(--vyuka-accent-primary)); }
+        .notification-icon.level_up { background: linear-gradient(45deg, var(--vyuka-accent-pink), var(--vyuka-accent-tertiary)); }
 
         .notification-title {
             font-family: var(--vyuka-font-primary);
@@ -200,7 +203,6 @@
      <div class="offline-banner" id="offline-banner"> <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO.</div>
      <div class="sidebar-overlay-ai" id="sidebar-overlay-ai"></div>
 
-
     <aside class="vyuka-sidebar-ai" id="vyuka-sidebar-ai">
         <div class="vyuka-sidebar-ai-header">
             <a href="/dashboard/dashboard.html" class="vyuka-sidebar-ai-logo">
@@ -234,8 +236,16 @@
                 </a>
             </li>
         </ul>
+        <div class="user-profile" style="margin: 1.5rem 0.5rem; background-color: rgba(var(--vyuka-bg-panel-rgb), 0.7); border-color: var(--vyuka-border-highlight); border-radius: var(--vyuka-card-radius);">
+            <div class="avatar-wrapper" data-decoration-key=""> <div class="user-avatar" id="sidebar-avatar-vyuka">?</div>
+            </div>
+            <div class="user-info">
+                <div class="user-name" id="sidebar-name-vyuka">Načítání...</div>
+                <div class="user-role" id="sidebar-user-title-vyuka" title="Váš titul">Pilot</div>
+            </div>
+        </div>
         <div class="vyuka-sidebar-ai-footer">
-             <span id="currentYearSidebarVyuka" style="display: none;"></span>
+             <span id="currentYearSidebarVyuka"></span> Justax Systems
         </div>
     </aside>
 
@@ -250,13 +260,13 @@
                         <i class="fas fa-chevron-left"></i>
                     </button>
                     <div class="vyuka-header-topic-info">
-                        <h1 id="vyuka-subject-title">Justax - Vyuka</h1>
-                        <p id="vyuka-topic-subtitle">Advanced Calculus</p>
+                        <h1 id="vyuka-subject-title">AI Tutor</h1>
+                        <p id="vyuka-topic-subtitle">Synapse</p>
                     </div>
                 </div>
                 <div class="vyuka-header-right">
-                    <a href="/dashboard/profile.html" class="btn btn-icon-only btn-tooltip" title="Nastavení profilu">
-                        <i class="fas fa-cog"></i>
+                    <a href="/dashboard/settings.html" class="btn btn-icon-only btn-tooltip" title="Nastavení Účtu">
+                        <i class="fas fa-user-cog"></i>
                     </a>
                     <div class="notifications">
                         <div class="notification-bell" id="notification-bell" title="Oznámení">
@@ -270,14 +280,14 @@
                              </div>
                              <div id="notifications-list">
                                  <div class="notification-item skeleton"> <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 90%;"></div> <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div> </div> </div>
-                                 <div id="no-notifications-msg" style="display: none; padding: 1rem; text-align: center; color: var(--text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div>
+                                 <div id="no-notifications-msg" style="display: none; padding: 1rem; text-align: center; color: var(--vyuka-text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div>
                              </div>
                              <div class="notifications-footer">
                                  <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a>
                              </div>
                         </div>
                      </div>
-                    <div class="user-menu-container">
+                     <div class="user-menu-container">
                         <div class="vyuka-header-user-display">
                             <div class="vyuka-header-user-avatar-wrapper">
                                 <img src="" alt="Avatar" id="vyuka-header-avatar" class="vyuka-header-avatar-img">
@@ -289,6 +299,7 @@
                         </div>
                         <div class="user-dropdown-menu" id="user-dropdown-menu">
                             <ul class="user-dropdown-links">
+                                <li><a href="/dashboard/profile.html"><i class="fas fa-user-astronaut"></i> Veřejný Profil</a></li>
                                 <li><a href="/privacy-policy.html"><i class="fas fa-shield-alt"></i> Ochrana Údajů</a></li>
                                 <li><a href="/terms.html"><i class="fas fa-file-contract"></i> Podmínky Použití</a></li>
                             </ul>
@@ -440,6 +451,10 @@
                 <button class="btn btn-secondary" id="declineCompleteBtn"><i class="fas fa-times"></i> Ne, pokračovat</button>
             </div>
         </div>
+    </div>
+
+    <div id="ai-avatar-corner-indicator" class="ai-avatar-corner-indicator" style="display: none;">
+        <i class="fas fa-brain"></i>
     </div>
 
     <script src="vyuka-core.js" defer></script>
