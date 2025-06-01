@@ -1,4 +1,4 @@
-/* dashboard/procvicovani/vyuka/vyuka.css - EXTREME CYBERPUNK OVERHAUL v19 - Layout Fix & Chat Design Update */
+/* dashboard/procvicovani/vyuka/vyuka.css - EXTREME CYBERPUNK OVERHAUL v20 - Restored Panel Sizes from v17 logic */
 
 /* --- Základní proměnné --- */
 :root {
@@ -30,8 +30,8 @@
     --vyuka-accent-neutral: #5A6788; /* Muted Blue/Grey */
     --vyuka-accent-lime-rgb: 111, 255, 58; /* Lime for code blocks */
     --white-rgb: 255,255,255;
-    --vyuka-accent-pink: #FF33A8; /* Added from somewhere else, might be useful */
-    --vyuka-accent-pink-rgb: 255, 51, 168; /* Added from somewhere else, might be useful */
+    --vyuka-accent-pink: #FF33A8;
+    --vyuka-accent-pink-rgb: 255, 51, 168;
 
 
     --vyuka-text-primary: #E0E7FF; /* Light, slightly blueish white */
@@ -47,7 +47,7 @@
     --vyuka-header-height: 64px;
 
 
-    --vyuka-card-radius: 10px; /* Slightly less round for tech feel */
+    --vyuka-card-radius: 10px;
     --vyuka-button-radius: 6px;
     --vyuka-input-radius: 6px;
 
@@ -57,22 +57,20 @@
     --vyuka-cyber-glow-primary: 0 0 12px rgba(var(--vyuka-accent-primary-rgb), 0.6), 0 0 24px rgba(var(--vyuka-accent-primary-rgb), 0.4);
     --vyuka-cyber-glow-secondary: 0 0 12px rgba(var(--vyuka-accent-secondary-rgb), 0.6), 0 0 24px rgba(var(--vyuka-accent-secondary-rgb), 0.4);
 
-    --vyuka-chat-input-gradient: linear-gradient(145deg, rgba(var(--vyuka-accent-pink-rgb),0.4) -10%, rgba(var(--vyuka-accent-primary-rgb),0.5) 90%); /* Muted chat input gradient */
+    --vyuka-chat-input-gradient: linear-gradient(145deg, rgba(var(--vyuka-accent-pink-rgb),0.4) -10%, rgba(var(--vyuka-accent-primary-rgb),0.5) 90%);
     --vyuka-send-button-gradient: linear-gradient(60deg, var(--vyuka-accent-primary), var(--vyuka-accent-secondary));
 
     --animation-duration-fast: 0.2s;
     --animation-duration-medium: 0.35s;
     --animation-duration-slow: 0.6s;
-    --animation-timing-cyber: cubic-bezier(0.19, 1, 0.22, 1); /* Smooth and responsive */
+    --animation-timing-cyber: cubic-bezier(0.19, 1, 0.22, 1);
 
-    /* Notification Specific Variables */
     --vyuka-notification-bg: rgba(var(--vyuka-bg-panel-rgb), 0.97);
     --vyuka-notification-border: var(--vyuka-border-highlight);
     --vyuka-notification-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 15px rgba(var(--vyuka-accent-primary-rgb),0.2) inset;
     --vyuka-notification-item-hover-bg: rgba(var(--vyuka-accent-secondary-rgb), 0.1);
     --vyuka-notification-unread-dot: var(--vyuka-accent-primary);
     --vyuka-notification-hide-duration: 0.4s;
-
 
     --vyuka-loader-size: 80px;
     --vyuka-loader-blade-color: var(--vyuka-accent-primary);
@@ -93,7 +91,7 @@
     --vyuka-chat-avatar-size: 38px;
     --vyuka-chat-bubble-radius: 18px;
     --vyuka-chat-timestamp-color: var(--vyuka-text-muted);
-    --vyuka-chat-input-bg: var(--vyuka-bg-dark); /* Darker input background */
+    --vyuka-chat-input-bg: var(--vyuka-bg-dark);
 }
 
 /* --- Základní styly --- */
@@ -166,12 +164,11 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
 .vyuka-main-content-scrollable::-webkit-scrollbar-thumb:hover { background-color: var(--vyuka-accent-secondary); }
 .vyuka-header { height: var(--vyuka-header-height); background-color: var(--vyuka-bg-panel); border-bottom: 1px solid var(--vyuka-border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 1.2rem; flex-shrink: 0; box-shadow: 0 3px 15px rgba(0,0,0,0.3), inset 0 -1px 0 rgba(var(--vyuka-border-color),0.5); position: sticky; top: 0; z-index: 950; }
 body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 0.95); box-shadow: 0 5px 20px rgba(0,0,0,0.4), 0 0 15px rgba(var(--vyuka-accent-primary-rgb), 0.1) inset; }
-.vyuka-main-content { display: flex; flex-grow: 1; padding: 1.5rem; gap: 1.5rem; background-color: transparent; position: relative; z-index: 10; min-height: 0; } /* Added min-height:0 */
+.vyuka-main-content { display: flex; flex-grow: 1; padding: 1.5rem; gap: 1.5rem; background-color: transparent; position: relative; z-index: 10; min-height: 0; }
 
 /* --- Footer --- */
 .main-footer.vyuka-footer { flex-shrink: 0; margin-top: auto; background-color: var(--vyuka-bg-panel) !important; color: var(--vyuka-text-secondary) !important; padding: 1.5rem var(--container-padding-x, 1.5rem) !important; border-top: 1.5px solid var(--vyuka-border-highlight) !important; box-shadow: 0 -4px 15px -5px rgba(var(--vyuka-accent-secondary-rgb), 0.25) !important; position: relative !important; width: 100% !important; z-index: 5 !important; }
-/* ... (zbytek stylů pro footer zůstává stejný jako v předchozí verzi) ... */
-.vyuka-footer .container { max-width: var(--container-max-width, 1140px); margin-left: auto; margin-right: auto; padding-left: var(--container-padding-x, 15px); padding-right: var(--container-padding-x, 15px); }
+.vyuka-footer .container { max-width: 1140px; margin-left: auto; margin-right: auto; padding-left: var(--container-padding-x, 15px); padding-right: var(--container-padding-x, 15px); }
 .vyuka-footer .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2.5rem; text-align: left; }
 .vyuka-footer .footer-column .logo { display: inline-flex; align-items: center; font-family: 'Shadows Into Light Two', cursive !important; font-size: 1.9rem; font-weight: 400 !important; color: var(--vyuka-text-heading, #E0E7FF); text-decoration: none; margin-bottom: 1.25rem; transition: opacity 0.2s ease, text-shadow 0.2s ease; }
 .vyuka-footer .footer-column .logo:hover { opacity: 0.9; text-shadow: var(--vyuka-text-glow-secondary); }
@@ -192,7 +189,7 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 .vyuka-footer .footer-copyright { grid-column: 1 / -1; text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--vyuka-border-color, #2C334C); font-size: 0.85rem; color: var(--vyuka-text-muted, #5A6788); opacity: 0.7; }
 
 /* --- Levý AI Panel (Sidebar) --- */
-/* ... (styly pro .vyuka-sidebar-ai zůstávají stejné jako v předchozí verzi) ... */
+/* ... (zůstává stejný) ... */
 .vyuka-sidebar-ai { width: var(--vyuka-sidebar-width-collapsed); background-color: var(--vyuka-bg-panel); border-right: 1px solid var(--vyuka-border-color); display: flex; flex-direction: column; padding: 1rem 0.5rem; transition: width 0.3s var(--animation-timing-cyber); height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; box-shadow: 5px 0 30px -5px rgba(0,0,0,0.6), inset -3px 0 8px rgba(var(--vyuka-bg-dark-rgb),0.4); }
 .vyuka-sidebar-ai.expanded { width: var(--vyuka-sidebar-width-expanded); }
 .vyuka-sidebar-ai-header { text-align: center; margin-bottom: 2rem; padding: 0.5rem 0; display:flex; align-items:center; justify-content:center; height: 50px; }
@@ -219,22 +216,12 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 .vyuka-sidebar-ai-link.active i { color: var(--vyuka-bg-dark); text-shadow: 0 1px 1px rgba(0,0,0,0.3); transform: scale(1.15); }
 .vyuka-sidebar-ai-link.active .link-text { text-shadow: 0 1px 1px rgba(var(--vyuka-bg-dark-rgb),0.4); }
 .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link.active { box-shadow: 0 0 25px var(--vyuka-accent-primary-glow), 0 0 15px var(--vyuka-accent-secondary-glow); }
-.vyuka-sidebar-ai .user-profile { /* User profile in sidebar */ margin: 1.5rem 0.5rem; background-color: rgba(var(--vyuka-bg-panel-rgb), 0.7); border: 1px solid var(--vyuka-border-highlight); border-radius: var(--vyuka-card-radius); display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem; overflow: hidden; }
-.vyuka-sidebar-ai.expanded .user-profile { animation: text-focus-in 0.6s ease 0.25s both; }
-.vyuka-sidebar-ai:not(.expanded) .user-profile { padding: 0.8rem 0; justify-content: center; }
-.vyuka-sidebar-ai .user-profile .avatar-wrapper { width: 40px; height: 40px; flex-shrink: 0; }
-.vyuka-sidebar-ai .user-profile .user-avatar { /* #sidebar-avatar-vyuka */ width: 100%; height: 100%; font-size: 1rem; background-color: var(--vyuka-accent-secondary); border: 2px solid var(--vyuka-accent-primary); box-shadow: 0 0 10px var(--vyuka-accent-secondary-glow); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--vyuka-text-on-accent); }
-.vyuka-sidebar-ai .user-profile .user-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%;}
-.vyuka-sidebar-ai .user-profile .user-info { display: none; flex-direction: column; overflow: hidden; }
-.vyuka-sidebar-ai.expanded .user-profile .user-info { display: flex; }
-.vyuka-sidebar-ai .user-profile .user-name { font-size: 0.9rem; font-weight: 600; color: var(--vyuka-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.vyuka-sidebar-ai .user-profile .user-role { font-size: 0.75rem; color: var(--vyuka-accent-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--vyuka-font-mono); }
 .vyuka-sidebar-ai-footer { padding-top: 1rem; border-top: 1px solid var(--vyuka-border-highlight); display: flex; justify-content: center; align-items:center; min-height: 50px; font-size: 0.75rem; opacity: 0.7; color: var(--vyuka-text-muted); overflow: hidden; white-space: nowrap; }
 .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-footer { animation: text-focus-in 0.6s ease 0.25s both; }
 .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-footer { display: none; }
 
-/* --- Header (převzato z vyuka.css) --- */
-/* ... (styly pro .vyuka-header-left, .vyuka-header-right atd. zůstávají stejné) ... */
+/* --- Header --- */
+/* ... (zůstává stejný) ... */
 .vyuka-header-left { display: flex; align-items: center; gap: 0.8rem; }
 .vyuka-header-left .mobile-menu-toggle { display: none; color: var(--vyuka-text-muted); font-size: 1.4rem; }
 .vyuka-header-left .sidebar-ai-desktop-toggle { color: var(--vyuka-text-muted); font-size: 1.1rem; background: rgba(var(--vyuka-bg-panel-lighter),0.7); border: 1px solid var(--vyuka-border-color); cursor: pointer; padding: 0.5rem 0.7rem; border-radius: var(--vyuka-button-radius); transition: all var(--animation-duration-fast) ease; }
@@ -266,32 +253,34 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 .btn-exit-vyuka { font-size: 0.75rem; padding: 0.35rem 0.7rem; background: rgba(var(--vyuka-accent-pink-rgb),0.1); border-color: rgba(var(--vyuka-accent-pink-rgb),0.4); color: var(--vyuka-accent-pink); }
 .btn-exit-vyuka:hover { background: var(--vyuka-accent-pink); color: var(--vyuka-bg-dark); border-color: var(--vyuka-accent-pink); box-shadow: 0 0 10px var(--vyuka-accent-pink), 0 0 15px var(--vyuka-accent-pink); }
 
-/* --- Styly pro hlavní obsah a panely --- */
-.vyuka-whiteboard-area, .vyuka-chat-panel { background-color: rgba(var(--vyuka-bg-panel-rgb), 0.92); backdrop-filter: blur(10px) saturate(1.1) brightness(0.95); padding: 1.2rem; /* Sníženo */ display: flex; flex-direction: column; overflow: hidden; border-radius: var(--vyuka-card-radius); border: 1px solid var(--vyuka-border-cyber); box-shadow: 0 0 28px rgba(var(--vyuka-accent-secondary-rgb),0.25), inset 0 0 22px rgba(var(--vyuka-bg-dark-rgb),0.8), inset 0 0 10px var(--vyuka-border-cyber-secondary); position: relative; transition: box-shadow var(--animation-duration-medium) ease-in-out, border-color var(--animation-duration-medium) ease-in-out; }
+/* --- Styly pro hlavní obsah a panely (vyuka.css) --- */
+.vyuka-whiteboard-area, .vyuka-chat-panel { background-color: rgba(var(--vyuka-bg-panel-rgb), 0.92); backdrop-filter: blur(10px) saturate(1.1) brightness(0.95); padding: 1.2rem; display: flex; flex-direction: column; overflow: hidden; border-radius: var(--vyuka-card-radius); border: 1px solid var(--vyuka-border-cyber); box-shadow: 0 0 28px rgba(var(--vyuka-accent-secondary-rgb),0.25), inset 0 0 22px rgba(var(--vyuka-bg-dark-rgb),0.8), inset 0 0 10px var(--vyuka-border-cyber-secondary); position: relative; transition: box-shadow var(--animation-duration-medium) ease-in-out, border-color var(--animation-duration-medium) ease-in-out; }
 .vyuka-whiteboard-area:hover, .vyuka-chat-panel:hover { box-shadow: 0 0 35px rgba(var(--vyuka-accent-secondary-rgb),0.4), 0 0 55px rgba(var(--vyuka-accent-primary-rgb),0.25), inset 0 0 28px rgba(var(--vyuka-bg-dark-rgb),0.65), inset 0 0 15px var(--vyuka-border-cyber-secondary); border-color: var(--vyuka-border-cyber-secondary); }
-.vyuka-whiteboard-area::before, .vyuka-chat-panel::before, .vyuka-whiteboard-area::after, .vyuka-chat-panel::after { content: ''; position: absolute; width: 20px; height: 20px; border-style: solid; border-color: var(--vyuka-accent-secondary); opacity: 1; pointer-events: none; z-index: 5; transition: all 0.35s var(--animation-timing-cyber); box-shadow: 0 0 8px -2px var(--vyuka-accent-secondary); } /* Sníženo */
-.vyuka-whiteboard-area::before, .vyuka-chat-panel::before { top: 0px; left: 0px; border-width: 2px 0 0 2px; border-top-left-radius: calc(var(--vyuka-card-radius) - 2px); clip-path: polygon(0 0, 55% 0, 0 55%); } /* Sníženo */
-.vyuka-whiteboard-area::after, .vyuka-chat-panel::after { bottom: 0px; right: 0px; border-width: 0 2px 2px 0; border-bottom-right-radius: calc(var(--vyuka-card-radius) - 2px); clip-path: polygon(100% 100%, 45% 100%, 100% 45%); } /* Sníženo */
-.vyuka-whiteboard-area:hover::before, .vyuka-chat-panel:hover::before { transform: translate(-4px, -4px) scale(1.08); border-color: var(--vyuka-accent-primary); box-shadow: 0 0 12px var(--vyuka-accent-primary); } /* Sníženo */
-.vyuka-whiteboard-area:hover::after, .vyuka-chat-panel:hover::after { transform: translate(4px, 4px) scale(1.08); border-color: var(--vyuka-accent-primary); box-shadow: 0 0 12px var(--vyuka-accent-primary); } /* Sníženo */
+.vyuka-whiteboard-area::before, .vyuka-chat-panel::before, .vyuka-whiteboard-area::after, .vyuka-chat-panel::after { content: ''; position: absolute; width: 20px; height: 20px; border-style: solid; border-color: var(--vyuka-accent-secondary); opacity: 1; pointer-events: none; z-index: 5; transition: all 0.35s var(--animation-timing-cyber); box-shadow: 0 0 8px -2px var(--vyuka-accent-secondary); }
+.vyuka-whiteboard-area::before, .vyuka-chat-panel::before { top: 0px; left: 0px; border-width: 2px 0 0 2px; border-top-left-radius: calc(var(--vyuka-card-radius) - 2px); clip-path: polygon(0 0, 55% 0, 0 55%); }
+.vyuka-whiteboard-area::after, .vyuka-chat-panel::after { bottom: 0px; right: 0px; border-width: 0 2px 2px 0; border-bottom-right-radius: calc(var(--vyuka-card-radius) - 2px); clip-path: polygon(100% 100%, 45% 100%, 100% 45%); }
+.vyuka-whiteboard-area:hover::before, .vyuka-chat-panel:hover::before { transform: translate(-4px, -4px) scale(1.08); border-color: var(--vyuka-accent-primary); box-shadow: 0 0 12px var(--vyuka-accent-primary); }
+.vyuka-whiteboard-area:hover::after, .vyuka-chat-panel:hover::after { transform: translate(4px, 4px) scale(1.08); border-color: var(--vyuka-accent-primary); box-shadow: 0 0 12px var(--vyuka-accent-primary); }
 
-/* --- RESTORED Height for whiteboard and chat --- */
+/* RESTORED Sizing Logic from v17 */
 .vyuka-whiteboard-area {
     flex-basis: 60%;
     flex-grow: 1;
     flex-shrink: 1;
-    min-height: 250px; /* Slightly reduced min-height */
-    /* max-height will be controlled by flex and parent's min-height:0 on .vyuka-main-content */
+    min-height: 300px;
+    max-height: calc(100vh - var(--vyuka-header-height) - (2 * 1.5rem) - 2.5rem - 2px - var(--vyuka-footer-approx-height, 70px)); /* padding 1.5rem top/bottom main-content, gap 1.5rem, border*/
+    height: auto;
 }
 .vyuka-chat-panel {
     flex-basis: 40%;
     flex-grow: 1;
     flex-shrink: 1;
-    min-height: 250px; /* Slightly reduced min-height */
-    min-width: 360px; /* Slightly reduced min-width */
-     /* max-height will be controlled by flex and parent's min-height:0 on .vyuka-main-content */
+    min-height: 300px;
+    min-width: 380px;
+    max-height: calc(100vh - var(--vyuka-header-height) - (2 * 1.5rem) - 2.5rem - 2px - var(--vyuka-footer-approx-height, 70px));
+    height: auto;
 }
-/* --- END RESTORED Height --- */
+/* END RESTORED Sizing Logic */
 
 #whiteboard-container { flex-grow: 1; overflow-y: auto; padding: 0.8rem; margin-right: -8px; position: relative; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--vyuka-accent-secondary) rgba(var(--vyuka-bg-dark-rgb), 0.5); }
 #whiteboard-container::-webkit-scrollbar { width: 5px; }
@@ -303,7 +292,8 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 #whiteboard-content code { background-color: rgba(var(--vyuka-accent-lime-rgb), 0.15); padding: 0.2em 0.45em; border-radius: 3px; font-family: var(--vyuka-font-mono); color: var(--vyuka-accent-lime); border: 1px solid rgba(var(--vyuka-accent-lime-rgb),0.4); box-shadow: 0 0 8px rgba(var(--vyuka-accent-lime-rgb),0.3); }
 #whiteboard-content pre { background-color: rgba(var(--vyuka-bg-dark-rgb), 0.92); padding: 1.1em; border-radius: calc(var(--vyuka-button-radius) - 2px); overflow-x: auto; border: 1px solid var(--vyuka-border-highlight); box-shadow: var(--vyuka-panel-shadow), inset 0 0 18px rgba(0,0,0,0.45); font-size: 0.85rem; }
 
-/* --- Chat Design Improvements START --- */
+/* --- Chat Design Improvements (v19) --- */
+/* ... (zůstává stejný jako v předchozí verzi v19) ... */
 .vyuka-chat-header { padding: 0.7rem 1rem; border-bottom: 1px solid var(--vyuka-border-color); background-color: rgba(var(--vyuka-bg-panel-lighter), 0.85); flex-shrink: 0; box-shadow: inset 0 -2px 6px rgba(0,0,0,0.25), 0 1px 3px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; border-radius: var(--vyuka-card-radius) var(--vyuka-card-radius) 0 0; }
 .vyuka-chat-header h3 { margin: 0; font-size: 0.95rem; text-shadow: 0 0 6px var(--vyuka-accent-primary); }
 .ai-model-selector-container { display: flex; align-items: center; gap: 0.4rem; }
@@ -314,47 +304,37 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 .ai-model-select:focus { outline: none; border-color: var(--vyuka-accent-primary) !important; box-shadow: 0 0 8px rgba(var(--vyuka-accent-primary-rgb), 0.3) !important; }
 .ai-model-select option { background-color: var(--vyuka-bg-panel) !important; color: var(--vyuka-text-primary) !important; }
 .ai-model-select option:disabled { color: var(--vyuka-text-muted) !important; font-style: italic; }
-
 .interaction-panel-content { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 .interaction-panel-content #chat-tab-content { flex-grow: 1; display: flex; flex-direction: column; min-height: 0; }
-
 .chat-area { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0.6rem; gap: 0.6rem; min-height: 0; }
 .chat-messages { flex-grow: 1; overflow-y: auto; padding-right: 4px; margin-right: -4px; scroll-behavior: smooth; min-height: 0; }
 .chat-messages::-webkit-scrollbar { width: 4px; }
 .chat-messages::-webkit-scrollbar-thumb { background: var(--vyuka-accent-secondary); border-radius: 2px; }
 .chat-messages::-webkit-scrollbar-track { background: rgba(var(--vyuka-bg-dark-rgb),0.2); }
-
 .chat-message { display: flex; gap: 0.8rem; align-items: flex-start; max-width: 90%; animation: message-appear 0.4s var(--animation-timing-cyber) forwards; opacity: 0; transform: translateY(10px) scale(0.98); }
 @keyframes message-appear { to { opacity: 1; transform: translateY(0) scale(1); } }
 .chat-message.model { align-self: flex-start; }
 .chat-message.user { align-self: flex-end; flex-direction: row-reverse; }
-
 .message-avatar { width: var(--vyuka-chat-avatar-size); height: var(--vyuka-chat-avatar-size); border-radius: 50%; background-color: var(--vyuka-border-color); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem; color: var(--vyuka-text-on-accent); flex-shrink: 0; border: 2px solid transparent; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
 .chat-message.model .message-avatar { background: var(--vyuka-accent-secondary); border-color: rgba(var(--vyuka-accent-secondary-rgb), 0.7); box-shadow: 0 0 12px rgba(var(--vyuka-accent-secondary-rgb), 0.5); color: var(--vyuka-bg-dark); }
 .chat-message.model .message-avatar i { animation: ai-avatar-pulse 2s infinite ease-in-out; }
 @keyframes ai-avatar-pulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 1; } }
 .chat-message.user .message-avatar { background: var(--vyuka-accent-primary); border-color: rgba(var(--vyuka-accent-primary-rgb), 0.7); box-shadow: 0 0 12px rgba(var(--vyuka-accent-primary-rgb), 0.5); color: var(--vyuka-bg-dark); }
 .message-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-
 .message-bubble { padding: 0.7rem 1.1rem; border-radius: var(--vyuka-chat-bubble-radius); max-width: calc(100% - var(--vyuka-chat-avatar-size) - 1rem); position: relative; transition: box-shadow 0.3s ease, transform 0.2s ease; box-shadow: 0 3px 8px rgba(0,0,0,0.3), inset 0 1px 2px rgba(var(--vyuka-bg-dark-rgb), 0.3); }
-.chat-message.model .message-bubble { background: var(--vyuka-chat-model-bg); border: 1px solid var(--vyuka-chat-model-border); color: var(--vyuka-chat-model-text); border-top-left-radius: 6px; /* Tail effect */ }
-.chat-message.user .message-bubble { background: var(--vyuka-chat-user-bg); border: 1px solid var(--vyuka-chat-user-border); color: var(--vyuka-chat-user-text); border-top-right-radius: 6px; /* Tail effect */ }
+.chat-message.model .message-bubble { background: var(--vyuka-chat-model-bg); border: 1px solid var(--vyuka-chat-model-border); color: var(--vyuka-chat-model-text); border-top-left-radius: 6px; }
+.chat-message.user .message-bubble { background: var(--vyuka-chat-user-bg); border: 1px solid var(--vyuka-chat-user-border); color: var(--vyuka-chat-user-text); border-top-right-radius: 6px; }
 .message-bubble-content { word-wrap: break-word; white-space: pre-wrap; font-size: 0.9rem; line-height: 1.6; }
 .message-bubble-content p:last-child { margin-bottom: 0; }
-/* Specific code styling in chat */
 .chat-message .message-bubble-content code { background-color: rgba(var(--vyuka-accent-lime-rgb),0.12); padding: 0.15em 0.4em; border-radius: 3px; color: var(--vyuka-accent-lime); border: 1px solid rgba(var(--vyuka-accent-lime-rgb),0.3); font-size: 0.85em; }
 .chat-message .message-bubble-content pre { background-color: rgba(var(--vyuka-bg-dark-rgb), 0.9); padding: 0.8em; border-radius: 5px; border: 1px solid var(--vyuka-border-color); font-size: 0.8em; margin: 0.5em 0; }
 .chat-message .message-bubble-content pre code { background:transparent; border:none; padding:0; color: inherit; }
-
-
 .message-thinking-indicator { display: flex; gap: 4px; padding: 10px 14px; align-items: center; }
 .typing-dot { width: 8px; height: 8px; background-color: var(--vyuka-accent-primary); border-radius: 50%; animation: typing-pulse 1.4s infinite ease-in-out; box-shadow: 0 0 5px var(--vyuka-accent-primary); }
 .typing-dot:nth-child(1) { animation-delay: 0s; } .typing-dot:nth-child(2) { animation-delay: 0.2s; } .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 @keyframes typing-pulse { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; } 40% { transform: scale(1); opacity: 1; } }
-
 .message-timestamp { font-size: 0.7rem; color: var(--vyuka-chat-timestamp-color); margin-top: 0.4rem; text-align: left; opacity: 0.7; padding-left: calc(var(--vyuka-chat-avatar-size) + 0.8rem + 1.1rem); }
 .chat-message.user .message-timestamp { text-align: right; padding-right: calc(var(--vyuka-chat-avatar-size) + 0.8rem + 1.1rem); padding-left: 0; }
-
 .chat-input-area { flex-shrink: 0; padding: 0.6rem; border-top: 1px solid var(--vyuka-border-color); background: rgba(var(--vyuka-bg-dark-rgb), 0.75); box-shadow: inset 0 3px 8px rgba(0,0,0,0.2); }
 .chat-input-wrapper { display: flex; gap: 0.5rem; background: var(--vyuka-chat-input-bg); border-radius: var(--vyuka-input-radius); padding: 4px; box-shadow: inset 0 2px 6px rgba(0,0,0,0.5), 0 0 12px rgba(var(--vyuka-accent-pink-rgb),0.3); position:relative; border: 1px solid var(--vyuka-border-highlight); }
 .chat-input-wrapper::before { content:''; position:absolute; top:1px; left:1px; right:1px; bottom:1px; border-radius: calc(var(--vyuka-input-radius) - 2px); background: var(--vyuka-chat-input-bg); z-index:0; }
@@ -363,16 +343,15 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 .send-button { background: var(--vyuka-send-button-gradient); border: none; color: var(--vyuka-bg-dark); width: 40px; height: 40px; font-size: 1.1rem; border-radius: 50%; box-shadow: 0 2px 10px rgba(var(--vyuka-accent-primary-rgb),0.45); text-shadow: 0 0 2px rgba(var(--vyuka-bg-dark-rgb),0.3); flex-shrink: 0; z-index: 1; transition: transform 0.15s ease, box-shadow 0.2s ease; }
 .send-button:hover:not(:disabled) { transform: scale(1.08); box-shadow: 0 4px 15px rgba(var(--vyuka-accent-secondary-rgb),0.5); filter: brightness(1.1); }
 .send-button:disabled { background: var(--vyuka-text-muted); opacity: 0.5; }
-
 .chat-controls { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.3rem 0.3rem; gap: 0.6rem; }
 .chat-controls button.btn-icon-only, .chat-controls button { background-color: rgba(var(--vyuka-bg-panel-lighter), 0.5); border: 1px solid var(--vyuka-border-color); color: var(--vyuka-text-muted); width: 34px; height: 34px; font-size: 0.95rem; border-radius: 50%; transition: all var(--animation-duration-fast) ease; }
 .chat-controls button.btn-icon-only:hover, .chat-controls button:hover { background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.2); color: var(--vyuka-accent-secondary); border-color: var(--vyuka-accent-secondary); transform: scale(1.05); box-shadow: 0 0 8px rgba(var(--vyuka-accent-secondary-rgb), 0.3); }
 .chat-controls button#mic-btn.listening { background-color: rgba(var(--vyuka-accent-error), 0.3); color: var(--vyuka-accent-error); border-color: var(--vyuka-accent-error); animation: pulse-mic 1s infinite; }
 @keyframes pulse-mic { 0% { box-shadow: 0 0 0 0 rgba(var(--vyuka-accent-error), 0.7); } 70% { box-shadow: 0 0 0 8px rgba(var(--vyuka-accent-error), 0); } 100% { box-shadow: 0 0 0 0 rgba(var(--vyuka-accent-error), 0); } }
 .chat-controls button#clear-chat-btn:hover, .chat-controls button#save-chat-btn:hover { color: var(--vyuka-accent-primary); border-color: var(--vyuka-accent-primary); background-color: rgba(var(--vyuka-accent-primary-rgb), 0.15); }
-/* --- Chat Design Improvements END --- */
 
 /* --- AI Avatar Corner Indicator --- */
+/* ... (zůstává stejný) ... */
 .ai-avatar-corner-indicator { position: fixed; bottom: 1.5rem; right: 1.5rem; width: 60px; height: 60px; background: linear-gradient(145deg, var(--vyuka-accent-primary), var(--vyuka-accent-secondary)); border-radius: 50%; display: none; align-items: center; justify-content: center; color: var(--vyuka-bg-dark); font-size: 2rem; box-shadow: 0 5px 20px rgba(var(--vyuka-accent-primary-rgb),0.5), 0 0 0 5px rgba(var(--vyuka-bg-dark-rgb),0.5), 0 0 0 7px var(--vyuka-accent-primary); z-index: 1010; cursor: default; opacity: 0.9; transform: scale(1); transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease; }
 .ai-avatar-corner-indicator:hover { opacity: 1; transform: scale(1.05); box-shadow: 0 8px 28px rgba(var(--vyuka-accent-primary-rgb),0.6), 0 0 0 6px rgba(var(--vyuka-bg-dark-rgb),0.6), 0 0 0 9px var(--vyuka-accent-secondary); }
 .ai-avatar-corner-indicator.thinking, .ai-avatar-corner-indicator.speaking { animation: pulse-glow 1.8s infinite ease-in-out; }
@@ -392,7 +371,7 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 .vyuka-lesson-controls .btn { font-size: 0.8rem; padding: 0.55rem 1.1rem; }
 .vyuka-lesson-controls .btn i { margin-right: 0.45em; }
 #continue-btn:disabled {
-    background: var(--vyuka-text-muted) !important; /* Explicit background */
+    background: var(--vyuka-text-muted) !important;
     border-color: var(--vyuka-text-muted) !important;
     color: rgba(var(--vyuka-bg-dark-rgb), 0.7) !important;
     cursor: not-allowed;
@@ -404,7 +383,7 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 #continue-btn:disabled::before { display: none !important; }
 
 /* --- Modal pro potvrzení dokončení tématu --- */
-/* ... (styly pro .modal-overlay, .modal-content atd. zůstávají stejné jako v předchozí verzi) ... */
+/* ... (zůstává stejný) ... */
 .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(var(--vyuka-bg-dark-rgb), 0.85); backdrop-filter: blur(8px); z-index: 1005; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity var(--animation-duration-medium) ease, visibility 0s var(--animation-duration-medium); }
 .modal-overlay.visible { opacity: 1; visibility: visible; transition-delay: 0s; }
 .modal-content.card { background-color: var(--vyuka-bg-panel); border: 1px solid var(--vyuka-border-highlight); width: 90%; max-width: 500px; padding: 2rem; transform: scale(0.9); opacity: 0; transition: transform var(--animation-duration-medium) var(--animation-timing-cyber), opacity var(--animation-duration-medium) ease; }
@@ -417,7 +396,8 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 .modal-actions { display: flex; justify-content: center; gap: 1rem; }
 .modal-actions .btn { min-width: 130px; }
 
-/* --- Adaptivní styly (Původní z vyuka.css, upraveno) --- */
+/* --- Adaptivní styly --- */
+/* ... (zůstává stejný) ... */
 @media (max-width: 1200px) { .vyuka-main-content { flex-direction: column; } .vyuka-whiteboard-area, .vyuka-chat-panel { flex-basis: auto; /* min-height controlled by content */ max-height: none; /* Allow content to define height, parent scrolls */ } }
 @media (max-width: 992px) { /* Již pokryto v hlavních stylech sidebar */ }
 @media (max-width: 768px) { .vyuka-sidebar-ai { transform: translateX(-100%); width: var(--vyuka-sidebar-width-expanded); z-index: 1002; } .vyuka-sidebar-ai.active-mobile { transform: translateX(0); } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-logo .logo-text, .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link .link-text { display: inline; } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link i { margin-right: 0.8rem; } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-header, .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link { justify-content: flex-start; } .vyuka-page-container { margin-left: 0; width: 100%; } .vyuka-header { padding: 0 0.8rem; } .vyuka-header-left .sidebar-ai-desktop-toggle { display: none; } .vyuka-header-left .mobile-menu-toggle { display: block; } .vyuka-header-topic-info h1 { font-size: 0.9rem; } .vyuka-header-topic-info p { font-size: 0.7rem; } .vyuka-header-right .btn-exit-vyuka span { display: none; } .vyuka-header-right .btn-exit-vyuka i { margin-right: 0; } .vyuka-header-right { gap: 0.3rem; } .vyuka-main-content { padding: 0.8rem; gap: 0.8rem; } .vyuka-whiteboard-area, .vyuka-chat-panel { padding: 1rem; min-height: 250px; /* Keep some min-height */ } .vyuka-lesson-controls { flex-direction: column; } .vyuka-lesson-controls .btn { width: 100%; font-size: 0.7rem; padding: 0.35rem; } .chat-input-area { padding-top: 0.4rem; } .chat-input { padding: 0.35rem; font-size: 0.65rem; } .send-button { width: 28px; height: 28px; font-size: 0.75rem;} .chat-controls button { width: 24px; height: 24px; font-size: 0.65rem;} .sidebar-overlay-ai { position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark-rgb), 0.7); z-index: 1001; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; backdrop-filter: blur(3px); } .sidebar-overlay-ai.active { opacity: 1; visibility: visible; transition-delay: 0s; } .vyuka-header-user-display { display: none; } }
