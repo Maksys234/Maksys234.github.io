@@ -1,6 +1,7 @@
 // Файл: procvicovani/vyuka/vyuka-ai-interaction.js
 // Логика взаимодействия с AI Gemini, управление чатом, учебной сессией, парсинг ответов AI
 // Версия v25: Исправлена ошибка в sendToGemini, уточнена логика кнопки "Продолжить".
+// UPDATE (Mentor Mode): Обновлены промпты для AI, чтобы включить рефлексивные вопросы.
 
 // Получаем доступ к глобальному пространству имен
 window.VyukaApp = window.VyukaApp || {};
@@ -241,12 +242,14 @@ window.VyukaApp = window.VyukaApp || {};
                 if (state.currentProfile?.avatar_url) {
                     let avatarUrl = state.currentProfile.avatar_url;
                     if (!avatarUrl.startsWith('http') && avatarUrl.includes('/')) {
+                        // Internal path, use as is
                     } else {
+                        // External path, add timestamp
                         avatarUrl += (avatarUrl.includes('?') ? '&' : '?') + `t=${new Date().getTime()}`;
                     }
                     avatarContent = `<img src="${VyukaApp.sanitizeHTML(avatarUrl)}" alt="${VyukaApp.sanitizeHTML(avatarContent)}">`;
                 }
-            } else {
+            } else { // AI
                 avatarContent = '<i class="fas fa-robot"></i>';
             }
 
@@ -450,7 +453,7 @@ window.VyukaApp = window.VyukaApp || {};
 			const { boardMarkdown, ttsCommentary, chatText, actionSignal } = VyukaApp.parseGeminiResponse(rawText);
 			let aiResponded = false;
             let cleanedChatText = "";
-             if (typeof VyukaApp.cleanChatMessage === 'function') {
+             if (typeof VyukaApp.cleanChatMessage === 'function') { // Ensure cleanChatMessage exists
                  cleanedChatText = VyukaApp.cleanChatMessage(chatText);
              } else { cleanedChatText = chatText.trim(); }
 
@@ -519,7 +522,6 @@ window.VyukaApp = window.VyukaApp || {};
             } else {
                 VyukaApp.manageUIState('learning');
             }
-            // Button state management moved to VyukaApp.manageButtonStates() which is called in sendToGemini->finally or after other actions
 		};
 
         VyukaApp.requestFinalQuiz = async () => {
@@ -530,7 +532,8 @@ window.VyukaApp = window.VyukaApp || {};
             await VyukaApp.sendToGemini(prompt, false, true);
         };
 
-        VyukaApp._buildInitialPrompt = () => { /* ... stejné jako v předchozí verzi v24 ... */
+        // --- PROMPTS (UPDATED for Mentor Mode) ---
+        VyukaApp._buildInitialPrompt = () => {
             const state = VyukaApp.state;
             const config = VyukaApp.config;
             const level = state.currentProfile?.skill_level || 'středně pokročilá';
@@ -542,15 +545,16 @@ Cílová úroveň studenta: "${level}".
 
 HLAVNÍ PRAVIDLA (DODRŽUJ NAPROSTO VŽDY!):
 1.  **Obsah na tabuli ([BOARD_MARKDOWN]):** Všechny klíčové informace (definice, věty, vzorce), **MINIMÁLNĚ DVA ŘEŠENÉ PŘÍKLADY (různá obtížnost)** a ÚLOHY K ŘEŠENÍ patří VÝHRADNĚ A POUZE do tohoto bloku, začínajícího značkou '[BOARD_MARKDOWN]:'. Používej Markdown a $$...$$ pro matematiku. Vždy uveď řešené příklady PŘED zadáním úkolu studentovi.
-2.  **Hlasový komentář ([TTS_COMMENTARY]):** Slouží POUZE pro DOPLŇUJÍCÍ hlasový komentář k obsahu na tabuli. NEOPAKUJ doslova text z tabule. Začíná značkou '[TTS_COMMENTARY]:'.
+2.  **Hlasový komentář ([TTS_COMMENTARY]):** Slouží POUZE pro DOPLŇUJÍCÍ hlasový komentář k obsahu na tabuli. NEOPAKUJ doslova text z tabule.
 3.  **Chat (Text mimo značky):** VYUŽÍVEJ MINIMÁLNĚ. NIKDY v chatu NEUVÁDĚJ nové definice, příklady, úlohy ani vysvětlení látky. Použij chat POUZE pro HODNOCENÍ odpovědi studenta nebo VELMI krátkou PŘÍMOU odpověď na jeho otázku. NEPIŠ uvítací/ukončovací fráze.
-4.  **Struktura a Náročnost:** Postupuj logicky, zvyšuj náročnost k úrovni přijímaček. VŽDY dej více řešených příkladů PŘED úlohou. Používej RŮZNÉ typy úloh.
+4.  **Struktura a Náročnost:** Postupuj logicky, zvyšuj náročnost k úrovni přijímaček. VŽDY dej více řešených příkladů PŘED úlohou pro studenta. Používej RŮZNÉ typy úloh.
 5.  **Interakce:**
     * Po zadání ÚLOHY K ŘEŠENÍ v [BOARD_MARKDOWN], uveď v [TTS_COMMENTARY] **JASNĚ**, že čekáš odpověď v chatu. NIC VÍC. Klávesa "Pokračovat" bude pro uživatele deaktivována.
     * Po teorii/řešeném příkladu **NEČEKEJ na odpověď** a **NEPOKLÁDEJ otázky** typu "Je to jasné?", "Pokračujeme?". Uživatel použije tlačítko "Pokračovat".
 6.  **Fokus na Téma:** **STRIKTNĚ se drž tématu lekce: "${topicName}".**
 7.  **Navržení Dokončení Tématu:** Pokud usoudíš, že téma je dostatečně probráno (student odpovídá správně, byly probrány klíčové koncepty a typy příkladů), **místo dalšího obsahu nebo otázky**, pošli POUZE signál **${config.ACTION_INITIATE_FINAL_QUIZ}**. Neposílej v tomto případě žádný další text ani značky [BOARD_MARKDOWN] / [TTS_COMMENTARY]. Systém pak vyžádá finální test.
 8.  **Finální Test:** POKUD obdržíš explicitní požadavek na finální test (bude v uživatelském promptu), vygeneruj 10 otázek (5 těžkých, 2 střední, 3 lehké) K TOMUTO TÉMATU ("${topicName}"). Formátuj je pro [BOARD_MARKDOWN]. Neposílej žádný [TTS_COMMENTARY] ani chat.
+9.  **Reflektivní Otázky (Mentor Mode):** Po vysvětlení konceptu nebo ukázkového příkladu na tabuli [BOARD_MARKDOWN] můžeš (ale nemusíš) do [TTS_COMMENTARY] nebo krátce do CHATU (pokud je to velmi krátké a přirozené) přidat otázku k zamyšlení pro studenta (např. "Jak bys to vysvětlil/a vlastními slovy?", "Napadá tě jiný příklad na toto pravidlo?", "Co si myslíš, že se stane, když změníme tento parametr?"). Pro tyto reflektivní otázky **NEPOUŽÍVEJ** v [TTS_COMMENTARY] frázi "čekám na odpověď". Student může pokračovat tlačítkem "Pokračovat" nebo odpovědět v chatu.
 
 PRVNÍ KROK:
 Začni se ZÁKLADNÍ DEFINICÍ tématu "${topicName}". Poskytni **alespoň JEDEN ŘEŠENÝ PŘÍKLAD** (jednoduchý). VŠE DEJ DO [BOARD_MARKDOWN]:. Přidej krátký [TTS_COMMENTARY]:. NEPIŠ nic do chatu.
@@ -573,7 +577,7 @@ POŽADOVANÝ FORMÁT ODPOVĚDI (pro první krok):
 `;
         };
 
-    	VyukaApp._buildContinuePrompt = () => { /* ... stejné jako v předchozí verzi v24 ... */
+    	VyukaApp._buildContinuePrompt = () => {
             const state = VyukaApp.state;
             const config = VyukaApp.config;
 			const level = state.currentProfile?.skill_level || 'středně pokročilá';
@@ -589,6 +593,7 @@ HLAVNÍ PRAVIDLA (PŘIPOMENUTÍ!):
 * Zvyšuj náročnost. **Vždy ŘEŠENÉ příklady PŘED úlohou pro studenta.**
 * Po zadání ÚLOHY v [BOARD_MARKDOWN], v [TTS_COMMENTARY] **JASNĚ řekni, že čekáš odpověď** v chatu. Klávesa "Pokračovat" bude deaktivována.
 * Po teorii/řešeném příkladu **NEČEKEJ** a **NEPOKLÁDEJ otázky**. Uživatel použije tlačítko "Pokračovat".
+* **Reflektivní Otázky (Mentor Mode):** Po vysvětlení konceptu nebo příkladu na tabuli můžeš přidat krátkou otázku k zamyšlení do [TTS_COMMENTARY] nebo CHATU. Pro tyto otázky NEPOUŽÍVEJ v [TTS_COMMENTARY] frázi "čekám na odpověď".
 * Pokud je téma probráno -> pošli **POUZE** signál **${config.ACTION_INITIATE_FINAL_QUIZ}**. Neposílej ${config.ACTION_SUGGEST_COMPLETION}.
 
 DALŠÍ KROK: Vyber a vygeneruj JEDEN z následujících kroků (nebo navrhni dokončení testem):
@@ -604,7 +609,7 @@ POŽADOVANÝ FORMÁT ODPOVĚDI (Pokud NEPOSÍLÁŠ signál):
 (Zde text vysvětlení NEBO zadání a PODROBNÁ řešení příkladů NEBO POUZE ZADÁNÍ úlohy k řešení. Používej Markdown, $$...$$.)
 \`\`\`
 [TTS_COMMENTARY]:
-(Zde hlasový komentář k NOVÉMU obsahu. Pokud jsi zadal ÚLOHU, **JASNĚ řekni:** "Nyní zkuste tuto úlohu vyřešit vy a napište mi výsledek/postup do chatu." Pokud jde o teorii/řešený příklad, stručně shrň. **NEPOKLÁDEJ OTÁZKU.**)
+(Zde hlasový komentář k NOVÉMU obsahu. Pokud jsi zadal ÚLOHU K ŘEŠENÍ, **JASNĚ řekni:** "Nyní zkuste tuto úlohu vyřešit vy a napište mi výsledek/postup do chatu." Pokud jde o teorii/řešený příklad, stručně shrň hlavní myšlenku nebo upozorni na klíčový krok. **NEPOKLÁDEJ OTÁZKU typu 'Je to jasné?'.** Případně sem dej krátkou reflektivní otázku.)
 `;
 		};
 
@@ -638,7 +643,7 @@ Text otázky...
 `;
         };
 
-    	VyukaApp._buildChatInteractionPrompt = (userText) => { /* ... stejné jako v předchozí verzi v24 ... */
+    	VyukaApp._buildChatInteractionPrompt = (userText) => {
 			const state = VyukaApp.state;
             const config = VyukaApp.config;
 			const level = state.currentProfile?.skill_level || 'středně pokročilá';
@@ -653,7 +658,7 @@ TVŮJ ÚKOL (ODPOVĚĎ POUZE DO CHATU):
 2.  Pokud je nesprávná, poskytni krátké navedení nebo vysvětlení.
 3.  NEPOKLÁDEJ ŽÁDNÉ DALŠÍ OTÁZKY. Jen potvrď/oprav odpověď. Počkej na další odpověď studenta na další otázku testu.
 4.  Až student odpoví na všech 10 otázek testu, vyhodnoť poslední odpověď a pak místo dalšího textu pošli signál ${config.ACTION_SUGGEST_COMPLETION}.`;
-            } else if (state.aiIsWaitingForAnswer) {
+            } else if (state.aiIsWaitingForAnswer) { // User is answering a specific task AI set
 				baseInstruction = `Student nyní poskytl odpověď na POSLEDNÍ úlohu zadanou na tabuli k tématu "${topicName}". Studentova odpověď je: "${userText}".
 TVŮJ ÚKOL (ODPOVĚĎ POUZE DO CHATU - MIMO ZNAČKY!):
 1.  **NEJPRVE ZCELA KONKRÉTNĚ vyhodnoť správnost TÉTO studentovy odpovědi ('${userText}')** vůči poslední úloze.
@@ -662,37 +667,38 @@ TVŮJ ÚKOL (ODPOVĚĎ POUZE DO CHATU - MIMO ZNAČKY!):
 4.  **Tato odpověď v chatu NESMÍ obsahovat nové definice, příklady ani zadání úloh.**
 5.  **NAPROSTO NEPOKLÁDEJ ŽÁDNÉ DALŠÍ OTÁZKY.** Po tvé odpovědi bude uživateli aktivována klávesa "Pokračovat".
 6.  **UKONČI svou odpověď ZDE.** Další krok zahájí student.`;
-			} else {
-				baseInstruction = `Student položil otázku nebo komentář k probíranému tématu "${topicName}": "${userText}".
+			} else { // User is asking a general question or responding to a reflective probe
+				baseInstruction = `Student položil otázku, komentář nebo odpověď na tvou reflektivní otázku k probíranému tématu "${topicName}": "${userText}".
 TVŮJ ÚKOL (ODPOVĚĎ POUZE DO CHATU - MIMO ZNAČKY!):
-1.  **Odpověz stručně a PŘÍMO k dotazu studenta.** Využij kontext tabule.
+1.  **Odpověz stručně a PŘÍMO k dotazu/odpovědi studenta.** Využij kontext toho, co je aktuálně na TABULI.
 2.  **NEVYSVĚTLUJ novou látku** ani nezadávej nové příklady/úlohy v chatu.
 3.  **Pokud dotaz směřuje MIMO aktuální téma "${topicName}", jemně ho vrať zpět.**
 4.  **Tato odpověď v chatu NESMÍ obsahovat nové definice, příklady ani zadání úloh.**
-5.  **Na konci své odpovědi NEPOKLÁDEJ otázky typu "Stačí takto?", "Je to srozumitelnější?". Odpověz POUZE na otázku a IHNED SKONČI.** Po tvé odpovědi bude uživateli aktivována klávesa "Pokračovat".`;
+5.  **Na konci své odpovědi NEPOKLÁDEJ otázky typu "Stačí takto?", "Je to srozumitelnější?". Odpověz POUZE na otázku/komentář a IHNED SKONČI.** Po tvé odpovědi bude uživateli aktivována klávesa "Pokračovat".`;
 			}
 
 			return `${baseInstruction}
 PŘIPOMENUTÍ PRAVIDEL CHATU: Odpovídej POUZE běžným textem (mimo značky). Nepoužívej [BOARD_MARKDOWN] ani [TTS_COMMENTARY]. Buď stručný a věcný.`;
 		};
 
-    	VyukaApp._buildGeminiPayloadContents = (userPrompt, isChatInteraction = false, isFinalQuizRequest = false) => { /* ... stejné jako v předchozí verzi v24 ... */
+    	VyukaApp._buildGeminiPayloadContents = (userPrompt, isChatInteraction = false, isFinalQuizRequest = false) => {
 			const state = VyukaApp.state;
 			const config = VyukaApp.config;
             const level = state.currentProfile?.skill_level || 'středně pokročilá';
 			const topicName = state.currentTopic?.name || 'Neznámé téma';
             let systemInstruction = `Jsi expertní AI Tutor "Justax", specialista na přípravu na PŘIJÍMACÍ ZKOUŠKY z matematiky pro 9. třídu ZŠ v ČR. Komunikuješ v ČEŠTINĚ. NAPROSTO VŽDY dodržuj tato pravidla:
-1.  **[BOARD_MARKDOWN]:** Všechny definice, vzorce, vysvětlení, **VÍCE ŘEŠENÝCH PŘÍKLADŮ** a ÚLOHY K ŘEŠENÍ patří VÝHRADNĚ A POUZE sem: \`\`\`markdown ... \`\`\`. Používej Markdown a $$...$$ pro matematiku. Řešené příklady PŘED úlohami pro studenta.
+1.  **[BOARD_MARKDOWN]:** Všechny definice, vzorce, vysvětlení, **VÍCE ŘEŠENÝCH PŘÍKLADŮ** a ÚLOHY K ŘEŠENÍ patří VÝHRADNĚ sem: \`\`\`markdown ... \`\`\`. Používej Markdown a $$...$$ pro matematiku. Řešené příklady PŘED úlohami pro studenta.
 2.  **[TTS_COMMENTARY]:** Použij POUZE pro DOPLNĚNÍ k tabuli, NEOPAKUJ text doslova.
-3.  **Chat (Text mimo značky):** Použij MINIMÁLNĚ, POUZE pro HODNOCENÍ odpovědi studenta nebo VELMI krátkou PŘÍMOU odpověď na jeho otázku. NIKDY v chatu neuváděj nové definice, příklady, úlohy, vysvětlení. NEPIŠ pozdravy ani fráze. Po tvé odpovědi v chatu bude uživateli automaticky aktivována klávesa "Pokračovat" (pokud nejde o otázku od tebe nebo finální test).
+3.  **Chat (Text mimo značky):** Použij MINIMÁLNĚ, POUZE pro HODNOCENÍ odpovědi studenta nebo VELMI krátkou PŘÍMOU odpověď na jeho otázku, bez nového obsahu a zbytečných frází či otázek. Po tvé odpovědi v chatu bude uživateli automaticky aktivována klávesa "Pokračovat" (pokud nejde o otázku od tebe nebo finální test).
 4.  **Struktura a Náročnost:** Postupuj logicky, zvyšuj náročnost úloh k úrovni PŘIJÍMAČEK 9. třídy. **Vždy VÍCE řešených příkladů PŘED úlohou pro studenta.**
-5.  **Interakce:** Po zadání ÚLOHY v [BOARD_MARKDOWN], v [TTS_COMMENTARY] JASNĚ řekni, že čekáš odpověď v chatu. V JINÝCH případech (teorie, řešené příklady) NEČEKEJ na odpověď a NEPOKLÁDEJ otázky ("Jasné?", "Pokračujeme?").
-6.  **Fokus na Téma:** **STRIKTNĚ se drž tématu lekce: "${topicName}".**
-7.  **Odpovědi v chatu:** Pokud student ODPOVÍDÁ na úlohu nebo POKLÁDÁ OTÁZKU, odpovídej POUZE textem do CHATU podle instrukcí v uživatelském promptu. Po správné odpovědi JEN potvrď a UKONČI. Po přímé odpovědi na otázku IHNED SKONČI. **NIKDY nekonči otázkami jako "Stačí takto?" apod.**
-8.  **Navržení Dokončení Tématu:** Když je téma probráno, místo dalšího obsahu pošli **POUZE** signál **${config.ACTION_INITIATE_FINAL_QUIZ}**. Systém pak automaticky vyžádá finální test.
-9.  **Finální Test:** POKUD obdržíš explicitní požadavek na finální test (bude v uživatelském promptu), vygeneruj 10 otázek (5 těžkých, 2 střední, 3 lehké) K TOMUTO TÉMATU ("${topicName}"). Formátuj je pro [BOARD_MARKDOWN]. NEPOUŽÍVEJ [TTS_COMMENTARY] ani text do chatu. Po vygenerování testu v [BOARD_MARKDOWN] NIC DALŠÍHO NEDĚLEJ, nepiš do chatu, nečekej na odpověď. Student bude odpovídat na otázky testu postupně v chatu. Ty budeš hodnotit každou odpověď zvlášť.`;
+5.  **Interakce:** Po zadání ÚLOHY v [BOARD_MARKDOWN], v [TTS_COMMENTARY] JASNĚ řekni, že čekáš na odpověď studenta v chatu. V JINÝCH případech (teorie, řešené příklady) NEČEKEJ na odpověď a NEPOKLÁDEJ zbytečné otázky ("Jasné?", "Pokračujeme?").
+6.  **Fokus na Téma:** **STRIKTNĚ se drž tématu lekce: "${topicName}".** Nevysvětluj nesouvisející pokročilé koncepty.
+7.  **Odpovědi v chatu:** Pokud student ODPOVÍDÁ na úlohu nebo POKLÁDÁ OTÁZKU, odpovídej POUZE textem do CHATU podle instrukcí v uživatelském promptu. Po správné odpovědi studenta JEN potvrď a UKONČI odpověď. **Když odpovídáš na otázku studenta, odpověz PŘÍMO a ihned SKONČI. NIKDY nekonči otázkami jako "Stačí takto?" apod.**
+8.  **Reflektivní Otázky (Mentor Mode):** Po vysvětlení konceptu nebo příkladu na tabuli můžeš přidat krátkou otázku k zamyšlení do [TTS_COMMENTARY] nebo CHATU. Pro tyto otázky NEPOUŽÍVEJ v [TTS_COMMENTARY] frázi "čekám na odpověď".
+9.  **Navržení Dokončení Tématu:** Když je téma probráno, místo dalšího obsahu pošli **POUZE** signál **${config.ACTION_INITIATE_FINAL_QUIZ}**. Systém pak automaticky vyžádá finální test.
+10. **Finální Test:** POKUD obdržíš explicitní požadavek na finální test (bude v uživatelském promptu), vygeneruj 10 otázek (5 těžkých, 2 střední, 3 lehké) K TOMUTO TÉMATU ("${topicName}"). Formátuj je pro [BOARD_MARKDOWN]. NEPOUŽÍVEJ [TTS_COMMENTARY] ani text do chatu. Po vygenerování testu v [BOARD_MARKDOWN] NIC DALŠÍHO NEDĚLEJ, nepiš do chatu, nečekej na odpověď. Student bude odpovídat na otázky testu postupně v chatu. Ty budeš hodnotit každou odpověď zvlášť.`;
 
-            let modelConfirmation = `Rozumím. Budu striktně dodržovat pravidla. Obsah pro tabuli pouze v [BOARD_MARKDOWN]:. Komentář pouze v [TTS_COMMENTARY]:. Chat (mimo značky) jen pro hodnocení nebo velmi krátkou přímou odpověď na otázku, bez nového obsahu a zbytečných frází či otázek. Budu se držet tématu "${topicName}" a úrovně 9. třídy. Nebudu pokládat zbytečné otázky. Pokud bude téma probráno, pošlu signál ${config.ACTION_INITIATE_FINAL_QUIZ}. Pokud budu požádán o finální test, dodám ho v [BOARD_MARKDOWN].`;
+            let modelConfirmation = `Rozumím. Budu striktně dodržovat pravidla. Obsah pro tabuli pouze v [BOARD_MARKDOWN]:. Komentář pouze v [TTS_COMMENTARY]:. Chat (mimo značky) jen pro hodnocení nebo velmi krátkou přímou odpověď na otázku, bez nového obsahu a zbytečných frází či otázek. Budu se držet tématu "${topicName}" a zvyšovat náročnost pro úroveň 9. třídy. Nebudu pokládat zbytečné otázky. Mohu položit reflektivní otázku, na kterou student nemusí explicitně odpovídat. Pokud usoudím, že téma je probráno, pošlu signál ${config.ACTION_INITIATE_FINAL_QUIZ}. Pokud budu požádán o finální test, dodám ho v [BOARD_MARKDOWN].`;
 
             if (isFinalQuizRequest) {
                  modelConfirmation = `Rozumím. Připravuji finální test k tématu "${topicName}" s 10 otázkami (5 těžkých, 2 střední, 3 lehké) ve formátu [BOARD_MARKDOWN]. Nebudu poskytovat [TTS_COMMENTARY] ani text do chatu.`;
@@ -712,14 +718,13 @@ PŘIPOMENUTÍ PRAVIDEL CHATU: Odpovídej POUZE běžným textem (mimo značky). 
     	VyukaApp.sendToGemini = async (prompt, isChatInteraction = false, isFinalQuizRequest = false) => {
 			const config = VyukaApp.config;
 			const state = VyukaApp.state;
-            let requestError = null; // Store potential error
+            let requestError = null;
 
 			if (!config.GEMINI_API_KEY || !config.GEMINI_API_KEY.startsWith('AIzaSy')) {
 				VyukaApp.showToast("Chyba Konfigurace", "Chybí API klíč pro AI.", "error");
 				VyukaApp.updateGeminiThinkingState(false);
 				return;
 			}
-			// ... (zbytek kontrol zůstává stejný) ...
             if (!state.currentTopic) {
 				VyukaApp.showToast("Chyba", "Není vybráno téma.", "error");
 				VyukaApp.updateGeminiThinkingState(false);
@@ -744,7 +749,7 @@ PŘIPOMENUTÍ PRAVIDEL CHATU: Odpovídej POUZE běžným textem (mimo značky). 
 					topK: 40,
 					maxOutputTokens: 8192,
 				},
-				safetySettings: [ /* ... stejné jako předtím ... */ ]
+				safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" } ]
 			};
 
 			try {
@@ -773,16 +778,14 @@ PŘIPOMENUTÍ PRAVIDEL CHATU: Odpovídej POUZE běžným textem (mimo značky). 
 				}
 				await VyukaApp.processGeminiResponse(text || "", timestamp);
 
-			} catch (error) { // 'error' je zde definováno
-                requestError = error; // Uložíme chybu
+			} catch (error) {
+                requestError = error;
 				console.error('Chyba komunikace s Gemini:', error);
                 console.error('Error stack:', error.stack);
 				VyukaApp.showToast(`Chyba AI: ${error.message}`, "error");
 				VyukaApp.handleGeminiError(error.message, timestamp);
 			} finally {
 				VyukaApp.updateGeminiThinkingState(false);
-                // Volání manageButtonStates se postará o logiku tlačítka "Pokračovat"
-                // na základě aktuálního stavu (aiIsWaitingForAnswer, finalQuizActive, geminiIsThinking atd.)
                 VyukaApp.manageButtonStates();
 			}
 		};
@@ -793,8 +796,7 @@ PŘIPOMENUTÍ PRAVIDEL CHATU: Odpovídej POUZE běžným textem (mimo značky). 
 			VyukaApp.addChatMessage(`Nastala chyba při komunikaci s AI: ${msg}`, 'gemini', false, time, null, `(Chyba: ${msg})`);
             state.aiIsWaitingForAnswer = false;
             state.finalQuizActive = false;
-            VyukaApp.manageUIState('learning'); // Reset UI state
-            // VyukaApp.manageButtonStates() se volá v finally bloku sendToGemini
+            VyukaApp.manageUIState('learning');
 		};
 
 	} catch (e) {
