@@ -8,6 +8,7 @@
 // VERZE 10.5 (POŽADAVEK UŽIVATELE): Test se spustí i s 0 otázkami; MINIMUM_QUESTIONS_THRESHOLD se použije pro logiku "smysluplnosti" testu, nikoliv pro jeho spuštění.
 // VERZE K ÚPRAVĚ: Odstranění sloupce source_year
 // VERZE PRO UŽIVATELE (Implementace 'math_explore' a základ 'math_accelerate') - Aktualizace 28.5.2025
+// VERZE S ADAPTIVNÍM VÝBĚREM OTÁZEK (dle profilu) - Tato verze
 
 // Используем IIFE для изоляции области видимости
 (function(global) {
@@ -23,29 +24,22 @@
     const NUMERIC_TOLERANCE = 0.001;
     const BASE_POINTS_FOR_100_PERCENT = 30;
     const NOTIFICATION_FETCH_LIMIT = 5;
-    const DEFAULT_QUESTIONS_PER_TOPIC = 3; // Použito, pokud nejsou uživatelské preference
-    const TOTAL_QUESTIONS_IN_TEST = 30; // Výchozí počet otázek, pokud není specifikováno jinak
-    const MINIMUM_QUESTIONS_THRESHOLD = 1; // Minimální počet otázek, aby byl test považován za smysluplný
+    const DEFAULT_QUESTIONS_PER_TOPIC = 3; 
+    const TOTAL_QUESTIONS_IN_TEST = 30; 
+    const MINIMUM_QUESTIONS_THRESHOLD = 1; 
 
-    // Konfigurace pro "Volné Prozkoumávání" (math_explore)
     const MATH_EXPLORE_DIFFICULTY_DISTRIBUTION = {
-        1: 0.15, // 15%
-        2: 0.20, // 20%
-        3: 0.40, // 40%
-        4: 0.15, // 15%
-        5: 0.10  // 10%
+        1: 0.15, 2: 0.20, 3: 0.40, 4: 0.15, 5: 0.10
     };
 
-    // Konfigurace pro "Učení Napřed" (math_accelerate) - Fáze 1
     const MATH_ACCELERATE_PHASE1_CONFIG = {
-        currentGradeDifficultQuestions: 7, // Počet náročnějších otázek z aktuálního ročníku
-        nextGradeQuestions: 5,           // Počet otázek z dalšího ročníku
-        minDifficultyCurrent: 4,         // Minimální obtížnost pro aktuální ročník
-        minDifficultyNext: 2,            // Minimální obtížnost pro následující ročník
-        maxDifficultyNext: 4             // Maximální obtížnost pro následující ročník
+        currentGradeDifficultQuestions: 7, 
+        nextGradeQuestions: 5,          
+        minDifficultyCurrent: 4,        
+        minDifficultyNext: 2,           
+        maxDifficultyNext: 4            
     };
 
-    // Mapování číselných ročníků pro snadnější práci
     const gradeToNumber = {
         'zs5': 5, 'zs6': 6, 'zs7': 7, 'zs8': 8, 'zs9': 9,
         'ss1': 10, 'ss2': 11, 'ss3': 12, 'ss4': 13
@@ -54,7 +48,6 @@
         5: 'zs5', 6: 'zs6', 7: 'zs7', 8: 'zs8', 9: 'zs9',
         10: 'ss1', 11: 'ss2', 12: 'ss3', 13: 'ss4'
     };
-
     // --- END: Конфигурация ---
 
     // --- START: Вспомогательные функции ---
@@ -163,7 +156,7 @@
     }
     // --- END: Вспомогательные функции ---
 
-    // --- START: Логика загрузки вопросов (UPRAVENO pro v10.5 a nové typy testů) ---
+    // --- START: Логика загрузки вопросов (UPRAVENO pro adaptivní výběr na základě profilu) ---
     async function loadTestQuestionsLogic(supabase, profileData, testTypeConfigAll) {
         if (!supabase) { throw new Error("Supabase client není inicializován."); }
         if (!profileData) { throw new Error("Chybí data profilu uživatele."); }
@@ -171,23 +164,16 @@
         const userGradeString = profileData?.preferences?.goal_details?.grade || profileData?.target_grade;
         const topicRatings = profileData?.preferences?.goal_details?.topic_ratings || {};
         const learningGoal = profileData?.learning_goal || 'exam_prep';
-        // Použijeme learning_goal přímo jako klíč do testTypeConfigAll,
-        // protože 'identifier' je specifický pro ukládání do user_diagnostics.
-        // 'recommendedForGoal' v testTypeConfigAll se shoduje s learning_goal.
         const currentTestConfig = testTypeConfigAll[learningGoal];
         const selectedTestTypeIdentifier = currentTestConfig?.identifier || learningGoal;
 
-
-        console.log(`[Logic LoadQ v28.5] Načítání otázek pro: Cíl (learning_goal)=${learningGoal}, Identifikátor testu=${selectedTestTypeIdentifier}, Ročník=${userGradeString || 'N/A'}, Sebehodnocení témat:`, topicRatings);
+        console.log(`[Logic LoadQ ADAPTIVE] Načítání otázek pro: Cíl=${learningGoal}, Identifikátor=${selectedTestTypeIdentifier}, Ročník=${userGradeString || 'N/A'}`);
 
         let questionsToLoadCount = TOTAL_QUESTIONS_IN_TEST;
         if (currentTestConfig && currentTestConfig.questionsCount) {
             questionsToLoadCount = currentTestConfig.questionsCount;
         }
-        console.log(`[Logic LoadQ v28.5] Počet otázek k načtení: ${questionsToLoadCount}`);
-
-
-        let allQuestionsForProcessing = [];
+        console.log(`[Logic LoadQ ADAPTIVE] Počet otázek k načtení: ${questionsToLoadCount}`);
 
         let baseQuery = supabase
             .from('exam_questions')
@@ -202,89 +188,150 @@
             .neq('question_type', 'construction');
 
         if (learningGoal === 'math_explore') {
-            console.log(`[Logic LoadQ math_explore v28.5] Cíl je Volné prozkoumávání.`);
             if (userGradeString) {
-                // Pro math_explore bereme otázky primárně z 'prijimacky' a 'math_review' pro daný ročník
                 baseQuery = baseQuery.in('source_exam_type', ['prijimacky', 'math_review'])
                                    .eq('target_grade', userGradeString);
-                console.log(`[Logic LoadQ math_explore v28.5] Filtruji otázky typu 'prijimacky', 'math_review' pro ročník: ${userGradeString}`);
             } else {
-                console.warn(`[Logic LoadQ math_explore v28.5] Ročník uživatele není definován. Načítám otázky typu 'prijimacky', 'math_review' bez filtru ročníku.`);
-                 baseQuery = baseQuery.in('source_exam_type', ['prijimacky', 'math_review']);
+                baseQuery = baseQuery.in('source_exam_type', ['prijimacky', 'math_review']);
             }
         } else if (learningGoal === 'math_accelerate') {
-            console.log(`[Logic LoadQ math_accelerate v28.5] Cíl je Učení napřed.`);
             const currentUserGradeNumber = gradeToNumber[userGradeString];
             const gradesToFetch = [];
             if (userGradeString) gradesToFetch.push(userGradeString);
-
             if (currentUserGradeNumber) {
                 const nextGradeString = numberToGrade[currentUserGradeNumber + 1];
-                if (nextGradeString) {
-                    gradesToFetch.push(nextGradeString);
-                }
+                if (nextGradeString) gradesToFetch.push(nextGradeString);
             }
             if (gradesToFetch.length > 0) {
-                 // Pro math_accelerate bereme otázky primárně z 'prijimacky' (jako náročnější) a 'math_review'
                 baseQuery = baseQuery.in('source_exam_type', ['prijimacky', 'math_review'])
                                    .in('target_grade', gradesToFetch);
-                console.log(`[Logic LoadQ math_accelerate v28.5] Filtruji otázky typu 'prijimacky', 'math_review' pro ročníky: ${gradesToFetch.join(', ')}`);
             } else {
-                console.warn(`[Logic LoadQ math_accelerate v28.5] Ročník uživatele není definován nebo je neplatný. Načítám otázky typu 'prijimacky', 'math_review' bez filtru ročníku.`);
                 baseQuery = baseQuery.in('source_exam_type', ['prijimacky', 'math_review']);
             }
-        } else {
-            // Pro exam_prep, math_review (nebo jiné budoucí specifické testy)
+        } else { // exam_prep, math_review
             baseQuery = baseQuery.eq('source_exam_type', selectedTestTypeIdentifier);
             if (userGradeString) {
                  baseQuery = baseQuery.eq('target_grade', userGradeString);
-                 console.log(`[Logic LoadQ ${selectedTestTypeIdentifier} v28.5] Filtruji otázky pro ročník: ${userGradeString}`);
-            } else {
-                console.warn(`[Logic LoadQ ${selectedTestTypeIdentifier} v28.5] Ročník pro ${selectedTestTypeIdentifier} není definován, načítám bez filtru ročníku.`);
             }
         }
 
         const { data: fetchedQuestions, error: fetchError } = await baseQuery;
 
         if (fetchError) {
-            console.error(`[Logic LoadQ vNEXT] Chyba při načítání otázek z DB pro ${selectedTestTypeIdentifier}:`, fetchError);
+            console.error(`[Logic LoadQ ADAPTIVE] Chyba při načítání otázek z DB pro ${selectedTestTypeIdentifier}:`, fetchError);
             return [];
         }
 
         if (!fetchedQuestions || fetchedQuestions.length === 0) {
             const specificGradeMessage = userGradeString ? `a ročník/y relevantní pro '${userGradeString}'` : "";
             const warningMessage = `V databázi nejsou žádné otázky pro test '${selectedTestTypeIdentifier}' ${specificGradeMessage} (kromě konstrukčních).`;
-            console.warn(`[Logic LoadQ vNEXT] ${warningMessage}`);
+            console.warn(`[Logic LoadQ ADAPTIVE] ${warningMessage}`);
             return [];
         }
-        allQuestionsForProcessing = fetchedQuestions;
-        console.log(`[Logic LoadQ vNEXT] Načteno ${allQuestionsForProcessing.length} otázek odpovídajících základnímu filtru pro ${selectedTestTypeIdentifier}.`);
+        let allQuestionsForProcessing = fetchedQuestions;
+        console.log(`[Logic LoadQ ADAPTIVE] Načteno ${allQuestionsForProcessing.length} otázek odpovídajících základnímu filtru pro ${selectedTestTypeIdentifier}.`);
 
         let selectedQuestions = [];
         const selectedQuestionIds = new Set();
 
-        if (learningGoal === 'math_explore') {
-            console.log("[Logic LoadQ math_explore v28.5] Aplikuji rozložení obtížnosti...");
+        if (learningGoal === 'math_review' || learningGoal === 'exam_prep') {
+            console.log(`[Logic LoadQ ADAPTIVE] Aplikuji ADAPTIVNÍ výběr na základě sebehodnocení témat pro cíl: ${learningGoal}.`);
+            const questionsByTopic = allQuestionsForProcessing.reduce((acc, q) => {
+                const topicId = q.topic_id || 'unknown';
+                if (!acc[topicId]) acc[topicId] = [];
+                acc[topicId].push(q);
+                return acc;
+            }, {});
+
+            // Seřadit témata podle hodnocení uživatele (od nejslabších) nebo podle výchozího pořadí, pokud hodnocení chybí
+            const sortedTopicIds = Object.keys(questionsByTopic).sort((a, b) => {
+                const ratingA = topicRatings[a]?.overall || 3; // Default to medium if not rated
+                const ratingB = topicRatings[b]?.overall || 3;
+                return ratingA - ratingB; // Ascending by rating (weakest first)
+            });
+
+            let questionsPerTopicTarget = Math.max(1, Math.floor(questionsToLoadCount / Math.max(1, sortedTopicIds.length)));
+             // Pokud je málo témat s otázkami, navýšíme počet otázek na téma
+            if (sortedTopicIds.length > 0 && sortedTopicIds.length < 4) {
+                questionsPerTopicTarget = Math.ceil(questionsToLoadCount / Math.max(1, sortedTopicIds.length));
+            }
+
+            console.log(`[Logic LoadQ ADAPTIVE] Celkem témat s otázkami: ${sortedTopicIds.length}. Cílový počet otázek na téma: ${questionsPerTopicTarget}`);
+
+
+            for (const topicId of sortedTopicIds) {
+                if (selectedQuestions.length >= questionsToLoadCount) break;
+
+                let availableQuestionsInTopic = questionsByTopic[topicId] || [];
+                shuffleArray(availableQuestionsInTopic);
+                const selfRating = topicRatings[topicId]?.overall || 3; // Default to medium
+
+                // Definice cílů obtížnosti na základě sebehodnocení
+                let difficultyTargets = [];
+                if (selfRating <= 2) { // Uživatel se cítí slabý
+                    difficultyTargets = [
+                        { difficulty: 1, count: Math.ceil(questionsPerTopicTarget * 0.5) }, // 50% nejlehčí
+                        { difficulty: 2, count: Math.ceil(questionsPerTopicTarget * 0.3) }, // 30% lehké
+                        { difficulty: 3, count: Math.ceil(questionsPerTopicTarget * 0.2) }  // 20% střední
+                    ];
+                } else if (selfRating === 3) { // Střední
+                    difficultyTargets = [
+                        { difficulty: 2, count: Math.ceil(questionsPerTopicTarget * 0.3) },
+                        { difficulty: 3, count: Math.ceil(questionsPerTopicTarget * 0.4) },
+                        { difficulty: 4, count: Math.ceil(questionsPerTopicTarget * 0.3) }
+                    ];
+                } else { // Uživatel se cítí silný (4-5)
+                    difficultyTargets = [
+                        { difficulty: 3, count: Math.ceil(questionsPerTopicTarget * 0.2) },
+                        { difficulty: 4, count: Math.ceil(questionsPerTopicTarget * 0.5) },
+                        { difficulty: 5, count: Math.ceil(questionsPerTopicTarget * 0.3) }
+                    ];
+                }
+                 console.log(`[Logic LoadQ ADAPTIVE] Pro Téma ID ${topicId} (Rating: ${selfRating}), cíle obtížnosti:`, difficultyTargets);
+
+                for (const target of difficultyTargets) {
+                    if (selectedQuestions.length >= questionsToLoadCount) break;
+                    const questionsAtDifficulty = availableQuestionsInTopic.filter(q => q.difficulty === target.difficulty && !selectedQuestionIds.has(q.id));
+                    const questionsToAddCount = Math.min(target.count, questionsAtDifficulty.length);
+
+                    for (let i = 0; i < questionsToAddCount; i++) {
+                        if (selectedQuestions.length >= questionsToLoadCount) break;
+                        const question = questionsAtDifficulty[i];
+                        selectedQuestions.push(question);
+                        selectedQuestionIds.add(question.id);
+                    }
+                }
+                // Pokud po cíleném výběru stále chybí otázky pro dané téma (do questionsPerTopicTarget), doplníme z jakékoliv obtížnosti v daném tématu
+                let currentQuestionsFromTopic = selectedQuestions.filter(q => q.topic_id == topicId).length; // Musí být '==' kvůli typům
+                const neededToFillTopic = Math.max(0, questionsPerTopicTarget - currentQuestionsFromTopic);
+
+                if (neededToFillTopic > 0 && selectedQuestions.length < questionsToLoadCount) {
+                     console.log(`[Logic LoadQ ADAPTIVE] Téma ${topicId}: Chybí ${neededToFillTopic} k naplnění cíle ${questionsPerTopicTarget}. Doplňuji...`);
+                    const remainingInTopic = availableQuestionsInTopic.filter(q => !selectedQuestionIds.has(q.id));
+                    const questionsToActuallyAdd = Math.min(neededToFillTopic, remainingInTopic.length, questionsToLoadCount - selectedQuestions.length);
+                    for (let i = 0; i < questionsToActuallyAdd; i++) {
+                         selectedQuestions.push(remainingInTopic[i]);
+                         selectedQuestionIds.add(remainingInTopic[i].id);
+                    }
+                }
+            }
+            console.log(`[Logic LoadQ ADAPTIVE] Po adaptivním výběru na základě témat: ${selectedQuestions.length} otázek.`);
+
+        } else if (learningGoal === 'math_explore') {
             const questionsByDifficulty = { 1: [], 2: [], 3: [], 4: [], 5: [] };
             allQuestionsForProcessing.forEach(q => {
                 const diff = q.difficulty;
                 if (diff >= 1 && diff <= 5) {
-                    if (!questionsByDifficulty[diff]) questionsByDifficulty[diff] = []; // Pojistka
+                    if (!questionsByDifficulty[diff]) questionsByDifficulty[diff] = [];
                     questionsByDifficulty[diff].push(q);
-                } else {
-                    console.warn(`[Logic LoadQ math_explore v28.5] Otázka ID ${q.id} má neplatnou obtížnost: ${diff}. Přeskakuji.`);
                 }
             });
-
             Object.keys(MATH_EXPLORE_DIFFICULTY_DISTRIBUTION).forEach(difficultyLevelStr => {
                 const difficultyLevel = parseInt(difficultyLevelStr, 10);
                 const targetPercentage = MATH_EXPLORE_DIFFICULTY_DISTRIBUTION[difficultyLevel];
                 const targetCount = Math.round(questionsToLoadCount * targetPercentage);
                 let availableForDifficulty = questionsByDifficulty[difficultyLevel] || [];
                 shuffleArray(availableForDifficulty);
-
-                console.log(`[Logic LoadQ math_explore v28.5] Obtížnost ${difficultyLevel}: Cílový počet ${targetCount}, Dostupných ${availableForDifficulty.length}`);
-
                 for (let i = 0; i < targetCount && availableForDifficulty.length > 0; i++) {
                     if (selectedQuestions.length >= questionsToLoadCount) break;
                     const question = availableForDifficulty.shift();
@@ -294,14 +341,10 @@
                     }
                 }
             });
-            console.log(`[Logic LoadQ math_explore v28.5] Po rozložení obtížnosti vybráno ${selectedQuestions.length} otázek.`);
-
         } else if (learningGoal === 'math_accelerate') {
-            console.log("[Logic LoadQ math_accelerate v28.5] Sestavuji test pro Učení Napřed - Fáze 1...");
             const currentUserGradeNum = gradeToNumber[userGradeString];
             const nextUserGradeString = currentUserGradeNum ? numberToGrade[currentUserGradeNum + 1] : null;
 
-            // Otázky z aktuálního ročníku (náročnější)
             let currentGradeHard = allQuestionsForProcessing.filter(q =>
                 q.target_grade === userGradeString &&
                 q.difficulty >= MATH_ACCELERATE_PHASE1_CONFIG.minDifficultyCurrent
@@ -313,9 +356,7 @@
                     selectedQuestionIds.add(q.id);
                 }
             });
-            console.log(`[Logic LoadQ math_accelerate v28.5] Po aktuálním ročníku (obtížné): ${selectedQuestions.length}`);
 
-            // Otázky z následujícího ročníku
             if (nextUserGradeString) {
                 let nextGradeSuitable = allQuestionsForProcessing.filter(q =>
                     q.target_grade === nextUserGradeString &&
@@ -329,113 +370,39 @@
                         selectedQuestionIds.add(q.id);
                     }
                 });
-                console.log(`[Logic LoadQ math_accelerate v28.5] Po dalším ročníku: ${selectedQuestions.length}`);
-            }
-            // Fáze 2 (adaptivní výběr) zde není implementována, zbytek se doplní náhodně.
-
-        } else { // exam_prep, math_review (standardní logika)
-            console.log(`[Logic LoadQ ${selectedTestTypeIdentifier} v28.5] Používám standardní logiku výběru otázek s hodnocením témat.`);
-            const questionsByTopic = allQuestionsForProcessing.reduce((acc, q) => {
-                const topicId = q.topic_id || 'unknown';
-                if (!acc[topicId]) acc[topicId] = [];
-                acc[topicId].push(q);
-                return acc;
-            }, {});
-
-            const numTopicsWithRatings = Object.keys(topicRatings).length;
-            const questionsPerRatedTopic = numTopicsWithRatings > 0 ? Math.max(1, Math.floor(questionsToLoadCount / numTopicsWithRatings)) : DEFAULT_QUESTIONS_PER_TOPIC;
-            console.log(`[Logic LoadQ ${selectedTestTypeIdentifier} v28.5] Témata s hodnocením: ${numTopicsWithRatings}, Otázek na hodnocené téma: ~${questionsPerRatedTopic}`);
-
-            for (const topicIdStr in topicRatings) {
-                // ... (zbytek logiky pro exam_prep/math_review zůstává stejný jako v předchozí verzi) ...
-                const topicId = parseInt(topicIdStr, 10);
-                if (isNaN(topicId) || !questionsByTopic[topicId]) {
-                    console.warn(`[Logic LoadQ ${selectedTestTypeIdentifier} v28.5] Téma s ID ${topicIdStr} nemá otázky nebo je neplatné ID.`);
-                    continue;
-                }
-
-                const selfRating = topicRatings[topicIdStr]?.overall;
-                let difficultyRanges = [];
-                switch (selfRating) {
-                    case 1: difficultyRanges = [{d:1, p:0.6}, {d:2, p:0.3}, {d:3, p:0.1}]; break;
-                    case 2: difficultyRanges = [{d:1, p:0.2}, {d:2, p:0.5}, {d:3, p:0.3}]; break;
-                    case 3: difficultyRanges = [{d:2, p:0.1}, {d:3, p:0.6}, {d:4, p:0.3}]; break;
-                    case 4: difficultyRanges = [{d:3, p:0.2}, {d:4, p:0.5}, {d:5, p:0.3}]; break;
-                    case 5: difficultyRanges = [{d:3, p:0.1}, {d:4, p:0.3}, {d:5, p:0.6}]; break;
-                    default: difficultyRanges = [{d:1, p:0.2}, {d:2, p:0.2}, {d:3, p:0.2}, {d:4, p:0.2}, {d:5, p:0.2}];
-                }
-                console.log(`[Logic LoadQ ${selectedTestTypeIdentifier} v28.5] Téma ${topicId}, Hodnocení: ${selfRating}, Rozsahy:`, difficultyRanges);
-
-                let questionsForThisTopic = questionsByTopic[topicId];
-                shuffleArray(questionsForThisTopic);
-                let countForThisTopic = 0;
-                const targetCountForTopic = Math.max(1, questionsPerRatedTopic);
-
-                for (const range of difficultyRanges) {
-                    if (selectedQuestions.length >= questionsToLoadCount) break;
-                    const numQuestionsFromRange = Math.ceil(targetCountForTopic * range.p);
-                    const questionsInDifficulty = questionsForThisTopic.filter(q => q.difficulty === range.d && q.id != null && !selectedQuestionIds.has(q.id));
-                    const questionsToAdd = questionsInDifficulty.slice(0, numQuestionsFromRange);
-                    questionsToAdd.forEach(q => {
-                        if (!selectedQuestionIds.has(q.id) && selectedQuestions.length < questionsToLoadCount) {
-                            selectedQuestions.push(q);
-                            selectedQuestionIds.add(q.id);
-                            countForThisTopic++;
-                        }
-                    });
-                }
-                if (countForThisTopic < targetCountForTopic && selectedQuestions.length < questionsToLoadCount) {
-                    const remainingNeeded = targetCountForTopic - countForThisTopic;
-                    const anyDifficultyQuestions = questionsForThisTopic.filter(q => q.id != null && !selectedQuestionIds.has(q.id));
-                    const questionsToFill = anyDifficultyQuestions.slice(0, remainingNeeded);
-                    questionsToFill.forEach(q => {
-                         if (!selectedQuestionIds.has(q.id) && selectedQuestions.length < questionsToLoadCount) {
-                            selectedQuestions.push(q);
-                            selectedQuestionIds.add(q.id);
-                         }
-                    });
-                }
-                if (selectedQuestions.length >= questionsToLoadCount) break;
             }
         }
 
-        // Doplnění otázek, pokud jich stále není dost (platí pro všechny typy)
+        // Doplnění otázek, pokud jich stále není dost (obecná logika)
         if (selectedQuestions.length < questionsToLoadCount) {
-            console.log(`[Logic LoadQ vNEXT] Doplňování otázek pro ${selectedTestTypeIdentifier}. Aktuálně: ${selectedQuestions.length}/${questionsToLoadCount}`);
-            let allRelevantQuestionsShuffled = [...allQuestionsForProcessing]; // Použijeme již načtené a PŘEDFILTROVANÉ otázky pro daný cíl/ročník
-            shuffleArray(allRelevantQuestionsShuffled);
-
-            for (const question of allRelevantQuestionsShuffled) {
-                if (selectedQuestions.length >= questionsToLoadCount) break;
-                if (question && question.id != null && !selectedQuestionIds.has(question.id)) {
+            console.log(`[Logic LoadQ ADAPTIVE] Doplňování. Aktuálně ${selectedQuestions.length}/${questionsToLoadCount}. Dostupné celkem: ${allQuestionsForProcessing.length}`);
+            let remainingPool = allQuestionsForProcessing.filter(q => !selectedQuestionIds.has(q.id));
+            shuffleArray(remainingPool);
+            while (selectedQuestions.length < questionsToLoadCount && remainingPool.length > 0) {
+                const question = remainingPool.shift();
+                if (question && question.id != null) { // ID null check for safety
                     selectedQuestions.push(question);
                     selectedQuestionIds.add(question.id);
                 }
             }
-             console.log(`[Logic LoadQ vNEXT] Po doplnění: ${selectedQuestions.length} otázek.`);
         }
 
-        // Případné zkrácení, pokud by bylo vybráno více otázek
         if (selectedQuestions.length > questionsToLoadCount) {
-            shuffleArray(selectedQuestions); // Ještě jednou promíchat před oříznutím
+            shuffleArray(selectedQuestions);
             selectedQuestions = selectedQuestions.slice(0, questionsToLoadCount);
-             console.log(`[Logic LoadQ vNEXT] Po oříznutí: ${selectedQuestions.length} otázek.`);
         }
 
-        // Pokud i po doplnění nejsou žádné otázky, ale nějaké byly původně k dispozici
         if (selectedQuestions.length === 0 && allQuestionsForProcessing.length > 0) {
-            console.warn(`[Logic LoadQ vNEXT] Specifickou logikou se nepodařilo vybrat otázky pro ${selectedTestTypeIdentifier}, ale ${allQuestionsForProcessing.length} otázek bylo k dispozici. Beru náhodný vzorek.`);
-            shuffleArray(allQuestionsForProcessing);
-            selectedQuestions = allQuestionsForProcessing.slice(0, Math.min(questionsToLoadCount, allQuestionsForProcessing.length));
+             console.warn(`[Logic LoadQ ADAPTIVE] Po všech krocích nebyly vybrány žádné otázky pro ${selectedTestTypeIdentifier}, ale ${allQuestionsForProcessing.length} otázek bylo k dispozici. Beru náhodný vzorek.`);
+             shuffleArray(allQuestionsForProcessing);
+             selectedQuestions = allQuestionsForProcessing.slice(0, Math.min(questionsToLoadCount, allQuestionsForProcessing.length));
         }
-
 
         if (selectedQuestions.length === 0) {
-            console.warn(`[Logic LoadQ vNEXT] Po všech krocích nebyly vybrány žádné otázky pro ${selectedTestTypeIdentifier}. Vracím prázdné pole.`);
+            console.warn(`[Logic LoadQ ADAPTIVE] Po všech krocích nebyly vybrány žádné otázky pro ${selectedTestTypeIdentifier}. Vracím prázdné pole.`);
             return [];
         }
-
-        console.log(`[Logic LoadQ vNEXT] Finálně vybráno ${selectedQuestions.length} otázek pro ${selectedTestTypeIdentifier}.`);
+        console.log(`[Logic LoadQ ADAPTIVE] Finálně vybráno ${selectedQuestions.length} otázek pro ${selectedTestTypeIdentifier}.`);
 
         const formattedQuestions = selectedQuestions.map((question, index) => ({
             id: question.id,
@@ -462,12 +429,12 @@
             acc[q.difficulty] = (acc[q.difficulty] || 0) + 1;
             return acc;
         }, {});
-        console.log(`[Logic LoadQ vNEXT] Distribuce obtížností ve finálním testu (${selectedTestTypeIdentifier}):`, difficultyDistribution);
+        console.log(`[Logic LoadQ ADAPTIVE] Distribuce obtížností ve finálním testu (${selectedTestTypeIdentifier}):`, difficultyDistribution);
         const topicDistribution = formattedQuestions.reduce((acc, q) => {
             acc[q.topic_name] = (acc[q.topic_name] || 0) + 1;
             return acc;
         }, {});
-        console.log(`[Logic LoadQ vNEXT] Distribuce témat ve finálním testu (${selectedTestTypeIdentifier}):`, topicDistribution);
+        console.log(`[Logic LoadQ ADAPTIVE] Distribuce témat ve finálním testu (${selectedTestTypeIdentifier}):`, topicDistribution);
 
         return formattedQuestions;
     }
@@ -544,11 +511,11 @@
 
             if (questionType === 'numeric') {
                 localComparisonResult = numericCheck;
-            } else { // Pro 'text' a 'ano_ne' použijeme textové porovnání
+            } else { 
                 localComparisonResult = textCheck;
             }
 
-            if (localComparisonResult !== null) { // Pokud lokální porovnání bylo definitivní (true/false)
+            if (localComparisonResult !== null) { 
                 console.log(`[Logic v10.2 Q#${currentQuestionIndex + 1}] Lokální srovnání bylo JEDNOZNAČNÉ (${localComparisonResult}). Gemini se nevolá.`);
                 const finalCorrectness = localComparisonResult ? 'correct' : 'incorrect';
                 const finalScore = localComparisonResult ? maxScore : 0;
@@ -693,7 +660,7 @@ Pro textové odpovědi (včetně ano/ne) buď tolerantní k velkým/malým písm
         compareNumericAdvanced: compareNumericAdvanced,
         compareTextAdvanced: compareTextAdvanced,
     };
-    console.log("test1-logic.js loaded and TestLogic exposed (vNEXT - 'math_explore' and 'math_accelerate' logic added - v28.5).");
+    console.log("test1-logic.js loaded and TestLogic exposed (v_ADAPTIVE - 'math_explore' and 'math_accelerate' logic added - v28.5).");
     // --- END: Глобальный Экспорт ---
 
 })(window);
