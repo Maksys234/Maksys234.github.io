@@ -6,7 +6,7 @@
     <title>Justax - Výuka s AI // Kyber-Verze</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Audiowide&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Audiowide&family=Pacifico&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <script>
@@ -21,21 +21,21 @@
                     fontCache: 'global'
                 },
                 options: {
-                    ignoreHtmlClass: 'tex2jax_ignore',
-                    processHtmlClass: 'tex2jax_process'
+                    ignoreHtmlClass: 'tex2jax_ignore', // Třída pro ignorování MathJaxem
+                    processHtmlClass: 'tex2jax_process' // Třída pro explicitní zpracování
                 },
                 startup: {
                     ready: () => {
-                        console.log('[MathJax Config] MathJax Startup: Ready.');
+                        console.log('[MathJax Config] MathJax Startup: Ready (vyuka.html).');
                         MathJax.startup.defaultReady();
                         MathJax.startup.promise.then(() => {
-                            console.log('[MathJax Config] MathJax Startup: Core Ready.');
+                            console.log('[MathJax Config] MathJax Startup: Core Ready (vyuka.html).');
                         });
                     }
                 }
             };
         } else {
-            console.warn("[MathJax Config] window.MathJax already defined. Skipping default config.");
+            console.warn("[MathJax Config] window.MathJax already defined (vyuka.html). Skipping default config.");
         }
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -49,6 +49,19 @@
 
     <link rel="stylesheet" href="vyuka.css">
     <link rel="stylesheet" href="../../dashboard.css">
+    <style>
+        .vyuka-sidebar-ai-logo .logo-text,
+        .vyuka-footer .footer-column .logo span { /* Target the span inside footer logo for JUSTAX text */
+            font-family: 'Pacifico', cursive !important; /* Handwritten font */
+            font-weight: 400 !important; /* Pacifico is usually regular weight */
+        }
+         .vyuka-sidebar-ai-logo i { /* Ensure icon uses its own font */
+            font-family: "Font Awesome 6 Free" !important; /* Or your icon font */
+        }
+        .vyuka-footer .footer-column .logo i { /* Ensure icon uses its own font */
+            font-family: "Font Awesome 6 Free" !important; /* Or your icon font */
+        }
+    </style>
 </head>
 <body class="dark new-vyuka-layout">
     <div class="initial-loading-overlay" id="initial-loader">
@@ -203,9 +216,9 @@
                                 <i class="fas fa-cogs"></i> Model:
                             </label>
                             <select id="ai-model-select" class="ai-model-select">
-                                <option value="gemini-1.5-flash" selected>Gemini 1.5 Flash</option>
-                                <option value="gemini-1.5-pro" disabled>Gemini 1.5 Pro (Brzy)</option>
-                                <option value="gemini-2.0-flash" disabled>Gemini 2.0 Flash (Brzy)</option>
+                                <option value="gemini-2.0-flash" selected>Gemini 2.0 Flash</option>
+                                <option value="gemini-2.5-pro" disabled>Gemini 2.5 Pro (Brzy)</option>
+                                <option value="gemini-2.5-flash" disabled>Gemini 2.5 Flash (Brzy)</option>
                             </select>
                         </div>
                     </div>
