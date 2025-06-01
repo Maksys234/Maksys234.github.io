@@ -468,7 +468,6 @@ window.VyukaApp = window.VyukaApp || {};
 
     	VyukaApp.renderNotifications = (count, notifications) => {
             const ui = VyukaApp.ui;
-            //const state = VyukaApp.state;
             console.log("[Render Notifications] Start, Count:", count, "Notifications:", notifications);
             if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) {
                 console.error("[Render Notifications] Missing UI elements for notifications.");
@@ -595,74 +594,93 @@ window.VyukaApp = window.VyukaApp || {};
 			if (ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', VyukaApp.markAllNotificationsRead); }
 
             if (ui.notificationsList) {
-                ui.notificationsList.addEventListener('click', async (event) => {
-                    const item = event.target.closest('.notification-item');
-                    if (item) {
-                        const link = item.dataset.link;
-                        const notificationId = item.dataset.id;
-                        const isRead = item.classList.contains('is-read');
+                let clickTimer = null;
+                const DBL_CLICK_DELAY = 300; // ms
 
-                        if (!isRead && notificationId && link) { // Mark as read on single click IF it has a link and is unread
-                            const success = await VyukaApp.markNotificationRead(notificationId);
-                            if (success) {
-                                item.classList.add('is-read');
-                                item.querySelector('.unread-dot')?.remove();
-                                const currentCountText = ui.notificationCount?.textContent?.replace('+', '') || '0';
-                                const currentCount = parseInt(currentCountText) || 0;
-                                const newCount = Math.max(0, currentCount - 1);
-                                if (ui.notificationCount) {
-                                    ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : '');
-                                    ui.notificationCount.classList.toggle('visible', newCount > 0);
-                                }
-                                if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0;
-                            }
-                        }
-                        if (link) {
-                            window.location.href = link;
-                            ui.notificationsDropdown?.classList.remove('active');
-                        }
-                    }
-                });
+                const handleNotificationSingleClick = async (item) => {
+                    const link = item.dataset.link;
+                    const notificationId = item.dataset.id;
+                    const isRead = item.classList.contains('is-read');
 
-                ui.notificationsList.addEventListener('dblclick', async (event) => {
-                    const item = event.target.closest('.notification-item');
-                    if (item) {
-                        const notificationId = item.dataset.id;
-                        if (!notificationId || !state.supabase) return;
-
-                        const wasInitiallyUnread = !item.classList.contains('is-read');
-                        console.log(`[DBLCLICK] Notification ID: ${notificationId}, Was initially unread: ${wasInitiallyUnread}`);
-
-                        const markSuccess = await VyukaApp.markNotificationRead(notificationId);
-
-                        if (markSuccess) {
+                    // Mark as read on single click ONLY IF it has a link and is unread
+                    if (link && !isRead && notificationId) {
+                        const success = await VyukaApp.markNotificationRead(notificationId);
+                        if (success) {
                             item.classList.add('is-read');
                             item.querySelector('.unread-dot')?.remove();
-                            item.classList.add('hiding');
-                            const animationDuration = parseFloat(getComputedStyle(item).getPropertyValue('--vyuka-notification-hide-duration') || '0.5s') * 1000;
+                            // Update count immediately (optimistic)
+                            const currentCountText = ui.notificationCount?.textContent?.replace('+', '') || '0';
+                            const currentCount = parseInt(currentCountText) || 0;
+                            const newCount = Math.max(0, currentCount - 1);
+                            if(ui.notificationCount) {
+                                ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : '');
+                                ui.notificationCount.classList.toggle('visible', newCount > 0);
+                            }
+                            if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0;
+                        }
+                    }
+                    // Navigate if link exists
+                    if (link) {
+                        window.location.href = link;
+                        ui.notificationsDropdown?.classList.remove('active');
+                    }
+                };
 
-                            setTimeout(async () => {
-                                item.remove();
-                                if (wasInitiallyUnread) {
-                                    // After removing, fetch the true unread count from DB to update badge & button accurately
-                                    if(state.currentUser && state.currentUser.id){
-                                        const { unreadCount: freshUnreadCount } = await VyukaApp.fetchNotifications(state.currentUser.id, VyukaApp.config?.NOTIFICATION_FETCH_LIMIT || 5);
-                                        if (ui.notificationCount) {
-                                            ui.notificationCount.textContent = freshUnreadCount > 9 ? '9+' : (freshUnreadCount > 0 ? String(freshUnreadCount) : '');
-                                            ui.notificationCount.classList.toggle('visible', freshUnreadCount > 0);
-                                        }
-                                        if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = freshUnreadCount === 0;
+                const handleNotificationDoubleClick = async (item) => {
+                    const notificationId = item.dataset.id;
+                    if (!notificationId || !state.supabase) return;
 
-                                        // Check if the list is empty after removal
-                                        if (ui.notificationsList.children.length === 0 && ui.noNotificationsMsg) {
-                                            ui.noNotificationsMsg.style.display = 'block';
-                                        }
+                    const wasInitiallyUnread = !item.classList.contains('is-read');
+                    const markSuccess = await VyukaApp.markNotificationRead(notificationId);
+
+                    if (markSuccess) {
+                        item.classList.add('is-read'); // Mark as read visually first
+                        item.querySelector('.unread-dot')?.remove();
+                        item.classList.add('hiding'); // Add class to trigger CSS hide animation
+
+                        const animationDuration = parseFloat(getComputedStyle(item).getPropertyValue('--vyuka-notification-hide-duration') || '0.4s') * 1000;
+
+                        setTimeout(async () => {
+                            item.remove(); // Remove from DOM after animation
+                            if (wasInitiallyUnread) { // Only decrement count if it was actually an unread item that was hidden
+                                if(state.currentUser && state.currentUser.id){ // Ensure user is available for fetch
+                                    // Fetch the accurate unread count from DB to update badge & button
+                                    const { unreadCount: freshUnreadCount } = await VyukaApp.fetchNotifications(state.currentUser.id, VyukaApp.config?.NOTIFICATION_FETCH_LIMIT || 5);
+                                    if (ui.notificationCount) {
+                                        ui.notificationCount.textContent = freshUnreadCount > 9 ? '9+' : (freshUnreadCount > 0 ? String(freshUnreadCount) : '');
+                                        ui.notificationCount.classList.toggle('visible', freshUnreadCount > 0);
+                                    }
+                                    if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = freshUnreadCount === 0;
+
+                                    if (ui.notificationsList.children.length === 0 && ui.noNotificationsMsg) {
+                                        ui.noNotificationsMsg.style.display = 'block';
                                     }
                                 }
-                            }, animationDuration);
-                        } else {
-                            console.warn(`[DBLCLICK] Failed to mark notification ${notificationId} as read in DB. Not hiding.`);
-                        }
+                            } else {
+                                // If it was already read, no need to update count, just check if list is empty
+                                if (ui.notificationsList.children.length === 0 && ui.noNotificationsMsg) {
+                                     ui.noNotificationsMsg.style.display = 'block';
+                                }
+                            }
+                        }, animationDuration);
+                    } else {
+                        console.warn(`[DBLCLICK] Failed to mark notification ${notificationId} as read in DB. Not hiding.`);
+                    }
+                };
+
+                ui.notificationsList.addEventListener('click', (event) => {
+                    const item = event.target.closest('.notification-item');
+                    if (!item) return;
+
+                    if (clickTimer) { // Double click
+                        clearTimeout(clickTimer);
+                        clickTimer = null;
+                        handleNotificationDoubleClick(item);
+                    } else { // First click
+                        clickTimer = setTimeout(() => {
+                            clickTimer = null;
+                            handleNotificationSingleClick(item); // Call single click handler
+                        }, DBL_CLICK_DELAY);
                     }
                 });
             }
@@ -675,8 +693,9 @@ window.VyukaApp = window.VyukaApp || {};
 		};
 
 	} catch (e) {
+		// Fatal error in feature script
 		console.error("FATAL SCRIPT ERROR (UI Features):", e);
 		document.body.innerHTML = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--accent-pink,#ff33a8);color:var(--white,#fff);padding:40px;text-align:center;font-family:sans-serif;z-index:9999;"><h1>KRITICKÁ CHYBA SYSTÉMU</h1><p>Nelze spustit modul výuky (UI Features).</p><p style="margin-top:15px;"><a href="#" onclick="location.reload()" style="color:var(--accent-cyan,#00e0ff); text-decoration:underline; font-weight:bold;">Obnovit stránku</a></p><details style="margin-top: 20px; color: #f0f0f0;"><summary style="cursor:pointer; color: var(--white,#fff);">Detaily</summary><pre style="margin-top:10px;padding:15px;background:rgba(0, 0, 0, 0.4);border:1px solid rgba(255, 255, 255, 0.2);font-size:0.8em;white-space:pre-wrap;text-align:left;max-height: 300px; overflow-y: auto; border-radius: 8px;">${e.message}\n${e.stack}</pre></details></div>`;
 	}
 
-})(window.VyukaApp);
+})(window.VyukaApp); // Pass the namespace object to the IIFE
