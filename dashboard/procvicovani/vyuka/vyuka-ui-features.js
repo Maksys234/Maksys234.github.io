@@ -1,7 +1,6 @@
 // Файл: procvicovani/vyuka/vyuka-ui-features.js
 // Логика функций интерфейса: TTS/STT, Доска, Уведомления, Очки, Модальные окна, Достижения, Вспомогательные UI функции, Настройка слушателей событий
-// UPDATE: Added double-click functionality to mark notifications as read and hide them.
-// UPDATE (Chat Enable): Ensuring chat input is enabled by default when a topic is loaded and AI is not busy.
+// UPDATE (v24): Добавлена логика управления кнопкой "Продолжить" с учетом финального теста.
 
 // Получаем доступ к глобальному пространству имен
 window.VyukaApp = window.VyukaApp || {};
@@ -11,8 +10,8 @@ window.VyukaApp = window.VyukaApp || {};
 
 	try {
 		// --- Constants & Configuration (Accessing Core) ---
-		// Используем VyukaApp.config, который должен быть определен в vyuka-core.js
-        const activityVisuals = {
+		const config = VyukaApp.config || {}; // Ensure config exists
+        const activityVisuals = { // Keep this definition or ensure it's globally available
             test: { icon: 'fa-vial', class: 'test' },
             exercise: { icon: 'fa-pencil-alt', class: 'exercise' },
             badge: { icon: 'fa-medal', class: 'badge' },
@@ -417,21 +416,24 @@ window.VyukaApp = window.VyukaApp || {};
 			}
 		};
         VyukaApp.promptTopicCompletion = () => {
-			console.log("[CompletionPrompt v19] AI suggested topic completion. Showing modal.");
-			VyukaApp.state.aiSuggestedCompletion = true;
+			console.log("[CompletionPrompt v24] AI suggested topic completion OR final quiz passed. Showing modal.");
+			VyukaApp.state.aiSuggestedCompletion = true; // This flag might be used for other UI logic
+            // state.finalQuizActive is handled by AI interaction flow now
 			if (typeof VyukaApp.manageButtonStates === 'function') VyukaApp.manageButtonStates();
 			VyukaApp.showCompletionModal();
 		};
         VyukaApp.handleConfirmCompletion = () => {
-			console.log("[CompletionPrompt v19] User chose YES.");
+			console.log("[CompletionPrompt v24] User chose YES.");
 			VyukaApp.hideCompletionModal();
+            VyukaApp.state.finalQuizActive = false; // Reset quiz state on confirm
             if (typeof VyukaApp.handleMarkTopicComplete === 'function') { VyukaApp.handleMarkTopicComplete(); }
             else { console.error("ERROR: VyukaApp.handleMarkTopicComplete is not defined!"); VyukaApp.showToast("Chyba: Funkce pro dokončení tématu nenalezena.", "error"); }
 		};
         VyukaApp.handleDeclineCompletion = () => {
-			console.log("[CompletionPrompt v19] User chose NO or closed modal.");
+			console.log("[CompletionPrompt v24] User chose NO or closed modal.");
 			VyukaApp.hideCompletionModal();
 			VyukaApp.state.aiSuggestedCompletion = false;
+            VyukaApp.state.finalQuizActive = false; // Reset quiz state also on decline
 			if (typeof VyukaApp.showToast === 'function') VyukaApp.showToast("Dobře, můžete pokračovat kliknutím na 'Pokračuj' nebo položením otázky.", "info", 5000);
 			if (typeof VyukaApp.manageButtonStates === 'function') VyukaApp.manageButtonStates();
 		};
@@ -602,13 +604,11 @@ window.VyukaApp = window.VyukaApp || {};
                     const notificationId = item.dataset.id;
                     const isRead = item.classList.contains('is-read');
 
-                    // Mark as read on single click ONLY IF it has a link and is unread
                     if (link && !isRead && notificationId) {
                         const success = await VyukaApp.markNotificationRead(notificationId);
                         if (success) {
                             item.classList.add('is-read');
                             item.querySelector('.unread-dot')?.remove();
-                            // Update count immediately (optimistic)
                             const currentCountText = ui.notificationCount?.textContent?.replace('+', '') || '0';
                             const currentCount = parseInt(currentCountText) || 0;
                             const newCount = Math.max(0, currentCount - 1);
@@ -619,7 +619,6 @@ window.VyukaApp = window.VyukaApp || {};
                             if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0;
                         }
                     }
-                    // Navigate if link exists
                     if (link) {
                         window.location.href = link;
                         ui.notificationsDropdown?.classList.remove('active');
@@ -634,30 +633,27 @@ window.VyukaApp = window.VyukaApp || {};
                     const markSuccess = await VyukaApp.markNotificationRead(notificationId);
 
                     if (markSuccess) {
-                        item.classList.add('is-read'); // Mark as read visually first
+                        item.classList.add('is-read');
                         item.querySelector('.unread-dot')?.remove();
-                        item.classList.add('hiding'); // Add class to trigger CSS hide animation
+                        item.classList.add('hiding');
 
                         const animationDuration = parseFloat(getComputedStyle(item).getPropertyValue('--vyuka-notification-hide-duration') || '0.4s') * 1000;
 
                         setTimeout(async () => {
-                            item.remove(); // Remove from DOM after animation
-                            if (wasInitiallyUnread) { // Only decrement count if it was actually an unread item that was hidden
-                                if(state.currentUser && state.currentUser.id){ // Ensure user is available for fetch
-                                    // Fetch the accurate unread count from DB to update badge & button
+                            item.remove();
+                            if (wasInitiallyUnread) {
+                                if(state.currentUser && state.currentUser.id){
                                     const { unreadCount: freshUnreadCount } = await VyukaApp.fetchNotifications(state.currentUser.id, VyukaApp.config?.NOTIFICATION_FETCH_LIMIT || 5);
                                     if (ui.notificationCount) {
                                         ui.notificationCount.textContent = freshUnreadCount > 9 ? '9+' : (freshUnreadCount > 0 ? String(freshUnreadCount) : '');
                                         ui.notificationCount.classList.toggle('visible', freshUnreadCount > 0);
                                     }
                                     if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = freshUnreadCount === 0;
-
                                     if (ui.notificationsList.children.length === 0 && ui.noNotificationsMsg) {
                                         ui.noNotificationsMsg.style.display = 'block';
                                     }
                                 }
                             } else {
-                                // If it was already read, no need to update count, just check if list is empty
                                 if (ui.notificationsList.children.length === 0 && ui.noNotificationsMsg) {
                                      ui.noNotificationsMsg.style.display = 'block';
                                 }
@@ -672,14 +668,14 @@ window.VyukaApp = window.VyukaApp || {};
                     const item = event.target.closest('.notification-item');
                     if (!item) return;
 
-                    if (clickTimer) { // Double click
+                    if (clickTimer) {
                         clearTimeout(clickTimer);
                         clickTimer = null;
                         handleNotificationDoubleClick(item);
-                    } else { // First click
+                    } else {
                         clickTimer = setTimeout(() => {
                             clickTimer = null;
-                            handleNotificationSingleClick(item); // Call single click handler
+                            handleNotificationSingleClick(item);
                         }, DBL_CLICK_DELAY);
                     }
                 });
@@ -693,9 +689,8 @@ window.VyukaApp = window.VyukaApp || {};
 		};
 
 	} catch (e) {
-		// Fatal error in feature script
 		console.error("FATAL SCRIPT ERROR (UI Features):", e);
-		document.body.innerHTML = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--accent-pink,#ff33a8);color:var(--white,#fff);padding:40px;text-align:center;font-family:sans-serif;z-index:9999;"><h1>KRITICKÁ CHYBA SYSTÉMU</h1><p>Nelze spustit modul výuky (UI Features).</p><p style="margin-top:15px;"><a href="#" onclick="location.reload()" style="color:var(--accent-cyan,#00e0ff); text-decoration:underline; font-weight:bold;">Obnovit stránku</a></p><details style="margin-top: 20px; color: #f0f0f0;"><summary style="cursor:pointer; color: var(--white,#fff);">Detaily</summary><pre style="margin-top:10px;padding:15px;background:rgba(0, 0, 0, 0.4);border:1px solid rgba(255, 255, 255, 0.2);font-size:0.8em;white-space:pre-wrap;text-align:left;max-height: 300px; overflow-y: auto; border-radius: 8px;">${e.message}\n${e.stack}</pre></details></div>`;
+		document.body.innerHTML = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--vyuka-accent-error,#FF4757);color:var(--vyuka-text-primary,#E0E7FF);padding:40px;text-align:center;font-family:sans-serif;z-index:9999;"><h1>KRITICKÁ CHYBA SYSTÉMU</h1><p>Nelze spustit modul výuky (UI Features).</p><p style="margin-top:15px;"><a href="#" onclick="location.reload()" style="color:var(--vyuka-accent-secondary,#00F5FF); text-decoration:underline; font-weight:bold;">Obnovit stránku</a></p><details style="margin-top: 20px; color: #f0f0f0;"><summary style="cursor:pointer; color: var(--vyuka-text-primary,#E0E7FF);">Detaily</summary><pre style="margin-top:10px;padding:15px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.2);font-size:0.8em;white-space:pre-wrap;text-align:left;max-height:300px; overflow-y:auto; border-radius:8px;">${e.message}\n${e.stack}</pre></details></div>`;
 	}
 
-})(window.VyukaApp); // Pass the namespace object to the IIFE
+})(window.VyukaApp);
