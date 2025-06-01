@@ -21,8 +21,8 @@
                     fontCache: 'global'
                 },
                 options: {
-                    ignoreHtmlClass: 'tex2jax_ignore',
-                    processHtmlClass: 'tex2jax_process'
+                    ignoreHtmlClass: 'tex2jax_ignore', // Třída pro ignorování MathJaxem
+                    processHtmlClass: 'tex2jax_process' // Třída pro explicitní zpracování
                 },
                 startup: {
                     ready: () => {
@@ -238,6 +238,14 @@
                 </a>
             </li>
         </ul>
+        <div class="user-profile" style="margin: 1.5rem 0.5rem; background-color: rgba(var(--vyuka-bg-panel-rgb), 0.7); border-color: var(--vyuka-border-highlight); border-radius: var(--vyuka-card-radius);">
+            <div class="avatar-wrapper" data-decoration-key=""> <div class="user-avatar" id="sidebar-avatar-vyuka">?</div>
+            </div>
+            <div class="user-info">
+                <div class="user-name" id="sidebar-name-vyuka">Načítání...</div>
+                <div class="user-role" id="sidebar-user-title-vyuka" title="Váš titul">Pilot</div>
+            </div>
+        </div>
         <div class="vyuka-sidebar-ai-footer">
              <span id="currentYearSidebarVyuka"></span> Justax Systems
         </div>
@@ -372,7 +380,14 @@
                                              <i class="fas fa-paper-plane"></i>
                                          </button>
                                      </div>
-                                 </div>
+                                     <div class="chat-action-templates" id="chat-action-templates">
+                                        <button class="btn btn-secondary btn-sm template-btn" data-question="Vysvětli to jednodušeji.">Jednodušeji</button>
+                                        <button class="btn btn-secondary btn-sm template-btn" data-question="Uveď další příklad.">Další příklad</button>
+                                        <button class="btn btn-secondary btn-sm template-btn" data-question="Proč to tak funguje?">Proč?</button>
+                                        <button class="btn btn-secondary btn-sm template-btn" data-question="Jak to souvisí s předchozím?">Souvislost?</button>
+                                        <button class="btn btn-secondary btn-sm template-btn" data-question="Můžeš mi s tímto pomoci?">Potřebuji pomoc</button>
+                                     </div>
+                                     </div>
                                  <div class="chat-controls">
                                      <button id="mic-btn" class="btn btn-icon-only btn-tooltip" title="Zahájit hlasový vstup">
                                          <i class="fas fa-microphone"></i>

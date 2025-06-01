@@ -1,6 +1,7 @@
 // Файл: procvicovani/vyuka/vyuka-ui-features.js
 // Логика функций интерфейса: TTS/STT, Доска, Уведомления, Очки, Модальные окна, Достижения, Вспомогательные UI функции, Настройка слушателей событий
 // UPDATE (v24): Добавлена логика управления кнопкой "Продолжить" с учетом финального теста.
+// UPDATE (Mentor Mode): Добавлена логика для кнопок-шаблонов вопросов.
 
 // Получаем доступ к глобальному пространству имен
 window.VyukaApp = window.VyukaApp || {};
@@ -417,15 +418,14 @@ window.VyukaApp = window.VyukaApp || {};
 		};
         VyukaApp.promptTopicCompletion = () => {
 			console.log("[CompletionPrompt v24] AI suggested topic completion OR final quiz passed. Showing modal.");
-			VyukaApp.state.aiSuggestedCompletion = true; // This flag might be used for other UI logic
-            // state.finalQuizActive is handled by AI interaction flow now
-			if (typeof VyukaApp.manageButtonStates === 'function') VyukaApp.manageButtonStates();
+			VyukaApp.state.aiSuggestedCompletion = true;
+            if (typeof VyukaApp.manageButtonStates === 'function') VyukaApp.manageButtonStates();
 			VyukaApp.showCompletionModal();
 		};
         VyukaApp.handleConfirmCompletion = () => {
 			console.log("[CompletionPrompt v24] User chose YES.");
 			VyukaApp.hideCompletionModal();
-            VyukaApp.state.finalQuizActive = false; // Reset quiz state on confirm
+            VyukaApp.state.finalQuizActive = false;
             if (typeof VyukaApp.handleMarkTopicComplete === 'function') { VyukaApp.handleMarkTopicComplete(); }
             else { console.error("ERROR: VyukaApp.handleMarkTopicComplete is not defined!"); VyukaApp.showToast("Chyba: Funkce pro dokončení tématu nenalezena.", "error"); }
 		};
@@ -433,7 +433,7 @@ window.VyukaApp = window.VyukaApp || {};
 			console.log("[CompletionPrompt v24] User chose NO or closed modal.");
 			VyukaApp.hideCompletionModal();
 			VyukaApp.state.aiSuggestedCompletion = false;
-            VyukaApp.state.finalQuizActive = false; // Reset quiz state also on decline
+            VyukaApp.state.finalQuizActive = false;
 			if (typeof VyukaApp.showToast === 'function') VyukaApp.showToast("Dobře, můžete pokračovat kliknutím na 'Pokračuj' nebo položením otázky.", "info", 5000);
 			if (typeof VyukaApp.manageButtonStates === 'function') VyukaApp.manageButtonStates();
 		};
@@ -467,7 +467,6 @@ window.VyukaApp = window.VyukaApp || {};
                 if (typeof VyukaApp.setLoadingState === 'function') VyukaApp.setLoadingState('notifications', false);
             }
         };
-
     	VyukaApp.renderNotifications = (count, notifications) => {
             const ui = VyukaApp.ui;
             console.log("[Render Notifications] Start, Count:", count, "Notifications:", notifications);
@@ -546,7 +545,6 @@ window.VyukaApp = window.VyukaApp || {};
             }
         };
 
-		// --- Feature Specific Event Listeners ---
 		VyukaApp.setupFeatureListeners = () => {
 			const ui = VyukaApp.ui;
             const state = VyukaApp.state;
@@ -597,7 +595,7 @@ window.VyukaApp = window.VyukaApp || {};
 
             if (ui.notificationsList) {
                 let clickTimer = null;
-                const DBL_CLICK_DELAY = 300; // ms
+                const DBL_CLICK_DELAY = 300; 
 
                 const handleNotificationSingleClick = async (item) => {
                     const link = item.dataset.link;
@@ -685,12 +683,28 @@ window.VyukaApp = window.VyukaApp || {};
             if (ui.completionSuggestionOverlay) ui.completionSuggestionOverlay.addEventListener('click', VyukaApp.handleOverlayClick);
             if (ui.confirmCompleteBtn) ui.confirmCompleteBtn.addEventListener('click', VyukaApp.handleConfirmCompletion);
             if (ui.declineCompleteBtn) ui.declineCompleteBtn.addEventListener('click', VyukaApp.handleDeclineCompletion);
+
+            // START: Mentor Mode Question Templates Event Listeners
+            const templateButtons = document.querySelectorAll('.template-btn');
+            templateButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const questionText = button.dataset.question;
+                    if (ui.chatInput && questionText) {
+                        ui.chatInput.value = questionText;
+                        VyukaApp.autoResizeTextarea(); // Adjust textarea size
+                        VyukaApp.handleSendMessage();   // Send the message
+                    }
+                });
+            });
+            // END: Mentor Mode Question Templates Event Listeners
+
 			console.log("[SETUP UI Features] UI/Feature event listeners setup complete.");
 		};
 
 	} catch (e) {
+		// Fatal error in feature script
 		console.error("FATAL SCRIPT ERROR (UI Features):", e);
-		document.body.innerHTML = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--vyuka-accent-error,#FF4757);color:var(--vyuka-text-primary,#E0E7FF);padding:40px;text-align:center;font-family:sans-serif;z-index:9999;"><h1>KRITICKÁ CHYBA SYSTÉMU</h1><p>Nelze spustit modul výuky (UI Features).</p><p style="margin-top:15px;"><a href="#" onclick="location.reload()" style="color:var(--vyuka-accent-secondary,#00F5FF); text-decoration:underline; font-weight:bold;">Obnovit stránku</a></p><details style="margin-top: 20px; color: #f0f0f0;"><summary style="cursor:pointer; color: var(--vyuka-text-primary,#E0E7FF);">Detaily</summary><pre style="margin-top:10px;padding:15px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.2);font-size:0.8em;white-space:pre-wrap;text-align:left;max-height:300px; overflow-y:auto; border-radius:8px;">${e.message}\n${e.stack}</pre></details></div>`;
+		document.body.innerHTML = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--vyuka-accent-error,#FF4757);color:var(--vyuka-text-primary,#E0E7FF);padding:40px;text-align:center;font-family:sans-serif;z-index:9999;"><h1>KRITICKÁ CHYBA SYSTÉMU</h1><p>Nelze spustit modul výuky (UI Features).</p><p style="margin-top:15px;"><a href="#" onclick="location.reload()" style="color:var(--vyuka-accent-secondary,#00F5FF); text-decoration:underline; font-weight:bold;">Obnovit stránku</a></p><details style="margin-top: 20px; color: #f0f0f0;"><summary style="cursor:pointer; color: var(--vyuka-text-primary,#E0E7FF);">Detaily</summary><pre style="margin-top:10px;padding:15px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.2);font-size:0.8em;white-space:pre-wrap;text-align:left;max-height: 300px; overflow-y: auto; border-radius: 8px;">${e.message}\n${e.stack}</pre></details></div>`;
 	}
 
 })(window.VyukaApp);
