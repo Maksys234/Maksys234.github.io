@@ -21,8 +21,8 @@
                     fontCache: 'global'
                 },
                 options: {
-                    ignoreHtmlClass: 'tex2jax_ignore', // Třída pro ignorování MathJaxem
-                    processHtmlClass: 'tex2jax_process' // Třída pro explicitní zpracování
+                    ignoreHtmlClass: 'tex2jax_ignore',
+                    processHtmlClass: 'tex2jax_process'
                 },
                 startup: {
                     ready: () => {
@@ -51,17 +51,139 @@
     <link rel="stylesheet" href="../../dashboard.css">
     <style>
         .vyuka-sidebar-ai-logo .logo-text,
-        .vyuka-footer .footer-column .logo span { /* Target the span inside footer logo for JUSTAX text */
-            font-family: 'Shadows Into Light Two', cursive !important; /* Handwritten font - CHANGED TO Shadows Into Light Two */
-            font-weight: 400 !important; /* This font is typically regular weight */
-            font-size: 1.25em; /* Adjust size if needed for this font, example value */
+        .vyuka-footer .footer-column .logo span {
+            font-family: 'Shadows Into Light Two', cursive !important;
+            font-weight: 400 !important;
+            font-size: 1.25em;
         }
-         .vyuka-sidebar-ai-logo i { /* Ensure icon uses its own font */
-            font-family: "Font Awesome 6 Free" !important; /* Or your icon font */
+         .vyuka-sidebar-ai-logo i,
+        .vyuka-footer .footer-column .logo i {
+            font-family: "Font Awesome 6 Free" !important;
         }
-        .vyuka-footer .footer-column .logo i { /* Ensure icon uses its own font */
-            font-family: "Font Awesome 6 Free" !important; /* Or your icon font */
+
+        /* --- Notification Style Enhancements START --- */
+        .notifications-dropdown-wrapper {
+            background-color: rgba(var(--vyuka-bg-panel-rgb), 0.97); /* Slightly more opaque */
+            backdrop-filter: blur(12px) saturate(1.3); /* Stronger blur and saturation */
+            border: 1px solid var(--vyuka-border-highlight); /* Use a highlight border */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 15px rgba(var(--vyuka-accent-primary-rgb),0.2) inset; /* More pronounced shadow */
+            border-radius: var(--vyuka-card-radius); /* Consistent radius */
         }
+
+        .notifications-header {
+            border-bottom: 1px solid var(--vyuka-border-panel-edge); /* Subtle edge */
+            padding: 0.8rem 1.1rem; /* Adjusted padding */
+        }
+
+        .notifications-title { /* From vyuka.css for consistency */
+            font-family: var(--vyuka-font-secondary);
+            text-shadow: var(--vyuka-text-glow-secondary);
+            color: var(--vyuka-text-heading);
+        }
+
+        .mark-all-read-btn { /* From vyuka.css for consistency */
+            font-family: var(--vyuka-font-mono);
+            border-color: var(--vyuka-border-color);
+            color: var(--vyuka-text-muted);
+            transition: all 0.2s ease;
+        }
+        .mark-all-read-btn:hover:not(:disabled) {
+            background-color: rgba(var(--vyuka-accent-pink-rgb), 0.2);
+            color: var(--vyuka-accent-pink);
+            border-color: var(--vyuka-accent-pink);
+            box-shadow: 0 0 8px var(--vyuka-accent-pink);
+        }
+        .mark-all-read-btn:disabled {
+            opacity: 0.4;
+        }
+
+        #notifications-list::-webkit-scrollbar-thumb {
+            background-color: var(--vyuka-accent-primary);
+            border-radius: 3px;
+        }
+        #notifications-list::-webkit-scrollbar-track {
+            background: rgba(var(--vyuka-bg-dark-rgb), 0.3);
+        }
+
+        .notification-item {
+            border-bottom: 1px solid var(--vyuka-border-panel-edge); /* Panel edge border */
+            padding: 0.9rem 1.1rem;
+            transition: background-color 0.25s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .notification-item:hover {
+            background-color: var(--vyuka-notification-item-hover-bg); /* Using variable */
+            transform: translateX(3px);
+            box-shadow: inset 3px 0 8px rgba(var(--vyuka-accent-secondary-rgb),0.15);
+        }
+        .notification-item.is-read {
+            opacity: 0.65;
+            filter: saturate(0.7);
+        }
+        .notification-item.is-read:hover {
+            opacity: 0.9;
+            filter: saturate(1);
+        }
+
+        .notification-icon { /* Ensure this style is applied if not in vyuka.css */
+            background-color: var(--vyuka-accent-secondary); /* Example default */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.25), inset 0 0 3px rgba(var(--white-rgb),0.1);
+        }
+        .notification-icon.test { background: var(--vyuka-accent-tertiary); }
+        .notification-icon.exercise { background: var(--vyuka-accent-success); }
+        .notification-icon.badge { background: linear-gradient(135deg, var(--vyuka-accent-primary), var(--vyuka-accent-secondary)); }
+        .notification-icon.lesson { background: var(--vyuka-accent-neutral); }
+
+        .notification-title {
+            font-family: var(--vyuka-font-primary);
+            font-weight: 600;
+            color: var(--vyuka-text-heading); /* Brighter title */
+        }
+        .notification-message {
+            font-size: 0.85rem; /* Slightly smaller */
+            color: var(--vyuka-text-secondary);
+            line-height: 1.45;
+        }
+        .notification-time {
+            font-family: var(--vyuka-font-mono);
+            color: var(--vyuka-text-muted);
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+        .unread-dot {
+            background-color: var(--vyuka-notification-unread-dot); /* Using variable */
+            box-shadow: 0 0 10px var(--vyuka-notification-unread-dot), 0 0 15px var(--vyuka-accent-secondary);
+            animation: pulseDot 1.5s infinite ease-in-out;
+        }
+        @keyframes pulseDot {
+            0%, 100% { transform: translateY(-50%) scale(1); opacity: 1; }
+            50% { transform: translateY(-50%) scale(1.15); opacity: 0.7; }
+        }
+        .notifications-footer {
+            border-top: 1px solid var(--vyuka-border-panel-edge);
+        }
+        .view-all-notifications-link {
+            font-family: var(--vyuka-font-secondary);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .notification-item.hiding { /* Added for smooth removal */
+            transition: opacity var(--vyuka-notification-hide-duration, 0.5s) ease,
+                        max-height var(--vyuka-notification-hide-duration, 0.5s) ease,
+                        padding-top var(--vyuka-notification-hide-duration, 0.5s) ease,
+                        padding-bottom var(--vyuka-notification-hide-duration, 0.5s) ease,
+                        margin-top var(--vyuka-notification-hide-duration, 0.5s) ease,
+                        margin-bottom var(--vyuka-notification-hide-duration, 0.5s) ease,
+                        border-width var(--vyuka-notification-hide-duration, 0.5s) ease;
+            opacity: 0;
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            border-width: 0;
+            overflow: hidden;
+        }
+        /* --- Notification Style Enhancements END --- */
     </style>
 </head>
 <body class="dark new-vyuka-layout">
