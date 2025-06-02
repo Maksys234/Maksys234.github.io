@@ -30,14 +30,13 @@
             'initial-loader', 'sidebar-overlay-ai-settings', 'settings-main-area',
             'vyuka-sidebar-settings', 'main-mobile-menu-toggle-settings',
             'sidebar-ai-desktop-toggle-settings',
-            'sidebar-avatar', // Avatar v nové boční liště
-            // 'sidebar-name', 'sidebar-user-title', // Tyto jsou nyní v hlavním záhlaví
-            'vyuka-header-user-display', // Kontejner pro avatar, jméno, titul v záhlaví
-            'vyuka-header-avatar',       // Avatar v hlavním záhlaví
-            'vyuka-header-user-name',    // Jméno v hlavním záhlaví
-            'vyuka-header-user-title',   // Titul v hlavním záhlaví
-            'user-dropdown-menu',        // Dropdown menu u uživatele v záhlaví
-            'logout-btn', // Tlačítko odhlášení v záhlaví
+            'sidebar-avatar', 
+            'vyuka-header-user-display', 
+            'vyuka-header-avatar',       
+            'vyuka-header-user-name',    
+            'vyuka-header-user-title',   
+            'user-dropdown-menu',        
+            'logout-btn', 
             'profile-content', 'profile-name', 'profile-email',
             'profile-avatar', 'profile-points', 'profile-badges', 'profile-streak',
             'profile-level-main', 'exp-progress-bar-fill', 'exp-current-value',
@@ -65,34 +64,27 @@
             const element = document.getElementById(id);
             const key = id.replace(/-([a-z])/g, g => g[1].toUpperCase());
 
-            // Speciální mapování pro konzistenci s původním profile.js, pokud se názvy liší
             if (key === 'sidebarOverlayAiSettings') ui.sidebarOverlay = element;
-            else if (key === 'settingsMainArea') ui.mainContent = element; // Hlavní obsahová oblast
-            else if (key === 'vyukaSidebarSettings') ui.sidebar = element; // Nová boční lišta
-            else if (key === 'mainMobileMenuToggleSettings') ui.mainMobileMenuToggle = element; // Mobilní menu toggle
-            else if (key === 'sidebarAiDesktopToggleSettings') ui.sidebarToggleBtn = element; // Desktop sidebar toggle
-            else if (key === 'globalErrorSettings') ui.globalError = element; // Globální chyba
+            else if (key === 'settingsMainArea') ui.mainContent = element; 
+            else if (key === 'vyukaSidebarSettings') ui.sidebar = element; 
+            else if (key === 'mainMobileMenuToggleSettings') ui.mainMobileMenuToggle = element; 
+            else if (key === 'sidebarAiDesktopToggleSettings') ui.sidebarToggleBtn = element; 
+            else if (key === 'globalErrorSettings') ui.globalError = element; 
             else if (key === 'currentYearSidebarSettings') ui.currentYearSidebar = element;
             else if (key === 'currentYearFooterSettings') ui.currentYearFooter = element;
-            // Nové elementy pro header
-            else if (key === 'vyukaHeaderUserDisplay') ui.headerUserDisplay = element; // Pro zobrazení uživatele v headeru
+            else if (key === 'vyukaHeaderUserDisplay') ui.headerUserDisplay = element; 
             else if (key === 'vyukaHeaderAvatar') ui.headerAvatar = element;
             else if (key === 'vyukaHeaderUserName') ui.headerUserName = element;
             else if (key === 'vyukaHeaderUserTitle') ui.headerUserTitle = element;
-            else if (key === 'userDropdownMenu') ui.userDropdownMenu = element; // dropdown v headeru
-            // Elementy pro sidebar - sidebarName a sidebarUserTitle se již nepoužívají v postranním panelu pro zobrazení jména/titulu
-            // ui.sidebarName a ui.sidebarUserTitle nyní odkazují na elementy v *hlavním* headeru (mapováno výše)
-            // Zachováme však `sidebarAvatar` pro avatar v postranním panelu
-            else if (key === 'sidebarAvatar') ui.sidebarAvatarElement = element; // Odlišíme od ui.headerAvatar
-
+            else if (key === 'userDropdownMenu') ui.userDropdownMenu = element; 
+            else if (key === 'sidebarAvatar') ui.sidebarAvatarElement = element; 
+            else if (id === 'mark-all-read') ui.markAllReadBtn = element; // Explicitní mapování
             else ui[key] = element;
 
             if (!element && id !== 'sidebar-close-toggle') {
                 notFound.push(id);
             }
         });
-        // Tyto ID již neexistují ve vyuka-style sidebaru pro jméno/titul, ale JS je mohl očekávat.
-        // Místo nich se použijí ui.headerUserName a ui.headerUserTitle.
         ui.sidebarName = null; 
         ui.sidebarUserTitle = null;
 
@@ -106,8 +98,6 @@
         console.log("[Settings Cache DOM] Caching complete. UI Object:", ui);
     }
     
-    // Všechny ostatní funkce z dashboard/profile.js budou zde...
-
     function showToast(title, message, type = 'info', duration = 4500) {
         if (!ui.toastContainer) { console.warn("Toast container not found"); return; }
         try {
@@ -180,7 +170,7 @@
                  console.log("[Settings Modal] Populating built-in avatars...");
                  populateBuiltInAvatars();
                  selectedBuiltInAvatarPath = null;
-                 if (ui.avatarUploadInput) ui.avatarUploadInput.value = '';
+                 if (ui.avatarUpload) ui.avatarUpload.value = ''; // Použito ui.avatarUpload
                  if (ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = true;
                  updateAvatarPreviewFromProfile();
              }
@@ -198,7 +188,7 @@
                  if (modalId === 'delete-account-modal' && ui.confirmDeletePasswordField) ui.confirmDeletePasswordField.value = '';
                  if (modalId === 'avatar-modal') {
                       selectedBuiltInAvatarPath = null;
-                     if (ui.avatarUploadInput) ui.avatarUploadInput.value = '';
+                     if (ui.avatarUpload) ui.avatarUpload.value = ''; // Použito ui.avatarUpload
                      if(ui.avatarPreview) updateAvatarPreviewFromProfile();
                      if(ui.builtinAvatarGrid) ui.builtinAvatarGrid.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
                      if (ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = true;
@@ -212,18 +202,16 @@
     function getInitials(userData) { if (!userData) return '?'; const f = userData.first_name?.[0] || ''; const l = userData.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?'; }
     function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
     
-    // Logika pro Vyuka Sidebar
     function openVyukaSidebarMobile() {
         if (ui.sidebar && ui.sidebarOverlay) {
             ui.sidebar.classList.add('active-mobile'); 
-            ui.sidebar.classList.add('expanded'); // Při otevření na mobilu je vždy rozbalený
+            ui.sidebar.classList.add('expanded'); 
             ui.sidebarOverlay.classList.add('active');
         }
     }
     function closeVyukaSidebarMobile() {
         if (ui.sidebar && ui.sidebarOverlay) {
             ui.sidebar.classList.remove('active-mobile');
-            // Necháme expanded, pokud byl tak nastaven na desktopu
             if(localStorage.getItem(SIDEBAR_STATE_KEY) === 'collapsed'){
                  ui.sidebar.classList.remove('expanded');
             }
@@ -250,7 +238,6 @@
     function applyInitialVyukaSidebarState() {
         if(!ui.sidebar || !ui.sidebarToggleBtn) return;
         const savedState = localStorage.getItem(SIDEBAR_STATE_KEY);
-        // Pokud není nic uloženo, výchozí stav je rozbalený
         const shouldBeExpanded = savedState === null ? true : savedState === 'expanded'; 
         
         ui.sidebar.classList.toggle('expanded', shouldBeExpanded);
@@ -295,12 +282,12 @@
             preferences: ui.savePreferencesBtn,
             avatar: ui.saveAvatarBtn,
             delete: ui.confirmDeleteAccountBtn,
-            notifications: ui.markAllReadBtn
+            notifications: ui.markAllReadBtn // Zde používáme markAllReadBtn
         };
         const button = buttons[section];
         if (button) {
             button.disabled = isLoadingFlag;
-            const icon = button.querySelector('i');
+            // const icon = button.querySelector('i'); // Není potřeba měnit ikonu pro markAllReadBtn
              if (isLoadingFlag && !button.dataset.originalContent) {
                  button.dataset.originalContent = button.innerHTML;
              }
@@ -312,11 +299,10 @@
                 else if (section === 'preferences') button.innerHTML = `${spinnerIcon} Ukládám...`;
                 else if (section === 'avatar') button.innerHTML = `${spinnerIcon} Ukládám...`;
                 else if (section === 'delete') button.innerHTML = `${spinnerIcon} Mažu...`;
-                else if (section === 'notifications') {
-                    // Pro .mark-all-read-btn se text nemění, jen disabled stav
-                } else { button.innerHTML = `${spinnerIcon} Načítám...`; }
+                // Pro 'notifications', text tlačítka 'markAllReadBtn' se nemění, pouze jeho stav disabled
+                else if (section !== 'notifications') { button.innerHTML = `${spinnerIcon} Načítám...`; }
             } else {
-                 if (button.dataset.originalContent && section !== 'notifications') { // Pro notifikace text zůstává
+                 if (button.dataset.originalContent && section !== 'notifications') {
                      button.innerHTML = button.dataset.originalContent;
                      delete button.dataset.originalContent;
                  }
@@ -325,7 +311,7 @@
 
         if (section === 'notifications' && ui.notificationBell) {
             ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1;
-            if (ui.markAllReadBtn) { // Opětovná kontrola tlačítka
+            if (ui.markAllReadBtn) { 
                 const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
                 ui.markAllReadBtn.disabled = isLoadingFlag || currentUnreadCount === 0;
             }
@@ -447,7 +433,7 @@
                 }
                 return false;
             }
-            ui.passwordForm.reset();
+            if(ui.passwordForm) ui.passwordForm.reset();
             clearAllErrors('password-form');
             showToast('ÚSPĚCH', 'Heslo bylo úspěšně změněno.', 'success');
             console.log("[Settings Password Update] Heslo úspěšně změněno.");
@@ -539,7 +525,7 @@
     async function saveSelectedAvatar() {
         if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; }
         setLoadingState('avatar', true);
-        const file = ui.avatarUploadInput?.files[0];
+        const file = ui.avatarUpload?.files[0]; // Použito ui.avatarUpload
         let finalAvatarUrl = null;
         let uploadError = null;
 
@@ -684,7 +670,7 @@
         console.log("[Settings UI Update] Updating profile display (main page & header)...");
 
         // Aktualizace postranního panelu (pouze avatar)
-        if (ui.sidebarAvatarElement) { // Použijeme odlišený název proměnné
+        if (ui.sidebarAvatarElement) { 
             const initials = getInitials(profileData); const avatarUrl = profileData.avatar_url; let finalSidebarUrl = avatarUrl;
             if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl.includes('/')) { finalSidebarUrl = sanitizeHTML(avatarUrl); }
             else if (avatarUrl) { finalSidebarUrl = `${sanitizeHTML(avatarUrl)}?t=${new Date().getTime()}`; }
@@ -696,19 +682,18 @@
         // Aktualizace horního záhlaví (avatar, jméno, titul)
         const headerDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || currentUser?.email?.split('@')[0] || 'Pilot';
         if (ui.headerUserName) ui.headerUserName.textContent = sanitizeHTML(headerDisplayName);
-        if (ui.headerAvatar) { // ID pro obrázek v headeru
+        if (ui.headerAvatar) { 
             const initials = getInitials(profileData); const avatarUrl = profileData.avatar_url; let finalHeaderUrl = avatarUrl;
             if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl.includes('/')) { finalHeaderUrl = sanitizeHTML(avatarUrl); }
             else if (avatarUrl) { finalHeaderUrl = `${sanitizeHTML(avatarUrl)}?t=${new Date().getTime()}`; }
-            ui.headerAvatar.src = finalHeaderUrl || ''; // Předpokládáme, že je to <img> tag
+            ui.headerAvatar.src = finalHeaderUrl || ''; 
             ui.headerAvatar.alt = sanitizeHTML(initials);
             ui.headerAvatar.style.display = finalHeaderUrl ? 'block' : 'none';
-            // Pokud header avatar má i fallback na iniciály (např. ve spanu), musíme ho také řešit
             const headerAvatarInitialsSpan = ui.headerUserDisplay?.querySelector('.vyuka-header-avatar-initials');
             if(headerAvatarInitialsSpan) headerAvatarInitialsSpan.style.display = finalHeaderUrl ? 'none' : 'flex';
             if(headerAvatarInitialsSpan && !finalHeaderUrl) headerAvatarInitialsSpan.textContent = initials;
         }
-        if(ui.headerUserTitle) { // Titul v headeru
+        if(ui.headerUserTitle) { 
             const selectedTitleKey = profileData.selected_title; let displayTitle = 'Pilot';
             if (selectedTitleKey && titlesData && titlesData.length > 0) {
                 const foundTitle = titlesData.find(t => t.title_key === selectedTitleKey);
@@ -719,10 +704,10 @@
         }
 
         // Aktualizace hlavní profilové sekce (velký avatar, statistiky atd.)
-        const profileDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || 'Uživatel';
-        if (ui.profileName) ui.profileName.textContent = sanitizeHTML(profileDisplayName);
+        const profileDisplayNameMain = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || 'Uživatel';
+        if (ui.profileName) ui.profileName.textContent = sanitizeHTML(profileDisplayNameMain);
         if (ui.profileEmail) ui.profileEmail.textContent = sanitizeHTML(profileData.email);
-        if (ui.profileAvatar) { // Velký avatar na stránce
+        if (ui.profileAvatar) { 
             const initials = getInitials(profileData); const avatarUrl = profileData.avatar_url; let finalProfileUrl = avatarUrl;
             if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl.includes('/')) { finalProfileUrl = sanitizeHTML(avatarUrl); }
             else if (avatarUrl) { finalProfileUrl = `${sanitizeHTML(avatarUrl)}?t=${new Date().getTime()}`; }
@@ -804,7 +789,7 @@
     }
     function applyPreferences(preferences) {
         if (!preferences) return;
-        const isDarkMode = preferences.dark_mode ?? document.documentElement.classList.contains('dark'); // Default to current if not set
+        const isDarkMode = preferences.dark_mode ?? document.documentElement.classList.contains('dark'); 
         document.documentElement.classList.toggle('dark', isDarkMode);
         document.documentElement.classList.toggle('light', !isDarkMode);
         console.log("[Settings Preferences Apply] Aplikováno nastavení (Tmavý režim: " + isDarkMode + ")");
@@ -857,13 +842,40 @@
         
         document.querySelectorAll('.vyuka-sidebar-ai-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth <= 768 && ui.sidebar?.classList.contains('active-mobile')) closeVyukaSidebarMobile(); }); });
         if (ui.profileForm) { ui.profileForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!validateProfileForm() || isLoading.profile) return; await updateProfileData({ first_name: ui.firstNameField.value, last_name: ui.lastNameField.value, username: ui.usernameField.value, school: ui.schoolField.value, grade: ui.gradeField.value, bio: ui.bioField.value }); }); }
-        if (ui.passwordForm) { ui.passwordForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!validatePasswordForm() || isLoading.password) return; const success = await updateUserPassword(ui.currentPasswordField.value, ui.newPasswordField.value); if (success) ui.passwordForm.reset(); }); }
+        if (ui.passwordForm) { ui.passwordForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!validatePasswordForm() || isLoading.password) return; const success = await updateUserPassword(ui.currentPasswordField.value, ui.newPasswordField.value); if (success && ui.passwordForm) ui.passwordForm.reset(); }); }
         if (ui.savePreferencesBtn) { ui.savePreferencesBtn.addEventListener('click', async () => { if(isLoading.preferences) return; await updatePreferencesData(); }); }
         if (ui.learningGoalSelect) { ui.learningGoalSelect.addEventListener('change', function() { populateLearningGoalForm(this.value, currentProfile?.preferences?.goal_details || {}); }); }
         if (ui.profileAvatar) { ui.profileAvatar.addEventListener('click', (event) => { if (event.target.closest('#edit-avatar-btn') || event.target.closest('.edit-avatar-overlay')) { console.log("[Settings Event] Edit avatar clicked, opening modal."); showModal('avatar-modal'); } }); }
-        if (ui.selectAvatarFileBtn && ui.avatarUploadInput) { ui.selectAvatarFileBtn.addEventListener('click', () => { console.log("[Settings Event] Upload button clicked, triggering file input."); ui.avatarUploadInput.click(); }); } else { console.warn("Could not find avatar select button or file input for listener setup."); }
-        if (ui.avatarUploadInput) { ui.avatarUploadInput.addEventListener('change', function() { if (this.files && this.files[0]) { console.log("[Settings Event] File selected:", this.files[0].name); selectedBuiltInAvatarPath = null; if(ui.builtinAvatarGrid) ui.builtinAvatarGrid.querySelectorAll('.selected').forEach(el => el.classList.remove('selected')); const reader = new FileReader(); reader.onload = (e) => { if (ui.avatarPreview) ui.avatarPreview.innerHTML = `<img src="${e.target.result}" alt="Náhled"/>`; if (ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = false; }; reader.readAsDataURL(this.files[0]); } else { console.log("[Settings Event] File selection cancelled."); if (!selectedBuiltInAvatarPath && ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = true; } }); }
-        if(ui.builtinAvatarGrid) { ui.builtinAvatarGrid.addEventListener('click', (event) => { const clickedItem = event.target.closest('.builtin-avatar-item'); if (clickedItem) { if (ui.avatarUploadInput) ui.avatarUploadInput.value = ''; const path = clickedItem.dataset.path; if(!path) { console.error("Missing data-path on clicked avatar item:", clickedItem); return; } selectedBuiltInAvatarPath = path; ui.builtinAvatarGrid.querySelectorAll('.selected').forEach(el => el.classList.remove('selected')); clickedItem.classList.add('selected'); if (ui.avatarPreview) ui.avatarPreview.innerHTML = `<img src="${path}" alt="Náhled">`; if (ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = false; console.log("[Settings Event] Selected built-in avatar:", path); } }); } else { console.error("CRITICAL: Built-in avatar grid container not found for event listener setup!"); }
+        
+        if (ui.selectAvatarFileBtn && ui.avatarUpload) { // Použito ui.avatarUpload
+            ui.selectAvatarFileBtn.addEventListener('click', () => { 
+                console.log("[Settings Event] Upload button clicked, triggering file input."); 
+                ui.avatarUpload.click(); 
+            }); 
+        } else { 
+            console.warn("Could not find avatar select button or file input for listener setup."); 
+        }
+        
+        if (ui.avatarUpload) { // Použito ui.avatarUpload
+            ui.avatarUpload.addEventListener('change', function() { 
+                if (this.files && this.files[0]) { 
+                    console.log("[Settings Event] File selected:", this.files[0].name); 
+                    selectedBuiltInAvatarPath = null; 
+                    if(ui.builtinAvatarGrid) ui.builtinAvatarGrid.querySelectorAll('.selected').forEach(el => el.classList.remove('selected')); 
+                    const reader = new FileReader(); 
+                    reader.onload = (e) => { 
+                        if (ui.avatarPreview) ui.avatarPreview.innerHTML = `<img src="${e.target.result}" alt="Náhled"/>`; 
+                        if (ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = false; 
+                    }; 
+                    reader.readAsDataURL(this.files[0]); 
+                } else { 
+                    console.log("[Settings Event] File selection cancelled."); 
+                    if (!selectedBuiltInAvatarPath && ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = true; 
+                } 
+            }); 
+        }
+
+        if(ui.builtinAvatarGrid) { ui.builtinAvatarGrid.addEventListener('click', (event) => { const clickedItem = event.target.closest('.builtin-avatar-item'); if (clickedItem) { if (ui.avatarUpload) ui.avatarUpload.value = ''; const path = clickedItem.dataset.path; if(!path) { console.error("Missing data-path on clicked avatar item:", clickedItem); return; } selectedBuiltInAvatarPath = path; ui.builtinAvatarGrid.querySelectorAll('.selected').forEach(el => el.classList.remove('selected')); clickedItem.classList.add('selected'); if (ui.avatarPreview) ui.avatarPreview.innerHTML = `<img src="${path}" alt="Náhled">`; if (ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = false; console.log("[Settings Event] Selected built-in avatar:", path); } }); } else { console.error("CRITICAL: Built-in avatar grid container not found for event listener setup!"); }
         if (ui.saveAvatarBtn) { ui.saveAvatarBtn.addEventListener('click', async () => { if(isLoading.avatar) return; console.log("[Settings Event] Save avatar button clicked."); await saveSelectedAvatar(); }); }
         if (ui.deleteAccountBtn) { ui.deleteAccountBtn.addEventListener('click', () => showModal('delete-account-modal')); }
         if (ui.confirmDeleteAccountBtn) { ui.confirmDeleteAccountBtn.addEventListener('click', async () => { if(isLoading.delete) return; await deleteUserAccount(ui.confirmDeletePasswordField?.value); }); }
@@ -875,10 +887,9 @@
         window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus);
         initMouseFollower(); initHeaderScrollDetection(); updateCopyrightYear();
         if (ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); }
-        if (ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead); }
+        if (ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead); } // Používáme markAllReadBtn
         if (ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); const dot = item.querySelector('.unread-dot'); if(dot) dot.remove(); const currentCountText = ui.notificationCount.textContent.replace('+', ''); const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }); }
         document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } 
-            // Close user dropdown if clicked outside (vyuka style)
             if(ui.userDropdownMenu?.classList.contains('active') && !ui.userDropdownMenu.contains(event.target) && !ui.headerUserDisplay?.contains(event.target)) {
                  ui.userDropdownMenu.classList.remove('active');
                  ui.userDropdownMenu.style.opacity = '0';
@@ -887,7 +898,7 @@
             }
         });
 
-        if (ui.headerUserDisplay) { // Listener pro vyuka-style user dropdown
+        if (ui.headerUserDisplay) { 
             ui.headerUserDisplay.addEventListener('click', (event) => {
                 event.stopPropagation();
                 if (ui.userDropdownMenu) {
@@ -905,10 +916,10 @@
 
     async function initializeApp() {
         console.log("[Settings INIT] Spouštění inicializace aplikace profilu...");
-        cacheDOMElements(); // Cache DOM first
+        cacheDOMElements(); 
         if (!initializeSupabase()) { return; }
         
-        applyInitialVyukaSidebarState(); // Apply sidebar state early
+        applyInitialVyukaSidebarState(); 
         
         if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; }
         const mainContentArea = document.getElementById('settings-main-area'); 
@@ -922,7 +933,7 @@
             currentUser = session.user;
             console.log(`[Settings INIT] Uživatel ověřen (ID: ${currentUser.id}). Načítání profilu a titulů...`);
             await loadAndDisplayProfile(); 
-            setupEventListeners(); // Setup listeners after DOM is ready and initial data is potentially loaded
+            setupEventListeners(); 
             if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 600); } 
             if (mainContentArea) { mainContentArea.style.display = 'block'; requestAnimationFrame(() => { mainContentArea.classList.add('loaded'); }); }
             console.log("✅ [Settings INIT] Inicializace stránky profilu dokončena.");
@@ -930,7 +941,7 @@
             console.error("❌ [Settings INIT] Kritická chyba při inicializaci profilu:", error);
             if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA: ${error.message}. Obnovte.</p>`; }
             else { showError(`Chyba inicializace: ${error.message}`, true); }
-            if (mainContentArea) mainContentArea.style.display = 'block'; // Show error within the layout if possible
+            if (mainContentArea) mainContentArea.style.display = 'block'; 
         }
     }
     // --- START THE APP ---
