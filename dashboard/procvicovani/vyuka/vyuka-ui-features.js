@@ -1,6 +1,6 @@
 // Файл: procvicovani/vyuka/vyuka-ui-features.js
 // Логика функций интерфейса: TTS/STT, Доска, Уведомления, Очки, Модальные окна, Достижения, Вспомогательные UI функции, Настройка слушателей событий
-// Версия v28b: Odstraněny placeholder komentáře z neimplementovaných funkcí.
+// Версия v29: Opravy pro zobrazení šablon otázek, menu profilu, a doladění logiky.
 
 window.VyukaApp = window.VyukaApp || {};
 
@@ -31,7 +31,7 @@ window.VyukaApp = window.VyukaApp || {};
 			});
 			cleanedText = filteredLines.join('\n');
 			if (cleanedText.trim() === "(Poslechněte si komentář)") {
-				console.log("[Clean] Removing placeholder text.");
+				console.log("[Clean v29] Removing placeholder text.");
 				return "";
 			}
 			cleanedText = cleanedText.trim();
@@ -72,16 +72,9 @@ window.VyukaApp = window.VyukaApp || {};
 		};
 
         VyukaApp.speakText = (text, targetChunkElement = null) => {
-			const state = VyukaApp.state;
-			const ui = VyukaApp.ui;
-			if (!state.speechSynthesisSupported) {
-				VyukaApp.showToast("Syntéza řeči není podporována.", "warning");
-				return;
-			}
-			if (!text) {
-				console.warn("TTS: No text provided.");
-				return;
-			}
+			const state = VyukaApp.state; const ui = VyukaApp.ui;
+			if (!state.speechSynthesisSupported) { VyukaApp.showToast("Syntéza řeči není podporována.", "warning"); return; }
+			if (!text) { console.warn("TTS: No text provided."); return; }
 			const plainText = text.replace(/<[^>]*>/g, ' ').replace(/[`*#_~\[\]\(\)]/g, '').replace(/\$\$(.*?)\$\$/g, 'matematický vzorec').replace(/\$(.*?)\$/g, 'vzorec').replace(/\s+/g, ' ').trim();
 			if (!plainText) { console.warn("TTS: Text empty after cleaning, skipping speech."); return; }
 			window.speechSynthesis.cancel(); VyukaApp.removeBoardHighlight();
@@ -130,7 +123,7 @@ window.VyukaApp = window.VyukaApp || {};
 			const ui = VyukaApp.ui; const state = VyukaApp.state;
 			if (!ui.whiteboardContent) return;
 			ui.whiteboardContent.innerHTML = ''; state.boardContentHistory = []; state.quizQuestionsForBoard = [];
-			console.log("Whiteboard cleared (v28b).");
+			console.log("Whiteboard cleared (v29).");
 			if (showToastMsg && typeof VyukaApp.showToast === 'function') { VyukaApp.showToast('Tabule vymazána', 'Obsah tabule byl smazán.', 'info'); }
             const submitQuizBtn = document.getElementById('submit-quiz-btn'); if (submitQuizBtn) { submitQuizBtn.remove(); }
             if (ui.vyukaLessonControls) { if(ui.continueBtn) ui.continueBtn.style.display = 'inline-flex'; if(ui.clearBoardBtn) ui.clearBoardBtn.style.display = 'inline-flex'; if(ui.stopSpeechBtn) ui.stopSpeechBtn.style.display = 'inline-flex'; ui.vyukaLessonControls.style.justifyContent = 'flex-end'; }
@@ -146,7 +139,7 @@ window.VyukaApp = window.VyukaApp || {};
             const ttsButton = document.createElement('button'); ttsButton.className = 'tts-listen-btn btn-tooltip'; ttsButton.title = 'Poslechnout komentář'; ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>'; const textForSpeech = commentaryText || originalText; ttsButton.dataset.textToSpeak = textForSpeech;
             if (state.speechSynthesisSupported && textForSpeech.trim()) { ttsButton.addEventListener('click', (e) => { e.stopPropagation(); const buttonElement = e.currentTarget; const text = buttonElement.dataset.textToSpeak; const parentChunk = buttonElement.closest('.whiteboard-chunk'); if (text) { VyukaApp.speakText(text, parentChunk); } else { console.warn("No text found for TTS button in whiteboard chunk."); } }); chunkDiv.appendChild(ttsButton); }
             chunkDiv.appendChild(contentDiv); ui.whiteboardContent.appendChild(chunkDiv); state.boardContentHistory.push(originalText);
-			console.log("Appended content to whiteboard (v28b).");
+			console.log("Appended content to whiteboard (v29).");
             if (typeof chunkDiv.scrollIntoView === 'function') { setTimeout(() => { chunkDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100); } else { ui.whiteboardContainer.scrollTop = chunkDiv.offsetTop; console.warn("scrollIntoView not fully supported, using offsetTop fallback for whiteboard scroll."); }
 			if (typeof VyukaApp.triggerWhiteboardMathJax === 'function') VyukaApp.triggerWhiteboardMathJax(); if (typeof VyukaApp.initTooltips === 'function') VyukaApp.initTooltips(); if (typeof VyukaApp.manageButtonStates === 'function') VyukaApp.manageButtonStates();
 			requestAnimationFrame(() => { chunkDiv.style.opacity = '1'; });
@@ -155,56 +148,48 @@ window.VyukaApp = window.VyukaApp || {};
         VyukaApp.triggerWhiteboardMathJax = () => {
 			const ui = VyukaApp.ui;
 			if (ui.whiteboardContent && window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
-				console.log("[MathJax v28b] Triggering global typeset for whiteboard...");
-				setTimeout(() => { window.MathJax.typesetPromise([ui.whiteboardContent]).then(() => console.log("[MathJax v28b] Whiteboard typeset completed.")).catch(e => console.error("[MathJax v28b] Whiteboard typeset error:", e)); }, 100);
-			} else { if (!ui.whiteboardContent) console.warn("[MathJax v28b] Whiteboard content element not found for typesetting."); if (!(window.MathJax && typeof window.MathJax.typesetPromise === 'function')) console.warn("[MathJax v28b] MathJax or typesetPromise not available."); }
+				console.log("[MathJax v29] Triggering global typeset for whiteboard...");
+				setTimeout(() => { window.MathJax.typesetPromise([ui.whiteboardContent]).then(() => console.log("[MathJax v29] Whiteboard typeset completed.")).catch(e => console.error("[MathJax v29] Whiteboard typeset error:", e)); }, 100);
+			} else { if (!ui.whiteboardContent) console.warn("[MathJax v29] Whiteboard content element not found for typesetting."); if (!(window.MathJax && typeof window.MathJax.typesetPromise === 'function')) console.warn("[MathJax v29] MathJax or typesetPromise not available."); }
 		};
 
         // --- Points System ---
         VyukaApp.awardPoints = async (pointsValue) => {
-            const state = VyukaApp.state; console.log(`[Points v28b] Attempting to award ${pointsValue} points.`);
-            if (!state.currentUser || !state.currentUser.id) { console.warn("[Points v28b] Skipping point award: No current user ID."); return; } if (!state.currentProfile || !state.currentProfile.id) { console.warn("[Points v28b] Skipping point award: No current profile data."); VyukaApp.showToast('Profil nenalezen, body nelze připsat.', 'warning'); return; } if (!state.supabase) { console.warn("[Points v28b] Skipping point award: Supabase client not available."); return; } if (pointsValue <= 0) { console.log("[Points v28b] Skipping point award: Zero or negative points value."); return; }
+            const state = VyukaApp.state; console.log(`[Points v29] Attempting to award ${pointsValue} points.`);
+            if (!state.currentUser || !state.currentUser.id) { console.warn("[Points v29] Skipping point award: No current user ID."); return; } if (!state.currentProfile || !state.currentProfile.id) { console.warn("[Points v29] Skipping point award: No current profile data."); VyukaApp.showToast('Profil nenalezen, body nelze připsat.', 'warning'); return; } if (!state.supabase) { console.warn("[Points v29] Skipping point award: Supabase client not available."); return; } if (pointsValue <= 0) { console.log("[Points v29] Skipping point award: Zero or negative points value."); return; }
             if (typeof VyukaApp.setLoadingState === 'function') VyukaApp.setLoadingState('points', true);
             const userId = state.currentUser.id; const currentPoints = state.currentProfile.points ?? 0; const newPoints = currentPoints + pointsValue;
-            console.log(`[Points v28b] User: ${userId}, Current Points: ${currentPoints}, Awarding: ${pointsValue}, New Total: ${newPoints}`);
-            try { const { data, error } = await state.supabase.from('profiles').update({ points: newPoints, updated_at: new Date().toISOString() }).eq('id', userId).select('points').single(); if (error) { console.error(`[Points v28b] Supabase update error for user ${userId}:`, error); throw error; }
-                if (data && data.points === newPoints) { state.currentProfile.points = newPoints; console.log(`[Points v28b] User ${userId} points updated successfully in DB and state to ${newPoints}.`); if (typeof VyukaApp.showToast === 'function') VyukaApp.showToast('+', `${pointsValue} kreditů získáno!`, 'success', 3000); if (typeof VyukaApp.updateUserInfoUI === 'function') VyukaApp.updateUserInfoUI(); }
-                else { console.warn(`[Points v28b] DB update discrepancy for user ${userId}. Expected ${newPoints}, got ${data?.points}. State NOT updated locally to prevent inconsistency.`); if (typeof VyukaApp.showToast === 'function') VyukaApp.showToast('Varování', 'Nekonzistence při aktualizaci kreditů. Zkuste obnovit stránku.', 'warning'); }
-            } catch (error) { console.error(`[Points v28b] Exception updating user points for ${userId}:`, error); if (typeof VyukaApp.showToast === 'function') VyukaApp.showToast('Chyba', 'Nepodařilo se aktualizovat kredity.', 'error');
+            console.log(`[Points v29] User: ${userId}, Current Points: ${currentPoints}, Awarding: ${pointsValue}, New Total: ${newPoints}`);
+            try { const { data, error } = await state.supabase.from('profiles').update({ points: newPoints, updated_at: new Date().toISOString() }).eq('id', userId).select('points').single(); if (error) { console.error(`[Points v29] Supabase update error for user ${userId}:`, error); throw error; }
+                if (data && data.points === newPoints) { state.currentProfile.points = newPoints; console.log(`[Points v29] User ${userId} points updated successfully in DB and state to ${newPoints}.`); if (typeof VyukaApp.showToast === 'function') VyukaApp.showToast('+', `${pointsValue} kreditů získáno!`, 'success', 3000); if (typeof VyukaApp.updateUserInfoUI === 'function') VyukaApp.updateUserInfoUI(); }
+                else { console.warn(`[Points v29] DB update discrepancy for user ${userId}. Expected ${newPoints}, got ${data?.points}. State NOT updated locally to prevent inconsistency.`); if (typeof VyukaApp.showToast === 'function') VyukaApp.showToast('Varování', 'Nekonzistence při aktualizaci kreditů. Zkuste obnovit stránku.', 'warning'); }
+            } catch (error) { console.error(`[Points v29] Exception updating user points for ${userId}:`, error); if (typeof VyukaApp.showToast === 'function') VyukaApp.showToast('Chyba', 'Nepodařilo se aktualizovat kredity.', 'error');
             } finally { if (typeof VyukaApp.setLoadingState === 'function') VyukaApp.setLoadingState('points', false); }
         };
 
-        // --- Functions for Modal (DEPRECATED as per v27/v28 logic) ---
-        VyukaApp.showCompletionModal = () => { console.warn("[CompletionModal DEPRECATED UI] showCompletionModal called. This flow is replaced by quiz offer."); };
-        VyukaApp.hideCompletionModal = () => { console.warn("[CompletionModal DEPRECATED UI] hideCompletionModal called."); };
-        VyukaApp.promptTopicCompletion = () => { console.warn("[promptTopicCompletion DEPRECATED UI] AI should offer final quiz instead via ACTION_INITIATE_FINAL_QUIZ.");};
-        VyukaApp.handleConfirmCompletion = () => { console.warn("[handleConfirmCompletion DEPRECATED UI]"); VyukaApp.hideCompletionModal(); if (typeof VyukaApp.handleMarkTopicComplete === 'function') { VyukaApp.handleMarkTopicComplete(); }};
-        VyukaApp.handleDeclineCompletion = () => { console.warn("[handleDeclineCompletion DEPRECATED UI]"); VyukaApp.hideCompletionModal(); if (typeof VyukaApp.showToast === 'function') VyukaApp.showToast("Dobře, můžete pokračovat ve výkladu.", "info", 5000); if (typeof VyukaApp.manageButtonStates === 'function') VyukaApp.manageButtonStates();};
+        // --- Functions for Modal (DEPRECATED as per v27/v28/v29 logic) ---
+        VyukaApp.showCompletionModal = () => { console.warn("[CompletionModal DEPRECATED UI v29] showCompletionModal called. This flow is replaced by quiz offer."); };
+        VyukaApp.hideCompletionModal = () => { console.warn("[CompletionModal DEPRECATED UI v29] hideCompletionModal called."); };
+        VyukaApp.promptTopicCompletion = () => { console.warn("[promptTopicCompletion DEPRECATED UI v29] AI should offer final quiz instead via ACTION_INITIATE_FINAL_QUIZ.");};
+        VyukaApp.handleConfirmCompletion = () => { console.warn("[handleConfirmCompletion DEPRECATED UI v29]"); VyukaApp.hideCompletionModal(); if (typeof VyukaApp.handleMarkTopicComplete === 'function') { VyukaApp.handleMarkTopicComplete(); }};
+        VyukaApp.handleDeclineCompletion = () => { console.warn("[handleDeclineCompletion DEPRECATED UI v29]"); VyukaApp.hideCompletionModal(); if (typeof VyukaApp.showToast === 'function') VyukaApp.showToast("Dobře, můžete pokračovat ve výkladu.", "info", 5000); if (typeof VyukaApp.manageButtonStates === 'function') VyukaApp.manageButtonStates();};
         VyukaApp.handleOverlayClick = (event) => { if (VyukaApp.ui.completionSuggestionOverlay && event.target === VyukaApp.ui.completionSuggestionOverlay) { VyukaApp.handleDeclineCompletion(); }};
 
         // --- Achievement Logic (Not Implemented) ---
-        VyukaApp.checkRequirements = (profileData, requirements) => { console.warn("[Achievements] checkRequirements not implemented."); return false; };
-        VyukaApp.awardBadge = async (userId, badgeId, badgeTitle, pointsAwarded = 0) => { console.warn("[Achievements] awardBadge not implemented."); };
-        VyukaApp.checkAndAwardAchievements = async (userId) => { console.warn("[Achievements] checkAndAwardAchievements not implemented."); };
+        VyukaApp.checkRequirements = (profileData, requirements) => { console.warn("[Achievements v29] checkRequirements not implemented."); return false; };
+        VyukaApp.awardBadge = async (userId, badgeId, badgeTitle, pointsAwarded = 0) => { console.warn("[Achievements v29] awardBadge not implemented."); };
+        VyukaApp.checkAndAwardAchievements = async (userId) => { console.warn("[Achievements v29] checkAndAwardAchievements not implemented."); };
 
         // --- Notification Logic (Basic Implementation / Placeholders) ---
         VyukaApp.fetchNotifications = async (userId, limit = VyukaApp.config?.NOTIFICATION_FETCH_LIMIT || 5) => {
-            const state = VyukaApp.state; const ui = VyukaApp.ui;
-            console.log(`[Notifications v28b] Fetching (basic) for user ${userId}`);
+            const state = VyukaApp.state; const ui = VyukaApp.ui; console.log(`[Notifications v29] Fetching (basic) for user ${userId}`);
             if (typeof VyukaApp.setLoadingState === 'function') VyukaApp.setLoadingState('notifications', true);
-            // This is a placeholder. In a real app, you'd fetch from Supabase.
-            // For now, return empty to avoid errors.
-            if(ui.noNotificationsMsg) ui.noNotificationsMsg.style.display = 'block';
-            if(ui.notificationsList) ui.notificationsList.innerHTML = '';
-            if(ui.notificationCount) { ui.notificationCount.textContent = ''; ui.notificationCount.classList.remove('visible');}
-            if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = true;
-            if (typeof VyukaApp.setLoadingState === 'function') VyukaApp.setLoadingState('notifications', false);
-            return { unreadCount: 0, notifications: [] };
+            if(ui.noNotificationsMsg) ui.noNotificationsMsg.style.display = 'block'; if(ui.notificationsList) ui.notificationsList.innerHTML = ''; if(ui.notificationCount) { ui.notificationCount.textContent = ''; ui.notificationCount.classList.remove('visible');} if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = true;
+            if (typeof VyukaApp.setLoadingState === 'function') VyukaApp.setLoadingState('notifications', false); return { unreadCount: 0, notifications: [] };
         };
     	VyukaApp.renderNotifications = (count, notifications) => {
-            const ui = VyukaApp.ui;
-            console.log("[Render Notifications v28b] Start, Count:", count, "Notifications:", notifications);
-            if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications v28b] Missing UI elements for notifications."); return; }
+            const ui = VyukaApp.ui; console.log("[Render Notifications v29] Start, Count:", count, "Notifications:", notifications);
+            if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications v29] Missing UI elements for notifications."); return; }
             ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0);
             if (notifications && notifications.length > 0) {
                 ui.notificationsList.innerHTML = notifications.map(n => {
@@ -213,7 +198,7 @@ window.VyukaApp = window.VyukaApp || {};
                 }).join('');
                 ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0;
             } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; }
-            console.log("[Render Notifications v28b] Finished rendering.");
+            console.log("[Render Notifications v29] Finished rendering.");
         };
     	VyukaApp.renderNotificationSkeletons = (count = 2) => {
             const ui = VyukaApp.ui; if (!ui.notificationsList || !ui.noNotificationsMsg) return;
@@ -221,19 +206,19 @@ window.VyukaApp = window.VyukaApp || {};
             ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block';
         };
     	VyukaApp.markNotificationRead = async (notificationId) => {
-            console.warn(`[Notifications v28b] markNotificationRead for ${notificationId} - basic implementation, does not persist to DB without Supabase logic.`);
+            console.warn(`[Notifications v29] markNotificationRead for ${notificationId} - basic implementation.`);
             const item = VyukaApp.ui.notificationsList?.querySelector(`.notification-item[data-id="${notificationId}"]`);
             if (item && !item.classList.contains('is-read')) {
                 item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove();
                 const ui = VyukaApp.ui; const currentCountText = ui.notificationCount?.textContent?.replace('+', '') || '0'; const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1);
                 if(ui.notificationCount) { ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); }
                 if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0;
-                return true; // Assume success for UI update
+                return true;
             }
             return false;
         };
     	VyukaApp.markAllNotificationsRead = async () => {
-            console.warn("[Notifications v28b] markAllNotificationsRead - basic implementation, does not persist to DB without Supabase logic.");
+            console.warn("[Notifications v29] markAllNotificationsRead - basic implementation.");
             const ui = VyukaApp.ui; if (!ui.notificationsList) return;
             const unreadItems = ui.notificationsList.querySelectorAll('.notification-item:not(.is-read)');
             unreadItems.forEach(item => { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); });
@@ -243,19 +228,19 @@ window.VyukaApp = window.VyukaApp || {};
         };
 
         VyukaApp.handleQuickReplyAction = async (actionPayload) => {
-            const state = VyukaApp.state; const ui = VyukaApp.ui; console.log(`[QuickReply v28b UI] Handling action: ${actionPayload}`);
-            const quickRepliesContainer = ui.chatMessages.querySelector('.quick-replies-container'); if (quickRepliesContainer) { quickRepliesContainer.remove(); }
-            if (actionPayload === 'ACTION_USER_ACCEPTS_QUIZ') { console.log("[QuickReply v28b UI] User accepts final quiz."); if(typeof VyukaApp.clearCurrentChatSessionHistory === 'function') { VyukaApp.clearCurrentChatSessionHistory(); } state.finalQuizActive = true; state.finalQuizOffered = false; state.aiIsWaitingForAnswer = false; VyukaApp.manageUIState('requestingFinalQuiz'); if(typeof VyukaApp.requestFinalQuizContent === 'function'){ await VyukaApp.requestFinalQuizContent(); } else { console.error("VyukaApp.requestFinalQuizContent is not defined"); VyukaApp.showToast("Chyba: Funkce pro vyžádání testu chybí.", "error");}
-            } else if (actionPayload === 'ACTION_USER_DECLINES_QUIZ') { console.log("[QuickReply v28b UI] User declines final quiz. Continuing lesson."); state.finalQuizOffered = false; state.finalQuizActive = false; state.aiIsWaitingForAnswer = false; VyukaApp.manageUIState('learning'); if (typeof VyukaApp.addChatMessage === 'function') { VyukaApp.addChatMessage("Dobře, pokračujme ve výkladu. Klikni na 'Pokračovat' nebo polož otázku.", 'gemini'); } if(ui.continueBtn) { ui.continueBtn.style.display = 'inline-flex'; ui.continueBtn.disabled = false; }
-            } else if (actionPayload === 'ACTION_USER_MARKS_COMPLETE_AFTER_QUIZ') { console.log("[QuickReply v28b UI] User marks topic complete after quiz."); if (typeof VyukaApp.handleMarkTopicComplete === 'function') VyukaApp.handleMarkTopicComplete(true);
-            } else if (actionPayload === 'ACTION_USER_CONTINUES_AFTER_QUIZ') { console.log("[QuickReply v28b UI] User continues lesson after quiz evaluation."); state.finalQuizActive = false; state.finalQuizOffered = false; state.aiIsWaitingForAnswer = false; VyukaApp.clearWhiteboard(true); VyukaApp.manageUIState('learning'); if (typeof VyukaApp.addChatMessage === 'function') { VyukaApp.addChatMessage("Dobře, k čemu by ses chtěl vrátit nebo co bychom mohli probrat dál k tomuto tématu?", 'gemini');} state.aiIsWaitingForAnswer = true; if(ui.continueBtn) ui.continueBtn.style.display = 'none';
-            } else { console.warn("[QuickReply v28b UI] Unknown action payload:", actionPayload); }
+            const state = VyukaApp.state; const ui = VyukaApp.ui; console.log(`[QuickReply v29 UI] Handling action: ${actionPayload}`);
+            const quickRepliesContainer = ui.chatMessages?.querySelector('.quick-replies-container'); if (quickRepliesContainer) { quickRepliesContainer.remove(); }
+            if (actionPayload === 'ACTION_USER_ACCEPTS_QUIZ') { console.log("[QuickReply v29 UI] User accepts final quiz."); if(typeof VyukaApp.clearCurrentChatSessionHistory === 'function') { VyukaApp.clearCurrentChatSessionHistory(); } state.finalQuizActive = true; state.finalQuizOffered = false; state.aiIsWaitingForAnswer = false; VyukaApp.manageUIState('requestingFinalQuiz'); if(typeof VyukaApp.requestFinalQuizContent === 'function'){ await VyukaApp.requestFinalQuizContent(); } else { console.error("VyukaApp.requestFinalQuizContent is not defined"); VyukaApp.showToast("Chyba: Funkce pro vyžádání testu chybí.", "error");}
+            } else if (actionPayload === 'ACTION_USER_DECLINES_QUIZ') { console.log("[QuickReply v29 UI] User declines final quiz. Continuing lesson."); state.finalQuizOffered = false; state.finalQuizActive = false; state.aiIsWaitingForAnswer = false; VyukaApp.manageUIState('learning'); if (typeof VyukaApp.addChatMessage === 'function') { VyukaApp.addChatMessage("Dobře, pokračujme ve výkladu. Klikni na 'Pokračovat' nebo polož otázku.", 'gemini'); } if(ui.continueBtn) { ui.continueBtn.style.display = 'inline-flex'; ui.continueBtn.disabled = false; }
+            } else if (actionPayload === 'ACTION_USER_MARKS_COMPLETE_AFTER_QUIZ') { console.log("[QuickReply v29 UI] User marks topic complete after quiz."); if (typeof VyukaApp.handleMarkTopicComplete === 'function') VyukaApp.handleMarkTopicComplete(true);
+            } else if (actionPayload === 'ACTION_USER_CONTINUES_AFTER_QUIZ') { console.log("[QuickReply v29 UI] User continues lesson after quiz evaluation."); state.finalQuizActive = false; state.finalQuizOffered = false; state.aiIsWaitingForAnswer = false; VyukaApp.clearWhiteboard(true); VyukaApp.manageUIState('learning'); if (typeof VyukaApp.addChatMessage === 'function') { VyukaApp.addChatMessage("Dobře, k čemu by ses chtěl vrátit nebo co bychom mohli probrat dál k tomuto tématu?", 'gemini');} state.aiIsWaitingForAnswer = true; if(ui.continueBtn) ui.continueBtn.style.display = 'none';
+            } else { console.warn("[QuickReply v29 UI] Unknown action payload:", actionPayload); }
             if (typeof VyukaApp.manageButtonStates === 'function') VyukaApp.manageButtonStates();
         };
 
 		VyukaApp.setupFeatureListeners = () => {
 			const ui = VyukaApp.ui; const state = VyukaApp.state;
-			console.log("[SETUP UI Features v28b] Setting up UI/Feature event listeners...");
+			console.log("[SETUP UI Features v29] Setting up UI/Feature event listeners...");
 			if (ui.chatInput) { ui.chatInput.addEventListener('input', () => { if (typeof VyukaApp.autoResizeTextarea === 'function') VyukaApp.autoResizeTextarea(); }); ui.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (typeof VyukaApp.handleSendMessage === 'function') { VyukaApp.handleSendMessage(); } else { console.error("VyukaApp.handleSendMessage not found"); }} }); }
 			if (ui.sendButton) { ui.sendButton.addEventListener('click', () => { if (typeof VyukaApp.handleSendMessage === 'function') { VyukaApp.handleSendMessage(); } else { console.error("VyukaApp.handleSendMessage not found"); } }); }
 			if (ui.clearChatBtn) { ui.clearChatBtn.addEventListener('click', () => { if (typeof VyukaApp.confirmClearChat === 'function') { VyukaApp.confirmClearChat(); } else { console.error("VyukaApp.confirmClearChat not found"); } }); }
@@ -272,18 +257,35 @@ window.VyukaApp = window.VyukaApp || {};
                     if (targetButton) {
                         event.preventDefault(); event.stopPropagation();
                         const payload = targetButton.dataset.payload;
-                        console.log("[QuickReply Click UI v28b] Clicked, payload:", payload);
+                        console.log("[QuickReply Click UI v29] Clicked, payload:", payload);
                         if (payload && typeof VyukaApp.handleQuickReplyAction === 'function') { VyukaApp.handleQuickReplyAction(payload); }
                         else if (payload && !targetButton.dataset.action) { if (ui.chatInput) { ui.chatInput.value = payload; if(typeof VyukaApp.autoResizeTextarea === 'function') VyukaApp.autoResizeTextarea(); } if (typeof VyukaApp.handleSendMessage === 'function') VyukaApp.handleSendMessage(); const repliesContainer = targetButton.closest('.quick-replies-container'); if (repliesContainer) repliesContainer.remove(); }
                     }
                 });
             }
-            const templateButtons = document.querySelectorAll('.template-btn'); templateButtons.forEach(button => { button.addEventListener('click', () => { const questionText = button.dataset.question; if (ui.chatInput && questionText) { ui.chatInput.value = questionText; VyukaApp.autoResizeTextarea(); VyukaApp.handleSendMessage(); } }); });
-			console.log("[SETUP UI Features v28b] UI/Feature event listeners setup complete.");
+            // Listener pro template tlačítka (pokud jsou v HTML)
+            const templateButtons = document.querySelectorAll('.template-btn');
+            if(templateButtons.length > 0) {
+                templateButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        const questionText = button.dataset.question;
+                        if (ui.chatInput && questionText && !ui.chatInput.disabled) { // Kontrola, zda je input aktivní
+                            ui.chatInput.value = questionText;
+                            if (typeof VyukaApp.autoResizeTextarea === 'function') VyukaApp.autoResizeTextarea();
+                            if (typeof VyukaApp.handleSendMessage === 'function') VyukaApp.handleSendMessage();
+                        } else if (ui.chatInput.disabled) {
+                            VyukaApp.showToast("Nelze použít šablonu", "Chat je momentálně neaktivní.", "warning");
+                        }
+                    });
+                });
+            } else {
+                console.warn("[SETUP UI Features v29] No '.template-btn' elements found in the DOM.");
+            }
+			console.log("[SETUP UI Features v29] UI/Feature event listeners setup complete.");
 		};
 
 	} catch (e) {
-		console.error("FATAL SCRIPT ERROR (UI Features v28b):", e);
+		console.error("FATAL SCRIPT ERROR (UI Features v29):", e);
 		document.body.innerHTML = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--vyuka-accent-error,#FF4757);color:var(--vyuka-text-primary,#E0E7FF);padding:40px;text-align:center;font-family:sans-serif;z-index:9999;"><h1>KRITICKÁ CHYBA SYSTÉMU</h1><p>Nelze spustit modul výuky (UI Features).</p><p style="margin-top:15px;"><a href="#" onclick="location.reload()" style="color:var(--vyuka-accent-secondary,#00F5FF); text-decoration:underline; font-weight:bold;">Obnovit stránku</a></p><details style="margin-top: 20px; color: #f0f0f0;"><summary style="cursor:pointer; color: var(--vyuka-text-primary,#E0E7FF);">Detaily</summary><pre style="margin-top:10px;padding:15px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.2);font-size:0.8em;white-space:pre-wrap;text-align:left;max-height:300px; overflow-y:auto; border-radius:8px;">${e.message}\n${e.stack}</pre></details></div>`;
 	}
 

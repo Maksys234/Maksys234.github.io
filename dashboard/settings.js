@@ -56,7 +56,7 @@
             'offline-banner', 'mouse-follower',
             'currentYearSidebarSettings', 'currentYearFooterSettings',
             'notification-bell', 'notification-count', 'notifications-dropdown',
-            'notifications-list', 'no-notifications-msg', 'mark-all-read',
+            'notifications-list', 'no-notifications-msg', 'mark-all-read', // Corrected ID is 'mark-all-read'
             'public-profile-link-sidebar'
         ];
         const notFound = [];
@@ -78,7 +78,7 @@
             else if (key === 'vyukaHeaderUserTitle') ui.headerUserTitle = element;
             else if (key === 'userDropdownMenu') ui.userDropdownMenu = element; 
             else if (key === 'sidebarAvatar') ui.sidebarAvatarElement = element; 
-            else if (id === 'mark-all-read') ui.markAllReadBtn = element; // Explicitní mapování
+            else if (id === 'mark-all-read') ui.markAllReadBtn = element; // Explicit mapping to ui.markAllReadBtn
             else ui[key] = element;
 
             if (!element && id !== 'sidebar-close-toggle') {
@@ -170,7 +170,7 @@
                  console.log("[Settings Modal] Populating built-in avatars...");
                  populateBuiltInAvatars();
                  selectedBuiltInAvatarPath = null;
-                 if (ui.avatarUpload) ui.avatarUpload.value = ''; // Použito ui.avatarUpload
+                 if (ui.avatarUpload) ui.avatarUpload.value = ''; 
                  if (ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = true;
                  updateAvatarPreviewFromProfile();
              }
@@ -188,7 +188,7 @@
                  if (modalId === 'delete-account-modal' && ui.confirmDeletePasswordField) ui.confirmDeletePasswordField.value = '';
                  if (modalId === 'avatar-modal') {
                       selectedBuiltInAvatarPath = null;
-                     if (ui.avatarUpload) ui.avatarUpload.value = ''; // Použito ui.avatarUpload
+                     if (ui.avatarUpload) ui.avatarUpload.value = ''; 
                      if(ui.avatarPreview) updateAvatarPreviewFromProfile();
                      if(ui.builtinAvatarGrid) ui.builtinAvatarGrid.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
                      if (ui.saveAvatarBtn) ui.saveAvatarBtn.disabled = true;
@@ -282,13 +282,12 @@
             preferences: ui.savePreferencesBtn,
             avatar: ui.saveAvatarBtn,
             delete: ui.confirmDeleteAccountBtn,
-            notifications: ui.markAllReadBtn // Zde používáme markAllReadBtn
+            notifications: ui.markAllReadBtn 
         };
         const button = buttons[section];
         if (button) {
             button.disabled = isLoadingFlag;
-            // const icon = button.querySelector('i'); // Není potřeba měnit ikonu pro markAllReadBtn
-             if (isLoadingFlag && !button.dataset.originalContent) {
+            if (isLoadingFlag && !button.dataset.originalContent) {
                  button.dataset.originalContent = button.innerHTML;
              }
 
@@ -299,7 +298,6 @@
                 else if (section === 'preferences') button.innerHTML = `${spinnerIcon} Ukládám...`;
                 else if (section === 'avatar') button.innerHTML = `${spinnerIcon} Ukládám...`;
                 else if (section === 'delete') button.innerHTML = `${spinnerIcon} Mažu...`;
-                // Pro 'notifications', text tlačítka 'markAllReadBtn' se nemění, pouze jeho stav disabled
                 else if (section !== 'notifications') { button.innerHTML = `${spinnerIcon} Načítám...`; }
             } else {
                  if (button.dataset.originalContent && section !== 'notifications') {
@@ -525,7 +523,7 @@
     async function saveSelectedAvatar() {
         if (!currentUser || !supabase) { showToast('Chyba', 'Nejste přihlášeni.', 'error'); return false; }
         setLoadingState('avatar', true);
-        const file = ui.avatarUpload?.files[0]; // Použito ui.avatarUpload
+        const file = ui.avatarUpload?.files[0];
         let finalAvatarUrl = null;
         let uploadError = null;
 
@@ -669,7 +667,6 @@
         if (!profileData) { console.warn("updateProfileDisplay: Missing profile data."); return; }
         console.log("[Settings UI Update] Updating profile display (main page & header)...");
 
-        // Aktualizace postranního panelu (pouze avatar)
         if (ui.sidebarAvatarElement) { 
             const initials = getInitials(profileData); const avatarUrl = profileData.avatar_url; let finalSidebarUrl = avatarUrl;
             if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl.includes('/')) { finalSidebarUrl = sanitizeHTML(avatarUrl); }
@@ -679,7 +676,6 @@
              if (sidebarImg) { sidebarImg.onerror = function() { console.error(`[Settings UI Update] Failed to load sidebar avatar: ${this.src}`); ui.sidebarAvatarElement.innerHTML = sanitizeHTML(initials); }; }
         }
 
-        // Aktualizace horního záhlaví (avatar, jméno, titul)
         const headerDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || currentUser?.email?.split('@')[0] || 'Pilot';
         if (ui.headerUserName) ui.headerUserName.textContent = sanitizeHTML(headerDisplayName);
         if (ui.headerAvatar) { 
@@ -703,7 +699,6 @@
             ui.headerUserTitle.textContent = sanitizeHTML(displayTitle); ui.headerUserTitle.setAttribute('title', sanitizeHTML(displayTitle));
         }
 
-        // Aktualizace hlavní profilové sekce (velký avatar, statistiky atd.)
         const profileDisplayNameMain = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || 'Uživatel';
         if (ui.profileName) ui.profileName.textContent = sanitizeHTML(profileDisplayNameMain);
         if (ui.profileEmail) ui.profileEmail.textContent = sanitizeHTML(profileData.email);
@@ -847,7 +842,7 @@
         if (ui.learningGoalSelect) { ui.learningGoalSelect.addEventListener('change', function() { populateLearningGoalForm(this.value, currentProfile?.preferences?.goal_details || {}); }); }
         if (ui.profileAvatar) { ui.profileAvatar.addEventListener('click', (event) => { if (event.target.closest('#edit-avatar-btn') || event.target.closest('.edit-avatar-overlay')) { console.log("[Settings Event] Edit avatar clicked, opening modal."); showModal('avatar-modal'); } }); }
         
-        if (ui.selectAvatarFileBtn && ui.avatarUpload) { // Použito ui.avatarUpload
+        if (ui.selectAvatarFileBtn && ui.avatarUpload) { 
             ui.selectAvatarFileBtn.addEventListener('click', () => { 
                 console.log("[Settings Event] Upload button clicked, triggering file input."); 
                 ui.avatarUpload.click(); 
@@ -856,7 +851,7 @@
             console.warn("Could not find avatar select button or file input for listener setup."); 
         }
         
-        if (ui.avatarUpload) { // Použito ui.avatarUpload
+        if (ui.avatarUpload) { 
             ui.avatarUpload.addEventListener('change', function() { 
                 if (this.files && this.files[0]) { 
                     console.log("[Settings Event] File selected:", this.files[0].name); 
@@ -887,7 +882,7 @@
         window.addEventListener('online', updateOnlineStatus); window.addEventListener('offline', updateOnlineStatus);
         initMouseFollower(); initHeaderScrollDetection(); updateCopyrightYear();
         if (ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); }
-        if (ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead); } // Používáme markAllReadBtn
+        if (ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead); } 
         if (ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); const dot = item.querySelector('.unread-dot'); if(dot) dot.remove(); const currentCountText = ui.notificationCount.textContent.replace('+', ''); const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }); }
         document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } 
             if(ui.userDropdownMenu?.classList.contains('active') && !ui.userDropdownMenu.contains(event.target) && !ui.headerUserDisplay?.contains(event.target)) {
@@ -935,7 +930,7 @@
             await loadAndDisplayProfile(); 
             setupEventListeners(); 
             if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 600); } 
-            if (mainContentArea) { mainContentArea.style.display = 'block'; requestAnimationFrame(() => { mainContentArea.classList.add('loaded'); }); }
+            if (mainContentArea) { mainContentArea.style.display = 'block'; requestAnimationFrame(() => { if(mainContentArea) mainContentArea.classList.add('loaded'); }); }
             console.log("✅ [Settings INIT] Inicializace stránky profilu dokončena.");
         } catch (error) {
             console.error("❌ [Settings INIT] Kritická chyba při inicializaci profilu:", error);
