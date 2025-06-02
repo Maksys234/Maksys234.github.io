@@ -22,62 +22,80 @@
 
     const ui = {}; // Bude naplněno v cacheDOMElements
 
-    // Funkce cacheDOMElements bude zde, ale její obsah je příliš velký pro okamžité zobrazení.
-    // Bude obsahovat odkazy na všechny elementy z settings.html (včetně nových ID pro sidebar a layout).
     // --- END: Initialization and Configuration ---
 
     function cacheDOMElements() {
         console.log("[Settings Cache DOM] Caching elements...");
         const ids = [
-            'initial-loader', 'sidebar-overlay-ai-settings', 'settings-main-area', 
-            'vyuka-sidebar-settings', 'main-mobile-menu-toggle-settings', 
-            'sidebar-ai-desktop-toggle-settings', 
-            'sidebar-avatar', 'sidebar-name', 'sidebar-user-title',
-            'logout-btn', 'profile-content', 'profile-name', 'profile-email', 
+            'initial-loader', 'sidebar-overlay-ai-settings', 'settings-main-area',
+            'vyuka-sidebar-settings', 'main-mobile-menu-toggle-settings',
+            'sidebar-ai-desktop-toggle-settings',
+            'sidebar-avatar', // Avatar v nové boční liště
+            // 'sidebar-name', 'sidebar-user-title', // Tyto jsou nyní v hlavním záhlaví
+            'vyuka-header-user-display', // Kontejner pro avatar, jméno, titul v záhlaví
+            'vyuka-header-avatar',       // Avatar v hlavním záhlaví
+            'vyuka-header-user-name',    // Jméno v hlavním záhlaví
+            'vyuka-header-user-title',   // Titul v hlavním záhlaví
+            'user-dropdown-menu',        // Dropdown menu u uživatele v záhlaví
+            'logout-btn', // Tlačítko odhlášení v záhlaví
+            'profile-content', 'profile-name', 'profile-email',
             'profile-avatar', 'profile-points', 'profile-badges', 'profile-streak',
-            'profile-level-main', 'exp-progress-bar-fill', 'exp-current-value', 
+            'profile-level-main', 'exp-progress-bar-fill', 'exp-current-value',
             'exp-required-value', 'exp-percentage', 'profile-form', 'password-form',
             'first_name', 'last_name', 'username', 'email', 'school', 'grade', 'bio',
             'current_password', 'new_password', 'confirm_password',
             'dark_mode', 'language', 'learning_goal', 'goal-details-container',
-            'goal-details-math_accelerate', 'accelerate_grade_profile', 
-            'accelerate_intensity_profile', 'goal-details-math_review', 
-            'review_grade_profile', 'email_notifications', 'study_tips', 
-            'content_updates', 'practice_reminders', 'save-profile-btn', 
+            'goal-details-math_accelerate', 'accelerate_grade_profile',
+            'accelerate_intensity_profile', 'goal-details-math_review',
+            'review_grade_profile', 'email_notifications', 'study_tips',
+            'content_updates', 'practice_reminders', 'save-profile-btn',
             'save-password-btn', 'save-preferences-btn', 'delete-account-btn',
-            'confirm-delete-account-btn', 'save-avatar-btn', 'avatar-modal', 
-            'delete-account-modal', 'avatar-preview', 'avatar-upload', 
-            'select-avatar-file-btn', 'builtin-avatar-grid', 
-            'confirm-delete-password', 'toast-container', 'global-error-settings', 
-            'offline-banner', 'mouse-follower', 
+            'confirm-delete-account-btn', 'save-avatar-btn', 'avatar-modal',
+            'delete-account-modal', 'avatar-preview', 'avatar-upload',
+            'select-avatar-file-btn', 'builtin-avatar-grid',
+            'confirm-delete-password', 'toast-container', 'global-error-settings',
+            'offline-banner', 'mouse-follower',
             'currentYearSidebarSettings', 'currentYearFooterSettings',
             'notification-bell', 'notification-count', 'notifications-dropdown',
             'notifications-list', 'no-notifications-msg', 'mark-all-read',
-            'public-profile-link-sidebar' 
+            'public-profile-link-sidebar'
         ];
         const notFound = [];
         ids.forEach(id => {
             const element = document.getElementById(id);
-            // Převod ID na camelCase pro klíče v ui objektu
             const key = id.replace(/-([a-z])/g, g => g[1].toUpperCase());
-             if (key === 'sidebarOverlayAiSettings') ui.sidebarOverlay = element; // Speciální mapování pro konzistenci
-             else if (key === 'settingsMainArea') ui.mainContent = element;
-             else if (key === 'vyukaSidebarSettings') ui.sidebar = element;
-             else if (key === 'mainMobileMenuToggleSettings') ui.mainMobileMenuToggle = element;
-             else if (key === 'sidebarAiDesktopToggleSettings') ui.sidebarToggleBtn = element;
-             else if (key === 'globalErrorSettings') ui.globalError = element;
-             else if (key === 'currentYearSidebarSettings') ui.currentYearSidebar = element;
-             else if (key === 'currentYearFooterSettings') ui.currentYearFooter = element;
+
+            // Speciální mapování pro konzistenci s původním profile.js, pokud se názvy liší
+            if (key === 'sidebarOverlayAiSettings') ui.sidebarOverlay = element;
+            else if (key === 'settingsMainArea') ui.mainContent = element; // Hlavní obsahová oblast
+            else if (key === 'vyukaSidebarSettings') ui.sidebar = element; // Nová boční lišta
+            else if (key === 'mainMobileMenuToggleSettings') ui.mainMobileMenuToggle = element; // Mobilní menu toggle
+            else if (key === 'sidebarAiDesktopToggleSettings') ui.sidebarToggleBtn = element; // Desktop sidebar toggle
+            else if (key === 'globalErrorSettings') ui.globalError = element; // Globální chyba
+            else if (key === 'currentYearSidebarSettings') ui.currentYearSidebar = element;
+            else if (key === 'currentYearFooterSettings') ui.currentYearFooter = element;
+            // Nové elementy pro header
+            else if (key === 'vyukaHeaderUserDisplay') ui.headerUserDisplay = element; // Pro zobrazení uživatele v headeru
+            else if (key === 'vyukaHeaderAvatar') ui.headerAvatar = element;
+            else if (key === 'vyukaHeaderUserName') ui.headerUserName = element;
+            else if (key === 'vyukaHeaderUserTitle') ui.headerUserTitle = element;
+            else if (key === 'userDropdownMenu') ui.userDropdownMenu = element; // dropdown v headeru
+            // Elementy pro sidebar - sidebarName a sidebarUserTitle se již nepoužívají v postranním panelu pro zobrazení jména/titulu
+            // ui.sidebarName a ui.sidebarUserTitle nyní odkazují na elementy v *hlavním* headeru (mapováno výše)
+            // Zachováme však `sidebarAvatar` pro avatar v postranním panelu
+            else if (key === 'sidebarAvatar') ui.sidebarAvatarElement = element; // Odlišíme od ui.headerAvatar
+
             else ui[key] = element;
 
-            if (!element && id !== 'sidebar-close-toggle') { // sidebar-close-toggle není v novém layoutu
+            if (!element && id !== 'sidebar-close-toggle') {
                 notFound.push(id);
             }
         });
-        // Elementy, které mohou být null, ale JS je očekává
-        ui.sidebarCloseToggle = null; 
+        // Tyto ID již neexistují ve vyuka-style sidebaru pro jméno/titul, ale JS je mohl očekávat.
+        // Místo nich se použijí ui.headerUserName a ui.headerUserTitle.
+        ui.sidebarName = null; 
+        ui.sidebarUserTitle = null;
 
-        // Elementy, které jsou v HTML, ale nemají ID a jsou vybírány jinak (nebo nepotřebují být v ui objektu globálně)
         ui.profileTabs = document.querySelectorAll('.profile-tab');
         ui.tabContents = document.querySelectorAll('.tab-content');
 
@@ -89,20 +107,9 @@
     }
     
     // Všechny ostatní funkce z dashboard/profile.js budou zde...
-    // (showToast, showError, hideError, showFieldError, clearFieldError, clearAllErrors,
-    // showModal, hideModal, updateOnlineStatus, getInitials, sanitizeHTML,
-    // initMouseFollower, initHeaderScrollDetection, updateCopyrightYear, validators, setLoadingState,
-    // initializeSupabase, fetchUserProfile, fetchTitles, updateProfileData, updateUserPassword,
-    // updatePreferencesData, saveSelectedAvatar, deleteUserAccount, fetchNotifications, formatRelativeTime,
-    // renderNotifications, markNotificationRead, markAllNotificationsRead, getTotalExpThreshold,
-    // updateProfileDisplay, updateAvatarPreviewFromProfile, populateBuiltInAvatars, applyPreferences,
-    // populateLearningGoalForm, validateProfileForm, validatePasswordForm,
-    // loadAndDisplayProfile, setupEventListeners, initializeApp)
-
-    // === START Zkopírováno z profile.js a ponecháno beze změny (kromě logování a volání nových funkcí sidebar) ===
 
     function showToast(title, message, type = 'info', duration = 4500) {
-        if (!ui.toastContainer) return;
+        if (!ui.toastContainer) { console.warn("Toast container not found"); return; }
         try {
             const toastId = `toast-${Date.now()}`;
             const toastElement = document.createElement('div');
@@ -201,20 +208,25 @@
               console.error(`[Settings Modal] Modal element not found to hide: ${modalId}`);
          }
     }
-    function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.style.display = navigator.onLine ? 'none' : 'block'; if (!navigator.onLine) showToast('Offline', 'Spojení ztraceno.', 'warning'); }
+    function updateOnlineStatus() { if (ui.offlineBanner) ui.offlineBanner.classList.toggle('visible', !navigator.onLine); if (!navigator.onLine) showToast('Offline', 'Spojení ztraceno.', 'warning'); }
     function getInitials(userData) { if (!userData) return '?'; const f = userData.first_name?.[0] || ''; const l = userData.last_name?.[0] || ''; const nameInitial = (f + l).toUpperCase(); const usernameInitial = userData.username?.[0].toUpperCase() || ''; const emailInitial = userData.email?.[0].toUpperCase() || ''; return nameInitial || usernameInitial || emailInitial || '?'; }
     function sanitizeHTML(str) { const temp = document.createElement('div'); temp.textContent = str || ''; return temp.innerHTML; }
     
+    // Logika pro Vyuka Sidebar
     function openVyukaSidebarMobile() {
         if (ui.sidebar && ui.sidebarOverlay) {
             ui.sidebar.classList.add('active-mobile'); 
-            ui.sidebar.classList.add('expanded'); 
+            ui.sidebar.classList.add('expanded'); // Při otevření na mobilu je vždy rozbalený
             ui.sidebarOverlay.classList.add('active');
         }
     }
     function closeVyukaSidebarMobile() {
         if (ui.sidebar && ui.sidebarOverlay) {
             ui.sidebar.classList.remove('active-mobile');
+            // Necháme expanded, pokud byl tak nastaven na desktopu
+            if(localStorage.getItem(SIDEBAR_STATE_KEY) === 'collapsed'){
+                 ui.sidebar.classList.remove('expanded');
+            }
             ui.sidebarOverlay.classList.remove('active');
         }
     }
@@ -236,9 +248,10 @@
         }
     }
     function applyInitialVyukaSidebarState() {
-        if(!ui.sidebar) return;
+        if(!ui.sidebar || !ui.sidebarToggleBtn) return;
         const savedState = localStorage.getItem(SIDEBAR_STATE_KEY);
-        const shouldBeExpanded = savedState === 'expanded'; 
+        // Pokud není nic uloženo, výchozí stav je rozbalený
+        const shouldBeExpanded = savedState === null ? true : savedState === 'expanded'; 
         
         ui.sidebar.classList.toggle('expanded', shouldBeExpanded);
         
@@ -252,20 +265,17 @@
         console.log(`[Settings Vyuka Sidebar State] Initial state applied: ${shouldBeExpanded ? 'expanded' : 'collapsed'}`);
     }
 
-    const initMouseFollower = () => { const follower = ui.mouseFollower; if (!follower || window.innerWidth <= 576) return; let hasMoved = false; const updatePosition = (event) => { if (!hasMoved) { document.body.classList.add('mouse-has-moved'); follower.style.opacity = '1'; hasMoved = true; } requestAnimationFrame(() => { follower.style.left = `${event.clientX}px`; follower.style.top = `${event.clientY}px`; }); }; window.addEventListener('mousemove', updatePosition, { passive: true }); document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; }); document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; }); window.addEventListener('touchstart', () => { if(follower) follower.style.display = 'none'; }, { passive: true, once: true }); };
+    const initMouseFollower = () => { const follower = ui.mouseFollower; if (!follower || window.innerWidth <= 768) { if(follower) follower.style.display = 'none'; return; } follower.style.display = 'block'; let hasMoved = false; const updatePosition = (event) => { if (!hasMoved) { document.body.classList.add('mouse-has-moved'); follower.style.opacity = '1'; hasMoved = true; } requestAnimationFrame(() => { follower.style.left = `${event.clientX}px`; follower.style.top = `${event.clientY}px`; }); }; window.addEventListener('mousemove', updatePosition, { passive: true }); document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; }); document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; }); window.addEventListener('touchstart', () => { if(follower) follower.style.display = 'none'; }, { passive: true, once: true }); };
     const initHeaderScrollDetection = () => { 
-        let lastScrollY = window.scrollY; 
         const scrollableContent = document.querySelector('.vyuka-main-content-scrollable'); 
-        if (!scrollableContent) {
-            console.warn("[Header Scroll] Scrollable content area '.vyuka-main-content-scrollable' not found.");
-            return;
-        }
+        if (!scrollableContent) { console.warn("[Header Scroll] Scrollable content area '.vyuka-main-content-scrollable' not found."); return; }
+        let lastScrollY = scrollableContent.scrollTop; 
         scrollableContent.addEventListener('scroll', () => { 
             const currentScrollY = scrollableContent.scrollTop; 
-            document.body.classList.toggle('scrolled', currentScrollY > 10); 
+            document.body.classList.toggle('scrolled', currentScrollY > 20); 
             lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY; 
         }, { passive: true }); 
-        if (scrollableContent.scrollTop > 10) document.body.classList.add('scrolled'); 
+        document.body.classList.toggle('scrolled', scrollableContent.scrollTop > 20);
     };
     const updateCopyrightYear = () => { const year = new Date().getFullYear(); if (ui.currentYearSidebar) ui.currentYearSidebar.textContent = year; if (ui.currentYearFooter) ui.currentYearFooter.textContent = year; };
     const validators = {
@@ -302,10 +312,11 @@
                 else if (section === 'preferences') button.innerHTML = `${spinnerIcon} Ukládám...`;
                 else if (section === 'avatar') button.innerHTML = `${spinnerIcon} Ukládám...`;
                 else if (section === 'delete') button.innerHTML = `${spinnerIcon} Mažu...`;
-                else if (section === 'notifications') button.textContent = 'MAŽU...';
-                else { button.innerHTML = `${spinnerIcon} Načítám...`; }
+                else if (section === 'notifications') {
+                    // Pro .mark-all-read-btn se text nemění, jen disabled stav
+                } else { button.innerHTML = `${spinnerIcon} Načítám...`; }
             } else {
-                 if (button.dataset.originalContent) {
+                 if (button.dataset.originalContent && section !== 'notifications') { // Pro notifikace text zůstává
                      button.innerHTML = button.dataset.originalContent;
                      delete button.dataset.originalContent;
                  }
@@ -314,7 +325,7 @@
 
         if (section === 'notifications' && ui.notificationBell) {
             ui.notificationBell.style.opacity = isLoadingFlag ? 0.5 : 1;
-            if (ui.markAllReadBtn) {
+            if (ui.markAllReadBtn) { // Opětovná kontrola tlačítka
                 const currentUnreadCount = parseInt(ui.notificationCount?.textContent?.replace('+', '') || '0');
                 ui.markAllReadBtn.disabled = isLoadingFlag || currentUnreadCount === 0;
             }
@@ -670,32 +681,48 @@
     }
     function updateProfileDisplay(profileData, titlesData = []) {
         if (!profileData) { console.warn("updateProfileDisplay: Missing profile data."); return; }
-        console.log("[Settings UI Update] Updating profile display...");
+        console.log("[Settings UI Update] Updating profile display (main page & header)...");
 
-        const sidebarDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || currentUser?.email?.split('@')[0] || 'Pilot';
-        if (ui.sidebarName) ui.sidebarName.textContent = sanitizeHTML(sidebarDisplayName);
-        if (ui.sidebarAvatar) {
+        // Aktualizace postranního panelu (pouze avatar)
+        if (ui.sidebarAvatarElement) { // Použijeme odlišený název proměnné
             const initials = getInitials(profileData); const avatarUrl = profileData.avatar_url; let finalSidebarUrl = avatarUrl;
             if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl.includes('/')) { finalSidebarUrl = sanitizeHTML(avatarUrl); }
             else if (avatarUrl) { finalSidebarUrl = `${sanitizeHTML(avatarUrl)}?t=${new Date().getTime()}`; }
-             ui.sidebarAvatar.innerHTML = finalSidebarUrl ? `<img src="${finalSidebarUrl}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
-             const sidebarImg = ui.sidebarAvatar.querySelector('img');
-             if (sidebarImg) { sidebarImg.onerror = function() { console.error(`[Settings UI Update] Failed to load sidebar avatar: ${this.src}`); ui.sidebarAvatar.innerHTML = sanitizeHTML(initials); }; }
+             ui.sidebarAvatarElement.innerHTML = finalSidebarUrl ? `<img src="${finalSidebarUrl}" alt="${sanitizeHTML(initials)}">` : sanitizeHTML(initials);
+             const sidebarImg = ui.sidebarAvatarElement.querySelector('img');
+             if (sidebarImg) { sidebarImg.onerror = function() { console.error(`[Settings UI Update] Failed to load sidebar avatar: ${this.src}`); ui.sidebarAvatarElement.innerHTML = sanitizeHTML(initials); }; }
         }
-        if(ui.sidebarUserTitle) {
+
+        // Aktualizace horního záhlaví (avatar, jméno, titul)
+        const headerDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || currentUser?.email?.split('@')[0] || 'Pilot';
+        if (ui.headerUserName) ui.headerUserName.textContent = sanitizeHTML(headerDisplayName);
+        if (ui.headerAvatar) { // ID pro obrázek v headeru
+            const initials = getInitials(profileData); const avatarUrl = profileData.avatar_url; let finalHeaderUrl = avatarUrl;
+            if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl.includes('/')) { finalHeaderUrl = sanitizeHTML(avatarUrl); }
+            else if (avatarUrl) { finalHeaderUrl = `${sanitizeHTML(avatarUrl)}?t=${new Date().getTime()}`; }
+            ui.headerAvatar.src = finalHeaderUrl || ''; // Předpokládáme, že je to <img> tag
+            ui.headerAvatar.alt = sanitizeHTML(initials);
+            ui.headerAvatar.style.display = finalHeaderUrl ? 'block' : 'none';
+            // Pokud header avatar má i fallback na iniciály (např. ve spanu), musíme ho také řešit
+            const headerAvatarInitialsSpan = ui.headerUserDisplay?.querySelector('.vyuka-header-avatar-initials');
+            if(headerAvatarInitialsSpan) headerAvatarInitialsSpan.style.display = finalHeaderUrl ? 'none' : 'flex';
+            if(headerAvatarInitialsSpan && !finalHeaderUrl) headerAvatarInitialsSpan.textContent = initials;
+        }
+        if(ui.headerUserTitle) { // Titul v headeru
             const selectedTitleKey = profileData.selected_title; let displayTitle = 'Pilot';
             if (selectedTitleKey && titlesData && titlesData.length > 0) {
                 const foundTitle = titlesData.find(t => t.title_key === selectedTitleKey);
                 if (foundTitle && foundTitle.name) { displayTitle = foundTitle.name; }
                 else { console.warn(`[Settings UI Update] Title with key "${selectedTitleKey}" not found in fetched titles.`); }
             } else if (selectedTitleKey) { console.warn(`[Settings UI Update] Selected title key "${selectedTitleKey}" exists but title list is empty or not loaded yet.`); }
-            ui.sidebarUserTitle.textContent = sanitizeHTML(displayTitle); ui.sidebarUserTitle.setAttribute('title', sanitizeHTML(displayTitle));
+            ui.headerUserTitle.textContent = sanitizeHTML(displayTitle); ui.headerUserTitle.setAttribute('title', sanitizeHTML(displayTitle));
         }
 
+        // Aktualizace hlavní profilové sekce (velký avatar, statistiky atd.)
         const profileDisplayName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || profileData.username || 'Uživatel';
         if (ui.profileName) ui.profileName.textContent = sanitizeHTML(profileDisplayName);
         if (ui.profileEmail) ui.profileEmail.textContent = sanitizeHTML(profileData.email);
-        if (ui.profileAvatar) {
+        if (ui.profileAvatar) { // Velký avatar na stránce
             const initials = getInitials(profileData); const avatarUrl = profileData.avatar_url; let finalProfileUrl = avatarUrl;
             if (avatarUrl && !avatarUrl.startsWith('http') && avatarUrl.includes('/')) { finalProfileUrl = sanitizeHTML(avatarUrl); }
             else if (avatarUrl) { finalProfileUrl = `${sanitizeHTML(avatarUrl)}?t=${new Date().getTime()}`; }
@@ -777,9 +804,10 @@
     }
     function applyPreferences(preferences) {
         if (!preferences) return;
-        if (preferences.dark_mode) { document.documentElement.classList.add('dark'); }
-        else { document.documentElement.classList.remove('dark'); }
-        console.log("[Settings Preferences Apply] Aplikováno nastavení (Tmavý režim: " + preferences.dark_mode + ")");
+        const isDarkMode = preferences.dark_mode ?? document.documentElement.classList.contains('dark'); // Default to current if not set
+        document.documentElement.classList.toggle('dark', isDarkMode);
+        document.documentElement.classList.toggle('light', !isDarkMode);
+        console.log("[Settings Preferences Apply] Aplikováno nastavení (Tmavý režim: " + isDarkMode + ")");
     }
     function populateLearningGoalForm(learningGoal, goalDetails) {
         if (!ui.learningGoalSelect || !ui.goalDetailsContainer || !ui.goalDetailsMathAccelerate || !ui.goalDetailsMathReview || !ui.accelerateGradeProfileSelect || !ui.accelerateIntensityProfileSelect || !ui.reviewGradeProfileSelect) { console.warn("Learning goal form elements not found."); return; }
@@ -849,17 +877,38 @@
         if (ui.notificationBell) { ui.notificationBell.addEventListener('click', (event) => { event.stopPropagation(); ui.notificationsDropdown?.classList.toggle('active'); }); }
         if (ui.markAllReadBtn) { ui.markAllReadBtn.addEventListener('click', markAllNotificationsRead); }
         if (ui.notificationsList) { ui.notificationsList.addEventListener('click', async (event) => { const item = event.target.closest('.notification-item'); if (item) { const notificationId = item.dataset.id; const link = item.dataset.link; const isRead = item.classList.contains('is-read'); if (!isRead && notificationId) { const success = await markNotificationRead(notificationId); if (success) { item.classList.add('is-read'); const dot = item.querySelector('.unread-dot'); if(dot) dot.remove(); const currentCountText = ui.notificationCount.textContent.replace('+', ''); const currentCount = parseInt(currentCountText) || 0; const newCount = Math.max(0, currentCount - 1); ui.notificationCount.textContent = newCount > 9 ? '9+' : (newCount > 0 ? String(newCount) : ''); ui.notificationCount.classList.toggle('visible', newCount > 0); if (ui.markAllReadBtn) ui.markAllReadBtn.disabled = newCount === 0; } } if (link) window.location.href = link; } }); }
-        document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } });
+        document.addEventListener('click', (event) => { if (ui.notificationsDropdown?.classList.contains('active') && !ui.notificationsDropdown.contains(event.target) && !ui.notificationBell?.contains(event.target)) { ui.notificationsDropdown.classList.remove('active'); } 
+            // Close user dropdown if clicked outside (vyuka style)
+            if(ui.userDropdownMenu?.classList.contains('active') && !ui.userDropdownMenu.contains(event.target) && !ui.headerUserDisplay?.contains(event.target)) {
+                 ui.userDropdownMenu.classList.remove('active');
+                 ui.userDropdownMenu.style.opacity = '0';
+                 ui.userDropdownMenu.style.visibility = 'hidden';
+                 ui.userDropdownMenu.style.transform = 'translateY(10px) scale(0.95)';
+            }
+        });
+
+        if (ui.headerUserDisplay) { // Listener pro vyuka-style user dropdown
+            ui.headerUserDisplay.addEventListener('click', (event) => {
+                event.stopPropagation();
+                if (ui.userDropdownMenu) {
+                    const isActive = ui.userDropdownMenu.classList.toggle('active');
+                    ui.userDropdownMenu.style.opacity = isActive ? '1' : '0';
+                    ui.userDropdownMenu.style.visibility = isActive ? 'visible' : 'hidden';
+                    ui.userDropdownMenu.style.transform = isActive ? 'translateY(0) scale(1)' : 'translateY(10px) scale(0.95)';
+                }
+            });
+        }
+
         if (ui.publicProfileLinkSidebar) { ui.publicProfileLinkSidebar.addEventListener('click', (e) => { e.preventDefault(); if (currentProfile && currentProfile.username) { window.location.href = `/dashboard/profile.html`; } else { showToast('Chyba', 'Uživatelské jméno není dostupné pro vytvoření odkazu.', 'error'); window.location.href = `/dashboard/profile.html`; } }); }
         console.log("[Settings SETUP] Posluchači událostí nastaveni.");
     }
 
     async function initializeApp() {
         console.log("[Settings INIT] Spouštění inicializace aplikace profilu...");
-        cacheDOMElements();
+        cacheDOMElements(); // Cache DOM first
         if (!initializeSupabase()) { return; }
         
-        applyInitialVyukaSidebarState(); 
+        applyInitialVyukaSidebarState(); // Apply sidebar state early
         
         if (ui.initialLoader) { ui.initialLoader.classList.remove('hidden'); ui.initialLoader.style.display = 'flex'; }
         const mainContentArea = document.getElementById('settings-main-area'); 
@@ -873,7 +922,7 @@
             currentUser = session.user;
             console.log(`[Settings INIT] Uživatel ověřen (ID: ${currentUser.id}). Načítání profilu a titulů...`);
             await loadAndDisplayProfile(); 
-            setupEventListeners(); 
+            setupEventListeners(); // Setup listeners after DOM is ready and initial data is potentially loaded
             if (ui.initialLoader) { ui.initialLoader.classList.add('hidden'); setTimeout(() => { if (ui.initialLoader) ui.initialLoader.style.display = 'none'; }, 600); } 
             if (mainContentArea) { mainContentArea.style.display = 'block'; requestAnimationFrame(() => { mainContentArea.classList.add('loaded'); }); }
             console.log("✅ [Settings INIT] Inicializace stránky profilu dokončena.");
@@ -881,11 +930,9 @@
             console.error("❌ [Settings INIT] Kritická chyba při inicializaci profilu:", error);
             if (ui.initialLoader && !ui.initialLoader.classList.contains('hidden')) { ui.initialLoader.innerHTML = `<p style="color: var(--accent-pink);">CHYBA: ${error.message}. Obnovte.</p>`; }
             else { showError(`Chyba inicializace: ${error.message}`, true); }
-            if (mainContentArea) mainContentArea.style.display = 'block'; 
+            if (mainContentArea) mainContentArea.style.display = 'block'; // Show error within the layout if possible
         }
     }
-    // === END Zkopírováno z profile.js ===
-
     // --- START THE APP ---
     initializeApp();
 
