@@ -1,6 +1,7 @@
 // Файл: procvicovani/vyuka/vyuka-ui-features.js
 // Логика функций интерфейса: TTS/STT, Доска, Уведомления, Очки, Модальные окна, Достижения, Вспомогательные UI функции, Настройка слушателей событий
 // Версия v29: Opravy pro zobrazení šablon otázek, menu profilu, a doladění logiky.
+// Версия v29.1 (Revolutionary Platform Update 2): Upravena funkce appendToWhiteboard pro přijímání strukturovaných dat (type, content) a přidána funkce renderMarkdown.
 
 window.VyukaApp = window.VyukaApp || {};
 
@@ -20,6 +21,46 @@ window.VyukaApp = window.VyukaApp || {};
             other: { icon: 'fa-info-circle', class: 'other' },
             default: { icon: 'fa-check-circle', class: 'default' }
         };
+
+        // --- Markdown Rendering (přesunuto nebo zkopírováno pro použití v appendToWhiteboard) ---
+        VyukaApp.renderMarkdown = (el, text, isChat = false) => {
+            if (!el) {
+                console.error("RenderMarkdown: Target element not provided.");
+                return;
+            }
+            const originalText = text || '';
+            try {
+                if (typeof marked === 'undefined') {
+                    console.error("Marked library not loaded! Cannot render Markdown.");
+                    el.innerHTML = `<p>${VyukaApp.sanitizeHTML ? VyukaApp.sanitizeHTML(originalText) : originalText}</p>`; // Fallback to plain text
+                    return;
+                }
+                const options = {
+                    gfm: true,          // GitHub Flavored Markdown
+                    breaks: true,       // Convert GFM line breaks to <br>
+                    sanitize: !isChat,  // Sanitize HTML if not in chat (to prevent XSS from board content if it's complex)
+                                        // V chatu obvykle sanitizaci nepotřebujeme, pokud Markdown generuje AI kontrolovaně.
+                    smartypants: false  // Use "smart" typographic punctuation
+                };
+                marked.setOptions(options);
+                el.innerHTML = marked.parse(originalText);
+
+                // Dodatečné MathJax renderování po vložení HTML
+                if (window.MathJax && typeof window.MathJax.typesetPromise === 'function' && (originalText.includes('$') || originalText.includes('\\'))) {
+                    console.log(`[MathJax RenderMarkdown v29.1] Queueing typeset for element:`, el);
+                    setTimeout(() => {
+                        window.MathJax.typesetPromise([el])
+                            .then(() => console.log(`[MathJax RenderMarkdown v29.1] Typeset successful for element.`))
+                            .catch((err) => console.error(`[MathJax RenderMarkdown v29.1] Typeset error for element: ${err.message}`));
+                    }, 0);
+                }
+
+            } catch (e) {
+                console.error("Markdown rendering error:", e);
+                el.innerHTML = `<p style="color:var(--vyuka-accent-error);">Chyba renderování Markdown.</p><pre><code>${VyukaApp.sanitizeHTML ? VyukaApp.sanitizeHTML(originalText) : originalText}</code></pre>`;
+            }
+        };
+
 
         const cleanChatMessage = (text) => {
 			if (typeof text !== 'string') return text;
@@ -123,34 +164,106 @@ window.VyukaApp = window.VyukaApp || {};
 			const ui = VyukaApp.ui; const state = VyukaApp.state;
 			if (!ui.whiteboardContent) return;
 			ui.whiteboardContent.innerHTML = ''; state.boardContentHistory = []; state.quizQuestionsForBoard = [];
-			console.log("Whiteboard cleared (v29).");
+			console.log("Whiteboard cleared (v29.1).");
 			if (showToastMsg && typeof VyukaApp.showToast === 'function') { VyukaApp.showToast('Tabule vymazána', 'Obsah tabule byl smazán.', 'info'); }
             const submitQuizBtn = document.getElementById('submit-quiz-btn'); if (submitQuizBtn) { submitQuizBtn.remove(); }
             if (ui.vyukaLessonControls) { if(ui.continueBtn) ui.continueBtn.style.display = 'inline-flex'; if(ui.clearBoardBtn) ui.clearBoardBtn.style.display = 'inline-flex'; if(ui.stopSpeechBtn) ui.stopSpeechBtn.style.display = 'inline-flex'; ui.vyukaLessonControls.style.justifyContent = 'flex-end'; }
 			if (typeof VyukaApp.manageButtonStates === 'function') VyukaApp.manageButtonStates();
 		};
 
-    	VyukaApp.appendToWhiteboard = (markdownContent, commentaryText) => {
+    	VyukaApp.appendToWhiteboard = (data, commentaryText) => { // 'data' je nyní objekt {type, content}
 			const ui = VyukaApp.ui; const state = VyukaApp.state;
 			if (!ui.whiteboardContent || !ui.whiteboardContainer) return;
-			const chunkDiv = document.createElement('div'); chunkDiv.className = 'whiteboard-chunk'; chunkDiv.style.opacity = '0';
-			const contentDiv = document.createElement('div'); const originalText = markdownContent || '';
-            if (typeof VyukaApp.renderMarkdown === 'function') { VyukaApp.renderMarkdown(contentDiv, originalText, false); }
-            const ttsButton = document.createElement('button'); ttsButton.className = 'tts-listen-btn btn-tooltip'; ttsButton.title = 'Poslechnout komentář'; ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>'; const textForSpeech = commentaryText || originalText; ttsButton.dataset.textToSpeak = textForSpeech;
-            if (state.speechSynthesisSupported && textForSpeech.trim()) { ttsButton.addEventListener('click', (e) => { e.stopPropagation(); const buttonElement = e.currentTarget; const text = buttonElement.dataset.textToSpeak; const parentChunk = buttonElement.closest('.whiteboard-chunk'); if (text) { VyukaApp.speakText(text, parentChunk); } else { console.warn("No text found for TTS button in whiteboard chunk."); } }); chunkDiv.appendChild(ttsButton); }
-            chunkDiv.appendChild(contentDiv); ui.whiteboardContent.appendChild(chunkDiv); state.boardContentHistory.push(originalText);
-			console.log("Appended content to whiteboard (v29).");
-            if (typeof chunkDiv.scrollIntoView === 'function') { setTimeout(() => { chunkDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100); } else { ui.whiteboardContainer.scrollTop = chunkDiv.offsetTop; console.warn("scrollIntoView not fully supported, using offsetTop fallback for whiteboard scroll."); }
-			if (typeof VyukaApp.triggerWhiteboardMathJax === 'function') VyukaApp.triggerWhiteboardMathJax(); if (typeof VyukaApp.initTooltips === 'function') VyukaApp.initTooltips(); if (typeof VyukaApp.manageButtonStates === 'function') VyukaApp.manageButtonStates();
+
+            if (!data || typeof data.content !== 'string') {
+                console.warn("[AppendToWhiteboard v29.1] Invalid data or missing content string. Data:", data);
+                return;
+            }
+
+            const contentType = data.type || 'detailed_explanation'; // Výchozí typ, pokud není specifikován
+            const markdownContent = data.content;
+
+			const chunkDiv = document.createElement('div');
+			chunkDiv.className = `whiteboard-chunk whiteboard-chunk-${contentType.replace(/_/g, '-')}`; // Např. whiteboard-chunk-key-concepts
+			chunkDiv.style.opacity = '0';
+
+            // Přidání titulku pro nové bloky (volitelné, dle designu)
+            const titleElement = document.createElement('h4');
+            titleElement.className = 'whiteboard-chunk-title';
+            let titleText = '';
+            switch (contentType) {
+                case 'key_concepts': titleText = 'Klíčové Koncepty'; break;
+                case 'detailed_explanation': titleText = 'Podrobné Vysvětlení'; break;
+                case 'examples': titleText = 'Příklady'; break;
+                // Pro legacyBoardMarkdown není potřeba speciální titulek, spadne pod detailed_explanation
+            }
+            if (titleText) {
+                titleElement.textContent = titleText;
+                chunkDiv.appendChild(titleElement);
+            }
+
+			const contentDiv = document.createElement('div');
+            contentDiv.className = 'whiteboard-chunk-content-body'; // Pro další styling
+            VyukaApp.renderMarkdown(contentDiv, markdownContent, false); // Použijeme renderMarkdown z tohoto souboru
+
+            const ttsButton = document.createElement('button');
+            ttsButton.className = 'tts-listen-btn btn-tooltip';
+            ttsButton.title = 'Poslechnout komentář';
+            ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
+            const textForSpeech = commentaryText || markdownContent; // Pro TTS použijeme komentář, pokud existuje, jinak obsah bloku
+            ttsButton.dataset.textToSpeak = textForSpeech;
+
+            if (state.speechSynthesisSupported && textForSpeech.trim()) {
+                ttsButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const buttonElement = e.currentTarget;
+                    const text = buttonElement.dataset.textToSpeak;
+                    const parentChunk = buttonElement.closest('.whiteboard-chunk');
+                    if (text) {
+                        VyukaApp.speakText(text, parentChunk);
+                    } else {
+                        console.warn("No text found for TTS button in whiteboard chunk.");
+                    }
+                });
+                // Přidání TTS tlačítka vedle titulku, pokud existuje, jinak na začátek chunkDiv
+                if (titleText && titleElement.parentNode === chunkDiv) {
+                    titleElement.appendChild(ttsButton); // Přidá tlačítko k titulku
+                } else {
+                    chunkDiv.insertBefore(ttsButton, chunkDiv.firstChild); // Přidá tlačítko na začátek
+                }
+            }
+            chunkDiv.appendChild(contentDiv);
+            ui.whiteboardContent.appendChild(chunkDiv);
+            state.boardContentHistory.push({type: contentType, content: markdownContent}); // Ukládáme i typ
+			console.log(`Appended ${contentType} content to whiteboard (v29.1).`);
+
+            if (typeof chunkDiv.scrollIntoView === 'function') {
+                setTimeout(() => { chunkDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+            } else {
+                ui.whiteboardContainer.scrollTop = chunkDiv.offsetTop;
+                console.warn("scrollIntoView not fully supported, using offsetTop fallback for whiteboard scroll.");
+            }
+
+			if (typeof VyukaApp.triggerWhiteboardMathJax === 'function') VyukaApp.triggerWhiteboardMathJax();
+			if (typeof VyukaApp.initTooltips === 'function') VyukaApp.initTooltips();
+			if (typeof VyukaApp.manageButtonStates === 'function') VyukaApp.manageButtonStates();
+
 			requestAnimationFrame(() => { chunkDiv.style.opacity = '1'; });
 		};
 
         VyukaApp.triggerWhiteboardMathJax = () => {
 			const ui = VyukaApp.ui;
 			if (ui.whiteboardContent && window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
-				console.log("[MathJax v29] Triggering global typeset for whiteboard...");
-				setTimeout(() => { window.MathJax.typesetPromise([ui.whiteboardContent]).then(() => console.log("[MathJax v29] Whiteboard typeset completed.")).catch(e => console.error("[MathJax v29] Whiteboard typeset error:", e)); }, 100);
-			} else { if (!ui.whiteboardContent) console.warn("[MathJax v29] Whiteboard content element not found for typesetting."); if (!(window.MathJax && typeof window.MathJax.typesetPromise === 'function')) console.warn("[MathJax v29] MathJax or typesetPromise not available."); }
+				console.log("[MathJax v29.1] Triggering global typeset for whiteboard...");
+				setTimeout(() => {
+                    window.MathJax.typesetPromise([ui.whiteboardContent])
+                        .then(() => console.log("[MathJax v29.1] Whiteboard typeset completed."))
+                        .catch(e => console.error("[MathJax v29.1] Whiteboard typeset error:", e));
+                }, 100);
+			} else {
+                if (!ui.whiteboardContent) console.warn("[MathJax v29.1] Whiteboard content element not found for typesetting.");
+                if (!(window.MathJax && typeof window.MathJax.typesetPromise === 'function')) console.warn("[MathJax v29.1] MathJax or typesetPromise not available.");
+            }
 		};
 
         // --- Points System ---
@@ -168,28 +281,28 @@ window.VyukaApp = window.VyukaApp || {};
         };
 
         // --- Functions for Modal (DEPRECATED as per v27/v28/v29 logic) ---
-        VyukaApp.showCompletionModal = () => { console.warn("[CompletionModal DEPRECATED UI v29] showCompletionModal called. This flow is replaced by quiz offer."); };
-        VyukaApp.hideCompletionModal = () => { console.warn("[CompletionModal DEPRECATED UI v29] hideCompletionModal called."); };
-        VyukaApp.promptTopicCompletion = () => { console.warn("[promptTopicCompletion DEPRECATED UI v29] AI should offer final quiz instead via ACTION_INITIATE_FINAL_QUIZ.");};
-        VyukaApp.handleConfirmCompletion = () => { console.warn("[handleConfirmCompletion DEPRECATED UI v29]"); VyukaApp.hideCompletionModal(); if (typeof VyukaApp.handleMarkTopicComplete === 'function') { VyukaApp.handleMarkTopicComplete(); }};
-        VyukaApp.handleDeclineCompletion = () => { console.warn("[handleDeclineCompletion DEPRECATED UI v29]"); VyukaApp.hideCompletionModal(); if (typeof VyukaApp.showToast === 'function') VyukaApp.showToast("Dobře, můžete pokračovat ve výkladu.", "info", 5000); if (typeof VyukaApp.manageButtonStates === 'function') VyukaApp.manageButtonStates();};
+        VyukaApp.showCompletionModal = () => { console.warn("[CompletionModal DEPRECATED UI v29.1] showCompletionModal called. This flow is replaced by quiz offer."); };
+        VyukaApp.hideCompletionModal = () => { console.warn("[CompletionModal DEPRECATED UI v29.1] hideCompletionModal called."); };
+        VyukaApp.promptTopicCompletion = () => { console.warn("[promptTopicCompletion DEPRECATED UI v29.1] AI should offer final quiz instead via ACTION_INITIATE_FINAL_QUIZ.");};
+        VyukaApp.handleConfirmCompletion = () => { console.warn("[handleConfirmCompletion DEPRECATED UI v29.1]"); VyukaApp.hideCompletionModal(); if (typeof VyukaApp.handleMarkTopicComplete === 'function') { VyukaApp.handleMarkTopicComplete(); }};
+        VyukaApp.handleDeclineCompletion = () => { console.warn("[handleDeclineCompletion DEPRECATED UI v29.1]"); VyukaApp.hideCompletionModal(); if (typeof VyukaApp.showToast === 'function') VyukaApp.showToast("Dobře, můžete pokračovat ve výkladu.", "info", 5000); if (typeof VyukaApp.manageButtonStates === 'function') VyukaApp.manageButtonStates();};
         VyukaApp.handleOverlayClick = (event) => { if (VyukaApp.ui.completionSuggestionOverlay && event.target === VyukaApp.ui.completionSuggestionOverlay) { VyukaApp.handleDeclineCompletion(); }};
 
         // --- Achievement Logic (Not Implemented) ---
-        VyukaApp.checkRequirements = (profileData, requirements) => { console.warn("[Achievements v29] checkRequirements not implemented."); return false; };
-        VyukaApp.awardBadge = async (userId, badgeId, badgeTitle, pointsAwarded = 0) => { console.warn("[Achievements v29] awardBadge not implemented."); };
-        VyukaApp.checkAndAwardAchievements = async (userId) => { console.warn("[Achievements v29] checkAndAwardAchievements not implemented."); };
+        VyukaApp.checkRequirements = (profileData, requirements) => { console.warn("[Achievements v29.1] checkRequirements not implemented."); return false; };
+        VyukaApp.awardBadge = async (userId, badgeId, badgeTitle, pointsAwarded = 0) => { console.warn("[Achievements v29.1] awardBadge not implemented."); };
+        VyukaApp.checkAndAwardAchievements = async (userId) => { console.warn("[Achievements v29.1] checkAndAwardAchievements not implemented."); };
 
         // --- Notification Logic (Basic Implementation / Placeholders) ---
         VyukaApp.fetchNotifications = async (userId, limit = VyukaApp.config?.NOTIFICATION_FETCH_LIMIT || 5) => {
-            const state = VyukaApp.state; const ui = VyukaApp.ui; console.log(`[Notifications v29] Fetching (basic) for user ${userId}`);
+            const state = VyukaApp.state; const ui = VyukaApp.ui; console.log(`[Notifications v29.1] Fetching (basic) for user ${userId}`);
             if (typeof VyukaApp.setLoadingState === 'function') VyukaApp.setLoadingState('notifications', true);
             if(ui.noNotificationsMsg) ui.noNotificationsMsg.style.display = 'block'; if(ui.notificationsList) ui.notificationsList.innerHTML = ''; if(ui.notificationCount) { ui.notificationCount.textContent = ''; ui.notificationCount.classList.remove('visible');} if(ui.markAllReadBtn) ui.markAllReadBtn.disabled = true;
             if (typeof VyukaApp.setLoadingState === 'function') VyukaApp.setLoadingState('notifications', false); return { unreadCount: 0, notifications: [] };
         };
     	VyukaApp.renderNotifications = (count, notifications) => {
-            const ui = VyukaApp.ui; console.log("[Render Notifications v29] Start, Count:", count, "Notifications:", notifications);
-            if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications v29] Missing UI elements for notifications."); return; }
+            const ui = VyukaApp.ui; console.log("[Render Notifications v29.1] Start, Count:", count, "Notifications:", notifications);
+            if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) { console.error("[Render Notifications v29.1] Missing UI elements for notifications."); return; }
             ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : ''); ui.notificationCount.classList.toggle('visible', count > 0);
             if (notifications && notifications.length > 0) {
                 ui.notificationsList.innerHTML = notifications.map(n => {
@@ -198,7 +311,7 @@ window.VyukaApp = window.VyukaApp || {};
                 }).join('');
                 ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block'; ui.markAllReadBtn.disabled = count === 0;
             } else { ui.notificationsList.innerHTML = ''; ui.noNotificationsMsg.style.display = 'block'; ui.notificationsList.style.display = 'none'; ui.markAllReadBtn.disabled = true; }
-            console.log("[Render Notifications v29] Finished rendering.");
+            console.log("[Render Notifications v29.1] Finished rendering.");
         };
     	VyukaApp.renderNotificationSkeletons = (count = 2) => {
             const ui = VyukaApp.ui; if (!ui.notificationsList || !ui.noNotificationsMsg) return;
@@ -206,7 +319,7 @@ window.VyukaApp = window.VyukaApp || {};
             ui.notificationsList.innerHTML = skeletonHTML; ui.noNotificationsMsg.style.display = 'none'; ui.notificationsList.style.display = 'block';
         };
     	VyukaApp.markNotificationRead = async (notificationId) => {
-            console.warn(`[Notifications v29] markNotificationRead for ${notificationId} - basic implementation.`);
+            console.warn(`[Notifications v29.1] markNotificationRead for ${notificationId} - basic implementation.`);
             const item = VyukaApp.ui.notificationsList?.querySelector(`.notification-item[data-id="${notificationId}"]`);
             if (item && !item.classList.contains('is-read')) {
                 item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove();
@@ -218,7 +331,7 @@ window.VyukaApp = window.VyukaApp || {};
             return false;
         };
     	VyukaApp.markAllNotificationsRead = async () => {
-            console.warn("[Notifications v29] markAllNotificationsRead - basic implementation.");
+            console.warn("[Notifications v29.1] markAllNotificationsRead - basic implementation.");
             const ui = VyukaApp.ui; if (!ui.notificationsList) return;
             const unreadItems = ui.notificationsList.querySelectorAll('.notification-item:not(.is-read)');
             unreadItems.forEach(item => { item.classList.add('is-read'); item.querySelector('.unread-dot')?.remove(); });
@@ -228,19 +341,19 @@ window.VyukaApp = window.VyukaApp || {};
         };
 
         VyukaApp.handleQuickReplyAction = async (actionPayload) => {
-            const state = VyukaApp.state; const ui = VyukaApp.ui; console.log(`[QuickReply v29 UI] Handling action: ${actionPayload}`);
+            const state = VyukaApp.state; const ui = VyukaApp.ui; console.log(`[QuickReply v29.1 UI] Handling action: ${actionPayload}`);
             const quickRepliesContainer = ui.chatMessages?.querySelector('.quick-replies-container'); if (quickRepliesContainer) { quickRepliesContainer.remove(); }
-            if (actionPayload === 'ACTION_USER_ACCEPTS_QUIZ') { console.log("[QuickReply v29 UI] User accepts final quiz."); if(typeof VyukaApp.clearCurrentChatSessionHistory === 'function') { VyukaApp.clearCurrentChatSessionHistory(); } state.finalQuizActive = true; state.finalQuizOffered = false; state.aiIsWaitingForAnswer = false; VyukaApp.manageUIState('requestingFinalQuiz'); if(typeof VyukaApp.requestFinalQuizContent === 'function'){ await VyukaApp.requestFinalQuizContent(); } else { console.error("VyukaApp.requestFinalQuizContent is not defined"); VyukaApp.showToast("Chyba: Funkce pro vyžádání testu chybí.", "error");}
-            } else if (actionPayload === 'ACTION_USER_DECLINES_QUIZ') { console.log("[QuickReply v29 UI] User declines final quiz. Continuing lesson."); state.finalQuizOffered = false; state.finalQuizActive = false; state.aiIsWaitingForAnswer = false; VyukaApp.manageUIState('learning'); if (typeof VyukaApp.addChatMessage === 'function') { VyukaApp.addChatMessage("Dobře, pokračujme ve výkladu. Klikni na 'Pokračovat' nebo polož otázku.", 'gemini'); } if(ui.continueBtn) { ui.continueBtn.style.display = 'inline-flex'; ui.continueBtn.disabled = false; }
-            } else if (actionPayload === 'ACTION_USER_MARKS_COMPLETE_AFTER_QUIZ') { console.log("[QuickReply v29 UI] User marks topic complete after quiz."); if (typeof VyukaApp.handleMarkTopicComplete === 'function') VyukaApp.handleMarkTopicComplete(true);
-            } else if (actionPayload === 'ACTION_USER_CONTINUES_AFTER_QUIZ') { console.log("[QuickReply v29 UI] User continues lesson after quiz evaluation."); state.finalQuizActive = false; state.finalQuizOffered = false; state.aiIsWaitingForAnswer = false; VyukaApp.clearWhiteboard(true); VyukaApp.manageUIState('learning'); if (typeof VyukaApp.addChatMessage === 'function') { VyukaApp.addChatMessage("Dobře, k čemu by ses chtěl vrátit nebo co bychom mohli probrat dál k tomuto tématu?", 'gemini');} state.aiIsWaitingForAnswer = true; if(ui.continueBtn) ui.continueBtn.style.display = 'none';
-            } else { console.warn("[QuickReply v29 UI] Unknown action payload:", actionPayload); }
+            if (actionPayload === 'ACTION_USER_ACCEPTS_QUIZ') { console.log("[QuickReply v29.1 UI] User accepts final quiz."); if(typeof VyukaApp.clearCurrentChatSessionHistory === 'function') { VyukaApp.clearCurrentChatSessionHistory(); } state.finalQuizActive = true; state.finalQuizOffered = false; state.aiIsWaitingForAnswer = false; VyukaApp.manageUIState('requestingFinalQuiz'); if(typeof VyukaApp.requestFinalQuizContent === 'function'){ await VyukaApp.requestFinalQuizContent(); } else { console.error("VyukaApp.requestFinalQuizContent is not defined"); VyukaApp.showToast("Chyba: Funkce pro vyžádání testu chybí.", "error");}
+            } else if (actionPayload === 'ACTION_USER_DECLINES_QUIZ') { console.log("[QuickReply v29.1 UI] User declines final quiz. Continuing lesson."); state.finalQuizOffered = false; state.finalQuizActive = false; state.aiIsWaitingForAnswer = false; VyukaApp.manageUIState('learning'); if (typeof VyukaApp.addChatMessage === 'function') { VyukaApp.addChatMessage("Dobře, pokračujme ve výkladu. Klikni na 'Pokračovat' nebo polož otázku.", 'gemini'); } if(ui.continueBtn) { ui.continueBtn.style.display = 'inline-flex'; ui.continueBtn.disabled = false; }
+            } else if (actionPayload === 'ACTION_USER_MARKS_COMPLETE_AFTER_QUIZ') { console.log("[QuickReply v29.1 UI] User marks topic complete after quiz."); if (typeof VyukaApp.handleMarkTopicComplete === 'function') VyukaApp.handleMarkTopicComplete(true);
+            } else if (actionPayload === 'ACTION_USER_CONTINUES_AFTER_QUIZ') { console.log("[QuickReply v29.1 UI] User continues lesson after quiz evaluation."); state.finalQuizActive = false; state.finalQuizOffered = false; state.aiIsWaitingForAnswer = false; if(typeof VyukaApp.clearWhiteboard === 'function') VyukaApp.clearWhiteboard(true); VyukaApp.manageUIState('learning'); if (typeof VyukaApp.addChatMessage === 'function') { VyukaApp.addChatMessage("Dobře, k čemu by ses chtěl vrátit nebo co bychom mohli probrat dál k tomuto tématu?", 'gemini');} state.aiIsWaitingForAnswer = true; if(ui.continueBtn) ui.continueBtn.style.display = 'none';
+            } else { console.warn("[QuickReply v29.1 UI] Unknown action payload:", actionPayload); }
             if (typeof VyukaApp.manageButtonStates === 'function') VyukaApp.manageButtonStates();
         };
 
 		VyukaApp.setupFeatureListeners = () => {
 			const ui = VyukaApp.ui; const state = VyukaApp.state;
-			console.log("[SETUP UI Features v29] Setting up UI/Feature event listeners...");
+			console.log("[SETUP UI Features v29.1] Setting up UI/Feature event listeners...");
 			if (ui.chatInput) { ui.chatInput.addEventListener('input', () => { if (typeof VyukaApp.autoResizeTextarea === 'function') VyukaApp.autoResizeTextarea(); }); ui.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (typeof VyukaApp.handleSendMessage === 'function') { VyukaApp.handleSendMessage(); } else { console.error("VyukaApp.handleSendMessage not found"); }} }); }
 			if (ui.sendButton) { ui.sendButton.addEventListener('click', () => { if (typeof VyukaApp.handleSendMessage === 'function') { VyukaApp.handleSendMessage(); } else { console.error("VyukaApp.handleSendMessage not found"); } }); }
 			if (ui.clearChatBtn) { ui.clearChatBtn.addEventListener('click', () => { if (typeof VyukaApp.confirmClearChat === 'function') { VyukaApp.confirmClearChat(); } else { console.error("VyukaApp.confirmClearChat not found"); } }); }
@@ -257,19 +370,18 @@ window.VyukaApp = window.VyukaApp || {};
                     if (targetButton) {
                         event.preventDefault(); event.stopPropagation();
                         const payload = targetButton.dataset.payload;
-                        console.log("[QuickReply Click UI v29] Clicked, payload:", payload);
+                        console.log("[QuickReply Click UI v29.1] Clicked, payload:", payload);
                         if (payload && typeof VyukaApp.handleQuickReplyAction === 'function') { VyukaApp.handleQuickReplyAction(payload); }
                         else if (payload && !targetButton.dataset.action) { if (ui.chatInput) { ui.chatInput.value = payload; if(typeof VyukaApp.autoResizeTextarea === 'function') VyukaApp.autoResizeTextarea(); } if (typeof VyukaApp.handleSendMessage === 'function') VyukaApp.handleSendMessage(); const repliesContainer = targetButton.closest('.quick-replies-container'); if (repliesContainer) repliesContainer.remove(); }
                     }
                 });
             }
-            // Listener pro template tlačítka (pokud jsou v HTML)
             const templateButtons = document.querySelectorAll('.template-btn');
             if(templateButtons.length > 0) {
                 templateButtons.forEach(button => {
                     button.addEventListener('click', () => {
                         const questionText = button.dataset.question;
-                        if (ui.chatInput && questionText && !ui.chatInput.disabled) { // Kontrola, zda je input aktivní
+                        if (ui.chatInput && questionText && !ui.chatInput.disabled) {
                             ui.chatInput.value = questionText;
                             if (typeof VyukaApp.autoResizeTextarea === 'function') VyukaApp.autoResizeTextarea();
                             if (typeof VyukaApp.handleSendMessage === 'function') VyukaApp.handleSendMessage();
@@ -279,13 +391,13 @@ window.VyukaApp = window.VyukaApp || {};
                     });
                 });
             } else {
-                console.warn("[SETUP UI Features v29] No '.template-btn' elements found in the DOM.");
+                console.warn("[SETUP UI Features v29.1] No '.template-btn' elements found in the DOM.");
             }
-			console.log("[SETUP UI Features v29] UI/Feature event listeners setup complete.");
+			console.log("[SETUP UI Features v29.1] UI/Feature event listeners setup complete.");
 		};
 
 	} catch (e) {
-		console.error("FATAL SCRIPT ERROR (UI Features v29):", e);
+		console.error("FATAL SCRIPT ERROR (UI Features v29.1):", e);
 		document.body.innerHTML = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--vyuka-accent-error,#FF4757);color:var(--vyuka-text-primary,#E0E7FF);padding:40px;text-align:center;font-family:sans-serif;z-index:9999;"><h1>KRITICKÁ CHYBA SYSTÉMU</h1><p>Nelze spustit modul výuky (UI Features).</p><p style="margin-top:15px;"><a href="#" onclick="location.reload()" style="color:var(--vyuka-accent-secondary,#00F5FF); text-decoration:underline; font-weight:bold;">Obnovit stránku</a></p><details style="margin-top: 20px; color: #f0f0f0;"><summary style="cursor:pointer; color: var(--vyuka-text-primary,#E0E7FF);">Detaily</summary><pre style="margin-top:10px;padding:15px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.2);font-size:0.8em;white-space:pre-wrap;text-align:left;max-height:300px; overflow-y:auto; border-radius:8px;">${e.message}\n${e.stack}</pre></details></div>`;
 	}
 
