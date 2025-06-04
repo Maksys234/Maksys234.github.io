@@ -6,6 +6,7 @@
 // Версия v29.3 (Revolutionary Platform Update 4): Další úpravy processGeminiResponse pro lepší zpracování úvodní odpovědi AI.
 // Версия v29.4 (Revolutionary Platform Update 5): Upřesnění logiky pro cleanedChatText a ttsCommentary, aby se minimalizoval nežádoucí výpis do chatu.
 // Версия v29.5 (Revolutionary Platform Update 6): Агрессивное присвоение remainingText к legacyBoardMarkdown, если другие блоки пусты и remainingText значителен.
+// Версия v29.6 (Revolutionary Platform Update 7): Добавлен обработчик ошибки 429 (превышение квоты) с повторными попытками и улучшена логика парсинга для уменьшения вывода в чат.
 
 window.VyukaApp = window.VyukaApp || {};
 
@@ -20,7 +21,13 @@ window.VyukaApp = window.VyukaApp || {};
         config.ACTION_INITIATE_FINAL_QUIZ = "[ACTION:INITIATE_FINAL_QUIZ]";
         config.ACTION_SHOW_QUIZ_ON_BOARD = "[ACTION:SHOW_QUIZ_ON_BOARD]";
         config.ACTION_EVALUATE_BOARD_QUIZ = "[ACTION:EVALUATE_BOARD_QUIZ]";
-        const MIN_LENGTH_FOR_BOARD_FALLBACK = 100; // Мин. длина текста для اعتبار его контентом доски при отсутствии маркеров
+        const MIN_LENGTH_FOR_BOARD_FALLBACK = 100;
+        const RATE_LIMIT_RETRY_DELAY = 5000; // 5 секунд
+        const MAX_RATE_LIMIT_RETRIES = 5; // Максимальное количество повторных попыток
+
+        let rateLimitRetryCount = 0;
+        let rateLimitRetryTimer = null;
+        let lastFailedRequestArgs = null; // Хранит аргументы последнего неудавшегося запроса
 
         VyukaApp.loadNextUncompletedTopic = async () => {
 			const state = VyukaApp.state;
@@ -41,6 +48,7 @@ window.VyukaApp = window.VyukaApp || {};
             } else { console.error("Error: VyukaApp.clearWhiteboard not defined"); }
 			state.geminiChatContext = [];
             state.aiIsWaitingForAnswer = false;
+            VyukaApp.clearRateLimitRetry(); // Сброс попыток при загрузке новой темы
 
 			VyukaApp.manageUIState('loadingTopic');
 
@@ -147,6 +155,7 @@ window.VyukaApp = window.VyukaApp || {};
 			state.topicLoadInProgress = true;
             state.finalQuizOffered = false;
             state.finalQuizActive = false;
+            VyukaApp.clearRateLimitRetry();
 			VyukaApp.manageButtonStates();
 
 			try {
@@ -184,6 +193,7 @@ window.VyukaApp = window.VyukaApp || {};
 			if (!state.currentTopic) return;
 			state.currentSessionId = VyukaApp.generateSessionId();
 			if (typeof VyukaApp.clearInitialChatState === 'function') VyukaApp.clearInitialChatState();
+            VyukaApp.clearRateLimitRetry();
 			VyukaApp.manageUIState('requestingExplanation');
             if (VyukaApp.ui.continueBtn) VyukaApp.ui.continueBtn.disabled = true;
 			const prompt = VyukaApp._buildInitialPrompt();
@@ -192,7 +202,7 @@ window.VyukaApp = window.VyukaApp || {};
 
     	VyukaApp.requestContinue = async () => {
 			const state = VyukaApp.state;
-			console.log("[RequestContinue v29.5] Triggered. AI Waiting:", state.aiIsWaitingForAnswer, "FinalQuizOffered:", state.finalQuizOffered, "Final Quiz Active:", state.finalQuizActive);
+			console.log("[RequestContinue v29.6] Triggered. AI Waiting:", state.aiIsWaitingForAnswer, "FinalQuizOffered:", state.finalQuizOffered, "Final Quiz Active:", state.finalQuizActive);
 
 			if (state.geminiIsThinking || !state.currentTopic || state.finalQuizActive || state.finalQuizOffered) {
                 VyukaApp.showToast("Počkejte prosím, AI zpracovává požadavek nebo byla nabídnuta/probíhá závěrečná fáze.", "info", 3000);
@@ -203,6 +213,7 @@ window.VyukaApp = window.VyukaApp || {};
 				return;
 			}
             if (VyukaApp.ui.continueBtn) VyukaApp.ui.continueBtn.disabled = true;
+            VyukaApp.clearRateLimitRetry();
 			const prompt = VyukaApp._buildContinuePrompt();
 			await VyukaApp.sendToGemini(prompt);
 		};
@@ -214,10 +225,15 @@ window.VyukaApp = window.VyukaApp || {};
 			const div = document.createElement('div'); div.className = `chat-message ${sender === 'gemini' ? 'model' : sender}`; div.id = id; div.style.opacity = '0';
 			const avatarDiv = `<div class="message-avatar">${avatarContent}</div>`; const bubbleDiv = document.createElement('div'); bubbleDiv.className = 'message-bubble';
 			const bubbleContentDiv = document.createElement('div'); bubbleContentDiv.className = 'message-bubble-content'; VyukaApp.renderMarkdown(bubbleContentDiv, displayMessage, true);
-			if (sender === 'gemini' && state.speechSynthesisSupported) { const ttsButton = document.createElement('button'); ttsButton.className = 'tts-listen-btn btn-tooltip'; ttsButton.title = 'Poslechnout'; ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>'; const textForSpeech = ttsText || displayMessage; ttsButton.dataset.textToSpeak = textForSpeech; ttsButton.addEventListener('click', (e) => { e.stopPropagation(); const buttonElement = e.currentTarget; const text = buttonElement.dataset.textToSpeak; if (text && typeof VyukaApp.speakText === 'function') { VyukaApp.speakText(text); } }); bubbleContentDiv.appendChild(ttsButton); }
+			if (sender === 'gemini' && state.speechSynthesisSupported && ttsText && ttsText.trim() !== "") { // Add TTS button only if ttsText is provided and not empty
+                const ttsButton = document.createElement('button'); ttsButton.className = 'tts-listen-btn btn-tooltip'; ttsButton.title = 'Poslechnout'; ttsButton.innerHTML = '<i class="fas fa-volume-up"></i>';
+                ttsButton.dataset.textToSpeak = ttsText; // Use specific ttsText
+                ttsButton.addEventListener('click', (e) => { e.stopPropagation(); const buttonElement = e.currentTarget; const text = buttonElement.dataset.textToSpeak; if (text && typeof VyukaApp.speakText === 'function') { VyukaApp.speakText(text); } });
+                bubbleContentDiv.appendChild(ttsButton);
+            }
             if (quickReplies && quickReplies.length > 0) { const quickRepliesDiv = document.createElement('div'); quickRepliesDiv.className = 'quick-replies-container'; quickReplies.forEach(reply => { const button = document.createElement('button'); button.className = 'btn btn-secondary btn-sm quick-reply-btn'; button.textContent = reply.title; button.dataset.payload = reply.payload; button.dataset.action = "true"; quickRepliesDiv.appendChild(button); }); bubbleContentDiv.appendChild(quickRepliesDiv); }
 			bubbleDiv.appendChild(bubbleContentDiv); const timeDiv = `<div class="message-timestamp">${VyukaApp.formatTimestamp(timestamp)}</div>`; div.innerHTML = avatarDiv + bubbleDiv.outerHTML + timeDiv;
-			ui.chatMessages.appendChild(div); if (window.MathJax && typeof window.MathJax.typesetPromise === 'function' && (displayMessage.includes('$') || displayMessage.includes('\\'))) { setTimeout(() => { window.MathJax.typesetPromise([bubbleContentDiv]).catch((err) => console.error(`[MathJax v29.5 Chat] Typeset error: ${err.message}`)); }, 0); }
+			ui.chatMessages.appendChild(div); if (window.MathJax && typeof window.MathJax.typesetPromise === 'function' && (displayMessage.includes('$') || displayMessage.includes('\\'))) { setTimeout(() => { window.MathJax.typesetPromise([bubbleContentDiv]).catch((err) => console.error(`[MathJax v29.6 Chat] Typeset error: ${err.message}`)); }, 0); }
 			div.scrollIntoView({ behavior: 'smooth', block: 'end' }); requestAnimationFrame(() => { div.style.opacity = '1'; }); if (typeof VyukaApp.initTooltips === 'function') VyukaApp.initTooltips();
 			const contentToSave = originalContent !== null ? originalContent : displayMessage; if (saveToDb && state.supabase && state.currentUser && state.currentTopic && state.currentSessionId) { try { await state.supabase.from('chat_history').insert({ user_id: state.currentUser.id, session_id: state.currentSessionId, topic_id: state.currentTopic.topic_id, topic_name: state.currentTopic.name, role: sender === 'gemini' ? 'model' : 'user', content: contentToSave }); } catch (e) { console.error("Chat save error:", e); VyukaApp.showToast("Chyba ukládání chatu.", "error"); } }
             VyukaApp.manageButtonStates();
@@ -225,35 +241,36 @@ window.VyukaApp = window.VyukaApp || {};
 
         VyukaApp.handleQuickReplyAction = async (actionPayload) => {
             const state = VyukaApp.state; const ui = VyukaApp.ui;
-            console.log(`[QuickReply v29.5 AI] Handling action: ${actionPayload}`);
+            console.log(`[QuickReply v29.6 AI] Handling action: ${actionPayload}`);
              const allQuickReplyButtons = document.querySelectorAll('.quick-reply-btn');
              allQuickReplyButtons.forEach(btn => {btn.disabled = true; btn.style.opacity="0.5";});
+            VyukaApp.clearRateLimitRetry();
 
             if (actionPayload === 'ACTION_USER_ACCEPTS_QUIZ') {
-                console.log("[QuickReply v29.5 AI] User accepts final quiz.");
+                console.log("[QuickReply v29.6 AI] User accepts final quiz.");
                 if(typeof VyukaApp.clearCurrentChatSessionHistory === 'function') { VyukaApp.clearCurrentChatSessionHistory(); }
                 state.finalQuizActive = true; state.finalQuizOffered = false; state.aiIsWaitingForAnswer = false;
                 VyukaApp.manageUIState('requestingFinalQuiz');
                 if(typeof VyukaApp.requestFinalQuizContent === 'function'){ await VyukaApp.requestFinalQuizContent(); }
                 else { console.error("VyukaApp.requestFinalQuizContent is not defined"); VyukaApp.showToast("Chyba: Funkce pro vyžádání testu chybí.", "error");}
             } else if (actionPayload === 'ACTION_USER_DECLINES_QUIZ') {
-                console.log("[QuickReply v29.5 AI] User declines final quiz. Continuing lesson.");
+                console.log("[QuickReply v29.6 AI] User declines final quiz. Continuing lesson.");
                 state.finalQuizOffered = false; state.finalQuizActive = false; state.aiIsWaitingForAnswer = false;
                 VyukaApp.manageUIState('learning');
                 if (typeof VyukaApp.addChatMessage === 'function') { VyukaApp.addChatMessage("Dobře, pokračujme ve výkladu. Klikni na 'Pokračovat' nebo polož otázku.", 'gemini'); }
                 if(ui.continueBtn) { ui.continueBtn.style.display = 'inline-flex'; ui.continueBtn.disabled = false; }
             } else if (actionPayload === 'ACTION_USER_MARKS_COMPLETE_AFTER_QUIZ') {
-                console.log("[QuickReply v29.5 AI] User marks topic complete after quiz.");
+                console.log("[QuickReply v29.6 AI] User marks topic complete after quiz.");
                 if (typeof VyukaApp.handleMarkTopicComplete === 'function') VyukaApp.handleMarkTopicComplete(true);
             } else if (actionPayload === 'ACTION_USER_CONTINUES_AFTER_QUIZ') {
-                console.log("[QuickReply v29.5 AI] User continues lesson after quiz evaluation.");
+                console.log("[QuickReply v29.6 AI] User continues lesson after quiz evaluation.");
                 state.finalQuizActive = false; state.finalQuizOffered = false; state.aiIsWaitingForAnswer = false;
                 if(typeof VyukaApp.clearWhiteboard === 'function') VyukaApp.clearWhiteboard(true);
                 VyukaApp.manageUIState('learning');
                 if (typeof VyukaApp.addChatMessage === 'function') { VyukaApp.addChatMessage("Dobře, k čemu by ses chtěl vrátit nebo co bychom mohli probrat dál k tomuto tématu?", 'gemini');}
                 state.aiIsWaitingForAnswer = true;
                 if(ui.continueBtn) ui.continueBtn.style.display = 'none';
-            } else { console.warn("[QuickReply v29.5 AI] Unknown action payload:", actionPayload); }
+            } else { console.warn("[QuickReply v29.6 AI] Unknown action payload:", actionPayload); }
              VyukaApp.manageButtonStates();
         };
 
@@ -270,9 +287,10 @@ window.VyukaApp = window.VyukaApp || {};
 
             state.lastInteractionTime = Date.now();
             if (state.aiIsWaitingForAnswer && !state.finalQuizActive && !state.finalQuizOffered) {
-                console.log("[HandleSend v29.5 AI] Resetting aiIsWaitingForAnswer state (standard flow).");
+                console.log("[HandleSend v29.6 AI] Resetting aiIsWaitingForAnswer state (standard flow).");
                 state.aiIsWaitingForAnswer = false;
             }
+            VyukaApp.clearRateLimitRetry();
 			if (ui.chatInput) { ui.chatInput.value = ''; if (typeof VyukaApp.autoResizeTextarea === 'function') VyukaApp.autoResizeTextarea(); }
 			await VyukaApp.addChatMessage(text, 'user', true, new Date(), null, text);
 			state.geminiChatContext.push({ role: "user", parts: [{ text }] });
@@ -287,7 +305,7 @@ window.VyukaApp = window.VyukaApp || {};
     	VyukaApp.saveChatToPDF = async () => { const ui = VyukaApp.ui; const state = VyukaApp.state; if (!ui.chatMessages || ui.chatMessages.children.length === 0 || !!ui.chatMessages.querySelector('.initial-chat-interface')) { VyukaApp.showToast("Není co uložit.", "warning"); return; } if (typeof html2pdf === 'undefined') { VyukaApp.showToast("Chyba: PDF knihovna nenalezena.", "error"); console.error("html2pdf library is not loaded!"); return; } VyukaApp.showToast("Generuji PDF...", "info", 4000); const elementToExport = document.createElement('div'); elementToExport.style.padding = "15mm"; elementToExport.innerHTML = ` <style> body { font-family: 'Poppins', sans-serif; font-size: 10pt; line-height: 1.5; color: #333; } .chat-message { margin-bottom: 12px; max-width: 90%; page-break-inside: avoid; } .user { margin-left: 10%; } .model { margin-right: 10%; } .message-bubble { display: inline-block; padding: 8px 14px; border-radius: 15px; background-color: #e9ecef; } .user .message-bubble { background-color: #d1e7dd; } .message-timestamp { font-size: 8pt; color: #6c757d; margin-top: 4px; display: block; } .user .message-timestamp { text-align: right; } h1 { font-size: 16pt; color: #0d6efd; text-align: center; margin-bottom: 5px; } p.subtitle { font-size: 9pt; color: #6c757d; text-align: center; margin: 0 0 15px 0; } hr { border: 0; border-top: 1px solid #ccc; margin: 15px 0; } .tts-listen-btn, .message-avatar { display: none; } mjx-math { font-size: 1em; } pre { background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 0.8em; border-radius: 6px; overflow-x: auto; font-size: 0.9em; white-space: pre-wrap; word-wrap: break-word; } code { background-color: #e9ecef; padding: 0.1em 0.3em; border-radius: 3px; } pre code { background: none; padding: 0; } </style> <h1>Chat s AI Tutorem - ${VyukaApp.sanitizeHTML(state.currentTopic?.name || 'Neznámé téma')}</h1> <p class="subtitle">Vygenerováno: ${new Date().toLocaleString('cs-CZ')}</p> <hr> `; Array.from(ui.chatMessages.children).forEach(msgElement => { if (msgElement.classList.contains('chat-message') && !msgElement.id.startsWith('thinking-')) { const clone = msgElement.cloneNode(true); clone.querySelector('.message-avatar')?.remove(); clone.querySelector('.tts-listen-btn')?.remove(); elementToExport.appendChild(clone); } }); const filename = `chat-${state.currentTopic?.name?.replace(/[^a-z0-9]/gi, '_') || 'vyuka'}-${Date.now()}.pdf`; const pdfOptions = { margin: 15, filename: filename, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, logging: false }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }; try { await html2pdf().set(pdfOptions).from(elementToExport).save(); VyukaApp.showToast("Chat uložen jako PDF!", "success"); } catch (e) { console.error("PDF Generation Error:", e); VyukaApp.showToast("Chyba při generování PDF.", "error"); } };
 
         VyukaApp.parseGeminiResponse = (rawText) => {
-            console.log("[ParseGemini v29.5] Raw input:", rawText ? rawText.substring(0, 150) + "..." : "EMPTY");
+            console.log("[ParseGemini v29.6] Raw input:", rawText ? rawText.substring(0, 150) + "..." : "EMPTY");
 			const config = VyukaApp.config;
             const boardMarkerLegacy = "[BOARD_MARKDOWN]:";
             const keyConceptsMarker = "[KEY_CONCEPTS]:";
@@ -346,65 +364,63 @@ window.VyukaApp = window.VyukaApp || {};
             extractionResult = extractContent(remainingText, examplesRegex); examples = extractionResult.content; remainingText = extractionResult.remaining;
             extractionResult = extractContent(remainingText, ttsRegex); ttsCommentary = extractionResult.content; remainingText = extractionResult.remaining;
 
-            // Fallback: If no primary blocks found BUT legacy marker OR significant text remains, assume it's for the board.
             if (!keyConcepts && !detailedExplanation && !examples) {
                 if (remainingText.match(boardRegexLegacy)) {
                     extractionResult = extractContent(remainingText, boardRegexLegacy);
                     legacyBoardMarkdown = extractionResult.content;
                     remainingText = extractionResult.remaining;
-                    console.log("[ParseGemini v29.5] Fallback: Used legacy [BOARD_MARKDOWN].");
-                } else if (remainingText.trim().length > MIN_LENGTH_FOR_BOARD_FALLBACK && !actionSignal) { // Only if not an action signal
-                    // If significant text remains and no blocks were found, assume it's board content
+                    console.log("[ParseGemini v29.6] Fallback: Used legacy [BOARD_MARKDOWN].");
+                } else if (remainingText.trim().length > MIN_LENGTH_FOR_BOARD_FALLBACK && !actionSignal && !ttsCommentary.includes(remainingText.trim())) {
+                    // Only assign to board if it's not essentially the same as TTS and substantial
                     legacyBoardMarkdown = remainingText.trim();
-                    remainingText = ""; // All remaining text consumed by board
-                    console.log("[ParseGemini v29.5] Fallback: Significant remaining text assigned to legacyBoardMarkdown.");
+                    remainingText = "";
+                    console.log("[ParseGemini v29.6] Fallback: Significant remaining text assigned to legacyBoardMarkdown.");
                 }
             }
-            // Chat text is what's left after all markers AND the aggressive board fallback.
 			let chatText = remainingText.trim();
-             // Clean out any marker-like structures that might have slipped through if they are the ONLY thing in chatText
             const markerRegexGlobal = /(\[(?:KEY_CONCEPTS|DETAILED_EXPLANATION|EXAMPLES|BOARD_MARKDOWN|TTS_COMMENTARY|ACTION:[A-Z_]+)\]:?)/gi;
             if (chatText.replace(markerRegexGlobal, "").trim() === "") {
-                chatText = ""; // If chatText only consists of leftover markers, clear it.
+                chatText = "";
             }
 
-            console.log(`[ParseGemini v29.5] Results - KC: ${!!keyConcepts}, DE: ${!!detailedExplanation}, EX: ${!!examples}, TTS: "${ttsCommentary.substring(0,30)}...", Chat: "${chatText.substring(0,30)}...", Action: ${actionSignal}, LegacyBoard: ${!!legacyBoardMarkdown}`);
+            console.log(`[ParseGemini v29.6] Results - KC: ${!!keyConcepts}, DE: ${!!detailedExplanation}, EX: ${!!examples}, TTS: "${ttsCommentary.substring(0,30)}...", Chat: "${chatText.substring(0,30)}...", Action: ${actionSignal}, LegacyBoard: ${!!legacyBoardMarkdown}`);
 			return { keyConcepts, detailedExplanation, examples, ttsCommentary, chatText, actionSignal, legacyBoardMarkdown };
 		};
 
     	VyukaApp.processGeminiResponse = async (rawText, timestamp) => {
 			const state = VyukaApp.state; VyukaApp.removeThinkingIndicator(); state.lastInteractionTime = Date.now();
-			console.log("[ProcessGemini v29.5] Processing Raw Response:", rawText ? rawText.substring(0, 100) + "..." : "Empty");
+			console.log("[ProcessGemini v29.6] Processing Raw Response:", rawText ? rawText.substring(0, 100) + "..." : "Empty");
 			if (!rawText) { VyukaApp.handleGeminiError("AI vrátilo prázdnou odpověď.", timestamp); VyukaApp.manageButtonStates(); return; }
+
+            VyukaApp.clearRateLimitRetry(); // Успешный ответ, сброс счетчика попыток и таймера
 
 			const { keyConcepts, detailedExplanation, examples, ttsCommentary, chatText, actionSignal, legacyBoardMarkdown } = VyukaApp.parseGeminiResponse(rawText);
 			let aiRespondedToBoard = false;
             let aiRespondedToChat = false;
 			let cleanedChatText = "";
             if (typeof VyukaApp.cleanChatMessage === 'function') { cleanedChatText = VyukaApp.cleanChatMessage(chatText); } else { cleanedChatText = chatText.trim(); }
-            console.log(`[ProcessGemini v29.5] Parsed-> KC: ${!!keyConcepts}, DE: ${!!detailedExplanation}, EX: ${!!examples}, TTS: "${ttsCommentary.substring(0,50)}...", Chat: "${cleanedChatText.substring(0,50)}...", Action: ${actionSignal}, LegacyBoard: ${!!legacyBoardMarkdown}`);
+            console.log(`[ProcessGemini v29.6] Parsed-> KC: ${!!keyConcepts}, DE: ${!!detailedExplanation}, EX: ${!!examples}, TTS: "${ttsCommentary.substring(0,50)}...", Chat: "${cleanedChatText.substring(0,50)}...", Action: ${actionSignal}, LegacyBoard: ${!!legacyBoardMarkdown}`);
 
-            const isInitialAiResponse = state.geminiChatContext.length <= 2; // System prompt + model confirmation + 1st AI model response
+            const isInitialAiResponse = state.geminiChatContext.length <= 2;
 
             if (actionSignal === 'INITIATE_FINAL_QUIZ') {
-                console.log("[ProcessGemini v29.5] AI offers final quiz."); aiRespondedToChat = true; state.finalQuizOffered = true; state.aiIsWaitingForAnswer = true;
+                console.log("[ProcessGemini v29.6] AI offers final quiz."); aiRespondedToChat = true; state.finalQuizOffered = true; state.aiIsWaitingForAnswer = true;
                 if (VyukaApp.ui.continueBtn) VyukaApp.ui.continueBtn.style.display = 'none';
                 VyukaApp.addChatMessage("Výborně! Zdá se, že toto téma už máš v malíku. Chceš si dát krátký závěrečný test na ověření znalostí?", 'gemini', true, new Date(), null, null, [{ title: "Ano, spustit test!", payload: "ACTION_USER_ACCEPTS_QUIZ" }, { title: "Ne, díky.", payload: "ACTION_USER_DECLINES_QUIZ" }]);
                 VyukaApp.manageUIState('quizOffered'); return;
             } else if (actionSignal === 'SHOW_QUIZ_ON_BOARD') {
-                console.log("[ProcessGemini v29.5] AI provides quiz content for board."); aiRespondedToBoard = true;
+                console.log("[ProcessGemini v29.6] AI provides quiz content for board."); aiRespondedToBoard = true;
                 const boardContentForQuiz = detailedExplanation || keyConcepts || examples || legacyBoardMarkdown;
                 if (boardContentForQuiz) { await VyukaApp.renderQuizOnBoard(boardContentForQuiz); state.aiIsWaitingForAnswer = false; }
                 else { VyukaApp.handleGeminiError("AI neposkytlo obsah finálního testu pro tabuli.", timestamp); }
                 VyukaApp.manageUIState('finalQuizInProgress'); return;
             } else if (actionSignal === config.ACTION_EVALUATE_BOARD_QUIZ) {
-                console.log("[ProcessGemini v29.5] AI provides quiz evaluation for board.");
+                console.log("[ProcessGemini v29.6] AI provides quiz evaluation for board.");
                 state.finalQuizActive = false; state.aiIsWaitingForAnswer = false;
                 const boardContentForEval = detailedExplanation || keyConcepts || examples || legacyBoardMarkdown;
                 if (boardContentForEval) { VyukaApp.appendToWhiteboard({ type: 'detailed_explanation', content: boardContentForEval }, ttsCommentary || "Výsledky testu jsou na tabuli."); aiRespondedToBoard = true; }
-                // Even if board has content, chat can have summary or different TTS
                 if (cleanedChatText) { VyukaApp.addChatMessage(cleanedChatText, 'gemini', true, timestamp, ttsCommentary, chatText); aiRespondedToChat = true; }
-                else if (ttsCommentary && !boardContentForEval) { // Fallback if only TTS was for eval
+                else if (ttsCommentary && !boardContentForEval) {
                      VyukaApp.addChatMessage(`(Komentář k vyhodnocení: ${ttsCommentary})`, 'gemini', true, timestamp, ttsCommentary, ttsCommentary);
                      aiRespondedToChat = true;
                 }
@@ -414,35 +430,35 @@ window.VyukaApp = window.VyukaApp || {};
                 VyukaApp.manageUIState('quizEvaluated'); return;
             }
 
-            let ttsForCurrentBoardSegment = ttsCommentary;
+            let ttsForCurrentBoardSegment = ttsCommentary; // This will be the TTS text for the first board segment that gets it.
+                                                       // Subsequent board segments won't get this same full TTS commentary.
+                                                       // We only want the main commentary spoken once.
 
-            if (keyConcepts) { VyukaApp.appendToWhiteboard({ type: 'key_concepts', content: keyConcepts }, ttsForCurrentBoardSegment); aiRespondedToBoard = true; ttsForCurrentBoardSegment = null; }
-            if (detailedExplanation) { VyukaApp.appendToWhiteboard({ type: 'detailed_explanation', content: detailedExplanation }, ttsForCurrentBoardSegment); aiRespondedToBoard = true; ttsForCurrentBoardSegment = null; }
-            if (examples) { VyukaApp.appendToWhiteboard({ type: 'examples', content: examples }, ttsForCurrentBoardSegment); aiRespondedToBoard = true; ttsForCurrentBoardSegment = null; }
+            if (keyConcepts) { VyukaApp.appendToWhiteboard({ type: 'key_concepts', content: keyConcepts }, ttsForCurrentBoardSegment); aiRespondedToBoard = true; if(ttsForCurrentBoardSegment) ttsForCurrentBoardSegment = null; }
+            if (detailedExplanation) { VyukaApp.appendToWhiteboard({ type: 'detailed_explanation', content: detailedExplanation }, ttsForCurrentBoardSegment); aiRespondedToBoard = true; if(ttsForCurrentBoardSegment) ttsForCurrentBoardSegment = null; }
+            if (examples) { VyukaApp.appendToWhiteboard({ type: 'examples', content: examples }, ttsForCurrentBoardSegment); aiRespondedToBoard = true; if(ttsForCurrentBoardSegment) ttsForCurrentBoardSegment = null; }
 
-            if (legacyBoardMarkdown && !aiRespondedToBoard) {
+            if (legacyBoardMarkdown && !aiRespondedToBoard) { // Only if no new blocks AND legacy content exists
                 VyukaApp.appendToWhiteboard({ type: 'detailed_explanation', content: legacyBoardMarkdown }, ttsForCurrentBoardSegment);
-                aiRespondedToBoard = true; ttsForCurrentBoardSegment = null;
+                aiRespondedToBoard = true; if(ttsForCurrentBoardSegment) ttsForCurrentBoardSegment = null;
             }
 
             // Logic for chat message display
             if (cleanedChatText) {
-                const isChatPlaceholder = cleanedChatText === "(Poslechněte si komentář)";
-                const ttsEffectivelyUsedForBoard = aiRespondedToBoard && ttsCommentary && !ttsForCurrentBoardSegment; // TTS was passed to a board segment
-
-                // Add to chat if:
-                // 1. It's not the initial AI response where board content was primary and TTS was for it.
-                // 2. OR chat text is meaningfully different from TTS commentary.
-                // 3. OR there was no board content, but chat text exists.
-                if (isInitialAiResponse && ttsEffectivelyUsedForBoard && (cleanedChatText.toLowerCase() === ttsCommentary?.toLowerCase() || isChatPlaceholder)) {
-                    console.log("[ProcessGemini v29.5] Initial response: Board content + TTS handled. Suppressing redundant chat message.");
-                    // TTS already handled with appendToWhiteboard or would have been if ttsForCurrentBoardSegment wasn't nulled
-                } else if (cleanedChatText.toLowerCase() !== ttsCommentary?.toLowerCase() || !ttsEffectivelyUsedForBoard || !aiRespondedToBoard) {
-                    // If chat is different, or TTS wasn't used for board, or no board content at all, then display chat.
-                    VyukaApp.addChatMessage(cleanedChatText, 'gemini', true, timestamp, ttsCommentary, chatText);
+                const isChatPlaceholder = cleanedChatText.trim() === "(Poslechněte si komentář)";
+                // If there was board content AND TTS was provided for it (now ttsForCurrentBoardSegment would be null)
+                // AND the chat text is essentially the same as the original TTS or just a placeholder, then don't add to chat.
+                if (aiRespondedToBoard && ttsCommentary && ttsForCurrentBoardSegment === null && (cleanedChatText.toLowerCase() === ttsCommentary.toLowerCase() || isChatPlaceholder)) {
+                     console.log("[ProcessGemini v29.6] Board content + TTS handled. Suppressing redundant/placeholder chat message.");
+                } else {
+                    // Otherwise, add chat text. TTS for chat message should be the original ttsCommentary if chat is derived from it or related.
+                    // If chat is completely independent, ttsCommentary might not be relevant for this chat message's TTS button.
+                    let ttsForThisChatMessage = (cleanedChatText.toLowerCase() === ttsCommentary?.toLowerCase()) ? ttsCommentary : null;
+                    if (!ttsForThisChatMessage && cleanedChatText.includes(ttsCommentary) && ttsCommentary.length > 20) ttsForThisChatMessage = ttsCommentary; // Heuristic: if chat contains a substantial TTS
+                    VyukaApp.addChatMessage(cleanedChatText, 'gemini', true, timestamp, ttsForThisChatMessage, chatText);
                     aiRespondedToChat = true;
                 }
-            } else if (ttsForCurrentBoardSegment && !aiRespondedToBoard) { // If TTS remains and nothing on board, put TTS in chat
+            } else if (ttsForCurrentBoardSegment && !aiRespondedToBoard) { // If TTS commentary remains AND nothing was put on board
                 VyukaApp.addChatMessage(`(Hlasový komentář: ${ttsForCurrentBoardSegment})`, 'gemini', true, timestamp, ttsForCurrentBoardSegment, ttsForCurrentBoardSegment);
                 aiRespondedToChat = true;
             }
@@ -474,14 +490,15 @@ window.VyukaApp = window.VyukaApp || {};
 
         VyukaApp.requestFinalQuizContent = async () => {
             const state = VyukaApp.state;
-            console.log("[RequestFinalQuizContent v29.5 AI] Requesting quiz content for board.");
+            console.log("[RequestFinalQuizContent v29.6 AI] Requesting quiz content for board.");
             VyukaApp.updateGeminiThinkingState(true);
+            VyukaApp.clearRateLimitRetry();
             const prompt = VyukaApp._buildFinalQuizPromptForBoard();
             await VyukaApp.sendToGemini(prompt, false);
         };
 
         VyukaApp.renderQuizOnBoard = async (quizMarkdownWithPlaceholders) => {
-            console.log("[RenderQuizOnBoard v29.5 AI] Rendering quiz on whiteboard with input fields.");
+            console.log("[RenderQuizOnBoard v29.6 AI] Rendering quiz on whiteboard with input fields.");
             const ui = VyukaApp.ui; const state = VyukaApp.state;
             if (!ui.whiteboardContent || !ui.whiteboardContainer) return;
             state.quizQuestionsForBoard = []; if(typeof VyukaApp.clearWhiteboard === 'function') VyukaApp.clearWhiteboard(false);
@@ -518,14 +535,15 @@ window.VyukaApp = window.VyukaApp || {};
                 if (ui.vyukaLessonControls) ui.vyukaLessonControls.style.justifyContent = 'center';
             }
             if (typeof VyukaApp.triggerWhiteboardMathJax === 'function') VyukaApp.triggerWhiteboardMathJax(); if (ui.whiteboardContainer) ui.whiteboardContainer.scrollTop = 0;
-            console.log("[RenderQuizOnBoard v29.5 AI] Quiz rendered with input fields.");
+            console.log("[RenderQuizOnBoard v29.6 AI] Quiz rendered with input fields.");
         };
 
         VyukaApp.handleSubmitQuiz = async () => {
             const state = VyukaApp.state;
-            console.log("[SubmitQuiz v29.5 AI] Submitting quiz answers.");
+            console.log("[SubmitQuiz v29.6 AI] Submitting quiz answers.");
             state.quizQuestionsForBoard.forEach(q => { const inputElement = document.getElementById(`quiz-answer-${q.id}`); if (inputElement) { q.userAnswer = inputElement.value.trim(); } });
             VyukaApp.updateGeminiThinkingState(true);
+            VyukaApp.clearRateLimitRetry();
             const prompt = VyukaApp._buildQuizEvaluationPrompt(state.quizQuestionsForBoard);
             await VyukaApp.sendToGemini(prompt, false);
             state.finalQuizActive = false; state.aiIsWaitingForAnswer = false;
@@ -710,14 +728,37 @@ TVŮJ ÚKOL:
 			if (!config.GEMINI_API_KEY || !config.GEMINI_API_KEY.startsWith('AIzaSy')) { VyukaApp.showToast("Chyba Konfigurace", "Chybí API klíč pro AI.", "error"); VyukaApp.updateGeminiThinkingState(false); return; }
             if (!state.currentTopic && !state.finalQuizActive && !state.finalQuizOffered ) { VyukaApp.showToast("Chyba", "Není vybráno téma nebo aktivní kvíz.", "error"); VyukaApp.updateGeminiThinkingState(false); return; }
 			if (!navigator.onLine) { VyukaApp.showToast("Offline", "Nelze komunikovat s AI bez připojení.", "warning"); VyukaApp.updateGeminiThinkingState(false); return; }
+
+            lastFailedRequestArgs = { prompt, isChatInteraction }; // Сохраняем аргументы для возможного повтора
 			console.log(`Sending to Gemini (Chat: ${isChatInteraction}): "${prompt.substring(0, 120)}..."`);
 			const timestamp = new Date(); VyukaApp.updateGeminiThinkingState(true);
 			const contents = VyukaApp._buildGeminiPayloadContents(prompt, isChatInteraction);
 			const body = { contents, generationConfig: { temperature: (state.finalQuizActive ? 0.3 : 0.55), topP: 0.95, topK: 40, maxOutputTokens: 8192, }, safetySettings: [ { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" }, { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" } ] };
 			try {
 				const response = await fetch(config.GEMINI_API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+
+                if (response.status === 429) {
+                    rateLimitRetryCount++;
+                    if (rateLimitRetryCount <= MAX_RATE_LIMIT_RETRIES) {
+                        console.warn(`API Rate Limit Exceeded (429). Retry ${rateLimitRetryCount}/${MAX_RATE_LIMIT_RETRIES} in ${RATE_LIMIT_RETRY_DELAY / 1000}s.`);
+                        VyukaApp.showRateLimitMessage(true, RATE_LIMIT_RETRY_DELAY * rateLimitRetryCount);
+                        rateLimitRetryTimer = setTimeout(() => {
+                            VyukaApp.sendToGemini(lastFailedRequestArgs.prompt, lastFailedRequestArgs.isChatInteraction);
+                        }, RATE_LIMIT_RETRY_DELAY);
+                    } else {
+                        console.error(`API Rate Limit Exceeded (429). Max retries reached. Last error: ${await response.text()}`);
+                        VyukaApp.showRateLimitMessage(false); // Скрыть сообщение, т.к. попытки исчерпаны
+                        throw new Error(`Chyba API (429): Překročena kvóta. Maximální počet pokusů odeslání byl dosažen.`);
+                    }
+                    VyukaApp.updateGeminiThinkingState(false); // Пока ждем, AI не "думает"
+                    return; // Выход, чтобы не обрабатывать дальше
+                }
+
 				if (!response.ok) { let errorText = `Chyba API (${response.status})`; try { const errData = await response.json(); errorText += `: ${errData?.error?.message || 'Neznámá chyba'}`; } catch (e) { errorText += `: ${await response.text()}`; } throw new Error(errorText); }
 				const data = await response.json();
+
+                VyukaApp.clearRateLimitRetry(); // Успешный ответ, сброс
+
 				if (data.promptFeedback?.blockReason) { throw new Error(`Požadavek blokován: ${data.promptFeedback.blockReason}.`); }
 				const candidate = data.candidates?.[0]; if (!candidate) { throw new Error('AI neposkytlo platnou odpověď (no candidate).'); }
                 if (candidate.finishReason && !["STOP", "MAX_TOKENS"].includes(candidate.finishReason)) { if (candidate.finishReason === 'SAFETY') throw new Error('Odpověď blokována bezpečnostním filtrem AI.'); if (!candidate.content?.parts?.[0]?.text) { throw new Error(`Generování zastaveno: ${candidate.finishReason}.`);}}
@@ -726,19 +767,64 @@ TVŮJ ÚKOL:
 				state.geminiChatContext.push({ role: "user", parts: [{ text: prompt }] }); state.geminiChatContext.push({ role: "model", parts: [{ text: text || "" }] });
 				if (state.geminiChatContext.length > config.MAX_GEMINI_HISTORY_TURNS * 2 + 2) { state.geminiChatContext.splice(2, state.geminiChatContext.length - (config.MAX_GEMINI_HISTORY_TURNS * 2 + 2)); }
 				await VyukaApp.processGeminiResponse(text || "", timestamp);
-			} catch (error) { console.error('Chyba komunikace s Gemini:', error); VyukaApp.showToast(`Chyba AI: ${error.message}`, "error"); VyukaApp.handleGeminiError(error.message, timestamp);
-			} finally { VyukaApp.updateGeminiThinkingState(false); VyukaApp.manageButtonStates(); }
+			} catch (error) {
+                console.error('Chyba komunikace s Gemini:', error);
+                if (!String(error.message).includes('(429)')) { // Не показывать стандартный тост для ошибки 429, т.к. есть свой обработчик
+                    VyukaApp.showToast(`Chyba AI: ${error.message}`, "error");
+                }
+                VyukaApp.handleGeminiError(error.message, timestamp);
+			} finally {
+                // Thinking state is managed by rate limit handler or regular flow
+                if (response && response.status !== 429) {
+                   VyukaApp.updateGeminiThinkingState(false);
+                }
+                VyukaApp.manageButtonStates();
+            }
 		};
 
+        VyukaApp.clearRateLimitRetry = () => {
+            if (rateLimitRetryTimer) {
+                clearTimeout(rateLimitRetryTimer);
+                rateLimitRetryTimer = null;
+            }
+            rateLimitRetryCount = 0;
+            lastFailedRequestArgs = null;
+            VyukaApp.showRateLimitMessage(false);
+            console.log("[RateLimit] Retry mechanism cleared.");
+        };
+
+        VyukaApp.showRateLimitMessage = (show, nextRetryInMs = 0) => {
+            // Эта функция должна быть реализована в vyuka-core.js или vyuka-ui-features.js
+            // для управления видимостью HTML элемента с сообщением.
+            // Пример:
+            // const banner = document.getElementById('rate-limit-banner');
+            // if (banner) {
+            //   banner.style.display = show ? 'flex' : 'none';
+            //   if (show) {
+            //     const countdownEl = banner.querySelector('.rate-limit-countdown');
+            //     // Логика для обратного отсчета, если nextRetryInMs > 0
+            //   }
+            // }
+            if (typeof VyukaApp.toggleRateLimitBanner === 'function') {
+                VyukaApp.toggleRateLimitBanner(show, nextRetryInMs);
+            } else {
+                console.warn("VyukaApp.toggleRateLimitBanner is not defined. Cannot show rate limit message.");
+            }
+        };
+
+
     	VyukaApp.handleGeminiError = (msg, time) => {
-			const state = VyukaApp.state; VyukaApp.removeThinkingIndicator(); VyukaApp.addChatMessage(`Nastala chyba při komunikaci s AI: ${msg}`, 'gemini', false, time, null, `(Chyba: ${msg})`);
+			const state = VyukaApp.state; VyukaApp.removeThinkingIndicator();
+            if (!String(msg).includes('(429)')) { // Не добавлять сообщение об ошибке 429 в чат, если оно уже обрабатывается
+                VyukaApp.addChatMessage(`Nastala chyba při komunikaci s AI: ${msg}`, 'gemini', false, time, null, `(Chyba: ${msg})`);
+            }
             state.aiIsWaitingForAnswer = false; state.finalQuizActive = false; state.finalQuizOffered = false;
             if (VyukaApp.ui.continueBtn) VyukaApp.ui.continueBtn.disabled = false;
-            VyukaApp.manageUIState('learning');
+            VyukaApp.manageUIState('learning'); // Возврат в состояние обучения, чтобы пользователь мог попробовать снова
 		};
 
 	} catch (e) {
-		console.error("FATAL SCRIPT ERROR (AI Interaction v29.5 - Revolutionary Update):", e);
+		console.error("FATAL SCRIPT ERROR (AI Interaction v29.6 - Revolutionary Update):", e);
 		document.body.innerHTML = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--vyuka-accent-error,#FF4757);color:var(--vyuka-text-primary,#E0E7FF);padding:40px;text-align:center;font-family:sans-serif;z-index:9999;"><h1>KRITICKÁ CHYBA SYSTÉMU</h1><p>Nelze spustit modul výuky (AI Interaction).</p><p style="margin-top:15px;"><a href="#" onclick="location.reload()" style="color:var(--vyuka-accent-secondary,#00F5FF); text-decoration:underline; font-weight:bold;">Obnovit stránku</a></p><details style="margin-top:20px;color:#f0f0f0;"><summary style="cursor:pointer;color:var(--vyuka-text-primary,#E0E7FF);">Detaily</summary><pre style="margin-top:10px;padding:15px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.2);font-size:0.8em;white-space:pre-wrap;text-align:left;max-height:300px; overflow-y:auto; border-radius:8px;">${e.message}\n${e.stack}</pre></details></div>`;
 	}
 })(window.VyukaApp);
