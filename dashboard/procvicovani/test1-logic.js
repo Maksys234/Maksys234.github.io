@@ -12,6 +12,8 @@
 // VERZE (FIX ADAPTIVE RETURN): Opraveno vracení dat z loadTestQuestionsLogic pro adaptivní test.
 // VERZE (POŽADAVEK UŽIVATELE 2 - Přehodnotit, Nevím, Feedback): Přidána logika pro Přehodnotit, Nevím, vylepšený feedback.
 // VERZE (POŽADAVEK UŽIVATELE 3 - Oprava "Nevím" a Přehodnocení Gemini): Implementace požadavků.
+// VERZE (POŽADAVEK UŽIVATELE 4 - Добавление функции переоценки Gemini для test1-logic.js)
+// VERZE (POŽADAVEK UŽIVATELE 5 - FIX ReferenceError: topicIcons is not defined)
 
 // Используем IIFE для изоляции области видимости
 (function(global) {
@@ -718,35 +720,62 @@ Pro textové odpovědi (včetně ano/ne) buď tolerantní k velkým/malým písm
         } catch (apiError) { return runFallbackCheck(`Chyba komunikace s AI: ${apiError.message}`); }
     }
 
-    async function reevaluateAnswerWithGeminiLogic(question, userAnswerEntry, previousEvaluation, supabaseInstance) {
-        if (!supabaseInstance) { throw new Error("Supabase client není inicializován pro přehodnocení."); }
-        if (!question || !userAnswerEntry || !previousEvaluation) { throw new Error("Chybí data pro přehodnocení."); }
+    // --- НОВАЯ ФУНКЦИЯ: reevaluateAnswerWithGeminiLogic ---
+    async function reevaluateAnswerWithGeminiLogic(
+        question, // { id, question_text, question_type, options, correct_answer, solution_explanation, maxScore, answer_prefix, answer_suffix }
+        userAnswerEntry, // { userAnswerValue, scoreAwarded, correctness, reasoning, error_analysis, feedback, ... }
+        previousEvaluation, // { scoreAwarded, correctness, reasoning, error_analysis, feedback } - subset of userAnswerEntry
+        supabaseInstance // Pro případné logování, pokud bude třeba
+    ) {
+        if (!supabaseInstance) {
+            console.error("[reevaluateAnswer ADAPTIVE] Supabase client není inicializován pro přehodnocení.");
+            throw new Error("Supabase client není inicializován pro přehodnocení.");
+        }
+        if (!question || !userAnswerEntry || !previousEvaluation) {
+            console.error("[reevaluateAnswer ADAPTIVE] Chybí data pro přehodnocení.");
+            throw new Error("Chybí data pro přehodnocení.");
+        }
 
         console.log(`[reevaluateAnswer ADAPTIVE] Přehodnocování otázky ID: ${question.id}`);
+        console.log(`   Otázka: ${question.question_text ? question.question_text.substring(0, 100) + '...' : 'N/A'}`);
+        console.log(`   Správně (DB): `, question.correct_answer);
+        console.log(`   Vysvětlení (DB): `, question.solution_explanation);
+        console.log(`   Odpověď studenta: `, userAnswerEntry.userAnswerValue);
+        console.log(`   Předchozí hodnocení: `, previousEvaluation);
+
         // Použijeme oficiální vysvětlení z databáze (question.solution_explanation) jako základ pro "reasoning"
-        const baseReasoning = question.solution_explanation || "Oficiální postup není k dispozici.";
+        const baseReasoningFromDB = question.solution_explanation || "Oficiální postup není k dispozici.";
+        const maxScore = question.maxScore || 1;
 
         const baseInstruction = `Jsi PŘÍSNÝ, DETAILNÍ a PŘESNÝ AI hodnotitel. Student požádal o přehodnocení své odpovědi na otázku z PŘIJÍMACÍCH ZKOUŠEK z matematiky/logiky pro 9. třídu ZŠ v ČR. Pečlivě zvaž předchozí hodnocení a poskytni AKTUALIZOVANÉ komplexní posouzení. Vrať POUZE JSON objekt podle zadané struktury. NEPŘIDÁVEJ žádný text PŘED nebo ZA JSON blok.
 Při hodnocení numerických a algebraických odpovědí buď EXTRÉMNĚ PEČLIVÝ ohledně ekvivalence formátů, pokud otázka explicitně nevyžaduje konkrétní formát. Např. 3/2 = 1.5 = 1,5.
 Pro textové odpovědi buď tolerantní k velkým/malým písmenům, interpunkci a mezerám, ale posuzuj jádro.`;
 
         const outputStructure = `{
-    "score": number (0-${question.maxScore || 1}, celé číslo),
-    "max_score": ${question.maxScore || 1},
-    "correctness": string ("correct" | "incorrect" | "partial"),
-    "reasoning": string ("${baseReasoning.replace(/"/g, '\\"')}" - TOTO JE OFICIÁLNÍ VYSVĚTLENÍ z databáze, NEMĚŇ HO, pokud není absolutně nutné pro objasnění PŘEHODNOCENÍ. Můžeš ho ale doplnit o kontext přehodnocení v "reevaluation_note".),
-    "detailed_error_analysis": string | null (Pokud je odpověď incorrect/partial: NOVÁ DETAILNÍ analýza konkrétní chyby studenta. Může být podobná předchozí, pokud je stále platná. Pokud 'correct': null),
-    "future_improvement_feedback": string | null (Pokud je odpověď incorrect/partial: NOVÁ KONKRÉTNÍ rada. Může být podobná předchozí. Pokud 'correct': null),
+    "score": number (0-${maxScore}, celé číslo),
+    "max_score": ${maxScore},
+    "correctness": string ("correct" | "incorrect" | "partial" | "error"),
+    "reasoning": string ("${baseReasoningFromDB.replace(/"/g, '\\"')}" - TOTO JE OFICIÁLNÍ VYSVĚTLENÍ z databáze. NEMĚŇ HO, pokud není absolutně nutné pro objasnění PŘEHODNOCENÍ. Pokud je toto vysvětlení prázdné nebo nevhodné, uveď zde své komplexní vysvětlení. Pokud je odpověď studenta správná, ale formátově jiná, potvrď správnost a zmiň, že je to ekvivalentní.),
+    "detailed_error_analysis": string | null (Pokud je odpověď incorrect/partial: NOVÁ DETAILNÍ analýza konkrétní chyby studenta, např. 'Student udělal chybu v kroku 2 při sčítání zlomků.' nebo 'Zapomenutý minus.'. Pokud 'correct': null),
+    "future_improvement_feedback": string | null (Pokud je odpověď incorrect/partial: NOVÁ KONKRÉTNÍ rada, jak se podobným chybám v budoucnu vyvarovat, např. 'Při práci se zlomky vždy zkontrolujte společného jmenovatele.'. Pokud 'correct': null),
     "is_equivalent": boolean | null (True, pokud je odpověď studenta matematicky/logicky správná i přes jiný formát. False, pokud je nesprávná. Null pro 'multiple_choice' nebo pokud nelze jednoznačně určit.),
     "reevaluation_note": string | null (DŮLEŽITÉ: Stručná poznámka vysvětlující, proč se hodnocení změnilo, nebo proč zůstalo stejné i po přehodnocení, např. 'Původní hodnocení bylo příliš striktní ohledně formátu, odpověď je matematicky správná.' nebo 'Původní hodnocení bylo správné, chyba studenta přetrvává v...' nebo 'Nyní uznáno jako částečně správné, protože...')
 }`;
         const questionContext = `Kontext otázky: """${question.question_text}"""`;
-        const formattedCorrectAnswer = typeof question.correct_answer === 'object' ? JSON.stringify(question.correct_answer) : question.correct_answer;
-        const formattedUserAnswer = typeof userAnswerEntry.userAnswerValue === 'object' ? JSON.stringify(userAnswerEntry.userAnswerValue) : userAnswerEntry.userAnswerValue;
-        const inputData = `SPRÁVNÁ ODPOVĚĎ/ŘEŠENÍ Z DATABÁZE: """${formattedCorrectAnswer}"""\nODPOVĚĎ STUDENTA: """${formattedUserAnswer}"""`;
-        const previousEvalText = `PŘEDCHOZÍ HODNOCENÍ:\n- Skóre: ${previousEvaluation.scoreAwarded}/${previousEvaluation.maxScore}\n- Správnost: ${previousEvaluation.correctness}\n- Předchozí analýza chyby (AI): ${previousEvaluation.error_analysis || 'N/A'}\n- Předchozí zpětná vazba (AI): ${previousEvaluation.feedback || 'N/A'}\n- Předchozí zdůvodnění (AI): ${previousEvaluation.reasoning || 'N/A'}`;
+        let formattedCorrectAnswerFromDB = question.correct_answer;
+        let formattedUserAnswerFromEntry = userAnswerEntry.userAnswerValue;
 
-        const prompt = `${baseInstruction}\n${questionContext}\n${inputData}\n${previousEvalText}\nÚKOL: Pečlivě přehodnoť odpověď studenta. Vrať POUZE JSON (${outputStructure}). Zaměř se na pole "detailed_error_analysis", "future_improvement_feedback", "score", "correctness" a "reevaluation_note". Pole "reasoning" by mělo primárně obsahovat oficiální vysvětlení z databáze.`;
+        if (typeof question.correct_answer === 'object' && question.correct_answer !== null) {
+            formattedCorrectAnswerFromDB = JSON.stringify(question.correct_answer);
+        }
+        if (typeof userAnswerEntry.userAnswerValue === 'object' && userAnswerEntry.userAnswerValue !== null) {
+            formattedUserAnswerFromEntry = JSON.stringify(userAnswerEntry.userAnswerValue);
+        }
+
+        const inputData = `SPRÁVNÁ ODPOVĚĎ/ŘEŠENÍ Z DATABÁZE (primární reference): """${formattedCorrectAnswerFromDB}"""\nODPOVĚĎ STUDENTA: """${formattedUserAnswerFromEntry}"""`;
+        const previousEvalText = `PŘEDCHOZÍ HODNOCENÍ:\n- Skóre: ${previousEvaluation.scoreAwarded}/${previousEvaluation.maxScore}\n- Správnost: ${previousEvaluation.correctness}\n- Předchozí analýza chyby: ${previousEvaluation.error_analysis || 'N/A'}\n- Předchozí zpětná vazba: ${previousEvaluation.feedback || 'N/A'}\n- Předchozí zdůvodnění (AI): ${previousEvaluation.reasoning || 'N/A'}`;
+
+        const prompt = `${baseInstruction}\n${questionContext}\n${inputData}\n${previousEvalText}\nÚKOL: Pečlivě přehodnoť odpověď studenta. Vrať POUZE JSON (${outputStructure}). Zaměř se na pole "detailed_error_analysis", "future_improvement_feedback", "score", "correctness" a "reevaluation_note". Pole "reasoning" by mělo primárně obsahovat oficiální vysvětlení z databáze (pole "OFICIÁLNÍ VYSVĚTLENÍ Z DATABÁZE" z inputData), POKUD JE K DISPOZICI A RELEVANTNÍ. Pokud ne, nebo pokud je třeba doplnit, poskytni vlastní komplexní vysvětlení v poli "reasoning".`;
 
         try {
             console.log(`[reevaluateAnswer ADAPTIVE] Posílám požadavek na přehodnocení... Prompt (začátek): ${prompt.substring(0,200)}`);
@@ -765,26 +794,26 @@ Pro textové odpovědi buď tolerantní k velkým/malým písmenům, interpunkci
             if (typeof geminiResult.score !== 'number' || typeof geminiResult.correctness !== 'string' || typeof geminiResult.reasoning !== 'string') {
                 throw new Error("Neúplná odpověď od AI při přehodnocení (chybí score, correctness nebo reasoning).");
             }
-            const finalScore = Math.max(0, Math.min((question.maxScore || 1), Math.round(geminiResult.score)));
-            const finalCorrectness = ["correct", "incorrect", "partial"].includes(geminiResult.correctness) ? geminiResult.correctness : "error";
+            const finalScore = Math.max(0, Math.min((maxScore), Math.round(geminiResult.score)));
+            const finalCorrectness = ["correct", "incorrect", "partial", "error"].includes(geminiResult.correctness) ? geminiResult.correctness : "error";
 
             return {
                 score: finalScore,
-                max_score: question.maxScore || 1,
+                max_score: maxScore,
                 correctness: finalCorrectness,
-                reasoning: geminiResult.reasoning, // Mělo by obsahovat původní db explanation
+                reasoning: geminiResult.reasoning,
                 detailed_error_analysis: geminiResult.detailed_error_analysis || null,
                 future_improvement_feedback: geminiResult.future_improvement_feedback || null,
                 is_equivalent: typeof geminiResult.is_equivalent === 'boolean' ? geminiResult.is_equivalent : null,
-                reevaluation_note: geminiResult.reevaluation_note || "Přehodnoceno AI." // Default note
+                reevaluation_note: geminiResult.reevaluation_note || "Přehodnoceno AI."
             };
         } catch (apiError) {
             console.error('[reevaluateAnswer ADAPTIVE] Chyba komunikace s AI při přehodnocení:', apiError);
-            throw apiError;
+            throw apiError; // Rethrow to be caught by UI
         }
     }
+    // --- КОНЕЦ НОВОЙ ФУНКЦИИ ---
 
-    // --- END: Логика оценки ответов ---
 
     // --- START: Логика расчета и сохранения результатов ---
     function calculateFinalResultsLogic(userAnswers, questions) {
@@ -798,7 +827,7 @@ Pro textové odpovědi buď tolerantní k velkým/malým písmenům, interpunkci
         const topicResults = {};
 
         userAnswers.forEach(answer => {
-            const questionData = questions.find(q => q.id === answer.question_db_id || q.question_db_id === answer.question_db_id); // Handle if questions array is different
+            const questionData = questions.find(q => q.id === answer.question_db_id || q.question_db_id === answer.question_db_id);
             const maxScoreForQuestion = answer.maxScore || 1;
             totalMaxPossibleScore += maxScoreForQuestion;
             totalScore += answer.scoreAwarded || 0;
@@ -807,7 +836,7 @@ Pro textové odpovědi buď tolerantní k velkým/malým písmenům, interpunkci
             if (!topicResults[topicName]) {
                 topicResults[topicName] = {
                     name: topicName, total_questions: 0, correct: 0, incorrect: 0, partial: 0, skipped: 0, points_achieved: 0, max_points: 0,
-                    icon: topicIcons[topicName] || topicIcons.default // Přidání ikony
+                    fully_correct: 0
                 };
             }
             topicResults[topicName].total_questions++;
@@ -815,11 +844,30 @@ Pro textové odpovědi buď tolerantní k velkým/malým písmenům, interpunkci
             topicResults[topicName].points_achieved += answer.scoreAwarded || 0;
 
             switch (answer.correctness) {
-                case "correct": correctAnswers++; topicResults[topicName].correct++; break;
-                case "partial": partiallyCorrectAnswers++; topicResults[topicName].partial++; break;
-                case "incorrect": incorrectAnswers++; topicResults[topicName].incorrect++; break;
-                case "skipped": skippedAnswers++; topicResults[topicName].skipped++; break;
-                case "error": default: evaluationErrors++; topicResults[topicName].incorrect++; break; // Počítáme chybu jako nesprávnou
+                case "correct":
+                    correctAnswers++;
+                    topicResults[topicName].correct++;
+                    if (answer.scoreAwarded === maxScoreForQuestion) {
+                        topicResults[topicName].fully_correct++;
+                    }
+                    break;
+                case "partial":
+                    partiallyCorrectAnswers++;
+                    topicResults[topicName].partial++;
+                    break;
+                case "incorrect":
+                    incorrectAnswers++;
+                    topicResults[topicName].incorrect++;
+                    break;
+                case "skipped":
+                    skippedAnswers++;
+                    topicResults[topicName].skipped++;
+                    break;
+                case "error":
+                default:
+                    evaluationErrors++;
+                    topicResults[topicName].incorrect++;
+                    break;
             }
         });
 
@@ -835,7 +883,7 @@ Pro textové odpovědi buď tolerantní k velkým/malým písmenům, interpunkci
 
         return {
             score: totalScore,
-            maxScore: totalMaxPossibleScore,
+            maxScore: totalMaxPossibleScore, // Správně: totalMaxPossibleScore
             percentage: percentage,
             correctAnswers: correctAnswers,
             incorrectAnswers: incorrectAnswers,
@@ -844,7 +892,7 @@ Pro textové odpovědi buď tolerantní k velkým/malým písmenům, interpunkci
             totalAnswered: totalAnswered,
             evaluationErrors: evaluationErrors,
             topicResults: topicResults,
-            answers: userAnswers // Přidáváme všechny odpovědi pro uložení a review
+            answers: userAnswers
         };
     }
     function generateDetailedAnalysisLogic(results, answers, questionsData) { /* ... (stejné jako předtím) ... */ }
@@ -865,7 +913,7 @@ Pro textové odpovědi buď tolerantní k velkým/malým písmenům, interpunkci
         loadTestQuestions: loadTestQuestionsLogic,
         getNextAdaptiveQuestion: getNextAdaptiveQuestionLogic,
         checkAnswerWithGemini: checkAnswerWithGeminiLogic,
-        reevaluateAnswerWithGemini: reevaluateAnswerWithGeminiLogic,
+        reevaluateAnswerWithGemini: reevaluateAnswerWithGeminiLogic, // <<< НОВАЯ ФУНКЦИЯ ДОБАВЛЕНА
         calculateFinalResults: calculateFinalResultsLogic,
         generateDetailedAnalysis: generateDetailedAnalysisLogic,
         saveTestResults: saveTestResultsLogic,
@@ -876,7 +924,7 @@ Pro textové odpovědi buď tolerantní k velkým/malým písmenům, interpunkci
         compareNumericAdvanced: compareNumericAdvanced,
         compareTextAdvanced: compareTextAdvanced,
     };
-    console.log("test1-logic.js ADAPTIVE (vFEEDBACK + Skip/Re-evaluate) loaded and TestLogic exposed.");
+    console.log("test1-logic.js ADAPTIVE (vFEEDBACK + Skip/Re-evaluate + Gemini Re-evaluate Fn + FIX topicIcons) loaded and TestLogic exposed.");
     // --- END: Глобальный Экспорт ---
 
 })(window);
