@@ -202,6 +202,14 @@
          <p class="loading-text" id="loading-text-anim"><span>S</span><span>Y</span><span>N</span><span>C</span><span>H</span><span>R</span><span>O</span><span>N</span><span>I</span><span>Z</span><span>U</span><span>J</span><span>I</span><span>&nbsp;</span><span>M</span><span>O</span><span>D</span><span>U</span><span>L</span><span>.</span><span>.</span><span>.</span></p>
      </div>
 
+     <div class="rate-limit-banner" id="rate-limit-banner" style="display: none;">
+        <i class="fas fa-satellite-dish"></i>
+        <div class="rate-limit-text">
+            Překročena kvóta API. Systém je dočasně nedostupný.
+            <span class="rate-limit-subtext">Další pokus o spojení za <span class="rate-limit-countdown">5</span>s...</span>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="cancel-retry-btn">Zrušit</button>
+     </div>
      <div class="offline-banner" id="offline-banner"> <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO.</div>
      <div class="sidebar-overlay-ai" id="sidebar-overlay-ai"></div>
 
@@ -346,8 +354,8 @@
                                 <i class="fas fa-cogs"></i> Model:
                             </label>
                             <select id="ai-model-select" class="ai-model-select">
-                                <option value="gemini-2.0-flash" selected>Gemini 2.0 Flash</option>
-                                <option value="gemini-2.5-pro" disabled>Gemini 2.5 Pro (Brzy)</option>
+                                <option value="gemini-1.5-flash" selected>Gemini 1.5 Flash</option>
+                                <option value="gemini-1.5-pro" disabled>Gemini 1.5 Pro (Brzy)</option>
                                 <option value="gemini-2.5-flash" disabled>Gemini 2.5 Flash (Brzy)</option>
                             </select>
                         </div>
@@ -504,6 +512,19 @@
                      document.body.classList.toggle('scrolled', scrollableContent.scrollTop > 20);
                  });
                  document.body.classList.toggle('scrolled', scrollableContent.scrollTop > 20);
+             }
+
+             // Listener for the new cancel retry button
+             const cancelRetryBtn = document.getElementById('cancel-retry-btn');
+             if (cancelRetryBtn) {
+                cancelRetryBtn.addEventListener('click', () => {
+                    if (window.VyukaApp && typeof window.VyukaApp.clearRateLimitRetry === 'function') {
+                        window.VyukaApp.clearRateLimitRetry();
+                        if (window.VyukaApp.showToast) {
+                             window.VyukaApp.showToast('Pokusy o spojení zrušeny.', 'info');
+                        }
+                    }
+                });
              }
         });
     </script>
