@@ -1,5 +1,5 @@
 // Файл: procvicovani/vyuka/vyuka-ai-interaction.js
-// Версия v29.7: Исправлена ошибка "response is not defined". Улучшена логика parse/processGeminiResponse для уменьшения вывода в чат. Добавлена обработка 429.
+// Версия v29.8: Полностью переписана функция parseGeminiResponse для надежного разделения блоков [KEY_CONCEPTS]:, [DETAILED_EXPLANATION]:, [EXAMPLES]: и [TTS_COMMENTARY]:. Исправлена логика processGeminiResponse для корректной обработки нового формата парсинга.
 
 window.VyukaApp = window.VyukaApp || {};
 
@@ -14,7 +14,6 @@ window.VyukaApp = window.VyukaApp || {};
         config.ACTION_INITIATE_FINAL_QUIZ = "[ACTION:INITIATE_FINAL_QUIZ]";
         config.ACTION_SHOW_QUIZ_ON_BOARD = "[ACTION:SHOW_QUIZ_ON_BOARD]";
         config.ACTION_EVALUATE_BOARD_QUIZ = "[ACTION:EVALUATE_BOARD_QUIZ]";
-        const MIN_LENGTH_FOR_BOARD_FALLBACK = 80; // Снижено для большей вероятности попадания на доску
         const RATE_LIMIT_RETRY_DELAY = 5000;
         const MAX_RATE_LIMIT_RETRIES = 5;
 
@@ -195,7 +194,7 @@ window.VyukaApp = window.VyukaApp || {};
 
     	VyukaApp.requestContinue = async () => {
 			const state = VyukaApp.state;
-			console.log("[RequestContinue v29.7] Triggered. AI Waiting:", state.aiIsWaitingForAnswer, "FinalQuizOffered:", state.finalQuizOffered, "Final Quiz Active:", state.finalQuizActive);
+			console.log("[RequestContinue v29.8] Triggered. AI Waiting:", state.aiIsWaitingForAnswer, "FinalQuizOffered:", state.finalQuizOffered, "Final Quiz Active:", state.finalQuizActive);
 
 			if (state.geminiIsThinking || !state.currentTopic || state.finalQuizActive || state.finalQuizOffered) {
                 VyukaApp.showToast("Počkejte prosím, AI zpracovává požadavek nebo byla nabídnuta/probíhá závěrečná fáze.", "info", 3000);
@@ -226,7 +225,7 @@ window.VyukaApp = window.VyukaApp || {};
             }
             if (quickReplies && quickReplies.length > 0) { const quickRepliesDiv = document.createElement('div'); quickRepliesDiv.className = 'quick-replies-container'; quickReplies.forEach(reply => { const button = document.createElement('button'); button.className = 'btn btn-secondary btn-sm quick-reply-btn'; button.textContent = reply.title; button.dataset.payload = reply.payload; button.dataset.action = "true"; quickRepliesDiv.appendChild(button); }); bubbleContentDiv.appendChild(quickRepliesDiv); }
 			bubbleDiv.appendChild(bubbleContentDiv); const timeDiv = `<div class="message-timestamp">${VyukaApp.formatTimestamp(timestamp)}</div>`; div.innerHTML = avatarDiv + bubbleDiv.outerHTML + timeDiv;
-			ui.chatMessages.appendChild(div); if (window.MathJax && typeof window.MathJax.typesetPromise === 'function' && (displayMessage.includes('$') || displayMessage.includes('\\'))) { setTimeout(() => { window.MathJax.typesetPromise([bubbleContentDiv]).catch((err) => console.error(`[MathJax v29.7 Chat] Typeset error: ${err.message}`)); }, 0); }
+			ui.chatMessages.appendChild(div); if (window.MathJax && typeof window.MathJax.typesetPromise === 'function' && (displayMessage.includes('$') || displayMessage.includes('\\'))) { setTimeout(() => { window.MathJax.typesetPromise([bubbleContentDiv]).catch((err) => console.error(`[MathJax v29.8 Chat] Typeset error: ${err.message}`)); }, 0); }
 			div.scrollIntoView({ behavior: 'smooth', block: 'end' }); requestAnimationFrame(() => { div.style.opacity = '1'; }); if (typeof VyukaApp.initTooltips === 'function') VyukaApp.initTooltips();
 			const contentToSave = originalContent !== null ? originalContent : displayMessage; if (saveToDb && state.supabase && state.currentUser && state.currentTopic && state.currentSessionId) { try { await state.supabase.from('chat_history').insert({ user_id: state.currentUser.id, session_id: state.currentSessionId, topic_id: state.currentTopic.topic_id, topic_name: state.currentTopic.name, role: sender === 'gemini' ? 'model' : 'user', content: contentToSave }); } catch (e) { console.error("Chat save error:", e); VyukaApp.showToast("Chyba ukládání chatu.", "error"); } }
             VyukaApp.manageButtonStates();
@@ -234,36 +233,36 @@ window.VyukaApp = window.VyukaApp || {};
 
         VyukaApp.handleQuickReplyAction = async (actionPayload) => {
             const state = VyukaApp.state; const ui = VyukaApp.ui;
-            console.log(`[QuickReply v29.7 AI] Handling action: ${actionPayload}`);
+            console.log(`[QuickReply v29.8 AI] Handling action: ${actionPayload}`);
              const allQuickReplyButtons = document.querySelectorAll('.quick-reply-btn');
              allQuickReplyButtons.forEach(btn => {btn.disabled = true; btn.style.opacity="0.5";});
             VyukaApp.clearRateLimitRetry();
 
             if (actionPayload === 'ACTION_USER_ACCEPTS_QUIZ') {
-                console.log("[QuickReply v29.7 AI] User accepts final quiz.");
+                console.log("[QuickReply v29.8 AI] User accepts final quiz.");
                 if(typeof VyukaApp.clearCurrentChatSessionHistory === 'function') { VyukaApp.clearCurrentChatSessionHistory(); }
                 state.finalQuizActive = true; state.finalQuizOffered = false; state.aiIsWaitingForAnswer = false;
                 VyukaApp.manageUIState('requestingFinalQuiz');
                 if(typeof VyukaApp.requestFinalQuizContent === 'function'){ await VyukaApp.requestFinalQuizContent(); }
                 else { console.error("VyukaApp.requestFinalQuizContent is not defined"); VyukaApp.showToast("Chyba: Funkce pro vyžádání testu chybí.", "error");}
             } else if (actionPayload === 'ACTION_USER_DECLINES_QUIZ') {
-                console.log("[QuickReply v29.7 AI] User declines final quiz. Continuing lesson.");
+                console.log("[QuickReply v29.8 AI] User declines final quiz. Continuing lesson.");
                 state.finalQuizOffered = false; state.finalQuizActive = false; state.aiIsWaitingForAnswer = false;
                 VyukaApp.manageUIState('learning');
                 if (typeof VyukaApp.addChatMessage === 'function') { VyukaApp.addChatMessage("Dobře, pokračujme ve výkladu. Klikni na 'Pokračovat' nebo polož otázku.", 'gemini'); }
                 if(ui.continueBtn) { ui.continueBtn.style.display = 'inline-flex'; ui.continueBtn.disabled = false; }
             } else if (actionPayload === 'ACTION_USER_MARKS_COMPLETE_AFTER_QUIZ') {
-                console.log("[QuickReply v29.7 AI] User marks topic complete after quiz.");
+                console.log("[QuickReply v29.8 AI] User marks topic complete after quiz.");
                 if (typeof VyukaApp.handleMarkTopicComplete === 'function') VyukaApp.handleMarkTopicComplete(true);
             } else if (actionPayload === 'ACTION_USER_CONTINUES_AFTER_QUIZ') {
-                console.log("[QuickReply v29.7 AI] User continues lesson after quiz evaluation.");
+                console.log("[QuickReply v29.8 AI] User continues lesson after quiz evaluation.");
                 state.finalQuizActive = false; state.finalQuizOffered = false; state.aiIsWaitingForAnswer = false;
                 if(typeof VyukaApp.clearWhiteboard === 'function') VyukaApp.clearWhiteboard(true);
                 VyukaApp.manageUIState('learning');
                 if (typeof VyukaApp.addChatMessage === 'function') { VyukaApp.addChatMessage("Dobře, k čemu by ses chtěl vrátit nebo co bychom mohli probrat dál k tomuto tématu?", 'gemini');}
                 state.aiIsWaitingForAnswer = true;
                 if(ui.continueBtn) ui.continueBtn.style.display = 'none';
-            } else { console.warn("[QuickReply v29.7 AI] Unknown action payload:", actionPayload); }
+            } else { console.warn("[QuickReply v29.8 AI] Unknown action payload:", actionPayload); }
              VyukaApp.manageButtonStates();
         };
 
@@ -280,7 +279,7 @@ window.VyukaApp = window.VyukaApp || {};
 
             state.lastInteractionTime = Date.now();
             if (state.aiIsWaitingForAnswer && !state.finalQuizActive && !state.finalQuizOffered) {
-                console.log("[HandleSend v29.7 AI] Resetting aiIsWaitingForAnswer state (standard flow).");
+                console.log("[HandleSend v29.8 AI] Resetting aiIsWaitingForAnswer state (standard flow).");
                 state.aiIsWaitingForAnswer = false;
             }
             VyukaApp.clearRateLimitRetry();
@@ -298,95 +297,91 @@ window.VyukaApp = window.VyukaApp || {};
     	VyukaApp.saveChatToPDF = async () => { const ui = VyukaApp.ui; const state = VyukaApp.state; if (!ui.chatMessages || ui.chatMessages.children.length === 0 || !!ui.chatMessages.querySelector('.initial-chat-interface')) { VyukaApp.showToast("Není co uložit.", "warning"); return; } if (typeof html2pdf === 'undefined') { VyukaApp.showToast("Chyba: PDF knihovna nenalezena.", "error"); console.error("html2pdf library is not loaded!"); return; } VyukaApp.showToast("Generuji PDF...", "info", 4000); const elementToExport = document.createElement('div'); elementToExport.style.padding = "15mm"; elementToExport.innerHTML = ` <style> body { font-family: 'Poppins', sans-serif; font-size: 10pt; line-height: 1.5; color: #333; } .chat-message { margin-bottom: 12px; max-width: 90%; page-break-inside: avoid; } .user { margin-left: 10%; } .model { margin-right: 10%; } .message-bubble { display: inline-block; padding: 8px 14px; border-radius: 15px; background-color: #e9ecef; } .user .message-bubble { background-color: #d1e7dd; } .message-timestamp { font-size: 8pt; color: #6c757d; margin-top: 4px; display: block; } .user .message-timestamp { text-align: right; } h1 { font-size: 16pt; color: #0d6efd; text-align: center; margin-bottom: 5px; } p.subtitle { font-size: 9pt; color: #6c757d; text-align: center; margin: 0 0 15px 0; } hr { border: 0; border-top: 1px solid #ccc; margin: 15px 0; } .tts-listen-btn, .message-avatar { display: none; } mjx-math { font-size: 1em; } pre { background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 0.8em; border-radius: 6px; overflow-x: auto; font-size: 0.9em; white-space: pre-wrap; word-wrap: break-word; } code { background-color: #e9ecef; padding: 0.1em 0.3em; border-radius: 3px; } pre code { background: none; padding: 0; } </style> <h1>Chat s AI Tutorem - ${VyukaApp.sanitizeHTML(state.currentTopic?.name || 'Neznámé téma')}</h1> <p class="subtitle">Vygenerováno: ${new Date().toLocaleString('cs-CZ')}</p> <hr> `; Array.from(ui.chatMessages.children).forEach(msgElement => { if (msgElement.classList.contains('chat-message') && !msgElement.id.startsWith('thinking-')) { const clone = msgElement.cloneNode(true); clone.querySelector('.message-avatar')?.remove(); clone.querySelector('.tts-listen-btn')?.remove(); elementToExport.appendChild(clone); } }); const filename = `chat-${state.currentTopic?.name?.replace(/[^a-z0-9]/gi, '_') || 'vyuka'}-${Date.now()}.pdf`; const pdfOptions = { margin: 15, filename: filename, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, logging: false }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }; try { await html2pdf().set(pdfOptions).from(elementToExport).save(); VyukaApp.showToast("Chat uložen jako PDF!", "success"); } catch (e) { console.error("PDF Generation Error:", e); VyukaApp.showToast("Chyba při generování PDF.", "error"); } };
 
         VyukaApp.parseGeminiResponse = (rawText) => {
-            console.log("[ParseGemini v29.7] Raw input:", rawText ? rawText.substring(0, 150) + "..." : "EMPTY");
-			const config = VyukaApp.config;
-            const boardMarkerLegacy = "[BOARD_MARKDOWN]:";
-            const keyConceptsMarker = "[KEY_CONCEPTS]:";
-            const detailedExplanationMarker = "[DETAILED_EXPLANATION]:";
-            const examplesMarker = "[EXAMPLES]:";
-			const ttsMarker = "[TTS_COMMENTARY]:";
-            const actionInitiateFinalQuizMarker = config.ACTION_INITIATE_FINAL_QUIZ;
-            const actionShowQuizOnBoardMarker = config.ACTION_SHOW_QUIZ_ON_BOARD;
-            const actionEvaluateBoardQuizMarker = config.ACTION_EVALUATE_BOARD_QUIZ;
+            console.log("[ParseGemini v29.8] Rewritten parser running...");
+            rawText = rawText || "";
+            const markers = [
+                "[KEY_CONCEPTS]:", "[DETAILED_EXPLANATION]:", "[EXAMPLES]:",
+                "[BOARD_MARKDOWN]:", "[TTS_COMMENTARY]:",
+                config.ACTION_INITIATE_FINAL_QUIZ, config.ACTION_SHOW_QUIZ_ON_BOARD, config.ACTION_EVALUATE_BOARD_QUIZ
+            ];
 
-            const createRegex = (marker) => new RegExp(`${marker.replace(/[[\]]/g, '\\[$&\\]')}\\s*(?:\`\`\`(?:markdown)?\\s*([\\s\\S]*?)\\s*\`\`\`|([\\s\\S]*?))(?=\\s*\\[KEY_CONCEPTS]:|\\s*\\[DETAILED_EXPLANATION]:|\\s*\\[EXAMPLES]:|\\s*\\[BOARD_MARKDOWN]:|\\s*\\[TTS_COMMENTARY]:|\\s*\\[ACTION:INITIATE_FINAL_QUIZ]|\\s*\\[ACTION:SHOW_QUIZ_ON_BOARD]|\\s*\\[ACTION:EVALUATE_BOARD_QUIZ]|$)`, 'i');
-
-            const boardRegexLegacy = createRegex(boardMarkerLegacy);
-            const keyConceptsRegex = createRegex(keyConceptsMarker);
-            const detailedExplanationRegex = createRegex(detailedExplanationMarker);
-            const examplesRegex = createRegex(examplesMarker);
-			const ttsRegex = createRegex(ttsMarker);
-
-            const actionQuizOfferRegex = new RegExp(`(${actionInitiateFinalQuizMarker.replace(/[[\]]/g, '\\[$&\\]')})`, 'i');
-            const actionShowQuizRegex = new RegExp(`(${actionShowQuizOnBoardMarker.replace(/[[\]]/g, '\\[$&\\]')})`, 'i');
-            const actionEvaluateQuizRegex = new RegExp(`(${actionEvaluateBoardQuizMarker.replace(/[[\]]/g, '\\[$&\\]')})`, 'i');
-
-			let remainingText = rawText || "";
-            let keyConcepts = "";
-            let detailedExplanation = "";
-            let examples = "";
-			let ttsCommentary = "";
-			let actionSignal = null;
-            let legacyBoardMarkdown = "";
-
-            const extractContent = (text, regex) => {
-                const match = text.match(regex);
-                if (match) {
-                    let content = (match[1] || match[2] || "").trim();
-                    if (content.toLowerCase().startsWith('markdown')) {
-                        const nl = content.indexOf('\n');
-                        if (nl !== -1 && nl < 15) content = content.substring(nl + 1).trim();
-                        else if (content.length < 15) content = "";
-                    }
-                    return { content, remaining: text.replace(match[0], "").trim() };
-                }
-                return { content: "", remaining: text };
+            const result = {
+                keyConcepts: "",
+                detailedExplanation: "",
+                examples: "",
+                ttsCommentary: "",
+                chatText: "",
+                actionSignal: null,
+                legacyBoardMarkdown: ""
             };
 
-            if (remainingText.match(actionQuizOfferRegex)) { actionSignal = 'INITIATE_FINAL_QUIZ'; remainingText = remainingText.replace(actionQuizOfferRegex, "").trim(); }
-            else if (remainingText.match(actionShowQuizRegex)) { actionSignal = 'SHOW_QUIZ_ON_BOARD'; remainingText = remainingText.replace(actionShowQuizRegex, "").trim(); }
-            else if (remainingText.match(actionEvaluateQuizRegex)) { actionSignal = 'EVALUATE_BOARD_QUIZ'; remainingText = remainingText.replace(actionEvaluateQuizRegex, "").trim(); }
+            // Find all marker positions
+            const foundMarkers = [];
+            markers.forEach(marker => {
+                let pos = -1;
+                while ((pos = rawText.indexOf(marker, pos + 1)) !== -1) {
+                    foundMarkers.push({ marker, pos });
+                }
+            });
 
-            if (actionSignal && remainingText.length === 0) {
-                return { keyConcepts, detailedExplanation, examples, ttsCommentary, chatText: "", actionSignal, legacyBoardMarkdown };
+            // If no markers found, it could be a simple chat response or unformatted board content
+            if (foundMarkers.length === 0) {
+                 if (rawText.trim().length > 0) {
+                    result.chatText = rawText.trim();
+                    console.log("[ParseGemini v29.8] No markers found. Assuming entire response is chatText.");
+                 }
+                 return result;
             }
 
-            let extractionResult;
-            extractionResult = extractContent(remainingText, keyConceptsRegex); keyConcepts = extractionResult.content; remainingText = extractionResult.remaining;
-            extractionResult = extractContent(remainingText, detailedExplanationRegex); detailedExplanation = extractionResult.content; remainingText = extractionResult.remaining;
-            extractionResult = extractContent(remainingText, examplesRegex); examples = extractionResult.content; remainingText = extractionResult.remaining;
-            extractionResult = extractContent(remainingText, ttsRegex); ttsCommentary = extractionResult.content; remainingText = extractionResult.remaining;
+            // Sort markers by their position in the text
+            foundMarkers.sort((a, b) => a.pos - b.pos);
 
-            if (!keyConcepts && !detailedExplanation && !examples) {
-                if (remainingText.match(boardRegexLegacy)) {
-                    extractionResult = extractContent(remainingText, boardRegexLegacy);
-                    legacyBoardMarkdown = extractionResult.content;
-                    remainingText = extractionResult.remaining;
-                    console.log("[ParseGemini v29.7] Fallback: Used legacy [BOARD_MARKDOWN].");
-                } else if (remainingText.trim().length > MIN_LENGTH_FOR_BOARD_FALLBACK && !actionSignal) {
-                    // If substantial text remains AND it's not mostly the same as TTS, consider it board content
-                    const trimmedRemaining = remainingText.trim();
-                    const trimmedTTS = ttsCommentary.trim();
-                    if (!trimmedTTS || !trimmedRemaining.includes(trimmedTTS) || trimmedRemaining.length > trimmedTTS.length + 50) { // Basic check for non-overlap
-                        legacyBoardMarkdown = trimmedRemaining;
-                        remainingText = "";
-                        console.log("[ParseGemini v29.7] Fallback: Significant remaining text assigned to legacyBoardMarkdown.");
-                    }
+            // Text before the first marker is considered chat text
+            const firstMarkerPos = foundMarkers[0].pos;
+            if (firstMarkerPos > 0) {
+                result.chatText = rawText.substring(0, firstMarkerPos).trim();
+            }
+
+            // Extract content for each marker
+            for (let i = 0; i < foundMarkers.length; i++) {
+                const current = foundMarkers[i];
+                const next = foundMarkers[i + 1];
+
+                const contentStart = current.pos + current.marker.length;
+                const contentEnd = next ? next.pos : rawText.length;
+
+                let content = rawText.substring(contentStart, contentEnd).trim();
+
+                // Clean ```markdown ... ``` blocks
+                if (content.startsWith("```markdown")) {
+                    content = content.substring("```markdown".length).trim();
+                }
+                if (content.startsWith("```")) {
+                    content = content.substring("```".length).trim();
+                }
+                if (content.endsWith("```")) {
+                    content = content.substring(0, content.length - "```".length).trim();
+                }
+
+                switch (current.marker) {
+                    case "[KEY_CONCEPTS]:":          result.keyConcepts = content; break;
+                    case "[DETAILED_EXPLANATION]:":  result.detailedExplanation = content; break;
+                    case "[EXAMPLES]:":              result.examples = content; break;
+                    case "[TTS_COMMENTARY]:":        result.ttsCommentary = content; break;
+                    case "[BOARD_MARKDOWN]:":        result.legacyBoardMarkdown = content; break;
+                    case config.ACTION_INITIATE_FINAL_QUIZ: result.actionSignal = 'INITIATE_FINAL_QUIZ'; break;
+                    case config.ACTION_SHOW_QUIZ_ON_BOARD:  result.actionSignal = 'SHOW_QUIZ_ON_BOARD'; break;
+                    case config.ACTION_EVALUATE_BOARD_QUIZ: result.actionSignal = 'EVALUATE_BOARD_QUIZ'; break;
                 }
             }
-			let chatText = remainingText.trim();
-            const markerRegexGlobal = /(\[(?:KEY_CONCEPTS|DETAILED_EXPLANATION|EXAMPLES|BOARD_MARKDOWN|TTS_COMMENTARY|ACTION:[A-Z_]+)\]:?)/gi;
-            if (chatText.replace(markerRegexGlobal, "").trim() === "") {
-                chatText = "";
-            }
+            console.log(`[ParseGemini v29.8] Results - KC: ${!!result.keyConcepts}, DE: ${!!result.detailedExplanation}, EX: ${!!result.examples}, TTS: ${!!result.ttsCommentary}, Chat: "${result.chatText.substring(0,30)}...", Action: ${result.actionSignal}, LegacyBoard: ${!!result.legacyBoardMarkdown}`);
+            return result;
+        };
 
-            console.log(`[ParseGemini v29.7] Results - KC: ${!!keyConcepts}, DE: ${!!detailedExplanation}, EX: ${!!examples}, TTS: "${ttsCommentary.substring(0,30)}...", Chat: "${chatText.substring(0,30)}...", Action: ${actionSignal}, LegacyBoard: ${!!legacyBoardMarkdown}`);
-			return { keyConcepts, detailedExplanation, examples, ttsCommentary, chatText, actionSignal, legacyBoardMarkdown };
-		};
 
     	VyukaApp.processGeminiResponse = async (rawText, timestamp) => {
 			const state = VyukaApp.state; VyukaApp.removeThinkingIndicator(); state.lastInteractionTime = Date.now();
-			console.log("[ProcessGemini v29.7] Processing Raw Response:", rawText ? rawText.substring(0, 100) + "..." : "Empty");
+			console.log("[ProcessGemini v29.8] Processing Raw Response:", rawText ? rawText.substring(0, 100) + "..." : "Empty");
 			if (!rawText) { VyukaApp.handleGeminiError("AI vrátilo prázdnou odpověď.", timestamp); VyukaApp.manageButtonStates(); return; }
 
             VyukaApp.clearRateLimitRetry();
@@ -396,23 +391,21 @@ window.VyukaApp = window.VyukaApp || {};
             let aiRespondedToChat = false;
 			let cleanedChatText = "";
             if (typeof VyukaApp.cleanChatMessage === 'function') { cleanedChatText = VyukaApp.cleanChatMessage(chatText); } else { cleanedChatText = chatText.trim(); }
-            console.log(`[ProcessGemini v29.7] Parsed-> KC: ${!!keyConcepts}, DE: ${!!detailedExplanation}, EX: ${!!examples}, TTS: "${ttsCommentary.substring(0,50)}...", Chat: "${cleanedChatText.substring(0,50)}...", Action: ${actionSignal}, LegacyBoard: ${!!legacyBoardMarkdown}`);
-
-            const isInitialAiResponse = state.geminiChatContext.length <= 2;
+            console.log(`[ProcessGemini v29.8] Parsed-> KC: ${!!keyConcepts}, DE: ${!!detailedExplanation}, EX: ${!!examples}, TTS: "${ttsCommentary.substring(0,50)}...", Chat: "${cleanedChatText.substring(0,50)}...", Action: ${actionSignal}, LegacyBoard: ${!!legacyBoardMarkdown}`);
 
             if (actionSignal === 'INITIATE_FINAL_QUIZ') {
-                console.log("[ProcessGemini v29.7] AI offers final quiz."); aiRespondedToChat = true; state.finalQuizOffered = true; state.aiIsWaitingForAnswer = true;
+                console.log("[ProcessGemini v29.8] AI offers final quiz."); aiRespondedToChat = true; state.finalQuizOffered = true; state.aiIsWaitingForAnswer = true;
                 if (VyukaApp.ui.continueBtn) VyukaApp.ui.continueBtn.style.display = 'none';
                 VyukaApp.addChatMessage("Výborně! Zdá se, že toto téma už máš v malíku. Chceš si dát krátký závěrečný test na ověření znalostí?", 'gemini', true, new Date(), null, null, [{ title: "Ano, spustit test!", payload: "ACTION_USER_ACCEPTS_QUIZ" }, { title: "Ne, díky.", payload: "ACTION_USER_DECLINES_QUIZ" }]);
                 VyukaApp.manageUIState('quizOffered'); return;
             } else if (actionSignal === 'SHOW_QUIZ_ON_BOARD') {
-                console.log("[ProcessGemini v29.7] AI provides quiz content for board."); aiRespondedToBoard = true;
+                console.log("[ProcessGemini v29.8] AI provides quiz content for board."); aiRespondedToBoard = true;
                 const boardContentForQuiz = detailedExplanation || keyConcepts || examples || legacyBoardMarkdown;
                 if (boardContentForQuiz) { await VyukaApp.renderQuizOnBoard(boardContentForQuiz); state.aiIsWaitingForAnswer = false; }
                 else { VyukaApp.handleGeminiError("AI neposkytlo obsah finálního testu pro tabuli.", timestamp); }
                 VyukaApp.manageUIState('finalQuizInProgress'); return;
             } else if (actionSignal === config.ACTION_EVALUATE_BOARD_QUIZ) {
-                console.log("[ProcessGemini v29.7] AI provides quiz evaluation for board.");
+                console.log("[ProcessGemini v29.8] AI provides quiz evaluation for board.");
                 state.finalQuizActive = false; state.aiIsWaitingForAnswer = false;
                 const boardContentForEval = detailedExplanation || keyConcepts || examples || legacyBoardMarkdown;
                 if (boardContentForEval) { VyukaApp.appendToWhiteboard({ type: 'detailed_explanation', content: boardContentForEval }, ttsCommentary || "Výsledky testu jsou na tabuli."); aiRespondedToBoard = true; }
@@ -427,7 +420,7 @@ window.VyukaApp = window.VyukaApp || {};
                 VyukaApp.manageUIState('quizEvaluated'); return;
             }
 
-            let ttsForBoard = ttsCommentary; // TTS pro první сегмент доски
+            let ttsForBoard = ttsCommentary;
 
             if (keyConcepts) { VyukaApp.appendToWhiteboard({ type: 'key_concepts', content: keyConcepts }, ttsForBoard); aiRespondedToBoard = true; if(ttsForBoard) ttsForBoard = null; }
             if (detailedExplanation) { VyukaApp.appendToWhiteboard({ type: 'detailed_explanation', content: detailedExplanation }, ttsForBoard); aiRespondedToBoard = true; if(ttsForBoard) ttsForBoard = null; }
@@ -438,21 +431,8 @@ window.VyukaApp = window.VyukaApp || {};
                 aiRespondedToBoard = true; if(ttsForBoard) ttsForBoard = null;
             }
 
-            // Логика для отображения сообщения в чате
             if (cleanedChatText) {
-                const isChatOnlyPlaceholder = cleanedChatText.trim() === "(Poslechněte si komentář)";
-                // Если был контент на доске И был TTS комментарий (теперь ttsForBoard должен быть null, если он был использован)
-                // И cleanedChatText - это просто тот же самый TTS комментарий или плейсхолдер, ТО НЕ добавляем в чат
-                if (aiRespondedToBoard && ttsCommentary && ttsForBoard === null && (cleanedChatText.toLowerCase() === ttsCommentary.toLowerCase() || isChatOnlyPlaceholder)) {
-                     console.log("[ProcessGemini v29.7] Board content & its TTS handled. Suppressing redundant chat message.");
-                } else {
-                    // В остальных случаях (текст чата отличается, или TTS не был использован для доски, или не было контента на доске) - добавляем в чат
-                    // Передаем ttsCommentary для кнопки "послушать" в чате, если он релевантен
-                    VyukaApp.addChatMessage(cleanedChatText, 'gemini', true, timestamp, ttsCommentary, chatText);
-                    aiRespondedToChat = true;
-                }
-            } else if (ttsForBoard && !aiRespondedToBoard) { // Если остался TTS комментарий и ничего не было на доске
-                VyukaApp.addChatMessage(`(Hlasový komentář: ${ttsForBoard})`, 'gemini', true, timestamp, ttsForBoard, ttsForBoard);
+                VyukaApp.addChatMessage(cleanedChatText, 'gemini', true, timestamp, ttsCommentary, chatText);
                 aiRespondedToChat = true;
             }
 
@@ -473,8 +453,13 @@ window.VyukaApp = window.VyukaApp || {};
 
 
             if (!aiRespondedToBoard && !aiRespondedToChat) {
-                VyukaApp.addChatMessage("(AI neodpovědělo očekávaným formátem nebo odpověď byla prázdná)", 'gemini', false, timestamp);
-                state.aiIsWaitingForAnswer = false;
+                // If TTS was the only thing returned, speak it.
+                if (ttsCommentary) {
+                    VyukaApp.speakText(ttsCommentary, null);
+                } else {
+                    VyukaApp.addChatMessage("(AI neodpovědělo očekávaným formátem nebo odpověď byla prázdná)", 'gemini', false, timestamp);
+                    state.aiIsWaitingForAnswer = false;
+                }
             }
 
             if (VyukaApp.ui.continueBtn) VyukaApp.ui.continueBtn.disabled = state.aiIsWaitingForAnswer || state.geminiIsThinking;
@@ -483,7 +468,7 @@ window.VyukaApp = window.VyukaApp || {};
 
         VyukaApp.requestFinalQuizContent = async () => {
             const state = VyukaApp.state;
-            console.log("[RequestFinalQuizContent v29.7 AI] Requesting quiz content for board.");
+            console.log("[RequestFinalQuizContent v29.8 AI] Requesting quiz content for board.");
             VyukaApp.updateGeminiThinkingState(true);
             VyukaApp.clearRateLimitRetry();
             const prompt = VyukaApp._buildFinalQuizPromptForBoard();
@@ -491,7 +476,7 @@ window.VyukaApp = window.VyukaApp || {};
         };
 
         VyukaApp.renderQuizOnBoard = async (quizMarkdownWithPlaceholders) => {
-            console.log("[RenderQuizOnBoard v29.7 AI] Rendering quiz on whiteboard with input fields.");
+            console.log("[RenderQuizOnBoard v29.8 AI] Rendering quiz on whiteboard with input fields.");
             const ui = VyukaApp.ui; const state = VyukaApp.state;
             if (!ui.whiteboardContent || !ui.whiteboardContainer) return;
             state.quizQuestionsForBoard = []; if(typeof VyukaApp.clearWhiteboard === 'function') VyukaApp.clearWhiteboard(false);
@@ -528,12 +513,12 @@ window.VyukaApp = window.VyukaApp || {};
                 if (ui.vyukaLessonControls) ui.vyukaLessonControls.style.justifyContent = 'center';
             }
             if (typeof VyukaApp.triggerWhiteboardMathJax === 'function') VyukaApp.triggerWhiteboardMathJax(); if (ui.whiteboardContainer) ui.whiteboardContainer.scrollTop = 0;
-            console.log("[RenderQuizOnBoard v29.7 AI] Quiz rendered with input fields.");
+            console.log("[RenderQuizOnBoard v29.8 AI] Quiz rendered with input fields.");
         };
 
         VyukaApp.handleSubmitQuiz = async () => {
             const state = VyukaApp.state;
-            console.log("[SubmitQuiz v29.7 AI] Submitting quiz answers.");
+            console.log("[SubmitQuiz v29.8 AI] Submitting quiz answers.");
             state.quizQuestionsForBoard.forEach(q => { const inputElement = document.getElementById(`quiz-answer-${q.id}`); if (inputElement) { q.userAnswer = inputElement.value.trim(); } });
             VyukaApp.updateGeminiThinkingState(true);
             VyukaApp.clearRateLimitRetry();
@@ -718,7 +703,7 @@ TVŮJ ÚKOL:
 
     	VyukaApp.sendToGemini = async (prompt, isChatInteraction = false) => {
 			const config = VyukaApp.config; const state = VyukaApp.state;
-            let currentResponse; // Объявляем переменную здесь, чтобы она была доступна в finally
+            let currentResponse;
 
 			if (!config.GEMINI_API_KEY || !config.GEMINI_API_KEY.startsWith('AIzaSy')) { VyukaApp.showToast("Chyba Konfigurace", "Chybí API klíč pro AI.", "error"); VyukaApp.updateGeminiThinkingState(false); return; }
             if (!state.currentTopic && !state.finalQuizActive && !state.finalQuizOffered ) { VyukaApp.showToast("Chyba", "Není vybráno téma nebo aktivní kvíz.", "error"); VyukaApp.updateGeminiThinkingState(false); return; }
@@ -741,7 +726,7 @@ TVŮJ ÚKOL:
                             VyukaApp.sendToGemini(lastFailedRequestArgs.prompt, lastFailedRequestArgs.isChatInteraction);
                         }, RATE_LIMIT_RETRY_DELAY);
                     } else {
-                        console.error(`API Rate Limit Exceeded (429). Max retries reached. Last error text was attempted to be read but might be empty.`);
+                        console.error(`API Rate Limit Exceeded (429). Max retries reached.`);
                         VyukaApp.showRateLimitMessage(false);
                         throw new Error(`Chyba API (429): Překročena kvóta. Maximální počet pokusů odeslání byl dosažen.`);
                     }
@@ -769,12 +754,11 @@ TVŮJ ÚKOL:
                 }
                 VyukaApp.handleGeminiError(error.message, timestamp);
 			} finally {
-                if (currentResponse && currentResponse.status !== 429) { // Проверяем, что currentResponse определен
+                if (currentResponse && currentResponse.status !== 429) {
                    VyukaApp.updateGeminiThinkingState(false);
-                } else if (!currentResponse) { // Если currentResponse не определен (ошибка до fetch)
+                } else if (!currentResponse) {
                     VyukaApp.updateGeminiThinkingState(false);
                 }
-                // Если status === 429, updateGeminiThinkingState(false) уже был вызван выше
                 VyukaApp.manageButtonStates();
             }
 		};
@@ -786,7 +770,7 @@ TVŮJ ÚKOL:
             }
             rateLimitRetryCount = 0;
             lastFailedRequestArgs = null;
-            if (typeof VyukaApp.showRateLimitMessage === 'function') { // Проверка перед вызовом
+            if (typeof VyukaApp.showRateLimitMessage === 'function') {
                 VyukaApp.showRateLimitMessage(false);
             }
             console.log("[RateLimit] Retry mechanism cleared.");
@@ -812,7 +796,7 @@ TVŮJ ÚKOL:
 		};
 
 	} catch (e) {
-		console.error("FATAL SCRIPT ERROR (AI Interaction v29.7 - Revolutionary Update):", e);
+		console.error("FATAL SCRIPT ERROR (AI Interaction v29.8 - Revolutionary Update):", e);
 		document.body.innerHTML = `<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:var(--vyuka-accent-error,#FF4757);color:var(--vyuka-text-primary,#E0E7FF);padding:40px;text-align:center;font-family:sans-serif;z-index:9999;"><h1>KRITICKÁ CHYBA SYSTÉMU</h1><p>Nelze spustit modul výuky (AI Interaction).</p><p style="margin-top:15px;"><a href="#" onclick="location.reload()" style="color:var(--vyuka-accent-secondary,#00F5FF); text-decoration:underline; font-weight:bold;">Obnovit stránku</a></p><details style="margin-top:20px;color:#f0f0f0;"><summary style="cursor:pointer;color:var(--vyuka-text-primary,#E0E7FF);">Detaily</summary><pre style="margin-top:10px;padding:15px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.2);font-size:0.8em;white-space:pre-wrap;text-align:left;max-height:300px; overflow-y:auto; border-radius:8px;">${e.message}\n${e.stack}</pre></details></div>`;
 	}
 })(window.VyukaApp);
