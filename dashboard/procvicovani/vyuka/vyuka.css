@@ -1,4 +1,4 @@
-/* dashboard/procvicovani/vyuka/vyuka.css - REVOLUTIONARY UPDATE v30 - DYNAMIC & ANIMATED INTERFACE */
+/* dashboard/procvicovani/vyuka/vyuka.css - REVOLUTIONARY UPDATE v31 - GLOWING EDGES & DEEP SPACE */
 
 /* --- :root (Основные переменные) --- */
 :root {
@@ -11,7 +11,7 @@
     /* Цветовая палитра */
     --vyuka-bg-dark: #02040A;
     --vyuka-bg-dark-rgb: 2, 4, 10;
-    --vyuka-bg-panel: rgba(10, 15, 28, 0.75); /* Полупрозрачный для эффекта стекла */
+    --vyuka-bg-panel: rgba(10, 15, 28, 0.75);
     --vyuka-bg-panel-rgb: 10, 15, 28;
     --vyuka-bg-panel-lighter: #111827;
     --vyuka-bg-panel-lighter-rgb: 17, 24, 39;
@@ -45,79 +45,91 @@
     --vyuka-text-on-accent: #02040A;
 
     /* Размеры */
-    --vyuka-sidebar-width-expanded: 250px;
+    --vyuka-sidebar-width-expanded: 260px; /* Slightly wider */
     --vyuka-sidebar-width-collapsed: 72px;
     --vyuka-header-height: 64px;
     --vyuka-main-content-padding: 2rem;
     --vyuka-main-content-gap: 2rem;
-    --vyuka-footer-current-approx-height: 85px;
 
     /* Радиусы и тени */
-    --vyuka-card-radius: 12px; /* Более острые углы */
+    --vyuka-card-radius: 12px;
     --vyuka-button-radius: 8px;
     --vyuka-input-radius: 8px;
     --vyuka-panel-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 1px 1px rgba(var(--white-rgb),0.05);
-    --vyuka-text-glow-primary: 0 0 7px var(--vyuka-accent-primary);
-    --vyuka-text-glow-secondary: 0 0 7px var(--vyuka-accent-secondary);
-    --vyuka-cyber-glow-primary: 0 0 10px rgba(var(--vyuka-accent-primary-rgb), 0.5), 0 0 20px rgba(var(--vyuka-accent-primary-rgb), 0.3);
-    --vyuka-cyber-glow-secondary: 0 0 10px rgba(var(--vyuka-accent-secondary-rgb), 0.5), 0 0 20px rgba(var(--vyuka-accent-secondary-rgb), 0.3);
+    --vyuka-text-glow-primary: 0 0 8px var(--vyuka-accent-primary);
+    --vyuka-text-glow-secondary: 0 0 8px var(--vyuka-accent-secondary);
+    --vyuka-cyber-glow-primary: 0 0 12px rgba(var(--vyuka-accent-primary-rgb), 0.6), 0 0 24px rgba(var(--vyuka-accent-primary-rgb), 0.4);
+    --vyuka-cyber-glow-secondary: 0 0 12px rgba(var(--vyuka-accent-secondary-rgb), 0.6), 0 0 24px rgba(var(--vyuka-accent-secondary-rgb), 0.4);
 
     /* Анимации */
     --animation-duration-fast: 0.25s;
     --animation-duration-medium: 0.4s;
     --animation-duration-slow: 0.6s;
-    --animation-timing-cyber: cubic-bezier(0.16, 1, 0.3, 1); /* Плавный выход */
+    --animation-timing-cyber: cubic-bezier(0.16, 1, 0.3, 1);
 }
-
 
 /* --- Базовые стили и фон --- */
 *, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; font-size: 16px; height: 100%; overflow-x: hidden; }
+html { scroll-behavior: smooth; font-size: 16px; height: 100%; overflow: hidden; } /* Overflow on html */
 body.new-vyuka-layout {
     font-family: var(--vyuka-font-primary);
     background-color: var(--vyuka-bg-dark);
     color: var(--vyuka-text-primary);
     margin: 0; padding: 0; display: flex;
-    min-height: 100%;
-    overflow: hidden; /* Скролл на дочернем элементе */
+    height: 100vh; /* Full viewport height */
+    overflow: hidden;
     position: relative;
-    /* Улучшенный фон с несколькими слоями */
+    /* --- NEW: Улучшенный фон с "цифровым дождем" и туманностями --- */
     background-image:
-        linear-gradient(rgba(var(--vyuka-border-color), 0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(var(--vyuka-border-color), 0.05) 1px, transparent 1px),
-        url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Cdefs%3E%3CradialGradient id="grad1" cx="50%25" cy="50%25" r="50%25" fx="50%25" fy="50%25"%3E%3Cstop offset="0%25" style="stop-color:rgba(10,15,28,0.1);stop-opacity:1" /%3E%3Cstop offset="100%25" style="stop-color:rgba(10,15,28,0);stop-opacity:1" /%3E%3C/radialGradient%3E%3C/defs%3E%3Crect x="0" y="0" width="100" height="100" fill="url(%23grad1)"/%3E%3C/svg%3E');
-    background-size: 25px 25px, 25px 25px, 100px 100px;
-    animation: bg-pan-3d 80s linear infinite;
-}
-@keyframes bg-pan-3d {
-    0% { background-position: 0 0, 0 0, 0 0; }
-    100% { background-position: 500px 500px, 250px -250px, -100px -100px; }
+        /* Layer 4: Digital Rain */
+        linear-gradient(0deg, transparent 0%, rgba(var(--vyuka-accent-secondary-rgb), 0.1) 50%, transparent 100%),
+        /* Layer 3: Grid */
+        linear-gradient(rgba(var(--vyuka-border-color), 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(var(--vyuka-border-color), 0.07) 1px, transparent 1px),
+        /* Layer 2: Base dark color */
+        linear-gradient(var(--vyuka-bg-dark), var(--vyuka-bg-dark));
+    background-size: 3px 100%, 25px 25px, 25px 25px, 100% 100%;
+    animation:
+        digital-rain 20s linear infinite,
+        bg-pan-3d 80s linear infinite;
 }
 
+@keyframes digital-rain {
+    from { background-position: 0 0, 0 0, 0 0, 0 0; }
+    to { background-position: 0 100vh, 0 0, 0 0, 0 0; }
+}
+@keyframes bg-pan-3d {
+    0% { background-position: 0 0, 0 0, 0 0, 0 0; }
+    100% { background-position: 0 0, 500px 500px, 250px -250px, 0 0; }
+}
+
+/* --- NEW: Дополнительный слой с туманностями --- */
 body.new-vyuka-layout::before {
     content: '';
     position: fixed;
     inset: 0;
     z-index: -1;
-    background: radial-gradient(ellipse at 15% 25%, rgba(var(--vyuka-accent-primary-rgb), 0.07) 0%, transparent 45%),
-                radial-gradient(ellipse at 85% 75%, rgba(var(--vyuka-accent-secondary-rgb), 0.09) 0%, transparent 50%);
+    background:
+        radial-gradient(ellipse at 15% 25%, rgba(var(--vyuka-accent-primary-rgb), 0.1) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 75%, rgba(var(--vyuka-accent-secondary-rgb), 0.12) 0%, transparent 55%),
+        radial-gradient(circle at 50% 90%, rgba(var(--vyuka-accent-tertiary-rgb), 0.08) 0%, transparent 40%);
     pointer-events: none;
     animation: bg-lights-pan 45s ease-in-out infinite alternate;
 }
 @keyframes bg-lights-pan {
-    from { transform: translate(-5%, -5%); }
-    to { transform: translate(5%, 5%); }
+    from { transform: translate(-5%, -5%) rotate(0deg); }
+    to { transform: translate(5%, 5%) rotate(10deg); }
 }
 
 h1, h2, h3 { font-family: var(--vyuka-font-secondary); color: var(--vyuka-text-heading); text-shadow: 0 1px 3px rgba(0,0,0,0.4); margin:0; }
 a { color: var(--vyuka-text-link); text-decoration: none; transition: color var(--animation-duration-fast) ease, text-shadow var(--animation-duration-fast) ease; }
-a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka-text-link-hover); }
+a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka-text-link); }
 
 /* --- Структура Layoutu --- */
 .vyuka-page-container {
     flex-grow: 1; margin-left: var(--vyuka-sidebar-width-collapsed);
     display: flex; flex-direction: column;
-    height: 100vh;
+    height: 100%;
     transition: margin-left var(--animation-duration-medium) var(--animation-timing-cyber);
     background-color: transparent;
     overflow: hidden;
@@ -135,7 +147,7 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
 
 .vyuka-header {
     height: var(--vyuka-header-height);
-    background-color: rgba(var(--vyuka-bg-panel-rgb), 0.5); /* Более прозрачный */
+    background-color: rgba(var(--vyuka-bg-panel-rgb), 0.5);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--vyuka-border-color);
     display: flex; align-items: center; justify-content: space-between;
@@ -150,95 +162,51 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
     display: flex; flex-grow: 1;
     padding: var(--vyuka-main-content-padding); gap: var(--vyuka-main-content-gap);
     position: relative; z-index: 10; min-height: 0;
+    /* --- NEW: Отступ снизу для футера --- */
+    padding-bottom: calc(var(--vyuka-main-content-padding) + 2rem);
 }
-/* Анимация появления панелей */
-.vyuka-whiteboard-area, .vyuka-chat-panel {
-    animation: panel-glitch-in 0.7s var(--animation-timing-cyber) forwards;
-    opacity: 0;
-}
-.vyuka-chat-panel {
-    animation-delay: 0.1s;
-}
-
-@keyframes panel-glitch-in {
-    0% {
-        opacity: 0;
-        transform: translateY(20px) scale(0.98);
-        filter: blur(3px) brightness(2);
-        box-shadow: 0 0 5px rgba(var(--vyuka-accent-primary-rgb), 0.4), 0 0 10px rgba(var(--vyuka-accent-secondary-rgb), 0.4);
-    }
-    40% {
-        opacity: 0.8;
-        filter: blur(1px) brightness(1.2);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        filter: blur(0) brightness(1);
-        box-shadow: var(--vyuka-panel-shadow);
-    }
-}
-
 
 /* --- Левый Sidebar --- */
 .vyuka-sidebar-ai {
     width: var(--vyuka-sidebar-width-collapsed);
-    background: linear-gradient(170deg, rgba(var(--vyuka-bg-panel-lighter-rgb), 0.95), rgba(var(--vyuka-bg-panel-rgb), 0.98));
-    backdrop-filter: blur(10px);
-    border-right: 1px solid var(--vyuka-border-color);
+    background: linear-gradient(170deg, rgba(17, 24, 39, 0.9), rgba(10, 15, 28, 0.95));
+    backdrop-filter: blur(15px) saturate(1.2);
     display: flex; flex-direction: column;
     padding: 1rem 0;
     transition: width var(--animation-duration-medium) var(--animation-timing-cyber), box-shadow var(--animation-duration-medium) ease;
     height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000;
     box-shadow: 8px 0 40px -10px rgba(0,0,0,0.6);
+    border-right: none; /* Убираем обычную рамку, заменяем на псевдо-элемент */
+}
+/* --- NEW: Светящаяся граница для Sidebar --- */
+.vyuka-sidebar-ai::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(to bottom, transparent, var(--vyuka-accent-primary), var(--vyuka-accent-secondary), transparent);
+    box-shadow: 0 0 10px rgba(var(--vyuka-accent-primary-rgb), 0.5);
+    opacity: 0.7;
+    transition: opacity 0.3s ease, box-shadow 0.3s ease;
+}
+.vyuka-sidebar-ai:hover::after {
+    opacity: 1;
+    box-shadow: 0 0 20px rgba(var(--vyuka-accent-primary-rgb), 0.7);
 }
 .vyuka-sidebar-ai.expanded {
     width: var(--vyuka-sidebar-width-expanded);
     box-shadow: 12px 0 60px -15px rgba(0,0,0,0.7), 0 0 20px rgba(var(--vyuka-accent-primary-rgb), 0.1);
 }
 
-.vyuka-sidebar-ai-header {
-    padding: 0 1rem;
-    margin-bottom: 2rem;
-}
-
-.vyuka-sidebar-ai-logo {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    color: var(--vyuka-text-heading);
-    text-decoration: none;
-    font-size: 1.5rem;
-    font-family: var(--vyuka-font-accent);
-}
-
-.vyuka-sidebar-ai-logo i {
-    color: var(--vyuka-accent-secondary);
-    text-shadow: var(--vyuka-text-glow-secondary);
-    transition: transform 0.4s var(--animation-timing-cyber);
-}
-.vyuka-sidebar-ai-logo:hover i {
-    transform: rotate(360deg) scale(1.1);
-}
-
-.vyuka-sidebar-ai-logo .logo-text {
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0s 0.3s;
-    font-size: 1rem;
-}
-.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-logo .logo-text {
-    opacity: 1;
-    visibility: visible;
-    transition-delay: 0.1s;
-}
-
-.vyuka-sidebar-ai-menu {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    flex-grow: 1;
-}
+.vyuka-sidebar-ai-header { padding: 0 1rem; margin-bottom: 2rem; }
+.vyuka-sidebar-ai-logo { display: flex; align-items: center; gap: 0.8rem; color: var(--vyuka-text-heading); text-decoration: none; font-size: 1.5rem; font-family: var(--vyuka-font-accent); }
+.vyuka-sidebar-ai-logo i { color: var(--vyuka-accent-secondary); text-shadow: var(--vyuka-text-glow-secondary); transition: transform 0.4s var(--animation-timing-cyber); }
+.vyuka-sidebar-ai-logo:hover i { transform: rotate(360deg) scale(1.1); }
+.vyuka-sidebar-ai-logo .logo-text { opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; font-size: 1rem; }
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-logo .logo-text { opacity: 1; visibility: visible; transition-delay: 0.1s; }
+.vyuka-sidebar-ai-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
 
 .vyuka-sidebar-ai-link {
     display: flex;
@@ -250,7 +218,6 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
     overflow: hidden;
     transition: color var(--animation-duration-fast) ease, background-color var(--animation-duration-fast) ease;
 }
-
 .vyuka-sidebar-ai-link::before {
     content: '';
     position: absolute;
@@ -261,93 +228,58 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
     background: linear-gradient(90deg, transparent, rgba(var(--vyuka-accent-secondary-rgb), 0.2), transparent);
     transition: left 0.4s ease;
 }
-
-.vyuka-sidebar-ai-link:hover {
-    color: var(--vyuka-text-heading);
-}
-
-.vyuka-sidebar-ai-link:hover::before {
-    left: 100%;
-}
-
-
-.vyuka-sidebar-ai-link i {
-    font-size: 1.1rem;
-    width: 24px;
-    text-align: center;
-    margin-right: 1.5rem;
-    transition: color 0.3s ease, transform 0.3s ease, text-shadow 0.3s ease;
-}
-
-.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link i {
-    margin-right: 1rem;
-}
-.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link i {
-    margin-right: 0;
-}
-
-
-.vyuka-sidebar-ai-link .link-text {
-    font-weight: 500;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0s 0.3s;
-}
-.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link .link-text {
-    opacity: 1;
-    visibility: visible;
-    transition-delay: 0.1s;
-}
-
+.vyuka-sidebar-ai-link:hover { color: var(--vyuka-text-heading); }
+.vyuka-sidebar-ai-link:hover::before { left: 100%; }
+.vyuka-sidebar-ai-link i { font-size: 1.1rem; width: 24px; text-align: center; margin-right: 1.5rem; transition: all 0.3s ease; }
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link i { margin-right: 1rem; }
+.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link i { margin-right: 0; }
+.vyuka-sidebar-ai-link .link-text { font-weight: 500; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; }
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link .link-text { opacity: 1; visibility: visible; transition-delay: 0.1s; }
 
 .vyuka-sidebar-ai-link.active {
     background: linear-gradient(90deg, rgba(var(--vyuka-accent-primary-rgb),0.25) 0%, rgba(var(--vyuka-accent-secondary-rgb),0.25) 100%);
     color: var(--vyuka-text-heading);
     box-shadow: inset 0 0 15px rgba(var(--vyuka-accent-primary-rgb),0.2), 0 0 10px rgba(var(--vyuka-accent-secondary-rgb),0.2);
-    border-left: 3px solid var(--vyuka-accent-primary);
-    padding-left: calc(1.5rem - 3px);
     font-weight: 700;
+    position: relative;
 }
-.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link.active {
-    border-left: none;
-    padding-left: 1.5rem;
-    background: transparent;
+.vyuka-sidebar-ai-link.active::before { /* Override hover effect */
+    left: -100%;
 }
-.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link.active i {
-     box-shadow: 0 0 20px var(--vyuka-cyber-glow-primary);
-     background-color: var(--vyuka-accent-primary);
-     color: var(--vyuka-bg-dark);
-     border-radius: 50%;
-     padding: 8px;
-     transform: scale(1.1);
+.vyuka-sidebar-ai-link.active::after { /* Pulsing border */
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 3px;
+    background-color: var(--vyuka-accent-primary);
+    animation: pulse-border 2s infinite ease-in-out;
 }
-.vyuka-sidebar-ai-link.active i {
-    color: var(--vyuka-accent-secondary);
-    text-shadow: 0 0 8px var(--vyuka-accent-secondary);
-    transform: scale(1.1);
+
+@keyframes pulse-border {
+    0%, 100% {
+        box-shadow: 0 0 10px var(--vyuka-accent-primary), 0 0 5px var(--vyuka-accent-secondary);
+        background-color: var(--vyuka-accent-primary);
+    }
+    50% {
+        box-shadow: 0 0 20px var(--vyuka-accent-primary), 0 0 10px var(--vyuka-accent-secondary);
+        background-color: var(--vyuka-accent-secondary);
+    }
 }
+.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link.active { background: transparent; }
+.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link.active::after { display: none; }
+.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link.active i { box-shadow: 0 0 20px var(--vyuka-cyber-glow-primary); background-color: var(--vyuka-accent-primary); color: var(--vyuka-bg-dark); border-radius: 50%; padding: 8px; transform: scale(1.1); animation: pulse-border 2s infinite ease-in-out; }
+.vyuka-sidebar-ai-link.active i { color: var(--vyuka-accent-secondary); text-shadow: 0 0 8px var(--vyuka-accent-secondary); transform: scale(1.1); }
 .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link.active i { color: var(--vyuka-accent-primary); }
+.vyuka-sidebar-ai-footer { padding: 1.5rem; font-size: 0.75rem; color: var(--vyuka-text-muted); text-align: center; border-top: 1px solid var(--vyuka-border-highlight); margin: 0 1rem; opacity: 0; transition: opacity 0.3s ease; }
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-footer { opacity: 1; transition-delay: 0.2s; }
 
-
-.vyuka-sidebar-ai-footer {
-    padding: 1.5rem;
-    font-size: 0.75rem;
-    color: var(--vyuka-text-muted);
-    text-align: center;
-    border-top: 1px solid var(--vyuka-border-highlight);
-    margin: 0 1rem; /* Оступы */
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-footer {
-    opacity: 1;
-    transition-delay: 0.2s;
-}
 
 /* --- Основные Панели (Whiteboard, Chat) --- */
 .vyuka-whiteboard-area, .vyuka-chat-panel {
-    background-color: var(--vyuka-bg-panel); /* Фон панелей */
-    backdrop-filter: blur(18px) saturate(1.2); /* Усиленный эффект стекла */
+    background-color: var(--vyuka-bg-panel);
+    backdrop-filter: blur(18px) saturate(1.2);
     padding: 1.5rem;
     display: flex; flex-direction: column;
     border-radius: var(--vyuka-card-radius);
@@ -355,8 +287,11 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
     box-shadow: var(--vyuka-panel-shadow);
     position: relative;
     transition: all var(--animation-duration-medium) ease;
+    animation: panel-glitch-in 0.7s var(--animation-timing-cyber) forwards;
+    opacity: 0;
 }
-/* Анимированная подсветка рамки при наведении */
+.vyuka-chat-panel { animation-delay: 0.1s; }
+@keyframes panel-glitch-in { 0% { opacity: 0; transform: translateY(20px) scale(0.98); filter: blur(3px) brightness(2); box-shadow: 0 0 5px rgba(var(--vyuka-accent-primary-rgb), 0.4), 0 0 10px rgba(var(--vyuka-accent-secondary-rgb), 0.4); } 40% { opacity: 0.8; filter: blur(1px) brightness(1.2); } 100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0) brightness(1); box-shadow: var(--vyuka-panel-shadow); } }
 .vyuka-whiteboard-area::before, .vyuka-chat-panel::before {
     content: "";
     position: absolute;
@@ -364,9 +299,7 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
     border-radius: inherit;
     padding: 1px;
     background: linear-gradient(135deg, var(--vyuka-accent-secondary), var(--vyuka-accent-primary));
-    -webkit-mask:
-        linear-gradient(#fff 0 0) content-box,
-        linear-gradient(#fff 0 0);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     opacity: 0;
@@ -374,18 +307,59 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
     pointer-events: none;
     z-index: 0;
 }
-.vyuka-whiteboard-area:hover::before, .vyuka-chat-panel:hover::before {
-    opacity: 0.8;
-}
-
+.vyuka-whiteboard-area:hover::before, .vyuka-chat-panel:hover::before { opacity: 0.8; }
 .vyuka-whiteboard-area { flex-basis: 60%; flex-grow: 1; flex-shrink: 1; min-height: 350px; height: auto; }
 .vyuka-chat-panel { flex-basis: 40%; flex-grow: 1; flex-shrink: 1; min-height: 350px; min-width: 380px; height: auto; }
 
 
+/* --- Футер --- */
+.main-footer.vyuka-footer {
+    padding: 4rem 2rem 2rem;
+    background: linear-gradient(to top, rgba(var(--vyuka-bg-dark-rgb), 0.95), transparent);
+    text-align: center;
+    margin-top: auto; /* Push to bottom of scrollable container */
+    position: relative;
+    border-top: none; /* Replaced with pseudo element */
+}
+/* --- NEW: Светящаяся граница для футера --- */
+.main-footer.vyuka-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--vyuka-accent-secondary), var(--vyuka-accent-primary), transparent);
+    box-shadow: 0 0 15px rgba(var(--vyuka-accent-secondary-rgb), 0.6);
+    animation: footer-glow-pan 10s linear infinite alternate;
+}
+@keyframes footer-glow-pan {
+    from { transform: scaleX(0.8); opacity: 0.7; }
+    to { transform: scaleX(1); opacity: 1; }
+}
+
+.footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 2.5rem; max-width: 1200px; margin: 0 auto 3rem; text-align: left; }
+.footer-column .logo { margin-bottom: 1.5rem; }
+.footer-column p { color: var(--vyuka-text-secondary); line-height: 1.7; font-size: 0.9rem; }
+.footer-column h3 { font-family: var(--vyuka-font-secondary); font-size: 1.2rem; color: var(--vyuka-accent-primary); margin-bottom: 1.5rem; text-shadow: var(--vyuka-text-glow-primary); }
+.footer-links { list-style: none; padding: 0; margin: 0; }
+.footer-links li { margin-bottom: 0.8rem; }
+.footer-links li a { color: var(--vyuka-text-secondary); display: flex; align-items: center; gap: 0.8rem; }
+.footer-links li a:hover { color: var(--vyuka-accent-secondary); transform: translateX(5px); }
+.footer-links li a i { color: var(--vyuka-text-muted); transition: color 0.3s ease; }
+.footer-links li a:hover i { color: var(--vyuka-accent-secondary); }
+.social-links { display: flex; gap: 1.2rem; margin-top: 1.5rem; }
+.social-links a { font-size: 1.5rem; transition: transform 0.3s ease, color 0.3s ease; }
+.social-links a:hover { transform: scale(1.2) translateY(-3px); color: var(--vyuka-accent-secondary); }
+.footer-copyright { border-top: 1px solid var(--vyuka-border-color); padding-top: 2rem; margin-top: 3rem; color: var(--vyuka-text-muted); font-size: 0.85rem; font-family: var(--vyuka-font-mono); }
+
+/* --- Остальной CSS код без изменений --- */
+/* ... (здесь должен быть остальной код из вашего файла `vyuka.css`, который я не изменял, чтобы сохранить все функции) ... */
+
 /* --- Уведомления --- */
 .notifications-dropdown-wrapper { background-color: rgba(var(--vyuka-bg-panel-rgb), 0.97); backdrop-filter: blur(12px) saturate(1.3); border: 1px solid var(--vyuka-border-highlight); box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 15px rgba(var(--vyuka-accent-primary-rgb),0.2) inset; border-radius: var(--vyuka-card-radius); width: 380px; transform: translateY(10px) scale(0.95); transform-origin: top right; transition: opacity var(--animation-duration-medium) ease, transform var(--animation-duration-medium) var(--animation-timing-cyber), visibility 0s var(--animation-duration-medium); position: absolute; top: calc(100% + 10px); right: 0; opacity: 0; visibility: hidden; z-index: 1001; }
 .notifications-dropdown-wrapper.active { transform: translateY(0) scale(1); opacity: 1; visibility: visible; transition-delay: 0s; }
-.notifications-header { border-bottom: 1px solid var(--vyuka-border-panel-edge); padding: 0.8rem 1.1rem; }
+.notifications-header { border-bottom: 1px solid var(--vyuka-border-panel-edge); padding: 0.8rem 1.1rem; display:flex; justify-content:space-between; align-items:center; }
 .notifications-title { font-family: var(--vyuka-font-secondary); text-shadow: var(--vyuka-text-glow-secondary); color: var(--vyuka-text-heading); font-size: 1rem; }
 .mark-all-read-btn { font-family: var(--vyuka-font-mono); border-color: var(--vyuka-border-color); color: var(--vyuka-text-muted); transition: all 0.2s ease; padding: 0.3rem 0.6rem; font-size: 0.75rem; }
 .mark-all-read-btn:hover:not(:disabled) { background-color: rgba(var(--vyuka-accent-primary-rgb), 0.2); color: var(--vyuka-accent-primary); border-color: var(--vyuka-accent-primary); box-shadow: 0 0 8px var(--vyuka-accent-primary); }
@@ -394,7 +368,7 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 #notifications-list::-webkit-scrollbar { width: 7px; }
 #notifications-list::-webkit-scrollbar-thumb { background-color: var(--vyuka-accent-primary); border-radius: 3px; }
 #notifications-list::-webkit-scrollbar-track { background: rgba(var(--vyuka-bg-dark-rgb), 0.3); }
-.notification-item { border-bottom: 1px solid var(--vyuka-border-panel-edge); padding: 0.9rem 1.1rem; transition: background-color 0.25s ease, transform 0.2s ease, box-shadow 0.2s ease; cursor: pointer; display: flex; align-items: center; gap: 1rem; }
+.notification-item { border-bottom: 1px solid var(--vyuka-border-panel-edge); padding: 0.9rem 1.1rem; transition: background-color 0.25s ease, transform 0.2s ease, box-shadow 0.2s ease; cursor: pointer; display: flex; align-items: center; gap: 1rem; position:relative; }
 .notification-item:hover { background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.08); transform: translateX(3px); box-shadow: inset 3px 0 8px rgba(var(--vyuka-accent-secondary-rgb),0.15); }
 .notification-item.is-read { opacity: 0.65; filter: saturate(0.7); }
 .notification-item.is-read:hover { opacity: 0.9; filter: saturate(1); }
@@ -409,13 +383,10 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 .notification-title { font-family: var(--vyuka-font-primary); font-weight: 600; color: var(--vyuka-text-heading); font-size: 0.95rem; }
 .notification-message { font-size: 0.85rem; color: var(--vyuka-text-secondary); line-height: 1.45; }
 .notification-time { font-family: var(--vyuka-font-mono); color: var(--vyuka-text-muted); font-size: 0.75rem; opacity: 0.8; margin-top: 0.3rem;}
-.unread-dot { background-color: var(--vyuka-accent-secondary); box-shadow: 0 0 10px var(--vyuka-accent-secondary), 0 0 15px var(--vyuka-accent-secondary); animation: pulseDot 1.5s infinite ease-in-out; width: 8px; height: 8px; border-radius: 50%; position: absolute; right: 1.1rem; top: 50%; transform: translateY(-50%);}
+.unread-dot { background-color: var(--vyuka-accent-secondary); box-shadow: 0 0 10px var(--vyuka-accent-secondary), 0 0 15px var(--vyuka-accent-secondary); animation: pulseDot 1.5s infinite ease-in-out; width: 8px; height: 8px; border-radius: 50%; position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%);}
 @keyframes pulseDot { 0%, 100% { transform: translateY(-50%) scale(1); opacity: 1; } 50% { transform: translateY(-50%) scale(1.15); opacity: 0.7; } }
 .notifications-footer { border-top: 1px solid var(--vyuka-border-panel-edge); padding: 0.7rem 1.1rem; text-align: center; }
 .view-all-notifications-link { font-family: var(--vyuka-font-secondary); font-weight: 600; letter-spacing: 0.5px; }
-
-/* --- Остальной CSS код без изменений --- */
-/* ... (здесь должен быть остальной код из вашего файла `vyuka.css`, который я не изменял, чтобы сохранить все функции) ... */
 
 .vyuka-header-left { display: flex; align-items: center; gap: 0.8rem; }
 .vyuka-header-left .mobile-menu-toggle { display: none; color: var(--vyuka-text-muted); font-size: 1.4rem; }
@@ -578,14 +549,3 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 @keyframes pulsePlug { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
 .sidebar-overlay-ai { position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark-rgb), 0.7); z-index: 1001; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; backdrop-filter: blur(3px); }
 .sidebar-overlay-ai.active { opacity: 1; visibility: visible; transition-delay: 0s; }
-.main-footer { padding: 3rem 1rem; background: linear-gradient(to top, rgba(var(--vyuka-bg-panel-rgb), 0.9), transparent); border-top: 1px solid var(--vyuka-border-color); text-align: center; margin-top: auto; }
-.footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem; max-width: 1200px; margin: 0 auto 2rem; text-align: left; }
-.footer-column .logo { font-size: 1.5rem; margin-bottom: 1rem; }
-.footer-column p { color: var(--vyuka-text-secondary); line-height: 1.6; font-size: 0.9rem; }
-.footer-column h3 { font-family: var(--vyuka-font-secondary); font-size: 1.1rem; color: var(--vyuka-accent-primary); margin-bottom: 1rem; text-shadow: var(--vyuka-text-glow-primary); }
-.footer-links { list-style: none; padding: 0; margin: 0; }
-.footer-links li a { color: var(--vyuka-text-secondary); display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0; }
-.footer-links li a:hover { color: var(--vyuka-accent-secondary); }
-.social-links { display: flex; gap: 1rem; margin-top: 1rem; }
-.social-links a { font-size: 1.3rem; }
-.footer-copyright { border-top: 1px solid var(--vyuka-border-color); padding-top: 1.5rem; margin-top: 2rem; color: var(--vyuka-text-muted); font-size: 0.8rem; font-family: var(--vyuka-font-mono); }
