@@ -118,7 +118,7 @@
             const s = Math.round(seconds % 60);
             return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         },
-        
+
         getInitials: function(profileData) {
             if (!profileData) return '?';
             const f = profileData.first_name?.[0] || '';
@@ -151,6 +151,97 @@
             } catch (e) {
                 console.error("Chyba formátování času:", e, "Timestamp:", timestamp);
                 return '-';
+            }
+        },
+
+        formatDate: function(dateString) {
+            if (!dateString) return '-';
+            try {
+                const d = new Date(dateString);
+                if (isNaN(d.getTime())) return '-';
+                return d.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'numeric', year: 'numeric' });
+            } catch (e) {
+                return '-';
+            }
+        },
+
+        initTooltips: function() {
+            try {
+                if (window.jQuery?.fn.tooltipster) {
+                    window.jQuery('.btn-tooltip:not(.tooltipstered)').tooltipster({
+                        theme: 'tooltipster-shadow',
+                        animation: 'fade',
+                        delay: 100,
+                        side: 'top'
+                    });
+                }
+            } catch (e) {
+                console.error("Chyba inicializace Tooltipster:", e);
+            }
+        },
+
+        updateCopyrightYear: function() {
+            const year = new Date().getFullYear();
+            if (this.uiCache.currentYearFooter) this.uiCache.currentYearFooter.textContent = year;
+            if (this.uiCache.currentYearSidebar) this.uiCache.currentYearSidebar.textContent = year;
+        },
+
+        initMouseFollower: function() {
+            const follower = this.uiCache.mouseFollower;
+            if (!follower || window.innerWidth <= 576) return;
+            let hasMoved = false;
+            const updatePosition = (event) => {
+                if (!hasMoved) {
+                    document.body.classList.add('mouse-has-moved');
+                    hasMoved = true;
+                }
+                requestAnimationFrame(() => {
+                    follower.style.left = `${event.clientX}px`;
+                    follower.style.top = `${event.clientY}px`;
+                });
+            };
+            window.addEventListener('mousemove', updatePosition, { passive: true });
+            document.body.addEventListener('mouseleave', () => { if (hasMoved) follower.style.opacity = '0'; });
+            document.body.addEventListener('mouseenter', () => { if (hasMoved) follower.style.opacity = '1'; });
+            window.addEventListener('touchstart', () => { if(follower) follower.style.display = 'none'; }, { passive: true, once: true });
+        },
+
+        initScrollAnimations: function() {
+            const animatedElements = document.querySelectorAll('.main-content-wrapper [data-animate]');
+            if (!animatedElements.length || !('IntersectionObserver' in window)) {
+                console.log("Scroll animations not initialized.");
+                return;
+            }
+            const observer = new IntersectionObserver((entries, observerInstance) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animated');
+                        observerInstance.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1, rootMargin: "0px 0px -30px 0px" });
+            animatedElements.forEach(element => observer.observe(element));
+            console.log(`Scroll animations initialized for ${animatedElements.length} elements.`);
+        },
+
+        initHeaderScrollDetection: function() {
+            let lastScrollY = window.scrollY;
+            const mainEl = this.uiCache.mainContent;
+            if (!mainEl) return;
+            mainEl.addEventListener('scroll', () => {
+                const currentScrollY = mainEl.scrollTop;
+                document.body.classList.toggle('scrolled', currentScrollY > 10);
+                lastScrollY = currentScrollY <= 0 ? 0 : currentScrollY;
+            }, { passive: true });
+            if (mainEl.scrollTop > 10) document.body.classList.add('scrolled');
+        },
+
+        updateOnlineStatus: function() {
+            if (this.uiCache.offlineBanner) {
+                this.uiCache.offlineBanner.style.display = navigator.onLine ? 'none' : 'block';
+            }
+            if (!navigator.onLine) {
+                this.showToast('Offline', 'Spojení bylo ztraceno. Některé funkce nemusí být dostupné.', 'warning');
             }
         },
         // --- END: Утилиты для UI ---
@@ -328,16 +419,16 @@
         updateTimer: function(testTime) {
             if (this.uiCache.timerValue) this.uiCache.timerValue.textContent = this.formatTime(testTime);
         },
-        
+
         applyTestHighlightingAndSelection: function(currentProfile, testTypeConfig) {
             const ui = this.uiCache;
             const userLearningGoal = currentProfile?.learning_goal;
             let mandatoryTestKey = null;
-        
+
             if (userLearningGoal) {
                 mandatoryTestKey = Object.keys(testTypeConfig).find(key => testTypeConfig[key].recommendedForGoal === userLearningGoal);
             }
-        
+
             if (!mandatoryTestKey && userLearningGoal) {
                 console.warn(`[Highlight] Pro cíl '${userLearningGoal}' nebyl nalezen žádný povinný test. Zobrazuji všechny jako neaktivní.`);
             } else if (!userLearningGoal) {
@@ -352,7 +443,7 @@
                 card.classList.remove('recommended-test', 'disabled-test', 'selected');
                 if (buttonInCard) buttonInCard.disabled = true;
                 if (recommendedBadge) recommendedBadge.style.display = 'none';
-        
+
                 if (config) {
                     if (mandatoryTestKey === testType) {
                         card.classList.add('recommended-test', 'selected');
@@ -381,7 +472,7 @@
                     }
                 }
             });
-        
+
             if (ui.startSelectedTestBtnGlobal) {
                 if (mandatoryTestKey && testTypeConfig[mandatoryTestKey]) {
                     const config = testTypeConfig[mandatoryTestKey];
@@ -409,7 +500,7 @@
             if (ui.completedTestSummaryContainer) ui.completedTestSummaryContainer.style.display = 'none';
             if (ui.reinforcementTestsSection) ui.reinforcementTestsSection.style.display = 'none';
             if (ui.testTimer) ui.testTimer.style.display = 'flex';
-    
+
             if (adaptiveTestState.currentQuestion) {
                 startTimerCallback();
             } else {
@@ -420,16 +511,16 @@
                      ui.questionContainer.innerHTML = `<div class="empty-state" style="display:flex; flex-direction:column; align-items:center; padding: 2rem; border: 1px dashed var(--border-color-medium); border-radius: var(--card-radius);"><i class="fas fa-folder-open" style="font-size: 3rem; margin-bottom: 1rem; color: var(--accent-secondary);"></i><h3>Žádné otázky</h3><p>${noQuestionsMessage}</p></div>`;
                 }
             }
-    
+
             if(ui.timerValue && adaptiveTestState.currentQuestion) ui.timerValue.textContent = this.formatTime(testTime);
             if(ui.answeredCountEl) ui.answeredCountEl.textContent = '0';
             if(ui.lowScoreMessageContainer) ui.lowScoreMessageContainer.innerHTML = '';
-    
+
             ui.pagination.innerHTML = '';
-    
+
             this.updateAdaptiveProgressBar(adaptiveTestState.questionsAnswered, adaptiveTestState.totalQuestionsInSession);
             this.updateAdaptiveNavigationButtons(adaptiveTestState.currentQuestion, adaptiveTestState.questionsAnswered, adaptiveTestState.totalQuestionsInSession, {results: false});
-    
+
             if (ui.testContainer) {
                 ui.testContainer.setAttribute('data-animate', '');
                 ui.testContainer.style.setProperty('--animation-order', 0);
@@ -447,12 +538,12 @@
                 console.log("[ShowNextAdaptiveQuestion] No more questions. Test should finish.");
                 return;
             }
-    
+
             if(ui.questionCountEl) ui.questionCountEl.textContent = `${adaptiveTestState.questionsAnswered + 1} / ${adaptiveTestState.totalQuestionsInSession}`;
-    
+
             let questionHTML = `<div class="question-header"><span class="question-number">${adaptiveTestState.questionsAnswered + 1}</span><div class="question-text">${this.sanitizeHTML(question.question_text)}</div></div>`;
             if (question.image_url) { questionHTML += `<div class="question-image-container"><img class="question-image" src="${question.image_url}" alt="Obrázek k otázce ${adaptiveTestState.questionsAnswered + 1}" loading="lazy"></div>`; }
-    
+
             let answerInputHTML = '';
             switch (question.question_type) {
                 case 'multiple_choice':
@@ -463,17 +554,73 @@
                     });
                     answerInputHTML += `</div>`;
                     break;
-                // Add other question types here if necessary
+                case 'numeric':
+                case 'text':
+                case 'ano_ne':
+                    let prefixData = null;
+                    let suffixData = question.answer_suffix || null;
+                    let isMultiPart = false;
+                    let multiPartKeys = [];
+                    if (question.answer_prefix && typeof question.answer_prefix === 'string') {
+                        try {
+                            const parsedPrefix = JSON.parse(question.answer_prefix);
+                            if (typeof parsedPrefix === 'object' && parsedPrefix !== null && !Array.isArray(parsedPrefix)) {
+                                prefixData = parsedPrefix;
+                                isMultiPart = true;
+                                multiPartKeys = Object.keys(prefixData);
+                            } else {
+                                prefixData = question.answer_prefix;
+                            }
+                        } catch (e) {
+                            prefixData = question.answer_prefix;
+                        }
+                    } else if (question.answer_prefix && typeof question.answer_prefix === 'object' && !Array.isArray(question.answer_prefix)) {
+                        prefixData = question.answer_prefix;
+                        isMultiPart = true;
+                        multiPartKeys = Object.keys(prefixData);
+                    } else if (question.answer_prefix) {
+                        prefixData = String(question.answer_prefix);
+                    }
+
+                    answerInputHTML += `<div class="answer-input-container">`;
+                    if (isMultiPart && multiPartKeys.length > 0) {
+                        answerInputHTML += `<label class="form-label">Vaše odpovědi:</label>`;
+                        multiPartKeys.forEach(partKey => {
+                            const partPrefixText = prefixData[partKey] || '';
+                            answerInputHTML += `<div class="answer-input-group multi-part-answer-group">`;
+                            if (partPrefixText) {
+                                answerInputHTML += `<span class="answer-prefix">${this.sanitizeHTML(partPrefixText)}</span>`;
+                            }
+                            answerInputHTML += `<input type="${question.question_type === 'numeric' ? 'number' : 'text'}" id="text-answer-${currentQuestionIndex}-part-${partKey}" class="answer-input multi-part-input" data-part-key="${partKey}" placeholder="Odpověď pro ${partKey}" value="">`;
+                            answerInputHTML += `</div>`;
+                        });
+                    } else {
+                        answerInputHTML += `<label for="text-answer-${currentQuestionIndex}" class="form-label">Vaše odpověď:</label>`;
+                        answerInputHTML += `<div class="answer-input-group">`;
+                        if (prefixData && typeof prefixData === 'string') {
+                            answerInputHTML += `<span class="answer-prefix">${this.sanitizeHTML(prefixData)}</span>`;
+                        }
+                        answerInputHTML += `<input type="${question.question_type === 'numeric' ? 'number' : 'text'}" id="text-answer-${currentQuestionIndex}" class="answer-input" placeholder="Zadejte odpověď" value="">`;
+                        if (suffixData) {
+                            answerInputHTML += `<span class="answer-suffix">${this.sanitizeHTML(suffixData)}</span>`;
+                        }
+                        answerInputHTML += `</div>`;
+                    }
+                    answerInputHTML += `</div>`;
+                    break;
+                case 'construction':
+                    answerInputHTML += `<div class="answer-input-container"><label for="construction-answer-${currentQuestionIndex}" class="form-label">Popište svůj postup:</label><textarea id="construction-answer-${currentQuestionIndex}" class="construction-textarea" placeholder="Podrobně popište kroky..."></textarea></div>`;
+                    break;
                 default:
                     answerInputHTML += `<div class="answer-input-container"><label for="text-answer-${currentQuestionIndex}" class="form-label">Vaše odpověď:</label><div class="answer-input-group"><input type="text" id="text-answer-${currentQuestionIndex}" class="answer-input" placeholder="Zadejte odpověď" value=""></div></div>`;
                     break;
             }
-    
+
             questionHTML += answerInputHTML;
             ui.questionContainer.innerHTML = questionHTML;
-    
+
             const textInputs = ui.questionContainer.querySelectorAll('.answer-input');
-            textInputs.forEach(input => { input.addEventListener('input', (event) => saveCurrentAnswerCallback(event.target.value)); });
+            textInputs.forEach(input => { input.addEventListener('input', (event) => saveCurrentAnswerCallback(event)); });
             ui.questionContainer.querySelectorAll('.answer-option').forEach(label => {
                 label.addEventListener('click', (event) => {
                     const selectedLabel = event.currentTarget;
@@ -485,7 +632,7 @@
                     saveCurrentAnswerCallback(optionId);
                 });
             });
-    
+
             if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
                 try {
                     setTimeout(() => {
@@ -505,7 +652,7 @@
             ui.answeredCountEl.textContent = questionsAnswered;
             if(ui.questionCountEl) ui.questionCountEl.textContent = `${Math.min(questionsAnswered + 1, totalQuestionsInSession)} / ${totalQuestionsInSession}`;
         },
-        
+
         updateAdaptiveNavigationButtons: function(currentQuestion, questionsAnswered, totalQuestionsInSession, isLoading) {
             const ui = this.uiCache;
             const noQuestion = !currentQuestion;
@@ -535,16 +682,73 @@
             }
         },
 
-        displayResults: function() {
-            // Complex function, implementation will be in test1.js
-        },
+        displayResults: function(testResultsData, testTime, selectedTestType, testTypeConfig) {
+            const ui = this.uiCache;
+            if(!ui.testContainer || !ui.resultsContainer || !ui.reviewContainer || !ui.testTimer || !ui.testLevel || !ui.resultScoreEl || !ui.resultPercentageEl || !ui.resultCorrectEl || !ui.resultIncorrectEl || !ui.resultTimeEl || !ui.lowScoreMessageContainer || !ui.continueBtn || !ui.topicResultsEl || !ui.reviewAnswersBtn || !ui.backToResultsBtn) {
+                console.error("Chyba: Některé elementy výsledků nebyly nalezeny v DOM.");
+                return;
+            }
+            if (!testResultsData) {
+                console.error("Chyba: Chybí data výsledků (testResultsData).");
+                this.showErrorMessagePage("Nepodařilo se zobrazit výsledky - chybí data.");
+                return;
+            }
 
-        displayReview: function() {
-            // Complex function, implementation will be in test1.js
-        },
+            ui.testContainer.style.display = 'none';
+            ui.resultsContainer.style.display = 'block';
+            ui.reviewContainer.style.display = 'none';
+            ui.testTimer.style.display = 'none';
+            if(ui.testLevel) ui.testLevel.textContent = 'Výsledky testu';
 
-        updateSingleReviewItemUI: function() {
-            // Complex function, implementation will be in test1.js
+            if(ui.resultScoreEl) ui.resultScoreEl.textContent = `${testResultsData.score}/${testResultsData.maxScore}`;
+            if(ui.resultPercentageEl) ui.resultPercentageEl.textContent = `${testResultsData.percentage}%`;
+            if(ui.resultCorrectEl) ui.resultCorrectEl.textContent = testResultsData.correctAnswers;
+            if(ui.resultIncorrectEl) ui.resultIncorrectEl.textContent = testResultsData.incorrectAnswers + testResultsData.partiallyCorrectAnswers;
+            if(ui.resultTimeEl) ui.resultTimeEl.textContent = this.formatTime(testTime);
+
+            ui.lowScoreMessageContainer.innerHTML = '';
+            ui.continueBtn.disabled = true;
+
+            const saveError = ui.continueBtn.getAttribute('data-save-error') === 'true';
+            const scoreThreshold = window.TestLogic?.SCORE_THRESHOLD_FOR_SAVING ?? 5;
+
+            if (saveError) {
+                ui.lowScoreMessageContainer.innerHTML = `<div class="error-message-container"><i class="fas fa-exclamation-triangle"></i><div class="loader-text">Chyba ukládání</div><div class="loader-subtext">Nepodařilo se uložit výsledky testu. Studijní plán nelze vytvořit.</div></div>`;
+            } else if (testResultsData.score < scoreThreshold) {
+                ui.lowScoreMessageContainer.innerHTML = `<div class="low-score-message warning"><i class="fas fa-exclamation-circle"></i><strong>Výsledek nebyl uložen.</strong><br>Vaše skóre (${testResultsData.score}/${testResultsData.maxScore}) je nižší než ${scoreThreshold} bodů. Tyto výsledky nebudou použity pro generování studijního plánu.</div>`;
+            } else {
+                ui.lowScoreMessageContainer.innerHTML = `<div class="low-score-message info"><i class="fas fa-info-circle"></i><strong>Výsledky byly uloženy.</strong><br>Vaše skóre (${testResultsData.score}/${testResultsData.maxScore}) bude použito pro studijní plán.</div>`;
+                ui.continueBtn.disabled = false;
+            }
+
+            const sortedTopics = Object.values(testResultsData.topicResults || {}).sort((a, b) => a.score_percent - b.score_percent);
+            ui.topicResultsEl.innerHTML = sortedTopics.map(stats => {
+                const icon = topicIcons[stats.name] || topicIcons.default;
+                return `
+                <div class="topic-card card ${stats.strength}">
+                    <div class="topic-header">
+                        <div class="topic-icon"><i class="fas ${icon}"></i></div>
+                        <h3 class="topic-title">${this.sanitizeHTML(stats.name)}</h3>
+                    </div>
+                    <div class="topic-stats">
+                        <div class="topic-progress">
+                            <span class="topic-progress-label">Úspěšnost (body)</span>
+                            <span class="topic-progress-value">${stats.score_percent}%</span>
+                        </div>
+                        <div class="topic-progress-bar">
+                            <div class="topic-progress-fill" style="width: ${stats.score_percent}%;"></div>
+                        </div>
+                        <div class="topic-progress" style="margin-top: 0.5rem;">
+                            <span class="topic-progress-label">Body</span>
+                            <span class="topic-progress-value">${stats.points_achieved} / ${stats.max_points}</span>
+                        </div>
+                        <div class="topic-progress" style="margin-top: 0.1rem; font-size: 0.8em;">
+                            <span class="topic-progress-label">Správně otázek</span>
+                            <span class="topic-progress-value">${stats.fully_correct} / ${stats.total_questions}</span>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
         },
 
         renderNotificationSkeletons: function(count = 2) {
@@ -557,6 +761,43 @@
             ui.notificationsList.innerHTML = skeletonHTML;
             ui.noNotificationsMsg.style.display = 'none';
             ui.notificationsList.style.display = 'block';
+        },
+
+        renderNotifications: function(count, notifications) {
+            console.log("[Render Notifications UI] Start, Count:", count, "Notifications:", notifications);
+            const ui = this.uiCache;
+            if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) {
+                console.error("[Render Notifications UI] Missing UI elements.");
+                return;
+            }
+            ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : '');
+            ui.notificationCount.classList.toggle('visible', count > 0);
+            if (notifications && notifications.length > 0) {
+                ui.notificationsList.innerHTML = notifications.map(n => {
+                    const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default;
+                    const isReadClass = n.is_read ? 'is-read' : '';
+                    const linkAttr = n.link ? `data-link="${this.sanitizeHTML(n.link)}"` : '';
+                    return `
+                    <div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>
+                        ${!n.is_read ? '<span class="unread-dot"></span>' : ''}
+                        <div class="notification-icon ${visual.class}"><i class="fas ${visual.icon}"></i></div>
+                        <div class="notification-content">
+                            <div class="notification-title">${this.sanitizeHTML(n.title)}</div>
+                            <div class="notification-message">${this.sanitizeHTML(n.message)}</div>
+                            <div class="notification-time">${this.formatRelativeTime(n.created_at)}</div>
+                        </div>
+                    </div>`;
+                }).join('');
+                ui.noNotificationsMsg.style.display = 'none';
+                ui.notificationsList.style.display = 'block';
+                ui.markAllReadBtn.disabled = count === 0;
+            } else {
+                ui.notificationsList.innerHTML = '';
+                ui.noNotificationsMsg.style.display = 'block';
+                ui.notificationsList.style.display = 'none';
+                ui.markAllReadBtn.disabled = true;
+            }
+            console.log("[Render Notifications UI] Finished rendering.");
         }
         // --- END: Test-specific UI Functions ---
     };
