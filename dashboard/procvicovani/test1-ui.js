@@ -23,8 +23,83 @@
     };
 
     const uiFunctions = {
-        // Кэш для DOM-элементов, который будет заполнен из основного файла test1.js
+        // Кэш для DOM-элементов
         uiCache: {},
+
+        // Функция для поиска и сохранения всех элементов страницы
+        cacheDOMElements: function() {
+            this.uiCache = {
+                sidebarAvatar: document.getElementById('sidebar-avatar'),
+                sidebarName: document.getElementById('sidebar-name'),
+                sidebarUserTitle: document.getElementById('sidebar-user-title'),
+                initialLoader: document.getElementById('initial-loader'),
+                sidebarOverlay: document.getElementById('sidebar-overlay'),
+                geminiOverlay: document.getElementById('gemini-checking-overlay'),
+                mainContent: document.getElementById('main-content'),
+                sidebar: document.getElementById('sidebar'),
+                mainMobileMenuToggle: document.getElementById('main-mobile-menu-toggle'),
+                sidebarCloseToggle: document.getElementById('sidebar-close-toggle'),
+                sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'),
+                dashboardHeader: document.querySelector('.dashboard-header'),
+                testSubject: document.getElementById('test-subject'),
+                testLevel: document.getElementById('test-level'),
+                testTimer: document.getElementById('test-timer'),
+                timerValue: document.getElementById('timer-value'),
+                notificationBell: document.getElementById('notification-bell'),
+                notificationCount: document.getElementById('notification-count'),
+                notificationsDropdown: document.getElementById('notifications-dropdown'),
+                notificationsList: document.getElementById('notifications-list'),
+                noNotificationsMsg: document.getElementById('no-notifications-msg'),
+                markAllReadBtn: document.getElementById('mark-all-read-btn'),
+                testSelector: document.getElementById('test-selector'),
+                testLoader: document.getElementById('test-loader'),
+                loaderSubtext: document.getElementById('loader-subtext'),
+                testContainer: document.getElementById('test-container'),
+                resultsContainer: document.getElementById('results-container'),
+                reviewContainer: document.getElementById('review-container'),
+                currentTestTitle: document.getElementById('current-test-title'),
+                questionCountEl: document.getElementById('question-count'),
+                answeredCountEl: document.getElementById('answered-count'),
+                progressBar: document.getElementById('progress-bar'),
+                questionContainer: document.getElementById('question-container'),
+                pagination: document.getElementById('pagination'),
+                prevBtn: document.getElementById('prev-btn'),
+                nextBtn: document.getElementById('next-btn'),
+                skipBtn: document.getElementById('skip-btn'),
+                finishBtn: document.getElementById('finish-btn'),
+                resultScoreEl: document.getElementById('result-score'),
+                resultPercentageEl: document.getElementById('result-percentage'),
+                resultCorrectEl: document.getElementById('result-correct'),
+                resultIncorrectEl: document.getElementById('result-incorrect'),
+                resultTimeEl: document.getElementById('result-time'),
+                topicResultsEl: document.getElementById('topic-results'),
+                retryBtn: document.getElementById('retry-btn'),
+                reviewAnswersBtn: document.getElementById('review-answers-btn'),
+                continueBtn: document.getElementById('continue-btn'),
+                lowScoreMessageContainer: document.getElementById('low-score-message-container'),
+                reviewContent: document.getElementById('review-content'),
+                backToResultsBtn: document.getElementById('back-to-results-btn'),
+                testTypeCards: document.querySelectorAll('.test-type-card'),
+                startSelectedTestBtnGlobal: document.getElementById('start-selected-test-btn'),
+                toastContainer: document.getElementById('toast-container'),
+                globalError: document.getElementById('global-error'),
+                offlineBanner: document.getElementById('offline-banner'),
+                mouseFollower: document.getElementById('mouse-follower'),
+                currentYearSidebar: document.getElementById('currentYearSidebar'),
+                currentYearFooter: document.getElementById('currentYearFooter'),
+                reviewItemTemplate: document.getElementById('review-item-template'),
+                completedTestSummaryContainer: document.getElementById('completed-test-summary-container'),
+                completedTestTitleSummary: document.getElementById('completed-test-title-summary'),
+                summaryScore: document.getElementById('summary-score'),
+                summaryPercentage: document.getElementById('summary-percentage'),
+                summaryCorrect: document.getElementById('summary-correct'),
+                summaryIncorrect: document.getElementById('summary-incorrect'),
+                summaryTime: document.getElementById('summary-time'),
+                summaryReviewAnswersBtn: document.getElementById('summary-review-answers-btn'),
+                reinforcementTestsSection: document.getElementById('reinforcement-tests-section')
+            };
+            console.log("[CACHE DOM test1-ui.js] Caching complete.");
+        },
 
         // --- START: Утилиты для UI ---
         sanitizeHTML: function(str) {
@@ -253,23 +328,20 @@
         updateTimer: function(testTime) {
             if (this.uiCache.timerValue) this.uiCache.timerValue.textContent = this.formatTime(testTime);
         },
-
-        displayTestSelector: function(mandatoryTestIdentifier, testTypeConfig) {
+        
+        applyTestHighlightingAndSelection: function(currentProfile, testTypeConfig) {
             const ui = this.uiCache;
-            if (ui.testSelector) ui.testSelector.style.display = 'block';
-            if (ui.testContainer) ui.testContainer.style.display = 'none';
-            if (ui.resultsContainer) ui.resultsContainer.style.display = 'none';
-            if (ui.reviewContainer) ui.reviewContainer.style.display = 'none';
-            if (ui.completedTestSummaryContainer) ui.completedTestSummaryContainer.style.display = 'none';
-            if (ui.reinforcementTestsSection) ui.reinforcementTestsSection.style.display = 'none';
-            this.applyTestHighlightingAndSelection(mandatoryTestIdentifier, testTypeConfig);
-        },
-
-        applyTestHighlightingAndSelection: function(mandatoryTestIdentifier, testTypeConfig) {
-            const ui = this.uiCache;
+            const userLearningGoal = currentProfile?.learning_goal;
             let mandatoryTestKey = null;
-            if (mandatoryTestIdentifier) {
-                mandatoryTestKey = Object.keys(testTypeConfig).find(key => testTypeConfig[key].identifier === mandatoryTestIdentifier);
+        
+            if (userLearningGoal) {
+                mandatoryTestKey = Object.keys(testTypeConfig).find(key => testTypeConfig[key].recommendedForGoal === userLearningGoal);
+            }
+        
+            if (!mandatoryTestKey && userLearningGoal) {
+                console.warn(`[Highlight] Pro cíl '${userLearningGoal}' nebyl nalezen žádný povinný test. Zobrazuji všechny jako neaktivní.`);
+            } else if (!userLearningGoal) {
+                console.warn(`[Highlight] Cíl uživatele není nastaven. Nelze určit povinný test. Zobrazuji všechny jako neaktivní.`);
             }
 
             ui.testTypeCards.forEach(card => {
@@ -280,7 +352,7 @@
                 card.classList.remove('recommended-test', 'disabled-test', 'selected');
                 if (buttonInCard) buttonInCard.disabled = true;
                 if (recommendedBadge) recommendedBadge.style.display = 'none';
-
+        
                 if (config) {
                     if (mandatoryTestKey === testType) {
                         card.classList.add('recommended-test', 'selected');
@@ -288,7 +360,7 @@
                         if (buttonInCard) {
                             if (config.isActive === false) {
                                 buttonInCard.innerHTML = '<i class="fas fa-hourglass-half"></i> Spustit Test (Brzy!)';
-                                buttonInCard.disabled = true; // Still disabled
+                                buttonInCard.disabled = true;
                             } else {
                                 buttonInCard.innerHTML = `<i class="fas fa-play"></i> Spustit Test`;
                                 buttonInCard.disabled = false;
@@ -301,9 +373,15 @@
                             buttonInCard.disabled = true;
                         }
                     }
+                } else {
+                    card.classList.add('disabled-test');
+                    if (buttonInCard) {
+                        buttonInCard.innerHTML = '<i class="fas fa-ban"></i> Test nedostupný';
+                        buttonInCard.disabled = true;
+                    }
                 }
             });
-
+        
             if (ui.startSelectedTestBtnGlobal) {
                 if (mandatoryTestKey && testTypeConfig[mandatoryTestKey]) {
                     const config = testTypeConfig[mandatoryTestKey];
@@ -316,15 +394,118 @@
             }
         },
 
+        initializeAdaptiveTestUI: function(startTimerCallback, testTime, adaptiveTestState) {
+            const ui = this.uiCache;
+            if (!ui.testLoader || !ui.testContainer || !ui.resultsContainer || !ui.reviewContainer || !ui.testSelector || !ui.testTimer || !ui.pagination) {
+                console.error("[InitializeAdaptiveTestUI] Critical UI elements missing for test initialization.");
+                this.showErrorMessagePage("Chyba inicializace testu: Chybí komponenty uživatelského rozhraní.");
+                return;
+            }
+            if (ui.testLoader) ui.testLoader.style.display = 'none';
+            if (ui.testContainer) ui.testContainer.style.display = 'block';
+            if (ui.resultsContainer) ui.resultsContainer.style.display = 'none';
+            if (ui.reviewContainer) ui.reviewContainer.style.display = 'none';
+            if (ui.testSelector) ui.testSelector.style.display = 'none';
+            if (ui.completedTestSummaryContainer) ui.completedTestSummaryContainer.style.display = 'none';
+            if (ui.reinforcementTestsSection) ui.reinforcementTestsSection.style.display = 'none';
+            if (ui.testTimer) ui.testTimer.style.display = 'flex';
+    
+            if (adaptiveTestState.currentQuestion) {
+                startTimerCallback();
+            } else {
+                // stopTimer() will be called from test1.js
+                if(ui.timerValue) ui.timerValue.textContent = this.formatTime(0);
+                if (ui.questionContainer) {
+                     const noQuestionsMessage = "Pro tento test nejsou k dispozici žádné vhodné otázky. Zkuste prosím jiný test nebo kontaktujte podporu.";
+                     ui.questionContainer.innerHTML = `<div class="empty-state" style="display:flex; flex-direction:column; align-items:center; padding: 2rem; border: 1px dashed var(--border-color-medium); border-radius: var(--card-radius);"><i class="fas fa-folder-open" style="font-size: 3rem; margin-bottom: 1rem; color: var(--accent-secondary);"></i><h3>Žádné otázky</h3><p>${noQuestionsMessage}</p></div>`;
+                }
+            }
+    
+            if(ui.timerValue && adaptiveTestState.currentQuestion) ui.timerValue.textContent = this.formatTime(testTime);
+            if(ui.answeredCountEl) ui.answeredCountEl.textContent = '0';
+            if(ui.lowScoreMessageContainer) ui.lowScoreMessageContainer.innerHTML = '';
+    
+            ui.pagination.innerHTML = '';
+    
+            this.updateAdaptiveProgressBar(adaptiveTestState.questionsAnswered, adaptiveTestState.totalQuestionsInSession);
+            this.updateAdaptiveNavigationButtons(adaptiveTestState.currentQuestion, adaptiveTestState.questionsAnswered, adaptiveTestState.totalQuestionsInSession, {results: false});
+    
+            if (ui.testContainer) {
+                ui.testContainer.setAttribute('data-animate', '');
+                ui.testContainer.style.setProperty('--animation-order', 0);
+            }
+        },
+
+        showNextAdaptiveQuestion: function(adaptiveTestState, saveCurrentAnswerCallback) {
+            const question = adaptiveTestState.currentQuestion;
+            const currentQuestionIndex = adaptiveTestState.questionsAnswered;
+            const ui = this.uiCache;
+
+            if (!ui.questionContainer) { console.error("[ShowNextAdaptiveQuestion] Question container not found."); return; }
+            if (!question) {
+                // This case is handled in test1.js
+                console.log("[ShowNextAdaptiveQuestion] No more questions. Test should finish.");
+                return;
+            }
+    
+            if(ui.questionCountEl) ui.questionCountEl.textContent = `${adaptiveTestState.questionsAnswered + 1} / ${adaptiveTestState.totalQuestionsInSession}`;
+    
+            let questionHTML = `<div class="question-header"><span class="question-number">${adaptiveTestState.questionsAnswered + 1}</span><div class="question-text">${this.sanitizeHTML(question.question_text)}</div></div>`;
+            if (question.image_url) { questionHTML += `<div class="question-image-container"><img class="question-image" src="${question.image_url}" alt="Obrázek k otázce ${adaptiveTestState.questionsAnswered + 1}" loading="lazy"></div>`; }
+    
+            let answerInputHTML = '';
+            switch (question.question_type) {
+                case 'multiple_choice':
+                    answerInputHTML += `<div class="answer-options">`;
+                    question.options.forEach((optionText, idx) => {
+                        const optionLetter = this.indexToLetter(idx);
+                        answerInputHTML += `<label class="answer-option" data-option-id="${optionLetter}"><input type="radio" name="question_${question.id}" value="${optionLetter}" style="display: none;"><div class="answer-text"><span class="answer-letter">${optionLetter}.</span> ${this.sanitizeHTML(optionText)}</div></label>`;
+                    });
+                    answerInputHTML += `</div>`;
+                    break;
+                // Add other question types here if necessary
+                default:
+                    answerInputHTML += `<div class="answer-input-container"><label for="text-answer-${currentQuestionIndex}" class="form-label">Vaše odpověď:</label><div class="answer-input-group"><input type="text" id="text-answer-${currentQuestionIndex}" class="answer-input" placeholder="Zadejte odpověď" value=""></div></div>`;
+                    break;
+            }
+    
+            questionHTML += answerInputHTML;
+            ui.questionContainer.innerHTML = questionHTML;
+    
+            const textInputs = ui.questionContainer.querySelectorAll('.answer-input');
+            textInputs.forEach(input => { input.addEventListener('input', (event) => saveCurrentAnswerCallback(event.target.value)); });
+            ui.questionContainer.querySelectorAll('.answer-option').forEach(label => {
+                label.addEventListener('click', (event) => {
+                    const selectedLabel = event.currentTarget;
+                    const optionId = selectedLabel.dataset.optionId;
+                    const radio = selectedLabel.querySelector('input[type="radio"]');
+                    ui.questionContainer.querySelectorAll('.answer-option').forEach(l => l.classList.remove('selected'));
+                    selectedLabel.classList.add('selected');
+                    if (radio) radio.checked = true;
+                    saveCurrentAnswerCallback(optionId);
+                });
+            });
+    
+            if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+                try {
+                    setTimeout(() => {
+                        window.MathJax.typesetPromise([ui.questionContainer]).catch(e => console.error("MathJax typesetting error:", e));
+                    }, 0);
+                } catch (e) {
+                    console.error("MathJax initialization error:", e);
+                }
+            }
+        },
+
         updateAdaptiveProgressBar: function(questionsAnswered, totalQuestionsInSession) {
             const ui = this.uiCache;
             if (!ui.progressBar || !ui.answeredCountEl) return;
             const progress = totalQuestionsInSession > 0 ? (questionsAnswered / totalQuestionsInSession) * 100 : 0;
             ui.progressBar.style.width = `${progress}%`;
             ui.answeredCountEl.textContent = questionsAnswered;
-            if (ui.questionCountEl) ui.questionCountEl.textContent = `${Math.min(questionsAnswered + 1, totalQuestionsInSession)} / ${totalQuestionsInSession}`;
+            if(ui.questionCountEl) ui.questionCountEl.textContent = `${Math.min(questionsAnswered + 1, totalQuestionsInSession)} / ${totalQuestionsInSession}`;
         },
-
+        
         updateAdaptiveNavigationButtons: function(currentQuestion, questionsAnswered, totalQuestionsInSession, isLoading) {
             const ui = this.uiCache;
             const noQuestion = !currentQuestion;
@@ -332,18 +513,18 @@
 
             if (ui.prevBtn) ui.prevBtn.style.display = 'none';
 
-            if (ui.nextBtn) {
+            if(ui.nextBtn) {
                 ui.nextBtn.disabled = noQuestion;
                 ui.nextBtn.innerHTML = isLastQuestionPlanned ? 'Vyhodnotit poslední <i class="fas fa-flag-checkered"></i>' : 'Další otázka <i class="fas fa-arrow-right"></i>';
                 ui.nextBtn.style.display = noQuestion ? 'none' : 'flex';
             }
 
-            if (ui.skipBtn) {
+            if(ui.skipBtn) {
                 ui.skipBtn.style.display = noQuestion ? 'none' : 'flex';
                 ui.skipBtn.disabled = noQuestion;
             }
 
-            if (ui.finishBtn) {
+            if(ui.finishBtn) {
                 ui.finishBtn.style.display = 'flex';
                 ui.finishBtn.disabled = isLoading.results;
                 if (noQuestion) {
@@ -354,54 +535,16 @@
             }
         },
 
+        displayResults: function() {
+            // Complex function, implementation will be in test1.js
+        },
+
         displayReview: function() {
             // Complex function, implementation will be in test1.js
-            console.warn("TestUI.displayReview is a placeholder. Main logic resides in test1.js");
         },
 
         updateSingleReviewItemUI: function() {
             // Complex function, implementation will be in test1.js
-             console.warn("TestUI.updateSingleReviewItemUI is a placeholder. Main logic resides in test1.js");
-        },
-        
-        renderNotifications: function(count, notifications) {
-            console.log("[Render Notifications UI] Start, Count:", count, "Notifications:", notifications);
-            const ui = this.uiCache;
-            if (!ui.notificationCount || !ui.notificationsList || !ui.noNotificationsMsg || !ui.markAllReadBtn) {
-                console.error("[Render Notifications UI] Missing UI elements.");
-                return;
-            }
-            ui.notificationCount.textContent = count > 9 ? '9+' : (count > 0 ? String(count) : '');
-            ui.notificationCount.classList.toggle('visible', count > 0);
-
-            if (notifications && notifications.length > 0) {
-                ui.notificationsList.innerHTML = notifications.map(n => {
-                    const visual = activityVisuals[n.type?.toLowerCase()] || activityVisuals.default;
-                    const isReadClass = n.is_read ? 'is-read' : '';
-                    const linkAttr = n.link ? `data-link="${this.sanitizeHTML(n.link)}"` : '';
-                    return `
-                        <div class="notification-item ${isReadClass}" data-id="${n.id}" ${linkAttr}>
-                            ${!n.is_read ? '<span class="unread-dot"></span>' : ''}
-                            <div class="notification-icon ${visual.class}">
-                                <i class="fas ${visual.icon}"></i>
-                            </div>
-                            <div class="notification-content">
-                                <div class="notification-title">${this.sanitizeHTML(n.title)}</div>
-                                <div class="notification-message">${this.sanitizeHTML(n.message)}</div>
-                                <div class="notification-time">${this.formatRelativeTime(n.created_at)}</div>
-                            </div>
-                        </div>`;
-                }).join('');
-                ui.noNotificationsMsg.style.display = 'none';
-                ui.notificationsList.style.display = 'block';
-                ui.markAllReadBtn.disabled = count === 0;
-            } else {
-                ui.notificationsList.innerHTML = '';
-                ui.noNotificationsMsg.style.display = 'block';
-                ui.notificationsList.style.display = 'none';
-                ui.markAllReadBtn.disabled = true;
-            }
-            console.log("[Render Notifications UI] Finished rendering.");
         },
 
         renderNotificationSkeletons: function(count = 2) {
@@ -409,24 +552,17 @@
             if (!ui.notificationsList || !ui.noNotificationsMsg) return;
             let skeletonHTML = '';
             for (let i = 0; i < count; i++) {
-                skeletonHTML += `
-                    <div class="notification-item skeleton">
-                        <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div>
-                        <div class="notification-content">
-                            <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div>
-                            <div class="skeleton" style="height: 12px; width: 90%;"></div>
-                            <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div>
-                        </div>
-                    </div>`;
+                skeletonHTML += `<div class="notification-item skeleton"><div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div><div class="notification-content"><div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div><div class="skeleton" style="height: 12px; width: 90%;"></div><div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div></div></div>`;
             }
             ui.notificationsList.innerHTML = skeletonHTML;
             ui.noNotificationsMsg.style.display = 'none';
             ui.notificationsList.style.display = 'block';
         }
+        // --- END: Test-specific UI Functions ---
     };
 
-    // This makes the uiFunctions object available globally as window.TestUI
+    // This makes the uiFunctions object available globally, for example, as window.TestUI
     global.TestUI = uiFunctions;
-    console.log("test1-ui.js loaded and TestUI object exposed.");
+    console.log("test1-ui.js (v2) loaded and TestUI object exposed.");
 
 })(window);
