@@ -1,6 +1,7 @@
 /* dashboard/procvicovani/vyuka/vyuka.css - REVOLUTIONARY UPDATE v31 - GLOWING EDGES & DEEP SPACE */
 /* Sidebar and Footer styles have been moved to dashboard/css/layout.css */
 /* USER FIX: Increased chat and whiteboard size by restructuring HTML and adjusting flex properties. */
+/* USER FIX 2: Radically increased size by changing layout to vertical flex-direction. */
 
 /* --- :root (Основные переменные) --- */
 :root {
@@ -117,11 +118,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 /* --- ZMĚNA: Vylepšená struktura Layoutu --- */
 .vyuka-page-container {
     flex-grow: 1; margin-left: var(--vyuka-sidebar-width-collapsed);
-    display: flex; flex-direction: column; /* Důležité pro header a scrollable content pod sebou */
+    display: flex; flex-direction: column;
     height: 100vh;
     transition: margin-left var(--animation-duration-medium) var(--animation-timing-cyber);
     background-color: transparent;
-    overflow: hidden; /* Zabrání dvojitým scrollbarům */
+    overflow: hidden;
 }
 .vyuka-sidebar-ai.expanded ~ .vyuka-page-container { margin-left: var(--vyuka-sidebar-width-expanded); }
 
@@ -132,19 +133,19 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 	border-bottom: 1px solid var(--vyuka-border-color);
 	display: flex; align-items: center; justify-content: space-between;
 	padding: 0 1.5rem;
-    flex-shrink: 0; /* Header se nesmí smrsknout */
+    flex-shrink: 0;
 	box-shadow: 0 5px 25px rgba(0,0,0,0.3);
-	position: relative; /* Odstraněno sticky, je přirozeně nahoře */
+	position: relative;
     z-index: 950;
 	transition: background-color var(--animation-duration-medium) ease;
 }
 body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 0.8); }
 
 .vyuka-main-content-scrollable {
-	flex-grow: 1; /* Tento blok se roztáhne a zabere veškeré zbývající místo */
-	overflow-y: auto; /* Pouze vertikální scrollbar ZDE */
+	flex-grow: 1;
+	overflow-y: auto;
     overflow-x: hidden;
-	display: flex; flex-direction: column; /* Pro správné umístění footeru */
+	display: flex; flex-direction: column;
     position: relative;
     scrollbar-width: thin; scrollbar-color: var(--vyuka-accent-secondary) transparent;
 }
@@ -154,17 +155,31 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 
 .vyuka-main-content {
 	display: flex;
-    flex-grow: 1; /* Důležité, aby tento blok tlačil footer dolů */
+    flex-grow: 1;
 	padding: var(--vyuka-main-content-padding);
     gap: var(--vyuka-main-content-gap);
 	position: relative; z-index: 10;
     min-height: 0;
     overflow: visible;
+    flex-direction: column; /* ZMĚNA: Vertikální uspořádání */
 }
 
 .main-footer.vyuka-footer {
-    flex-shrink: 0; /* Footer se nesmí smrsknout */
-    margin-top: auto; /* Přilepí se na konec flex kontejneru */
+    flex-shrink: 0;
+    margin-top: auto;
+}
+
+.vyuka-whiteboard-area {
+    flex-basis: 65%; /* ZMĚNA: Zabírá 65% výšky */
+    flex-shrink: 1;
+    min-height: 400px; /* ZMĚNA: Minimální výška */
+}
+
+.vyuka-chat-panel {
+    flex-basis: 35%; /* ZMĚNA: Zabírá 35% výšky */
+    flex-shrink: 1;
+    min-height: 350px; /* ZMĚNA: Minimální výška */
+    min-width: auto; /* ZMĚNA: Odstraněno omezení šířky */
 }
 
 .vyuka-whiteboard-area, .vyuka-chat-panel {
@@ -180,11 +195,7 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 	animation: panel-glitch-in 0.7s var(--animation-timing-cyber) forwards;
 	opacity: 0;
     flex-grow: 1;
-    min-height: 0;
-    height: auto;
 }
-.vyuka-whiteboard-area { flex-basis: 60%; flex-shrink: 1; }
-.vyuka-chat-panel { flex-basis: 40%; flex-shrink: 1; min-width: 380px; }
 
 @keyframes panel-glitch-in {
 	0% { opacity: 0; transform: translateY(20px) scale(0.98); filter: blur(3px) brightness(2); box-shadow: 0 0 5px rgba(var(--vyuka-accent-primary-rgb), 0.4), 0 0 10px rgba(var(--vyuka-accent-secondary-rgb), 0.4); }
@@ -208,7 +219,7 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 }
 .vyuka-whiteboard-area:hover::before, .vyuka-chat-panel:hover::before { opacity: 0.8; }
 
-/* --- Ostatní CSS bez změn... --- */
+/* --- Остальной CSS bez změn... --- */
 .notifications-dropdown-wrapper { background-color: var(--vyuka-notification-bg); backdrop-filter: blur(12px) saturate(1.3); border: 1px solid var(--vyuka-notification-border); box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 15px rgba(var(--vyuka-accent-primary-rgb),0.2) inset; border-radius: var(--vyuka-card-radius); width: 380px; transform: translateY(10px) scale(0.95); transform-origin: top right; transition: opacity var(--animation-duration-medium) ease, transform var(--animation-duration-medium) var(--animation-timing-cyber), visibility 0s var(--animation-duration-medium); position: absolute; top: calc(100% + 10px); right: 0; opacity: 0; visibility: hidden; z-index: 1001; }
 .notifications-dropdown-wrapper.active { transform: translateY(0) scale(1); opacity: 1; visibility: visible; transition-delay: 0s; }
 .notifications-header { border-bottom: 1px solid var(--vyuka-border-panel-edge); padding: 0.8rem 1.1rem; display:flex; justify-content:space-between; align-items:center; }
@@ -357,8 +368,8 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 .modal-text { text-align: center; margin-bottom: 1.8rem; color: var(--vyuka-text-secondary); font-size: 0.95rem; line-height: 1.6; }
 .modal-actions { display: flex; justify-content: center; gap: 1rem; }
 .modal-actions .btn { min-width: 130px; }
-@media (max-width: 1200px) { .vyuka-main-content { flex-direction: column; } .vyuka-whiteboard-area, .vyuka-chat-panel { flex-basis: auto; height: 50vh; min-height: 400px;} }
-@media (max-width: 768px) { .vyuka-sidebar-ai { transform: translateX(-100%); width: var(--vyuka-sidebar-width-expanded); z-index: 1002; } .vyuka-sidebar-ai.active-mobile { transform: translateX(0); } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-logo .logo-text, .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link .link-text { display: inline; } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link i { margin-right: 0.8rem; } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-header, .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link { justify-content: flex-start; } .vyuka-page-container { margin-left: 0; width: 100%; } .vyuka-header { padding: 0 0.8rem; } .vyuka-header-left .sidebar-ai-desktop-toggle { display: none; } .vyuka-header-left .mobile-menu-toggle { display: block; } .vyuka-header-topic-info h1 { font-size: 0.9rem; } .vyuka-header-topic-info p { font-size: 0.7rem; } .vyuka-header-right { gap: 0.3rem; } .vyuka-main-content { padding: 0.8rem; gap: 0.8rem; } .vyuka-whiteboard-area, .vyuka-chat-panel { padding: 1rem; min-height: 45vh; } .vyuka-lesson-controls { flex-direction: column; } .vyuka-lesson-controls .btn { width: 100%; font-size: 0.8rem; padding: 0.5rem; } .chat-input-area { padding-top: 0.4rem; } .chat-input { padding: 0.5rem; font-size: 0.8rem; } .send-button { width: 36px; height: 36px; font-size: 1rem;} .chat-controls button { width: 30px; height: 30px; font-size: 0.85rem;} .sidebar-overlay-ai { position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark-rgb), 0.7); z-index: 1001; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; backdrop-filter: blur(3px); } .sidebar-overlay-ai.active { opacity: 1; visibility: visible; transition-delay: 0s; } .vyuka-header-user-display { display: none; } }
+@media (max-width: 1200px) { /* ZMĚNA: Přizpůsobení pro vertikální layout - již není potřeba měnit směr */ }
+@media (max-width: 768px) { .vyuka-sidebar-ai { transform: translateX(-100%); width: var(--vyuka-sidebar-width-expanded); z-index: 1002; } .vyuka-sidebar-ai.active-mobile { transform: translateX(0); } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-logo .logo-text, .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link .link-text { display: inline; } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link i { margin-right: 0.8rem; } .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-header, .vyuka-sidebar-ai.active-mobile .vyuka-sidebar-ai-link { justify-content: flex-start; } .vyuka-page-container { margin-left: 0; width: 100%; } .vyuka-header { padding: 0 0.8rem; } .vyuka-header-left .sidebar-ai-desktop-toggle { display: none; } .vyuka-header-left .mobile-menu-toggle { display: block; } .vyuka-header-topic-info h1 { font-size: 0.9rem; } .vyuka-header-topic-info p { font-size: 0.7rem; } .vyuka-header-right { gap: 0.3rem; } .vyuka-main-content { padding: 0.8rem; gap: 0.8rem; flex-direction: column; } .vyuka-whiteboard-area, .vyuka-chat-panel { padding: 1rem; min-height: 45vh; flex-basis: auto; /* Zrušení flex-basis pro mobil */ } .vyuka-lesson-controls { flex-direction: column; } .vyuka-lesson-controls .btn { width: 100%; font-size: 0.8rem; padding: 0.5rem; } .chat-input-area { padding-top: 0.4rem; } .chat-input { padding: 0.5rem; font-size: 0.8rem; } .send-button { width: 36px; height: 36px; font-size: 1rem;} .chat-controls button { width: 30px; height: 30px; font-size: 0.85rem;} .sidebar-overlay-ai { position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark-rgb), 0.7); z-index: 1001; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; backdrop-filter: blur(3px); } .sidebar-overlay-ai.active { opacity: 1; visibility: visible; transition-delay: 0s; } .vyuka-header-user-display { display: none; } }
 @media (max-width: 576px) { .vyuka-header-topic-info h1 { font-size: 1rem; } .vyuka-header-topic-info p { display:none; } .vyuka-header-right { gap: 0.4rem; } .vyuka-header-right .btn-icon-only { width:30px; height:30px; font-size:0.8rem;} .modal-content.card { padding: 1.5rem; } .modal-title { font-size: 1.2rem; } .modal-text { font-size: 0.9rem; } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; animation-delay: -0.01ms !important; transition-delay: 0ms !important; will-change: auto !important; } .vyuka-sidebar-ai, .vyuka-page-container { transition: none !important; } .mouse-follower-glow, body.new-vyuka-layout::before, body.new-vyuka-layout::after, .vyuka-sidebar-ai-logo i, .initial-loading-overlay .loading-spinner, .initial-loading-overlay p.loading-text span, .unread-dot, .offline-banner i { animation: none !important; } .initial-loading-overlay .loading-spinner::after { animation: none !important; } .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-logo .logo-text, .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link .link-text { animation: none !important; } .toast.show { transform: translateX(0) !important; } .modal-overlay.visible .modal-content.card { transform: scale(1) !important; opacity: 1 !important; } .notification-item.hiding { animation: none !important; opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; margin-top: 0; margin-bottom: 0; border-width: 0; } .skeleton::after { animation: none !important; background: var(--skeleton-highlight) !important; } }
 .tooltipster-sidetip.tooltipster-vyuka .tooltipster-box { background: var(--vyuka-bg-panel); border: 1px solid var(--vyuka-accent-primary); border-radius: var(--vyuka-button-radius); box-shadow: 0 0 15px rgba(var(--vyuka-accent-primary-rgb), 0.3); }
