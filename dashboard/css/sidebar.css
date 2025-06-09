@@ -1,0 +1,139 @@
+/* dashboard/css/sidebar.css */
+/* Стили для боковой панели "Нейро-космос" */
+
+/* Левый Sidebar (Редизайн) */
+.vyuka-sidebar-ai {
+	width: var(--vyuka-sidebar-width-collapsed);
+	background: linear-gradient(170deg, rgba(17, 24, 39, 0.9), rgba(10, 15, 28, 0.95));
+	backdrop-filter: blur(15px) saturate(1.2);
+	display: flex; flex-direction: column;
+	padding: 1rem 0;
+	transition: width var(--animation-duration-medium) var(--animation-timing-cyber), box-shadow var(--animation-duration-medium) ease;
+	height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000;
+	box-shadow: 8px 0 40px -10px rgba(0,0,0,0.6);
+	border-right: none; /* Убираем обычную рамку, заменяем на псевдо-элемент */
+}
+/* Светящаяся граница для Sidebar */
+.vyuka-sidebar-ai::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 2px;
+	height: 100%;
+	background: linear-gradient(to bottom, transparent, var(--vyuka-accent-primary), var(--vyuka-accent-secondary), transparent);
+	box-shadow: 0 0 10px rgba(var(--vyuka-accent-primary-rgb), 0.5);
+	opacity: 0.7;
+	transition: opacity 0.3s ease, box-shadow 0.3s ease;
+}
+.vyuka-sidebar-ai:hover::after {
+	opacity: 1;
+	box-shadow: 0 0 20px rgba(var(--vyuka-accent-primary-rgb), 0.7);
+}
+.vyuka-sidebar-ai.expanded {
+	width: var(--vyuka-sidebar-width-expanded);
+	box-shadow: 12px 0 60px -15px rgba(0,0,0,0.7), 0 0 20px rgba(var(--vyuka-accent-primary-rgb), 0.1);
+}
+
+.vyuka-sidebar-ai-header { padding: 0 1rem; margin-bottom: 2rem; }
+.vyuka-sidebar-ai-logo { display: flex; align-items: center; gap: 0.8rem; color: var(--vyuka-text-heading); text-decoration: none; font-size: 1.5rem; font-family: var(--vyuka-font-accent); }
+.vyuka-sidebar-ai-logo i { color: var(--vyuka-accent-secondary); text-shadow: var(--vyuka-text-glow-secondary); transition: transform 0.4s var(--animation-timing-cyber); }
+.vyuka-sidebar-ai-logo:hover i { transform: rotate(360deg) scale(1.1); }
+.vyuka-sidebar-ai-logo .logo-text { opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; font-size: 1rem; }
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-logo .logo-text { opacity: 1; visibility: visible; transition-delay: 0.1s; }
+.vyuka-sidebar-ai-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
+
+.vyuka-sidebar-ai-link {
+	display: flex;
+	align-items: center;
+	padding: 1rem 1.5rem;
+	color: var(--vyuka-text-secondary);
+	text-decoration: none;
+	position: relative;
+	overflow: hidden;
+	transition: color var(--animation-duration-fast) ease, background-color var(--animation-duration-fast) ease;
+}
+.vyuka-sidebar-ai-link::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: -100%;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(90deg, transparent, rgba(var(--vyuka-accent-secondary-rgb), 0.2), transparent);
+	transition: left 0.4s ease;
+}
+.vyuka-sidebar-ai-link:hover { color: var(--vyuka-text-heading); }
+.vyuka-sidebar-ai-link:hover::before { left: 100%; }
+.vyuka-sidebar-ai-link i { font-size: 1.1rem; width: 24px; text-align: center; margin-right: 1.5rem; transition: all 0.3s ease; }
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link i { margin-right: 1rem; }
+.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link i { margin-right: 0; }
+.vyuka-sidebar-ai-link .link-text { font-weight: 500; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; }
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link .link-text { opacity: 1; visibility: visible; transition-delay: 0.1s; }
+
+/* Улучшенное активное состояние для ссылок */
+.vyuka-sidebar-ai-link.active {
+	background: linear-gradient(90deg, rgba(var(--vyuka-accent-primary-rgb),0.25) 0%, rgba(var(--vyuka-accent-secondary-rgb),0.25) 100%);
+	color: var(--vyuka-text-heading);
+	box-shadow: inset 0 0 15px rgba(var(--vyuka-accent-primary-rgb),0.2), 0 0 10px rgba(var(--vyuka-accent-secondary-rgb),0.2);
+	font-weight: 700;
+	position: relative;
+}
+.vyuka-sidebar-ai-link.active::before { /* Override hover effect */
+    left: -100%;
+}
+.vyuka-sidebar-ai-link.active::after { /* Pulsing border */
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 3px;
+    background-color: var(--vyuka-accent-primary);
+    animation: pulse-border 2s infinite ease-in-out;
+}
+
+@keyframes pulse-border {
+	0%, 100% {
+		box-shadow: 0 0 10px var(--vyuka-accent-primary), 0 0 5px var(--vyuka-accent-secondary);
+        background-color: var(--vyuka-accent-primary);
+	}
+	50% {
+		box-shadow: 0 0 20px var(--vyuka-accent-primary), 0 0 10px var(--vyuka-accent-secondary);
+        background-color: var(--vyuka-accent-secondary);
+	}
+}
+/* Улучшенная иконка в свернутом состоянии */
+.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link.active { background: transparent; }
+.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link.active::after { display: none; }
+.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link.active i {
+    box-shadow: 0 0 20px var(--vyuka-cyber-glow-primary);
+    background-color: var(--vyuka-accent-primary);
+    color: var(--vyuka-bg-dark);
+    border-radius: 50%;
+    padding: 8px;
+    transform: scale(1.1);
+    animation: pulse-border 2s infinite ease-in-out;
+}
+
+.vyuka-sidebar-ai-link.active i { color: var(--vyuka-accent-secondary); text-shadow: 0 0 8px var(--vyuka-accent-secondary); transform: scale(1.1); }
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link.active i { color: var(--vyuka-accent-primary); }
+.vyuka-sidebar-ai-footer { padding: 1.5rem; font-size: 0.75rem; color: var(--vyuka-text-muted); text-align: center; border-top: 1px solid var(--vyuka-border-highlight); margin: 0 1rem; opacity: 0; transition: opacity 0.3s ease; }
+.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-footer { opacity: 1; transition-delay: 0.2s; }
+
+/* Overlay для мобильной версии */
+.sidebar-overlay-ai {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(var(--vyuka-bg-dark-rgb), 0.7);
+    z-index: 1001;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0s 0.3s;
+    backdrop-filter: blur(3px);
+}
+.sidebar-overlay-ai.active {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+}
