@@ -1,6 +1,11 @@
-/* dashboard/css/sidebar.css - v2 "Cosmic Neuro" Redesign */
+/* dashboard/css/layout.css - v3 "Cosmic Neuro" Redesign for Sidebar & Footer */
 
-/* --- Левый Sidebar (Редизайн) --- */
+/*
+ * ==============================================
+ * Стили Боковой Панели (Sidebar)
+ * ==============================================
+ */
+
 .vyuka-sidebar-ai {
 	width: var(--vyuka-sidebar-width-collapsed);
 	background: #040615; /* Глубокий космический цвет */
@@ -55,12 +60,21 @@
 	overflow: hidden;
 	transition: color var(--animation-duration-fast) ease, background-color var(--animation-duration-fast) ease;
 }
-.vyuka-sidebar-ai-link:hover {
-    color: var(--vyuka-text-heading);
-    background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.1);
+.vyuka-sidebar-ai-link::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: -100%;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(90deg, transparent, rgba(var(--vyuka-accent-secondary-rgb), 0.2), transparent);
+	transition: left 0.4s ease;
 }
+.vyuka-sidebar-ai-link:hover { color: var(--vyuka-text-heading); }
+.vyuka-sidebar-ai-link:hover::before { left: 100%; }
 .vyuka-sidebar-ai-link i { font-size: 1.1rem; width: 24px; text-align: center; margin-right: 1.5rem; transition: all 0.3s ease; text-shadow: 0 0 5px rgba(var(--vyuka-text-muted), 0.5); }
 .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link i { margin-right: 1rem; }
+.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link { justify-content: center; }
 .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link i { margin-right: 0; }
 .vyuka-sidebar-ai-link .link-text { font-weight: 500; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; }
 .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link .link-text { opacity: 1; visibility: visible; transition-delay: 0.1s; }
@@ -85,33 +99,39 @@
     left: 0;
     height: 100%;
     width: 3px;
-    background: var(--vyuka-accent-primary);
+    background-color: var(--vyuka-accent-primary);
     box-shadow: 0 0 12px var(--vyuka-accent-primary);
+    animation: pulse-border 2s infinite ease-in-out;
+}
+
+@keyframes pulse-border {
+	0%, 100% { box-shadow: 0 0 12px var(--vyuka-accent-primary); background-color: var(--vyuka-accent-primary); }
+	50% { box-shadow: 0 0 25px var(--vyuka-accent-primary), 0 0 10px var(--vyuka-accent-secondary); background-color: var(--vyuka-accent-secondary); }
 }
 .vyuka-sidebar-ai-link.active i {
     color: var(--vyuka-accent-primary);
     text-shadow: 0 0 15px var(--vyuka-accent-primary);
     transform: scale(1.1);
 }
-
 /* Улучшенная иконка в свернутом состоянии */
-.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link.active {
-    background: transparent;
-    box-shadow: none;
-}
+.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link.active { background: transparent; box-shadow: none; }
 .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link.active::after { display: none; }
 .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link.active i {
     box-shadow: 0 0 20px var(--vyuka-cyber-glow-secondary);
     background-color: var(--vyuka-accent-secondary);
     color: var(--vyuka-bg-dark);
     border-radius: 50%;
-    padding: 9px;
-    transform: scale(1.15);
+    width: 40px; /* Фиксированная ширина */
+    height: 40px; /* Фиксированная высота */
+    line-height: 40px; /* Вертикальное центрирование */
+    padding: 0;
+    font-size: 1.1rem;
+    transform: scale(1.1);
     animation: pulse-icon 2.2s infinite ease-in-out;
 }
 @keyframes pulse-icon {
-    0%, 100% { transform: scale(1.15); box-shadow: 0 0 20px var(--vyuka-cyber-glow-secondary); }
-    50% { transform: scale(1.25); box-shadow: 0 0 30px var(--vyuka-cyber-glow-secondary), 0 0 10px var(--vyuka-accent-primary); }
+    0%, 100% { transform: scale(1.1); box-shadow: 0 0 20px var(--vyuka-cyber-glow-secondary); }
+    50% { transform: scale(1.2); box-shadow: 0 0 30px var(--vyuka-cyber-glow-secondary), 0 0 10px var(--vyuka-accent-primary); }
 }
 
 .vyuka-sidebar-ai-footer { padding: 1.5rem; font-size: 0.75rem; color: var(--vyuka-text-muted); text-align: center; border-top: 1px solid var(--vyuka-border-highlight); margin: 0 1rem; opacity: 0; transition: opacity 0.3s ease; }
@@ -133,3 +153,50 @@
     visibility: visible;
     transition-delay: 0s;
 }
+
+
+/*
+ * ==============================================
+ * Стили Футера (Footer)
+ * ==============================================
+ */
+
+.main-footer.vyuka-footer {
+	padding: 4rem 2rem 2rem;
+	background: linear-gradient(to top, rgba(var(--vyuka-bg-dark-rgb), 0.95), transparent);
+	text-align: center;
+	margin-top: auto;
+	position: relative;
+    border-top: none;
+    flex-shrink: 0;
+}
+.main-footer.vyuka-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--vyuka-accent-secondary), var(--vyuka-accent-primary), transparent);
+    box-shadow: 0 0 15px rgba(var(--vyuka-accent-secondary-rgb), 0.6);
+    animation: footer-glow-pan 10s linear infinite alternate;
+}
+@keyframes footer-glow-pan {
+    from { transform: scaleX(0.8); opacity: 0.7; }
+    to { transform: scaleX(1); opacity: 1; }
+}
+
+.footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 2.5rem; max-width: 1200px; margin: 0 auto 3rem; text-align: left; }
+.footer-column .logo { margin-bottom: 1.5rem; }
+.footer-column p { color: var(--vyuka-text-secondary); line-height: 1.7; font-size: 0.9rem; }
+.footer-column h3 { font-family: var(--vyuka-font-secondary); font-size: 1.2rem; color: var(--vyuka-accent-primary); margin-bottom: 1.5rem; text-shadow: var(--vyuka-text-glow-primary); }
+.footer-links { list-style: none; padding: 0; margin: 0; }
+.footer-links li { margin-bottom: 0.8rem; }
+.footer-links li a { color: var(--vyuka-text-secondary); display: flex; align-items: center; gap: 0.8rem; }
+.footer-links li a:hover { color: var(--vyuka-accent-secondary); transform: translateX(5px); }
+.footer-links li a i { color: var(--vyuka-text-muted); transition: color 0.3s ease; }
+.footer-links li a:hover i { color: var(--vyuka-accent-secondary); }
+.social-links { display: flex; gap: 1.2rem; margin-top: 1.5rem; }
+.social-links a { font-size: 1.5rem; transition: transform 0.3s ease, color 0.3s ease; }
+.social-links a:hover { transform: scale(1.2) translateY(-3px); color: var(--vyuka-accent-secondary); }
+.footer-copyright { border-top: 1px solid var(--vyuka-border-color); padding-top: 2rem; margin-top: 3rem; color: var(--vyuka-text-muted); font-size: 0.85rem; font-family: var(--vyuka-font-mono); }
