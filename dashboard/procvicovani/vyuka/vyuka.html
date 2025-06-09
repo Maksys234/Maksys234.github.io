@@ -21,8 +21,8 @@
                     fontCache: 'global'
                 },
                 options: {
-                    ignoreHtmlClass: 'tex2jax_ignore',
-                    processHtmlClass: 'tex2jax_process'
+                    ignoreHtmlClass: 'tex2jax_ignore', // Třída pro ignorování MathJaxem
+                    processHtmlClass: 'tex2jax_process' // Třída pro explicitní zpracování
                 },
                 startup: {
                     ready: () => {
@@ -48,10 +48,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <link rel="stylesheet" href="vyuka.css">
-    <link rel="stylesheet" href="../../css/layout.css">
+    <link rel="stylesheet" href="../../css/sidebar.css">
     
     <style>
-        /* Эти стили можно оставить, так как они специфичны для шрифтов на этой странице */
         .vyuka-sidebar-ai-logo .logo-text,
         .vyuka-footer .footer-column .logo span {
             font-family: 'Shadows Into Light Two', cursive !important;
@@ -66,5 +65,341 @@
 </head>
 <body class="dark new-vyuka-layout">
 
-    </body>
+    <div class="initial-loading-overlay" id="initial-loader">
+         <div class="loading-spinner">
+            <div class="spinner-blade"></div> <div class="spinner-blade"></div> <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div> <div class="spinner-blade"></div> <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div> <div class="spinner-blade"></div> <div class="spinner-blade"></div>
+            <div class="spinner-blade"></div> <div class="spinner-blade"></div> <div class="spinner-blade"></div>
+         </div>
+         <p class="loading-text" id="loading-text-anim"><span>S</span><span>Y</span><span>N</span><span>C</span><span>H</span><span>R</span><span>O</span><span>N</span><span>I</span><span>Z</span><span>U</span><span>J</span><span>I</span><span>&nbsp;</span><span>M</span><span>O</span><span>D</span><span>U</span><span>L</span><span>.</span><span>.</span><span>.</span></p>
+     </div>
+
+     <div class="rate-limit-banner" id="rate-limit-banner" style="display: none;">
+        <i class="fas fa-satellite-dish"></i>
+        <div class="rate-limit-text">
+            Překročena kvóta API. Systém je dočasně nedostupný.
+            <span class="rate-limit-subtext">Další pokus o spojení za <span class="rate-limit-countdown">5</span>s...</span>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="cancel-retry-btn">Zrušit</button>
+     </div>
+     <div class="offline-banner" id="offline-banner"> <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO.</div>
+     <div class="sidebar-overlay-ai" id="sidebar-overlay-ai"></div>
+
+
+    <aside class="vyuka-sidebar-ai" id="vyuka-sidebar-ai">
+        <div class="vyuka-sidebar-ai-header">
+            <a href="/dashboard/dashboard.html" class="vyuka-sidebar-ai-logo">
+                <i class="fas fa-atom"></i> <span class="logo-text">Justax</span>
+            </a>
+        </div>
+        <ul class="vyuka-sidebar-ai-menu">
+            <li class="vyuka-sidebar-ai-item btn-tooltip" title="Nástěnka">
+                <a href="/dashboard/dashboard.html" class="vyuka-sidebar-ai-link">
+                    <i class="fas fa-tachometer-alt"></i> <span class="link-text">Nástěnka</span>
+                </a>
+            </li>
+            <li class="vyuka-sidebar-ai-item btn-tooltip active" title="Procvičování">
+                <a href="/dashboard/procvicovani/main.html" class="vyuka-sidebar-ai-link active">
+                    <i class="fas fa-laptop-code"></i> <span class="link-text">Procvičování</span>
+                </a>
+            </li>
+            <li class="vyuka-sidebar-ai-item btn-tooltip" title="Pokrok">
+                 <a href="/dashboard/pokrok.html" class="vyuka-sidebar-ai-link">
+                    <i class="fas fa-chart-line"></i> <span class="link-text">Pokrok</span>
+                </a>
+            </li>
+            <li class="vyuka-sidebar-ai-item btn-tooltip" title="Ocenění">
+                <a href="/dashboard/oceneni.html" class="vyuka-sidebar-ai-link">
+                    <i class="fas fa-medal"></i> <span class="link-text">Ocenění</span>
+                </a>
+            </li>
+            <li class="vyuka-sidebar-ai-item btn-tooltip" title="Profil">
+                <a href="/dashboard/profile.html" class="vyuka-sidebar-ai-link">
+                    <i class="fas fa-user-astronaut"></i> <span class="link-text">Profil</span>
+                </a>
+            </li>
+        </ul>
+        <div class="vyuka-sidebar-ai-footer">
+             &copy; <span id="currentYearSidebarVyuka">2025</span> Justax Systems
+        </div>
+    </aside>
+
+    <div class="vyuka-page-container" id="vyuka-page-container">
+        <div class="vyuka-main-content-scrollable">
+            <header class="vyuka-header" id="vyuka-header">
+                <div class="vyuka-header-left">
+                    <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <button class="btn btn-icon-only sidebar-ai-desktop-toggle" id="sidebar-ai-desktop-toggle" aria-label="Přepnout postranní panel AI" title="Přepnout postranní panel AI">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="vyuka-header-topic-info">
+                        <h1 id="vyuka-subject-title">AI Tutor</h1>
+                        <p id="vyuka-topic-subtitle">Synapse</p>
+                    </div>
+                </div>
+                <div class="vyuka-header-right">
+                    <a href="/dashboard/settings.html" class="btn btn-icon-only btn-tooltip" title="Nastavení Účtu">
+                        <i class="fas fa-user-cog"></i>
+                    </a>
+                    <div class="notifications">
+                        <div class="notification-bell" id="notification-bell" title="Oznámení">
+                             <i class="far fa-bell"></i>
+                             <span class="notification-badge" id="notification-count">0</span>
+                        </div>
+                        <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
+                             <div class="notifications-header">
+                                 <span class="notifications-title">PŘÍCHOZÍ SIGNÁLY</span>
+                                 <button class="mark-all-read-btn btn btn-secondary btn-sm" id="mark-all-read" disabled>Vymazat vše</button>
+                             </div>
+                             <div id="notifications-list">
+                                 <div class="notification-item skeleton"> <div class="notification-icon skeleton" style="background-color: var(--skeleton-bg);"></div> <div class="notification-content"> <div class="skeleton" style="height: 16px; width: 70%; margin-bottom: 6px;"></div> <div class="skeleton" style="height: 12px; width: 90%;"></div> <div class="skeleton" style="height: 10px; width: 40%; margin-top: 6px;"></div> </div> </div>
+                                 <div id="no-notifications-msg" style="display: none; padding: 1rem; text-align: center; color: var(--vyuka-text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div>
+                             </div>
+                             <div class="notifications-footer">
+                                 <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a>
+                             </div>
+                        </div>
+                     </div>
+                    <div class="user-menu-container">
+                        <div class="vyuka-header-user-display">
+                            <div class="vyuka-header-user-avatar-wrapper" id="vyuka-header-avatar-wrapper">
+                                <img src="" alt="Avatar" id="vyuka-header-avatar" class="vyuka-header-avatar-img">
+                                <span class="vyuka-header-avatar-initials" style="display:none;">?</span>
+                            </div>
+                            <div class="vyuka-header-user-details">
+                                <span class="vyuka-header-user-name" id="vyuka-header-user-name">Pilot</span>
+                                <span class="vyuka-header-user-title" id="vyuka-header-user-title">Vesmírný kadet</span>
+                            </div>
+                        </div>
+                        <div class="user-dropdown-menu" id="user-dropdown-menu">
+                             <ul class="user-dropdown-links">
+                                <li><a href="/dashboard/profile.html"><i class="fas fa-user-astronaut"></i> Veřejný Profil</a></li>
+                                <li><a href="/privacy-policy.html"><i class="fas fa-shield-alt"></i> Ochrana Údajů</a></li>
+                                <li><a href="/terms.html"><i class="fas fa-file-contract"></i> Podmínky Použití</a></li>
+                            </ul>
+                            <button class="btn btn-danger btn-sm logout-btn" id="vyuka-logout-btn">
+                                <i class="fas fa-power-off"></i> Odhlásit se
+                            </button>
+                        </div>
+                    </div>
+                     <a href="/dashboard/procvicovani/main.html" class="btn btn-secondary btn-tooltip btn-exit-vyuka" title="Ukončit výuku a vrátit se na přehled">
+                        <i class="fas fa-times"></i> Ukončit
+                    </a>
+                </div>
+            </header>
+
+            <main class="vyuka-main-content" id="vyuka-main-content">
+                <div class="error-container" id="global-error" style="display: none;"></div>
+
+                <div class="vyuka-whiteboard-area" id="ai-presenter-area">
+                    <div id="whiteboard-container">
+                        <div id="whiteboard-content">
+                            <div class="skeleton-block" style="height: 150px; margin-bottom: 1rem;"></div>
+                            <div class="skeleton-text-line long"></div>
+                            <div class="skeleton-text-line"></div>
+                            <div class="skeleton-text-line short"></div>
+                        </div>
+                         <div id="board-speaking-indicator">
+                            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                        </div>
+                    </div>
+                    <div class="vyuka-lesson-controls">
+                         <button class="btn btn-primary btn-tooltip" id="continue-btn" style="display: none;" title="Požádat AI o další část vysvětlení">
+                             <i class="fas fa-forward"></i> Pokračovat s Lekcí
+                         </button>
+                         <button id="clear-board-btn" class="btn btn-secondary btn-tooltip" title="Vymazat obsah tabule">
+                             <i class="fas fa-eraser"></i> Vyčistit Tabuli
+                         </button>
+                          <button id="stop-speech-btn" class="btn btn-warning btn-tooltip" title="Zastavit aktuální čtení textu" disabled>
+                             <i class="fas fa-stop-circle"></i> Zastavit Řeč
+                         </button>
+                    </div>
+                </div>
+
+                <aside class="vyuka-chat-panel" id="vyuka-chat-panel">
+                    <div class="vyuka-chat-header">
+                        <h3 id="current-topic-display"><span class="placeholder">Načítám téma...</span></h3>
+                        <div class="ai-model-selector-container">
+                            <label for="ai-model-select" class="ai-model-label btn-tooltip" title="Vyberte jazykový model AI">
+                                <i class="fas fa-cogs"></i> Model:
+                            </label>
+                            <select id="ai-model-select" class="ai-model-select">
+                                <option value="gemini-1.5-flash" selected>Gemini 1.5 Flash</option>
+                                <option value="gemini-1.5-pro" disabled>Gemini 1.5 Pro (Brzy)</option>
+                                <option value="gemini-2.5-flash" disabled>Gemini 2.5 Flash (Brzy)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="interaction-panel-content">
+                        <div id="chat-tab-content" class="tab-content active">
+                            <section class="chat-area">
+                                 <div class="chat-messages" id="chat-messages">
+                                     <div class="initial-chat-interface">
+                                         <div class="ai-greeting-avatar">
+                                             <i class="fas fa-robot"></i>
+                                         </div>
+                                         <h3 class="initial-chat-title">AI Tutor Justax je připraven</h3>
+                                         <p class="initial-chat-message">Čekám na načtení tématu nebo vaši zprávu.</p>
+                                         <div class="initial-chat-status">
+                                             <span class="status-dot online"></span> Online
+                                         </div>
+                                     </div>
+                                </div>
+                                 <div class="chat-input-area">
+                                     <div class="chat-input-wrapper">
+                                         <textarea class="chat-input" id="chat-input" placeholder="Zeptejte se nebo odpovězte..." rows="1"></textarea>
+                                         <button class="send-button" id="send-button" title="Odeslat zprávu">
+                                             <i class="fas fa-paper-plane"></i>
+                                         </button>
+                                     </div>
+                                     <div class="chat-action-templates" id="chat-action-templates">
+                                        <button class="btn btn-secondary btn-sm template-btn" data-question="Vysvětli to jednodušeji.">Jednodušeji</button>
+                                        <button class="btn btn-secondary btn-sm template-btn" data-question="Uveď další příklad.">Další příklad</button>
+                                        <button class="btn btn-secondary btn-sm template-btn" data-question="Proč to tak funguje?">Proč?</button>
+                                        <button class="btn btn-secondary btn-sm template-btn" data-question="Jak to souvisí s předchozím?">Souvislost?</button>
+                                        <button class="btn btn-secondary btn-sm template-btn" data-question="Můžeš mi s tímto pomoci?">Potřebuji pomoc</button>
+                                     </div>
+                                     </div>
+                                 <div class="chat-controls">
+                                     <button id="mic-btn" class="btn btn-icon-only btn-tooltip" title="Zahájit hlasový vstup">
+                                         <i class="fas fa-microphone"></i>
+                                     </button>
+                                     <button id="clear-chat-btn" class="btn btn-icon-only btn-tooltip" title="Vymazat historii tohoto chatu">
+                                         <i class="fas fa-trash-alt"></i>
+                                     </button>
+                                      <button id="save-chat-btn" class="btn btn-icon-only btn-tooltip" title="Uložit chat jako PDF">
+                                          <i class="fas fa-save"></i>
+                                      </button>
+                                 </div>
+                            </section>
+                         </div>
+                    </div>
+                </aside>
+            </main>
+        </div>
+
+        <footer class="main-footer vyuka-footer">
+            <div class="container">
+                <div class="footer-grid">
+                    <div class="footer-column">
+                        <a href="/dashboard/dashboard.html" class="logo" aria-label="Justax Domů">
+                            <i class="fas fa-atom" aria-hidden="true"></i> <span>JUSTAX</span>
+                        </a>
+                        <p>AI Augmentace Vzdělávání a Osobního Rozvoje.</p>
+                        <div class="social-links" aria-label="Sociální sítě">
+                             <a href="https://t.me/justaxspace" class="social-link" aria-label="Telegram" target="_blank" rel="noopener noreferrer"><i class="fab fa-telegram-plane" aria-hidden="true"></i></a>
+                             <a href="https://www.instagram.com/learnwithjustax/" class="social-link" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram" aria-hidden="true"></i></a>
+                             <a href="mailto:admin@justax.space" class="social-link" aria-label="Email"><i class="fas fa-envelope" aria-hidden="true"></i></a>
+                        </div>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Účet &amp; Dashboard</h3>
+                        <ul class="footer-links">
+                            <li><a href="/auth/"><i class="fas fa-sign-in-alt" aria-hidden="true"></i> Přihlášení / Registrace</a></li>
+                            <li><a href="/dashboard/dashboard.html"><i class="fas fa-tachometer-alt" aria-hidden="true"></i> Hlavní Panel</a></li>
+                            <li><a href="/dashboard/profile.html"><i class="fas fa-user-astronaut" aria-hidden="true"></i> Můj Profil</a></li>
+                            <li><a href="/dashboard/pokrok.html"><i class="fas fa-chart-line" aria-hidden="true"></i> Sledování Pokroku</a></li>
+                            <li><a href="/dashboard/oceneni.html"><i class="fas fa-medal" aria-hidden="true"></i> Moje Ocenění</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Právní &amp; Podpora</h3>
+                        <ul class="footer-links">
+                            <li><a href="/privacy-policy.html"><i class="fas fa-shield-alt" aria-hidden="true"></i> Ochrana Údajů</a></li>
+                            <li><a href="/terms.html"><i class="fas fa-file-contract" aria-hidden="true"></i> Podmínky Použití</a></li>
+                            <li><a href="mailto:admin@justax.space"><i class="fas fa-headset" aria-hidden="true"></i> Zákaznická Podpora</a></li>
+                            <li><span class="icon-text-item"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> Centrála: Cheb, CZ</span></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer-copyright">
+                    &copy; <span id="currentYearFooter">2025</span> Justax Systems. Všechna práva vyhrazena. Kyber-verze v28.1.
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+    <div id="mouse-follower" class="mouse-follower-glow"></div>
+    <div class="modal-overlay" id="completionSuggestionOverlay" style="display: none;">
+        <div class="modal-content card" id="completionSuggestionModal">
+            <button class="modal-close-btn" id="closeCompletionModalBtn" aria-label="Zavřít">&times;</button>
+            <div class="modal-icon"><i class="fas fa-lightbulb"></i></div>
+            <h3 class="modal-title">Návrh na dokončení tématu</h3>
+            <p class="modal-text">AI Tutor se domnívá, že jste toto téma již dostatečně probrali. Chcete jej nyní označit jako dokončené?</p>
+            <div class="modal-actions">
+                <button class="btn btn-success" id="confirmCompleteBtn"><i class="fas fa-check"></i> Ano, dokončit</button>
+                <button class="btn btn-secondary" id="declineCompleteBtn"><i class="fas fa-times"></i> Ne, pokračovat</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="vyuka-core.js" defer></script>
+    <script src="vyuka-ui-features.js" defer></script>
+    <script src="vyuka-ai-interaction.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentYearFooterVyuka = document.querySelector('.vyuka-footer #currentYearFooter');
+            if (currentYearFooterVyuka) { currentYearFooterVyuka.textContent = new Date().getFullYear(); }
+
+            const currentYearSidebarVyukaElem = document.getElementById('currentYearSidebarVyuka');
+            if (currentYearSidebarVyukaElem) {
+                currentYearSidebarVyukaElem.textContent = new Date().getFullYear();
+                currentYearSidebarVyukaElem.style.display = 'inline';
+            } else {
+                const fallbackSidebarYear = document.querySelector('.vyuka-sidebar-ai-footer span');
+                if(fallbackSidebarYear && fallbackSidebarYear.id !== 'currentYearSidebarVyuka') {
+                    console.warn("Fallback: Setting year in generic span in sidebar footer as #currentYearSidebarVyuka not found.");
+                    fallbackSidebarYear.textContent = new Date().getFullYear();
+                     fallbackSidebarYear.style.display = 'inline';
+                } else if (!currentYearSidebarVyukaElem) {
+                     console.warn("Element #currentYearSidebarVyuka for sidebar year not found.");
+                }
+            }
+
+            const logoutButton = document.getElementById('vyuka-logout-btn');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', async () => {
+                    if (window.VyukaApp && VyukaApp.state && VyukaApp.state.supabase) {
+                        const { error } = await VyukaApp.state.supabase.auth.signOut();
+                        if (error) {
+                            console.error("Chyba při odhlášení:", error);
+                            if (VyukaApp.showToast) VyukaApp.showToast('Chyba odhlášení', error.message, 'error');
+                        } else {
+                            window.location.href = '/auth/index.html';
+                        }
+                    } else {
+                        console.warn("Supabase instance not found in VyukaApp for logout.");
+                         if (window.VyukaApp && VyukaApp.showToast) VyukaApp.showToast('Chyba', 'Systém odhlášení není připraven.', 'error');
+                    }
+                });
+            }
+
+             const scrollableContent = document.querySelector('.vyuka-main-content-scrollable');
+             const header = document.getElementById('vyuka-header');
+             if (scrollableContent && header) {
+                 scrollableContent.addEventListener('scroll', () => {
+                     document.body.classList.toggle('scrolled', scrollableContent.scrollTop > 20);
+                 });
+                 document.body.classList.toggle('scrolled', scrollableContent.scrollTop > 20);
+             }
+
+             // Listener for the new cancel retry button
+             const cancelRetryBtn = document.getElementById('cancel-retry-btn');
+             if (cancelRetryBtn) {
+                cancelRetryBtn.addEventListener('click', () => {
+                    if (window.VyukaApp && typeof window.VyukaApp.clearRateLimitRetry === 'function') {
+                        window.VyukaApp.clearRateLimitRetry();
+                        if (window.VyukaApp.showToast) {
+                             window.VyukaApp.showToast('Pokusy o spojení zrušeny.', 'info');
+                        }
+                    }
+                });
+             }
+        });
+    </script>
+</body>
 </html>
