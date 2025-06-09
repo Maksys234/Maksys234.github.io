@@ -1,6 +1,6 @@
 /* dashboard/procvicovani/vyuka/vyuka.css - REVOLUTIONARY UPDATE v31 - GLOWING EDGES & DEEP SPACE */
 /* Sidebar and Footer styles have been moved to dashboard/css/layout.css */
-/* USER FIX: Increased chat and whiteboard size by adjusting main layout flex properties. */
+/* USER FIX: Increased chat and whiteboard size by restructuring HTML and adjusting flex properties. */
 
 /* --- :root (Основные переменные) --- */
 :root {
@@ -44,8 +44,8 @@
 	--vyuka-sidebar-width-expanded: 260px;
 	--vyuka-sidebar-width-collapsed: 72px;
 	--vyuka-header-height: 64px;
-	--vyuka-main-content-padding: 1.5rem; /* Sníženo pro více místa */
-	--vyuka-main-content-gap: 1.5rem; /* Sníženo pro více místa */
+	--vyuka-main-content-padding: 1rem; /* ZMĚNA: Sníženo pro více místa */
+	--vyuka-main-content-gap: 1rem; /* ZMĚNA: Sníženo pro více místa */
 	/* Радиусы и тени */
 	--vyuka-card-radius: 12px;
 	--vyuka-button-radius: 8px;
@@ -114,27 +114,16 @@ a:hover { color: var(--vyuka-text-link-hover); text-shadow: 0 0 10px var(--vyuka
 a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid var(--vyuka-accent-secondary); outline-offset: 3px; border-radius: 4px; box-shadow: 0 0 12px var(--vyuka-accent-secondary); }
 :is(a, button):focus { outline: none; }
 
-/* --- Структура Layoutu (UPRAVENO PRO VELIKOST) --- */
+/* --- ZMĚNA: Vylepšená struktura Layoutu --- */
 .vyuka-page-container {
     flex-grow: 1; margin-left: var(--vyuka-sidebar-width-collapsed);
-    display: flex; flex-direction: column;
+    display: flex; flex-direction: column; /* Důležité pro header a scrollable content pod sebou */
     height: 100vh;
     transition: margin-left var(--animation-duration-medium) var(--animation-timing-cyber);
     background-color: transparent;
-    overflow: hidden;
+    overflow: hidden; /* Zabrání dvojitým scrollbarům */
 }
 .vyuka-sidebar-ai.expanded ~ .vyuka-page-container { margin-left: var(--vyuka-sidebar-width-expanded); }
-
-.vyuka-main-content-scrollable {
-	flex-grow: 1; /* Nechá tento blok růst */
-	overflow-y: auto; overflow-x: hidden;
-	display: flex; flex-direction: column; /* Důležité pro layout s flex-grow a footerem */
-    position: relative;
-    scrollbar-width: thin; scrollbar-color: var(--vyuka-accent-secondary) transparent;
-}
-.vyuka-main-content-scrollable::-webkit-scrollbar { width: 6px; }
-.vyuka-main-content-scrollable::-webkit-scrollbar-track { background: transparent; }
-.vyuka-main-content-scrollable::-webkit-scrollbar-thumb { background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.7); border-radius: 3px; }
 
 .vyuka-header {
 	height: var(--vyuka-header-height);
@@ -142,21 +131,40 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 	backdrop-filter: blur(12px);
 	border-bottom: 1px solid var(--vyuka-border-color);
 	display: flex; align-items: center; justify-content: space-between;
-	padding: 0 1.5rem; flex-shrink: 0;
+	padding: 0 1.5rem;
+    flex-shrink: 0; /* Header se nesmí smrsknout */
 	box-shadow: 0 5px 25px rgba(0,0,0,0.3);
-	position: sticky; top: 0; z-index: 950;
+	position: relative; /* Odstraněno sticky, je přirozeně nahoře */
+    z-index: 950;
 	transition: background-color var(--animation-duration-medium) ease;
 }
 body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 0.8); }
 
+.vyuka-main-content-scrollable {
+	flex-grow: 1; /* Tento blok se roztáhne a zabere veškeré zbývající místo */
+	overflow-y: auto; /* Pouze vertikální scrollbar ZDE */
+    overflow-x: hidden;
+	display: flex; flex-direction: column; /* Pro správné umístění footeru */
+    position: relative;
+    scrollbar-width: thin; scrollbar-color: var(--vyuka-accent-secondary) transparent;
+}
+.vyuka-main-content-scrollable::-webkit-scrollbar { width: 6px; }
+.vyuka-main-content-scrollable::-webkit-scrollbar-track { background: transparent; }
+.vyuka-main-content-scrollable::-webkit-scrollbar-thumb { background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.7); border-radius: 3px; }
+
 .vyuka-main-content {
 	display: flex;
-    flex-grow: 1; /* HLAVNÍ ZMĚNA: Tento blok nyní roste a zabírá veškeré dostupné místo */
+    flex-grow: 1; /* Důležité, aby tento blok tlačil footer dolů */
 	padding: var(--vyuka-main-content-padding);
     gap: var(--vyuka-main-content-gap);
 	position: relative; z-index: 10;
-    min-height: 0; /* Důležité pro správné fungování flex-grow v některých prohlížečích */
+    min-height: 0;
     overflow: visible;
+}
+
+.main-footer.vyuka-footer {
+    flex-shrink: 0; /* Footer se nesmí smrsknout */
+    margin-top: auto; /* Přilepí se na konec flex kontejneru */
 }
 
 .vyuka-whiteboard-area, .vyuka-chat-panel {
@@ -172,8 +180,8 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 	animation: panel-glitch-in 0.7s var(--animation-timing-cyber) forwards;
 	opacity: 0;
     flex-grow: 1;
-    min-height: 0; /* Důležité pro vnitřní scroll */
-    height: auto; /* ZMĚNA: Původní height: 100% může způsobovat problémy */
+    min-height: 0;
+    height: auto;
 }
 .vyuka-whiteboard-area { flex-basis: 60%; flex-shrink: 1; }
 .vyuka-chat-panel { flex-basis: 40%; flex-shrink: 1; min-width: 380px; }
@@ -200,7 +208,7 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 }
 .vyuka-whiteboard-area:hover::before, .vyuka-chat-panel:hover::before { opacity: 0.8; }
 
-/* --- Остальной CSS код bez větších změn --- */
+/* --- Ostatní CSS bez změn... --- */
 .notifications-dropdown-wrapper { background-color: var(--vyuka-notification-bg); backdrop-filter: blur(12px) saturate(1.3); border: 1px solid var(--vyuka-notification-border); box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 15px rgba(var(--vyuka-accent-primary-rgb),0.2) inset; border-radius: var(--vyuka-card-radius); width: 380px; transform: translateY(10px) scale(0.95); transform-origin: top right; transition: opacity var(--animation-duration-medium) ease, transform var(--animation-duration-medium) var(--animation-timing-cyber), visibility 0s var(--animation-duration-medium); position: absolute; top: calc(100% + 10px); right: 0; opacity: 0; visibility: hidden; z-index: 1001; }
 .notifications-dropdown-wrapper.active { transform: translateY(0) scale(1); opacity: 1; visibility: visible; transition-delay: 0s; }
 .notifications-header { border-bottom: 1px solid var(--vyuka-border-panel-edge); padding: 0.8rem 1.1rem; display:flex; justify-content:space-between; align-items:center; }
