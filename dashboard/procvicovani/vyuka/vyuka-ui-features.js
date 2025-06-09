@@ -1,7 +1,6 @@
 // Файл: procvicovani/vyuka/vyuka-ui-features.js
 // Логика функций интерфейса: TTS/STT, Доска, Уведомления, Очки, Модальные окна, Достижения, Вспомогательные UI функции, Настройка слушателей событий
-// Версия v29: Opravy pro zobrazení šablon otázek, menu profilu, a doladění logiky.
-// Версия v29.1 (Revolutionary Platform Update 2): Upravena funkce appendToWhiteboard pro přijímání strukturovaných dat (type, content) a přidána funkce renderMarkdown.
+// Версия v30: Přidána chybějící funkce toggleRateLimitBanner pro správné zobrazení chybových hlášek API.
 
 window.VyukaApp = window.VyukaApp || {};
 
@@ -349,6 +348,38 @@ window.VyukaApp = window.VyukaApp || {};
             } else if (actionPayload === 'ACTION_USER_CONTINUES_AFTER_QUIZ') { console.log("[QuickReply v29.1 UI] User continues lesson after quiz evaluation."); state.finalQuizActive = false; state.finalQuizOffered = false; state.aiIsWaitingForAnswer = false; if(typeof VyukaApp.clearWhiteboard === 'function') VyukaApp.clearWhiteboard(true); VyukaApp.manageUIState('learning'); if (typeof VyukaApp.addChatMessage === 'function') { VyukaApp.addChatMessage("Dobře, k čemu by ses chtěl vrátit nebo co bychom mohli probrat dál k tomuto tématu?", 'gemini');} state.aiIsWaitingForAnswer = true; if(ui.continueBtn) ui.continueBtn.style.display = 'none';
             } else { console.warn("[QuickReply v29.1 UI] Unknown action payload:", actionPayload); }
             if (typeof VyukaApp.manageButtonStates === 'function') VyukaApp.manageButtonStates();
+        };
+
+        // --- NEW: Funkce pro banner rate limit ---
+        VyukaApp.toggleRateLimitBanner = (show, nextRetryInMs = 0) => {
+            const banner = VyukaApp.ui.rateLimitBanner;
+            const countdownSpan = banner?.querySelector('.rate-limit-countdown');
+            if (!banner) return;
+
+            if (show) {
+                banner.style.display = 'flex';
+                if (countdownSpan) {
+                    let seconds = Math.ceil(nextRetryInMs / 1000);
+                    countdownSpan.textContent = seconds;
+                    const interval = setInterval(() => {
+                        seconds--;
+                        if (seconds > 0) {
+                            countdownSpan.textContent = seconds;
+                        } else {
+                            clearInterval(interval);
+                        }
+                    }, 1000);
+                    // Uložíme interval, abychom ho mohli zrušit, pokud uživatel klikne na "Zrušit"
+                    banner.dataset.countdownInterval = interval;
+                }
+            } else {
+                banner.style.display = 'none';
+                const intervalId = banner.dataset.countdownInterval;
+                if (intervalId) {
+                    clearInterval(parseInt(intervalId));
+                    delete banner.dataset.countdownInterval;
+                }
+            }
         };
 
 		VyukaApp.setupFeatureListeners = () => {
