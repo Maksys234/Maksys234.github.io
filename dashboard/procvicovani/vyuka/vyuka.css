@@ -204,6 +204,8 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 .mark-all-read-btn:hover:not(:disabled) { background-color: rgba(var(--vyuka-accent-primary-rgb), 0.2); color: var(--vyuka-accent-primary); border-color: var(--vyuka-accent-primary); box-shadow: 0 0 8px var(--vyuka-accent-primary); }
 .mark-all-read-btn:disabled { opacity: 0.4; }
 #notifications-list { max-height: 330px; overflow-y: auto; }
+#notifications-list::-webkit-scrollbar-thumb { background-color: var(--vyuka-accent-primary); border-radius: 3px; }
+#notifications-list::-webkit-scrollbar-track { background: rgba(var(--vyuka-bg-dark-rgb), 0.3); }
 .notification-item { border-bottom: 1px solid var(--vyuka-border-panel-edge); padding: 0.9rem 1.1rem; transition: background-color 0.25s ease, transform 0.2s ease, box-shadow 0.2s ease; cursor: pointer; display: flex; align-items: center; gap: 1rem; position:relative; }
 .notification-item:hover { background-color: var(--vyuka-notification-item-hover-bg); transform: translateX(3px); box-shadow: inset 3px 0 8px rgba(var(--vyuka-accent-secondary-rgb),0.15); }
 .notification-item.is-read { opacity: 0.65; filter: saturate(0.7); }
@@ -218,8 +220,6 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 @keyframes pulseDot { 0%, 100% { transform: translateY(-50%) scale(1); opacity: 1; } 50% { transform: translateY(-50%) scale(1.15); opacity: 0.7; } }
 .notifications-footer { border-top: 1px solid var(--vyuka-border-panel-edge); padding: 0.7rem 1.1rem; text-align: center; }
 .view-all-notifications-link { font-family: var(--vyuka-font-secondary); font-weight: 600; letter-spacing: 0.5px; }
-
-/* ... (the rest of the CSS file from vyuka.css) ... */
 .vyuka-header-left { display: flex; align-items: center; gap: 0.8rem; }
 .vyuka-header-left .mobile-menu-toggle { display: none; color: var(--vyuka-text-muted); font-size: 1.4rem; }
 .vyuka-header-left .sidebar-ai-desktop-toggle { color: var(--vyuka-text-muted); font-size: 1.1rem; background: rgba(var(--vyuka-bg-panel-lighter),0.7); border: 1px solid var(--vyuka-border-color); cursor: pointer; padding: 0.5rem 0.7rem; border-radius: var(--vyuka-button-radius); transition: all var(--animation-duration-fast) ease; }
@@ -379,3 +379,10 @@ body.scrolled .vyuka-header { background-color: rgba(var(--vyuka-bg-panel-rgb), 
 .offline-banner.visible { top: 0; }
 .offline-banner i { animation: pulsePlug 1.5s infinite; }
 @keyframes pulsePlug { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+
+/* --- Base styles from dashboard.css for components in use --- */
+.btn.btn-secondary { /* Basic styling for secondary buttons */
+    background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.12); color: var(--vyuka-text-medium); border: 1px solid rgba(var(--vyuka-accent-secondary-rgb), 0.35); box-shadow: none; }
+.btn.btn-secondary::before { display: none; }
+.btn.btn-secondary:hover:not(:disabled) { background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.25); border-color: rgba(var(--vyuka-accent-secondary-rgb), 0.6); color: var(--vyuka-text-light); box-shadow: 0 0 18px rgba(var(--vyuka-accent-secondary-rgb), 0.25); transform: translateY(-3px) scale(1.01); }
+.btn-sm { padding: 0.45rem 0.9rem; font-size: 0.8rem; }
