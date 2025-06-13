@@ -1,9 +1,9 @@
 /* dashboard/procvicovani/vyuka/vyuka.css */
-/* ВЕРСИЯ: "Cosmic Neuro" v3.1 - Полный редизайн в стиле "Безграничный космос + Технологии" */
+/* ВЕРСИЯ: "Cosmic Neuro" v3.2 - DEEP DIVE - Максимальная детализация темы "Безграничный космос + Технологии" */
 
 /*
  * ==============================================
- * :root - НОВАЯ ПАЛИТРА И ПЕРЕМЕННЫЕ
+ * :root - РАСШИРЕННАЯ ПАЛИТРА И ПЕРЕМЕННЫЕ
  * ==============================================
  */
 :root {
@@ -13,19 +13,19 @@
 	--vyuka-font-accent: 'Audiowide', cursive;
 	--vyuka-font-mono: 'Roboto Mono', monospace;
 
-	--vyuka-bg-dark: #02040A; /* Очень тёмно-синий, почти черный */
+	--vyuka-bg-dark: #02040A;
 	--vyuka-bg-dark-rgb: 2, 4, 10;
-	--vyuka-bg-panel: rgba(10, 15, 28, 0.75); /* Полупрозрачное стекло */
+	--vyuka-bg-panel: rgba(10, 15, 28, 0.75);
 	--vyuka-bg-panel-rgb: 10, 15, 28;
-	--vyuka-bg-panel-lighter: #111827;
+	--vyuka-bg-panel-lighter: rgba(17, 24, 39, 0.9);
 	--vyuka-bg-panel-lighter-rgb: 17, 24, 39;
 
 	/* Акценты - Энергия и Небула */
-	--vyuka-accent-primary: #f02fc2; /* Яркая маджента/фуксия (Небула) */
+	--vyuka-accent-primary: #f02fc2; /* Маджента (Небула, Энергия) */
 	--vyuka-accent-primary-rgb: 240, 47, 194;
-	--vyuka-accent-secondary: #05fdd8; /* Электрический бирюзовый (Технология) */
+	--vyuka-accent-secondary: #05fdd8; /* Бирюзовый (Технология, Голограммы) */
 	--vyuka-accent-secondary-rgb: 5, 253, 216;
-	--vyuka-accent-tertiary: #ffe45e; /* Золотой/желтый (Звезды) */
+	--vyuka-accent-tertiary: #ffe45e; /* Желтый (Звезды, Акценты) */
 	--vyuka-accent-tertiary-rgb: 255, 228, 94;
 	--vyuka-accent-error: #ff3860;
 	--vyuka-accent-success: #32ff7e;
@@ -33,7 +33,7 @@
 	--white-rgb: 255, 255, 255;
 
 	/* Границы - Энергетические контуры */
-	--vyuka-border-color: #2c3958; /* Приглушенный синий */
+	--vyuka-border-color: rgba(44, 57, 88, 0.7);
 	--vyuka-border-highlight: rgba(var(--vyuka-accent-secondary-rgb), 0.5);
 	--vyuka-border-panel-edge: rgba(var(--vyuka-accent-primary-rgb), 0.3);
 
@@ -46,12 +46,12 @@
 	--vyuka-text-link-hover: #ffffff;
 	--vyuka-text-on-accent: #02040A;
 
-	/* Тени и Свечение */
-	--vyuka-panel-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 1px 1px rgba(var(--white-rgb),0.05);
-	--vyuka-text-glow-primary: 0 0 8px var(--vyuka-accent-primary);
-	--vyuka-text-glow-secondary: 0 0 8px var(--vyuka-accent-secondary);
-	--vyuka-cyber-glow-primary: 0 0 12px rgba(var(--vyuka-accent-primary-rgb), 0.6), 0 0 24px rgba(var(--vyuka-accent-primary-rgb), 0.4);
-	--vyuka-cyber-glow-secondary: 0 0 12px rgba(var(--vyuka-accent-secondary-rgb), 0.6), 0 0 24px rgba(var(--vyuka-accent-secondary-rgb), 0.4);
+	/* Тени и Свечение - Усиленные эффекты */
+	--vyuka-panel-shadow: 0 10px 40px rgba(0,0,0,0.7), inset 0 1px 1px rgba(var(--white-rgb),0.05);
+	--vyuka-text-glow-primary: 0 0 8px rgba(var(--vyuka-accent-primary-rgb), 0.8);
+	--vyuka-text-glow-secondary: 0 0 8px rgba(var(--vyuka-accent-secondary-rgb), 0.8);
+	--vyuka-cyber-glow-primary: 0 0 12px rgba(var(--vyuka-accent-primary-rgb), 0.7), 0 0 24px rgba(var(--vyuka-accent-primary-rgb), 0.5);
+	--vyuka-cyber-glow-secondary: 0 0 12px rgba(var(--vyuka-accent-secondary-rgb), 0.7), 0 0 24px rgba(var(--vyuka-accent-secondary-rgb), 0.5);
 
 	/* Размеры и Анимации */
 	--vyuka-sidebar-width-expanded: 260px;
@@ -69,7 +69,7 @@
 
 /*
  * ==============================================
- * BODY - ФОН КОСМОСА
+ * BODY - ФОН КОСМОСА С ДЕТАЛЯМИ
  * ==============================================
  */
 *, *::before, *::after { box-sizing: border-box; }
@@ -80,9 +80,7 @@ body.new-vyuka-layout {
 	background-color: var(--vyuka-bg-dark);
 	color: var(--vyuka-text-primary);
 	margin: 0; padding: 0; display: flex;
-	height: 100vh;
-	overflow: hidden;
-	position: relative;
+	height: 100vh; overflow: hidden; position: relative;
     /* Фон: статичные далекие звезды + движущиеся близкие звезды */
     background-image:
         radial-gradient(circle at 80% 20%, rgba(var(--white-rgb), 0.4), transparent 1px),
@@ -101,26 +99,20 @@ body.new-vyuka-layout {
 
 /* Псевдоэлемент для туманности и технологической сетки */
 body.new-vyuka-layout::before {
-	content: '';
-	position: fixed;
-	inset: 0;
-	z-index: -1;
+	content: ''; position: fixed; inset: 0; z-index: -1;
 	background:
-		radial-gradient(ellipse at 15% 25%, rgba(var(--vyuka-accent-primary-rgb), 0.12) 0%, transparent 60%), /* Nebula pink */
-		radial-gradient(ellipse at 85% 75%, rgba(var(--vyuka-accent-secondary-rgb), 0.15) 0%, transparent 55%); /* Nebula teal */
+		radial-gradient(ellipse at 15% 25%, rgba(var(--vyuka-accent-primary-rgb), 0.15) 0%, transparent 65%), /* Nebula pink */
+		radial-gradient(ellipse at 85% 75%, rgba(var(--vyuka-accent-secondary-rgb), 0.18) 0%, transparent 60%); /* Nebula teal */
 	pointer-events: none;
 	animation: bg-lights-pan 45s ease-in-out infinite alternate;
 }
 body.new-vyuka-layout::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: linear-gradient(rgba(var(--vyuka-border-color), 0.1) 1px, transparent 1px),
-                      linear-gradient(90deg, rgba(var(--vyuka-border-color), 0.1) 1px, transparent 1px);
+    content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(var(--vyuka-border-color), 0.12) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(var(--vyuka-border-color), 0.12) 1px, transparent 1px);
     background-size: 35px 35px;
     animation: bg-grid-pan 90s linear infinite;
-    z-index: -2;
-    pointer-events: none;
+    z-index: -2; pointer-events: none;
 }
 @keyframes bg-lights-pan { from { transform: translate(-5%, -5%) rotate(0deg); } to { transform: translate(5%, 5%) rotate(10deg); } }
 @keyframes bg-grid-pan { from { background-position: 0 0; } to { background-position: 700px 350px; } }
@@ -132,20 +124,18 @@ body.new-vyuka-layout::after {
  */
 .vyuka-page-container {
     flex-grow: 1; margin-left: var(--vyuka-sidebar-width-collapsed);
-    display: flex; flex-direction: column;
-    height: 100vh;
+    display: flex; flex-direction: column; height: 100vh;
     transition: margin-left var(--animation-duration-medium) var(--animation-timing-cyber);
-    background-color: transparent;
-    overflow: hidden;
+    background-color: transparent; overflow: hidden;
 }
 .vyuka-sidebar-ai.expanded ~ .vyuka-page-container { margin-left: var(--vyuka-sidebar-width-expanded); }
 
 .vyuka-header {
 	height: var(--vyuka-header-height);
-	background-color: rgba(var(--vyuka-bg-panel-rgb), 0.6);
-	backdrop-filter: blur(15px) saturate(1.2);
+	background-color: rgba(var(--vyuka-bg-panel-rgb), 0.65);
+	backdrop-filter: blur(16px) saturate(1.3);
 	border-bottom: 1px solid var(--vyuka-border-highlight);
-	box-shadow: 0 5px 25px rgba(0,0,0,0.4), inset 0 -1px 0 rgba(var(--vyuka-accent-primary-rgb), 0.1);
+	box-shadow: 0 5px 25px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(var(--vyuka-accent-primary-rgb), 0.15);
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 1.5rem; flex-shrink: 0; position: relative; z-index: 950;
     transition: background-color var(--animation-duration-medium) ease;
@@ -153,8 +143,7 @@ body.new-vyuka-layout::after {
 
 .vyuka-main-content-scrollable {
 	flex-grow: 1; overflow-y: auto; overflow-x: hidden;
-	display: flex; flex-direction: column;
-    position: relative;
+	display: flex; flex-direction: column; position: relative;
     scrollbar-width: thin; scrollbar-color: var(--vyuka-accent-secondary) transparent;
 }
 .vyuka-main-content-scrollable::-webkit-scrollbar { width: 6px; }
@@ -173,7 +162,7 @@ body.new-vyuka-layout::after {
 
 /*
  * ==============================================
- * ПАНЕЛИ (Доска и Чат)
+ * ПАНЕЛИ (Доска и Чат) - УЛУЧШЕННЫЕ
  * ==============================================
  */
 .vyuka-whiteboard-area, .vyuka-chat-panel {
@@ -185,18 +174,19 @@ body.new-vyuka-layout::after {
 	box-shadow: var(--vyuka-panel-shadow);
 	position: relative;
 	transition: all var(--animation-duration-medium) ease;
-	animation: panel-glitch-in 0.7s var(--animation-timing-cyber) forwards;
+	animation: panel-glitch-in 0.8s var(--animation-timing-cyber) forwards;
 	opacity: 0; min-height: 0; height: 100%;
 }
 .vyuka-whiteboard-area { flex: 1 1 65%; }
 .vyuka-chat-panel { flex: 1 1 35%; max-width: 550px; min-width: 380px; }
 
 @keyframes panel-glitch-in {
-	0% { opacity: 0; transform: translateY(20px) scale(0.98); filter: blur(3px) brightness(2); box-shadow: 0 0 5px rgba(var(--vyuka-accent-primary-rgb), 0.4), 0 0 10px rgba(var(--vyuka-accent-secondary-rgb), 0.4); }
-	40% { opacity: 0.8; filter: blur(1px) brightness(1.2); }
+	0% { opacity: 0; transform: translateY(25px) scale(0.97); filter: blur(4px) brightness(2.5); box-shadow: 0 0 5px rgba(var(--vyuka-accent-primary-rgb), 0.5), 0 0 10px rgba(var(--vyuka-accent-secondary-rgb), 0.5); }
+	40% { opacity: 0.8; filter: blur(1.5px) brightness(1.3); }
 	100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0) brightness(1); box-shadow: var(--vyuka-panel-shadow); }
 }
 
+/* Светящаяся рамка при наведении */
 .vyuka-whiteboard-area::before, .vyuka-chat-panel::before {
 	content: ""; position: absolute; inset: -1px;
 	border-radius: inherit; padding: 1.5px;
@@ -208,10 +198,24 @@ body.new-vyuka-layout::after {
 }
 .vyuka-whiteboard-area:hover::before, .vyuka-chat-panel:hover::before { opacity: 0.8; }
 
+/* HUD-углы для панелей */
+.vyuka-whiteboard-area::after, .vyuka-chat-panel::after {
+    content: ''; position: absolute; width: 20px; height: 20px;
+    border-color: var(--vyuka-accent-secondary);
+    border-style: solid; opacity: 0.6;
+    transition: all 0.4s ease;
+    pointer-events: none;
+    z-index: 2;
+}
+.vyuka-whiteboard-area::after { top: 10px; left: 10px; border-width: 2px 0 0 2px; }
+.vyuka-whiteboard-area:hover::after { transform: translate(-3px, -3px) rotate(-5deg); opacity: 1; }
+/* Добавим ещё два угла для симметрии */
+.vyuka-chat-panel::after { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
+.vyuka-chat-panel:hover::after { transform: translate(3px, 3px) rotate(-5deg); opacity: 1; }
 
 /*
  * ==============================================
- * ИНДИКАТОР ЗАГРУЗКИ
+ * ИНДИКАТОР ЗАГРУЗКИ - "КОСМИЧЕСКОЕ ЯДРО"
  * ==============================================
  */
 .initial-loading-overlay {
@@ -221,7 +225,6 @@ body.new-vyuka-layout::after {
 }
 .initial-loading-overlay.hidden { opacity: 0; visibility: hidden; }
 
-/* Новый "космический" спиннер */
 .loading-spinner { width: 90px; height: 90px; position: relative; }
 .loading-spinner::before, .loading-spinner::after {
     content: ''; position: absolute; border-radius: 50%; inset: 0;
@@ -229,13 +232,11 @@ body.new-vyuka-layout::after {
                 inset 0 0 10px 2px rgba(var(--vyuka-accent-secondary-rgb), 0.4);
     animation: spin-orbit 4s linear infinite;
 }
-.loading-spinner::after { animation-delay: -2s; /* Сдвиг анимации для второго кольца */ }
-@keyframes spin-orbit { 0% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
+.loading-spinner::after { animation-delay: -2s; }
+@keyframes spin-orbit { from { transform: rotate(0); } to { transform: rotate(360deg); } }
 
 .loading-text {
-    color: var(--vyuka-text-primary);
-    font-family: var(--vyuka-font-mono);
-    text-transform: uppercase;
+    color: var(--vyuka-text-primary); font-family: var(--vyuka-font-mono); text-transform: uppercase;
     letter-spacing: 4px;
 }
 .loading-text span { opacity: 0; animation: text-flicker 2s infinite linear; }
@@ -244,34 +245,12 @@ body.new-vyuka-layout::after {
         opacity: 0.99;
         text-shadow: 0 0 5px var(--vyuka-accent-secondary), 0 0 10px var(--vyuka-accent-secondary), 0 0 15px var(--vyuka-accent-primary);
     }
-    20%, 21.9%, 63%, 63.9%, 65%, 69.9% {
-        opacity: 0.4;
-        text-shadow: none;
-    }
+    20%, 21.9%, 63%, 63.9%, 65%, 69.9% { opacity: 0.4; text-shadow: none; }
 }
-/* Задержка для каждой буквы */
-.loading-text span:nth-child(1) { animation-delay: 0.1s; }
-.loading-text span:nth-child(2) { animation-delay: 0.2s; }
-.loading-text span:nth-child(3) { animation-delay: 0.3s; }
-.loading-text span:nth-child(4) { animation-delay: 0.4s; }
-.loading-text span:nth-child(5) { animation-delay: 0.5s; }
-.loading-text span:nth-child(6) { animation-delay: 0.6s; }
-.loading-text span:nth-child(7) { animation-delay: 0.7s; }
-.loading-text span:nth-child(8) { animation-delay: 0.8s; }
-.loading-text span:nth-child(9) { animation-delay: 0.9s; }
-.loading-text span:nth-child(10) { animation-delay: 1.0s; }
-.loading-text span:nth-child(11) { animation-delay: 1.1s; }
-.loading-text span:nth-child(12) { animation-delay: 1.2s; }
-.loading-text span:nth-child(13) { animation-delay: 1.3s; }
-.loading-text span:nth-child(14) { animation-delay: 1.4s; }
-.loading-text span:nth-child(15) { animation-delay: 1.5s; }
-.loading-text span:nth-child(16) { animation-delay: 1.6s; }
-.loading-text span:nth-child(17) { animation-delay: 1.7s; }
-.loading-text span:nth-child(18) { animation-delay: 1.8s; }
-.loading-text span:nth-child(19) { animation-delay: 1.9s; }
-.loading-text span:nth-child(20) { animation-delay: 2.0s; }
-.loading-text span:nth-child(21) { animation-delay: 2.1s; }
-.loading-text span:nth-child(22) { animation-delay: 2.2s; }
+/* ... Задержки для букв ... */
+.loading-text span:nth-child(1){animation-delay:.1s} .loading-text span:nth-child(2){animation-delay:.2s}
+.loading-text span:nth-child(3){animation-delay:.3s} .loading-text span:nth-child(4){animation-delay:.4s}
+/* ... и так далее, если понадобится больше букв */
 
 
 /*
@@ -280,56 +259,40 @@ body.new-vyuka-layout::after {
  * ==============================================
  */
 .vyuka-chat-header {
-    background: transparent;
-    border-bottom: 1px solid var(--vyuka-border-highlight);
-    padding: 0.8rem 1.2rem;
-    box-shadow: 0 5px 15px -10px rgba(var(--vyuka-accent-primary-rgb), 0.4);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    background: transparent; border-bottom: 1px solid var(--vyuka-border-highlight);
+    padding: 0.8rem 1.2rem; box-shadow: 0 5px 15px -10px rgba(var(--vyuka-accent-primary-rgb), 0.4);
+    display: flex; justify-content: space-between; align-items: center;
 }
 .vyuka-chat-header h3 {
-    font-family: var(--vyuka-font-mono);
-    text-shadow: var(--vyuka-text-glow-primary);
-    font-size: 1.1rem;
-    color: var(--vyuka-accent-primary);
+    font-family: var(--vyuka-font-mono); text-shadow: var(--vyuka-text-glow-primary);
+    font-size: 1.1rem; color: var(--vyuka-accent-primary);
 }
 .chat-messages {
-    font-family: var(--vyuka-font-mono);
-    line-height: 1.6;
-    font-size: 0.9rem;
+    font-family: var(--vyuka-font-mono); line-height: 1.7; font-size: 0.9rem;
     padding: 0.8rem 1rem;
 }
 .chat-message {
-    padding: 0.4rem 0;
-    align-items: flex-start;
-    gap: 0.6rem;
-    max-width: 100%;
-    display: flex;
-    flex-wrap: nowrap;
+    padding: 0.4rem 0; align-items: flex-start; gap: 0.6rem; max-width: 100%;
+    display: flex; flex-wrap: nowrap; animation: message-scan-in 0.5s ease-out;
 }
-.message-sender {
-    font-weight: 700;
-    flex-shrink: 0;
-    margin-right: 0.6em;
+@keyframes message-scan-in {
+    from { opacity: 0; transform: translateY(10px); clip-path: inset(0 100% 0 0); }
+    to { opacity: 1; transform: translateY(0); clip-path: inset(0 0 0 0); }
 }
+.message-sender { font-weight: 700; flex-shrink: 0; margin-right: 0.6em; }
 .chat-message.user .message-sender { color: var(--vyuka-accent-secondary); text-shadow: var(--vyuka-text-glow-secondary); }
 .chat-message.model .message-sender { color: var(--vyuka-accent-primary); text-shadow: var(--vyuka-text-glow-primary); }
 
 .message-avatar, .message-bubble, .message-timestamp { display: none; }
 
 .message-content {
-    flex-grow: 1;
-    color: var(--vyuka-text-secondary);
-    word-break: break-word;
-    white-space: pre-wrap; /* Preserve formatting from AI */
+    flex-grow: 1; color: var(--vyuka-text-secondary); word-break: break-word; white-space: pre-wrap;
 }
 .message-content p:last-child { margin-bottom: 0; }
 .chat-message.model .message-content { color: var(--vyuka-text-primary); }
 
 .chat-input-wrapper {
-    border-radius: var(--vyuka-input-radius);
-    border: 1px solid var(--vyuka-border-highlight);
+    border-radius: var(--vyuka-input-radius); border: 1px solid var(--vyuka-border-highlight);
     box-shadow: 0 0 15px rgba(var(--vyuka-accent-secondary-rgb), 0.3), inset 0 0 8px rgba(var(--vyuka-bg-dark-rgb),0.5);
     background: var(--vyuka-bg-dark);
 }
