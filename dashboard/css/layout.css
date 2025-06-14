@@ -1,16 +1,16 @@
 /* dashboard/css/layout.css */
-/* Версия: 2.2 - Cosmic Yellow-Purple Theme. Добавлен полный футер. */
+/* Версия: 3.0 - Cosmic Overhaul */
 
 /* ============================================== */
 /* :root - Глобальные переменные                */
 /* ============================================== */
 :root {
     /* Основа */
-    --vyuka-bg-dark: #02040A;
-    --vyuka-bg-dark-rgb: 2, 4, 10;
-    --vyuka-bg-panel: rgba(10, 15, 28, 0.85);
-    --vyuka-bg-panel-rgb: 10, 15, 28;
-    
+    --vyuka-bg-dark: #01040a;
+    --vyuka-bg-panel: rgba(12, 18, 38, 0.75);
+    --vyuka-bg-panel-rgb: 12, 18, 38;
+    --dark-purple-accent: #110d29;
+
     /* Акценты - Космическая палитра */
     --accent-primary: #f02fc2;
     --accent-primary-rgb: 240, 47, 194;
@@ -27,25 +27,21 @@
     --text-heading: #ffffff;
     --vyuka-text-link: var(--accent-yellow);
     --vyuka-text-link-hover: var(--white);
-    --vyuka-text-on-accent: #02040A;
 
     /* Границы */
-    --vyuka-border-color: rgba(44, 57, 88, 0.7);
+    --vyuka-border-color: rgba(60, 70, 110, 0.7);
     --vyuka-border-highlight: rgba(var(--accent-yellow-rgb), 0.5);
 
     /* Шрифты */
     --font-primary: 'Inter', sans-serif;
-    --font-mono: 'Roboto Mono', monospace;
     --vyuka-font-accent: 'Audiowide', cursive;
     --vyuka-font-secondary: 'Orbitron', sans-serif;
 
     /* Размеры и Анимации */
     --vyuka-sidebar-width-expanded: 260px;
-    --vyuka-sidebar-width-collapsed: 72px;
+    --vyuka-sidebar-width-collapsed: 74px;
     --vyuka-header-height: 64px;
     --vyuka-main-content-padding: 2rem;
-    --vyuka-button-radius: 8px;
-    --vyuka-cyber-glow-secondary: 0 0 12px rgba(var(--accent-secondary-rgb), 0.6), 0 0 24px rgba(var(--accent-secondary-rgb), 0.4);
     --animation-timing-cyber: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -79,25 +75,52 @@ body::before {
 .vyuka-main-content { flex-grow: 1; padding: var(--vyuka-main-content-padding); }
 
 /* ============================================== */
-/* SIDEBAR                          */
+/* SIDEBAR (НОВЫЙ ДИЗАЙН)             */
 /* ============================================== */
-.vyuka-sidebar-ai { width: var(--vyuka-sidebar-width-collapsed); background: linear-gradient(170deg, #18113c, #040615 70%); display: flex; flex-direction: column; padding: 1rem 0; transition: width 0.3s var(--animation-timing-cyber); height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; box-shadow: 10px 0 50px -15px rgba(0,0,0,0.7); }
+.vyuka-sidebar-ai {
+    width: var(--vyuka-sidebar-width-collapsed);
+    background: linear-gradient(170deg, #18113c, #040615 70%);
+    backdrop-filter: blur(10px);
+    display: flex; flex-direction: column; padding: 1rem 0;
+    transition: width 0.3s var(--animation-timing-cyber);
+    height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000;
+    border-right: 1px solid rgba(var(--accent-primary-rgb), 0.2);
+    box-shadow: 10px 0 50px -15px rgba(0,0,0,0.7);
+}
 .vyuka-sidebar-ai.expanded { width: var(--vyuka-sidebar-width-expanded); }
-.vyuka-sidebar-ai::after { content: ''; position: absolute; top: 0; right: -1px; width: 2px; height: 100%; background: linear-gradient(to bottom, transparent, var(--accent-yellow), var(--accent-primary), transparent); box-shadow: 0 0 15px rgba(var(--accent-yellow-rgb), 0.6); opacity: 0.8; }
+.vyuka-sidebar-ai::after { content: ''; position: absolute; top: 0; right: -2px; width: 3px; height: 100%; background: linear-gradient(to bottom, transparent 0%, var(--accent-yellow) 50%, var(--accent-primary) 100%); box-shadow: 0 0 15px rgba(var(--accent-yellow-rgb), 0.6); opacity: 0.8; filter: blur(1.5px); }
 .vyuka-sidebar-ai-header { padding: 0.5rem 1rem; margin-bottom: 2.5rem; }
 .vyuka-sidebar-ai-logo { display: flex; align-items: center; gap: 0.8rem; color: var(--vyuka-text-heading); text-decoration: none; font-size: 1.5rem; font-family: var(--vyuka-font-accent); }
-.vyuka-sidebar-ai-logo i { color: var(--accent-yellow); text-shadow: 0 0 10px var(--accent-yellow); transition: transform 0.4s var(--animation-timing-cyber); }
-.vyuka-sidebar-ai-logo:hover i { transform: rotate(360deg) scale(1.15); text-shadow: 0 0 20px var(--accent-yellow); }
+.vyuka-sidebar-ai-logo i { color: var(--accent-yellow); text-shadow: 0 0 10px var(--accent-yellow); transition: transform 0.4s ease, text-shadow 0.4s ease; }
+.vyuka-sidebar-ai-logo:hover i { transform: rotate(360deg) scale(1.15); text-shadow: 0 0 20px var(--accent-yellow), 0 0 30px var(--accent-primary); }
 .vyuka-sidebar-ai .logo-text, .vyuka-sidebar-ai .link-text { opacity: 0; visibility: hidden; max-width: 0; overflow: hidden; white-space: nowrap; transition: opacity 0.2s ease, max-width 0.3s ease, visibility 0s 0.3s; }
 .vyuka-sidebar-ai.expanded .logo-text, .vyuka-sidebar-ai.expanded .link-text { opacity: 1; visibility: visible; max-width: 150px; transition: opacity 0.3s ease 0.1s, max-width 0.3s ease 0.1s, visibility 0s; }
 .vyuka-sidebar-ai-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
-.vyuka-sidebar-ai-link { display: flex; align-items: center; padding: 1rem 1.5rem; color: var(--vyuka-text-secondary); text-decoration: none; position: relative; overflow: hidden; border-radius: 4px; margin: 0.3rem 0.5rem; border: 1px solid transparent; transition: all 0.3s ease; }
+/* --- УЛУЧШЕННЫЙ СТИЛЬ ССЫЛОК --- */
+.vyuka-sidebar-ai-link {
+    display: flex; align-items: center; padding: 1rem 1.5rem;
+    color: var(--vyuka-text-secondary); text-decoration: none; position: relative;
+    overflow: hidden; border-radius: 6px; margin: 0.3rem 0.5rem;
+    border: 1px solid transparent; background: transparent;
+    transition: all 0.3s ease;
+}
 .vyuka-sidebar-ai-link i { font-size: 1.1rem; width: 24px; text-align: center; margin-right: 1.5rem; transition: all 0.3s ease; }
 .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link i { margin-right: 1rem; }
 .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link { justify-content: center; }
 .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link i { margin-right: 0; }
-.vyuka-sidebar-ai-link:hover { color: var(--white); background-color: rgba(var(--accent-primary-rgb), 0.1); border-color: rgba(var(--accent-primary-rgb), 0.3); text-shadow: 0 0 5px var(--accent-primary); }
-.vyuka-sidebar-ai-link.active { color: var(--accent-yellow); background: rgba(var(--accent-yellow-rgb), 0.15); border: 1px solid var(--accent-yellow); font-weight: 700; box-shadow: 0 0 15px rgba(var(--accent-yellow-rgb), 0.3), inset 0 0 10px rgba(var(--accent-yellow-rgb), 0.1); }
+.vyuka-sidebar-ai-link:hover:not(.active) {
+    color: var(--white);
+    background-color: rgba(var(--accent-primary-rgb), 0.1);
+    border-color: rgba(var(--accent-primary-rgb), 0.3);
+    text-shadow: 0 0 5px var(--accent-primary);
+}
+.vyuka-sidebar-ai-link.active {
+    color: var(--accent-yellow);
+    background: linear-gradient(90deg, rgba(var(--accent-yellow-rgb), 0.15), rgba(var(--accent-primary-rgb), 0.05) 100%);
+    border: 1px solid var(--accent-yellow);
+    font-weight: 700;
+    box-shadow: 0 0 20px rgba(var(--accent-yellow-rgb), 0.3), inset 0 0 15px rgba(var(--accent-yellow-rgb), 0.1);
+}
 .vyuka-sidebar-ai-link.active i { color: var(--accent-yellow); text-shadow: 0 0 8px var(--accent-yellow); transform: scale(1.1); }
 .vyuka-sidebar-ai-footer { margin-top: auto; padding: 1.5rem; font-size: 0.75rem; color: var(--vyuka-text-muted); text-align: center; border-top: 1px solid var(--vyuka-border-highlight); }
 .sidebar-overlay-ai { position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark-rgb), 0.7); z-index: 999; opacity: 0; visibility: hidden; transition: opacity 0.3s ease; backdrop-filter: blur(3px); }
@@ -106,10 +129,10 @@ body::before {
 /* ============================================== */
 /* HEADER                           */
 /* ============================================== */
-.vyuka-header { height: var(--vyuka-header-height); background-color: rgba(var(--vyuka-bg-panel-rgb), 0.65); backdrop-filter: blur(16px); border-bottom: 1px solid var(--vyuka-border-highlight); box-shadow: 0 5px 25px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; flex-shrink: 0; }
+.vyuka-header { height: var(--vyuka-header-height); background-color: rgba(var(--vyuka-bg-panel-rgb), 0.75); backdrop-filter: blur(16px); border-bottom: 1px solid var(--vyuka-border-highlight); box-shadow: 0 5px 25px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; flex-shrink: 0; }
 .vyuka-header-left { display: flex; align-items: center; gap: 0.8rem; }
 .vyuka-header-left .mobile-menu-toggle { display: none; color: var(--vyuka-text-muted); font-size: 1.4rem; background: none; border: none; cursor: pointer; }
-.vyuka-header-left .sidebar-ai-desktop-toggle { color: var(--vyuka-text-muted); font-size: 1.1rem; background: rgba(var(--vyuka-bg-panel-lighter),0.7); border: 1px solid var(--vyuka-border-color); cursor: pointer; padding: 0.5rem 0.7rem; border-radius: var(--vyuka-button-radius); transition: all 0.2s ease; }
+.vyuka-header-left .sidebar-ai-desktop-toggle { color: var(--vyuka-text-muted); font-size: 1.1rem; background: rgba(var(--vyuka-bg-panel-lighter),0.7); border: 1px solid var(--vyuka-border-color); cursor: pointer; padding: 0.5rem 0.7rem; border-radius: var(--button-radius); transition: all 0.2s ease; }
 .vyuka-header-left .sidebar-ai-desktop-toggle:hover { background-color: rgba(var(--accent-secondary),0.2); color: var(--accent-secondary); }
 .vyuka-header-left .sidebar-ai-desktop-toggle i { transition: transform 0.3s var(--animation-timing-cyber); }
 .vyuka-sidebar-ai.expanded ~ .vyuka-page-container .vyuka-header .sidebar-ai-desktop-toggle i { transform: rotate(180deg); }
@@ -117,7 +140,7 @@ body::before {
 .vyuka-header-page-title-container p { font-size: 0.85rem; margin: 0; color: var(--vyuka-text-secondary); }
 .vyuka-header-right { display: flex; align-items: center; gap: 1rem; }
 .user-menu-container { position: relative; }
-.vyuka-header-user-display { display: flex; align-items: center; gap: 0.8rem; padding: 0.35rem 0.7rem; background-color: rgba(var(--vyuka-bg-panel-lighter), 0.6); border-radius: var(--vyuka-button-radius); border: 1px solid var(--vyuka-border-color); cursor: pointer; }
+.vyuka-header-user-display { display: flex; align-items: center; gap: 0.8rem; padding: 0.35rem 0.7rem; background-color: rgba(var(--vyuka-bg-panel-lighter), 0.6); border-radius: var(--button-radius); border: 1px solid var(--vyuka-border-color); cursor: pointer; }
 .vyuka-header-user-avatar-wrapper { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 2px solid var(--accent-primary); flex-shrink: 0; display: flex; align-items: center; justify-content: center; background-color: var(--dark-purple-accent); font-weight: bold; }
 .vyuka-header-avatar-img { width: 100%; height: 100%; object-fit: cover; }
 .vyuka-header-user-name { font-weight: 600; }
@@ -129,9 +152,21 @@ body::before {
 .user-dropdown-links li a:hover { background-color: rgba(var(--accent-primary-rgb), 0.1); color: var(--accent-primary); }
 .user-dropdown-links li a i { width: 16px; text-align: center; color: var(--vyuka-text-muted); }
 
-/* --- Footer --- */
-.main-footer.vyuka-footer { flex-shrink: 0; margin-top: auto; background: linear-gradient(to top, rgba(26, 15, 74, 0.98), transparent); padding: 4rem 2rem 2rem; color: var(--vyuka-text-secondary); border-top: 1px solid; border-image: linear-gradient(to right, transparent, var(--accent-yellow), var(--accent-primary), transparent) 1; box-shadow: 0 -5px 30px -10px rgba(var(--accent-primary-rgb), 0.3); }
-.vyuka-footer .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
+/* --- Footer (НОВЫЙ ДИЗАЙН) --- */
+.main-footer.vyuka-footer {
+    flex-shrink: 0; margin-top: auto;
+    background: linear-gradient(to top, rgba(16, 10, 45, 0.98), transparent), url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Cdefs%3E%3Cpattern id="p" patternTransform="rotate(35)" width="100" height="100" patternUnits="userSpaceOnUse"%3E%3Ccircle cx="50" cy="50" r="0.5" fill="rgba(240, 47, 194, 0.1)"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width="100%25" height="100%25" fill="url(%23p)"/%3E%3C/svg%3E');
+    padding: 4rem 2rem 2rem; color: var(--vyuka-text-secondary);
+    position: relative;
+}
+.main-footer.vyuka-footer::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, var(--accent-yellow), var(--accent-primary), transparent);
+    filter: blur(2px);
+    animation: footer-glow 5s linear infinite alternate;
+}
+@keyframes footer-glow { from { opacity: 0.7; } to { opacity: 1; } }
+.vyuka-footer .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; position: relative; z-index: 1; }
 .vyuka-footer .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 2.5rem; text-align: left; }
 .vyuka-footer .footer-column .logo { display: inline-flex; align-items: center; font-family: 'Shadows Into Light Two', cursive !important; font-size: 1.9rem; font-weight: 400 !important; color: var(--vyuka-text-heading); text-decoration: none; margin-bottom: 1.25rem; }
 .vyuka-footer .footer-column .logo i { font-family: "Font Awesome 6 Free" !important; margin-right: 0.6rem; color: var(--accent-yellow); }
