@@ -1,5 +1,5 @@
 /* dashboard/css/layout.css */
-/* Версия: 3.1 - Cosmic Logo & Link Update */
+/* Версия: 3.2 - Исправлено центрирование логотипа в свернутом состоянии. */
 
 /* ============================================== */
 /* :root - Глобальные переменные                */
@@ -78,33 +78,21 @@ body::before {
 .vyuka-sidebar-ai { width: var(--vyuka-sidebar-width-collapsed); background: linear-gradient(170deg, #18113c, #040615 70%); display: flex; flex-direction: column; padding: 1rem 0; transition: width 0.3s var(--animation-timing-cyber); height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; box-shadow: 10px 0 50px -15px rgba(0,0,0,0.7); }
 .vyuka-sidebar-ai.expanded { width: var(--vyuka-sidebar-width-expanded); }
 .vyuka-sidebar-ai::after { content: ''; position: absolute; top: 0; right: -1px; width: 2px; height: 100%; background: linear-gradient(to bottom, transparent, var(--accent-yellow), var(--accent-primary), transparent); box-shadow: 0 0 15px rgba(var(--accent-yellow-rgb), 0.6); opacity: 0.8; }
-.vyuka-sidebar-ai-header { padding: 0.5rem 1rem; margin-bottom: 2.5rem; }
+.vyuka-sidebar-ai-header { padding: 0.5rem 0; margin-bottom: 2.5rem; display: flex; justify-content: center; } /* Центрирование header */
 .vyuka-sidebar-ai-logo { display: flex; align-items: center; gap: 0.8rem; color: var(--vyuka-text-heading); text-decoration: none; font-size: 1.5rem; font-family: var(--vyuka-font-accent); }
 .vyuka-sidebar-ai-logo i { color: var(--accent-yellow); text-shadow: 0 0 10px var(--accent-yellow); transition: transform 0.4s ease, text-shadow 0.4s ease; }
 .vyuka-sidebar-ai-logo:hover i { transform: rotate(360deg) scale(1.15); text-shadow: 0 0 20px var(--accent-yellow), 0 0 30px var(--accent-primary); }
 .vyuka-sidebar-ai .link-text { opacity: 0; visibility: hidden; max-width: 0; overflow: hidden; white-space: nowrap; transition: opacity 0.2s ease, max-width 0.3s ease, visibility 0s 0.3s; }
 .vyuka-sidebar-ai.expanded .link-text { opacity: 1; visibility: visible; max-width: 150px; transition: opacity 0.3s ease 0.1s, max-width 0.3s ease 0.1s, visibility 0s; }
-
-/* --- НОВЫЙ СТИЛЬ ЛОГОТИПА "JUSTAX" --- */
-.vyuka-sidebar-ai .logo-text {
-    font-weight: 700;
-    font-family: 'Audiowide', cursive;
-    background: linear-gradient(45deg, var(--accent-yellow), var(--accent-primary), var(--accent-yellow));
-    background-size: 200% 200%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-shadow: 0 0 5px rgba(var(--accent-primary-rgb), 0.5), 0 0 15px rgba(var(--accent-yellow-rgb), 0.4);
-    animation: cosmic-text 5s ease-in-out infinite alternate;
-}
-@keyframes cosmic-text {
-    from { background-position: 0% 50%; }
-    to { background-position: 100% 50%; }
-}
-/* --- КОНЕЦ СТИЛЯ ЛОГОТИПА --- */
+.vyuka-sidebar-ai .logo-text { font-weight: 700; font-family: 'Audiowide', cursive; background: linear-gradient(45deg, var(--accent-yellow), var(--accent-primary), var(--accent-yellow)); background-size: 200% 200%; -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 5px rgba(var(--accent-primary-rgb), 0.5), 0 0 15px rgba(var(--accent-yellow-rgb), 0.4); animation: cosmic-text 5s ease-in-out infinite alternate; }
+@keyframes cosmic-text { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+/* ИСПРАВЛЕНИЕ: Стили для свернутого логотипа */
+.vyuka-sidebar-ai:not(.expanded) .logo-text { display: none; }
+.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-logo { gap: 0; }
 
 .vyuka-sidebar-ai-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
 .vyuka-sidebar-ai-link { display: flex; align-items: center; padding: 1rem 1.5rem; color: var(--vyuka-text-secondary); text-decoration: none; position: relative; overflow: hidden; border-radius: 6px; margin: 0.3rem 0.5rem; border: 1px solid transparent; background: transparent; transition: all 0.3s ease; }
-.vyuka-sidebar-ai-link i { font-size: 1.1rem; width: 24px; text-align: center; margin-right: 1.5rem; transition: all 0.3s ease; }
+.vyuka-sidebar-ai-link i { font-size: 1.1rem; width: 24px; text-align: center; margin-right: 1.5rem; transition: all 0.3s ease; flex-shrink: 0; }
 .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link i { margin-right: 1rem; }
 .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link { justify-content: center; }
 .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link i { margin-right: 0; }
