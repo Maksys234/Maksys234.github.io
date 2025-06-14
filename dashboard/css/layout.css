@@ -86,7 +86,7 @@
     height: 100vh;
     transition: margin-left var(--animation-duration-medium) var(--animation-timing-cyber);
     background-color: transparent;
-    overflow: hidden;
+    overflow: hidden; /* Этот overflow важен для структуры flex */
 }
 .vyuka-sidebar-ai.expanded ~ .vyuka-page-container {
     margin-left: var(--vyuka-sidebar-width-expanded);
@@ -110,8 +110,8 @@
 
 .vyuka-main-content-scrollable {
 	flex-grow: 1;
-	overflow-y: auto;
-	overflow-x: hidden;
+    overflow-y: auto; /* ГЛАВНАЯ ПРОКРУТКА ЗДЕСЬ */
+    overflow-x: hidden;
 	display: flex;
 	flex-direction: column;
 	position: relative;
