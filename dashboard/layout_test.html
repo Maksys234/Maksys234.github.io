@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="cs" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout & Component Test Lab // Justax v3</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Audiowide&family=Shadows+Into+Light+Two&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        /* --- START: Combined CSS from layout.css, dashboard.css, etc. for Test Lab --- */
+        /* This style block contains everything needed for this page to function correctly. */
+
+        /* ============================================== */
+        /* :root - ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ (СИНХРОНИЗИРОВАННЫЕ) */
+        /* ============================================== */
+        :root {
+            /* Основа - Глубокий космос */
+            --vyuka-bg-dark: #02040A;
+            --vyuka-bg-dark-rgb: 2, 4, 10;
+            --vyuka-bg-panel: rgba(10, 15, 28, 0.75);
+            --vyuka-bg-panel-rgb: 10, 15, 28;
+            --vyuka-bg-panel-lighter: rgba(17, 24, 39, 0.9);
+            --vyuka-bg-panel-lighter-rgb: 17, 24, 39;
+            --card-bg: rgba(15, 10, 45, 0.88);
+            --card-solid: #0f0a2d;
+            --dark-purple-accent: #160c41;
+
+            /* Акценты - Энергия и Небула */
+            --vyuka-accent-primary: #f02fc2;
+            --vyuka-accent-primary-rgb: 240, 47, 194;
+            --vyuka-accent-secondary: #05fdd8;
+            --vyuka-accent-secondary-rgb: 5, 253, 216;
+            --accent-primary: #00e0ff;
+            --accent-primary-rgb: 0, 224, 255;
+            --accent-secondary: #a05cff;
+            --accent-secondary-rgb: 160, 92, 255;
+            --accent-pink: #ff33a8;
+            --accent-pink-rgb: 255, 51, 168;
+            --accent-lime: #6fff3a;
+            --accent-lime-rgb: 111, 255, 58;
+            --accent-orange: #f8961e;
+            --accent-orange-rgb: 248, 150, 30;
+
+            /* Текст */
+            --vyuka-text-primary: #e8efff;
+            --vyuka-text-secondary: #b0c1e6;
+            --vyuka-text-muted: #7a8baa;
+            --vyuka-text-heading: #ffffff;
+            --text-light: #f1f5f9;
+            --text-medium: #b8c4e0;
+            --text-muted: #808db0;
+            --text-heading: #ffffff;
+            --text-fixed-dark: #03020c;
+            --white-rgb: 255, 255, 255;
+
+            /* Границы */
+            --vyuka-border-color: rgba(44, 57, 88, 0.7);
+            --vyuka-border-highlight: rgba(var(--vyuka-accent-secondary-rgb), 0.5);
+            --border-color-light: rgba(var(--accent-secondary-rgb), 0.25);
+            --border-color-medium: rgba(var(--accent-secondary-rgb), 0.45);
+            --border-color-strong: rgba(var(--accent-primary-rgb), 0.65);
+
+            /* Градиенты */
+            --gradient-button: linear-gradient(100deg, var(--accent-secondary) 0%, var(--accent-primary) 100%);
+            --gradient-button-hover: linear-gradient(100deg, var(--accent-primary) 0%, var(--accent-pink) 100%);
+            --gradient-danger: linear-gradient(135deg, var(--accent-pink), #b5179e);
+
+            /* Шрифты */
+            --font-primary: 'Inter', sans-serif;
+            --font-secondary: 'Poppins', sans-serif;
+            --font-mono: 'Roboto Mono', monospace;
+            --vyuka-font-primary: 'Rajdhani', sans-serif;
+            --vyuka-font-secondary: 'Orbitron', sans-serif;
+            --vyuka-font-accent: 'Audiowide', cursive;
+
+            /* Тени */
+            --shadow-glow: 0 0 25px rgba(var(--accent-primary-rgb), 0.6);
+            --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.4);
+            --shadow-card-hover-enhanced: 0 18px 50px rgba(0, 0, 0, 0.45), 0 0 30px var(--shadow-glow), inset 0 0 15px rgba(var(--accent-primary-rgb), 0.15);
+            --shadow-hud: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 2px rgba(var(--accent-primary-rgb), 0.1);
+
+            /* Размеры и Анимации */
+            --vyuka-sidebar-width-expanded: 260px;
+            --vyuka-sidebar-width-collapsed: 72px;
+            --vyuka-header-height: 64px;
+            --vyuka-main-content-padding: 2rem;
+            --vyuka-main-content-gap: 2rem;
+            --card-radius: 14px;
+            --button-radius: 10px;
+            --form-element-radius: 8px;
+            --animation-duration-medium: 0.4s;
+            --animation-timing-cyber: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* ============================================== */
+        /* ОСНОВНЫЕ СТИЛИ СТРАНИЦЫ */
+        /* ============================================== */
+        *, *::before, *::after { box-sizing: border-box; }
+        html { scroll-behavior: smooth; font-size: 16px; }
+        body {
+            font-family: var(--font-primary);
+            background-color: var(--vyuka-bg-dark);
+            color: var(--vyuka-text-primary);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        body::before, body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background-image: linear-gradient(rgba(var(--vyuka-border-color), 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--vyuka-border-color), 0.07) 1px, transparent 1px);
+            background-size: 30px 30px;
+            opacity: 0.5;
+            animation: bg-grid-pan 120s linear infinite;
+            pointer-events:none;
+        }
+        @keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 600px 300px; } }
+
+        /* ============================================== */
+        /* LAYOUT КОНТЕЙНЕРЫ (ИЗ layout.css) */
+        /* ============================================== */
+        .vyuka-page-container {
+            flex-grow: 1;
+            margin-left: var(--vyuka-sidebar-width-collapsed);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            transition: margin-left 0.3s var(--animation-timing-cyber);
+            overflow: hidden;
+            background-color: var(--vyuka-bg-dark);
+        }
+        .vyuka-sidebar-ai.expanded ~ .vyuka-page-container {
+            margin-left: var(--vyuka-sidebar-width-expanded);
+        }
+        .vyuka-main-content-scrollable {
+            flex-grow: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .vyuka-main-content {
+            flex-grow: 1;
+            padding: var(--vyuka-main-content-padding);
+        }
+
+        /* ============================================== */
+        /* SIDEBAR (ИЗ layout.css) */
+        /* ============================================== */
+        .vyuka-sidebar-ai {
+            width: var(--vyuka-sidebar-width-collapsed);
+            background: #040615;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem 0;
+            transition: width 0.3s var(--animation-timing-cyber);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            box-shadow: 10px 0 50px -15px rgba(0,0,0,0.7);
+            border-right: none;
+        }
+        .vyuka-sidebar-ai.expanded {
+            width: var(--vyuka-sidebar-width-expanded);
+        }
+        .vyuka-sidebar-ai::after {
+            content: ''; position: absolute; top: 0; right: -1px; width: 2px; height: 100%;
+            background: linear-gradient(to bottom, transparent, var(--vyuka-accent-secondary), var(--vyuka-accent-primary), transparent);
+            box-shadow: 0 0 12px rgba(var(--vyuka-accent-secondary-rgb), 0.6); opacity: 0.6;
+        }
+        .vyuka-sidebar-ai-header { padding: 0.5rem 1rem; margin-bottom: 2.5rem; }
+        .vyuka-sidebar-ai-logo { display: flex; align-items: center; gap: 0.8rem; color: var(--vyuka-text-heading); text-decoration: none; font-size: 1.5rem; font-family: var(--vyuka-font-accent); }
+        .vyuka-sidebar-ai-logo i { color: var(--vyuka-accent-primary); text-shadow: 0 0 10px var(--vyuka-accent-primary); transition: transform 0.4s var(--animation-timing-cyber); }
+        .vyuka-sidebar-ai-logo:hover i { transform: rotate(360deg) scale(1.15); }
+        .vyuka-sidebar-ai-logo .logo-text { opacity: 0; visibility: hidden; transition: opacity 0.3s ease 0.1s, visibility 0s 0.4s; font-size: 1.1rem; }
+        .vyuka-sidebar-ai.expanded .logo-text { opacity: 1; visibility: visible; transition-delay: 0s; }
+        .vyuka-sidebar-ai-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
+        .vyuka-sidebar-ai-link { display: flex; align-items: center; padding: 1rem 1.5rem; color: var(--vyuka-text-secondary); text-decoration: none; position: relative; overflow: hidden; }
+        .vyuka-sidebar-ai-link i { font-size: 1.1rem; width: 24px; text-align: center; margin-right: 1.5rem; transition: all 0.3s ease; }
+        .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link i { margin-right: 1rem; }
+        .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link { justify-content: center; }
+        .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link i { margin-right: 0; }
+        .vyuka-sidebar-ai-link .link-text { opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; }
+        .vyuka-sidebar-ai.expanded .link-text { opacity: 1; visibility: visible; transition-delay: 0.1s; }
+        .vyuka-sidebar-ai-link.active { background: linear-gradient(90deg, rgba(var(--vyuka-accent-primary-rgb),0.15) 0%, transparent 100%); color: var(--vyuka-text-heading); font-weight: 700; }
+        .vyuka-sidebar-ai-link.active::after { content: ''; position: absolute; top: 0; left: 0; height: 100%; width: 3px; background-color: var(--vyuka-accent-primary); box-shadow: 0 0 12px var(--vyuka-accent-primary); }
+        .vyuka-sidebar-ai-link.active i { color: var(--vyuka-accent-primary); }
+        .user-profile { margin: 1.5rem 0.5rem; padding: 0.8rem; background-color: rgba(var(--vyuka-bg-panel-rgb), 0.7); border: 1px solid var(--vyuka-border-highlight); border-radius: var(--vyuka-card-radius); display: flex; align-items: center; justify-content: center; }
+        .vyuka-sidebar-ai:not(.expanded) .user-info { display: none; }
+        .vyuka-sidebar-ai .user-profile .avatar-wrapper { width: 42px; height: 42px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; background: var(--vyuka-accent-secondary); color: var(--white); font-weight: 600; font-size: 1.1rem; flex-shrink: 0; }
+        .vyuka-sidebar-ai .user-profile .avatar-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+        .vyuka-sidebar-ai.expanded .user-profile .avatar-wrapper { margin-right: 0.8rem; }
+        .vyuka-sidebar-ai-footer { padding: 1.5rem; font-size: 0.75rem; color: var(--vyuka-text-muted); text-align: center; border-top: 1px solid var(--vyuka-border-highlight); margin: 0 1rem; opacity: 0; transition: opacity 0.3s ease; }
+        .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-footer { opacity: 1; transition-delay: 0.2s; }
+        .sidebar-overlay-ai { position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark-rgb), 0.7); z-index: 999; opacity: 0; visibility: hidden; transition: opacity 0.3s ease; backdrop-filter: blur(3px); }
+        .sidebar-overlay-ai.active { opacity: 1; visibility: visible; }
+
+        /* ============================================== */
+        /* HEADER (ИЗ layout.css) */
+        /* ============================================== */
+        .vyuka-header {
+            height: var(--vyuka-header-height);
+            background-color: rgba(var(--vyuka-bg-panel-rgb), 0.65);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--vyuka-border-highlight);
+            box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            flex-shrink: 0;
+        }
+        .vyuka-header-left { display: flex; align-items: center; gap: 0.8rem; }
+        .vyuka-header-left .mobile-menu-toggle { display: none; color: var(--vyuka-text-muted); font-size: 1.4rem; background: none; border: none; cursor: pointer; }
+        .vyuka-header-left .sidebar-ai-desktop-toggle { color: var(--vyuka-text-muted); font-size: 1.1rem; background: rgba(var(--vyuka-bg-panel-lighter),0.7); border: 1px solid var(--vyuka-border-color); cursor: pointer; padding: 0.5rem 0.7rem; border-radius: var(--vyuka-button-radius); transition: all 0.2s ease; }
+        .vyuka-header-left .sidebar-ai-desktop-toggle:hover { background-color: rgba(var(--vyuka-accent-secondary-rgb),0.2); color: var(--vyuka-accent-secondary); border-color: var(--vyuka-accent-secondary); }
+        .vyuka-header-left .sidebar-ai-desktop-toggle i { transition: transform 0.3s var(--animation-timing-cyber); }
+        .vyuka-sidebar-ai.expanded ~ .vyuka-page-container .vyuka-header .sidebar-ai-desktop-toggle i { transform: rotate(180deg); }
+        .vyuka-header-page-title-container h1 { font-size: 1.5rem; margin: 0; }
+        .vyuka-header-page-title-container p { font-size: 0.85rem; margin: 0; color: var(--vyuka-text-secondary); }
+        .vyuka-header-right { display: flex; align-items: center; gap: 1rem; }
+        .vyuka-header-user-display { display: flex; align-items: center; gap: 0.8rem; padding: 0.35rem 0.7rem; background-color: rgba(var(--vyuka-bg-panel-lighter), 0.6); border-radius: var(--vyuka-button-radius); border: 1px solid var(--vyuka-border-color); cursor: pointer; }
+        .vyuka-header-user-avatar-wrapper { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 2px solid var(--vyuka-accent-secondary); }
+        .vyuka-header-avatar-img { width: 100%; height: 100%; object-fit: cover; }
+        .vyuka-header-user-name { font-weight: 600; }
+        .vyuka-header-user-title { font-size: 0.75rem; color: var(--vyuka-accent-secondary); }
+        .button-text-settings { margin-left: 0.5em; }
+
+        /* ============================================== */
+        /* FOOTER (ИЗ layout.css) */
+        /* ============================================== */
+        .main-footer.vyuka-footer {
+            flex-shrink: 0; margin-top: auto; background-color: rgba(var(--vyuka-bg-panel-rgb), 0.8);
+            color: var(--vyuka-text-secondary); padding: 2rem var(--vyuka-main-content-padding);
+            border-top: 1.5px solid var(--vyuka-border-highlight); box-shadow: 0 -4px 15px -5px rgba(var(--vyuka-accent-secondary-rgb), 0.25);
+        }
+        .vyuka-footer .container { max-width: 1200px; margin: 0 auto; }
+        .vyuka-footer .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2.5rem; text-align: left; }
+        .vyuka-footer .footer-column .logo { display: inline-flex; align-items: center; font-family: 'Shadows Into Light Two', cursive !important; font-size: 1.9rem; font-weight: 400 !important; color: var(--vyuka-text-heading); text-decoration: none; margin-bottom: 1.25rem; }
+        .vyuka-footer .footer-column .logo i { font-family: "Font Awesome 6 Free" !important; margin-right: 0.6rem; color: var(--vyuka-accent-secondary); }
+        .vyuka-footer .footer-column p { margin-bottom: 1.25rem; font-size: 0.875rem; }
+        .vyuka-footer .footer-column h3 { font-family: var(--vyuka-font-secondary); font-size: 1.15rem; color: var(--vyuka-text-heading); margin-bottom: 1.25rem; padding-left: 20px; position: relative; }
+        .vyuka-footer .footer-column h3::before { content: ''; background-color: var(--vyuka-accent-secondary); width: 8px; height: 8px; border-radius: 50%; position: absolute; left: 0; top: 50%; transform: translateY(-50%); box-shadow: 0 0 8px var(--vyuka-cyber-glow-secondary); }
+        .vyuka-footer .footer-links { list-style: none; padding: 0; margin: 0; }
+        .vyuka-footer .footer-links li { margin-bottom: 0.6rem; }
+        .vyuka-footer .footer-links a, .vyuka-footer .footer-links span.icon-text-item { color: var(--vyuka-text-link); text-decoration: none; display: flex; align-items: center; gap: 0.8rem; }
+        .vyuka-footer .footer-links a:hover { color: var(--vyuka-text-link-hover); }
+        .vyuka-footer .footer-links a i { color: var(--vyuka-text-muted); width: 18px; text-align: center; }
+        .vyuka-footer .social-links { display: flex; gap: 1rem; margin-top: 1.25rem; }
+        .vyuka-footer .social-links .social-link { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; border: 1.5px solid var(--vyuka-border-color); color: var(--vyuka-text-muted); font-size: 1.2rem; transition: all 0.25s ease; text-decoration: none; }
+        .vyuka-footer .social-links .social-link:hover { background-color: var(--vyuka-accent-primary); border-color: var(--vyuka-accent-primary); color: var(--vyuka-bg-dark); transform: translateY(-3px) scale(1.08); box-shadow: 0 4px 12px rgba(var(--vyuka-accent-primary-rgb), 0.4); }
+        .vyuka-footer .footer-copyright { grid-column: 1 / -1; text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--vyuka-border-color); font-size: 0.85rem; color: var(--vyuka-text-muted); opacity: 0.7; }
+
+        /* ============================================== */
+        /* СПЕЦИФИЧЕСКИЕ СТИЛИ ДЛЯ ТЕСТОВОЙ СТРАНИЦЫ */
+        /* ============================================== */
+        .test-lab-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .component-section {
+            background: rgba(var(--vyuka-bg-panel-rgb), 0.5);
+            border: 1px solid var(--vyuka-border-color);
+            border-radius: var(--card-radius);
+            padding: 1.5rem;
+        }
+        .component-section h3 {
+            color: var(--vyuka-accent-primary);
+            border-bottom: 1px solid var(--vyuka-border-highlight);
+            padding-bottom: 0.8rem;
+            margin-bottom: 1.5rem;
+            font-family: var(--vyuka-font-secondary);
+        }
+        .component-showcase {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .component-showcase > .btn, .component-showcase > .card {
+            margin-bottom: 1rem;
+        }
+        /* Улучшенные стили карточек из dashboard.css для теста */
+        .stat-card {
+            min-height: 190px; padding: 1.5rem; display: flex; flex-direction: column;
+        }
+        .stat-card .stat-card-title {
+            font-size: 1rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 0.7rem; display: flex; align-items: center; gap: 0.6em;
+        }
+        .stat-card .stat-card-title i { color: var(--accent-orange); }
+        .stat-card .stat-card-value {
+            font-size: 2.8rem; font-weight: 700; font-family: 'Orbitron', sans-serif; color: var(--text-heading);
+            margin-bottom: 0.5rem;
+        }
+        .stat-card#points-card .stat-card-value { color: var(--accent-orange); }
+        .shortcut-card {
+            padding: 1.8rem; display: flex; flex-direction: column; align-items: center; text-align: center;
+        }
+        .shortcut-icon {
+            width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.7rem; margin-bottom: 1.2rem;
+            background: linear-gradient(145deg, rgba(var(--accent-primary-rgb), 0.15), rgba(var(--accent-secondary-rgb), 0.1));
+            color: var(--accent-primary);
+        }
+        .shortcut-card:hover .shortcut-icon {
+            background: var(--accent-primary); color: var(--text-fixed-dark);
+            transform: scale(1.1) rotate(5deg);
+        }
+        /* Формы из settings.css */
+        .form-group { margin-bottom: 1.5rem; }
+        .form-label { display: block; margin-bottom: 0.7rem; font-weight: 600; color: var(--vyuka-text-primary); }
+        .form-control { width: 100%; padding: 0.9rem 1.1rem; border: 1px solid var(--border-color-medium); border-radius: var(--form-element-radius); font-size: 1rem; background-color: var(--vyuka-bg-panel-lighter); color: var(--vyuka-text-primary); }
+        .form-control:focus { border-color: var(--vyuka-accent-secondary); box-shadow: 0 0 0 3px rgba(var(--vyuka-accent-secondary-rgb), 0.25); }
+
+        /* Табы из profile.css */
+        .profile-content-tabs { display: flex; border-bottom: 1px solid var(--border-color-medium); }
+        .profile-content-tab { padding: 1rem 1.25rem; font-weight: 600; color: var(--text-muted); background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; }
+        .profile-content-tab.active { color: var(--accent-primary); border-bottom-color: var(--accent-primary); }
+
+        /* Модальное окно */
+        .modal { display: none; position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark-rgb), 0.8); z-index: 1050; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background-color: var(--vyuka-bg-panel); border-radius: var(--card-radius); width: 90%; max-width: 500px; padding: 1.5rem; border: 1px solid var(--vyuka-border-highlight); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; border-bottom: 1px solid var(--vyuka-border-color); }
+        .modal-title { font-size: 1.4rem; }
+        .modal-close { background: none; border: none; font-size: 1.8rem; cursor: pointer; color: var(--vyuka-text-muted); }
+        .modal-body { padding: 1.5rem 0; }
+        .modal-footer { padding-top: 1rem; border-top: 1px solid var(--vyuka-border-color); display: flex; justify-content: flex-end; gap: 1rem; }
+
+        /* Адаптивность */
+        @media (max-width: 992px) {
+            .vyuka-page-container { margin-left: 0; }
+            .vyuka-sidebar-ai { transform: translateX(-100%); }
+            .vyuka-sidebar-ai.active-mobile { transform: translateX(0); }
+            .vyuka-header-left .mobile-menu-toggle { display: block; }
+            .vyuka-header-left .sidebar-ai-desktop-toggle { display: none; }
+        }
+        @media (max-width: 768px) {
+            .vyuka-header-user-display, .vyuka-header-right .btn span { display: none; }
+        }
+    </style>
+</head>
+<body class="dark new-vyuka-layout">
+
+    <aside class="vyuka-sidebar-ai" id="vyuka-sidebar-test">
+        <div class="vyuka-sidebar-ai-header">
+            <a href="#" class="vyuka-sidebar-ai-logo"><i class="fas fa-atom"></i> <span class="logo-text">Test Lab</span></a>
+        </div>
+        <ul class="vyuka-sidebar-ai-menu">
+            <li class="vyuka-sidebar-ai-item" title="Dashboard"><a href="#" class="vyuka-sidebar-ai-link active"><i class="fas fa-tachometer-alt"></i><span class="link-text">Dashboard</span></a></li>
+            <li class="vyuka-sidebar-ai-item" title="Analytics"><a href="#" class="vyuka-sidebar-ai-link"><i class="fas fa-chart-pie"></i><span class="link-text">Analytics</span></a></li>
+            <li class="vyuka-sidebar-ai-item" title="Settings"><a href="#" class="vyuka-sidebar-ai-link"><i class="fas fa-cog"></i><span class="link-text">Settings</span></a></li>
+        </ul>
+        <div class="user-profile">
+            <div class="avatar-wrapper"><img src="https://i.pravatar.cc/42" alt="Avatar"></div>
+            <div class="user-info">
+                <div class="user-name">Cyber Pilot</div>
+                <div class="user-role">System Admin</div>
+            </div>
+        </div>
+        <div class="vyuka-sidebar-ai-footer">&copy; 2025 Test Lab</div>
+    </aside>
+    <div class="sidebar-overlay-ai" id="sidebar-overlay-test"></div>
+
+    <div class="vyuka-page-container">
+        <header class="vyuka-header">
+            <div class="vyuka-header-left">
+                <button class="mobile-menu-toggle" id="mobile-menu-toggle-test"><i class="fas fa-bars"></i></button>
+                <button class="sidebar-ai-desktop-toggle" id="sidebar-toggle-test" title="Sbalit panel"><i class="fas fa-chevron-left"></i></button>
+                <div class="vyuka-header-page-title-container">
+                    <h1>Layout Test Lab</h1>
+                    <p>Prostředí pro testování a vylepšování UI komponent.</p>
+                </div>
+            </div>
+            <div class="vyuka-header-right">
+                <button class="btn btn-secondary btn-sm"><i class="fas fa-sync-alt"></i><span>Refresh</span></button>
+                <div class="vyuka-header-user-display">
+                    <div class="vyuka-header-user-avatar-wrapper"><img src="https://i.pravatar.cc/36" alt="User Avatar" class="vyuka-header-avatar-img"></div>
+                    <div class="vyuka-header-user-details">
+                        <span class="vyuka-header-user-name">Pilot</span>
+                        <span class="vyuka-header-user-title">Tester</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="vyuka-main-content-scrollable">
+            <main class="vyuka-main-content">
+                
+                <div class="component-section">
+                    <h3>Buttons Showcase</h3>
+                    <div class="component-showcase">
+                        <button class="btn">Standard Button</button>
+                        <button class="btn btn-primary">Primary Button</button>
+                        <button class="btn btn-secondary">Secondary Button</button>
+                        <button class="btn btn-danger">Danger Button</button>
+                        <button class="btn btn-outline">Outline Button</button>
+                        <button class="btn" disabled>Disabled Button</button>
+                    </div>
+                </div>
+
+                <div class="component-section">
+                    <h3>Cards Showcase</h3>
+                    <div class="test-lab-grid">
+                        <div class="card stat-card">
+                            <div class="stat-card-title"><i class="fas fa-coins"></i>Kredity</div>
+                            <div class="stat-card-value" id="points-card-value">1,337</div>
+                        </div>
+                        <div class="card shortcut-card">
+                            <div class="shortcut-icon"><i class="fas fa-rocket"></i></div>
+                            <h3 class="shortcut-title">Shortcut</h3>
+                            <p class="shortcut-desc">Description for this shortcut.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="component-section">
+                    <h3>Tabs Showcase</h3>
+                    <div class="profile-content-tabs">
+                        <button class="profile-content-tab active" data-tab="tab1">Tab 1</button>
+                        <button class="profile-content-tab" data-tab="tab2">Tab 2</button>
+                    </div>
+                    <div class="profile-tab-content-wrapper">
+                        <div class="profile-tab-content active" id="tab1-content">Content for Tab 1.</div>
+                        <div class="profile-tab-content" id="tab2-content" style="display: none;">Content for Tab 2.</div>
+                    </div>
+                </div>
+
+                <div class="component-section">
+                    <h3>Forms Showcase</h3>
+                    <div class="form-group">
+                        <label for="test-input" class="form-label">Test Input</label>
+                        <input type="text" id="test-input" class="form-control" placeholder="Enter text here...">
+                    </div>
+                    <div class="form-group">
+                        <label for="test-select" class="form-label">Test Select</label>
+                        <select id="test-select" class="form-control">
+                            <option>Option 1</option>
+                            <option>Option 2</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="component-section">
+                    <h3>Modal Showcase</h3>
+                    <button class="btn" id="open-modal-btn">Open Modal</button>
+                </div>
+
+            </main>
+
+            <footer class="main-footer vyuka-footer">
+                <div class="container">
+                    <div class="footer-copyright">
+                        &copy; 2025 Test Lab Footer // Justax Systems
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <div class="modal" id="test-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Test Modal</h3>
+                <button class="modal-close" id="close-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>This is the content of the modal window. It can contain any HTML elements you need for testing.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-modal-btn">Cancel</button>
+                <button class="btn btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Minimal JS for interactivity
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('vyuka-sidebar-test');
+            const sidebarToggle = document.getElementById('sidebar-toggle-test');
+            const mobileToggle = document.getElementById('mobile-menu-toggle-test');
+            const sidebarOverlay = document.getElementById('sidebar-overlay-test');
+
+            // Sidebar Toggle (Desktop)
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', () => {
+                    const shouldBeExpanded = !sidebar.classList.contains('expanded');
+                    sidebar.classList.toggle('expanded', shouldBeExpanded);
+                    const icon = sidebarToggle.querySelector('i');
+                    if (icon) {
+                        icon.className = `fas fa-chevron-${shouldBeExpanded ? 'left' : 'right'}`;
+                    }
+                });
+            }
+
+            // Sidebar Toggle (Mobile)
+            if (mobileToggle && sidebar && sidebarOverlay) {
+                mobileToggle.addEventListener('click', () => {
+                    sidebar.classList.add('active-mobile');
+                    sidebarOverlay.classList.add('active');
+                });
+
+                sidebarOverlay.addEventListener('click', () => {
+                    sidebar.classList.remove('active-mobile');
+                    sidebarOverlay.classList.remove('active');
+                });
+            }
+
+            // Tabs Logic
+            const tabs = document.querySelectorAll('.profile-content-tab');
+            const tabContents = document.querySelectorAll('.profile-tab-content');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    const targetId = tab.dataset.tab + '-content';
+                    tabContents.forEach(content => {
+                        content.style.display = content.id === targetId ? 'block' : 'none';
+                    });
+                });
+            });
+
+            // Modal Logic
+            const modal = document.getElementById('test-modal');
+            const openModalBtn = document.getElementById('open-modal-btn');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const cancelModalBtn = document.getElementById('cancel-modal-btn');
+
+            const openModal = () => {
+                if(modal) {
+                    modal.style.display = 'flex';
+                    requestAnimationFrame(() => modal.classList.add('active'));
+                }
+            };
+            const closeModal = () => {
+                if(modal) {
+                    modal.classList.remove('active');
+                    setTimeout(() => (modal.style.display = 'none'), 300);
+                }
+            };
+
+            if(openModalBtn) openModalBtn.addEventListener('click', openModal);
+            if(closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+            if(cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
+            if(modal) modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+        });
+    </script>
+</body>
+</html>
