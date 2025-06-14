@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Layout & Component Test Lab // Justax v3.3</title>
+    <title>Layout & Component Test Lab // Cosmic v3.4</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Audiowide&family=Shadows+Into+Light+Two&display=swap" rel="stylesheet">
@@ -17,28 +17,24 @@
             /* Основа - Глубокий космос */
             --vyuka-bg-dark: #02040A;
             --vyuka-bg-dark-rgb: 2, 4, 10;
-            --vyuka-bg-panel: rgba(10, 15, 28, 0.75);
+            --vyuka-bg-panel: rgba(10, 15, 28, 0.85);
             --vyuka-bg-panel-rgb: 10, 15, 28;
-            --vyuka-bg-panel-lighter: rgba(17, 24, 39, 0.9);
+            --vyuka-bg-panel-lighter: rgba(17, 24, 39, 0.95);
             --card-bg: rgba(15, 10, 45, 0.88);
             --card-solid: #0f0a2d;
-            --card-solid-rgb: 15, 10, 55;
             --dark-purple-accent: #160c41;
 
-            /* Акценты */
-            --vyuka-accent-primary: #f02fc2;
-            --vyuka-accent-primary-rgb: 240, 47, 194;
-            --vyuka-accent-secondary: #05fdd8;
-            --vyuka-accent-secondary-rgb: 5, 253, 216;
-            --accent-primary: #00e0ff;
+            /* Акценты - НОВЫЕ КОСМИЧЕСКИЕ ЦВЕТА */
+            --accent-primary: #00e0ff;      /* Кибер-бирюза (остается для некоторых UI элементов) */
             --accent-primary-rgb: 0, 224, 255;
-            --accent-secondary: #a05cff;
+            --accent-secondary: #a05cff;    /* Фиолетовый (остается) */
             --accent-secondary-rgb: 160, 92, 255;
-            --accent-pink: #ff33a8;
-            --accent-pink-rgb: 255, 51, 168;
-            --accent-lime: #6fff3a;
-            --accent-orange: #f8961e;
-            --accent-orange-rgb: 248, 150, 30;
+            --accent-magenta: #f02fc2;      /* Яркая маджента/розовый */
+            --accent-magenta-rgb: 240, 47, 194;
+            --accent-yellow: #ffe45e;       /* Космический желтый/золотой */
+            --accent-yellow-rgb: 255, 228, 94;
+            --accent-pink: #ff33a8;         /* Розовый (для опасностей и акцентов) */
+            --accent-orange: #f8961e;       /* Оранжевый */
 
             /* Текст */
             --vyuka-text-primary: #e8efff;
@@ -53,19 +49,15 @@
 
             /* Границы */
             --vyuka-border-color: rgba(44, 57, 88, 0.7);
-            --vyuka-border-highlight: rgba(var(--vyuka-accent-secondary-rgb), 0.5);
+            --vyuka-border-highlight: rgba(var(--accent-yellow-rgb), 0.5); /* Желтый хайлайт */
             --border-color-light: rgba(var(--accent-secondary-rgb), 0.25);
             --border-color-medium: rgba(var(--accent-secondary-rgb), 0.45);
-            
+
             /* Градиенты */
-            --gradient-button: linear-gradient(100deg, var(--accent-secondary) 0%, var(--accent-primary) 100%);
-            --gradient-button-hover: linear-gradient(100deg, var(--accent-primary) 0%, var(--accent-pink) 100%);
+            --gradient-button: linear-gradient(100deg, var(--accent-secondary) 0%, var(--accent-magenta) 100%);
+            --gradient-button-hover: linear-gradient(100deg, var(--accent-magenta) 0%, var(--accent-yellow) 100%);
             --gradient-danger: linear-gradient(135deg, var(--accent-pink), #b5179e);
-            --gradient-exp-bar: linear-gradient(90deg, var(--accent-secondary) 0%, var(--accent-primary) 50%, var(--accent-primary) 100%);
-            --accent-orange-glow: rgba(var(--accent-orange-rgb), 0.5);
-            --accent-pink-glow: rgba(var(--accent-pink-rgb), 0.4);
-            --accent-secondary-glow: rgba(var(--accent-secondary-rgb), 0.5);
-            --accent-glow: rgba(var(--accent-primary-rgb), 0.6);
+            --gradient-exp-bar: linear-gradient(90deg, var(--accent-magenta) 0%, var(--accent-yellow) 100%);
 
             /* Шрифты */
             --font-primary: 'Inter', sans-serif;
@@ -75,6 +67,7 @@
             --vyuka-font-secondary: 'Orbitron', sans-serif;
 
             /* Тени */
+            --shadow-glow: 0 0 25px rgba(var(--accent-primary-rgb), 0.6);
             --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.4);
             --shadow-card-hover-enhanced: 0 18px 50px rgba(0, 0, 0, 0.45), 0 0 30px var(--shadow-glow), inset 0 0 15px rgba(var(--accent-primary-rgb), 0.15);
             --shadow-hud: 0 4px 15px rgba(0,0,0,0.3), inset 0 1px 2px rgba(var(--accent-primary-rgb), 0.1);
@@ -97,31 +90,31 @@
         body::before, body::after { content: ''; position: fixed; inset: 0; z-index: -2; background-image: linear-gradient(rgba(var(--vyuka-border-color), 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--vyuka-border-color), 0.07) 1px, transparent 1px); background-size: 30px 30px; opacity: 0.5; animation: bg-grid-pan 120s linear infinite; pointer-events:none; }
         @keyframes bg-grid-pan { 0% { background-position: 0 0; } 100% { background-position: 600px 300px; } }
 
-        /* --- Layout контейнеры --- */
+        /* --- Layout контейнеры (ИСПРАВЛЕНО для футера) --- */
         .vyuka-page-container { flex-grow: 1; margin-left: var(--vyuka-sidebar-width-collapsed); display: flex; flex-direction: column; height: 100vh; transition: margin-left 0.3s var(--animation-timing-cyber); overflow: hidden; background-color: var(--vyuka-bg-dark); }
         .vyuka-sidebar-ai.expanded ~ .vyuka-page-container { margin-left: var(--vyuka-sidebar-width-expanded); }
         .vyuka-main-content-scrollable { flex-grow: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; position: relative; }
         .vyuka-main-content { flex-grow: 1; padding: var(--vyuka-main-content-padding); }
 
-        /* --- Sidebar --- */
-        .vyuka-sidebar-ai { width: var(--vyuka-sidebar-width-collapsed); background: #040615; display: flex; flex-direction: column; padding: 1rem 0; transition: width 0.3s var(--animation-timing-cyber); height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; box-shadow: 10px 0 50px -15px rgba(0,0,0,0.7); }
+        /* --- Sidebar (НОВЫЙ КОСМИЧЕСКИЙ СТИЛЬ) --- */
+        .vyuka-sidebar-ai { width: var(--vyuka-sidebar-width-collapsed); background: linear-gradient(170deg, #100a2d, #040615 70%); display: flex; flex-direction: column; padding: 1rem 0; transition: width 0.3s var(--animation-timing-cyber); height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; box-shadow: 10px 0 50px -15px rgba(0,0,0,0.7); }
         .vyuka-sidebar-ai.expanded { width: var(--vyuka-sidebar-width-expanded); }
-        .vyuka-sidebar-ai::after { content: ''; position: absolute; top: 0; right: -1px; width: 2px; height: 100%; background: linear-gradient(to bottom, transparent, var(--vyuka-accent-secondary), var(--vyuka-accent-primary), transparent); box-shadow: 0 0 12px rgba(var(--vyuka-accent-secondary-rgb), 0.6); opacity: 0.6; }
+        .vyuka-sidebar-ai::after { content: ''; position: absolute; top: 0; right: -1px; width: 2px; height: 100%; background: linear-gradient(to bottom, transparent, var(--accent-yellow), var(--accent-magenta), transparent); box-shadow: 0 0 15px rgba(var(--accent-yellow-rgb), 0.6); opacity: 0.8; }
         .vyuka-sidebar-ai-header { padding: 0.5rem 1rem; margin-bottom: 2.5rem; }
         .vyuka-sidebar-ai-logo { display: flex; align-items: center; gap: 0.8rem; color: var(--vyuka-text-heading); text-decoration: none; font-size: 1.5rem; font-family: var(--vyuka-font-accent); }
-        .vyuka-sidebar-ai-logo i { color: var(--vyuka-accent-primary); transition: transform 0.4s var(--animation-timing-cyber); }
-        .vyuka-sidebar-ai-logo:hover i { transform: rotate(360deg) scale(1.15); }
-        .vyuka-sidebar-ai .logo-text, .vyuka-sidebar-ai .link-text, .vyuka-sidebar-ai .user-info { opacity: 0; visibility: hidden; max-width: 0; overflow: hidden; white-space: nowrap; transition: opacity 0.2s ease, max-width 0.3s ease, visibility 0s 0.3s; }
-        .vyuka-sidebar-ai.expanded .logo-text, .vyuka-sidebar-ai.expanded .link-text, .vyuka-sidebar-ai.expanded .user-info { opacity: 1; visibility: visible; max-width: 150px; transition: opacity 0.3s ease 0.1s, max-width 0.3s ease 0.1s, visibility 0s; }
+        .vyuka-sidebar-ai-logo i { color: var(--accent-yellow); text-shadow: 0 0 10px var(--accent-yellow); transition: transform 0.4s var(--animation-timing-cyber); }
+        .vyuka-sidebar-ai-logo:hover i { transform: rotate(360deg) scale(1.15); text-shadow: 0 0 20px var(--accent-yellow); }
+        .vyuka-sidebar-ai .logo-text, .vyuka-sidebar-ai .link-text { opacity: 0; visibility: hidden; max-width: 0; overflow: hidden; white-space: nowrap; transition: opacity 0.2s ease, max-width 0.3s ease, visibility 0s 0.3s; }
+        .vyuka-sidebar-ai.expanded .logo-text, .vyuka-sidebar-ai.expanded .link-text { opacity: 1; visibility: visible; max-width: 150px; transition: opacity 0.3s ease 0.1s, max-width 0.3s ease 0.1s, visibility 0s; }
         .vyuka-sidebar-ai-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
         .vyuka-sidebar-ai-link { display: flex; align-items: center; padding: 1rem 1.5rem; color: var(--vyuka-text-secondary); text-decoration: none; position: relative; overflow: hidden; }
         .vyuka-sidebar-ai-link i { font-size: 1.1rem; width: 24px; text-align: center; margin-right: 1.5rem; transition: all 0.3s ease; }
         .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link i { margin-right: 1rem; }
         .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link { justify-content: center; }
         .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link i { margin-right: 0; }
-        .vyuka-sidebar-ai-link.active { color: var(--vyuka-text-heading); font-weight: 700; }
-        .vyuka-sidebar-ai-link.active::after { content: ''; position: absolute; top: 0; left: 0; height: 100%; width: 3px; background-color: var(--vyuka-accent-primary); box-shadow: 0 0 12px var(--vyuka-accent-primary); }
-        .vyuka-sidebar-ai-link.active i { color: var(--vyuka-accent-primary); }
+        .vyuka-sidebar-ai-link.active { color: var(--vyuka-text-heading); font-weight: 700; background: linear-gradient(90deg, rgba(var(--accent-magenta-rgb),0.15) 0%, transparent 100%); }
+        .vyuka-sidebar-ai-link.active::after { content: ''; position: absolute; top: 0; left: 0; height: 100%; width: 3px; background-color: var(--accent-magenta); box-shadow: 0 0 12px var(--accent-magenta); }
+        .vyuka-sidebar-ai-link.active i { color: var(--accent-magenta); }
         .vyuka-sidebar-ai-footer { padding: 1.5rem; font-size: 0.75rem; color: var(--vyuka-text-muted); text-align: center; border-top: 1px solid var(--vyuka-border-highlight); margin: 0 1rem; opacity: 0; transition: opacity 0.3s ease; }
         .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-footer { opacity: 1; transition-delay: 0.2s; }
         .sidebar-overlay-ai { position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark-rgb), 0.7); z-index: 999; opacity: 0; visibility: hidden; transition: opacity 0.3s ease; backdrop-filter: blur(3px); }
@@ -141,64 +134,75 @@
         /* User Menu Container */
         .user-menu-container { position: relative; }
         .vyuka-header-user-display { display: flex; align-items: center; gap: 0.8rem; padding: 0.35rem 0.7rem; background-color: rgba(var(--vyuka-bg-panel-lighter), 0.6); border-radius: var(--button-radius); border: 1px solid var(--vyuka-border-color); cursor: pointer; }
-        .vyuka-header-user-avatar-wrapper { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 2px solid var(--vyuka-accent-secondary); flex-shrink: 0; display: flex; align-items: center; justify-content: center; background-color: var(--dark-purple-accent); font-weight: bold; }
+        .vyuka-header-user-avatar-wrapper { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 2px solid var(--accent-magenta); flex-shrink: 0; display: flex; align-items: center; justify-content: center; background-color: var(--dark-purple-accent); font-weight: bold; }
         .vyuka-header-avatar-img { width: 100%; height: 100%; object-fit: cover; }
         .vyuka-header-user-name { font-weight: 600; }
-        .vyuka-header-user-title { font-size: 0.75rem; color: var(--vyuka-accent-secondary); }
-        .user-dropdown-menu { position: absolute; top: calc(100% + 12px); right: 0; background-color: var(--vyuka-bg-panel); border: 1px solid var(--vyuka-border-color); border-radius: var(--card-radius); box-shadow: 0 8px 20px rgba(0,0,0,0.5); z-index: 1100; width: 220px; opacity: 0; visibility: hidden; transform: translateY(10px) scale(0.95); transform-origin: top right; transition: opacity 0.2s ease, transform 0.2s var(--animation-timing-cyber), visibility 0s 0.2s; padding: 0.5rem 0; }
-        .user-menu-container:hover .user-dropdown-menu, .user-dropdown-menu.active { opacity: 1; visibility: visible; transform: translateY(0) scale(1); transition-delay: 0s; }
+        .vyuka-header-user-title { font-size: 0.75rem; color: var(--accent-yellow); }
+        .user-dropdown-menu { position: absolute; top: calc(100% + 12px); right: 0; background-color: var(--vyuka-bg-panel); border: 1px solid var(--vyuka-border-color); border-radius: var(--card-radius); box-shadow: 0 8px 20px rgba(0,0,0,0.5); z-index: 1100; width: 220px; opacity: 0; visibility: hidden; transform: translateY(10px); transition: all 0.2s ease; padding: 0.5rem 0; }
+        .user-menu-container:hover .user-dropdown-menu, .user-dropdown-menu.active { opacity: 1; visibility: visible; transform: translateY(0); }
         .user-dropdown-links { list-style: none; padding: 0; margin: 0 0 0.5rem 0; }
-        .user-dropdown-links li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; font-size: 0.85rem; color: var(--vyuka-text-secondary); text-decoration: none; transition: background-color 0.2s ease, color 0.2s ease; }
-        .user-dropdown-links li a:hover { background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.1); color: var(--vyuka-accent-secondary); }
+        .user-dropdown-links li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; font-size: 0.85rem; color: var(--vyuka-text-secondary); text-decoration: none; transition: all 0.2s ease; }
+        .user-dropdown-links li a:hover { background-color: rgba(var(--accent-magenta), 0.1); color: var(--accent-magenta); }
         .user-dropdown-links li a i { width: 16px; text-align: center; color: var(--vyuka-text-muted); }
         .logout-btn { display: block; width: calc(100% - 2rem); margin: 0.5rem 1rem; }
 
-        /* --- Footer --- */
-        .main-footer.vyuka-footer { flex-shrink: 0; margin-top: auto; background-color: rgba(var(--vyuka-bg-panel-rgb), 0.8); color: var(--vyuka-text-secondary); padding: 2rem var(--vyuka-main-content-padding); border-top: 1.5px solid var(--vyuka-border-highlight); box-shadow: 0 -4px 15px -5px rgba(var(--vyuka-accent-secondary-rgb), 0.25); }
+        /* --- Footer (НОВЫЙ КОСМИЧЕСКИЙ СТИЛЬ) --- */
+        .main-footer.vyuka-footer {
+            flex-shrink: 0; margin-top: auto;
+            background: linear-gradient(to top, rgba(var(--vyuka-bg-dark-rgb), 0.98), transparent), url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Cdefs%3E%3Cpattern id="p" patternTransform="rotate(45)" width="100" height="100" patternUnits="userSpaceOnUse"%3E%3Ccircle cx="50" cy="50" r="1" fill="rgba(240, 47, 194, 0.1)"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width="100%" height="100%" fill="url(%23p)"/%3E%3C/svg%3E');
+            padding: 2rem var(--vyuka-main-content-padding);
+            border-top: 1px solid transparent;
+            border-image: linear-gradient(to right, transparent, var(--accent-yellow), var(--accent-magenta), transparent) 1;
+            box-shadow: 0 -5px 30px -10px rgba(var(--accent-magenta-rgb), 0.3);
+        }
         .vyuka-footer .container { max-width: 1200px; margin: 0 auto; }
-        .vyuka-footer .footer-copyright { text-align: center; color: var(--vyuka-text-muted); font-size: 0.85rem; }
-        
-        /* --- Специфические стили для тестовой страницы --- */
+        .vyuka-footer .footer-copyright { text-align: center; color: var(--vyuka-text-muted); font-size: 0.85rem; font-family: var(--font-mono); }
+
+        /* --- Стили для тестовой страницы --- */
         .test-lab-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
         .component-section { background: rgba(var(--vyuka-bg-panel-rgb), 0.5); border: 1px solid var(--vyuka-border-color); border-radius: var(--card-radius); padding: 1.5rem; }
-        .component-section h3 { color: var(--vyuka-accent-primary); border-bottom: 1px solid var(--vyuka-border-highlight); padding-bottom: 0.8rem; margin-bottom: 1.5rem; font-family: var(--vyuka-font-secondary); }
+        .component-section h3 { color: var(--accent-yellow); border-bottom: 1px solid var(--vyuka-border-highlight); padding-bottom: 0.8rem; margin-bottom: 1.5rem; font-family: var(--vyuka-font-secondary); }
         .component-showcase { display: flex; flex-direction: column; gap: 1.5rem; }
-        .stat-card { min-height: 190px; padding: 1.5rem; display: flex; flex-direction: column; }
-        .stat-card .stat-card-title { font-size: 1rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.7rem; }
-        .stat-card .stat-card-value { font-size: 2.8rem; font-weight: 700; font-family: 'Orbitron', sans-serif; }
-        .shortcut-card { padding: 1.8rem; display: flex; flex-direction: column; align-items: center; text-align: center; }
-        .shortcut-icon { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.7rem; margin-bottom: 1.2rem; background: linear-gradient(145deg, rgba(var(--accent-primary-rgb), 0.15), rgba(var(--accent-secondary-rgb), 0.1)); color: var(--accent-primary); }
-        .form-group { margin-bottom: 1.5rem; }
-        .form-label { display: block; margin-bottom: 0.7rem; font-weight: 600; }
-        .form-control { width: 100%; padding: 0.9rem 1.1rem; border: 1px solid var(--border-color-medium); border-radius: var(--form-element-radius); font-size: 1rem; background-color: var(--vyuka-bg-panel-lighter); color: var(--vyuka-text-primary); }
-        .profile-content-tabs { display: flex; border-bottom: 1px solid var(--border-color-medium); }
-        .profile-content-tab { padding: 1rem 1.25rem; font-weight: 600; color: var(--text-muted); background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; }
-        .profile-content-tab.active { color: var(--accent-primary); border-bottom-color: var(--accent-primary); }
-        .profile-tab-content { display: none; padding: 1.5rem 0; }
-        .profile-tab-content.active { display: block; }
-        .modal { display: none; position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark-rgb), 0.8); z-index: 1050; align-items: center; justify-content: center; }
-        .modal.active { display: flex; }
-        .modal-content { background-color: var(--vyuka-bg-panel); border-radius: var(--card-radius); width: 90%; max-width: 500px; padding: 1.5rem; border: 1px solid var(--vyuka-border-highlight); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; border-bottom: 1px solid var(--vyuka-border-color); }
-        .modal-body { padding: 1.5rem 0; }
-        .modal-footer { padding-top: 1rem; border-top: 1px solid var(--vyuka-border-color); display: flex; justify-content: flex-end; gap: 1rem; }
+        .btn { border: 2px solid var(--accent-magenta); color: var(--accent-magenta); }
+        .btn-primary { background: var(--gradient-button); color: var(--white); }
+        .btn-primary:hover { background: var(--gradient-button-hover); color: var(--text-fixed-dark); }
+        .btn-danger { border-color: var(--accent-pink); color: var(--accent-pink); }
+        .btn-danger:hover { background: var(--gradient-danger); color: var(--white); }
+        
+        /* --- НОВЫЕ СТИЛИ ДЛЯ ХЕДЕР-СТАТИСТИКИ --- */
+        .header-stats {
+            display: flex; align-items: stretch; /* Stretch items to same height */
+            gap: 1px;
+            background-color: rgba(var(--vyuka-bg-dark-rgb), 0.7);
+            border-radius: var(--button-radius);
+            border: 1px solid var(--vyuka-border-highlight);
+            box-shadow: var(--shadow-hud);
+            backdrop-filter: blur(5px);
+            overflow: hidden;
+        }
+        .header-stat-item {
+            display: flex; align-items: center; gap: 0.6rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem; font-weight: 500;
+            background-color: rgba(var(--vyuka-bg-panel-lighter-rgb), 0.5);
+            transition: background-color 0.2s ease;
+        }
+        .header-stat-item:not(:last-child) { border-right: 1px solid var(--vyuka-border-color); }
+        .header-stat-item i { color: var(--accent-secondary); font-size: 1.1em; transition: color 0.2s ease, transform 0.2s ease; }
+        .header-stat-item:hover i { color: var(--accent-yellow); transform: scale(1.1); }
+        .header-stat-item strong { color: var(--white); font-weight: 600; font-family: var(--font-mono); }
+        .header-stat-item#header-credits-display strong { color: var(--accent-yellow); text-shadow: 0 0 5px rgba(var(--accent-yellow-rgb), 0.6); }
 
-        /* --- НОВЫЕ СТИЛИ ДЛЯ ВИДЖЕТОВ В ХЕДЕРЕ --- */
-        .header-stats { display: flex; align-items: center; gap: 1.5rem; background-color: rgba(var(--vyuka-bg-panel-lighter-rgb), 0.6); padding: 0.5rem 1rem; border-radius: var(--button-radius); border: 1px solid var(--vyuka-border-color); }
-        .header-stat-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; font-weight: 500; }
-        .header-stat-item i { color: var(--vyuka-accent-secondary); }
-        .header-stat-item strong { color: var(--white); font-weight: 600; }
-        .header-stat-item#header-credits-display strong { color: var(--accent-orange); }
-
-        .level-xp-widget-new { width: 100%; max-width: 220px; padding: 0.5rem 0.8rem; background: transparent; }
+        .level-xp-widget-new { width: 100%; max-width: 180px; padding: 0.1rem 0.5rem; background: transparent; }
         .level-display { display: flex; align-items: baseline; justify-content: center; gap: 0.4em; }
-        .level-label { font-size: 0.8rem; font-weight: 600; color: var(--accent-secondary); }
-        .level-value { font-size: 1.3rem; font-weight: 700; color: var(--accent-primary); }
-        .xp-bar-track { width: 100%; height: 8px; background: var(--dark-purple-accent); border-radius: 4px; overflow: hidden; }
-        .xp-bar-progress { height: 100%; background: var(--gradient-exp-bar); border-radius: 4px; }
-        .xp-text { font-size: 0.7rem; font-family: var(--font-mono); color: var(--text-medium); text-align: center; margin-top: 0.3rem; }
+        .level-label { font-size: 0.75rem; font-weight: 600; color: var(--accent-secondary); }
+        .level-value { font-size: 1.3rem; font-weight: 700; color: var(--accent-magenta); text-shadow: 0 0 5px var(--accent-magenta); }
+        .xp-bar-track { width: 100%; height: 6px; background: rgba(0,0,0,0.5); border-radius: 3px; overflow: hidden; }
+        .xp-bar-progress { height: 100%; background: var(--gradient-exp-bar); border-radius: 3px; box-shadow: 0 0 8px rgba(var(--accent-yellow-rgb), 0.5); }
+        .xp-text { font-size: 0.65rem; font-family: var(--font-mono); color: var(--text-muted); text-align: center; margin-top: 0.2rem; }
 
         /* --- Адаптивность --- */
+        @media (max-width: 1100px) { .header-stats { display: none; } }
         @media (max-width: 992px) {
             .vyuka-page-container { margin-left: 0; }
             .vyuka-sidebar-ai { transform: translateX(-100%); }
@@ -207,7 +211,7 @@
             .vyuka-header-left .sidebar-ai-desktop-toggle { display: none; }
         }
         @media (max-width: 768px) {
-            .vyuka-header-user-display, .header-stats { display: none; }
+            .vyuka-header-user-display, .vyuka-header-right .btn span { display: none; }
         }
     </style>
 </head>
@@ -282,9 +286,12 @@
         <div class="vyuka-main-content-scrollable">
             <main class="vyuka-main-content">
                 </main>
+
             <footer class="main-footer vyuka-footer">
                 <div class="container">
-                    <div class="footer-copyright">&copy; 2025 Test Lab Footer // Justax Systems</div>
+                    <div class="footer-copyright">
+                        &copy; 2025 Test Lab Footer // Justax Systems
+                    </div>
                 </div>
             </footer>
         </div>
@@ -294,10 +301,11 @@
         </div>
 
     <script src="js/supabase-client.js"></script>
-    <script src="js/ui-helpers.js"></script> <script>
+    <script src="js/ui-helpers.js"></script>
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             const supabase = Justax.initSupabase();
-            Justax.UI.init(); // Инициализируем общие UI-функции (сайдбар и т.д.)
+            Justax.UI.init(); 
 
             // --- Header Profile Elements ---
             const headerAvatarWrapper = document.getElementById('header-avatar-wrapper');
