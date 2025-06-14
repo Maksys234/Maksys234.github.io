@@ -1,7 +1,7 @@
 /* dashboard/vyuka/vyuka.css */
-/* ВЕРСИЯ: "Cosmic Neuro" v3.3 - КОМПЛЕКСНОЕ ОБНОВЛЕНИЕ И ИСПРАВЛЕНИЕ МАКЕТА */
-/* Этот файл теперь включает все необходимые стили из layout.css и dashboard.css для обеспечения полной функциональности без дополнительных импортов. */
-/* ИСПРАВЛЕНИЕ: Удалено 'overflow: hidden' с тегов <html> и <body> для предотвращения блокировки прокрутки и перекрытия контента. */
+/* ВЕРСИЯ: "Cosmic Neuro" v3.4 - OPRAVA A SJEDNOCENÍ STYLŮ HORNÍHO PANELU */
+/* Tento soubor nyní zahrnuje kompletní styly pro záhlaví, notifikace a uživatelské menu, inspirované dashboard.css a settings.css, aby byl zajištěn jednotný vzhled. */
+/* Opraven problém s "létajícími" tlačítky a textem bez stylů. */
 
 /*
  * ==============================================
@@ -39,6 +39,8 @@
     --accent-primary-rgb: 0, 224, 255;
     --accent-secondary: #a05cff;
     --accent-secondary-rgb: 160, 92, 255;
+    --accent-pink: #ff33a8;
+    --accent-pink-rgb: 255, 51, 168;
 
 	/* Границы - Энергетические контуры */
 	--vyuka-border-color: rgba(44, 57, 88, 0.7);
@@ -54,6 +56,8 @@
 	--vyuka-text-link-hover: #ffffff;
 	--vyuka-text-on-accent: #02040A;
     --text-light: #f1f5f9;
+    --text-fixed-dark: #03020c;
+
 
 	/* Тени и Свечение - Усиленные эффекты */
 	--vyuka-panel-shadow: 0 10px 40px rgba(0,0,0,0.7), inset 0 1px 1px rgba(var(--white-rgb),0.05);
@@ -62,7 +66,6 @@
 	--vyuka-cyber-glow-primary: 0 0 12px rgba(var(--vyuka-accent-primary-rgb), 0.7), 0 0 24px rgba(var(--vyuka-accent-primary-rgb), 0.5);
 	--vyuka-cyber-glow-secondary: 0 0 12px rgba(var(--vyuka-accent-secondary-rgb), 0.7), 0 0 24px rgba(var(--vyuka-accent-secondary-rgb), 0.5);
     --accent-glow: rgba(var(--accent-primary-rgb), 0.6);
-
 
 	/* Размеры и Анимации */
 	--vyuka-sidebar-width-expanded: 260px;
@@ -85,7 +88,6 @@
  */
 *, *::before, *::after { box-sizing: border-box; }
 
-/* ИСПРАВЛЕНИЕ: Удалено 'overflow: hidden' для предотвращения проблем с макетом и прокруткой */
 html {
     scroll-behavior: smooth;
     font-size: 16px;
@@ -98,7 +100,7 @@ body.new-vyuka-layout {
 	color: var(--vyuka-text-primary);
 	margin: 0; padding: 0; display: flex;
 	height: 100vh;
-    overflow: hidden; /* Overflow hidden здесь необходим для правильной работы макета с фиксированным сайдбаром */
+    overflow: hidden;
     position: relative;
     background-image:
         radial-gradient(circle at 80% 20%, rgba(var(--white-rgb), 0.4), transparent 1px),
@@ -136,258 +138,12 @@ body.new-vyuka-layout::after {
 
 /*
  * ==============================================
- * ОСНОВНОЙ LAYOUT (Стили из layout.css)
- * ==============================================
- */
-.vyuka-page-container {
-    flex-grow: 1;
-    margin-left: var(--vyuka-sidebar-width-collapsed);
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    transition: margin-left var(--animation-duration-medium) var(--animation-timing-cyber);
-    background-color: transparent;
-    overflow: hidden; /* Этот overflow важен для структуры flex */
-}
-.vyuka-sidebar-ai.expanded ~ .vyuka-page-container { margin-left: var(--vyuka-sidebar-width-expanded); }
-
-.vyuka-header {
-	height: var(--vyuka-header-height);
-	background-color: rgba(var(--vyuka-bg-panel-rgb), 0.65);
-	backdrop-filter: blur(16px) saturate(1.3);
-	border-bottom: 1px solid var(--vyuka-border-highlight);
-	box-shadow: 0 5px 25px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(var(--vyuka-accent-primary-rgb), 0.15);
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 1.5rem; flex-shrink: 0; position: relative; z-index: 950;
-    transition: background-color var(--animation-duration-medium) ease;
-}
-
-.vyuka-main-content-scrollable {
-	flex-grow: 1;
-    overflow-y: auto; /* ГЛАВНАЯ ПРОКРУТКА ЗДЕСЬ */
-    overflow-x: hidden;
-	display: flex; flex-direction: column; position: relative;
-    scrollbar-width: thin; scrollbar-color: var(--vyuka-accent-secondary) transparent;
-}
-.vyuka-main-content-scrollable::-webkit-scrollbar { width: 6px; }
-.vyuka-main-content-scrollable::-webkit-scrollbar-track { background: transparent; }
-.vyuka-main-content-scrollable::-webkit-scrollbar-thumb { background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.7); border-radius: 3px; }
-
-.vyuka-main-content {
-	display: flex; flex-direction: row; flex-grow: 1;
-	padding: var(--vyuka-main-content-padding);
-    gap: var(--vyuka-main-content-gap);
-	position: relative; z-index: 10;
-    min-height: 0; overflow: hidden;
-}
-
-.main-footer.vyuka-footer {
-    flex-shrink: 0;
-    margin-top: auto;
-}
-
-/*
- * ==============================================
- * Стили Боковой Панели (Sidebar - из layout.css)
- * ==============================================
- */
-.vyuka-sidebar-ai {
-	width: var(--vyuka-sidebar-width-collapsed);
-	background: #040615;
-	backdrop-filter: blur(18px) saturate(1.1);
-	display: flex; flex-direction: column;
-	padding: 1rem 0;
-	transition: width var(--animation-duration-medium) var(--animation-timing-cyber), box-shadow var(--animation-duration-medium) ease;
-	height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000;
-	box-shadow: 10px 0 50px -15px rgba(0,0,0,0.7);
-	border-right: none;
-    background-image: radial-gradient(rgba(var(--vyuka-accent-secondary-rgb), 0.08) 1px, transparent 1px);
-    background-size: 20px 20px;
-}
-.vyuka-sidebar-ai::after {
-	content: '';
-	position: absolute;
-	top: 0;
-	right: -1px;
-	width: 2px;
-	height: 100%;
-	background: linear-gradient(to bottom, transparent, var(--vyuka-accent-secondary), var(--vyuka-accent-primary), transparent);
-	box-shadow: 0 0 12px rgba(var(--vyuka-accent-secondary-rgb), 0.6);
-	opacity: 0.6;
-	transition: opacity 0.3s ease, box-shadow 0.3s ease;
-}
-.vyuka-sidebar-ai:hover::after {
-	opacity: 1;
-	box-shadow: 0 0 25px rgba(var(--vyuka-accent-secondary-rgb), 0.7);
-}
-.vyuka-sidebar-ai.expanded {
-	width: var(--vyuka-sidebar-width-expanded);
-	box-shadow: 15px 0 60px -20px rgba(0,0,0,0.8), 0 0 25px rgba(var(--vyuka-accent-primary-rgb), 0.1);
-}
-
-.vyuka-sidebar-ai-header { padding: 0.5rem 1rem; margin-bottom: 2.5rem; }
-.vyuka-sidebar-ai-logo { display: flex; align-items: center; gap: 0.8rem; color: var(--vyuka-text-heading); text-decoration: none; font-size: 1.5rem; font-family: var(--vyuka-font-accent); }
-.vyuka-sidebar-ai-logo i { color: var(--vyuka-accent-primary); text-shadow: 0 0 10px var(--vyuka-accent-primary); transition: transform 0.4s var(--animation-timing-cyber), text-shadow 0.3s ease; }
-.vyuka-sidebar-ai-logo:hover i { transform: rotate(360deg) scale(1.15); text-shadow: 0 0 15px var(--vyuka-accent-primary), 0 0 25px var(--vyuka-accent-primary); }
-.vyuka-sidebar-ai-logo .logo-text { opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; font-size: 1.1rem; }
-.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-logo .logo-text { opacity: 1; visibility: visible; transition-delay: 0.1s; }
-.vyuka-sidebar-ai-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
-
-.vyuka-sidebar-ai-link {
-	display: flex;
-	align-items: center;
-	padding: 1rem 1.5rem;
-	color: var(--vyuka-text-secondary);
-	text-decoration: none;
-	position: relative;
-	overflow: hidden;
-	transition: color var(--animation-duration-fast) ease, background-color var(--animation-duration-fast) ease;
-}
-.vyuka-sidebar-ai-link::before {
-	content: '';
-	position: absolute;
-	top: 0;
-	left: -100%;
-	width: 100%;
-	height: 100%;
-	background: linear-gradient(90deg, transparent, rgba(var(--vyuka-accent-secondary-rgb), 0.2), transparent);
-	transition: left 0.4s ease;
-}
-.vyuka-sidebar-ai-link:hover { color: var(--vyuka-text-heading); }
-.vyuka-sidebar-ai-link:hover::before { left: 100%; }
-.vyuka-sidebar-ai-link i { font-size: 1.1rem; width: 24px; text-align: center; margin-right: 1.5rem; transition: all 0.3s ease; text-shadow: 0 0 5px rgba(var(--vyuka-text-muted), 0.5); }
-.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link i { margin-right: 1rem; }
-.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link { justify-content: center; }
-.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link i { margin-right: 0; }
-.vyuka-sidebar-ai-link .link-text { font-weight: 500; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; }
-.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link .link-text { opacity: 1; visibility: visible; transition-delay: 0.1s; }
-.vyuka-sidebar-ai-link:hover i {
-    color: var(--vyuka-accent-secondary);
-    text-shadow: 0 0 12px var(--vyuka-accent-secondary);
-    transform: scale(1.1);
-}
-
-.vyuka-sidebar-ai-link.active {
-	background: linear-gradient(90deg, rgba(var(--vyuka-accent-primary-rgb),0.15) 0%, transparent 100%);
-	color: var(--vyuka-text-heading);
-	box-shadow: inset 3px 0 10px -2px rgba(var(--vyuka-accent-primary-rgb),0.3);
-	font-weight: 700;
-	position: relative;
-}
-.vyuka-sidebar-ai-link.active::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 3px;
-    background-color: var(--vyuka-accent-primary);
-    box-shadow: 0 0 12px var(--vyuka-accent-primary);
-    animation: pulse-border 2s infinite ease-in-out;
-}
-
-@keyframes pulse-border {
-	0%, 100% { box-shadow: 0 0 12px var(--vyuka-accent-primary); background-color: var(--vyuka-accent-primary); }
-	50% { box-shadow: 0 0 25px var(--vyuka-accent-primary), 0 0 10px var(--vyuka-accent-secondary); background-color: var(--vyuka-accent-secondary); }
-}
-.vyuka-sidebar-ai-link.active i {
-    color: var(--vyuka-accent-primary);
-    text-shadow: 0 0 15px var(--vyuka-accent-primary);
-    transform: scale(1.1);
-}
-.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link.active { background: transparent; box-shadow: none; }
-.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link.active::after { display: none; }
-.vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link.active i {
-    box-shadow: 0 0 20px var(--vyuka-cyber-glow-secondary);
-    background-color: var(--vyuka-accent-secondary);
-    color: var(--vyuka-bg-dark);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    line-height: 40px;
-    padding: 0;
-    font-size: 1.1rem;
-    transform: scale(1.1);
-    animation: pulse-icon 2.2s infinite ease-in-out;
-}
-@keyframes pulse-icon {
-    0%, 100% { transform: scale(1.1); box-shadow: 0 0 20px var(--vyuka-cyber-glow-secondary); }
-    50% { transform: scale(1.2); box-shadow: 0 0 30px var(--vyuka-cyber-glow-secondary), 0 0 10px var(--vyuka-accent-primary); }
-}
-
-.vyuka-sidebar-ai-footer { padding: 1.5rem; font-size: 0.75rem; color: var(--vyuka-text-muted); text-align: center; border-top: 1px solid var(--vyuka-border-highlight); margin: 0 1rem; opacity: 0; transition: opacity 0.3s ease; }
-.vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-footer { opacity: 1; transition-delay: 0.2s; }
-
-.sidebar-overlay-ai {
-    position: fixed;
-    inset: 0;
-    background-color: rgba(var(--vyuka-bg-dark-rgb), 0.7);
-    z-index: 1001;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0s 0.3s;
-    backdrop-filter: blur(3px);
-}
-.sidebar-overlay-ai.active {
-    opacity: 1;
-    visibility: visible;
-    transition-delay: 0s;
-}
-
-/*
- * ==============================================
- * Стили Футера (Footer - из layout.css)
- * ==============================================
- */
-
-.main-footer.vyuka-footer {
-	padding: 4rem 2rem 2rem;
-	background: linear-gradient(to top, rgba(var(--vyuka-bg-dark-rgb), 0.95), transparent);
-	text-align: center;
-	margin-top: auto;
-	position: relative;
-    border-top: none;
-    flex-shrink: 0;
-}
-.main-footer.vyuka-footer::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 10%;
-    right: 10%;
-    height: 1px;
-    background: linear-gradient(to right, transparent, var(--vyuka-accent-secondary), var(--vyuka-accent-primary), transparent);
-    box-shadow: 0 0 15px rgba(var(--vyuka-accent-secondary-rgb), 0.6);
-    animation: footer-glow-pan 10s linear infinite alternate;
-}
-@keyframes footer-glow-pan {
-    from { transform: scaleX(0.8); opacity: 0.7; }
-    to { transform: scaleX(1); opacity: 1; }
-}
-
-.footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 2.5rem; max-width: 1200px; margin: 0 auto 3rem; text-align: left; }
-.footer-column .logo { margin-bottom: 1.5rem; }
-.footer-column p { color: var(--vyuka-text-secondary); line-height: 1.7; font-size: 0.9rem; }
-.footer-column h3 { font-family: var(--vyuka-font-secondary); font-size: 1.2rem; color: var(--vyuka-accent-primary); margin-bottom: 1.5rem; text-shadow: var(--vyuka-text-glow-primary); }
-.footer-links { list-style: none; padding: 0; margin: 0; }
-.footer-links li { margin-bottom: 0.8rem; }
-.footer-links li a { color: var(--vyuka-text-secondary); display: flex; align-items: center; gap: 0.8rem; }
-.footer-links li a:hover { color: var(--vyuka-accent-secondary); transform: translateX(5px); }
-.footer-links li a i { color: var(--vyuka-text-muted); transition: color 0.3s ease; }
-.footer-links li a:hover i { color: var(--vyuka-accent-secondary); }
-.social-links { display: flex; gap: 1.2rem; margin-top: 1.5rem; }
-.social-links a { font-size: 1.5rem; transition: transform 0.3s ease, color 0.3s ease; }
-.social-links a:hover { transform: scale(1.2) translateY(-3px); color: var(--vyuka-accent-secondary); }
-.footer-copyright { border-top: 1px solid var(--vyuka-border-color); padding-top: 2rem; margin-top: 3rem; color: var(--vyuka-text-muted); font-size: 0.85rem; font-family: var(--vyuka-font-mono); }
-
-
-/*
- * ==============================================
- * СПЕЦИФИЧЕСКИЕ СТИЛИ ДЛЯ СТРАНИЦЫ ВЫУКА
+ * ОСНОВНЫЕ СТИЛИ HEADER (Сjednoceno s dashboard.css a settings.css)
  * ==============================================
  */
 .vyuka-header-left { display: flex; align-items: center; gap: 0.8rem; }
-.vyuka-header-left .mobile-menu-toggle { display: none; color: var(--vyuka-text-muted); font-size: 1.4rem; }
+.vyuka-header-left .mobile-menu-toggle { display: none; background:none; border:none; color: var(--vyuka-text-muted); font-size: 1.4rem; cursor: pointer; padding: 0.5rem; transition: color 0.2s ease;}
+.vyuka-header-left .mobile-menu-toggle:hover { color: var(--vyuka-accent-primary); }
 .vyuka-header-left .sidebar-ai-desktop-toggle { color: var(--vyuka-text-muted); font-size: 1.1rem; background: rgba(var(--vyuka-bg-panel-lighter),0.7); border: 1px solid var(--vyuka-border-color); cursor: pointer; padding: 0.5rem 0.7rem; border-radius: var(--vyuka-button-radius); transition: all var(--animation-duration-fast) ease; }
 .vyuka-header-left .sidebar-ai-desktop-toggle:hover { background-color: rgba(var(--vyuka-accent-secondary-rgb),0.2); color: var(--vyuka-accent-secondary); border-color: var(--vyuka-accent-secondary); box-shadow: 0 0 8px rgba(var(--vyuka-accent-secondary-rgb),0.3);}
 .vyuka-header-left .sidebar-ai-desktop-toggle i { transition: transform 0.3s var(--animation-timing-cyber); }
@@ -395,6 +151,45 @@ body.new-vyuka-layout::after {
 .vyuka-header-topic-info h1 { font-size: 1.2rem; margin: 0; font-weight: 600; color: var(--vyuka-text-heading); }
 .vyuka-header-topic-info p { font-size: 0.8rem; margin: 0; color: var(--vyuka-text-secondary); font-family: var(--vyuka-font-mono); }
 .vyuka-header-right { display: flex; align-items: center; gap: 0.8rem; }
+
+/* КНОПКИ - Buttons */
+.btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.6em;
+    padding: 0.6rem 1.1rem;
+    background: transparent; color: var(--vyuka-accent-primary);
+    border: 2px solid var(--vyuka-accent-primary); border-radius: var(--vyuka-button-radius);
+    font-family: var(--font-secondary); font-weight: 600; font-size: 0.85rem;
+    text-align: center; text-transform: uppercase; letter-spacing: 1px;
+    cursor: pointer; transition: all 0.3s ease, transform 0.15s ease-out;
+    position: relative; overflow: hidden; z-index: 1;
+}
+.btn:hover:not(:disabled) {
+    color: var(--vyuka-text-on-accent);
+    box-shadow: 0 0 20px var(--vyuka-cyber-glow-primary);
+    transform: translateY(-2px);
+}
+.btn-secondary {
+    border-color: var(--vyuka-border-color);
+    color: var(--vyuka-text-secondary);
+}
+.btn-secondary:hover:not(:disabled) {
+    border-color: var(--vyuka-accent-secondary);
+    color: var(--vyuka-accent-secondary);
+    box-shadow: 0 0 15px var(--vyuka-cyber-glow-secondary);
+}
+.btn-danger {
+    border-color: var(--vyuka-accent-error);
+    color: var(--vyuka-accent-error);
+}
+.btn-danger:hover:not(:disabled) {
+    background-color: var(--vyuka-accent-error);
+    color: var(--vyuka-text-heading);
+    box-shadow: 0 0 15px rgba(var(--vyuka-accent-error), 0.6);
+}
+.btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+}
 
 /* УЛУЧШЕНИЕ: Стили для аватара в хедере (из settings.css) */
 .vyuka-header-user-display { display: flex; align-items: center; gap: 0.8rem; padding: 0.35rem 0.7rem; background-color: rgba(var(--vyuka-bg-panel-lighter), 0.6); border-radius: var(--vyuka-button-radius); border: 1px solid var(--vyuka-border-color); cursor: pointer; transition: background-color 0.2s ease, box-shadow 0.2s ease; }
@@ -422,12 +217,56 @@ body.new-vyuka-layout::after {
     max-width: 100% !important; max-height: 100%; border-radius: 0 !important;
 }
 .vyuka-header-avatar-initials { font-size: 1rem; font-weight: 600; color: var(--vyuka-text-primary); }
-
 .vyuka-header-user-details { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2; overflow: hidden;}
 .vyuka-header-user-name { font-size: 0.9rem; font-weight: 600; color: var(--vyuka-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
 .vyuka-header-user-title { font-size: 0.75rem; color: var(--vyuka-accent-secondary); font-family: var(--vyuka-font-mono); text-shadow: 0 0 3px var(--vyuka-accent-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
 
+/* СТИЛИ УВЕДОМЛЕНИЙ (převzato z dashboard.css) */
+.notifications { position: relative; }
+.notification-bell { cursor: pointer; padding: 0.6rem; position: relative; display: inline-block; line-height: 1; }
+.notification-bell i { font-size: 1.4rem; color: var(--text-muted); transition: color 0.2s, transform 0.2s; }
+.notification-bell:hover i { color: var(--accent-primary); transform: scale(1.1); }
+.notification-badge { position: absolute; top: 0px; right: 0px; width: 18px; height: 18px; background-color: var(--accent-pink); color: var(--white); font-size: 0.65rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; border: 2px solid var(--bg-secondary); pointer-events: none; opacity: 0; transform: scale(0.5); transition: opacity 0.2s, transform 0.2s; box-shadow: 0 0 8px var(--accent-pink-glow); }
+.notification-badge.visible { opacity: 1; transform: scale(1); }
+.notifications-dropdown-wrapper { position: absolute; top: calc(100% + 12px); right: -10px; width: 380px; background-color: var(--interface-bg, rgba(6, 4, 22, 0.92)); border-radius: 12px; box-shadow: var(--shadow-card, 0 12px 40px rgba(0,0,0,0.4)); border: 1px solid var(--border-color-medium, rgba(160,92,255,0.45)); z-index: 1010; opacity: 0; visibility: hidden; transform: translateY(15px) scale(0.98); transform-origin: top right; transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.3s; backdrop-filter: blur(5px); }
+.notifications-dropdown-wrapper.active { opacity: 1; visibility: visible; transform: translateY(0) scale(1); transition-delay: 0s; }
+.notifications-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color-light, rgba(160,92,255,0.25)); display: flex; justify-content: space-between; align-items: center; }
+.notifications-title { font-size: 1rem; font-weight: 600; color: var(--text-light); }
+.mark-all-read-btn { font-size: 0.8rem; color: var(--accent-primary); background: none; border: none; cursor: pointer; font-weight: 500; padding: 0.25rem 0; opacity: 0.8; transition: opacity 0.2s; }
+.mark-all-read-btn:hover:not(:disabled) { text-decoration: underline; opacity: 1; }
+.mark-all-read-btn:disabled { opacity: 0.4; cursor: not-allowed; text-decoration: none !important; }
+#notifications-list { max-height: 350px; overflow-y: auto; padding: 0.5rem 0; }
+#notifications-list::-webkit-scrollbar { width: 6px; }
+#notifications-list::-webkit-scrollbar-track { background: transparent; }
+#notifications-list::-webkit-scrollbar-thumb { background-color: var(--border-color-medium); border-radius: 3px; }
+.notification-item { display: flex; padding: 0.9rem 1.25rem; gap: 1rem; border-bottom: 1px solid var(--border-color-light); transition: background-color 0.2s ease; cursor: pointer; position: relative; }
+.notification-item:last-child { border-bottom: none; }
+.notification-item:hover { background-color: rgba(var(--accent-primary-rgb), 0.08); }
+.notification-item.is-read { opacity: 0.6; }
+.notification-item.is-read:hover { opacity: 0.8; }
+.notification-item.is-read .unread-dot { display: none; }
+.notification-icon { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1rem; color: var(--white); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+.notification-content { flex-grow: 1; }
+.notification-title { font-weight: 600; color: var(--text-light); margin-bottom: 0.25rem; font-size: 0.95rem; }
+.notification-message { font-size: 0.88rem; color: var(--text-medium); line-height: 1.45; margin-bottom: 0.3rem; }
+.notification-time { font-size: 0.78rem; color: var(--text-muted); }
+.unread-dot { position: absolute; top: 50%; right: 1.25rem; transform: translateY(-50%); width: 9px; height: 9px; background-color: var(--accent-primary); border-radius: 50%; box-shadow: 0 0 8px var(--accent-glow); }
+.notifications-footer { padding: 0.8rem 1.25rem; border-top: 1px solid var(--border-color-light); text-align: center; background-color: rgba(var(--bg-secondary-rgb, 10, 7, 31), 0.5); border-radius: 0 0 12px 12px; }
+.view-all-notifications-link { font-size: 0.9rem; color: var(--accent-primary); text-decoration: none; font-weight: 500; }
+.view-all-notifications-link:hover { color: var(--white); text-decoration: underline; }
 
+/* СТИЛИ ВЫПАДАЮЩЕГО МЕНЮ ПОЛЬЗОВАТЕЛЯ (převzato ze settings.css) */
+.user-menu-container { position: relative; }
+.user-dropdown-menu { position: absolute; top: calc(100% + 12px); right: 0; background-color: var(--vyuka-bg-panel); border: 1px solid var(--vyuka-border-color); border-radius: var(--vyuka-card-radius); box-shadow: 0 8px 20px rgba(0,0,0,0.5), 0 0 0 1px var(--vyuka-border-highlight); z-index: 1100; width: 220px; opacity: 0; visibility: hidden; transform: translateY(10px) scale(0.95); transform-origin: top right; transition: opacity 0.3s ease, transform 0.3s var(--animation-timing-cyber), visibility 0s 0.3s; padding: 0.5rem 0; }
+.user-menu-container:hover .user-dropdown-menu, .vyuka-header-user-display.active + .user-dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0) scale(1); transition-delay: 0s; }
+.user-dropdown-links { list-style: none; padding: 0; margin: 0 0 0.5rem 0; }
+.user-dropdown-links li a { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 1rem; font-size: 0.85rem; color: var(--vyuka-text-secondary); text-decoration: none; transition: background-color 0.2s ease, color 0.2s ease; }
+.user-dropdown-links li a:hover { background-color: rgba(var(--vyuka-accent-secondary-rgb), 0.1); color: var(--vyuka-accent-secondary); }
+.user-dropdown-links li a i { width: 16px; text-align: center; color: var(--vyuka-text-muted); }
+.user-dropdown-links li a:hover i { color: var(--vyuka-accent-secondary); }
+.logout-btn { display: block; width: calc(100% - 2rem); margin: 0.5rem 1rem; font-size: 0.8rem !important; padding: 0.5rem 0.8rem !important; text-align: center !important; }
+
+/* Ostatní styly (whiteboard, chat, etc.) zůstávají stejné */
 #whiteboard-container { flex-grow: 1; overflow-y: auto; padding: 0.8rem; margin-right: -8px; position: relative; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--vyuka-accent-secondary) rgba(var(--vyuka-bg-dark-rgb), 0.5); }
 #whiteboard-container::-webkit-scrollbar { width: 5px; }
 #whiteboard-container::-webkit-scrollbar-thumb { background: var(--vyuka-accent-secondary); border-radius: 2.5px;}
@@ -473,7 +312,7 @@ body.new-vyuka-layout::after {
 
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
-    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; animation-delay: -0.01ms !important; transition-delay: 0ms !important; will-change: auto !important; }
+    *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
     .vyuka-sidebar-ai, .vyuka-page-container { transition: none !important; }
 }
 
