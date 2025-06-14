@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Layout & Component Test Lab // Justax v3</title>
+    <title>Layout & Component Test Lab // Justax v3.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Audiowide&family=Shadows+Into+Light+Two&display=swap" rel="stylesheet">
@@ -12,12 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        /* --- START: Combined CSS from layout.css, dashboard.css, etc. for Test Lab --- */
-        /* This style block contains everything needed for this page to function correctly. */
-
-        /* ============================================== */
-        /* :root - ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ (СИНХРОНИЗИРОВАННЫЕ) */
-        /* ============================================== */
+        /* --- START: Combined CSS for Test Lab --- */
         :root {
             /* Основа - Глубокий космос */
             --vyuka-bg-dark: #02040A;
@@ -209,7 +204,7 @@
         .sidebar-overlay-ai.active { opacity: 1; visibility: visible; }
 
         /* ============================================== */
-        /* HEADER (ИЗ layout.css) */
+        /* HEADER (ИЗ layout.css, С УЛУЧШЕНИЯМИ ИЗ settings.css) */
         /* ============================================== */
         .vyuka-header {
             height: var(--vyuka-header-height);
@@ -233,7 +228,7 @@
         .vyuka-header-page-title-container p { font-size: 0.85rem; margin: 0; color: var(--vyuka-text-secondary); }
         .vyuka-header-right { display: flex; align-items: center; gap: 1rem; }
         .vyuka-header-user-display { display: flex; align-items: center; gap: 0.8rem; padding: 0.35rem 0.7rem; background-color: rgba(var(--vyuka-bg-panel-lighter), 0.6); border-radius: var(--vyuka-button-radius); border: 1px solid var(--vyuka-border-color); cursor: pointer; }
-        .vyuka-header-user-avatar-wrapper { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 2px solid var(--vyuka-accent-secondary); }
+        .vyuka-header-user-avatar-wrapper { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 2px solid var(--vyuka-accent-secondary); flex-shrink: 0; display: flex; align-items: center; justify-content: center; background-color: var(--dark-purple-accent); font-weight: bold; }
         .vyuka-header-avatar-img { width: 100%; height: 100%; object-fit: cover; }
         .vyuka-header-user-name { font-weight: 600; }
         .vyuka-header-user-title { font-size: 0.75rem; color: var(--vyuka-accent-secondary); }
@@ -248,21 +243,7 @@
             border-top: 1.5px solid var(--vyuka-border-highlight); box-shadow: 0 -4px 15px -5px rgba(var(--vyuka-accent-secondary-rgb), 0.25);
         }
         .vyuka-footer .container { max-width: 1200px; margin: 0 auto; }
-        .vyuka-footer .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2.5rem; text-align: left; }
-        .vyuka-footer .footer-column .logo { display: inline-flex; align-items: center; font-family: 'Shadows Into Light Two', cursive !important; font-size: 1.9rem; font-weight: 400 !important; color: var(--vyuka-text-heading); text-decoration: none; margin-bottom: 1.25rem; }
-        .vyuka-footer .footer-column .logo i { font-family: "Font Awesome 6 Free" !important; margin-right: 0.6rem; color: var(--vyuka-accent-secondary); }
-        .vyuka-footer .footer-column p { margin-bottom: 1.25rem; font-size: 0.875rem; }
-        .vyuka-footer .footer-column h3 { font-family: var(--vyuka-font-secondary); font-size: 1.15rem; color: var(--vyuka-text-heading); margin-bottom: 1.25rem; padding-left: 20px; position: relative; }
-        .vyuka-footer .footer-column h3::before { content: ''; background-color: var(--vyuka-accent-secondary); width: 8px; height: 8px; border-radius: 50%; position: absolute; left: 0; top: 50%; transform: translateY(-50%); box-shadow: 0 0 8px var(--vyuka-cyber-glow-secondary); }
-        .vyuka-footer .footer-links { list-style: none; padding: 0; margin: 0; }
-        .vyuka-footer .footer-links li { margin-bottom: 0.6rem; }
-        .vyuka-footer .footer-links a, .vyuka-footer .footer-links span.icon-text-item { color: var(--vyuka-text-link); text-decoration: none; display: flex; align-items: center; gap: 0.8rem; }
-        .vyuka-footer .footer-links a:hover { color: var(--vyuka-text-link-hover); }
-        .vyuka-footer .footer-links a i { color: var(--vyuka-text-muted); width: 18px; text-align: center; }
-        .vyuka-footer .social-links { display: flex; gap: 1rem; margin-top: 1.25rem; }
-        .vyuka-footer .social-links .social-link { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; border: 1.5px solid var(--vyuka-border-color); color: var(--vyuka-text-muted); font-size: 1.2rem; transition: all 0.25s ease; text-decoration: none; }
-        .vyuka-footer .social-links .social-link:hover { background-color: var(--vyuka-accent-primary); border-color: var(--vyuka-accent-primary); color: var(--vyuka-bg-dark); transform: translateY(-3px) scale(1.08); box-shadow: 0 4px 12px rgba(var(--vyuka-accent-primary-rgb), 0.4); }
-        .vyuka-footer .footer-copyright { grid-column: 1 / -1; text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--vyuka-border-color); font-size: 0.85rem; color: var(--vyuka-text-muted); opacity: 0.7; }
+        .vyuka-footer .footer-copyright { text-align: center; color: var(--vyuka-text-muted); font-size: 0.85rem; }
 
         /* ============================================== */
         /* СПЕЦИФИЧЕСКИЕ СТИЛИ ДЛЯ ТЕСТОВОЙ СТРАНИЦЫ */
@@ -294,7 +275,6 @@
         .component-showcase > .btn, .component-showcase > .card {
             margin-bottom: 1rem;
         }
-        /* Улучшенные стили карточек из dashboard.css для теста */
         .stat-card {
             min-height: 190px; padding: 1.5rem; display: flex; flex-direction: column;
         }
@@ -307,7 +287,6 @@
             font-size: 2.8rem; font-weight: 700; font-family: 'Orbitron', sans-serif; color: var(--text-heading);
             margin-bottom: 0.5rem;
         }
-        .stat-card#points-card .stat-card-value { color: var(--accent-orange); }
         .shortcut-card {
             padding: 1.8rem; display: flex; flex-direction: column; align-items: center; text-align: center;
         }
@@ -321,20 +300,15 @@
             background: var(--accent-primary); color: var(--text-fixed-dark);
             transform: scale(1.1) rotate(5deg);
         }
-        /* Формы из settings.css */
         .form-group { margin-bottom: 1.5rem; }
         .form-label { display: block; margin-bottom: 0.7rem; font-weight: 600; color: var(--vyuka-text-primary); }
         .form-control { width: 100%; padding: 0.9rem 1.1rem; border: 1px solid var(--border-color-medium); border-radius: var(--form-element-radius); font-size: 1rem; background-color: var(--vyuka-bg-panel-lighter); color: var(--vyuka-text-primary); }
         .form-control:focus { border-color: var(--vyuka-accent-secondary); box-shadow: 0 0 0 3px rgba(var(--vyuka-accent-secondary-rgb), 0.25); }
-
-        /* Табы из profile.css */
         .profile-content-tabs { display: flex; border-bottom: 1px solid var(--border-color-medium); }
         .profile-content-tab { padding: 1rem 1.25rem; font-weight: 600; color: var(--text-muted); background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; }
         .profile-content-tab.active { color: var(--accent-primary); border-bottom-color: var(--accent-primary); }
         .profile-tab-content { display: none; padding: 1.5rem 0; }
         .profile-tab-content.active { display: block; }
-
-        /* Модальное окно */
         .modal { display: none; position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark-rgb), 0.8); z-index: 1050; align-items: center; justify-content: center; }
         .modal.active { display: flex; }
         .modal-content { background-color: var(--vyuka-bg-panel); border-radius: var(--card-radius); width: 90%; max-width: 500px; padding: 1.5rem; border: 1px solid var(--vyuka-border-highlight); }
@@ -369,10 +343,12 @@
             <li class="vyuka-sidebar-ai-item" title="Settings"><a href="#" class="vyuka-sidebar-ai-link"><i class="fas fa-cog"></i><span class="link-text">Settings</span></a></li>
         </ul>
         <div class="user-profile">
-            <div class="avatar-wrapper"><img src="https://i.pravatar.cc/42?img=1" alt="Avatar"></div>
+            <div class="avatar-wrapper">
+                 <span>CP</span>
+            </div>
             <div class="user-info">
-                <div class="user-name">Cyber Pilot</div>
-                <div class="user-role">System Admin</div>
+                <div class="user-name">Static User</div>
+                <div class="user-role">Tester</div>
             </div>
         </div>
         <div class="vyuka-sidebar-ai-footer">&copy; 2025 Test Lab</div>
@@ -392,13 +368,15 @@
             <div class="vyuka-header-right">
                 <button class="btn btn-secondary btn-sm"><i class="fas fa-sync-alt"></i><span>Refresh</span></button>
                 <div class="vyuka-header-user-display">
-                    <div class="vyuka-header-user-avatar-wrapper"><img src="https://i.pravatar.cc/36?img=2" alt="User Avatar" class="vyuka-header-avatar-img"></div>
+                    <div class="vyuka-header-user-avatar-wrapper" id="vyuka-header-avatar-wrapper">
+                        <span>?</span>
+                    </div>
                     <div class="vyuka-header-user-details">
-                        <span class="vyuka-header-user-name">Pilot</span>
-                        <span class="vyuka-header-user-title">Tester</span>
+                        <span class="vyuka-header-user-name" id="vyuka-header-user-name">Načítání...</span>
+                        <span class="vyuka-header-user-title" id="vyuka-header-user-title">...</span>
                     </div>
                 </div>
-            </div>
+                </div>
         </header>
 
         <div class="vyuka-main-content-scrollable">
@@ -411,7 +389,6 @@
                         <button class="btn btn-primary">Primary Button</button>
                         <button class="btn btn-secondary">Secondary Button</button>
                         <button class="btn btn-danger">Danger Button</button>
-                        <button class="btn btn-outline">Outline Button</button>
                         <button class="btn" disabled>Disabled Button</button>
                     </div>
                 </div>
@@ -493,29 +470,21 @@
 
     <script src="js/supabase-client.js"></script>
     <script>
-        // Minimal JS for interactivity
+        // JS для интерактивности страницы и загрузки данных
         document.addEventListener('DOMContentLoaded', () => {
             
-            // --- НОВОЕ: Инициализация Supabase ---
-            // Вызываем функцию из нашего нового файла
-            if (window.Justax && typeof window.Justax.initSupabase === 'function') {
-                const supabase = Justax.initSupabase();
-                if (supabase) {
-                    console.log("Supabase клиент успешно получен на тестовой странице.");
-                    // Здесь вы можете начать работать с `supabase`, например, проверить сессию
-                    // supabase.auth.getSession().then(({ data: { session } }) => {
-                    //    console.log('Текущая сессия:', session);
-                    // });
-                }
-            } else {
-                console.error("Функция Justax.initSupabase не найдена. Убедитесь, что supabase-client.js загружен правильно.");
-            }
-            // --- КОНЕЦ НОВОГО ---
+            const supabase = Justax.initSupabase();
 
+            // --- UI Elements ---
             const sidebar = document.getElementById('vyuka-sidebar-test');
             const sidebarToggle = document.getElementById('sidebar-toggle-test');
             const mobileToggle = document.getElementById('mobile-menu-toggle-test');
             const sidebarOverlay = document.getElementById('sidebar-overlay-test');
+
+            // --- Header Profile Elements ---
+            const headerAvatarWrapper = document.getElementById('vyuka-header-avatar-wrapper');
+            const headerUserName = document.getElementById('vyuka-header-user-name');
+            const headerUserTitle = document.getElementById('vyuka-header-user-title');
 
             // Sidebar Toggle (Desktop)
             if (sidebarToggle && sidebar) {
@@ -535,21 +504,12 @@
                     sidebar.classList.add('active-mobile', 'expanded');
                     sidebarOverlay.classList.add('active');
                 });
-
                 const closeMobileMenu = () => {
                     sidebar.classList.remove('active-mobile');
-                    // Check if it should remain expanded on desktop
-                    const isDesktopExpanded = localStorage.getItem('vyukaSidebarState') === 'expanded';
-                    if (!isDesktopExpanded) {
-                         sidebar.classList.remove('expanded');
-                    }
                     sidebarOverlay.classList.remove('active');
                 };
-
                 sidebarOverlay.addEventListener('click', closeMobileMenu);
-                // You might want a close button inside the sidebar for mobile too.
             }
-
 
             // Tabs Logic
             const tabs = document.querySelectorAll('.profile-content-tab');
@@ -570,26 +530,107 @@
             const openModalBtn = document.getElementById('open-modal-btn');
             const closeModalBtn = document.getElementById('close-modal-btn');
             const cancelModalBtn = document.getElementById('cancel-modal-btn');
-
-            const openModal = () => {
-                if(modal) {
-                    modal.style.display = 'flex';
-                    requestAnimationFrame(() => modal.classList.add('active'));
-                }
-            };
-            const closeModal = () => {
-                if(modal) {
-                    modal.classList.remove('active');
-                    setTimeout(() => (modal.style.display = 'none'), 300);
-                }
-            };
-
+            const openModal = () => { if(modal) { modal.style.display = 'flex'; requestAnimationFrame(() => modal.classList.add('active')); } };
+            const closeModal = () => { if(modal) { modal.classList.remove('active'); setTimeout(() => (modal.style.display = 'none'), 300); } };
             if(openModalBtn) openModalBtn.addEventListener('click', openModal);
             if(closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
             if(cancelModalBtn) cancelModalBtn.addEventListener('click', closeModal);
-            if(modal) modal.addEventListener('click', (e) => {
-                if (e.target === modal) closeModal();
-            });
+            if(modal) modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+            // --- НОВОЕ: Логика загрузки данных пользователя ---
+            
+            /**
+             * Простая утилита для получения инициалов
+             */
+            const getInitials = (profile, email) => {
+                if (!profile && !email) return '?';
+                let i = '';
+                if (profile?.first_name) i += profile.first_name[0];
+                if (profile?.last_name) i += profile.last_name[0];
+                if (i) return i.toUpperCase();
+                if (profile?.username) return profile.username[0].toUpperCase();
+                if (email) return email[0].toUpperCase();
+                return 'P';
+            };
+
+            /**
+             * Обновляет элементы в хедере на основе данных пользователя и титулов.
+             */
+            const updateHeaderProfile = (profile, titles) => {
+                if (!profile) {
+                    headerUserName.textContent = "Nepřihlášen";
+                    headerUserTitle.textContent = "Host";
+                    headerAvatarWrapper.innerHTML = `<span>?</span>`;
+                    return;
+                }
+
+                // Обновление имени
+                const displayName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username || profile.email.split('@')[0];
+                headerUserName.textContent = displayName;
+
+                // Обновление аватара
+                const initials = getInitials(profile, profile.email);
+                const avatarUrl = profile.avatar_url;
+                if (avatarUrl) {
+                    headerAvatarWrapper.innerHTML = `<img src="${avatarUrl}?t=${new Date().getTime()}" alt="Avatar" class="vyuka-header-avatar-img">`;
+                    headerAvatarWrapper.querySelector('img').onerror = () => {
+                         headerAvatarWrapper.innerHTML = `<span>${initials}</span>`;
+                    };
+                } else {
+                    headerAvatarWrapper.innerHTML = `<span>${initials}</span>`;
+                }
+
+                // Обновление титула
+                let displayTitle = 'Pilot'; // Default
+                if (profile.selected_title && titles.length > 0) {
+                    const foundTitle = titles.find(t => t.title_key === profile.selected_title);
+                    if (foundTitle) {
+                        displayTitle = foundTitle.name;
+                    }
+                }
+                headerUserTitle.textContent = displayTitle;
+            };
+
+            /**
+             * Основная асинхронная функция для загрузки всех необходимых данных.
+             */
+            async function loadUserData() {
+                if (!supabase) {
+                    console.error("Supabase client is not initialized. Cannot load user data.");
+                    updateHeaderProfile(null, []);
+                    return;
+                }
+
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+
+                    if (user) {
+                        // Загружаем профиль и титулы параллельно
+                        const [profileResponse, titlesResponse] = await Promise.all([
+                            supabase.from('profiles').select('first_name, last_name, username, email, avatar_url, selected_title').eq('id', user.id).single(),
+                            supabase.from('title_shop').select('title_key, name')
+                        ]);
+
+                        if (profileResponse.error) throw profileResponse.error;
+                        if (titlesResponse.error) throw titlesResponse.error;
+
+                        const profile = profileResponse.data;
+                        const titles = titlesResponse.data || [];
+
+                        updateHeaderProfile(profile, titles);
+
+                    } else {
+                        console.log("No user is logged in.");
+                        updateHeaderProfile(null, []);
+                    }
+                } catch (error) {
+                    console.error("Error loading user data:", error);
+                    updateHeaderProfile(null, []);
+                }
+            }
+
+            // Запуск загрузки данных пользователя
+            loadUserData();
         });
     </script>
 </body>
