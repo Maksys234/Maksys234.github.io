@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Audiowide&family=Shadows+Into+Light+Two&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         /* --- START: Combined CSS from layout.css, dashboard.css, etc. for Test Lab --- */
@@ -329,6 +331,8 @@
         .profile-content-tabs { display: flex; border-bottom: 1px solid var(--border-color-medium); }
         .profile-content-tab { padding: 1rem 1.25rem; font-weight: 600; color: var(--text-muted); background: none; border: none; border-bottom: 3px solid transparent; cursor: pointer; }
         .profile-content-tab.active { color: var(--accent-primary); border-bottom-color: var(--accent-primary); }
+        .profile-tab-content { display: none; padding: 1.5rem 0; }
+        .profile-tab-content.active { display: block; }
 
         /* Модальное окно */
         .modal { display: none; position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark-rgb), 0.8); z-index: 1050; align-items: center; justify-content: center; }
@@ -365,7 +369,7 @@
             <li class="vyuka-sidebar-ai-item" title="Settings"><a href="#" class="vyuka-sidebar-ai-link"><i class="fas fa-cog"></i><span class="link-text">Settings</span></a></li>
         </ul>
         <div class="user-profile">
-            <div class="avatar-wrapper"><img src="https://i.pravatar.cc/42" alt="Avatar"></div>
+            <div class="avatar-wrapper"><img src="https://i.pravatar.cc/42?img=1" alt="Avatar"></div>
             <div class="user-info">
                 <div class="user-name">Cyber Pilot</div>
                 <div class="user-role">System Admin</div>
@@ -388,7 +392,7 @@
             <div class="vyuka-header-right">
                 <button class="btn btn-secondary btn-sm"><i class="fas fa-sync-alt"></i><span>Refresh</span></button>
                 <div class="vyuka-header-user-display">
-                    <div class="vyuka-header-user-avatar-wrapper"><img src="https://i.pravatar.cc/36" alt="User Avatar" class="vyuka-header-avatar-img"></div>
+                    <div class="vyuka-header-user-avatar-wrapper"><img src="https://i.pravatar.cc/36?img=2" alt="User Avatar" class="vyuka-header-avatar-img"></div>
                     <div class="vyuka-header-user-details">
                         <span class="vyuka-header-user-name">Pilot</span>
                         <span class="vyuka-header-user-title">Tester</span>
@@ -487,9 +491,27 @@
         </div>
     </div>
 
+    <script src="js/supabase-client.js"></script>
     <script>
         // Minimal JS for interactivity
         document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- НОВОЕ: Инициализация Supabase ---
+            // Вызываем функцию из нашего нового файла
+            if (window.Justax && typeof window.Justax.initSupabase === 'function') {
+                const supabase = Justax.initSupabase();
+                if (supabase) {
+                    console.log("Supabase клиент успешно получен на тестовой странице.");
+                    // Здесь вы можете начать работать с `supabase`, например, проверить сессию
+                    // supabase.auth.getSession().then(({ data: { session } }) => {
+                    //    console.log('Текущая сессия:', session);
+                    // });
+                }
+            } else {
+                console.error("Функция Justax.initSupabase не найдена. Убедитесь, что supabase-client.js загружен правильно.");
+            }
+            // --- КОНЕЦ НОВОГО ---
+
             const sidebar = document.getElementById('vyuka-sidebar-test');
             const sidebarToggle = document.getElementById('sidebar-toggle-test');
             const mobileToggle = document.getElementById('mobile-menu-toggle-test');
@@ -510,15 +532,24 @@
             // Sidebar Toggle (Mobile)
             if (mobileToggle && sidebar && sidebarOverlay) {
                 mobileToggle.addEventListener('click', () => {
-                    sidebar.classList.add('active-mobile');
+                    sidebar.classList.add('active-mobile', 'expanded');
                     sidebarOverlay.classList.add('active');
                 });
 
-                sidebarOverlay.addEventListener('click', () => {
+                const closeMobileMenu = () => {
                     sidebar.classList.remove('active-mobile');
+                    // Check if it should remain expanded on desktop
+                    const isDesktopExpanded = localStorage.getItem('vyukaSidebarState') === 'expanded';
+                    if (!isDesktopExpanded) {
+                         sidebar.classList.remove('expanded');
+                    }
                     sidebarOverlay.classList.remove('active');
-                });
+                };
+
+                sidebarOverlay.addEventListener('click', closeMobileMenu);
+                // You might want a close button inside the sidebar for mobile too.
             }
+
 
             // Tabs Logic
             const tabs = document.querySelectorAll('.profile-content-tab');
