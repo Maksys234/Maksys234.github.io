@@ -1,4 +1,4 @@
-/* dashboard/css/layout.css - v3 "Cosmic Neuro" Redesign for Sidebar & Footer */
+/* dashboard/css/layout.css - v3.1 "Cosmic Neuro" Redesign for Sidebar & Footer */
 
 /*
  * ==============================================
@@ -86,7 +86,7 @@
     height: 100vh;
     transition: margin-left var(--animation-duration-medium) var(--animation-timing-cyber);
     background-color: transparent;
-    overflow: hidden; /* Этот overflow важен для структуры flex */
+    overflow: hidden; /* Tento overflow je důležitý pro strukturu */
 }
 .vyuka-sidebar-ai.expanded ~ .vyuka-page-container {
     margin-left: var(--vyuka-sidebar-width-expanded);
@@ -102,16 +102,16 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 1.5rem;
-    flex-shrink: 0;
+    flex-shrink: 0; /* Header se nesmršťuje */
     position: relative;
     z-index: 950;
     transition: background-color var(--animation-duration-medium) ease;
 }
 
 .vyuka-main-content-scrollable {
-	flex-grow: 1;
-    overflow-y: auto; /* ГЛАВНАЯ ПРОКРУТКА ЗДЕСЬ */
-    overflow-x: hidden;
+	flex-grow: 1; /* Tento kontejner se roztáhne a vyplní zbývající místo */
+	overflow-y: auto; /* POUZE TENTO KONTEJNER BUDE MÍT SCROLLBAR */
+	overflow-x: hidden;
 	display: flex;
 	flex-direction: column;
 	position: relative;
@@ -132,7 +132,7 @@
 .vyuka-main-content {
 	display: flex;
 	flex-direction: row;
-	flex-grow: 1;
+	flex-grow: 1; /* Hlavní obsah se roztáhne uvnitř scrollable kontejneru */
 	padding: var(--vyuka-main-content-padding);
     gap: var(--vyuka-main-content-gap);
 	position: relative;
@@ -142,8 +142,8 @@
 }
 
 .main-footer.vyuka-footer {
-    flex-shrink: 0;
-    margin-top: auto;
+    flex-shrink: 0; /* Zápatí se nesmršťuje */
+    margin-top: auto; /* Zajistí, že je na konci scrollable kontejneru */
 }
 
 /*
