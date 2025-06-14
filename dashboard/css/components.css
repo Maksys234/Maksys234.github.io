@@ -1,5 +1,5 @@
 /* dashboard/css/components.css */
-/* Версия: 1.2 - Cosmic Yellow-Purple Theme. Стили для виджетов хедера. */
+/* Версия: 1.3 - Cosmic Overhaul. Улучшенный виджет статистики в хедере. */
 
 /* ============================================== */
 /* BUTTONS                          */
@@ -17,7 +17,7 @@
 .logout-btn { display: block; width: calc(100% - 2rem); margin: 0.5rem 1rem; }
 
 /* ============================================== */
-/* CARDS                            */
+/* CARDS & SHORTCUTS                */
 /* ============================================== */
 .card { background: var(--card-bg); border-radius: var(--card-radius); border: 1px solid var(--border-color-light); box-shadow: var(--shadow-hud); transition: all 0.3s ease; position: relative; overflow: hidden; }
 .card:hover { transform: translateY(-5px) scale(1.01); box-shadow: var(--shadow-card-hover-enhanced); border-color: var(--border-color-medium); }
@@ -36,31 +36,32 @@
 .shortcut-desc { font-size: 0.9rem; color: var(--text-medium); line-height: 1.55; }
 
 /* ============================================== */
-/* HEADER STATS WIDGET              */
+/* HEADER STATS WIDGET (НОВЫЙ ДИЗАЙН) */
 /* ============================================== */
-.header-stats { display: flex; align-items: stretch; gap: 1px; background-color: rgba(var(--vyuka-bg-dark-rgb), 0.7); border-radius: var(--button-radius); border: 1px solid var(--vyuka-border-highlight); box-shadow: var(--shadow-hud); backdrop-filter: blur(5px); overflow: hidden; }
-.header-stat-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 1rem; font-size: 0.9rem; font-weight: 500; background-color: rgba(var(--vyuka-bg-panel-lighter-rgb), 0.5); transition: background-color 0.2s ease; }
+.header-stats {
+    display: flex; align-items: stretch; gap: 1px;
+    background-color: rgba(var(--vyuka-bg-dark-rgb), 0.7);
+    border-radius: var(--button-radius);
+    border: 1px solid var(--vyuka-border-highlight);
+    box-shadow: 0 0 15px rgba(var(--vyuka-border-highlight), 0.3), inset 0 0 8px rgba(0,0,0,0.5);
+    backdrop-filter: blur(8px);
+    overflow: hidden;
+}
+.header-stat-item {
+    display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 1rem;
+    font-size: 0.9rem; font-weight: 500;
+    background-color: rgba(var(--vyuka-bg-panel-lighter-rgb), 0.5);
+    transition: background-color 0.2s ease;
+}
+.header-stat-item:hover { background-color: rgba(var(--accent-yellow-rgb), 0.1); }
 .header-stat-item:not(:last-child) { border-right: 1px solid var(--vyuka-border-color); }
-.header-stat-item i { color: var(--accent-secondary); font-size: 1.1em; transition: all 0.2s ease; }
-.header-stat-item:hover i { color: var(--accent-yellow); transform: scale(1.1); }
-.header-stat-item strong { color: var(--white); font-weight: 600; font-family: var(--font-mono); }
-.header-stat-item#header-credits-display strong { color: var(--accent-yellow); text-shadow: 0 0 5px rgba(var(--accent-yellow-rgb), 0.6); }
-.level-xp-widget-new { width: 100%; max-width: 180px; padding: 0.1rem 0.5rem; background: transparent; }
-.level-display { display: flex; align-items: baseline; justify-content: center; gap: 0.4em; }
-.level-label { font-size: 0.75rem; font-weight: 600; color: var(--accent-secondary); }
-.level-value { font-size: 1.3rem; font-weight: 700; color: var(--accent-primary); text-shadow: 0 0 5px rgba(var(--accent-primary-rgb), 0.6); }
-.xp-bar-track { width: 100%; height: 6px; background: rgba(0,0,0,0.5); border-radius: 3px; overflow: hidden; }
-.xp-bar-progress { height: 100%; background: var(--gradient-exp-bar); border-radius: 3px; box-shadow: 0 0 8px rgba(var(--accent-yellow-rgb), 0.5); }
-.xp-text { font-size: 0.65rem; font-family: var(--font-mono); color: var(--text-muted); text-align: center; margin-top: 0.2rem; }
-
-/* ============================================== */
-/* MODAL & OTHER COMPONENTS         */
-/* ============================================== */
-.modal { display: none; position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark-rgb), 0.8); z-index: 1050; align-items: center; justify-content: center; }
-.modal.active { display: flex; }
-.modal-content { background-color: var(--vyuka-bg-panel); border-radius: var(--card-radius); width: 90%; max-width: 500px; padding: 1.5rem; border: 1px solid var(--vyuka-border-highlight); }
-.modal-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; border-bottom: 1px solid var(--vyuka-border-color); }
-.modal-title { font-size: 1.4rem; }
-.modal-close { background: none; border: none; font-size: 1.8rem; cursor: pointer; color: var(--vyuka-text-muted); }
-.modal-body { padding: 1.5rem 0; }
-.modal-footer { padding-top: 1rem; border-top: 1px solid var(--vyuka-border-color); display: flex; justify-content: flex-end; gap: 1rem; }
+.header-stat-item i { color: var(--accent-yellow); font-size: 1.1em; text-shadow: 0 0 4px var(--accent-yellow); }
+.header-stat-item strong { color: var(--white); font-weight: 700; font-family: var(--font-mono); text-shadow: 0 0 5px rgba(255,255,255,0.5); }
+.level-xp-widget-new { width: 100%; max-width: 150px; padding: 0.1rem 0.5rem; background: transparent; }
+.level-display { display: flex; align-items: baseline; justify-content: center; gap: 0.4em; margin-bottom: 2px;}
+.level-label { font-size: 0.7rem; font-weight: 600; color: var(--accent-secondary); }
+.level-value { font-size: 1.2rem; font-weight: 700; color: var(--accent-primary); text-shadow: 0 0 6px var(--accent-primary); }
+.xp-bar-track { width: 100%; height: 5px; background: rgba(0,0,0,0.6); border-radius: 2.5px; overflow: hidden; border: 1px solid rgba(0,0,0,0.8); }
+.xp-bar-progress { height: 100%; background: var(--gradient-exp-bar); border-radius: 2.5px; box-shadow: 0 0 8px rgba(var(--accent-yellow-rgb), 0.6); animation: pulse-xp 3s infinite ease-in-out; }
+@keyframes pulse-xp { 50% { filter: brightness(1.3); box-shadow: 0 0 12px rgba(var(--accent-yellow-rgb), 0.8); } }
+.xp-text { display: none; } /* Скрываем текст, так как виджет маленький */
