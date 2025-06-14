@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Layout & Component Test Lab // Cosmic v3.5</title>
+    <title>Layout & Component Test Lab // Cosmic v3.5 Refactored</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,8 +14,9 @@
 
     <link rel="stylesheet" href="css/layout.css">
     <link rel="stylesheet" href="css/components.css">
+
 </head>
-<body class="dark new-vyuka-layout">
+<body class="new-vyuka-layout">
 
     <aside class="vyuka-sidebar-ai" id="vyuka-sidebar-test">
         <div class="vyuka-sidebar-ai-header">
@@ -41,19 +42,12 @@
             </div>
             <div class="vyuka-header-right">
                 <div class="header-stats">
-                    <div class="header-stat-item" id="header-credits-display" title="Kredity">
-                        <i class="fas fa-coins"></i><strong id="header-credits-value">...</strong>
-                    </div>
+                    <div class="header-stat-item" id="header-credits-display" title="Kredity"><i class="fas fa-coins"></i><strong id="header-credits-value">...</strong></div>
                     <div class="header-stat-item" id="header-level-widget">
                         <div class="level-xp-widget-new">
-                            <div class="level-display">
-                                <span class="level-label">Lvl</span>
-                                <span class="level-value" id="header-level-value">..</span>
-                            </div>
+                            <div class="level-display"><span class="level-label">Lvl</span><span class="level-value" id="header-level-value">..</span></div>
                             <div class="xp-bar-container">
-                                <div class="xp-bar-track">
-                                    <div class="xp-bar-progress" id="header-exp-progress" style="width: 0%;"></div>
-                                </div>
+                                <div class="xp-bar-track"><div class="xp-bar-progress" id="header-exp-progress" style="width: 0%;"></div></div>
                                 <div class="xp-text" id="header-exp-text">.../...</div>
                             </div>
                         </div>
@@ -72,17 +66,14 @@
                             <li><a href="#"><i class="fas fa-user-astronaut"></i> Veřejný Profil</a></li>
                             <li><a href="#"><i class="fas fa-cog"></i> Nastavení</a></li>
                         </ul>
-                        <button class="btn btn-danger btn-sm logout-btn">
-                            <i class="fas fa-power-off"></i> Odhlásit se
-                        </button>
+                        <button class="btn btn-danger btn-sm logout-btn"><i class="fas fa-power-off"></i> Odhlásit se</button>
                     </div>
                 </div>
-                </div>
+            </div>
         </header>
 
         <div class="vyuka-main-content-scrollable">
             <main class="vyuka-main-content">
-                
                 <div class="component-section">
                     <h3>Refactoring Buttons / Shortcuts</h3>
                     <div class="test-lab-grid">
@@ -98,25 +89,20 @@
                         </a>
                     </div>
                 </div>
-
             </main>
-
             <footer class="main-footer vyuka-footer">
                 <div class="container">
-                    <div class="footer-copyright">
-                        &copy; 2025 Test Lab Footer // Justax Systems
-                    </div>
+                    <div class="footer-copyright">&copy; 2025 Test Lab Footer // Justax Systems</div>
                 </div>
             </footer>
         </div>
     </div>
-
+    
     <script src="js/supabase-client.js"></script>
     <script src="js/ui-helpers.js"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Инициализация общих модулей
             const supabase = Justax.initSupabase();
             Justax.UI.init(); 
 
@@ -129,7 +115,6 @@
             const headerExpProgress = document.getElementById('header-exp-progress');
             const headerExpText = document.getElementById('header-exp-text');
 
-            // --- Вспомогательные функции ---
             const getInitials = (profile, email) => {
                 if (!profile && !email) return '?'; let i = '';
                 if (profile?.first_name) i += profile.first_name[0]; if (profile?.last_name) i += profile.last_name[0];
@@ -144,7 +129,6 @@
                 return totalExp;
             };
 
-            // --- Основная функция обновления UI ---
             const updateHeaderProfile = (profile, titles) => {
                 if (!profile) {
                     headerUserName.textContent = "Nepřihlášen";
@@ -191,7 +175,6 @@
                 headerExpText.textContent = `${currentExpInLevelSpan}/${expNeededForSpan > 0 ? expNeededForSpan : 'MAX'}`;
             };
 
-            // --- Загрузка данных ---
             async function loadUserData() {
                 if (!supabase) { updateHeaderProfile(null, []); return; }
                 try {

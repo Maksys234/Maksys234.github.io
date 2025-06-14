@@ -1,9 +1,8 @@
 /* dashboard/css/layout.css */
-/* Версия: 1.0 - Cosmic Yellow-Purple Theme */
-/* Содержит все стили для общего макета: сайдбар, хедер, футер, фон */
+/* Версия: 2.0 - Cosmic Yellow-Purple Theme. Улучшенный дизайн сайдбара. */
 
 /* ============================================== */
-/* :root - Глобальные переменные         */
+/* :root - Глобальные переменные                */
 /* ============================================== */
 :root {
     /* Основа */
@@ -11,25 +10,21 @@
     --vyuka-bg-dark-rgb: 2, 4, 10;
     --vyuka-bg-panel: rgba(10, 15, 28, 0.85);
     --vyuka-bg-panel-rgb: 10, 15, 28;
-    --card-solid: #0f0a2d;
-
-    /* Акценты - НОВАЯ КОСМИЧЕСКАЯ ПАЛИТРА */
-    --accent-primary: #f02fc2;      /* Яркая маджента/розовый */
+    
+    /* Акценты - Космическая палитра */
+    --accent-primary: #f02fc2;
     --accent-primary-rgb: 240, 47, 194;
-    --accent-secondary: #a05cff;    /* Фиолетовый (остается) */
+    --accent-secondary: #a05cff;
     --accent-secondary-rgb: 160, 92, 255;
-    --accent-yellow: #ffe45e;       /* Космический желтый/золотой */
+    --accent-yellow: #ffe45e;
     --accent-yellow-rgb: 255, 228, 94;
-    --accent-cyan: #00e0ff;         /* Кибер-бирюза (для контраста) */
-    --accent-cyan-rgb: 0, 224, 255;
+    --accent-cyan: #00e0ff;
     
     /* Текст */
     --vyuka-text-primary: #e8efff;
     --vyuka-text-secondary: #b0c1e6;
     --vyuka-text-muted: #7a8baa;
     --text-heading: #ffffff;
-    --text-light: #f1f5f9;
-    --text-fixed-dark: #03020c;
 
     /* Границы */
     --vyuka-border-color: rgba(44, 57, 88, 0.7);
@@ -37,8 +32,6 @@
 
     /* Шрифты */
     --font-primary: 'Inter', sans-serif;
-    --font-secondary: 'Poppins', sans-serif;
-    --font-mono: 'Roboto Mono', monospace;
     --vyuka-font-accent: 'Audiowide', cursive;
     --vyuka-font-secondary: 'Orbitron', sans-serif;
 
@@ -73,33 +66,13 @@ body::before {
 /* ============================================== */
 /* LAYOUT КОНТЕЙНЕРЫ                 */
 /* ============================================== */
-.vyuka-page-container {
-    flex-grow: 1;
-    margin-left: var(--vyuka-sidebar-width-collapsed);
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    transition: margin-left 0.3s var(--animation-timing-cyber);
-    overflow: hidden;
-}
-.vyuka-sidebar-ai.expanded ~ .vyuka-page-container {
-    margin-left: var(--vyuka-sidebar-width-expanded);
-}
-.vyuka-main-content-scrollable {
-    flex-grow: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    display: flex; /* ИСПРАВЛЕНИЕ ФУТЕРА */
-    flex-direction: column; /* ИСПРАВЛЕНИЕ ФУТЕРА */
-    position: relative;
-}
-.vyuka-main-content {
-    flex-grow: 1; /* Позволяет основному контенту занимать все доступное место */
-    padding: 2rem;
-}
+.vyuka-page-container { flex-grow: 1; margin-left: var(--vyuka-sidebar-width-collapsed); display: flex; flex-direction: column; height: 100vh; transition: margin-left 0.3s var(--animation-timing-cyber); overflow: hidden; }
+.vyuka-sidebar-ai.expanded ~ .vyuka-page-container { margin-left: var(--vyuka-sidebar-width-expanded); }
+.vyuka-main-content-scrollable { flex-grow: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; position: relative; }
+.vyuka-main-content { flex-grow: 1; padding: 2rem; }
 
 /* ============================================== */
-/* SIDEBAR                          */
+/* SIDEBAR (С УЛУЧШЕННЫМ ДИЗАЙНОМ ССЫЛОК) */
 /* ============================================== */
 .vyuka-sidebar-ai {
     width: var(--vyuka-sidebar-width-collapsed);
@@ -112,7 +85,7 @@ body::before {
 .vyuka-sidebar-ai.expanded { width: var(--vyuka-sidebar-width-expanded); }
 .vyuka-sidebar-ai::after {
     content: ''; position: absolute; top: 0; right: -1px; width: 2px; height: 100%;
-    background: linear-gradient(to bottom, transparent, var(--accent-yellow), var(--accent-magenta), transparent);
+    background: linear-gradient(to bottom, transparent, var(--accent-yellow), var(--accent-primary), transparent);
     box-shadow: 0 0 15px rgba(var(--accent-yellow-rgb), 0.6); opacity: 0.8;
 }
 .vyuka-sidebar-ai-header { padding: 0.5rem 1rem; margin-bottom: 2.5rem; }
@@ -122,14 +95,37 @@ body::before {
 .vyuka-sidebar-ai .logo-text, .vyuka-sidebar-ai .link-text { opacity: 0; visibility: hidden; max-width: 0; overflow: hidden; white-space: nowrap; transition: opacity 0.2s ease, max-width 0.3s ease, visibility 0s 0.3s; }
 .vyuka-sidebar-ai.expanded .logo-text, .vyuka-sidebar-ai.expanded .link-text { opacity: 1; visibility: visible; max-width: 150px; transition: opacity 0.3s ease 0.1s, max-width 0.3s ease 0.1s, visibility 0s; }
 .vyuka-sidebar-ai-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
-.vyuka-sidebar-ai-link { display: flex; align-items: center; padding: 1rem 1.5rem; color: var(--vyuka-text-secondary); text-decoration: none; position: relative; overflow: hidden; }
+/* --- УЛУЧШЕННЫЙ СТИЛЬ ССЫЛОК --- */
+.vyuka-sidebar-ai-link {
+    display: flex; align-items: center; padding: 1rem 1.5rem;
+    color: var(--vyuka-text-secondary); text-decoration: none; position: relative;
+    overflow: hidden; border-radius: 4px; margin: 0.3rem 0.5rem;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
 .vyuka-sidebar-ai-link i { font-size: 1.1rem; width: 24px; text-align: center; margin-right: 1.5rem; transition: all 0.3s ease; }
 .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link i { margin-right: 1rem; }
 .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link { justify-content: center; }
 .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link i { margin-right: 0; }
-.vyuka-sidebar-ai-link.active { color: var(--vyuka-text-heading); font-weight: 700; background: linear-gradient(90deg, rgba(var(--accent-magenta-rgb),0.15) 0%, transparent 100%); }
-.vyuka-sidebar-ai-link.active::after { content: ''; position: absolute; top: 0; left: 0; height: 100%; width: 3px; background-color: var(--accent-magenta); box-shadow: 0 0 12px var(--accent-magenta); }
-.vyuka-sidebar-ai-link.active i { color: var(--accent-magenta); }
+.vyuka-sidebar-ai-link:hover {
+    color: var(--white);
+    background-color: rgba(var(--accent-primary-rgb), 0.1);
+    border-color: rgba(var(--accent-primary-rgb), 0.3);
+    text-shadow: 0 0 5px var(--accent-primary);
+}
+.vyuka-sidebar-ai-link.active {
+    color: var(--accent-yellow);
+    background: rgba(var(--accent-yellow-rgb), 0.15);
+    border: 1px solid var(--accent-yellow);
+    font-weight: 700;
+    box-shadow: 0 0 15px rgba(var(--accent-yellow-rgb), 0.3), inset 0 0 10px rgba(var(--accent-yellow-rgb), 0.1);
+}
+.vyuka-sidebar-ai-link.active i {
+    color: var(--accent-yellow);
+    text-shadow: 0 0 8px var(--accent-yellow);
+    transform: scale(1.1);
+}
+/* --- КОНЕЦ УЛУЧШЕННОГО СТИЛЯ --- */
 .vyuka-sidebar-ai-footer { margin-top: auto; padding: 1.5rem; font-size: 0.75rem; color: var(--vyuka-text-muted); text-align: center; border-top: 1px solid var(--vyuka-border-highlight); }
 .sidebar-overlay-ai { position: fixed; inset: 0; background-color: rgba(var(--vyuka-bg-dark-rgb), 0.7); z-index: 999; opacity: 0; visibility: hidden; transition: opacity 0.3s ease; backdrop-filter: blur(3px); }
 .sidebar-overlay-ai.active { opacity: 1; visibility: visible; }
@@ -141,7 +137,7 @@ body::before {
 .vyuka-header-left { display: flex; align-items: center; gap: 0.8rem; }
 .vyuka-header-left .mobile-menu-toggle { display: none; color: var(--vyuka-text-muted); font-size: 1.4rem; background: none; border: none; cursor: pointer; }
 .vyuka-header-left .sidebar-ai-desktop-toggle { color: var(--vyuka-text-muted); font-size: 1.1rem; background: rgba(var(--vyuka-bg-panel-lighter),0.7); border: 1px solid var(--vyuka-border-color); cursor: pointer; padding: 0.5rem 0.7rem; border-radius: var(--button-radius); transition: all 0.2s ease; }
-.vyuka-header-left .sidebar-ai-desktop-toggle:hover { background-color: rgba(var(--accent-secondary),0.2); color: var(--accent-secondary); }
+.vyuka-header-left .sidebar-ai-desktop-toggle:hover { background-color: rgba(var(--accent-secondary-rgb),0.2); color: var(--accent-secondary); }
 .vyuka-header-left .sidebar-ai-desktop-toggle i { transition: transform 0.3s var(--animation-timing-cyber); }
 .vyuka-sidebar-ai.expanded ~ .vyuka-page-container .vyuka-header .sidebar-ai-desktop-toggle i { transform: rotate(180deg); }
 .vyuka-header-page-title-container h1 { font-size: 1.5rem; margin: 0; }
@@ -161,14 +157,7 @@ body::before {
 .user-dropdown-links li a i { width: 16px; text-align: center; color: var(--vyuka-text-muted); }
 
 /* --- Footer --- */
-.main-footer.vyuka-footer {
-    flex-shrink: 0; margin-top: auto; /* ИСПРАВЛЕНИЕ ФУТЕРА */
-    background: linear-gradient(to top, rgba(26, 15, 74, 0.98), transparent);
-    padding: 2rem; color: var(--vyuka-text-secondary);
-    border-top: 1px solid;
-    border-image: linear-gradient(to right, transparent, var(--accent-yellow), var(--accent-magenta), transparent) 1;
-    box-shadow: 0 -5px 30px -10px rgba(var(--accent-magenta-rgb), 0.3);
-}
+.main-footer.vyuka-footer { flex-shrink: 0; margin-top: auto; background: linear-gradient(to top, rgba(26, 15, 74, 0.98), transparent); padding: 2rem; color: var(--vyuka-text-secondary); border-top: 1px solid; border-image: linear-gradient(to right, transparent, var(--accent-yellow), var(--accent-magenta), transparent) 1; box-shadow: 0 -5px 30px -10px rgba(var(--accent-magenta-rgb), 0.3); }
 .vyuka-footer .container { max-width: 1200px; margin: 0 auto; }
 .vyuka-footer .footer-copyright { text-align: center; color: var(--vyuka-text-muted); font-size: 0.85rem; }
 
