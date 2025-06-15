@@ -1,6 +1,6 @@
 // dashboard/js/ui-helpers.js
 // Глобальный модуль для управления общими элементами UI.
-// Версия: 1.1 - Исправлена логика выпадающего меню пользователя.
+// Версия: 2.0 - Добавлены функции для модальных окон и уведомлений. Улучшено меню.
 
 (function(global) {
     'use strict';
@@ -21,12 +21,46 @@
                 sidebarOverlay: document.querySelector('.sidebar-overlay-ai'),
                 scrollableContent: document.querySelector('.vyuka-main-content-scrollable'),
                 header: document.querySelector('.vyuka-header'),
-                // Новые элементы для меню пользователя
                 userMenuContainer: document.querySelector('.user-menu-container'),
                 userDropdownMenu: document.querySelector('.user-dropdown-menu'),
+                // --- НОВОЕ: Элементы для новых компонентов ---
+                toastContainer: document.getElementById('toast-container'),
             };
             console.log('[UI Helpers] DOM elements cached.');
         },
+
+        // --- УЛУЧШЕНИЕ: Новые функции для интерактивности ---
+
+        showToast: function(message, type = 'info', duration = 4000) {
+            if (!this.uiCache.toastContainer) return;
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            let iconClass = 'fa-info-circle';
+            if (type === 'success') iconClass = 'fa-check-circle';
+            if (type === 'error') iconClass = 'fa-exclamation-triangle';
+            if (type === 'warning') iconClass = 'fa-exclamation-circle';
+            
+            toast.innerHTML = `<i class="fas ${iconClass}"></i><p>${message}</p>`;
+            this.uiCache.toastContainer.appendChild(toast);
+            
+            toast.style.animation = 'toast-in 0.5s forwards';
+            setTimeout(() => {
+                toast.style.animation = 'toast-out 0.5s forwards';
+                setTimeout(() => toast.remove(), 500);
+            }, duration);
+        },
+
+        showModal: function(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.add('active');
+        },
+
+        hideModal: function(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.remove('active');
+        },
+
+        // --- Существующие функции (обновленные) ---
 
         toggleSidebar: function() {
             if (!this.uiCache.sidebar) return;
@@ -67,50 +101,20 @@
             }, { passive: true });
         },
 
-        // --- НОВАЯ УЛУЧШЕННАЯ ЛОГИКА ДЛЯ МЕНЮ ---
         initUserDropdown: function() {
             const container = this.uiCache.userMenuContainer;
-            const menu = this.uiCache.userDropdownMenu;
+            if (!container) return;
 
-            if (!container || !menu) return;
-
-            let menuTimeout;
-            
-            const openMenu = () => {
-                clearTimeout(menuTimeout);
-                menu.classList.add('active');
-            };
-
-            const closeMenu = (delay = 200) => {
-                menuTimeout = setTimeout(() => {
-                    menu.classList.remove('active');
-                }, delay);
-            };
-
-            container.addEventListener('mouseenter', openMenu);
-            container.addEventListener('mouseleave', () => closeMenu());
-            
-            // Для доступности с клавиатуры
-            container.addEventListener('focusin', openMenu);
-            container.addEventListener('focusout', (e) => {
-                // Если фокус перешел на элемент вне контейнера, закрываем
-                if (!container.contains(e.relatedTarget)) {
-                    closeMenu(50);
-                }
-            });
-
-            // Для мобильных устройств (клик)
-            container.querySelector('.vyuka-header-user-display').addEventListener('click', (e) => {
-                // Предотвращаем закрытие меню, если оно уже открыто через hover
+            // Логика для hover/focus уже будет работать через CSS.
+            // Этот JS нужен для клика на мобильных устройствах.
+            container.querySelector('.vyuka-header-user-display')?.addEventListener('click', (e) => {
                 e.stopPropagation(); 
-                menu.classList.toggle('active');
+                this.uiCache.userDropdownMenu?.classList.toggle('active');
             });
             
             // Закрытие при клике вне меню
-            document.addEventListener('click', (event) => {
-                if (menu.classList.contains('active') && !container.contains(event.target)) {
-                    menu.classList.remove('active');
-                }
+            document.addEventListener('click', () => {
+                this.uiCache.userDropdownMenu?.classList.remove('active');
             });
         },
 
@@ -118,7 +122,7 @@
             this._cacheDOMElements();
             this.applyInitialSidebarState();
             this.initHeaderScrollDetection();
-            this.initUserDropdown(); // Инициализируем новую логику меню
+            this.initUserDropdown();
 
             if (this.uiCache.sidebarToggleBtn) {
                 this.uiCache.sidebarToggleBtn.addEventListener('click', () => this.toggleSidebar());
