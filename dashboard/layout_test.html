@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cosmic Neuro v10.0 - Stardust HUD // Layout Lab</title>
+    <title>Cosmic Neuro v11.0 - Dynamic HUD // Layout Lab</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +15,7 @@
     <style>
         /*
          * ==============================================
-         * CSS: Cosmic Neuro v10.0 - "Stardust HUD"
+         * CSS: Cosmic Neuro v11.0 - "Stardust HUD"
          * ==============================================
          * - Добавлены виджеты уведомлений и статистики пользователя в header.
          * - Улучшена анимация фона и типографика.
@@ -233,7 +233,10 @@
         @keyframes dropdown-fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .notifications-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--cn-border-color); display: flex; justify-content: space-between; align-items: center; }
         .notifications-title { font-family: var(--cn-font-heading); color: #fff; }
-        .notification-item { display: flex; padding: 1rem 1.25rem; gap: 1rem; border-bottom: 1px solid var(--cn-border-color); transition: background-color 0.2s ease; }
+        #mark-all-read { background: transparent; border: none; color: var(--cn-text-muted); cursor: pointer; font-size: 0.8rem; }
+        #mark-all-read:hover:not(:disabled) { color: var(--cn-accent-secondary); }
+        #mark-all-read:disabled { opacity: 0.5; cursor: not-allowed; }
+        .notification-item { display: flex; padding: 1rem 1.25rem; gap: 1rem; border-bottom: 1px solid var(--cn-border-color); transition: background-color 0.2s ease; cursor: pointer; }
         .notification-item:hover { background-color: rgba(var(--cn-accent-primary-rgb), 0.1); }
         .notification-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; }
         .notification-icon.level-up { background: var(--cn-accent-primary); }
@@ -309,47 +312,32 @@
             </div>
             <div class="vyuka-header-right">
                 <div class="header-stats">
-                    <div class="header-stat-item" id="header-stat-level" title="Úroveň">
-                        <i class="fas fa-user-shield"></i>
-                        <strong>12</strong>
+                    <div class="header-stat-item" id="header-stat-level" title="Vaše úroveň">
+                        <span class="stat-label">LVL</span>
+                        <strong id="header-stat-level-value">-</strong>
                     </div>
                     <div class="header-stat-item" id="header-stat-xp" title="Zkušenosti">
                         <i class="fas fa-star"></i>
-                        <div class="progress-bar-container"><div class="progress-bar-fill"></div></div>
+                        <div class="progress-bar-container"><div class="progress-bar-fill" id="header-stat-xp-fill"></div></div>
                     </div>
                     <div class="header-stat-item" id="header-stat-credits" title="Kredity">
                         <i class="fas fa-coins"></i>
-                        <strong>1,250</strong>
+                        <strong id="header-stat-credits-value">-</strong>
                     </div>
                 </div>
 
                 <div class="notifications">
                     <div class="notification-bell" id="notification-bell" title="Oznámení">
                          <i class="far fa-bell"></i>
-                         <span class="notification-badge" id="notification-count">2</span>
+                         <span class="notification-badge" id="notification-count">0</span>
                     </div>
                     <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
                          <div class="notifications-header">
                              <span class="notifications-title">Oznámení</span>
+                             <button class="btn btn-sm" id="mark-all-read">Označit jako přečtené</button>
                          </div>
                          <div id="notifications-list">
-                             <div class="notification-item">
-                                 <div class="notification-icon level-up"><i class="fas fa-angle-double-up"></i></div>
-                                 <div class="notification-content">
-                                     <div class="notification-title">Nová Úroveň!</div>
-                                     <div class="notification-message">Gratulujeme, dosáhli jste úrovně 12.</div>
-                                     <div class="notification-time">před 5 min.</div>
-                                 </div>
-                             </div>
-                             <div class="notification-item">
-                                 <div class="notification-icon credits-earned"><i class="fas fa-coins"></i></div>
-                                 <div class="notification-content">
-                                     <div class="notification-title">+50 Kreditů</div>
-                                     <div class="notification-message">Získáno za dokončení denní výzvy.</div>
-                                     <div class="notification-time">před 2 hod.</div>
-                                 </div>
-                             </div>
-                         </div>
+                            </div>
                          <div class="notifications-footer">
                              <a href="#" class="view-all-notifications-link">Zobrazit Vše</a>
                          </div>
@@ -443,96 +431,177 @@
         </div>
     </div>
     
-    <script src="js/supabase-client.js"></script> 
-    <script src="js/ui-helpers.js"></script>
-    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            
-            const supabase = Justax.initSupabase();
-            Justax.UI.init(); 
 
-            // --- Local Page Logic (Header Data Loading & Logout) ---
-            const headerAvatarWrapper = document.getElementById('header-avatar-wrapper');
-            const headerUserName = document.getElementById('header-user-name');
-            const headerUserTitle = document.getElementById('header-user-title');
-            const logoutBtn = document.getElementById('logout-btn');
+            // --- Basic UI Helpers (Self-contained for testing) ---
+            const ui = {
+                sidebar: document.getElementById('vyuka-sidebar-test'),
+                sidebarToggle: document.getElementById('sidebar-toggle-test'),
+                mobileToggle: document.getElementById('mobile-menu-toggle-test'),
+                sidebarOverlay: document.getElementById('sidebar-overlay-test'),
+                notificationBell: document.getElementById('notification-bell'),
+                notificationsDropdown: document.getElementById('notifications-dropdown'),
+                notificationsList: document.getElementById('notifications-list'),
+                notificationCount: document.getElementById('notification-count'),
+                markAllReadBtn: document.getElementById('mark-all-read'),
+                headerAvatar: document.getElementById('header-avatar-wrapper'),
+                headerUserName: document.getElementById('header-user-name'),
+                headerUserTitle: document.getElementById('header-user-title'),
+                headerStatLevel: document.getElementById('header-stat-level-value'),
+                headerStatXpFill: document.getElementById('header-stat-xp-fill'),
+                headerStatCredits: document.getElementById('header-stat-credits-value'),
+                logoutBtn: document.getElementById('logout-btn')
+            };
 
-            // NEW: Notification Toggle Logic
-            const notificationBell = document.getElementById('notification-bell');
-            const notificationsDropdown = document.getElementById('notifications-dropdown');
+            const toggleSidebar = () => { ui.sidebar.classList.toggle('expanded'); };
+            const toggleMobileMenu = () => { ui.sidebar.classList.toggle('active-mobile'); ui.sidebarOverlay.classList.toggle('active'); };
+            if (ui.sidebarToggle) ui.sidebarToggle.addEventListener('click', toggleSidebar);
+            if (ui.mobileToggle) ui.mobileToggle.addEventListener('click', toggleMobileMenu);
+            if (ui.sidebarOverlay) ui.sidebarOverlay.addEventListener('click', toggleMobileMenu);
+
+            // --- Supabase and Data Logic ---
+            const SUPABASE_URL = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            let currentUser = null;
+
+            // --- UI Update Functions ---
+            const getInitials = (p, e) => { if (!p && !e) return '?'; let i = ''; if (p?.first_name) i += p.first_name[0]; if (p?.last_name) i += p.last_name[0]; if (i) return i.toUpperCase(); if (p?.username) return p.username[0].toUpperCase(); if (e) return e[0].toUpperCase(); return 'P'; };
+            const sanitize = (str) => { const t = document.createElement('div'); t.textContent = str || ''; return t.innerHTML; };
+
+            function updateHeaderProfile(profile, titles) {
+                if (!profile) { ui.headerUserName.textContent = "Nepřihlášen"; ui.headerUserTitle.textContent = "Host"; ui.headerAvatar.innerHTML = `<span>?</span>`; return; }
+                const displayName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username || profile.email.split('@')[0];
+                ui.headerUserName.textContent = sanitize(displayName);
+                const initials = getInitials(profile, profile.email);
+                if (profile.avatar_url) { ui.headerAvatar.innerHTML = `<img src="${sanitize(profile.avatar_url)}?t=${Date.now()}" alt="Avatar" class="vyuka-header-avatar-img">`; ui.headerAvatar.querySelector('img').onerror = () => { ui.headerAvatar.innerHTML = `<span>${initials}</span>`; };
+                } else { ui.headerAvatar.innerHTML = `<span>${initials}</span>`; }
+                let displayTitle = 'Pilot';
+                if (profile.selected_title && titles?.length > 0) { const found = titles.find(t => t.title_key === profile.selected_title); if (found) displayTitle = found.name; }
+                ui.headerUserTitle.textContent = sanitize(displayTitle);
+            }
+
+            function updateHeaderStats(profile, stats) {
+                if (!profile) { ui.headerStatLevel.textContent = '-'; ui.headerStatCredits.textContent = '-'; ui.headerStatXpFill.style.width = '0%'; return; }
+                ui.headerStatLevel.textContent = profile.level || 1;
+                ui.headerStatCredits.textContent = profile.points || 0;
+                const getExpForLevel = l => 100 + (25 * (l - 1));
+                const getTotalExpThreshold = tL => { if (tL <= 1) return 0; let total = 0; for (let l = 1; l < tL; l++) total += getExpForLevel(l); return total; };
+                const currentLevelThreshold = getTotalExpThreshold(profile.level);
+                const nextLevelThreshold = getTotalExpThreshold(profile.level + 1);
+                const expInLevel = (profile.experience || 0) - currentLevelThreshold;
+                const expNeeded = nextLevelThreshold - currentLevelThreshold;
+                const percentage = expNeeded > 0 ? Math.round((expInLevel / expNeeded) * 100) : 100;
+                ui.headerStatXpFill.style.width = `${percentage}%`;
+            }
+
+            function renderNotifications(count, notifications) {
+                ui.notificationCount.textContent = count > 0 ? count : '';
+                ui.notificationCount.style.display = count > 0 ? 'flex' : 'none';
+                ui.markAllReadBtn.disabled = count === 0;
+                if(notifications?.length > 0) {
+                    ui.notificationsList.innerHTML = notifications.map(n => {
+                        const iconClass = n.type === 'level_up' ? 'fa-angle-double-up' : 'fa-coins';
+                        const iconBg = n.type === 'level_up' ? 'var(--cn-accent-primary)' : 'var(--cn-accent-secondary)';
+                        return `<div class="notification-item" data-id="${n.id}">
+                                    <div class="notification-icon" style="background:${iconBg};"><i class="fas ${iconClass}"></i></div>
+                                    <div class="notification-content">
+                                        <div class="notification-title">${sanitize(n.title)}</div>
+                                        <div class="notification-time">${new Date(n.created_at).toLocaleDateString('cs-CZ')}</div>
+                                    </div>
+                                </div>`;
+                    }).join('');
+                } else {
+                    ui.notificationsList.innerHTML = `<div style="padding: 1rem; text-align: center; color: var(--cn-text-muted);">Žádná nová oznámení.</div>`;
+                }
+            }
             
-            if (notificationBell) {
-                notificationBell.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    notificationsDropdown.classList.toggle('active');
+            // --- Notification Interaction ---
+            async function markNotificationAsRead(id) {
+                if (!currentUser) return;
+                const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('id', id);
+                if (error) console.error("Error marking notification as read:", error);
+                else loadNotifications();
+            }
+
+            async function markAllAsRead() {
+                if (!currentUser) return;
+                ui.markAllReadBtn.disabled = true;
+                const { error } = await supabase.from('user_notifications').update({ is_read: true }).eq('user_id', currentUser.id).eq('is_read', false);
+                if (error) console.error("Error marking all notifications as read:", error);
+                else loadNotifications();
+            }
+
+            if (ui.notificationsList) {
+                ui.notificationsList.addEventListener('click', (e) => {
+                    const item = e.target.closest('.notification-item');
+                    if (item && item.dataset.id) markNotificationAsRead(item.dataset.id);
                 });
             }
-            document.addEventListener('click', (event) => {
-                if (notificationsDropdown && !notificationsDropdown.contains(event.target) && !notificationBell.contains(event.target)) {
-                    notificationsDropdown.classList.remove('active');
-                }
-            });
+            if (ui.markAllReadBtn) ui.markAllReadBtn.addEventListener('click', markAllAsRead);
 
+            // --- Data Loading Orchestration ---
+            async function loadNotifications() {
+                if (!currentUser) { renderNotifications(0, []); return; }
+                const { data, count, error } = await supabase.from('user_notifications').select('*', { count: 'exact' }).eq('user_id', currentUser.id).eq('is_read', false).order('created_at', { ascending: false }).limit(5);
+                if(error) console.error("Error fetching notifications:", error);
+                else renderNotifications(count || 0, data || []);
+            }
 
-            const getInitials = (profile, email) => {
-                if (!profile && !email) return '?'; let i = '';
-                if (profile?.first_name) i += profile.first_name[0]; if (profile?.last_name) i += profile.last_name[0];
-                if (i) return i.toUpperCase(); if (profile?.username) return profile.username[0].toUpperCase();
-                if (email) return email[0].toUpperCase(); return 'P';
-            };
-            
-            const updateHeaderProfile = (profile, titles) => {
-                if (!profile) {
-                    headerUserName.textContent = "Nepřihlášen"; headerUserTitle.textContent = "Host"; headerAvatarWrapper.innerHTML = `<span>?</span>`;
-                    return;
-                }
-                const displayName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username || profile.email.split('@')[0];
-                headerUserName.textContent = displayName;
-                const initials = getInitials(profile, profile.email);
-                const avatarUrl = profile.avatar_url;
-                if (avatarUrl) {
-                    headerAvatarWrapper.innerHTML = `<img src="${avatarUrl}?t=${new Date().getTime()}" alt="Avatar" class="vyuka-header-avatar-img">`;
-                    headerAvatarWrapper.querySelector('img').onerror = () => { headerAvatarWrapper.innerHTML = `<span>${initials}</span>`; };
-                } else { headerAvatarWrapper.innerHTML = `<span>${initials}</span>`; }
-                let displayTitle = 'Pilot';
-                if (profile.selected_title && titles.length > 0) { const foundTitle = titles.find(t => t.title_key === profile.selected_title); if (foundTitle) displayTitle = foundTitle.name; }
-                headerUserTitle.textContent = displayTitle;
-            };
-
-            async function loadUserData() {
-                if (!supabase) { console.error("Supabase client not available for data loading."); updateHeaderProfile(null, []); return; }
+            async function loadInitialData() {
                 try {
                     const { data: { user } } = await supabase.auth.getUser();
                     if (user) {
-                        const [profileResponse, titlesResponse] = await Promise.all([
-                            supabase.from('profiles').select('first_name, last_name, username, email, avatar_url, selected_title').eq('id', user.id).single(),
-                            supabase.from('title_shop').select('title_key, name')
+                        currentUser = user;
+                        const [profileRes, titlesRes, statsRes] = await Promise.all([
+                            supabase.from('profiles').select('*').eq('id', user.id).single(),
+                            supabase.from('title_shop').select('title_key, name'),
+                            supabase.from('user_stats').select('*').eq('user_id', user.id).single()
                         ]);
-                        if (profileResponse.error && profileResponse.error.code !== 'PGRST116') throw profileResponse.error;
-                        if (titlesResponse.error) throw titlesResponse.error;
-                        updateHeaderProfile(profileResponse.data, titlesResponse.data || []);
-                    } else { updateHeaderProfile(null, []); }
+
+                        if (profileRes.error && profileRes.error.code !== 'PGRST116') throw profileRes.error;
+                        if (titlesRes.error) throw titlesRes.error;
+                        if (statsRes.error && statsRes.error.code !== 'PGRST116') throw statsRes.error;
+
+                        updateHeaderProfile(profileRes.data, titlesRes.data || []);
+                        updateHeaderStats(profileRes.data, statsRes.data || {});
+                        loadNotifications();
+                    } else {
+                        updateHeaderProfile(null, []);
+                        updateHeaderStats(null, null);
+                        renderNotifications(0, []);
+                    }
                 } catch (error) {
-                    console.error("Error loading user data:", error);
+                    console.error("Error loading initial data:", error);
                     updateHeaderProfile(null, []);
+                    updateHeaderStats(null, null);
+                    renderNotifications(0, []);
                 }
             }
-            loadUserData();
+            loadInitialData();
 
-            if(logoutBtn) {
-                logoutBtn.addEventListener('click', async () => {
+            // Logout
+            if (ui.logoutBtn) {
+                ui.logoutBtn.addEventListener('click', async () => {
                     if (supabase) {
-                        const { error } = await supabase.auth.signOut();
-                        if (error) {
-                            console.error('Error logging out:', error);
-                        } else {
-                            // Redirect to a public page after logout
-                            window.location.href = '/auth/index.html'; 
-                        }
+                        await supabase.auth.signOut();
+                        window.location.href = '/auth/index.html'; 
                     }
                 });
             }
+             // Notification Toggle
+            if (ui.notificationBell) {
+                ui.notificationBell.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    ui.notificationsDropdown.classList.toggle('active');
+                });
+            }
+            document.addEventListener('click', (e) => {
+                if (ui.notificationsDropdown && !ui.notificationsDropdown.contains(e.target) && !ui.notificationBell.contains(e.target)) {
+                    ui.notificationsDropdown.classList.remove('active');
+                }
+            });
         });
     </script>
 </body>
