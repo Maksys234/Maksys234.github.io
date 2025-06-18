@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cosmic Neuro v11.0 - Dynamic HUD // Layout Lab</title>
+    <title>Cosmic Neuro v11.1 - Dynamic & Stable // Layout Lab</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@400;500;600;700&family=Poppins:wght@400;500;600&family=Inter:wght@400;500&family=Roboto+Mono:wght@400;500&family=Audiowide&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     
-    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="css/layout.css">
 </head>
 <body class="new-vyuka-layout">
 
@@ -33,7 +33,7 @@
                 <button class="mobile-menu-toggle" id="mobile-menu-toggle-test"><i class="fas fa-bars"></i></button>
                 <button class="sidebar-ai-desktop-toggle" id="sidebar-toggle-test" title="Sbalit panel"><i class="fas fa-chevron-left"></i></button>
                 <div class="vyuka-header-page-title-container">
-                    <h1>Aurum Galaxy v11</h1>
+                    <h1>Aurum Galaxy v11.1</h1>
                     <p>Prostředí pro testování a vylepšování UI komponent.</p>
                 </div>
             </div>
@@ -158,14 +158,19 @@
         </div>
     </div>
     
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/supabase-client.js"></script> 
     <script src="js/ui-helpers.js"></script>
     
     <script>
         // Простой вызов для инициализации UI и данных
         document.addEventListener('DOMContentLoaded', () => {
-            Justax.initSupabase(); // Инициализация клиента Supabase
-            Justax.UI.init(); // Инициализация UI и загрузка данных
+            // Инициализация клиента Supabase, которая должна быть доступна из supabase-client.js
+            const supabase = Justax.initSupabase(); 
+            
+            // Инициализация UI и логики загрузки данных из ui-helpers.js
+            // Передаем клиент как зависимость, чтобы избежать проблем с асинхронностью
+            Justax.UI.init(supabase); 
         });
     </script>
 </body>

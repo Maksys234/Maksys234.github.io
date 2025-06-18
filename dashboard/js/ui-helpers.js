@@ -1,6 +1,6 @@
 // dashboard/js/ui-helpers.js
 // Глобальный модуль для управления общими элементами UI и данными.
-// Версия: v11.0 - "Stardust HUD" edition.
+// Версия: v11.1 - Исправлена ошибка инициализации Supabase, добавлена загрузка данных.
 
 (function(global) {
     'use strict';
@@ -19,11 +19,12 @@
             allTitles: []
         },
 
-        init: function() {
-            if (!this.state.supabase) {
-                console.error("[UI Helpers] Supabase client is not initialized. Call Justax.initSupabase() first.");
+        init: function(supabaseClient) {
+            if (!supabaseClient) {
+                console.error("[UI Helpers] Supabase client was not provided during initialization.");
                 return;
             }
+            this.state.supabase = supabaseClient;
             this._cacheDOMElements();
             this._setupEventListeners();
             this.applyInitialSidebarState();
@@ -65,7 +66,7 @@
 
         toggleSidebar: function() { this.ui.sidebar.classList.toggle('expanded'); },
         toggleMobileMenu: function() { this.ui.sidebar.classList.toggle('active-mobile'); this.ui.sidebarOverlay.classList.toggle('active'); },
-        applyInitialSidebarState: function() { /* Logic for persistence if needed */ },
+        applyInitialSidebarState: function() { /* Logic for persistence */ },
         
         loadInitialData: async function() {
             try {
@@ -76,13 +77,14 @@
                         this.state.supabase.from('profiles').select('*').eq('id', user.id).single(),
                         this.state.supabase.from('title_shop').select('title_key, name')
                     ]);
+
                     if (profileRes.error && profileRes.error.code !== 'PGRST116') throw profileRes.error;
                     this.state.currentProfile = profileRes.data;
                     this.state.allTitles = titlesRes.data || [];
                     this.updateHeaderUI();
                     this.loadNotifications();
                 } else {
-                    this.updateHeaderUI(); // Show as logged out
+                    this.updateHeaderUI();
                     this.renderNotifications(0, []);
                 }
             } catch (error) {
@@ -122,7 +124,7 @@
             const nextLevelThreshold = getTotalExpThreshold(profile.level + 1);
             const expInLevel = (profile.experience || 0) - currentLevelThreshold;
             const expNeeded = nextLevelThreshold - currentLevelThreshold;
-            const percentage = expNeeded > 0 ? Math.round((expInLevel / expNeeded) * 100) : 100;
+            const percentage = expNeeded > 0 ? Math.min(100, Math.round((expInLevel / expNeeded) * 100)) : 100;
             this.ui.headerStatXpFill.style.width = `${percentage}%`;
         },
 
@@ -169,34 +171,6 @@
         }
     };
     
-    // Прикрепляем UIHelpers к глобальному объекту Justax
     global.Justax.UI = UIHelpers;
-
-})(window);
-
-// Глобальный supabase-client.js, который теперь является частью Justax
-(function(global) {
-    'use strict';
-    if (!global.Justax) { global.Justax = {}; }
-
-    global.Justax.initSupabase = function() {
-        const supabaseUrl = 'https://qcimhjjwvsbgjsitmvuh.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFjaW1oamp3dnNiZ2pzaXRtdnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1ODA5MjYsImV4cCI6MjA1ODE1NjkyNn0.OimvRtbXuIUkaIwveOvqbMd_cmPN5yY3DbWCBYc9D10';
-        
-        if (global.Justax.UI && global.Justax.UI.state && global.Justax.UI.state.supabase) {
-            return global.Justax.UI.state.supabase;
-        }
-        
-        try {
-            const client = window.supabase.createClient(supabaseUrl, supabaseKey);
-            if (global.Justax.UI && global.Justax.UI.state) {
-                global.Justax.UI.state.supabase = client;
-            }
-            return client;
-        } catch (error) {
-            console.error('KRITICKÁ CHYBA INICIALIZACE SUPABASE:', error);
-            return null;
-        }
-    };
 
 })(window);
