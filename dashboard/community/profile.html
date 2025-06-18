@@ -1,172 +1,1152 @@
 <!DOCTYPE html>
-<html lang="cs" class="dark">
+<html lang="cs">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Profil // Kyber-Verze</title>
+    <title>Profil uživatele - Alex Ray | EduPlatform</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
-    <link rel="stylesheet" href="profile.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* ---------------------------------- */
+        /* 1. Глобальные стили        */
+        /* ---------------------------------- */
+        :root {
+            --bg-color: #1a1a2e;
+            --sidebar-bg: rgba(22, 22, 40, 0.7);
+            --top-panel-bg: rgba(22, 22, 40, 0.7);
+            --main-content-bg: #161625;
+            --card-bg: #1e1e32;
+            --primary-accent: #4a47a3;
+            --secondary-accent: #706fd3;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0b0;
+            --border-color: rgba(112, 111, 211, 0.2);
+            --shadow-color: rgba(2, 2, 10, 0.5);
+            --success-color: #00b894;
+            --gold-gradient: linear-gradient(135deg, #FFD700, #F0B400);
+
+            --font-main: 'Inter', sans-serif;
+            --transition-speed: 0.3s;
+            --border-radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            overflow: hidden; /* Предотвращает прокрутку всего body */
+        }
+
+        a {
+            color: var(--secondary-accent);
+            text-decoration: none;
+            transition: color var(--transition-speed) ease;
+        }
+
+        a:hover {
+            color: var(--text-primary);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--primary-accent);
+            border-radius: 10px;
+        }
+
+        /* ---------------------------------- */
+        /* 2. Структура макета       */
+        /* ---------------------------------- */
+        .app-container {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            grid-template-rows: 70px 1fr auto;
+            grid-template-areas:
+                "sidebar top-panel"
+                "sidebar main"
+                "sidebar footer";
+            height: 100vh;
+            transition: grid-template-columns var(--transition-speed) ease;
+        }
+
+        /* --- Верхняя панель (Header) --- */
+        .top-panel {
+            grid-area: top-panel;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            background-color: var(--top-panel-bg);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .top-panel .search-bar {
+            position: relative;
+        }
+
+        .top-panel .search-bar input {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 8px 15px 8px 40px;
+            color: var(--text-primary);
+            width: 300px;
+            transition: all var(--transition-speed) ease;
+        }
+        .top-panel .search-bar input:focus {
+            outline: none;
+            border-color: var(--secondary-accent);
+            box-shadow: 0 0 15px rgba(112, 111, 211, 0.3);
+        }
+
+        .top-panel .search-bar i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .top-panel-user {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .top-panel-user .icon-button {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            background: none;
+            border: none;
+            cursor: pointer;
+            position: relative;
+        }
+        .top-panel-user .icon-button .notification-dot {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 8px;
+            height: 8px;
+            background-color: var(--success-color);
+            border-radius: 50%;
+            border: 2px solid var(--top-panel-bg);
+        }
+
+        .user-menu {
+            position: relative;
+        }
+        .user-menu-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .user-menu-toggle img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--secondary-accent);
+        }
+        .user-menu-toggle span {
+            font-weight: 500;
+        }
+
+        .user-menu-dropdown {
+            position: absolute;
+            top: 130%;
+            right: 0;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            width: 200px;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all var(--transition-speed) ease;
+            z-index: 1001;
+        }
+        .user-menu-dropdown.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .user-menu-dropdown a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            color: var(--text-secondary);
+        }
+        .user-menu-dropdown a:hover {
+            background-color: var(--primary-accent);
+            color: var(--text-primary);
+        }
+        .user-menu-dropdown a i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* --- Левая панель (Sidebar) --- */
+        .left-panel {
+            grid-area: sidebar;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 0;
+            background-color: var(--sidebar-bg);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid var(--border-color);
+            transition: all var(--transition-speed) ease;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem 1.5rem 1.5rem;
+        }
+        
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .sidebar-logo i {
+            color: var(--secondary-accent);
+        }
+
+        #sidebar-toggle {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+        }
+        #sidebar-toggle:hover {
+            background-color: var(--primary-accent);
+            color: var(--text-primary);
+            transform: rotate(180deg);
+        }
+
+        .sidebar-nav {
+            flex-grow: 1;
+            list-style: none;
+            padding: 0;
+        }
+        .nav-item {
+            padding: 0 1.5rem;
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 1rem;
+            margin: 5px 0;
+            border-radius: var(--border-radius);
+            color: var(--text-secondary);
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+        .nav-link i {
+            font-size: 1.2rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--primary-accent);
+            z-index: -1;
+            transition: left var(--transition-speed) ease-in-out;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--text-primary);
+        }
+
+        .nav-link:hover::before,
+        .nav-link.active::before {
+            left: 0;
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 60%;
+            background-color: var(--success-color);
+            border-radius: 2px;
+        }
+
+        .sidebar-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        /* --- Свернутая левая панель --- */
+        .app-container.sidebar-collapsed {
+            grid-template-columns: 80px 1fr;
+        }
+        .app-container.sidebar-collapsed .sidebar-logo span,
+        .app-container.sidebar-collapsed .nav-link span {
+            display: none;
+        }
+        .app-container.sidebar-collapsed .sidebar-header {
+            justify-content: center;
+            padding: 0 0 1.5rem 0;
+        }
+        .app-container.sidebar-collapsed .sidebar-header .sidebar-logo {
+            font-size: 1.8rem;
+        }
+        .app-container.sidebar-collapsed #sidebar-toggle {
+            display: none; /* Скрываем кнопку, т.к. логотип становится триггером */
+        }
+        .app-container.sidebar-collapsed .nav-item {
+            padding: 0 0.5rem;
+        }
+        .app-container.sidebar-collapsed .nav-link {
+            justify-content: center;
+        }
+
+        /* --- Основной контент --- */
+        .main-content {
+            grid-area: main;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+        
+        /* --- Футер --- */
+        .app-footer {
+            grid-area: footer;
+            padding: 1.5rem 2rem;
+            background-color: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-secondary);
+        }
+        .footer-links a {
+            margin-right: 1.5rem;
+        }
+        .social-icons a {
+            font-size: 1.2rem;
+            margin-left: 1rem;
+        }
+
+        /* ---------------------------------- */
+        /* 3. Стили страницы профиля     */
+        /* ---------------------------------- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .profile-section {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        /* --- Шапка профиля --- */
+        .profile-header {
+            position: relative;
+            margin-bottom: 2rem;
+            animation-delay: 0.1s;
+        }
+
+        .profile-banner {
+            height: 250px;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            background-color: var(--card-bg);
+        }
+
+        .profile-banner-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease-out; /* Для параллакса */
+        }
+        
+        .profile-info {
+            position: relative;
+            padding: 0 2rem;
+            display: flex;
+            align-items: flex-end;
+            margin-top: -80px;
+            gap: 1.5rem;
+        }
+        
+        .profile-avatar {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            border: 5px solid var(--main-content-bg);
+            box-shadow: 0 5px 20px var(--shadow-color);
+            object-fit: cover;
+            position: relative;
+            z-index: 2;
+        }
+
+        .profile-details {
+            padding-bottom: 20px;
+            flex-grow: 1;
+        }
+
+        .profile-details h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .profile-details p {
+            font-size: 1.1rem;
+            color: var(--secondary-accent);
+            font-weight: 500;
+        }
+        
+        .profile-actions {
+            padding-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-accent);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background-color: var(--secondary-accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(112, 111, 211, 0.4);
+        }
+
+        /* --- Навигация по профилю --- */
+        .profile-nav {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+            animation-delay: 0.2s;
+        }
+        
+        .profile-nav-link {
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            border: none;
+            background: none;
+            font-size: 1rem;
+        }
+
+        .profile-nav-link.active,
+        .profile-nav-link:hover {
+            background-color: var(--primary-accent);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(74, 71, 163, 0.5);
+        }
+        
+        /* --- Контент профиля --- */
+        .profile-content {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+        }
+        
+        .main-column {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .side-column {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: 0 5px 25px var(--shadow-color);
+            animation-delay: 0.3s;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* --- Стили для виджетов --- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+        }
+        .stat-item {
+            text-align: center;
+            background-color: var(--bg-color);
+            padding: 1rem;
+            border-radius: 10px;
+        }
+        .stat-item i {
+            font-size: 2rem;
+            color: var(--secondary-accent);
+            margin-bottom: 0.5rem;
+        }
+        .stat-item .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .stat-item .label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .bio p {
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+        
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 1.5rem;
+        }
+        .achievement-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            transition: transform var(--transition-speed) ease;
+        }
+        .achievement-item:hover {
+            transform: scale(1.1);
+        }
+        .achievement-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+            background: var(--gold-gradient);
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        }
+        .achievement-icon i {
+            font-size: 2.2rem;
+            color: #fff;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+        .achievement-item span {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .activity-feed .feed-item {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .activity-feed .feed-item:last-child {
+            margin-bottom: 0;
+        }
+        .feed-item .icon {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            background: var(--primary-accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .feed-item .content .text {
+            margin-bottom: 0.25rem;
+        }
+        .feed-item .content .timestamp {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* ---------------------------------- */
+        /* 5. Адаптивность           */
+        /* ---------------------------------- */
+        @media (max-width: 1200px) {
+            .profile-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .app-container {
+                grid-template-columns: 80px 1fr;
+            }
+            .sidebar-logo span,
+            .nav-link span {
+                display: none;
+            }
+            .sidebar-header {
+                justify-content: center;
+                padding: 0 0 1.5rem 0;
+            }
+            .sidebar-header .sidebar-logo {
+                font-size: 1.8rem;
+            }
+            #sidebar-toggle {
+                display: none;
+            }
+            .nav-item {
+                padding: 0 0.5rem;
+            }
+            .nav-link {
+                justify-content: center;
+            }
+            .top-panel .search-bar input {
+                width: 200px;
+            }
+            .profile-info {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                margin-top: -100px;
+            }
+            .profile-details {
+                padding-bottom: 0;
+            }
+            .profile-actions {
+                padding-bottom: 0;
+                margin-top: 1rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 70px 1fr auto;
+                grid-template-areas:
+                    "top-panel"
+                    "main"
+                    "footer";
+            }
+            .left-panel {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                height: 100%;
+                z-index: 1100;
+                width: 260px;
+                transition: left var(--transition-speed) ease;
+            }
+            .left-panel.open {
+                left: 0;
+            }
+            .left-panel .nav-link span, .left-panel .sidebar-logo span {
+                display: inline-block;
+            }
+            /* Кнопка-гамбургер (появится, когда JS добавит класс mobile-view) */
+            .hamburger-menu {
+                display: none;
+                font-size: 1.5rem;
+                color: var(--text-primary);
+                cursor: pointer;
+            }
+            body.mobile-view .hamburger-menu {
+                display: block;
+            }
+            .main-content {
+                padding: 1rem;
+            }
+            .profile-nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+    </style>
 </head>
-<body class="dark">
+<body>
 
-    <div class="initial-loading-overlay" id="initial-loader">
-        <div class="loading-spinner"></div>
-        <p>NAČÍTÁNÍ PROFILU...</p>
-    </div>
-
-    <div class="offline-banner" id="offline-banner"> <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO. </div>
-
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
-
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <button class="mobile-menu-toggle" id="sidebar-close-toggle" aria-label="Zavřít menu">
-                <i class="fas fa-times"></i>
-            </button>
-            <a href="/dashboard/dashboard.html" class="sidebar-logo"> <i class="fas fa-atom"></i> <span>Justax</span>
-            </a>
-        </div>
-        <ul class="sidebar-menu">
-            <li class="sidebar-item"> <a href="/dashboard/dashboard.html" class="sidebar-link"> <i class="fas fa-tachometer-alt"></i> <span>Nástěnka</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/procvicovani/main.html" class="sidebar-link"> <i class="fas fa-laptop-code"></i> <span>Procvičování</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/pokrok.html" class="sidebar-link"> <i class="fas fa-chart-line"></i> <span>Pokrok</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/oceneni.html" class="sidebar-link"> <i class="fas fa-medal"></i> <span>Ocenění</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/materialy.html" class="sidebar-link"> <i class="fas fa-database"></i> <span>Databanka</span> </a> </li>
-            <li class="sidebar-item"> <a href="/dashboard/profile.html" class="sidebar-link active"> <i class="fas fa-user-astronaut"></i> <span>Profil</span> </a> </li>
-        </ul>
-        <div class="user-profile">
-            <div class="avatar-wrapper" data-decoration-key="">
-                 <div class="user-avatar" id="sidebar-avatar">?</div>
+    <div class="app-container" id="app-container">
+        <nav class="left-panel" id="left-panel">
+            <div class="sidebar-header">
+                <a href="../dashboard.html" class="sidebar-logo">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>EduPlatform</span>
+                </a>
+                <button id="sidebar-toggle" class="icon-button"><i class="fa-solid fa-chevron-left"></i></button>
             </div>
-            <div class="user-info">
-                <div class="user-name" id="sidebar-name">Načítání...</div>
-                <div class="user-role" id="sidebar-user-title" title="Váš titul">Pilot</div>
-            </div>
-        </div>
-        <div class="sidebar-footer"> &copy; <span id="currentYearSidebar">2025</span> Justax Systems </div>
-    </aside>
 
-    <main id="main-content" style="display: none;">
-        <header class="dashboard-header">
-             <div class="header-content">
-                 <div class="header-left-group"> <button class="btn btn-icon-only sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Přepnout postranní panel" title="Přepnout postranní panel">
-                         <i class="fas fa-chevron-left"></i>
-                     </button>
-                     <button class="mobile-menu-toggle" id="main-mobile-menu-toggle" aria-label="Otevřít menu">
-                         <i class="fas fa-bars"></i>
-                     </button>
-                     <h1 id="profile-main-title"><i class="fas fa-user-astronaut"></i> Profil Pilota</h1>
-                 </div>
-                <div class="header-actions">
-                     <div class="notifications">
-                        <div class="notification-bell" id="notification-bell" title="Oznámení">
-                             <i class="far fa-bell"></i>
-                             <span class="notification-badge" id="notification-count">0</span>
-                        </div>
-                        <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
-                             <div class="notifications-header">
-                                 <span class="notifications-title">PŘÍCHOZÍ SIGNÁLY</span>
-                                 <button class="mark-all-read-btn btn btn-sm btn-secondary" id="mark-all-read" disabled>Vymazat vše</button>
-                             </div>
-                             <div id="notifications-list">
-                                 <div id="no-notifications-msg" style="display: none;">ŽÁDNÉ NOVÉ SIGNÁLY</div>
-                             </div>
-                             <div class="notifications-footer">
-                                 <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a>
-                             </div>
-                        </div>
-                     </div>
-                    <button id="logout-btn-header" title="Odhlásit se" class="btn btn-danger btn-sm">
-                        <i class="fas fa-power-off"></i> <span class="logout-text">Odhlásit</span>
-                    </button>
+            <ul class="sidebar-nav">
+                <li class="nav-item">
+                    <a href="../dashboard.html" class="nav-link">
+                        <i class="fa-solid fa-house"></i> <span>Nástěnka</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="../pokrok.html" class="nav-link">
+                        <i class="fa-solid fa-chart-line"></i> <span>Můj Pokrok</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="../oceneni.html" class="nav-link">
+                        <i class="fa-solid fa-award"></i> <span>Ocenění</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="../plan/plan.html" class="nav-link">
+                        <i class="fa-solid fa-calendar-days"></i> <span>Učební Plán</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="../workspace/main.html" class="nav-link">
+                        <i class="fa-solid fa-laptop-code"></i> <span>Procvičování</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="../vyuka/vyuka.html" class="nav-link">
+                        <i class="fa-solid fa-robot"></i> <span>Výuka s AI</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <a href="../settings.html" class="nav-link">
+                    <i class="fa-solid fa-gear"></i> <span>Nastavení</span>
+                </a>
+            </div>
+        </nav>
+
+        <header class="top-panel">
+            <div id="hamburger-menu" class="hamburger-menu">
+                <i class="fa-solid fa-bars"></i>
+            </div>
+            
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Hledat...">
+            </div>
+            <div class="top-panel-user">
+                <button class="icon-button">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="notification-dot"></span>
+                </button>
+                <div class="user-menu" id="user-menu">
+                    <div class="user-menu-toggle">
+                        <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="User Avatar">
+                        <span id="username-display">Alex Ray</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                    <div class="user-menu-dropdown" id="user-menu-dropdown">
+                        <a href="#" class="active"><i class="fa-solid fa-user"></i> Profil</a>
+                        <a href="../dashboard.html"><i class="fa-solid fa-table-columns"></i> Nástěnka</a>
+                        <a href="../settings.html"><i class="fa-solid fa-sliders"></i> Nastavení</a>
+                        <hr style="border-color: var(--border-color); margin: 5px 0;">
+                        <a href="#"><i class="fa-solid fa-right-from-bracket"></i> Odhlásit se</a>
+                    </div>
                 </div>
             </div>
         </header>
 
-        <div class="main-content-wrapper">
-             <div class="error-container" id="global-error" style="display: none;"></div>
-             <div id="profile-view-container" style="display: none;">
-                <section class="section profile-main-header card" data-animate>
-                     <div class="profile-main-info">
-                         <div class="profile-avatar-large-wrapper">
-                             <div class="profile-avatar-large" id="profile-page-avatar">?</div>
-                             <div class="level-badge" id="profile-page-level">1</div>
-                         </div>
-                         <div class="profile-identity">
-                             <h2 id="profile-page-name">Načítání...</h2>
-                             <p id="profile-page-username">@...</p>
-                             <div class="title-display" id="profile-page-title-display">
-                                 <i class="fas fa-id-badge"></i>
-                                 <span id="profile-page-title">Pilot</span>
-                             </div>
-                         </div>
-                     </div>
-                     <div class="profile-main-actions" id="profile-page-actions">
-                         </div>
-                     <div class="profile-main-stats">
-                         <div class="stat-item"> <span class="stat-value" id="profile-page-points">0</span> <span class="stat-label">Kredity</span> </div>
-                         <div class="stat-item"> <span class="stat-value" id="profile-page-badges">0</span> <span class="stat-label">Odznaky</span> </div>
-                         <div class="stat-item"> <span class="stat-value" id="profile-page-streak">0</span> <span class="stat-label">Série</span> </div>
-                     </div>
-                </section>
-
-                <div class="profile-layout-grid" data-animate style="--animation-order: 1;">
-                    <div class="profile-left-column">
-                         <div class="card about-card">
-                             <h3 class="card-title-small"><i class="fas fa-info-circle"></i> O Mně</h3>
-                             <p class="profile-bio" id="profile-page-bio">Žádné informace nejsou k dispozici.</p>
-                             <div class="profile-meta-details">
-                                 <div class="meta-detail-item"><i class="fas fa-school"></i><span id="profile-page-school">Škola neuvedena</span></div>
-                                 <div class="meta-detail-item"><i class="fas fa-user-graduate"></i><span id="profile-page-grade">Ročník neuveden</span></div>
-                                 <div class="meta-detail-item"><i class="fas fa-calendar-alt"></i><span>Členem od <strong id="profile-page-joindate">-</strong></span></div>
-                             </div>
-                         </div>
+        <main class="main-content" id="main-content">
+            
+            <section class="profile-section profile-header">
+                <div class="profile-banner">
+                    <img src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=2070&auto=format&fit=crop" alt="Profile Banner" class="profile-banner-img" id="profile-banner-img">
+                </div>
+                <div class="profile-info">
+                    <img src="https://i.pravatar.cc/300?u=a042581f4e29026704d" alt="User Avatar" class="profile-avatar">
+                    <div class="profile-details">
+                        <h1>Alex Ray</h1>
+                        <p>Mistr Kódování | Úroveň 42</p>
                     </div>
-                    <div class="profile-right-column">
-                        <div class="profile-tabs-container card">
-                             <div class="profile-content-tabs">
-                                <button class="profile-content-tab active" data-tab="activity"><i class="fas fa-history"></i> Aktivita</button>
-                                <button class="profile-content-tab" data-tab="awards"><i class="fas fa-medal"></i> Ocenění</button>
+                    <div class="profile-actions">
+                        <button class="btn btn-primary">
+                            <i class="fa-solid fa-user-plus"></i> Sledovat
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <nav class="profile-section profile-nav" id="profile-nav">
+                <button class="profile-nav-link active" data-tab="overview">Přehled</button>
+                <button class="profile-nav-link" data-tab="activity">Aktivita</button>
+                <button class="profile-nav-link" data-tab="achievements">Úspěchy</button>
+                <button class="profile-nav-link" data-tab="friends">Přátelé (128)</button>
+            </nav>
+
+            <div class="profile-content">
+                <div class="main-column">
+                    <div id="overview" class="tab-content active">
+                        <div class="card profile-section">
+                            <div class="card-header">
+                                <h2 class="card-title">Statistiky</h2>
+                            </div>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <i class="fa-solid fa-star"></i>
+                                    <div class="value">12,580</div>
+                                    <div class="label">Bodů Zkušenosti</div>
                                 </div>
-                             <div class="profile-tab-content-wrapper">
-                                <div class="profile-tab-content active" id="activity-tab-content">
-                                     <div class="activity-list" id="activity-list-profile">
-                                         <div class="skeleton-activity-item"><div class="skeleton icon-placeholder"></div><div style="flex-grow: 1;"><div class="skeleton activity-line"></div><div class="skeleton activity-line text-short"></div></div></div>
-                                         <div class="skeleton-activity-item"><div class="skeleton icon-placeholder"></div><div style="flex-grow: 1;"><div class="skeleton activity-line"></div><div class="skeleton activity-line text-short"></div></div></div>
-                                     </div>
-                                     <div class="empty-state" id="activity-list-empty" style="display: none;"><i class="fas fa-moon"></i><p>Žádná aktivita k zobrazení.</p></div>
-                                     <div class="error-state" id="activity-list-error" style="display: none;"><i class="fas fa-exclamation-triangle"></i><p>Chyba načítání aktivity.</p></div>
-                                 </div>
-                                <div class="profile-tab-content" id="awards-tab-content">
-                                    <div class="awards-grid" id="awards-grid-profile">
-                                        <div class="skeleton-badge-item"><div class="skeleton icon-placeholder round"></div><div class="skeleton activity-line" style="width: 80%; margin: 0.5rem auto 0 auto;"></div></div>
-                                        <div class="skeleton-badge-item"><div class="skeleton icon-placeholder round"></div><div class="skeleton activity-line" style="width: 80%; margin: 0.5rem auto 0 auto;"></div></div>
+                                <div class="stat-item">
+                                    <i class="fa-solid fa-trophy"></i>
+                                    <div class="value">24</div>
+                                    <div class="label">Ocenění</div>
+                                </div>
+                                <div class="stat-item">
+                                    <i class="fa-solid fa-book-open"></i>
+                                    <div class="value">112</div>
+                                    <div class="label">Dokončených Lekcí</div>
+                                </div>
+                                <div class="stat-item">
+                                    <i class="fa-solid fa-ranking-star"></i>
+                                    <div class="value">#1,421</div>
+                                    <div class="label">Celkové Pořadí</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card profile-section">
+                            <div class="card-header">
+                                <h2 class="card-title">Týdenní pokrok</h2>
+                            </div>
+                            <canvas id="progressChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div id="activity" class="tab-content">
+                        <div class="card profile-section">
+                             <div class="card-header">
+                                <h2 class="card-title">Nedávná aktivita</h2>
+                            </div>
+                            <div class="activity-feed">
+                                <div class="feed-item">
+                                    <div class="icon"><i class="fa-solid fa-check"></i></div>
+                                    <div class="content">
+                                        <div class="text">Dokončil/a test <strong>"Python základy"</strong> s výsledkem 95%.</div>
+                                        <div class="timestamp">před 2 hodinami</div>
                                     </div>
-                                    <div class="empty-state" id="awards-list-empty" style="display: none;"><i class="fas fa-box-open"></i><p>Žádné odznaky k zobrazení.</p></div>
-                                    <div class="error-state" id="awards-list-error" style="display: none;"><i class="fas fa-exclamation-triangle"></i><p>Chyba načítání ocenění.</p></div>
                                 </div>
-                             </div>
+                                <div class="feed-item">
+                                    <div class="icon"><i class="fa-solid fa-award"></i></div>
+                                    <div class="content">
+                                        <div class="text">Získal/a ocenění <strong>"Mistr cyklů"</strong>.</div>
+                                        <div class="timestamp">před 5 hodinami</div>
+                                    </div>
+                                </div>
+                                <div class="feed-item">
+                                    <div class="icon"><i class="fa-solid fa-user-group"></i></div>
+                                    <div class="content">
+                                        <div class="text">Začal/a sledovat uživatele <strong>Jane Doe</strong>.</div>
+                                        <div class="timestamp">včera</div>
+                                    </div>
+                                </div>
+                                <div class="feed-item">
+                                    <div class="icon"><i class="fa-solid fa-book-open-reader"></i></div>
+                                    <div class="content">
+                                        <div class="text">Dokončil/a kapitolu <strong>"Asynchronní JavaScript"</strong>.</div>
+                                        <div class="timestamp">před 2 dny</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="achievements" class="tab-content">
+                        <div class="card profile-section"><h2 class="card-title">Obsah pro Úspěchy</h2><p>Zde bude galerie úspěchů...</p></div>
+                    </div>
+                    <div id="friends" class="tab-content">
+                        <div class="card profile-section"><h2 class="card-title">Obsah pro Přátelé</h2><p>Zde bude seznam přátel...</p></div>
+                    </div>
+
+                </div>
+                <div class="side-column">
+                    <div class="card profile-section bio">
+                        <div class="card-header">
+                            <h2 class="card-title">O mně</h2>
+                        </div>
+                        <p>Vášnivý full-stack vývojář s láskou k Pythonu a JavaScriptu. Vždy se snažím učit nové technologie a sdílet své znalosti s komunitou.</p>
+                    </div>
+                    <div class="card profile-section">
+                        <div class="card-header">
+                            <h2 class="card-title">Nejlepší úspěchy</h2>
+                        </div>
+                        <div class="achievements-grid">
+                            <div class="achievement-item" title="První Kód">
+                                <div class="achievement-icon"><i class="fa-solid fa-code"></i></div>
+                                <span>První Kód</span>
+                            </div>
+                            <div class="achievement-item" title="Pythonista">
+                                <div class="achievement-icon"><i class="fa-brands fa-python"></i></div>
+                                <span>Pythonista</span>
+                            </div>
+                            <div class="achievement-item" title="Komunitní guru">
+                                <div class="achievement-icon"><i class="fa-solid fa-users"></i></div>
+                                <span>Guru</span>
+                            </div>
+                            <div class="achievement-item" title="Ranní ptáče">
+                                <div class="achievement-icon"><i class="fa-solid fa-sun"></i></div>
+                                <span>Ranní ptáče</span>
+                            </div>
+                            <div class="achievement-item" title="100 lekcí">
+                                <div class="achievement-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                                <span>100 Lekcí</span>
+                            </div>
+                             <div class="achievement-item" title="Nepřemožitelný">
+                                <div class="achievement-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                                <span>Nepřemožitelný</span>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-            </div> </div>
+        </main>
 
-        <footer class="dashboard-footer">
-            <p>&copy; <span id="currentYearFooter">2025</span> Justax Systems // Secure Channel</p>
+        <footer class="app-footer">
+            <div class="footer-links">
+                © 2025 EduPlatform. Všechna práva vyhrazena.
+                <a href="#">O nás</a>
+                <a href="#">Soukromí</a>
+                <a href="#">Kontakt</a>
+            </div>
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-github"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+            </div>
         </footer>
-    </main>
+    </div>
 
-    <div class="toast-container" id="toast-container"></div>
-    <div id="mouse-follower" class="mouse-follower-glow"></div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <script src="profile.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // ----------------------------------
+            //    1. ЛОГИКА МАКЕТА (LAYOUT)
+            // ----------------------------------
+
+            const appContainer = document.getElementById('app-container');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const userMenuToggle = document.querySelector('.user-menu-toggle');
+            const userMenuDropdown = document.getElementById('user-menu-dropdown');
+            const hamburgerMenu = document.getElementById('hamburger-menu');
+            const leftPanel = document.getElementById('left-panel');
+
+            // --- Сворачивание/разворачивание левой панели ---
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', () => {
+                    appContainer.classList.toggle('sidebar-collapsed');
+                });
+            }
+
+            // --- Выпадающее меню пользователя ---
+            if (userMenuToggle) {
+                userMenuToggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    userMenuDropdown.classList.toggle('active');
+                });
+            }
+            
+            // Закрытие меню при клике вне его
+            document.addEventListener('click', (e) => {
+                if (userMenuDropdown && !userMenuDropdown.contains(e.target) && !userMenuToggle.contains(e.target)) {
+                    userMenuDropdown.classList.remove('active');
+                }
+            });
+            
+            // --- Логика для мобильных устройств ---
+            const handleMobileView = () => {
+                if (window.innerWidth <= 768) {
+                    document.body.classList.add('mobile-view');
+                    appContainer.classList.add('sidebar-collapsed'); // Сворачиваем по умолчанию
+                } else {
+                    document.body.classList.remove('mobile-view');
+                    leftPanel.classList.remove('open');
+                }
+            };
+            
+            if (hamburgerMenu) {
+                hamburgerMenu.addEventListener('click', () => {
+                    leftPanel.classList.toggle('open');
+                });
+            }
+
+            window.addEventListener('resize', handleMobileView);
+            handleMobileView(); // Проверка при загрузке
+
+
+            // ----------------------------------
+            //   2. ЛОГИКА СТРАНИЦЫ ПРОФИЛЯ
+            // ----------------------------------
+
+            // --- Переключение вкладок ---
+            const profileNav = document.getElementById('profile-nav');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            if (profileNav) {
+                profileNav.addEventListener('click', (e) => {
+                    if (e.target.matches('.profile-nav-link')) {
+                        // Убираем active класс у всех кнопок
+                        profileNav.querySelectorAll('.profile-nav-link').forEach(link => {
+                            link.classList.remove('active');
+                        });
+                        // Добавляем active класс нажатой кнопке
+                        e.target.classList.add('active');
+                        
+                        const tabId = e.target.dataset.tab;
+
+                        // Скрываем все вкладки
+                        tabContents.forEach(content => {
+                            content.classList.remove('active');
+                        });
+
+                        // Показываем нужную вкладку
+                        const activeTab = document.getElementById(tabId);
+                        if (activeTab) {
+                            activeTab.classList.add('active');
+                        }
+                    }
+                });
+            }
+            
+            // --- Инициализация графика (Chart.js) ---
+            const ctx = document.getElementById('progressChart');
+            if (ctx) {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle'],
+                        datasets: [{
+                            label: 'Získané body',
+                            data: [120, 190, 150, 250, 220, 300, 280],
+                            borderColor: 'rgba(112, 111, 211, 1)',
+                            backgroundColor: 'rgba(112, 111, 211, 0.2)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: 'rgba(112, 111, 211, 1)',
+                            pointHoverRadius: 7,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.7)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.7)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            // --- "Фантастический" эффект параллакса для баннера ---
+            const mainContent = document.getElementById('main-content');
+            const bannerImg = document.getElementById('profile-banner-img');
+
+            if (mainContent && bannerImg) {
+                mainContent.addEventListener('scroll', () => {
+                    const scrollPos = mainContent.scrollTop;
+                    bannerImg.style.transform = `translateY(${scrollPos * 0.4}px)`;
+                });
+            }
+
+        });
+    </script>
 </body>
 </html>

@@ -1,460 +1,628 @@
 <!DOCTYPE html>
-<html lang="cs" class="dark">
+<html lang="cs">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Justax - Nastavení Účtu // Kyber-Verze</title>
+    <title>Nastavení | Dashboard</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Audiowide&family=Shadows+Into+Light+Two&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="../dashboard.css">
-    <link rel="stylesheet" href="settings.css">
+    <link rel="stylesheet" href="css/settings.css">
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/css/tooltipster.bundle.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tooltipster/4.2.8/js/tooltipster.bundle.min.js"></script>
+    <style>
+        /* --- CSS Переменные для легкой кастомизации и темной темы --- */
+        :root {
+            --primary-color: #6a5af9;
+            --primary-color-light: #f0eefd;
+            --secondary-color: #ffb600;
+            --background-color: #f4f7fc;
+            --text-color: #333;
+            --text-color-light: #888;
+            --card-background: #ffffff;
+            --border-color: #e0e0e0;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+            --success-color: #4caf50;
+            --error-color: #f44336;
+            --white-color: #fff;
 
+            --sidebar-width: 260px;
+            --sidebar-width-collapsed: 88px;
+            --top-panel-height: 70px;
+            
+            --font-family: 'Poppins', sans-serif;
+            --transition-speed: 0.3s;
+            --border-radius: 12px;
+        }
+
+        body.dark-mode {
+            --primary-color: #7b6efc;
+            --background-color: #121212;
+            --text-color: #e0e0e0;
+            --text-color-light: #a0a0a0;
+            --card-background: #1e1e1e;
+            --border-color: #333;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+        }
+
+        /* --- Базовые стили и сброс --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* --- Структура макета с CSS Grid --- */
+        .app-container {
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            grid-template-rows: var(--top-panel-height) 1fr auto;
+            grid-template-areas:
+                "sidebar header"
+                "sidebar main"
+                "sidebar footer";
+            min-height: 100vh;
+            transition: grid-template-columns var(--transition-speed) ease;
+        }
+        
+        .app-container.sidebar-collapsed {
+            grid-template-columns: var(--sidebar-width-collapsed) 1fr;
+        }
+
+        /* --- Верхняя панель (Header) --- */
+        .top-panel {
+            grid-area: header;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            background-color: var(--card-background);
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .top-panel-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        #sidebar-toggle {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color var(--transition-speed) ease, transform 0.2s ease;
+        }
+        #sidebar-toggle:hover {
+            color: var(--primary-color);
+            transform: scale(1.1);
+        }
+
+        .search-bar {
+            position: relative;
+        }
+        .search-bar input {
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--background-color);
+            width: 300px;
+            transition: all var(--transition-speed) ease;
+        }
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-color-light);
+        }
+        .search-bar .fa-search {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-color-light);
+        }
+
+        .top-panel-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .icon-button {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            color: var(--text-color-light);
+            cursor: pointer;
+            position: relative;
+            transition: color var(--transition-speed) ease;
+        }
+        .icon-button:hover {
+            color: var(--primary-color);
+        }
+        .icon-button .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -8px;
+            background-color: var(--error-color);
+            color: var(--white-color);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            cursor: pointer;
+        }
+        .user-profile img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary-color);
+        }
+        .user-profile span {
+            font-weight: 500;
+        }
+
+        /* --- Левая панель (Sidebar) --- */
+        .sidebar {
+            grid-area: sidebar;
+            background-color: var(--card-background);
+            padding: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border-color);
+            transition: all var(--transition-speed) ease;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: fixed;
+            height: 100vh;
+            width: var(--sidebar-width);
+            z-index: 1001;
+        }
+        
+        .sidebar.collapsed {
+            width: var(--sidebar-width-collapsed);
+        }
+        
+        .sidebar .logo-details {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0 1.5rem 2rem 1.5rem;
+            color: var(--primary-color);
+            white-space: nowrap;
+        }
+        .sidebar.collapsed .logo-details .logo-name {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .nav-links {
+            list-style: none;
+            padding: 0;
+            flex-grow: 1;
+        }
+
+        .nav-links li {
+            margin: 0.5rem 1rem;
+        }
+        
+        .nav-links li a {
+            display: flex;
+            align-items: center;
+            padding: 0.9rem 1rem;
+            color: var(--text-color-light);
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            transition: all var(--transition-speed) ease;
+            white-space: nowrap;
+        }
+        
+        .nav-links li a:hover,
+        .nav-links li.active a {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            box-shadow: 0 4px 12px rgba(106, 90, 249, 0.3);
+        }
+
+        .nav-links li a .icon {
+            font-size: 1.4rem;
+            min-width: 44px;
+            text-align: center;
+            transition: transform var(--transition-speed) ease;
+        }
+        .sidebar.collapsed .nav-links li a:hover {
+           background-color: var(--primary-color-light);
+           color: var(--primary-color);
+        }
+        .sidebar.collapsed .nav-links li.active a {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+        }
+        
+        .sidebar.collapsed .nav-links li a .link-name {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .nav-links li a:hover .icon {
+            transform: scale(1.1);
+        }
+
+        .link-name {
+            margin-left: 0.5rem;
+            font-weight: 500;
+            transition: opacity var(--transition-speed) ease;
+        }
+        
+        /* --- Основной контент (Main Content) --- */
+        .main-content {
+            grid-area: main;
+            padding: 2rem;
+            background-color: var(--background-color);
+            transition: background-color var(--transition-speed) ease;
+        }
+        
+        /* --- Футер --- */
+        .footer {
+            grid-area: footer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 2rem;
+            background-color: var(--card-background);
+            border-top: 1px solid var(--border-color);
+            color: var(--text-color-light);
+            font-size: 0.9rem;
+            transition: all var(--transition-speed) ease;
+        }
+        
+        .footer-links a {
+            color: var(--text-color-light);
+            text-decoration: none;
+            margin-left: 1.5rem;
+            transition: color var(--transition-speed) ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+
+        /* --- Адаптивность --- */
+        @media (max-width: 768px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "header"
+                    "main"
+                    "footer";
+            }
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 1100;
+                height: 100vh;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+                box-shadow: 0 0 25px var(--shadow-color);
+            }
+            .app-container.sidebar-collapsed {
+                grid-template-columns: 1fr;
+            }
+            .search-bar { display: none; }
+        }
+
+    </style>
 </head>
-<body class="dark new-vyuka-layout">
+<body>
 
-    <div class="initial-loading-overlay" id="initial-loader">
-        <div class="loading-spinner">
-            <div class="spinner-blade"></div> <div class="spinner-blade"></div> <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div> <div class="spinner-blade"></div> <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div> <div class="spinner-blade"></div> <div class="spinner-blade"></div>
-            <div class="spinner-blade"></div> <div class="spinner-blade"></div> <div class="spinner-blade"></div>
-        </div>
-        <p class="loading-text" id="loading-text-anim"><span>N</span><span>A</span><span>Č</span><span>Í</span><span>T</span><span>Á</span><span>N</span><span>Í</span><span>&nbsp;</span><span>N</span><span>A</span><span>S</span><span>T</span><span>A</span><span>V</span><span>E</span><span>N</span><span>Í</span><span>.</span><span>.</span><span>.</span></p>
-    </div>
-
-    <div class="offline-banner" id="offline-banner"> <i class="fas fa-plug"></i> OFFLINE // SPOJENÍ ZTRACENO. </div>
-    
-    <div class="sidebar-overlay-ai" id="sidebar-overlay-ai-settings"></div>
-
-    <aside class="vyuka-sidebar-ai" id="vyuka-sidebar-settings">
-        <div class="vyuka-sidebar-ai-header">
-            <a href="/dashboard/dashboard.html" class="vyuka-sidebar-ai-logo">
-                <i class="fas fa-atom"></i> <span class="logo-text">Justax</span>
-            </a>
-        </div>
-        <ul class="vyuka-sidebar-ai-menu">
-            <li class="vyuka-sidebar-ai-item btn-tooltip" title="Nástěnka">
-                <a href="/dashboard/dashboard.html" class="vyuka-sidebar-ai-link">
-                    <i class="fas fa-tachometer-alt"></i> <span class="link-text">Nástěnka</span>
-                </a>
-            </li>
-            <li class="vyuka-sidebar-ai-item btn-tooltip" title="Procvičování">
-                <a href="/dashboard/procvicovani/main.html" class="vyuka-sidebar-ai-link">
-                    <i class="fas fa-laptop-code"></i> <span class="link-text">Procvičování</span>
-                </a>
-            </li>
-            <li class="vyuka-sidebar-ai-item btn-tooltip" title="Pokrok">
-                 <a href="/dashboard/pokrok.html" class="vyuka-sidebar-ai-link">
-                    <i class="fas fa-chart-line"></i> <span class="link-text">Pokrok</span>
-                </a>
-            </li>
-            <li class="vyuka-sidebar-ai-item btn-tooltip" title="Ocenění">
-                <a href="/dashboard/oceneni.html" class="vyuka-sidebar-ai-link">
-                    <i class="fas fa-medal"></i> <span class="link-text">Ocenění</span>
-                </a>
-            </li>
-            <li class="vyuka-sidebar-ai-item btn-tooltip" title="Databanka">
-                 <a href="/dashboard/materialy.html" class="vyuka-sidebar-ai-link">
-                     <i class="fas fa-database"></i> <span class="link-text">Databanka</span>
-                 </a>
-            </li>
-            <li class="vyuka-sidebar-ai-item btn-tooltip active" title="Nastavení Účtu">
-                <a href="/dashboard/settings.html" class="vyuka-sidebar-ai-link active">
-                    <i class="fas fa-cog"></i> <span class="link-text">Nastavení</span>
-                </a>
-            </li>
-             <li class="vyuka-sidebar-ai-item btn-tooltip" title="Veřejný Profil">
-                <a href="/dashboard/profile.html" class="vyuka-sidebar-ai-link" id="public-profile-link-sidebar">
-                    <i class="fas fa-user-astronaut"></i> <span class="link-text">Můj Profil</span>
-                </a>
-            </li>
-        </ul>
-        <div class="user-profile" style="margin: 1.5rem 0.5rem; background-color: rgba(var(--vyuka-bg-panel-rgb), 0.7); border-color: var(--vyuka-border-highlight); border-radius: var(--vyuka-card-radius);">
-            <div class="avatar-wrapper" data-decoration-key=""> 
-                <div class="user-avatar" id="sidebar-avatar">?</div>
+    <div class="app-container" id="app-container">
+        <aside class="sidebar" id="sidebar">
+            <div class="logo-details">
+                <i class="fas fa-graduation-cap icon"></i>
+                <span class="logo-name">Student</span>
             </div>
-            </div>
-        <div class="vyuka-sidebar-ai-footer">
-             &copy; <span id="currentYearSidebarSettings">2025</span> Justax Systems
-        </div>
-    </aside>
 
-    <div class="vyuka-page-container" id="settings-page-container">
-        <div class="vyuka-main-content-scrollable">
-            <header class="vyuka-header" id="settings-header">
-                <div class="vyuka-header-left">
-                     <button class="btn btn-icon-only sidebar-ai-desktop-toggle" id="sidebar-ai-desktop-toggle-settings" aria-label="Přepnout postranní panel" title="Přepnout postranní panel">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <button class="mobile-menu-toggle" id="main-mobile-menu-toggle-settings" aria-label="Otevřít hlavní menu">
-                         <i class="fas fa-bars"></i>
-                    </button>
-                    <div class="vyuka-header-page-title-container">
-                        <h1><i class="fas fa-user-cog"></i> Nastavení Účtu</h1>
-                        <p>Správa vašeho profilu a předvoleb</p>
-                    </div>
-                </div>
-                <div class="vyuka-header-right">
-                     <div class="user-menu-container">
-                        <div class="vyuka-header-user-display" id="vyuka-header-user-display">
-                            <div class="vyuka-header-user-avatar-wrapper">
-                                <img src="" alt="Avatar" id="vyuka-header-avatar" class="vyuka-header-avatar-img">
-                                </div>
-                            <div class="vyuka-header-user-details">
-                                <span class="vyuka-header-user-name" id="vyuka-header-user-name">Pilot</span>
-                                <span class="vyuka-header-user-title" id="vyuka-header-user-title">Vesmírný kadet</span>
-                            </div>
-                        </div>
-                        <div class="user-dropdown-menu" id="user-dropdown-menu">
-                             <ul class="user-dropdown-links">
-                                <li><a href="/dashboard/profile.html"><i class="fas fa-user-astronaut"></i> Veřejný Profil</a></li>
-                                <li><a href="/privacy-policy.html"><i class="fas fa-shield-alt"></i> Ochrana Údajů</a></li>
-                                <li><a href="/terms.html"><i class="fas fa-file-contract"></i> Podmínky Použití</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="notifications">
-                        <div class="notification-bell" id="notification-bell" title="Oznámení">
-                             <i class="far fa-bell"></i>
-                             <span class="notification-badge" id="notification-count">0</span>
-                        </div>
-                        <div class="notifications-dropdown-wrapper" id="notifications-dropdown">
-                             <div class="notifications-header">
-                                 <span class="notifications-title">PŘÍCHOZÍ SIGNÁLY</span>
-                                 <button class="mark-all-read-btn btn btn-secondary btn-sm" id="mark-all-read" disabled>Vymazat vše</button>
-                             </div>
-                             <div id="notifications-list">
-                                 <div id="no-notifications-msg" style="display: none; padding: 1rem; text-align: center; color: var(--vyuka-text-muted);">ŽÁDNÉ NOVÉ SIGNÁLY</div>
-                             </div>
-                             <div class="notifications-footer">
-                                 <a href="/dashboard/notifications.html" class="view-all-notifications-link">ZOBRAZIT ARCHIV</a>
-                             </div>
-                        </div>
-                     </div>
-                    <button id="logout-btn" title="Odhlásit se" class="btn btn-danger btn-sm">
-                        <i class="fas fa-power-off"></i> <span class="button-text-settings" style="margin-left: 0.5em;">Odhlásit</span>
-                    </button>
-                </div>
-            </header>
+            <ul class="nav-links">
+                <li>
+                    <a href="dashboard.html">
+                        <i class="fas fa-th-large icon"></i>
+                        <span class="link-name">Nástěnka</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="pokrok.html">
+                        <i class="fas fa-chart-line icon"></i>
+                        <span class="link-name">Můj pokrok</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="oceneni.html">
+                        <i class="fas fa-trophy icon"></i>
+                        <span class="link-name">Ocenění</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="plan/plan.html">
+                        <i class="fas fa-calendar-alt icon"></i>
+                        <span class="link-name">Učební plán</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="workspace/main.html">
+                        <i class="fas fa-pencil-ruler icon"></i>
+                        <span class="link-name">Procvičování</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="vyuka/vyuka.html">
+                        <i class="fas fa-robot icon"></i>
+                        <span class="link-name">Výuka s AI</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="community/profile.html">
+                        <i class="fas fa-users icon"></i>
+                        <span class="link-name">Komunita</span>
+                    </a>
+                </li>
+                <li class="active">
+                    <a href="settings.html">
+                        <i class="fas fa-cog icon"></i>
+                        <span class="link-name">Nastavení</span>
+                    </a>
+                </li>
+                 <li>
+                    <a href="#">
+                        <i class="fas fa-sign-out-alt icon"></i>
+                        <span class="link-name">Odhlásit se</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
 
-            <main class="vyuka-main-content" id="settings-main-area">
-                <div class="error-container" id="global-error-settings" style="display: none;"></div>
-
-                <section class="section profile-section">
-                    <div id="profile-content">
-                        <div class="profile-header">
-                            <div class="profile-avatar-level-container">
-                                <div class="profile-avatar" id="profile-avatar" title="Změnit profilový obrázek">
-                                     <span>?</span>
-                                     <div class="edit-avatar-overlay" id="edit-avatar-btn">
-                                        <i class="fas fa-camera-retro"></i>
-                                        <span>Změnit</span>
-                                    </div>
-                                </div>
-                                <div class="profile-level-xp-info">
-                                    <h2 class="profile-name" id="profile-name">Načítání...</h2>
-                                    <p class="profile-email" id="profile-email">Načítání...</p>
-                                    <div class="level-xp-widget-new">
-                                        <div class="level-display">
-                                            <span class="level-label">Úroveň</span>
-                                            <span class="level-value" id="profile-level-main">1</span>
-                                        </div>
-                                        <div class="xp-bar-container">
-                                            <div class="xp-bar-track">
-                                                <div class="xp-bar-progress" id="exp-progress-bar-fill" style="width: 0%;"></div>
-                                            </div>
-                                            <div class="xp-text">
-                                                <span id="exp-current-value">0</span> / <span id="exp-required-value">100</span> EXP
-                                                (<span id="exp-percentage">0</span>%)
-                                            </div>
-                                        </div>
-                                    </div>
-                                    </div>
-                            </div>
-                            <div class="profile-stats">
-                                <div class="stat-item">
-                                     <div class="stat-value" id="profile-points">0</div>
-                                     <div class="stat-label">Kredity <i class="fas fa-coins"></i></div>
-                                </div>
-                                <div class="stat-item">
-                                     <div class="stat-value" id="profile-badges">0</div>
-                                     <div class="stat-label">Odznaky <i class="fas fa-medal"></i></div>
-                                </div>
-                                <div class="stat-item">
-                                     <div class="stat-value" id="profile-streak">0</div>
-                                     <div class="stat-label">Série <i class="fas fa-fire"></i></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="profile-tabs">
-                            <div class="profile-tab active" data-tab="personal-info"> <i class="fas fa-user-edit"></i> Osobní údaje </div>
-                            <div class="profile-tab" data-tab="password"> <i class="fas fa-key"></i> Heslo </div>
-                            <div class="profile-tab" data-tab="preferences"> <i class="fas fa-sliders-h"></i> Nastavení </div>
-                        </div>
-
-                        <div class="tab-content active" id="personal-info">
-                             <h3 class="section-title">Upravit osobní údaje</h3>
-                             <form id="profile-form">
-                                <div class="form-row">
-                                    <div class="form-group"> <label class="form-label" for="first_name">Jméno</label> <input type="text" class="form-control" id="first_name" name="first_name" placeholder="Zadejte své jméno"> <div class="field-error" id="first_name-error"></div> </div>
-                                    <div class="form-group"> <label class="form-label" for="last_name">Příjmení</label> <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Zadejte své příjmení"> <div class="field-error" id="last_name-error"></div> </div>
-                                </div>
-                                <div class="form-group"> <label class="form-label" for="username">Uživatelské jméno</label> <input type="text" class="form-control" id="username" name="username" placeholder="Zadejte uživatelské jméno"> <div class="field-error" id="username-error"></div> </div>
-                                <div class="form-group"> <label class="form-label" for="email">E-mail</label> <input type="email" class="form-control" id="email" name="email" placeholder="Zadejte e-mail" disabled> </div>
-                                <div class="form-row">
-                                    <div class="form-group"> <label class="form-label" for="school">Škola</label> <input type="text" class="form-control" id="school" name="school" placeholder="Zadejte svou školu"> <div class="field-error" id="school-error"></div> </div>
-                                    <div class="form-group"> <label class="form-label" for="grade">Třída</label> <select class="form-control" id="grade" name="grade"> <option value="">Vyberte třídu</option> <option value="6">6. třída</option> <option value="7">7. třída</option> <option value="8">8. třída</option> <option value="9">9. třída</option> <option value="1_ss">1. ročník SŠ</option> <option value="2_ss">2. ročník SŠ</option> <option value="3_ss">3. ročník SŠ</option> <option value="4_ss">4. ročník SŠ</option> <option value="other">Jiná / Mimo školu</option> </select> <div class="field-error" id="grade-error"></div> </div>
-                                </div>
-                                <div class="form-group"> <label class="form-label" for="bio">O mně</label> <textarea class="form-control" id="bio" name="bio" rows="4" placeholder="Napište něco o sobě (nepovinné)"></textarea> <div class="field-error" id="bio-error"></div> </div>
-                                <button type="submit" class="btn" id="save-profile-btn"> <i class="fas fa-save"></i> Uložit změny </button>
-                            </form>
-                        </div>
-
-                        <div class="tab-content" id="password">
-                            <h3 class="section-title">Změnit heslo</h3>
-                            <form id="password-form">
-                                 <div class="form-group"> <label class="form-label" for="current_password">Současné heslo</label> <input type="password" class="form-control" id="current_password" name="current_password" placeholder="Zadejte současné heslo" autocomplete="current-password"> <div class="field-error" id="current_password-error"></div> </div>
-                                <div class="form-group"> <label class="form-label" for="new_password">Nové heslo</label> <input type="password" class="form-control" id="new_password" name="new_password" placeholder="Minimálně 8 znaků" autocomplete="new-password"> <div class="field-error" id="new_password-error"></div> </div>
-                                <div class="form-group"> <label class="form-label" for="confirm_password">Potvrzení hesla</label> <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Zadejte nové heslo znovu" autocomplete="new-password"> <div class="field-error" id="confirm_password-error"></div> </div>
-                                <button type="submit" class="btn" id="save-password-btn"> <i class="fas fa-key"></i> Změnit heslo </button>
-                            </form>
-                        </div>
-
-                        <div class="tab-content" id="preferences">
-                            <h3 class="section-title">Upravit nastavení</h3>
-                            <div class="settings-group">
-                                <h4 class="settings-title"><i class="fas fa-palette"></i> Vzhled a jazyk</h4>
-                                <div class="toggle-switch">
-                                    <div>
-                                        <div class="toggle-label">Tmavý režim</div>
-                                        <div class="toggle-desc">Přepnout na tmavé barevné schéma</div>
-                                    </div>
-                                    <label class="switch"> <input type="checkbox" id="dark_mode"> <span class="slider"></span> </label>
-                                </div>
-                                <div class="form-group" style="margin-top: 1.5rem;">
-                                    <label class="form-label" for="language">Jazyk rozhraní</label>
-                                    <select class="form-control" id="language" name="language"> <option value="cs">Čeština</option> <option value="en">English</option> <option value="sk">Slovenčina</option> </select>
-                                </div>
-                            </div>
-
-                            <div class="settings-group">
-                                <h4 class="settings-title"><i class="fas fa-bullseye"></i> Studijní cíl</h4>
-                                <div class="form-group">
-                                    <label class="form-label" for="learning_goal">Hlavní studijní cíl</label>
-                                    <select class="form-control" id="learning_goal" name="learning_goal">
-                                        <option value="">Vyberte svůj hlavní cíl...</option>
-                                        <option value="exam_prep">Příprava na přijímačky</option>
-                                        <option value="math_accelerate">Učení napřed (Matematika)</option>
-                                        <option value="math_review">Doplnění mezer (Matematika)</option>
-                                        <option value="math_explore">Volné prozkoumávání (Matematika)</option>
-                                    </select>
-                                    <div class="field-error" id="learning_goal-error"></div>
-                                    <p class="form-hint" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">Změna cíle může ovlivnit váš aktuální studijní plán a doporučení. Může být vyžadován nový diagnostický test.</p>
-                                </div>
-                                <div id="goal-details-container" style="display:none; margin-top: 1rem;">
-                                    <div id="goal-details-math_accelerate" class="goal-specific-details" style="display:none;">
-                                        <div class="form-group">
-                                            <label class="form-label" for="accelerate_grade_profile">Aktuální ročník (pro učení napřed)</label>
-                                            <select class="form-control" id="accelerate_grade_profile" name="accelerate_grade_profile">
-                                                <option value="">Vyberte ročník...</option>
-                                                <option value="zs5">5. třída ZŠ</option>
-                                                <option value="zs6">6. třída ZŠ</option>
-                                                <option value="zs7">7. třída ZŠ</option>
-                                                <option value="zs8">8. třída ZŠ</option>
-                                                <option value="zs9">9. třída ZŠ</option>
-                                                <option value="ss1">1. ročník SŠ</option>
-                                                <option value="ss2">2. ročník SŠ</option>
-                                                <option value="ss3">3. ročník SŠ</option>
-                                                <option value="ss4">4. ročník SŠ</option>
-                                            </select>
-                                        </div>
-                                         <div class="form-group">
-                                            <label class="form-label" for="accelerate_intensity_profile">Preferovaná intenzita</label>
-                                            <select class="form-control" id="accelerate_intensity_profile" name="accelerate_intensity_profile">
-                                                <option value="low">Nízká (volnější tempo)</option>
-                                                <option value="medium" selected>Střední (pravidelné studium)</option>
-                                                <option value="high">Vysoká (intenzivní příprava)</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div id="goal-details-math_review" class="goal-specific-details" style="display:none;">
-                                        <div class="form-group">
-                                            <label class="form-label" for="review_grade_profile">Aktuální ročník (pro doplnění mezer)</label>
-                                            <select class="form-control" id="review_grade_profile" name="review_grade_profile">
-                                                <option value="">Vyberte ročník...</option>
-                                                <option value="zs5">5. třída ZŠ</option>
-                                                <option value="zs6">6. třída ZŠ</option>
-                                                <option value="zs7">7. třída ZŠ</option>
-                                                <option value="zs8">8. třída ZŠ</option>
-                                                <option value="zs9">9. třída ZŠ</option>
-                                                <option value="ss1">1. ročník SŠ</option>
-                                                <option value="ss2">2. ročník SŠ</option>
-                                                <option value="ss3">3. ročník SŠ</option>
-                                                <option value="ss4">4. ročník SŠ</option>
-                                            </select>
-                                        </div>
-                                        </div>
-                                </div>
-                            </div>
-
-                            <div class="settings-group">
-                                <h4 class="settings-title"><i class="fas fa-bell"></i> Oznámení</h4>
-                                <div class="toggle-switch">
-                                    <div>
-                                        <div class="toggle-label">E-mailová oznámení</div>
-                                        <div class="toggle-desc">Zasílat důležité informace e-mailem</div>
-                                    </div>
-                                    <label class="switch"> <input type="checkbox" id="email_notifications"> <span class="slider"></span> </label>
-                                </div>
-                                <div class="toggle-switch">
-                                    <div>
-                                        <div class="toggle-label">Studijní tipy</div>
-                                        <div class="toggle-desc">Zasílat tipy pro efektivní studium</div>
-                                    </div>
-                                    <label class="switch"> <input type="checkbox" id="study_tips"> <span class="slider"></span> </label>
-                                </div>
-                                <div class="toggle-switch">
-                                    <div>
-                                        <div class="toggle-label">Aktualizace obsahu</div>
-                                        <div class="toggle-desc">Oznámení o novém obsahu na platformě</div>
-                                    </div>
-                                    <label class="switch"> <input type="checkbox" id="content_updates"> <span class="slider"></span> </label>
-                                </div>
-                                <div class="toggle-switch">
-                                    <div>
-                                        <div class="toggle-label">Připomenutí cvičení</div>
-                                        <div class="toggle-desc">Připomínat pravidelné procvičování</div>
-                                    </div>
-                                    <label class="switch"> <input type="checkbox" id="practice_reminders"> <span class="slider"></span> </label>
-                                </div>
-                            </div>
-                            <button type="button" class="btn" id="save-preferences-btn"> <i class="fas fa-save"></i> Uložit nastavení </button>
-                            
-                            <div class="danger-zone">
-                                <h4 class="danger-zone-title"><i class="fas fa-biohazard"></i> Nebezpečná zóna</h4>
-                                <p class="danger-zone-desc">Tato akce je nevratná. Smazáním účtu přijdete o všechna data, statistiky a studijní pokrok.</p>
-                                <button type="button" class="btn btn-danger" id="delete-account-btn"> <i class="fas fa-skull-crossbones"></i> Smazat můj účet </button>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </main>
-
-            <footer class="main-footer vyuka-footer">
-                <div class="container">
-                    <div class="footer-grid">
-                        <div class="footer-column">
-                            <a href="/dashboard/dashboard.html" class="logo" aria-label="Justax Domů">
-                                <i class="fas fa-atom" aria-hidden="true"></i> <span>JUSTAX</span>
-                            </a>
-                            <p>AI Augmentace Vzdělávání a Osobního Rozvoje.</p>
-                            <div class="social-links" aria-label="Sociální sítě">
-                                 <a href="https://t.me/justaxspace" class="social-link" aria-label="Telegram" target="_blank" rel="noopener noreferrer"><i class="fab fa-telegram-plane" aria-hidden="true"></i></a>
-                                 <a href="https://www.instagram.com/learnwithjustax/" class="social-link" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram" aria-hidden="true"></i></a>
-                                 <a href="mailto:admin@justax.space" class="social-link" aria-label="Email"><i class="fas fa-envelope" aria-hidden="true"></i></a>
-                            </div>
-                        </div>
-                        <div class="footer-column">
-                            <h3>Účet &amp; Dashboard</h3>
-                            <ul class="footer-links">
-                                <li><a href="/auth/"><i class="fas fa-sign-in-alt" aria-hidden="true"></i> Přihlášení / Registrace</a></li>
-                                <li><a href="/dashboard/dashboard.html"><i class="fas fa-tachometer-alt" aria-hidden="true"></i> Hlavní Panel</a></li>
-                                <li><a href="/dashboard/profile.html"><i class="fas fa-user-astronaut" aria-hidden="true"></i> Můj Profil</a></li>
-                                <li><a href="/dashboard/pokrok.html"><i class="fas fa-chart-line" aria-hidden="true"></i> Sledování Pokroku</a></li>
-                                <li><a href="/dashboard/oceneni.html"><i class="fas fa-medal" aria-hidden="true"></i> Moje Ocenění</a></li>
-                            </ul>
-                        </div>
-                        <div class="footer-column">
-                            <h3>Právní &amp; Podpora</h3>
-                            <ul class="footer-links">
-                                <li><a href="/privacy-policy.html"><i class="fas fa-shield-alt" aria-hidden="true"></i> Ochrana Údajů</a></li>
-                                <li><a href="/terms.html"><i class="fas fa-file-contract" aria-hidden="true"></i> Podmínky Použití</a></li>
-                                <li><a href="mailto:admin@justax.space"><i class="fas fa-headset" aria-hidden="true"></i> Zákaznická Podpora</a></li>
-                                <li><span class="icon-text-item"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> Centrála: Cheb, CZ</span></li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="footer-copyright">
-                        &copy; <span id="currentYearFooterSettings">2025</span> Justax Systems. Všechna práva vyhrazena. Kyber-verze.
-                    </div>
-                </div>
-            </footer>
-        </div>
-    </div>
-
-    <div class="modal" id="avatar-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Změnit profilový obrázek</h2>
-                <button type="button" class="modal-close" data-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="avatar-upload">
-                    <div class="avatar-preview" id="avatar-preview">
-                        <span>?</span>
-                    </div>
-
-                    <div class="file-upload">
-                        <button type="button" class="btn btn-outline" id="select-avatar-file-btn">
-                              <i class="fas fa-upload"></i> Vybrat soubor
-                         </button>
-                         <input type="file" id="avatar-upload" accept="image/jpeg, image/png, image/gif" style="display: none;">
-                    </div>
-                    <p class="avatar-hint">Nebo vyberte z galerie</p>
-
-                    <hr class="section-divider">
-
-                    <h4 class="builtin-avatars-title">Vestavěné avatary</h4>
-                    <div id="builtin-avatar-grid">
-                        </div>
-                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 1.5rem;">
-                        Podporované formáty pro nahrání: JPG, PNG, GIF. Max. velikost: 2MB.
-                    </p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Zrušit</button>
-                <button type="button" class="btn" id="save-avatar-btn" disabled>
-                    <i class="fas fa-save"></i> Uložit obrázek
+        <header class="top-panel">
+            <div class="top-panel-left">
+                <button id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
                 </button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="delete-account-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Opravdu smazat účet?</h2>
-                <button type="button" class="modal-close" data-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Tato akce je <strong>nevratná</strong>. Všechna vaše data, včetně pokroku, statistik a nastavení, budou trvale odstraněna.</p>
-                <p>Pro potvrzení smazání zadejte své aktuální heslo:</p>
-                <div class="form-group" style="margin-top: 1rem;">
-                    <input type="password" class="form-control" id="confirm-delete-password" placeholder="Vaše aktuální heslo" autocomplete="current-password">
-                    <div class="field-error" id="confirm-delete-password-error"></div>
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Hledat...">
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Zrušit</button>
-                <button type="button" class="btn btn-danger" id="confirm-delete-account-btn"> <i class="fas fa-skull-crossbones"></i> Ano, smazat účet </button>
+            <div class="top-panel-right">
+                <button class="icon-button" aria-label="Notifikace">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </button>
+                <div class="user-profile">
+                    <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="User Avatar">
+                    <span>Jan Novák</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
             </div>
-        </div>
+        </header>
+
+        <main class="main-content">
+            <div class="settings-page">
+                <h1 class="settings-header">Nastavení účtu</h1>
+                <p class="settings-subheader">Spravujte informace o svém profilu, nastavení soukromí a předvolby aplikace.</p>
+                
+                <div class="card">
+                    <h2 class="card-title">Profilové informace</h2>
+                    <form id="profile-settings-form">
+                        <div class="form-group avatar-upload">
+                            <img src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="Current Avatar" class="current-avatar">
+                            <div>
+                                <label for="avatar">Změnit profilový obrázek</label>
+                                <p class="form-hint">PNG, JPG nebo GIF, max. 5MB.</p>
+                                <input type="file" id="avatar" name="avatar" accept="image/*">
+                            </div>
+                        </div>
+                        <div class="form-group-grid">
+                            <div class="form-group">
+                                <label for="fullname">Celé jméno</label>
+                                <input type="text" id="fullname" name="fullname" value="Jan Novák" placeholder="Vaše celé jméno">
+                            </div>
+                            <div class="form-group">
+                                <label for="username">Uživatelské jméno</label>
+                                <input type="text" id="username" name="username" value="jannovak" placeholder="Vaše uživatelské jméno">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">E-mailová adresa</label>
+                            <input type="email" id="email" name="email" value="jan.novak@example.com" placeholder="Váš e-mail">
+                        </div>
+                        <div class="form-group">
+                            <label for="bio">Bio</label>
+                            <textarea id="bio" name="bio" rows="4" placeholder="Řekněte nám něco o sobě...">Jsem nadšený student, který se chce neustále zlepšovat a učit se novým věcem.</textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Uložit změny</button>
+                            <button type="reset" class="btn btn-secondary">Zrušit</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Zabezpečení</h2>
+                    <form id="security-settings-form">
+                        <div class="form-group">
+                            <label for="current-password">Současné heslo</label>
+                            <input type="password" id="current-password" name="current-password">
+                        </div>
+                         <div class="form-group-grid">
+                            <div class="form-group">
+                                <label for="new-password">Nové heslo</label>
+                                <input type="password" id="new-password" name="new-password">
+                            </div>
+                            <div class="form-group">
+                                <label for="confirm-password">Potvrdit nové heslo</label>
+                                <input type="password" id="confirm-password" name="confirm-password">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Změnit heslo</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2 class="card-title">Předvolby</h2>
+                     <div class="setting-item">
+                        <div>
+                            <h3 class="setting-item-title">E-mailové notifikace</h3>
+                            <p class="setting-item-desc">Dostávat e-maily o aktivitě na účtu a aktualizacích.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div>
+                            <h3 class="setting-item-title">Push notifikace</h3>
+                            <p class="setting-item-desc">Dostávat push notifikace na tomto zařízení.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <div>
+                            <h3 class="setting-item-title">Tmavý režim</h3>
+                            <p class="setting-item-desc">Přepnout mezi světlým a tmavým vzhledem.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="theme-switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-copyright">
+                &copy; 2025 Student Dashboard. Všechna práva vyhrazena.
+            </div>
+            <div class="footer-links">
+                <a href="#">Podmínky služby</a>
+                <a href="#">Ochrana osobních údajů</a>
+                <a href="#">Kontakt</a>
+            </div>
+        </footer>
     </div>
 
-    <div class="toast-container" id="toast-container"></div>
-    <div id="mouse-follower" class="mouse-follower-glow"></div>
 
-    <script src="settings.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('sidebar');
+            const appContainer = document.getElementById('app-container');
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            
+            // --- Логика сворачивания/разворачивания боковой панели ---
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('collapsed');
+                    appContainer.classList.toggle('sidebar-collapsed');
+
+                    // Сохраняем состояние в localStorage
+                    if (sidebar.classList.contains('collapsed')) {
+                        localStorage.setItem('sidebarCollapsed', 'true');
+                    } else {
+                        localStorage.removeItem('sidebarCollapsed');
+                    }
+                });
+            }
+
+            // Проверяем состояние при загрузке страницы
+            if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                sidebar.classList.add('collapsed');
+                appContainer.classList.add('sidebar-collapsed');
+            }
+
+            // --- Логика переключения темы (Светлая/Темная) ---
+            const themeSwitch = document.getElementById('theme-switch');
+            if(themeSwitch) {
+                themeSwitch.addEventListener('change', () => {
+                    document.body.classList.toggle('dark-mode');
+                    
+                    // Сохраняем тему в localStorage
+                    if (document.body.classList.contains('dark-mode')) {
+                        localStorage.setItem('theme', 'dark');
+                    } else {
+                        localStorage.setItem('theme', 'light');
+                    }
+                });
+            }
+            
+            // Проверяем тему при загрузке страницы
+            const currentTheme = localStorage.getItem('theme');
+            if (currentTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                if(themeSwitch) themeSwitch.checked = true;
+            }
+
+            // Для мобильных устройств - открытие/закрытие по клику
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile && sidebarToggle) {
+                 sidebarToggle.addEventListener('click', (e) => {
+                    // Предотвращаем двойное срабатывание логики
+                    e.stopPropagation(); 
+                    sidebar.classList.toggle('open');
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== sidebarToggle) {
+                         sidebar.classList.remove('open');
+                    }
+                });
+            }
+
+        });
+    </script>
     
+    <script src="js/settings.js"></script>
+
 </body>
 </html>
