@@ -15,15 +15,13 @@
     <style>
         /*
          * ==============================================
-         * CSS: Cosmic Neuro v8.0 - Aurum Galaxy Overhaul
+         * CSS: Cosmic Neuro v9.0 - "Stardust" Edition
          * ==============================================
-         * - Nový "cyber" design tlačítek.
-         * - Vylepšený a plně funkční header.
-         * - Dynamičtější sidebar a footer.
-         * - Nové "galactic gold" pozadí a animace.
+         * - Улучшенная типографика сайдбара (шрифт и размер).
+         * - Улучшенная фоновая анимация с эффектом мерцающих звезд.
          */
 
-        /* --- :root - GLOBÁLNÍ PROMĚNNÉ --- */
+        /* --- :root - ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ --- */
         :root {
             --cn-bg-dark: #040308;
             --cn-bg-dark-rgb: 4, 3, 8;
@@ -81,11 +79,29 @@
         body.new-vyuka-layout::before {
             content: ''; position: fixed; inset: 0; z-index: -2;
             background:
-                radial-gradient(ellipse at 15% 85%, rgba(var(--cn-accent-primary-rgb), 0.2) 0%, transparent 60%),
-                radial-gradient(ellipse at 85% 15%, rgba(var(--cn-accent-secondary-rgb), 0.18) 0%, transparent 55%);
+                radial-gradient(ellipse at 15% 85%, rgba(var(--cn-accent-primary-rgb), 0.25) 0%, transparent 60%),
+                radial-gradient(ellipse at 85% 15%, rgba(var(--cn-accent-secondary-rgb), 0.22) 0%, transparent 55%);
             animation: bg-lights-pan 35s ease-in-out infinite alternate;
         }
         @keyframes bg-lights-pan { from { transform: translate(-5%, -10%) rotate(-5deg); } to { transform: translate(5%, 10%) rotate(5deg); } }
+
+        body.new-vyuka-layout::after {
+            content: ''; position: fixed; inset: 0;
+            background-image: 
+                radial-gradient(1px 1px at 20% 30%, white, transparent),
+                radial-gradient(1px 1px at 80% 70%, white, transparent),
+                radial-gradient(2px 2px at 50% 50%, #fff, transparent),
+                radial-gradient(2px 2px at 10% 90%, #eee, transparent),
+                radial-gradient(1px 1px at 90% 10%, #fff, transparent);
+            background-size: 300px 300px;
+            animation: twinkle 10s linear infinite;
+            z-index: -1;
+        }
+        @keyframes twinkle {
+            0% { opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0; }
+        }
         
         .vyuka-page-container { flex-grow: 1; margin-left: var(--cn-sidebar-width-collapsed); display: flex; flex-direction: column; height: 100vh; transition: margin-left 0.4s var(--cn-timing-function); overflow: hidden; background: rgba(var(--cn-bg-dark-rgb), 0.4); }
         .vyuka-sidebar-ai.expanded ~ .vyuka-page-container { margin-left: var(--cn-sidebar-width-expanded); }
@@ -111,14 +127,16 @@
         .vyuka-sidebar-ai-logo { display: flex; align-items: center; gap: 0.8rem; color: #fff; text-decoration: none; font-size: 1.5rem; font-family: var(--cn-font-accent); }
         .vyuka-sidebar-ai-logo i { color: var(--cn-accent-secondary); text-shadow: 0 0 10px var(--cn-accent-secondary); transition: transform 0.4s ease; }
         .vyuka-sidebar-ai-logo:hover i { transform: rotate(360deg) scale(1.1); }
+        .vyuka-sidebar-ai .logo-text { font-family: var(--cn-font-accent) !important; font-weight: 400 !important; font-size: 1.25em !important; }
         .vyuka-sidebar-ai .link-text, .vyuka-sidebar-ai .logo-text { opacity: 0; visibility: hidden; max-width: 0; overflow: hidden; white-space: nowrap; transition: opacity 0.2s ease, max-width 0.3s ease, visibility 0s 0.3s; }
         .vyuka-sidebar-ai.expanded .link-text, .vyuka-sidebar-ai.expanded .logo-text { opacity: 1; visibility: visible; max-width: 150px; transition-delay: 0.1s, 0.1s, 0s; }
         .vyuka-sidebar-ai-menu { list-style: none; padding: 0; margin: 0; flex-grow: 1; }
-        .vyuka-sidebar-ai-link { display: flex; align-items: center; padding: 1rem 1.5rem; color: var(--cn-text-secondary); text-decoration: none; position: relative; overflow: hidden; border-radius: 6px; margin: 0.3rem 0.5rem; transition: all 0.3s ease; }
-        .vyuka-sidebar-ai-link i { font-size: 1.1rem; width: 24px; text-align: center; margin-right: 1.5rem; transition: all 0.3s ease; flex-shrink: 0; }
+        .vyuka-sidebar-ai-link { display: flex; align-items: center; padding: 1rem 1.5rem; color: var(--cn-text-secondary); text-decoration: none; position: relative; overflow: hidden; border-radius: 6px; margin: 0.3rem 0.5rem; transition: all 0.3s ease; font-family: var(--cn-font-heading); }
+        .vyuka-sidebar-ai-link .link-text { font-size: 1.1rem; }
+        .vyuka-sidebar-ai-link i { font-size: 1.3rem; width: 24px; text-align: center; margin-right: 1.5rem; transition: all 0.3s ease; flex-shrink: 0; }
         .vyuka-sidebar-ai.expanded .vyuka-sidebar-ai-link i { margin-right: 1rem; }
         .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link { justify-content: center; }
-        .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link i { margin-right: 0; font-size: 1.3rem; }
+        .vyuka-sidebar-ai:not(.expanded) .vyuka-sidebar-ai-link i { margin-right: 0; font-size: 1.5rem; }
         .vyuka-sidebar-ai-link:hover:not(.active) { color: #fff; background-color: rgba(var(--cn-accent-primary-rgb), 0.1); }
         .vyuka-sidebar-ai-link.active::before { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: var(--cn-accent-secondary); border-radius: 0 4px 4px 0; box-shadow: var(--cn-glow-secondary); animation: active-marker-pulse 2s infinite; }
         @keyframes active-marker-pulse { 50% { box-shadow: 0 0 20px var(--cn-accent-secondary); } }
@@ -244,7 +262,7 @@
                 <button class="mobile-menu-toggle" id="mobile-menu-toggle-test"><i class="fas fa-bars"></i></button>
                 <button class="sidebar-ai-desktop-toggle" id="sidebar-toggle-test" title="Sbalit panel"><i class="fas fa-chevron-left"></i></button>
                 <div class="vyuka-header-page-title-container">
-                    <h1>Aurum Galaxy v8</h1>
+                    <h1>Aurum Galaxy v9</h1>
                     <p>Prostředí pro testování a vylepšování UI komponent.</p>
                 </div>
             </div>
