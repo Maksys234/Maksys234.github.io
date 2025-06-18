@@ -170,6 +170,7 @@
         .vyuka-header-user-name { font-weight: 700; color: #fff; }
         .vyuka-header-user-title { font-size: 0.8rem; color: var(--cn-accent-secondary); }
         .user-dropdown-menu { position: absolute; top: calc(100% + 12px); right: 0; background-color: var(--cn-bg-panel); border: 1px solid var(--cn-border-color); border-radius: var(--cn-card-radius); box-shadow: 0 8px 25px rgba(0,0,0,0.6); width: 230px; padding: 0.5rem 0; opacity: 0; visibility: hidden; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease, visibility 0s 0.3s; }
+        .user-menu-container .vyuka-header-user-display.active + .user-dropdown-menu,
         .user-menu-container:hover .user-dropdown-menu, .user-menu-container:focus-within .user-dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); transition-delay: 0s; }
         .user-dropdown-links { list-style: none; padding: 0; margin: 0; }
         .user-dropdown-links li a { display: flex; align-items: center; gap: 0.8rem; padding: 0.7rem 1.2rem; color: var(--cn-text-secondary); text-decoration: none; transition: all 0.2s ease; }
@@ -401,11 +402,41 @@
 
     <script>
         // ====================================================
-        // |  INTEGROVANÝ JAVASCRIPT: supabase-client.js, ui-helpers.js, profile.js
+        // |  INTEGROVANÝ JAVASCRIPT s OPRAVOU SCOPE
         // ====================================================
         document.addEventListener('DOMContentLoaded', () => {
 
             const Justax = {};
+
+            // --- Globální pomocné funkce (přesunuty sem pro sdílený scope) ---
+            const sanitizeHTML = (str) => { const t = document.createElement('div'); t.textContent = str || ''; return t.innerHTML; };
+            const getInitials = (p, e) => { if (!p && !e) return '?'; let i = ''; if (p?.first_name) i += p.first_name[0]; if (p?.last_name) i += p.last_name[0]; if (i) return i.toUpperCase(); if (p?.username) return p.username[0].toUpperCase(); if (e) return e[0].toUpperCase(); return 'U'; };
+            const formatDate = (dateString) => { if (!dateString) return 'Neznámé datum'; try { return new Date(dateString).toLocaleDateString('cs-CZ', { day: 'numeric', month: 'long', year: 'numeric' }); } catch (e) { return 'Neplatné datum'; } };
+            const formatRelativeTime = (timestamp) => { if (!timestamp) return ''; try { const now = new Date(); const date = new Date(timestamp); const diffSec = Math.round((now - date) / 1000); if (diffSec < 60) return 'právě teď'; const diffMin = Math.round(diffSec / 60); if (diffMin < 60) return `před ${diffMin} min.`; const diffHour = Math.round(diffMin / 60); if (diffHour < 24) return `před ${diffHour} hod.`; const diffDay = Math.round(diffHour / 24); if (diffDay === 1) return `včera`; if (diffDay < 7) return `před ${diffDay} dny`; return date.toLocaleDateString('cs-CZ'); } catch (e) { return '-'; } };
+            const showToast = (title, message, type = 'info', duration = 4500) => {
+                const toastContainer = document.getElementById('toast-container');
+                if (!toastContainer) { console.warn("Toast container not found."); return; }
+                try {
+                    const toastId = `toast-${Date.now()}`; const toastElement = document.createElement('div');
+                    toastElement.className = `toast ${type}`; toastElement.id = toastId; toastElement.setAttribute('role', 'alert'); toastElement.setAttribute('aria-live', 'assertive');
+                    toastElement.innerHTML = `<i class="toast-icon"></i><div class="toast-content">${title ? `<div class="toast-title">${sanitizeHTML(title)}</div>` : ''}<div class="toast-message">${sanitizeHTML(message)}</div></div><button type="button" class="toast-close" aria-label="Zavřít">&times;</button>`;
+                    const icon = toastElement.querySelector('.toast-icon');
+                    icon.className = `toast-icon fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-triangle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}`;
+                    toastElement.querySelector('.toast-close').addEventListener('click', () => { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); });
+                    toastContainer.appendChild(toastElement);
+                    requestAnimationFrame(() => { toastElement.classList.add('show'); });
+                    setTimeout(() => { if (toastElement.parentElement) { toastElement.classList.remove('show'); setTimeout(() => toastElement.remove(), 400); } }, duration);
+                } catch (e) { console.error("Chyba při zobrazování toastu:", e); }
+            };
+            const showError = (message, isGlobal = false) => {
+                console.error("Došlo k chybě:", message);
+                const errorContainer = isGlobal ? document.getElementById('global-error') : document.getElementById('profile-view-container');
+                if (errorContainer) {
+                    errorContainer.innerHTML = `<div class="error-message card" style="text-align:center; padding: 2rem;"><i class="fas fa-broadcast-tower"></i><div><strong>Signál ztracen.</strong><br>${sanitizeHTML(message)}</div><button class="btn btn-secondary" style="margin-top:1rem;" onclick="window.location.href='/dashboard/dashboard.html'">Zpět na Nástěnku</button></div>`;
+                    errorContainer.style.display = 'block';
+                    if(document.getElementById('profile-view-container')) document.getElementById('profile-view-container').style.display = 'block';
+                } else { showToast('CHYBA', message, 'error'); }
+            };
 
             // --- Supabase Client (ze supabase-client.js) ---
             Justax.initSupabase = function() {
@@ -448,21 +479,19 @@
                     if (uiCache.sidebar) uiCache.sidebar.classList.toggle('active-mobile');
                     if (uiCache.sidebarOverlay) uiCache.sidebarOverlay.classList.toggle('active');
                 };
-                const sanitize = (str) => { const t = document.createElement('div'); t.textContent = str || ''; return t.innerHTML; };
-                const getInitials = (p, e) => { if (!p && !e) return '?'; let i = ''; if (p?.first_name) i += p.first_name[0]; if (p?.last_name) i += p.last_name[0]; if (i) return i.toUpperCase(); if (p?.username) return p.username[0].toUpperCase(); if (e) return e[0].toUpperCase(); return 'U'; };
-
+                
                 function updateHeaderProfile(profile, titles) {
                     if (!profile) { uiCache.headerUserName.textContent = "Nepřihlášen"; uiCache.headerUserTitle.textContent = "Host"; uiCache.headerAvatarWrapper.innerHTML = `<span>?</span>`; return; }
                     const displayName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || profile.username || profile.email.split('@')[0];
-                    uiCache.headerUserName.textContent = sanitize(displayName);
+                    uiCache.headerUserName.textContent = sanitizeHTML(displayName);
                     const initials = getInitials(profile, profile.email);
                     if (profile.avatar_url) {
-                        uiCache.headerAvatarWrapper.innerHTML = `<img src="${sanitize(profile.avatar_url)}?t=${Date.now()}" alt="Avatar" class="vyuka-header-avatar-img">`;
+                        uiCache.headerAvatarWrapper.innerHTML = `<img src="${sanitizeHTML(profile.avatar_url)}?t=${Date.now()}" alt="Avatar" class="vyuka-header-avatar-img">`;
                         uiCache.headerAvatarWrapper.querySelector('img').onerror = () => { uiCache.headerAvatarWrapper.innerHTML = `<span>${initials}</span>`; };
                     } else { uiCache.headerAvatarWrapper.innerHTML = `<span>${initials}</span>`; }
                     let displayTitle = 'Pilot';
                     if (profile.selected_title && titles?.length > 0) { const found = titles.find(t => t.title_key === profile.selected_title); if (found) displayTitle = found.name; }
-                    uiCache.headerUserTitle.textContent = sanitize(displayTitle);
+                    uiCache.headerUserTitle.textContent = sanitizeHTML(displayTitle);
                 }
 
                 function setupEventListeners() {
