@@ -12,9 +12,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        /* ---------------------------------- */
-        /* 1. Глобальные стили        */
-        /* ---------------------------------- */
+        /* ====================================================
+        |  Глобальные настройки и переменные (Global/Base) |
+        ====================================================
+        */
         :root {
             --bg-color: #1a1a2e;
             --sidebar-bg: rgba(22, 22, 40, 0.7);
@@ -49,7 +50,7 @@
             font-family: var(--font-main);
             background-color: var(--bg-color);
             color: var(--text-primary);
-            overflow: hidden; /* Предотвращает прокрутку всего body */
+            overflow: hidden;
         }
 
         a {
@@ -74,10 +75,16 @@
             background-color: var(--primary-accent);
             border-radius: 10px;
         }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-        /* ---------------------------------- */
-        /* 2. Структура макета       */
-        /* ---------------------------------- */
+        /* ====================================================
+        |  1. СТИЛИ МАКЕТА (из layout.css)                  |
+        ====================================================
+        */
         .app-container {
             display: grid;
             grid-template-columns: 260px 1fr;
@@ -104,74 +111,31 @@
             backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--border-color);
         }
-        
-        .top-panel .search-bar {
-            position: relative;
-        }
-
-        .top-panel .search-bar input {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 8px 15px 8px 40px;
-            color: var(--text-primary);
-            width: 300px;
-            transition: all var(--transition-speed) ease;
-        }
-        .top-panel .search-bar input:focus {
-            outline: none;
-            border-color: var(--secondary-accent);
-            box-shadow: 0 0 15px rgba(112, 111, 211, 0.3);
-        }
-
-        .top-panel .search-bar i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
-        }
 
         .top-panel-user {
             display: flex;
             align-items: center;
             gap: 1.5rem;
         }
-        
-        .top-panel-user .icon-button {
-            font-size: 1.2rem;
-            color: var(--text-secondary);
-            background: none;
-            border: none;
-            cursor: pointer;
-            position: relative;
-        }
-        .top-panel-user .icon-button .notification-dot {
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            width: 8px;
-            height: 8px;
-            background-color: var(--success-color);
-            border-radius: 50%;
-            border: 2px solid var(--top-panel-bg);
-        }
 
         .user-menu {
             position: relative;
         }
+
         .user-menu-toggle {
             display: flex;
             align-items: center;
             gap: 10px;
             cursor: pointer;
         }
+
         .user-menu-toggle img {
             width: 40px;
             height: 40px;
             border-radius: 50%;
             border: 2px solid var(--secondary-accent);
         }
+
         .user-menu-toggle span {
             font-weight: 500;
         }
@@ -191,11 +155,13 @@
             transition: all var(--transition-speed) ease;
             z-index: 1001;
         }
+
         .user-menu-dropdown.active {
             opacity: 1;
             visibility: visible;
             transform: translateY(0);
         }
+
         .user-menu-dropdown a {
             display: flex;
             align-items: center;
@@ -203,10 +169,12 @@
             padding: 12px 15px;
             color: var(--text-secondary);
         }
+
         .user-menu-dropdown a:hover {
             background-color: var(--primary-accent);
             color: var(--text-primary);
         }
+        
         .user-menu-dropdown a i {
             width: 20px;
             text-align: center;
@@ -239,24 +207,9 @@
             font-weight: 700;
             color: var(--text-primary);
         }
+
         .sidebar-logo i {
             color: var(--secondary-accent);
-        }
-
-        #sidebar-toggle {
-            background: none;
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all var(--transition-speed) ease;
-        }
-        #sidebar-toggle:hover {
-            background-color: var(--primary-accent);
-            color: var(--text-primary);
-            transform: rotate(180deg);
         }
 
         .sidebar-nav {
@@ -264,9 +217,11 @@
             list-style: none;
             padding: 0;
         }
+
         .nav-item {
             padding: 0 1.5rem;
         }
+
         .nav-link {
             display: flex;
             align-items: center;
@@ -279,6 +234,7 @@
             position: relative;
             overflow: hidden;
         }
+
         .nav-link i {
             font-size: 1.2rem;
             width: 20px;
@@ -306,7 +262,7 @@
         .nav-link.active::before {
             left: 0;
         }
-
+        
         .nav-link.active::after {
             content: '';
             position: absolute;
@@ -322,31 +278,6 @@
         .sidebar-footer {
             padding: 1rem 1.5rem;
             border-top: 1px solid var(--border-color);
-        }
-        
-        /* --- Свернутая левая панель --- */
-        .app-container.sidebar-collapsed {
-            grid-template-columns: 80px 1fr;
-        }
-        .app-container.sidebar-collapsed .sidebar-logo span,
-        .app-container.sidebar-collapsed .nav-link span {
-            display: none;
-        }
-        .app-container.sidebar-collapsed .sidebar-header {
-            justify-content: center;
-            padding: 0 0 1.5rem 0;
-        }
-        .app-container.sidebar-collapsed .sidebar-header .sidebar-logo {
-            font-size: 1.8rem;
-        }
-        .app-container.sidebar-collapsed #sidebar-toggle {
-            display: none; /* Скрываем кнопку, т.к. логотип становится триггером */
-        }
-        .app-container.sidebar-collapsed .nav-item {
-            padding: 0 0.5rem;
-        }
-        .app-container.sidebar-collapsed .nav-link {
-            justify-content: center;
         }
 
         /* --- Основной контент --- */
@@ -367,22 +298,200 @@
             align-items: center;
             color: var(--text-secondary);
         }
+
         .footer-links a {
             margin-right: 1.5rem;
         }
+
         .social-icons a {
             font-size: 1.2rem;
             margin-left: 1rem;
         }
 
-        /* ---------------------------------- */
-        /* 3. Стили страницы профиля     */
-        /* ---------------------------------- */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* --- Адаптивность и свернутая панель --- */
+        .app-container.sidebar-collapsed {
+            grid-template-columns: 80px 1fr;
+        }
+        .app-container.sidebar-collapsed .sidebar-logo span,
+        .app-container.sidebar-collapsed .nav-link span {
+            display: none;
+        }
+        .app-container.sidebar-collapsed .sidebar-header {
+            justify-content: center;
+            padding: 0 0 1.5rem 0;
+        }
+        .app-container.sidebar-collapsed .sidebar-header .sidebar-logo {
+            font-size: 1.8rem;
+        }
+        .app-container.sidebar-collapsed #sidebar-toggle {
+            display: none;
+        }
+        .app-container.sidebar-collapsed .nav-item {
+            padding: 0 0.5rem;
+        }
+        .app-container.sidebar-collapsed .nav-link {
+            justify-content: center;
         }
 
+        @media (max-width: 992px) {
+            .app-container {
+                grid-template-columns: 80px 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 70px 1fr auto;
+                grid-template-areas:
+                    "top-panel"
+                    "main"
+                    "footer";
+            }
+            .left-panel {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                height: 100%;
+                z-index: 1100;
+                width: 260px;
+                transition: left var(--transition-speed) ease;
+            }
+            .left-panel.open {
+                left: 0;
+            }
+            .left-panel .nav-link span, .left-panel .sidebar-logo span {
+                display: inline-block;
+            }
+            .hamburger-menu {
+                display: block;
+            }
+        }
+        
+        /* ====================================================
+        |  2. ГЛОБАЛЬНЫЕ КОМПОНЕНТЫ (из components.css)     |
+        ====================================================
+        */
+        
+        /* --- Карточки --- */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: 0 5px 25px var(--shadow-color);
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        /* --- Кнопки --- */
+        .btn {
+            padding: 12px 25px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-accent);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(112, 111, 211, 0.4);
+        }
+        
+        .icon-button {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            background: none;
+            border: none;
+            cursor: pointer;
+            position: relative;
+        }
+
+        #sidebar-toggle {
+            border: 1px solid var(--border-color);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            transition: all var(--transition-speed) ease;
+        }
+        
+        #sidebar-toggle:hover {
+            background-color: var(--primary-accent);
+            color: var(--text-primary);
+            transform: rotate(180deg);
+        }
+        
+        .notification-dot {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 8px;
+            height: 8px;
+            background-color: var(--success-color);
+            border-radius: 50%;
+            border: 2px solid var(--top-panel-bg);
+        }
+        
+        /* --- Элементы форм --- */
+        .search-bar {
+            position: relative;
+        }
+
+        .search-bar input {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 8px 15px 8px 40px;
+            color: var(--text-primary);
+            width: 300px;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--secondary-accent);
+            box-shadow: 0 0 15px rgba(112, 111, 211, 0.3);
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        /* --- Гамбургер-меню --- */
+        .hamburger-menu {
+            display: none;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        /* ====================================================
+        |  3. СТИЛИ СТРАНИЦЫ ПРОФИЛЯ (из profile.css)      |
+        ====================================================
+        */
+        
         .profile-section {
             animation: fadeIn 0.5s ease-out forwards;
         }
@@ -436,7 +545,6 @@
         .profile-details h1 {
             font-size: 2.5rem;
             font-weight: 800;
-            color: var(--text-primary);
         }
 
         .profile-details p {
@@ -449,26 +557,7 @@
             padding-bottom: 20px;
         }
         
-        .btn {
-            padding: 12px 25px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all var(--transition-speed) ease;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-accent);
-            color: #fff;
-        }
-        .btn-primary:hover {
-            background-color: var(--secondary-accent);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(112, 111, 211, 0.4);
-        }
-
-        /* --- Навигация по профилю --- */
+        /* --- Навигация и контент профиля --- */
         .profile-nav {
             display: flex;
             gap: 1rem;
@@ -498,44 +587,16 @@
             box-shadow: 0 2px 10px rgba(74, 71, 163, 0.5);
         }
         
-        /* --- Контент профиля --- */
         .profile-content {
             display: grid;
             grid-template-columns: 1fr 300px;
             gap: 2rem;
         }
-        
-        .main-column {
+
+        .main-column, .side-column {
             display: flex;
             flex-direction: column;
             gap: 2rem;
-        }
-
-        .side-column {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            padding: 1.5rem;
-            box-shadow: 0 5px 25px var(--shadow-color);
-            animation-delay: 0.3s;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .card-title {
-            font-size: 1.3rem;
-            font-weight: 600;
         }
 
         .tab-content {
@@ -547,42 +608,41 @@
             display: block;
         }
 
-        /* --- Стили для виджетов --- */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: 1rem;
         }
+
         .stat-item {
             text-align: center;
             background-color: var(--bg-color);
             padding: 1rem;
             border-radius: 10px;
         }
+
         .stat-item i {
             font-size: 2rem;
             color: var(--secondary-accent);
             margin-bottom: 0.5rem;
         }
+
         .stat-item .value {
             font-size: 1.5rem;
             font-weight: 700;
         }
+
         .stat-item .label {
             font-size: 0.9rem;
             color: var(--text-secondary);
         }
 
-        .bio p {
-            line-height: 1.6;
-            color: var(--text-secondary);
-        }
-        
         .achievements-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
             gap: 1.5rem;
         }
+
         .achievement-item {
             display: flex;
             flex-direction: column;
@@ -591,9 +651,11 @@
             cursor: pointer;
             transition: transform var(--transition-speed) ease;
         }
+        
         .achievement-item:hover {
             transform: scale(1.1);
         }
+
         .achievement-icon {
             width: 70px;
             height: 70px;
@@ -605,11 +667,13 @@
             background: var(--gold-gradient);
             box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
         }
+
         .achievement-icon i {
             font-size: 2.2rem;
             color: #fff;
             text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
         }
+
         .achievement-item span {
             font-size: 0.8rem;
             color: var(--text-secondary);
@@ -621,9 +685,11 @@
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
+
         .activity-feed .feed-item:last-child {
             margin-bottom: 0;
         }
+
         .feed-item .icon {
             width: 40px;
             height: 40px;
@@ -635,17 +701,17 @@
             align-items: center;
             justify-content: center;
         }
+
         .feed-item .content .text {
             margin-bottom: 0.25rem;
         }
+        
         .feed-item .content .timestamp {
             font-size: 0.85rem;
             color: var(--text-secondary);
         }
 
-        /* ---------------------------------- */
-        /* 5. Адаптивность           */
-        /* ---------------------------------- */
+        /* --- Адаптивность для контента профиля --- */
         @media (max-width: 1200px) {
             .profile-content {
                 grid-template-columns: 1fr;
@@ -653,29 +719,6 @@
         }
 
         @media (max-width: 992px) {
-            .app-container {
-                grid-template-columns: 80px 1fr;
-            }
-            .sidebar-logo span,
-            .nav-link span {
-                display: none;
-            }
-            .sidebar-header {
-                justify-content: center;
-                padding: 0 0 1.5rem 0;
-            }
-            .sidebar-header .sidebar-logo {
-                font-size: 1.8rem;
-            }
-            #sidebar-toggle {
-                display: none;
-            }
-            .nav-item {
-                padding: 0 0.5rem;
-            }
-            .nav-link {
-                justify-content: center;
-            }
             .top-panel .search-bar input {
                 width: 200px;
             }
@@ -685,50 +728,16 @@
                 text-align: center;
                 margin-top: -100px;
             }
-            .profile-details {
+            .profile-details, .profile-actions {
                 padding-bottom: 0;
             }
             .profile-actions {
-                padding-bottom: 0;
                 margin-top: 1rem;
             }
         }
-        
+
         @media (max-width: 768px) {
-            .app-container {
-                grid-template-columns: 1fr;
-                grid-template-rows: 70px 1fr auto;
-                grid-template-areas:
-                    "top-panel"
-                    "main"
-                    "footer";
-            }
-            .left-panel {
-                position: fixed;
-                left: -100%;
-                top: 0;
-                height: 100%;
-                z-index: 1100;
-                width: 260px;
-                transition: left var(--transition-speed) ease;
-            }
-            .left-panel.open {
-                left: 0;
-            }
-            .left-panel .nav-link span, .left-panel .sidebar-logo span {
-                display: inline-block;
-            }
-            /* Кнопка-гамбургер (появится, когда JS добавит класс mobile-view) */
-            .hamburger-menu {
-                display: none;
-                font-size: 1.5rem;
-                color: var(--text-primary);
-                cursor: pointer;
-            }
-            body.mobile-view .hamburger-menu {
-                display: block;
-            }
-            .main-content {
+             .main-content {
                 padding: 1rem;
             }
             .profile-nav {
@@ -736,7 +745,6 @@
                 justify-content: center;
             }
         }
-
     </style>
 </head>
 <body>
@@ -853,123 +861,41 @@
                 <div class="main-column">
                     <div id="overview" class="tab-content active">
                         <div class="card profile-section">
-                            <div class="card-header">
-                                <h2 class="card-title">Statistiky</h2>
-                            </div>
+                            <div class="card-header"><h2 class="card-title">Statistiky</h2></div>
                             <div class="stats-grid">
-                                <div class="stat-item">
-                                    <i class="fa-solid fa-star"></i>
-                                    <div class="value">12,580</div>
-                                    <div class="label">Bodů Zkušenosti</div>
-                                </div>
-                                <div class="stat-item">
-                                    <i class="fa-solid fa-trophy"></i>
-                                    <div class="value">24</div>
-                                    <div class="label">Ocenění</div>
-                                </div>
-                                <div class="stat-item">
-                                    <i class="fa-solid fa-book-open"></i>
-                                    <div class="value">112</div>
-                                    <div class="label">Dokončených Lekcí</div>
-                                </div>
-                                <div class="stat-item">
-                                    <i class="fa-solid fa-ranking-star"></i>
-                                    <div class="value">#1,421</div>
-                                    <div class="label">Celkové Pořadí</div>
-                                </div>
+                                <div class="stat-item"><i class="fa-solid fa-star"></i><div class="value">12,580</div><div class="label">Bodů Zkušenosti</div></div>
+                                <div class="stat-item"><i class="fa-solid fa-trophy"></i><div class="value">24</div><div class="label">Ocenění</div></div>
+                                <div class="stat-item"><i class="fa-solid fa-book-open"></i><div class="value">112</div><div class="label">Dokončených Lekcí</div></div>
+                                <div class="stat-item"><i class="fa-solid fa-ranking-star"></i><div class="value">#1,421</div><div class="label">Celkové Pořadí</div></div>
                             </div>
                         </div>
-
                         <div class="card profile-section">
-                            <div class="card-header">
-                                <h2 class="card-title">Týdenní pokrok</h2>
-                            </div>
+                            <div class="card-header"><h2 class="card-title">Týdenní pokrok</h2></div>
                             <canvas id="progressChart"></canvas>
                         </div>
                     </div>
-
                     <div id="activity" class="tab-content">
                         <div class="card profile-section">
-                             <div class="card-header">
-                                <h2 class="card-title">Nedávná aktivita</h2>
-                            </div>
-                            <div class="activity-feed">
-                                <div class="feed-item">
-                                    <div class="icon"><i class="fa-solid fa-check"></i></div>
-                                    <div class="content">
-                                        <div class="text">Dokončil/a test <strong>"Python základy"</strong> s výsledkem 95%.</div>
-                                        <div class="timestamp">před 2 hodinami</div>
-                                    </div>
-                                </div>
-                                <div class="feed-item">
-                                    <div class="icon"><i class="fa-solid fa-award"></i></div>
-                                    <div class="content">
-                                        <div class="text">Získal/a ocenění <strong>"Mistr cyklů"</strong>.</div>
-                                        <div class="timestamp">před 5 hodinami</div>
-                                    </div>
-                                </div>
-                                <div class="feed-item">
-                                    <div class="icon"><i class="fa-solid fa-user-group"></i></div>
-                                    <div class="content">
-                                        <div class="text">Začal/a sledovat uživatele <strong>Jane Doe</strong>.</div>
-                                        <div class="timestamp">včera</div>
-                                    </div>
-                                </div>
-                                <div class="feed-item">
-                                    <div class="icon"><i class="fa-solid fa-book-open-reader"></i></div>
-                                    <div class="content">
-                                        <div class="text">Dokončil/a kapitolu <strong>"Asynchronní JavaScript"</strong>.</div>
-                                        <div class="timestamp">před 2 dny</div>
-                                    </div>
-                                </div>
-                            </div>
+                             <div class="card-header"><h2 class="card-title">Nedávná aktivita</h2></div>
+                             <div class="activity-feed">
+                                <div class="feed-item"><div class="icon"><i class="fa-solid fa-check"></i></div><div class="content"><div class="text">Dokončil/a test <strong>"Python základy"</strong> s výsledkem 95%.</div><div class="timestamp">před 2 hodinami</div></div></div>
+                                <div class="feed-item"><div class="icon"><i class="fa-solid fa-award"></i></div><div class="content"><div class="text">Získal/a ocenění <strong>"Mistr cyklů"</strong>.</div><div class="timestamp">před 5 hodinami</div></div></div>
+                                <div class="feed-item"><div class="icon"><i class="fa-solid fa-user-group"></i></div><div class="content"><div class="text">Začal/a sledovat uživatele <strong>Jane Doe</strong>.</div><div class="timestamp">včera</div></div></div>
+                             </div>
                         </div>
                     </div>
-                    
-                    <div id="achievements" class="tab-content">
-                        <div class="card profile-section"><h2 class="card-title">Obsah pro Úspěchy</h2><p>Zde bude galerie úspěchů...</p></div>
-                    </div>
-                    <div id="friends" class="tab-content">
-                        <div class="card profile-section"><h2 class="card-title">Obsah pro Přátelé</h2><p>Zde bude seznam přátel...</p></div>
-                    </div>
-
+                    <div id="achievements" class="tab-content"><div class="card profile-section"><h2 class="card-title">Obsah pro Úspěchy</h2><p>Zde bude galerie úspěchů...</p></div></div>
+                    <div id="friends" class="tab-content"><div class="card profile-section"><h2 class="card-title">Obsah pro Přátelé</h2><p>Zde bude seznam přátel...</p></div></div>
                 </div>
                 <div class="side-column">
-                    <div class="card profile-section bio">
-                        <div class="card-header">
-                            <h2 class="card-title">O mně</h2>
-                        </div>
-                        <p>Vášnivý full-stack vývojář s láskou k Pythonu a JavaScriptu. Vždy se snažím učit nové technologie a sdílet své znalosti s komunitou.</p>
-                    </div>
+                    <div class="card profile-section bio"><div class="card-header"><h2 class="card-title">O mně</h2></div><p>Vášnivý full-stack vývojář s láskou k Pythonu a JavaScriptu.</p></div>
                     <div class="card profile-section">
-                        <div class="card-header">
-                            <h2 class="card-title">Nejlepší úspěchy</h2>
-                        </div>
+                        <div class="card-header"><h2 class="card-title">Nejlepší úspěchy</h2></div>
                         <div class="achievements-grid">
-                            <div class="achievement-item" title="První Kód">
-                                <div class="achievement-icon"><i class="fa-solid fa-code"></i></div>
-                                <span>První Kód</span>
-                            </div>
-                            <div class="achievement-item" title="Pythonista">
-                                <div class="achievement-icon"><i class="fa-brands fa-python"></i></div>
-                                <span>Pythonista</span>
-                            </div>
-                            <div class="achievement-item" title="Komunitní guru">
-                                <div class="achievement-icon"><i class="fa-solid fa-users"></i></div>
-                                <span>Guru</span>
-                            </div>
-                            <div class="achievement-item" title="Ranní ptáče">
-                                <div class="achievement-icon"><i class="fa-solid fa-sun"></i></div>
-                                <span>Ranní ptáče</span>
-                            </div>
-                            <div class="achievement-item" title="100 lekcí">
-                                <div class="achievement-icon"><i class="fa-solid fa-graduation-cap"></i></div>
-                                <span>100 Lekcí</span>
-                            </div>
-                             <div class="achievement-item" title="Nepřemožitelný">
-                                <div class="achievement-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                                <span>Nepřemožitelný</span>
-                            </div>
+                            <div class="achievement-item" title="První Kód"><div class="achievement-icon"><i class="fa-solid fa-code"></i></div><span>První Kód</span></div>
+                            <div class="achievement-item" title="Pythonista"><div class="achievement-icon"><i class="fa-brands fa-python"></i></div><span>Pythonista</span></div>
+                            <div class="achievement-item" title="Komunitní guru"><div class="achievement-icon"><i class="fa-solid fa-users"></i></div><span>Guru</span></div>
+                            <div class="achievement-item" title="Ranní ptáče"><div class="achievement-icon"><i class="fa-solid fa-sun"></i></div><span>Ranní ptáče</span></div>
                         </div>
                     </div>
                 </div>
@@ -978,12 +904,7 @@
         </main>
 
         <footer class="app-footer">
-            <div class="footer-links">
-                © 2025 EduPlatform. Všechna práva vyhrazena.
-                <a href="#">O nás</a>
-                <a href="#">Soukromí</a>
-                <a href="#">Kontakt</a>
-            </div>
+            <div class="footer-links">© 2025 EduPlatform. Všechna práva vyhrazena.</div>
             <div class="social-icons">
                 <a href="#"><i class="fab fa-twitter"></i></a>
                 <a href="#"><i class="fab fa-github"></i></a>
@@ -997,9 +918,9 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
 
-            // ----------------------------------
-            //    1. ЛОГИКА МАКЕТА (LAYOUT)
-            // ----------------------------------
+            // =======================================================
+            // | 1. ОБЩАЯ ЛОГИКА МАКЕТА (из layout.js / app.js)      |
+            // =======================================================
 
             const appContainer = document.getElementById('app-container');
             const sidebarToggle = document.getElementById('sidebar-toggle');
@@ -1023,21 +944,16 @@
                 });
             }
             
-            // Закрытие меню при клике вне его
             document.addEventListener('click', (e) => {
-                if (userMenuDropdown && !userMenuDropdown.contains(e.target) && !userMenuToggle.contains(e.target)) {
+                if (userMenuDropdown && userMenuDropdown.classList.contains('active') && !userMenuToggle.contains(e.target)) {
                     userMenuDropdown.classList.remove('active');
                 }
             });
             
-            // --- Логика для мобильных устройств ---
+            // --- Логика для мобильных устройств (гамбургер) ---
             const handleMobileView = () => {
                 if (window.innerWidth <= 768) {
-                    document.body.classList.add('mobile-view');
-                    appContainer.classList.add('sidebar-collapsed'); // Сворачиваем по умолчанию
-                } else {
-                    document.body.classList.remove('mobile-view');
-                    leftPanel.classList.remove('open');
+                    appContainer.classList.add('sidebar-collapsed');
                 }
             };
             
@@ -1048,50 +964,40 @@
             }
 
             window.addEventListener('resize', handleMobileView);
-            handleMobileView(); // Проверка при загрузке
+            handleMobileView();
 
+            // =========================================================
+            // | 2. СПЕЦИФИЧНАЯ ЛОГИКА ПРОФИЛЯ (из profile.js)         |
+            // =========================================================
 
-            // ----------------------------------
-            //   2. ЛОГИКА СТРАНИЦЫ ПРОФИЛЯ
-            // ----------------------------------
-
-            // --- Переключение вкладок ---
+            const mainContent = document.getElementById('main-content');
             const profileNav = document.getElementById('profile-nav');
             const tabContents = document.querySelectorAll('.tab-content');
-            
+            const bannerImg = document.getElementById('profile-banner-img');
+            const chartCanvas = document.getElementById('progressChart');
+
+            // --- Переключение вкладок ---
             if (profileNav) {
                 profileNav.addEventListener('click', (e) => {
-                    if (e.target.matches('.profile-nav-link')) {
-                        // Убираем active класс у всех кнопок
-                        profileNav.querySelectorAll('.profile-nav-link').forEach(link => {
-                            link.classList.remove('active');
-                        });
-                        // Добавляем active класс нажатой кнопке
-                        e.target.classList.add('active');
-                        
-                        const tabId = e.target.dataset.tab;
+                    const target = e.target.closest('.profile-nav-link');
+                    if (!target) return;
 
-                        // Скрываем все вкладки
-                        tabContents.forEach(content => {
-                            content.classList.remove('active');
-                        });
+                    profileNav.querySelector('.active').classList.remove('active');
+                    target.classList.add('active');
+                    
+                    const tabId = target.dataset.tab;
 
-                        // Показываем нужную вкладку
-                        const activeTab = document.getElementById(tabId);
-                        if (activeTab) {
-                            activeTab.classList.add('active');
-                        }
-                    }
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    document.getElementById(tabId)?.classList.add('active');
                 });
             }
             
-            // --- Инициализация графика (Chart.js) ---
-            const ctx = document.getElementById('progressChart');
-            if (ctx) {
-                new Chart(ctx, {
+            // --- Инициализация графика Chart.js ---
+            if (chartCanvas) {
+                new Chart(chartCanvas, {
                     type: 'line',
                     data: {
-                        labels: ['Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota', 'Neděle'],
+                        labels: ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'],
                         datasets: [{
                             label: 'Získané body',
                             data: [120, 190, 150, 250, 220, 300, 280],
@@ -1099,53 +1005,22 @@
                             backgroundColor: 'rgba(112, 111, 211, 0.2)',
                             fill: true,
                             tension: 0.4,
-                            pointBackgroundColor: '#fff',
-                            pointBorderColor: 'rgba(112, 111, 211, 1)',
-                            pointHoverRadius: 7,
                         }]
                     },
                     options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: {
-                                    color: 'rgba(255, 255, 255, 0.1)'
-                                },
-                                ticks: {
-                                    color: 'rgba(255, 255, 255, 0.7)'
-                                }
-                            },
-                            x: {
-                                grid: {
-                                    display: false
-                                },
-                                ticks: {
-                                    color: 'rgba(255, 255, 255, 0.7)'
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        }
+                        responsive: true, maintainAspectRatio: false,
+                        scales: { y: { grid: { color: 'rgba(255, 255, 255, 0.1)' }, ticks: { color: 'rgba(255, 255, 255, 0.7)' } }, x: { grid: { display: false }, ticks: { color: 'rgba(255, 255, 255, 0.7)' } } },
+                        plugins: { legend: { display: false } }
                     }
                 });
             }
 
-            // --- "Фантастический" эффект параллакса для баннера ---
-            const mainContent = document.getElementById('main-content');
-            const bannerImg = document.getElementById('profile-banner-img');
-
+            // --- Эффект параллакса для баннера ---
             if (mainContent && bannerImg) {
                 mainContent.addEventListener('scroll', () => {
-                    const scrollPos = mainContent.scrollTop;
-                    bannerImg.style.transform = `translateY(${scrollPos * 0.4}px)`;
+                    bannerImg.style.transform = `translateY(${mainContent.scrollTop * 0.4}px)`;
                 });
             }
-
         });
     </script>
 </body>
